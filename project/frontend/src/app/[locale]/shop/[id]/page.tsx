@@ -198,7 +198,7 @@ export async function generateMetadata({
 }: {
   params: Promise<{ id: string; locale: string }>
 }): Promise<Metadata> {
-  const { id } = await params
+  const { id, locale } = await params
   const product = getProduct(id)
 
   if (!product) {
@@ -213,14 +213,29 @@ export async function generateMetadata({
   const description = product.description || product.longDescription || `Buy ${product.title} at POD AI Store`
   const images = product.images && product.images.length > 0 ? [product.images[0]] : []
 
+  // Base URL for the product (without locale prefix)
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+  const productPath = `/shop/${id}`
+
   return {
     title,
     description,
+    alternates: {
+      canonical: `${baseUrl}/${locale}${productPath}`,
+      languages: {
+        'en': `${baseUrl}/en${productPath}`,
+        'es': `${baseUrl}/es${productPath}`,
+        'de': `${baseUrl}/de${productPath}`,
+        'x-default': `${baseUrl}/en${productPath}`,
+      },
+    },
     openGraph: {
       title,
       description,
       images,
       type: 'website',
+      locale: locale,
+      alternateLocale: ['en', 'es', 'de'].filter(l => l !== locale),
     },
     twitter: {
       card: 'summary_large_image',
