@@ -160,9 +160,64 @@ mockProducts['00000000-0000-0000-0000-000000000001'] = mockProducts['1']
 mockProducts['00000000-0000-0000-0000-000000000002'] = mockProducts['2']
 mockProducts['00000000-0000-0000-0000-000000000003'] = mockProducts['3']
 
+// Mock reviews data
+const mockReviews: Record<string, any[]> = {
+  '1': [
+    {
+      id: 'rev-1',
+      author: 'Sarah Johnson',
+      rating: 5,
+      date: '2024-02-10',
+      verified: true,
+      comment: 'Absolutely love this t-shirt! The fabric is so soft and the fit is perfect. I ordered two more in different colors.',
+    },
+    {
+      id: 'rev-2',
+      author: 'Mike Chen',
+      rating: 4,
+      date: '2024-02-08',
+      verified: true,
+      comment: 'Great quality shirt. Runs slightly large, so I recommend sizing down if you want a fitted look.',
+    },
+    {
+      id: 'rev-3',
+      author: 'Emily Rodriguez',
+      rating: 5,
+      date: '2024-02-05',
+      verified: true,
+      comment: 'Best t-shirt I\'ve bought in years. The color stays vibrant after multiple washes. Highly recommend!',
+    },
+  ],
+  '2': [
+    {
+      id: 'rev-4',
+      author: 'David Kim',
+      rating: 5,
+      date: '2024-02-12',
+      verified: true,
+      comment: 'This hoodie is incredibly comfortable and warm. Perfect for cold days. The quality is outstanding!',
+    },
+    {
+      id: 'rev-5',
+      author: 'Lisa Anderson',
+      rating: 5,
+      date: '2024-02-09',
+      verified: true,
+      comment: 'Love the fit and the softness of the interior lining. It\'s become my go-to hoodie.',
+    },
+  ],
+}
+
 // Get product data (server-side)
 function getProduct(id: string) {
   return mockProducts[id] || null
+}
+
+// Get product reviews
+function getProductReviews(id: string) {
+  // Normalize ID (handle both '1' and UUID formats)
+  const normalizedId = id.startsWith('00000000-') ? id.slice(-1) : id
+  return mockReviews[normalizedId] || []
 }
 
 // Get related products
@@ -254,6 +309,7 @@ export default async function ProductDetailPage({
   const { id, locale } = await params
   const product = getProduct(id)
   const relatedProducts = getRelatedProducts(product)
+  const reviews = getProductReviews(id)
 
   // Generate JSON-LD structured data for SEO
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
@@ -290,7 +346,7 @@ export default async function ProductDetailPage({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       )}
-      <ProductDetailClient product={product} relatedProducts={relatedProducts} />
+      <ProductDetailClient product={product} relatedProducts={relatedProducts} reviews={reviews} />
     </>
   )
 }

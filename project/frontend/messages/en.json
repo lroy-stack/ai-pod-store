@@ -68,7 +68,10 @@
       "title": "Size Guide",
       "description": "Use this size guide to find your perfect fit. All measurements are approximate.",
       "note": "Measurements may vary slightly by product. When in doubt, size up for a looser fit."
-    }
+    },
+    "outOf": "out of",
+    "showingReviews": "Showing {count} of {total} reviews",
+    "verifiedPurchase": "Verified Purchase"
   },
   "Auth": {
     "loginTitle": "Sign in to your account",

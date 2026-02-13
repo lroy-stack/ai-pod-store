@@ -68,7 +68,10 @@
       "title": "Guía de Tallas",
       "description": "Usa esta guía de tallas para encontrar tu ajuste perfecto. Todas las medidas son aproximadas.",
       "note": "Las medidas pueden variar ligeramente según el producto. En caso de duda, elige una talla más grande para un ajuste más holgado."
-    }
+    },
+    "outOf": "de",
+    "showingReviews": "Mostrando {count} de {total} reseñas",
+    "verifiedPurchase": "Compra Verificada"
   },
   "Auth": {
     "loginTitle": "Iniciar sesión en tu cuenta",

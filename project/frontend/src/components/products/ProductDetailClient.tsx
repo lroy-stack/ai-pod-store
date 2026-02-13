@@ -34,9 +34,10 @@ import { SizeGuide } from '@/components/products/SizeGuide'
 interface ProductDetailClientProps {
   product: any
   relatedProducts: any[]
+  reviews: any[]
 }
 
-export function ProductDetailClient({ product, relatedProducts }: ProductDetailClientProps) {
+export function ProductDetailClient({ product, relatedProducts, reviews }: ProductDetailClientProps) {
   const router = useRouter()
   const t = useTranslations('product')
   const tNav = useTranslations('navigation')
@@ -333,9 +334,17 @@ export function ProductDetailClient({ product, relatedProducts }: ProductDetailC
       <Separator className="my-12" />
 
       <div className="max-w-4xl">
-        <h2 className="text-2xl font-bold mb-6">{t('reviews')}</h2>
+        <div className="flex items-baseline justify-between mb-6">
+          <h2 className="text-2xl font-bold">{t('reviews')}</h2>
+          <div className="flex items-center gap-4">
+            {renderStars(product.rating)}
+            <span className="text-sm text-muted-foreground">
+              {product.rating.toFixed(1)} {t('outOf')} 5
+            </span>
+          </div>
+        </div>
 
-        {product.reviewCount === 0 ? (
+        {product.reviewCount === 0 || reviews.length === 0 ? (
           <Card>
             <CardContent className="py-12 text-center">
               <p className="text-muted-foreground mb-2">{t('noReviews')}</p>
@@ -344,13 +353,36 @@ export function ProductDetailClient({ product, relatedProducts }: ProductDetailC
           </Card>
         ) : (
           <div className="space-y-4">
-            <Card>
-              <CardContent className="py-6">
-                <p className="text-muted-foreground">
-                  {t('reviewsCount', { count: product.reviewCount })}
-                </p>
-              </CardContent>
-            </Card>
+            <p className="text-sm text-muted-foreground mb-4">
+              {t('showingReviews', { count: reviews.length, total: product.reviewCount })}
+            </p>
+            {reviews.map((review) => (
+              <Card key={review.id}>
+                <CardContent className="pt-6">
+                  <div className="flex items-start justify-between mb-3">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <p className="font-semibold">{review.author}</p>
+                        {review.verified && (
+                          <Badge variant="outline" className="text-xs">
+                            {t('verifiedPurchase')}
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        {new Date(review.date).toLocaleDateString(locale, {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                        })}
+                      </p>
+                    </div>
+                    {renderStars(review.rating)}
+                  </div>
+                  <p className="text-muted-foreground leading-relaxed">{review.comment}</p>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         )}
       </div>

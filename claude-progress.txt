@@ -1569,3 +1569,100 @@ Screenshot evidence:
 - Responsive grid: mobile-first with sm:/md:/lg: breakpoints
 - All components use semantic color tokens (text-muted-foreground, hover:text-foreground)
 - ProductCard component reused for consistency across shop and related products
+
+---
+
+## Session 21 (Coding Agent) — 2026-02-13
+
+### Regression Checks:
+✅ Feature #69 (Pagination) — still passing, verified page 2 navigation works
+✅ Feature #72 (Add to Cart) — still passing, verified button and cart functionality
+- Verified shop page loads correctly with product grid
+- No regressions detected
+
+### Feature Implemented:
+
+**Feature #80: Size guide renders for each product type** ✅
+
+Implementation:
+1. Created SizeGuide component (`src/components/products/SizeGuide.tsx`):
+   - Used shadcn/ui Dialog component for modal display
+   - Used shadcn/ui Table component for size chart layout
+   - Installed table component: `npx shadcn add table`
+   - Added size guide data for different product types:
+     * T-shirt: Size, Chest, Length, Shoulder (S-XXL)
+     * Hoodie: Size, Chest, Length, Shoulder, Sleeve (S-XL)
+     * Sweatpants: Size, Waist, Hip, Inseam (S-XL)
+     * Tank: Size, Chest, Length, Shoulder (S-XL)
+   - Ruler icon from lucide-react
+   - Normalizes product type to match size guide keys
+   - Defaults to t-shirt guide for unknown apparel types
+
+2. Integrated into ProductDetailClient:
+   - Added SizeGuide button next to Size label
+   - Only shows for products in "apparel" category
+   - Positioned with flex justify-between layout
+   - Button styled as link variant with text-primary color
+   - Passes product title as productType prop
+
+3. Added i18n translations in all 3 locales:
+   - `product.sizeGuide.title`: "Size Guide" / "Guía de Tallas" / "Größentabelle"
+   - `product.sizeGuide.description`: Instructions for using the guide
+   - `product.sizeGuide.note`: Helpful note about measurements and sizing
+
+4. Component features:
+   - Opens in responsive dialog (max-w-2xl)
+   - Table with column headers and measurement rows
+   - Overflow-x-auto for mobile responsiveness
+   - Muted text color for note section
+   - Close button with Escape key support
+
+Verification (via Playwright MCP):
+✅ Navigate to Classic T-Shirt page (/en/shop/1)
+✅ Size Guide button visible next to Size label (blue link)
+✅ Click Size Guide button opens dialog
+✅ Dialog displays "Size Guide" title
+✅ Description text shown: "Use this size guide to find your perfect fit..."
+✅ Table shows Size, Chest, Length, Shoulder columns
+✅ All 5 sizes (S, M, L, XL, XXL) with measurements displayed
+✅ Note text at bottom: "Measurements may vary slightly..."
+✅ Navigate to Hoodie page (/es/shop/2) in Spanish
+✅ Size Guide button shows "Guía de Tallas" (Spanish translation)
+✅ Dialog title: "Guía de Tallas" ✓
+✅ Dialog description in Spanish ✓
+✅ Hoodie size guide shows extra "Sleeve" column (4 sizes: S-XL)
+✅ Navigate to Mug page (/en/shop/3) - category: "home"
+✅ NO Size Guide button shown (only Color and Quantity selectors)
+✅ Size guide correctly only appears for apparel products
+
+Screenshot evidence:
+- size-guide-button-visible.png: Blue "Size Guide" link next to Size label
+- size-guide-dialog-open.png: Full size guide modal with measurements table
+- size-guide-spanish.png: Spanish translation "Guía de Tallas"
+
+### Commits:
+1. `0a031c9` - feat: add size guide dialog for apparel products — test #80 passing
+
+### Progress:
+- **Features passing: 80/353 (22.7%)**
+- **Features this session: +1 (ID 80)**
+- **Next target: ID 81 [Product Catalog] — Product sharing works (social share buttons)**
+
+### Session Summary:
+- Duration: ~25 minutes
+- Regression checks: 2 features verified (pagination, add to cart)
+- New feature: Size guide dialog with i18n support and apparel-only display
+- TypeScript compilation: ✅ PASSING (0 errors)
+- Clean commit with descriptive message
+- No regressions introduced
+
+### Technical Notes:
+- Used shadcn/ui Dialog and Table components for consistent design system
+- Size guide data stored in component (will move to database in production)
+- Product type normalization handles variations in product titles
+- Conditional rendering based on product.category === 'apparel'
+- Different size guides for different apparel types (hoodie has sleeve measurement)
+- Dialog is fully responsive with overflow handling for mobile
+- All text uses semantic color tokens (text-primary, text-muted-foreground)
+- i18n fully implemented across all 3 locales (EN, ES, DE)
+- Non-apparel products (mugs, posters, accessories) correctly don't show size guide

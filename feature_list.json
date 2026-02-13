@@ -883,7 +883,7 @@
     "id": 81,
     "feature": "Product Catalog",
     "description": "Product reviews section renders",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to a product that has reviews",
       "Verify the average rating is displayed prominently",
