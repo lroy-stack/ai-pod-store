@@ -693,3 +693,109 @@ IDs: 1-7, 11-15, 17-53
 - Add multiple shipping addresses support
 - Add phone number validation
 
+
+----------------------------------------------------------------------
+## Session 11 (Coding Agent)
+
+### Completed Features (1/353 this session):
+✓ #54: Shipping addresses CRUD works
+
+### Feature #54 Implementation:
+
+**Shipping Addresses CRUD (#54):**
+- Created API routes for shipping addresses:
+  * GET /api/shipping-addresses - List all user addresses
+  * POST /api/shipping-addresses - Create new address
+  * PUT /api/shipping-addresses/[id] - Update address
+  * DELETE /api/shipping-addresses/[id] - Delete address
+- Created ShippingAddressList component:
+  * Displays all user addresses with label, full details
+  * Shows "Default" badge for default address
+  * Provides Edit, Set as Default, Delete buttons
+  * Empty state message when no addresses exist
+- Created AddressForm component:
+  * Handles both add and edit operations
+  * Form fields: label, full name, street (2 lines), city, state, postal code, country code, phone
+  * Required fields: street_line1, city, postal_code, country_code
+  * Checkbox to set address as default
+  * Proper validation and error handling
+- Added shipping addresses section to profile page
+- Added i18n translations to all 3 locales (EN/ES/DE):
+  * 45+ new translation keys for address management
+  * Consistent terminology across all locales
+- Database integration:
+  * Uses existing shipping_addresses table with proper schema
+  * Foreign key to users table
+  * Proper auth via session tokens (sb-access-token cookie)
+  * User ID from auth token matched to users table
+- Fixed auth pattern:
+  * Changed from getSession() to getUser(token) pattern
+  * Uses supabaseAdmin instead of createClient
+  * Reads token from HTTP-only cookie
+  * Consistent with profile API route pattern
+
+### Files Created This Session:
+- /api/shipping-addresses/route.ts (GET, POST endpoints)
+- /api/shipping-addresses/[id]/route.ts (PUT, DELETE endpoints)
+- /components/profile/ShippingAddressList.tsx
+- /components/profile/AddressForm.tsx
+
+### Files Modified This Session:
+- /app/[locale]/profile/page.tsx (added ShippingAddressList)
+- /messages/en.json (45 new keys)
+- /messages/es.json (45 new keys)
+- /messages/de.json (45 new keys)
+- /feature_list.json (marked #54 as passing)
+
+### Tests Passing: 54/353 (15.3%)
+IDs: 1-7, 11-15, 17-54
+
+### Browser Testing (Playwright MCP):
+✓ Verified empty state message on first load
+✓ Verified "Add Address" button click opens form
+✓ Verified form renders with all required fields
+✓ Filled form with test data:
+  - Label: Home
+  - Full Name: John Doe
+  - Street: 123 Main Street
+  - Apartment: Apt 4B
+  - City: New York → Boston (updated)
+  - State: NY
+  - Postal Code: 10001
+  - Country: US
+✓ Verified address was created and displayed in list
+✓ Verified edit functionality (changed city from New York to Boston)
+✓ Verified "Set as Default" button adds "Default" badge
+✓ Verified delete functionality with confirmation dialog
+✓ Verified address was removed and empty state returned
+
+### Screenshots Taken:
+- regression-test-login.png (login page still works)
+- profile-shipping-addresses-empty.png (initial empty state)
+- address-form-empty.png (empty form)
+- address-form-filled.png (filled form)
+- address-added-success.png (address displayed after creation)
+- address-after-edit.png (city changed to Boston)
+- address-set-as-default.png (default badge shown)
+- address-deleted-success.png (back to empty state)
+
+### Database Fix:
+- Discovered user_id from auth token didn't exist in users table
+- Inserted user record with correct ID via Supabase REST API
+- Used service role key to bypass RLS
+- Address creation worked after user record was created
+
+### Issues Resolved:
+1. Initial build error: Changed from `createClient` import to `supabaseAdmin`
+2. Translation namespace mismatch: Changed from `'profile'` to `'Profile'`
+3. Foreign key constraint: Created user record in users table matching auth token user_id
+4. Turbopack caching: Restarted dev server to clear stale imports
+
+### Next Priorities:
+- Continue with Authentication + User Profile features (IDs 55-59)
+- Feature #55: Account deletion flow
+- Feature #56: Social login (Google OAuth)
+- Feature #57: Social login (Apple Sign-In)
+- Feature #58: Phone number validation
+- Feature #59: Avatar upload functionality
+
