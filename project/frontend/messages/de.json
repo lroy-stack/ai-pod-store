@@ -62,6 +62,8 @@
     "registering": "Konto wird erstellt...",
     "registeringButton": "Konto wird erstellt...",
     "passwordMismatch": "Passwörter stimmen nicht überein",
-    "termsRequired": "Sie müssen den Nutzungsbedingungen und der Datenschutzerklärung zustimmen"
+    "termsRequired": "Sie müssen den Nutzungsbedingungen und der Datenschutzerklärung zustimmen",
+    "loggingIn": "Anmelden...",
+    "pleaseLogin": "Bitte melden Sie sich an, um fortzufahren."
   }
 }

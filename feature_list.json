@@ -443,7 +443,7 @@
     "id": 41,
     "feature": "Authentication + User Profile",
     "description": "User can log in with email/password",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Fill in login form with a registered user's email and password",
       "Submit the login form",
