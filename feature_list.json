@@ -575,7 +575,7 @@
     "id": 53,
     "feature": "Authentication + User Profile",
     "description": "Notification preferences toggle works",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to the profile page",
       "Toggle email notifications off and save",

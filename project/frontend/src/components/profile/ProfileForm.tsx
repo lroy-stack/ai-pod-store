@@ -40,6 +40,11 @@ export function ProfileForm({ locale }: ProfileFormProps) {
     phone: '',
     locale: locale || 'en',
     currency: 'USD',
+    notification_preferences: {
+      email: true,
+      push: true,
+      sms: false,
+    },
   });
 
   // Fetch user profile on mount
@@ -67,6 +72,11 @@ export function ProfileForm({ locale }: ProfileFormProps) {
           phone: data.profile.phone || '',
           locale: data.profile.locale || locale,
           currency: data.profile.currency || 'USD',
+          notification_preferences: data.profile.notification_preferences || {
+            email: true,
+            push: true,
+            sms: false,
+          },
         });
       } catch (err) {
         console.error('Error fetching profile:', err);
@@ -249,6 +259,80 @@ export function ProfileForm({ locale }: ProfileFormProps) {
             <option value="USD">USD ($)</option>
             <option value="EUR">EUR (€)</option>
           </select>
+        </div>
+
+        {/* Notification Preferences */}
+        <div className="pt-4 border-t border-border">
+          <h3 className="text-sm font-medium text-foreground mb-3">
+            {t('notificationPreferences')}
+          </h3>
+          <div className="space-y-3">
+            {/* Email Notifications */}
+            <div className="flex items-center justify-between">
+              <label htmlFor="email-notifications" className="text-sm text-foreground">
+                {t('emailNotifications')}
+              </label>
+              <input
+                type="checkbox"
+                id="email-notifications"
+                checked={formData.notification_preferences.email}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    notification_preferences: {
+                      ...formData.notification_preferences,
+                      email: e.target.checked,
+                    },
+                  })
+                }
+                className="w-4 h-4 border-border rounded focus:ring-2 focus:ring-ring focus:ring-offset-2"
+              />
+            </div>
+
+            {/* Push Notifications */}
+            <div className="flex items-center justify-between">
+              <label htmlFor="push-notifications" className="text-sm text-foreground">
+                {t('pushNotifications')}
+              </label>
+              <input
+                type="checkbox"
+                id="push-notifications"
+                checked={formData.notification_preferences.push}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    notification_preferences: {
+                      ...formData.notification_preferences,
+                      push: e.target.checked,
+                    },
+                  })
+                }
+                className="w-4 h-4 border-border rounded focus:ring-2 focus:ring-ring focus:ring-offset-2"
+              />
+            </div>
+
+            {/* SMS Notifications */}
+            <div className="flex items-center justify-between">
+              <label htmlFor="sms-notifications" className="text-sm text-foreground">
+                {t('smsNotifications')}
+              </label>
+              <input
+                type="checkbox"
+                id="sms-notifications"
+                checked={formData.notification_preferences.sms}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    notification_preferences: {
+                      ...formData.notification_preferences,
+                      sms: e.target.checked,
+                    },
+                  })
+                }
+                className="w-4 h-4 border-border rounded focus:ring-2 focus:ring-ring focus:ring-offset-2"
+              />
+            </div>
+          </div>
         </div>
       </div>
 

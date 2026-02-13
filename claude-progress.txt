@@ -578,3 +578,66 @@ IDs: 1-7, 11-15, 17-43, 44-50, 51
 - Implement multiple shipping addresses
 - Add notification preferences
 
+
+----------------------------------------------------------------------
+## Session 10 (Coding Agent) - 2026-02-13
+
+### Completed Features (1/353 in Authentication + User Profile):
+✓ #52: Profile CRUD works
+
+### Implementation Details:
+
+**Profile CRUD (#52):**
+- Fixed critical bug: CHAR fields in PostgreSQL are space-padded
+- Problem: locale CHAR(5) stores "en" as "en   " (3 trailing spaces)
+- This caused malformed redirects: /en/profile → /en/en   /profile
+- Solution 1: Added trim() to locale/currency comparison in ProfileForm
+- Solution 2: Created migration to convert CHAR → VARCHAR for locale/currency
+- Updated ProfileForm.tsx redirect logic:
+  * Import usePathname from next/navigation
+  * Compare trimmed locale values before redirecting
+  * Only redirect if locale actually changed
+  * Use simple router.push(`/${newLocale}/profile`)
+- Tested all three required steps via Playwright MCP:
+  ✓ Name update: "Test Name Change 123" persisted
+  ✓ Locale switch: /en/profile → /es/profile, full UI translation
+  ✓ Currency update: USD → EUR persisted
+- All changes verified after page refresh
+
+### Files Modified This Session:
+- /components/profile/ProfileForm.tsx (fixed redirect bug, added trim())
+- /feature_list.json (marked #52 as passing)
+
+### Files Created This Session:
+- /supabase/migrations/20260213190000_fix_char_to_varchar.sql (CHAR → VARCHAR)
+- /frontend/src/scripts/run-migration.ts (migration runner helper)
+
+### Database Schema Fix:
+- Migration converts locale CHAR(5) → VARCHAR(5)
+- Migration converts currency CHAR(3) → VARCHAR(3)
+- Trims existing data before conversion
+- Prevents future space-padding issues
+
+### Tests Passing: 52/353 (14.7%)
+IDs: 1-7, 11-15, 17-52
+
+### Browser Testing:
+- Used Playwright MCP for full E2E testing
+- Verified name field updates and persists
+- Verified locale switch from EN to ES (full UI translation)
+- Verified currency switch from USD to EUR
+- Verified all changes persist after page refresh
+- Screenshots taken: profile-spanish-locale.png (Spanish UI)
+
+### Bugs Fixed:
+- CHAR field space-padding causing malformed locale redirects
+- Redirect logic now compares trimmed values
+- Only redirects when locale actually changes (not on every save)
+
+### Next Priorities:
+- Continue with Authentication + User Profile features (IDs 53-59)
+- Implement notification preferences toggle (ID 53)
+- Add avatar upload functionality
+- Implement multiple shipping addresses
+- Add user settings and preferences
+
