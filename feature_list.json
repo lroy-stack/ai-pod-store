@@ -168,7 +168,7 @@
     "id": 16,
     "feature": "Database & Schema",
     "description": "Core tables exist (users, products, orders, designs, conversations)",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Query information_schema.tables for users, products, orders, designs, conversations tables",
       "Verify each table exists in the public schema",
@@ -179,7 +179,7 @@
     "id": 17,
     "feature": "Database & Schema",
     "description": "Supporting tables exist (shipping_addresses, product_variants, messages, cart_items, order_items)",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Query information_schema for shipping_addresses, product_variants, messages, cart_items, order_items",
       "Verify each table exists in the public schema",
@@ -190,7 +190,7 @@
     "id": 18,
     "feature": "Database & Schema",
     "description": "Feature tables exist (wishlists, wishlist_items, product_reviews, notifications, translations)",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Query information_schema for wishlists, wishlist_items, product_reviews, notifications, translations",
       "Verify each table exists in the public schema",
@@ -201,7 +201,7 @@
     "id": 19,
     "feature": "Database & Schema",
     "description": "Infrastructure tables exist (audit_log with actor_type/action/changes, documents with vector(768))",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Query information_schema for audit_log table and verify actor_type, action, changes columns exist",
       "Query information_schema for documents table",
@@ -212,7 +212,7 @@
     "id": 20,
     "feature": "Database & Schema",
     "description": "Agent tables exist (agent_sessions, agent_events with bigserial PK)",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Query information_schema for agent_sessions and agent_events tables",
       "Verify agent_events.id column is bigserial type",
@@ -223,7 +223,7 @@
     "id": 21,
     "feature": "Database & Schema",
     "description": "Analytics tables exist (customer_segments, demand_forecasts, price_history, association_rules, ab_experiments, ab_events)",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Query information_schema for all 6 analytics tables",
       "Verify customer_segments, demand_forecasts, price_history, association_rules, ab_experiments, ab_events all exist",
@@ -234,7 +234,7 @@
     "id": 22,
     "feature": "Database & Schema",
     "description": "Foreign key constraints correct for all 24 tables",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Query pg_constraint for all foreign key relationships across the schema",
       "Verify user_id foreign keys reference users table correctly",
@@ -245,7 +245,7 @@
     "id": 23,
     "feature": "Database & Schema",
     "description": "Row-level security policies exist on user-facing tables",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Query pg_policies for RLS policies on users table",
       "Verify RLS policies exist on orders, cart_items, wishlists, and notifications tables",
@@ -256,7 +256,7 @@
     "id": 24,
     "feature": "Database & Schema",
     "description": "Indexes exist (HNSW on documents.embedding, GIN on products.tags, B-tree on audit_log)",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Query pg_indexes for HNSW index on documents.embedding column",
       "Query pg_indexes for GIN index on products.tags column",

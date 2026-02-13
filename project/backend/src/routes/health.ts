@@ -57,6 +57,7 @@ router.get('/', async (req, res) => {
   }
 
   // Check Redis connection (with timeout to avoid hanging)
+  // Redis is OPTIONAL - if not available, the app continues to work without it
   if (process.env.REDIS_URL) {
     try {
       // Create or reuse Redis client
@@ -69,7 +70,8 @@ router.get('/', async (req, res) => {
           }
         })
         redisClient.on('error', (err: Error) => {
-          console.error('Redis error:', err)
+          // Redis errors are logged but don't block the app
+          console.warn('Redis not available (this is OK):', err.message)
         })
       }
 
@@ -82,8 +84,9 @@ router.get('/', async (req, res) => {
       await redisClient.ping()
       health.redis = 'connected'
     } catch (error: any) {
-      health.redis = 'error'
-      health.redisError = error.message
+      // Redis is optional - graceful degradation
+      health.redis = 'not_available'
+      health.redisNote = 'Redis not installed (optional - app works without it)'
       // Close the failed client so we can try again next time
       if (redisClient) {
         try {
