@@ -31,7 +31,7 @@ import {
 import { ProductCard } from '@/components/products/ProductCard'
 
 // Mock product data - will be replaced with API call
-const mockProducts = {
+const mockProducts: Record<string, any> = {
   '1': {
     id: '00000000-0000-0000-0000-000000000001',
     title: 'Classic T-Shirt',
@@ -323,7 +323,7 @@ export default function ProductDetailPage() {
           {/* Thumbnail Gallery */}
           {product.images.length > 1 && (
             <div className="grid grid-cols-4 gap-4">
-              {product.images.map((image, index) => (
+              {product.images.map((image: string, index: number) => (
                 <button
                   key={index}
                   onClick={() => setSelectedImage(index)}
