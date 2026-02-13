@@ -63,7 +63,12 @@
     "price": "Precio",
     "notFound": "Producto No Encontrado",
     "notFoundDescription": "El producto que buscas no existe o ha sido eliminado.",
-    "backToShop": "Volver a la Tienda"
+    "backToShop": "Volver a la Tienda",
+    "sizeGuide": {
+      "title": "Guía de Tallas",
+      "description": "Usa esta guía de tallas para encontrar tu ajuste perfecto. Todas las medidas son aproximadas.",
+      "note": "Las medidas pueden variar ligeramente según el producto. En caso de duda, elige una talla más grande para un ajuste más holgado."
+    }
   },
   "Auth": {
     "loginTitle": "Iniciar sesión en tu cuenta",

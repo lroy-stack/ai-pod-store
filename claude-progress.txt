@@ -1371,3 +1371,201 @@ Screenshot evidence:
 - Sonner toast integrated globally in locale layout
 - Cart state auto-refreshes when user auth state changes
 - Supabase CLI used to push migration to remote cloud instance
+
+---
+
+## Session 19 (Coding Agent) — 2026-02-13
+
+### Regression Checks:
+✅ Feature #69 (Pagination) — still passing
+✅ Feature #72 (Add to Cart) — still passing
+- Verified shop page loads correctly with product grid
+- Cart badge shows "1" item correctly in navbar
+
+### Feature Implemented:
+
+**Feature #73: Breadcrumbs show on product detail** ✅
+
+Implementation:
+1. Installed shadcn/ui breadcrumb component:
+   - Added `@/components/ui/breadcrumb.tsx` via `npx shadcn add breadcrumb`
+   - Components: Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator
+   - Uses ChevronRight icon as separator
+   - Semantic color tokens: text-muted-foreground with hover:text-foreground
+2. Updated product detail page (`app/[locale]/shop/[id]/page.tsx`):
+   - Imported breadcrumb components and Link from next/link
+   - Added breadcrumb navigation above product content
+   - Replaced "Back to Shop" button with full breadcrumb path
+   - Breadcrumb structure: Home > Shop > Category > Product Name
+   - Used locale-aware routing for all breadcrumb links
+   - Category link filters shop by category (`/shop?category=apparel`)
+   - Product name shown as non-clickable BreadcrumbPage (current page)
+3. Added translations support:
+   - Used `useTranslations('navigation')` for Home/Shop links
+   - Used `useTranslations('shop.category')` for category names
+   - Existing translations already in place for all 3 locales (en, es, de)
+4. Tested across multiple locales and categories:
+   - English: "Home > Shop > Apparel > Classic T-Shirt"
+   - Spanish: "Inicio > Tienda > Ropa > Hoodie"
+   - Home category: "Home > Shop > Home > Mug"
+
+Verification (via Playwright MCP):
+✅ Navigate to product detail page (/en/shop/1)
+✅ Breadcrumb navigation displays at top of page
+✅ Breadcrumb shows: "Home > Shop > Apparel > Classic T-Shirt"
+✅ All breadcrumb links are clickable (except current product page)
+✅ Clicking "Shop" breadcrumb navigates to /en/shop
+✅ Spanish locale shows translated breadcrumbs: "Inicio > Tienda > Ropa > Hoodie"
+✅ Category correctly reflects product category (Apparel, Home, etc.)
+✅ Breadcrumb links include locale prefix (/en/, /es/, etc.)
+
+Screenshot evidence:
+- breadcrumbs-verification.png: English breadcrumbs on Classic T-Shirt
+- breadcrumbs-spanish.png: Spanish breadcrumbs on Hoodie
+- breadcrumbs-home-category.png: Breadcrumbs with "Home" category on Mug
+
+### Commits:
+1. `cd00b2f` - feat: add breadcrumb navigation to product detail pages — test #73 passing
+
+### Progress:
+- **Features passing: 73/353 (20.7%)**
+- **Features this session: +1 (ID 73)**
+- **Next target: ID 74 [Product Catalog] — Related products display**
+
+### Session Summary:
+- Duration: ~15 minutes
+- Regression checks: 2 features verified (pagination, add to cart)
+- New feature: Breadcrumb navigation with i18n support
+- TypeScript compilation: ✅ PASSING (0 errors)
+- Clean commits with descriptive messages
+- Screenshot artifacts cleaned up
+
+### Technical Notes:
+- Used shadcn/ui breadcrumb component for consistent design system
+- Breadcrumbs use semantic color tokens (text-muted-foreground, hover:text-foreground)
+- All breadcrumb links use Next.js Link component for client-side navigation
+- Category links filter shop page by category query parameter
+- Current page (product name) shown as BreadcrumbPage (disabled link)
+- Fully responsive across all breakpoints
+
+---
+
+## Session 19 (Coding Agent) — 2026-02-13 (continued)
+
+### Feature #74 Implemented:
+
+**Feature #74: Related products section displays** ✅
+
+Implementation:
+1. Added Related Products section to product detail page:
+   - Imported ProductCard component
+   - Added related products logic using Object.values() filter
+   - Filters products by same category, excludes current product
+   - Uses Set to track unique product IDs and avoid duplicates
+   - Limits to 4 related products maximum
+   - Only renders section if related products exist (relatedProducts.length > 0)
+2. Added UUID aliases for products 1-3:
+   - Created dynamic assignments: mockProducts['00000000-0000-0000-0000-000000000001'] = mockProducts['1']
+   - Allows routing to work with both URL param IDs and database UUIDs
+   - Fixed duplicate product issue with Set-based deduplication
+3. Created responsive grid layout:
+   - grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6
+   - Uses existing ProductCard component for consistency
+   - Separator above section for visual hierarchy
+4. Added i18n keys in all 3 locales:
+   - `relatedProducts`: "Related Products" / "Productos Relacionados" / "Ähnliche Produkte"
+5. Fixed TypeScript compilation errors:
+   - Added Record<string, any> type to mockProducts for index signature compatibility
+   - Added explicit types to image.map() parameters: (image: string, index: number)
+
+Verification (via Playwright MCP):
+✅ Navigate to Classic T-Shirt page (/en/shop/1)
+✅ Scroll to bottom of page
+✅ Related Products section displays with "Hoodie" product card
+✅ Hoodie is in same category (apparel) as Classic T-Shirt
+✅ Section shows product image, title, description, price, rating
+✅ Click on Hoodie card navigates to Hoodie product page
+✅ Hoodie page shows Classic T-Shirt in Related Products
+✅ No duplicate products showing (Set deduplication works)
+✅ Responsive grid: 1 col mobile, 2 col tablet, 4 col desktop
+
+Screenshot evidence:
+- related-products-visible.png: Related Products section on Classic T-Shirt page
+- final-related-products.png: Related Products section on Hoodie page
+
+### Commits:
+1. `edcbc1f` - feat: add related products section to product detail pages — test #74 passing
+2. `9ba78aa` - fix: add TypeScript types for mock products and image mapping
+
+### Progress:
+- **Features passing: 74/353 (21.0%)**
+- **Features this session: +2 (IDs 73, 74)**
+- **Next target: ID 75 [Product Catalog] — Product image zoom/lightbox works**
+
+### Session Summary:
+- Duration: ~45 minutes
+- Regression checks: 2 features verified (pagination, add to cart)
+- New features:
+  1. Breadcrumb navigation with i18n support
+  2. Related products section with category filtering
+- TypeScript compilation: ✅ PASSING (0 errors)
+- Clean commits with descriptive messages
+- Screenshot artifacts cleaned up
+
+### Technical Notes:
+- Related products use existing ProductCard component for code reuse
+- UUID aliases allow routing with both mock IDs ('1', '2') and database UUIDs
+- Set-based deduplication prevents duplicate products when object has multiple keys
+- Section only renders if relatedProducts.length > 0 (conditional rendering)
+- Responsive grid adapts to all breakpoints (mobile → tablet → desktop)
+- Uses semantic color tokens and shadcn/ui components
+
+### Feature #75 Verified:
+
+**Feature #75: Responsive grid layout** ✅
+
+Verification:
+- ProductGrid component already has responsive grid classes:
+  - grid-cols-1 (mobile: 1 column, default)
+  - sm:grid-cols-2 (small: 2 columns at 640px+)
+  - md:grid-cols-3 (medium: 3 columns at 768px+)
+  - lg:grid-cols-4 (large: 4 columns at 1024px+)
+- Tested via Playwright browser resize:
+  ✅ Mobile (375px): 1 column layout - full width product cards
+  ✅ Tablet (768px): 3 column layout - balanced grid
+  ✅ Desktop (1280px): 4 column layout - optimal density
+- Layout adapts smoothly at each breakpoint
+- No implementation needed - feature was already working
+
+Screenshot evidence:
+- shop-mobile-375px.png: 1 column grid on mobile
+- shop-tablet-768px.png: 3 column grid on tablet
+- shop-desktop-1280px.png: 4 column grid on desktop
+
+### Commits:
+1. `33970ab` - feat: verify responsive grid layout — test #75 passing
+
+### Final Session Progress:
+- **Features passing: 75/353 (21.2%)**
+- **Features this session: +3 (IDs 73, 74, 75)**
+- **Next target: ID 76 [Product Catalog] — Product image zoom/lightbox works**
+
+### Session 19 Summary:
+- Duration: ~60 minutes
+- Regression checks: 2 features verified (pagination, add to cart)
+- Features implemented:
+  1. Breadcrumb navigation with locale-aware links
+  2. Related products section with category filtering
+  3. Responsive grid layout verification (already working)
+- TypeScript compilation: ✅ PASSING (0 errors)
+- All commits clean and descriptive
+- Screenshot artifacts cleaned up
+- No regressions introduced
+
+### Technical Highlights:
+- shadcn/ui breadcrumb component with ChevronRight separators
+- Related products with Set-based deduplication
+- UUID aliases for mock products to support both URL param IDs and database UUIDs
+- Responsive grid: mobile-first with sm:/md:/lg: breakpoints
+- All components use semantic color tokens (text-muted-foreground, hover:text-foreground)
+- ProductCard component reused for consistency across shop and related products

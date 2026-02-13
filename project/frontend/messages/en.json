@@ -63,7 +63,12 @@
     "price": "Price",
     "notFound": "Product Not Found",
     "notFoundDescription": "The product you're looking for doesn't exist or has been removed.",
-    "backToShop": "Back to Shop"
+    "backToShop": "Back to Shop",
+    "sizeGuide": {
+      "title": "Size Guide",
+      "description": "Use this size guide to find your perfect fit. All measurements are approximate.",
+      "note": "Measurements may vary slightly by product. When in doubt, size up for a looser fit."
+    }
   },
   "Auth": {
     "loginTitle": "Sign in to your account",

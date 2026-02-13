@@ -29,6 +29,7 @@ import {
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
 import { ProductCard } from '@/components/products/ProductCard'
+import { SizeGuide } from '@/components/products/SizeGuide'
 
 interface ProductDetailClientProps {
   product: any
@@ -243,7 +244,10 @@ export function ProductDetailClient({ product, relatedProducts }: ProductDetailC
           <div className="space-y-4">
             {sizes && sizes.length > 0 && (
               <div>
-                <label className="text-sm font-medium mb-2 block">{t('size')}</label>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-sm font-medium">{t('size')}</label>
+                  {product.category === 'apparel' && <SizeGuide productType={product.title} />}
+                </div>
                 <Select value={selectedSize} onValueChange={setSelectedSize}>
                   <SelectTrigger>
                     <SelectValue placeholder={t('selectVariant')} />

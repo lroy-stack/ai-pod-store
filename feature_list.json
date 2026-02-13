@@ -872,7 +872,7 @@
     "id": 80,
     "feature": "Product Catalog",
     "description": "Size guide renders for each product type",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to a product detail page for an apparel item",
       "Click the Size Guide link or button",
