@@ -28,6 +28,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
+import { ProductCard } from '@/components/products/ProductCard'
 
 // Mock product data - will be replaced with API call
 const mockProducts = {
@@ -91,7 +92,66 @@ const mockProducts = {
       colors: ['White', 'Black'],
     },
   },
+  '4': {
+    id: '4',
+    title: 'Poster',
+    description: 'High-quality art poster',
+    longDescription: 'Decorate your space with our premium art posters. Printed on high-quality paper with vibrant colors that last.',
+    price: 19.99,
+    currency: 'USD',
+    images: [
+      'https://via.placeholder.com/600x600/f59e0b/ffffff?text=Poster',
+    ],
+    rating: 4.6,
+    reviewCount: 87,
+    category: 'home',
+    inStock: true,
+    variants: {
+      sizes: ['A3', 'A4', 'A2'],
+    },
+  },
+  '5': {
+    id: '5',
+    title: 'Phone Case',
+    description: 'Protective phone case',
+    longDescription: 'Keep your phone safe with our durable protective case. Slim design with shock-absorbing corners.',
+    price: 16.99,
+    currency: 'USD',
+    images: [
+      'https://via.placeholder.com/600x600/ef4444/ffffff?text=Case',
+    ],
+    rating: 4.4,
+    reviewCount: 312,
+    category: 'accessories',
+    inStock: true,
+    variants: {
+      models: ['iPhone 14', 'iPhone 15', 'Samsung S23'],
+    },
+  },
+  '6': {
+    id: '6',
+    title: 'Tote Bag',
+    description: 'Eco-friendly tote bag',
+    longDescription: 'Carry your essentials in style with our eco-friendly tote bag. Made from sustainable materials.',
+    price: 18.99,
+    currency: 'USD',
+    images: [
+      'https://via.placeholder.com/600x600/06b6d4/ffffff?text=Bag',
+    ],
+    rating: 4.7,
+    reviewCount: 143,
+    category: 'accessories',
+    inStock: true,
+    variants: {
+      colors: ['Natural', 'Black', 'Navy'],
+    },
+  },
 }
+
+// Add UUID aliases for products 1-3
+mockProducts['00000000-0000-0000-0000-000000000001'] = mockProducts['1']
+mockProducts['00000000-0000-0000-0000-000000000002'] = mockProducts['2']
+mockProducts['00000000-0000-0000-0000-000000000003'] = mockProducts['3']
 
 export default function ProductDetailPage() {
   const params = useParams()
@@ -114,6 +174,30 @@ export default function ProductDetailPage() {
   // Extract variants to avoid TypeScript union narrowing issues
   const sizes = product?.variants && 'sizes' in product.variants ? product.variants.sizes : undefined
   const colors = product?.variants && 'colors' in product.variants ? product.variants.colors : undefined
+
+  // Get related products (same category, exclude current product, limit to 4)
+  // Use a Set to track unique product IDs and avoid duplicates
+  const seenIds = new Set<string>()
+  const relatedProducts = Object.values(mockProducts)
+    .filter((p) => {
+      if (p.category !== product?.category || p.id === product?.id || seenIds.has(p.id)) {
+        return false
+      }
+      seenIds.add(p.id)
+      return true
+    })
+    .slice(0, 4)
+    .map((p) => ({
+      id: p.id,
+      title: p.title,
+      description: p.description,
+      price: p.price,
+      currency: p.currency,
+      image: p.images[0],
+      rating: p.rating,
+      reviewCount: p.reviewCount,
+      category: p.category,
+    }))
 
   if (!product) {
     return (
@@ -411,6 +495,22 @@ export default function ProductDetailPage() {
           </div>
         )}
       </div>
+
+      {/* Related Products Section */}
+      {relatedProducts.length > 0 && (
+        <>
+          <Separator className="my-12" />
+
+          <div>
+            <h2 className="text-2xl font-bold mb-6">{t('relatedProducts')}</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {relatedProducts.map((relatedProduct) => (
+                <ProductCard key={relatedProduct.id} product={relatedProduct} />
+              ))}
+            </div>
+          </div>
+        </>
+      )}
     </div>
   )
 }

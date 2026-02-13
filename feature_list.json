@@ -806,7 +806,7 @@
     "id": 74,
     "feature": "Product Catalog",
     "description": "Related products section displays",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to a product detail page",
       "Scroll to the bottom of the page",
