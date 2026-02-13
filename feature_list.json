@@ -817,7 +817,7 @@
     "id": 75,
     "feature": "Product Catalog",
     "description": "Responsive grid layout",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Resize the browser to mobile width and verify a 1-2 column grid layout",
       "Resize the browser to tablet width and verify the grid adjusts",
