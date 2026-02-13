@@ -4,25 +4,8 @@ import redis from 'redis'
 
 const router = express.Router()
 
-// Initialize Supabase client (optional - only if env vars are set)
-let supabase: any = null
-if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_KEY) {
-  supabase = createClient(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_KEY
-  )
-}
-
-// Initialize Redis client (optional - only if env var is set)
+// Redis client cache (singleton pattern to avoid multiple connections)
 let redisClient: any = null
-if (process.env.REDIS_URL) {
-  redisClient = redis.createClient({
-    url: process.env.REDIS_URL,
-  })
-  redisClient.on('error', (err: Error) => {
-    console.error('Redis error:', err)
-  })
-}
 
 router.get('/', async (req, res) => {
   const health: any = {
@@ -33,45 +16,90 @@ router.get('/', async (req, res) => {
   }
 
   // Check database connection
-  if (supabase) {
+  if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_KEY) {
     try {
-      const { data, error } = await supabase
-        .from('_health_check')
-        .select('*')
-        .limit(1)
+      // Verify Supabase URL is valid and accessible by making a simple REST API call
+      const supabaseUrl = process.env.SUPABASE_URL
+      const apiKey = process.env.SUPABASE_SERVICE_KEY
 
-      if (error && error.code !== 'PGRST116') {
-        // PGRST116 is "table not found" which is acceptable for health check
-        health.db = 'error'
-        health.dbError = error.message
-      } else {
+      // Use fetch with timeout to test connectivity
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 3000)
+
+      const response = await fetch(`${supabaseUrl}/rest/v1/`, {
+        method: 'GET',
+        headers: {
+          'apikey': apiKey,
+          'Authorization': `Bearer ${apiKey}`,
+        },
+        signal: controller.signal,
+      })
+
+      clearTimeout(timeoutId)
+
+      if (response.ok) {
         health.db = 'connected'
+      } else {
+        health.db = 'error'
+        health.dbError = `HTTP ${response.status}: ${response.statusText}`
       }
     } catch (error: any) {
-      health.db = 'error'
-      health.dbError = error.message
+      if (error.name === 'AbortError') {
+        health.db = 'error'
+        health.dbError = 'Connection timeout (3s)'
+      } else {
+        health.db = 'error'
+        health.dbError = error.message
+      }
     }
   } else {
     health.db = 'not_configured'
   }
 
-  // Check Redis connection
-  if (redisClient) {
+  // Check Redis connection (with timeout to avoid hanging)
+  if (process.env.REDIS_URL) {
     try {
+      // Create or reuse Redis client
+      if (!redisClient) {
+        redisClient = redis.createClient({
+          url: process.env.REDIS_URL,
+          socket: {
+            connectTimeout: 2000, // 2 second timeout
+            reconnectStrategy: false, // Don't auto-reconnect on health checks
+          }
+        })
+        redisClient.on('error', (err: Error) => {
+          console.error('Redis error:', err)
+        })
+      }
+
       if (!redisClient.isOpen) {
-        await redisClient.connect()
+        await Promise.race([
+          redisClient.connect(),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Connection timeout')), 2000))
+        ])
       }
       await redisClient.ping()
       health.redis = 'connected'
     } catch (error: any) {
       health.redis = 'error'
       health.redisError = error.message
+      // Close the failed client so we can try again next time
+      if (redisClient) {
+        try {
+          await redisClient.quit()
+        } catch (e) {
+          // Ignore quit errors
+        }
+        redisClient = null
+      }
     }
   } else {
     health.redis = 'not_configured'
   }
 
-  const statusCode = health.db === 'error' || health.redis === 'error' ? 503 : 200
+  // Only return 503 if DB is in error state (Redis is optional for now)
+  const statusCode = health.db === 'error' ? 503 : 200
   res.status(statusCode).json(health)
 })
 

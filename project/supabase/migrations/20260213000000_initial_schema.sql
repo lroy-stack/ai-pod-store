@@ -4,14 +4,14 @@
 
 -- Enable required extensions
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-CREATE EXTENSION IF NOT EXISTS "pgvector";
+CREATE EXTENSION IF NOT EXISTS vector;
 
 -- ==========================
 -- CORE USER TABLES
 -- ==========================
 
 CREATE TABLE users (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   email VARCHAR(255) UNIQUE NOT NULL,
   password_hash VARCHAR(255),
   name VARCHAR(255),
@@ -29,7 +29,7 @@ CREATE TABLE users (
 );
 
 CREATE TABLE shipping_addresses (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   label VARCHAR(50),
   full_name VARCHAR(255),
@@ -49,7 +49,7 @@ CREATE TABLE shipping_addresses (
 -- ==========================
 
 CREATE TABLE products (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   printify_id VARCHAR(255) UNIQUE,
   title TEXT NOT NULL,
   description TEXT,
@@ -69,7 +69,7 @@ CREATE TABLE products (
 );
 
 CREATE TABLE product_variants (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
   printify_variant_id VARCHAR(255),
   title VARCHAR(255) NOT NULL,
@@ -82,7 +82,7 @@ CREATE TABLE product_variants (
 );
 
 CREATE TABLE designs (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   product_id UUID REFERENCES products(id) ON DELETE SET NULL,
   user_id UUID REFERENCES users(id) ON DELETE SET NULL,
   prompt TEXT NOT NULL,
@@ -103,7 +103,7 @@ CREATE TABLE designs (
 -- ==========================
 
 CREATE TABLE orders (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES users(id) ON DELETE SET NULL,
   stripe_session_id VARCHAR(255),
   stripe_payment_intent_id VARCHAR(255),
@@ -125,7 +125,7 @@ CREATE TABLE orders (
 );
 
 CREATE TABLE order_items (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   order_id UUID NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
   product_id UUID NOT NULL REFERENCES products(id),
   variant_id UUID REFERENCES product_variants(id),
@@ -139,7 +139,7 @@ CREATE TABLE order_items (
 -- ==========================
 
 CREATE TABLE conversations (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES users(id) ON DELETE SET NULL,
   session_id VARCHAR(255),
   title VARCHAR(500),
@@ -151,7 +151,7 @@ CREATE TABLE conversations (
 );
 
 CREATE TABLE messages (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   conversation_id UUID NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
   role VARCHAR(20) NOT NULL CHECK (role IN ('user', 'assistant', 'system')),
   content TEXT NOT NULL,
@@ -166,7 +166,7 @@ CREATE TABLE messages (
 -- ==========================
 
 CREATE TABLE documents (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   content TEXT NOT NULL,
   metadata JSONB DEFAULT '{}'::jsonb,
   embedding VECTOR(768),
@@ -182,7 +182,7 @@ CREATE TABLE documents (
 -- ==========================
 
 CREATE TABLE cart_items (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   session_id VARCHAR(255),
   user_id UUID REFERENCES users(id) ON DELETE CASCADE,
   product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
@@ -193,7 +193,7 @@ CREATE TABLE cart_items (
 );
 
 CREATE TABLE wishlists (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   name VARCHAR(100) NOT NULL DEFAULT 'My Wishlist',
   is_public BOOLEAN NOT NULL DEFAULT FALSE,
@@ -202,7 +202,7 @@ CREATE TABLE wishlists (
 );
 
 CREATE TABLE wishlist_items (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   wishlist_id UUID NOT NULL REFERENCES wishlists(id) ON DELETE CASCADE,
   product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
   variant_id UUID REFERENCES product_variants(id) ON DELETE CASCADE,
@@ -215,7 +215,7 @@ CREATE TABLE wishlist_items (
 -- ==========================
 
 CREATE TABLE product_reviews (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   order_id UUID NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
@@ -230,7 +230,7 @@ CREATE TABLE product_reviews (
 );
 
 CREATE TABLE notifications (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   type VARCHAR(50) NOT NULL,
   title TEXT NOT NULL,
@@ -245,7 +245,7 @@ CREATE TABLE notifications (
 -- ==========================
 
 CREATE TABLE translations (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   namespace VARCHAR(50) NOT NULL,
   key VARCHAR(255) NOT NULL,
   locale CHAR(5) NOT NULL,
@@ -261,7 +261,7 @@ CREATE TABLE translations (
 -- ==========================
 
 CREATE TABLE audit_log (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   actor_type VARCHAR(20) NOT NULL CHECK (actor_type IN ('admin', 'ai_agent', 'system', 'webhook')),
   actor_id VARCHAR(100) NOT NULL,
   action VARCHAR(100) NOT NULL,
@@ -277,7 +277,7 @@ CREATE TABLE audit_log (
 -- ==========================
 
 CREATE TABLE agent_sessions (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   session_number INTEGER,
   session_type VARCHAR(20) NOT NULL CHECK (session_type IN ('research', 'catalog', 'customer', 'finance', 'design', 'seo')),
   status VARCHAR(20) NOT NULL DEFAULT 'running' CHECK (status IN ('running', 'completed', 'error')),
@@ -345,7 +345,7 @@ CREATE TABLE association_rules (
 );
 
 CREATE TABLE ab_experiments (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,
   description TEXT,
   variants JSONB NOT NULL,

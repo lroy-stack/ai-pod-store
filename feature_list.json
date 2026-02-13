@@ -91,7 +91,7 @@
     "id": 9,
     "feature": "Project Foundation + i18n Setup",
     "description": "Database connection works (Supabase)",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Start the backend server",
       "Call GET /api/health endpoint",
