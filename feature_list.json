@@ -498,7 +498,7 @@
     "id": 46,
     "feature": "Authentication + User Profile",
     "description": "Duplicate email registration shows error",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Attempt to register with an email that is already registered",
       "Submit the registration form",
