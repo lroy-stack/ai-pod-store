@@ -7,6 +7,7 @@ import { ProductGrid } from '@/components/products/ProductGrid'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
 
 // Mock products for now - will be replaced with API call
@@ -21,6 +22,7 @@ const mockProducts = [
     rating: 4.5,
     reviewCount: 128,
     category: 'apparel',
+    createdAt: '2024-01-15T10:00:00Z',
   },
   {
     id: '2',
@@ -32,6 +34,7 @@ const mockProducts = [
     rating: 4.8,
     reviewCount: 94,
     category: 'apparel',
+    createdAt: '2024-02-20T10:00:00Z',
   },
   {
     id: '3',
@@ -43,6 +46,7 @@ const mockProducts = [
     rating: 4.3,
     reviewCount: 256,
     category: 'home',
+    createdAt: '2024-01-10T10:00:00Z',
   },
   {
     id: '4',
@@ -54,6 +58,7 @@ const mockProducts = [
     rating: 4.6,
     reviewCount: 87,
     category: 'home',
+    createdAt: '2024-03-05T10:00:00Z',
   },
   {
     id: '5',
@@ -65,6 +70,7 @@ const mockProducts = [
     rating: 4.4,
     reviewCount: 312,
     category: 'accessories',
+    createdAt: '2024-01-25T10:00:00Z',
   },
   {
     id: '6',
@@ -76,6 +82,7 @@ const mockProducts = [
     rating: 4.7,
     reviewCount: 143,
     category: 'accessories',
+    createdAt: '2024-02-10T10:00:00Z',
   },
   {
     id: '7',
@@ -87,13 +94,17 @@ const mockProducts = [
     rating: 4.9,
     reviewCount: 189,
     category: 'home',
+    createdAt: '2024-03-15T10:00:00Z',
   },
 ]
+
+type SortOption = 'featured' | 'priceLowToHigh' | 'priceHighToLow' | 'newest' | 'topRated'
 
 export default function ShopPage() {
   const t = useTranslations('shop')
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
+  const [sortBy, setSortBy] = useState<SortOption>('featured')
 
   // Get unique categories from products
   const categories = ['all', ...Array.from(new Set(mockProducts.map((p) => p.category)))]
@@ -111,6 +122,23 @@ export default function ShopPage() {
       product.category.toLowerCase().includes(searchQuery.toLowerCase())
 
     return matchesCategory && matchesSearch
+  })
+
+  // Sort products
+  const sortedProducts = [...filteredProducts].sort((a, b) => {
+    switch (sortBy) {
+      case 'priceLowToHigh':
+        return a.price - b.price
+      case 'priceHighToLow':
+        return b.price - a.price
+      case 'newest':
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      case 'topRated':
+        return b.rating - a.rating
+      case 'featured':
+      default:
+        return 0 // Keep original order
+    }
   })
 
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -154,8 +182,8 @@ export default function ShopPage() {
         </div>
       </form>
 
-      {/* Category Filters */}
-      <div className="mb-6">
+      {/* Category Filters and Sort */}
+      <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="flex flex-wrap gap-2">
           {categories.map((category) => (
             <Badge
@@ -173,6 +201,25 @@ export default function ShopPage() {
             </Badge>
           ))}
         </div>
+
+        {/* Sort selector */}
+        <div className="flex items-center gap-2">
+          <label htmlFor="sort" className="text-sm font-medium whitespace-nowrap">
+            {t('sortBy')}:
+          </label>
+          <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortOption)}>
+            <SelectTrigger id="sort" className="w-[200px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="featured">{t('sort.featured')}</SelectItem>
+              <SelectItem value="priceLowToHigh">{t('sort.priceLowToHigh')}</SelectItem>
+              <SelectItem value="priceHighToLow">{t('sort.priceHighToLow')}</SelectItem>
+              <SelectItem value="newest">{t('sort.newest')}</SelectItem>
+              <SelectItem value="topRated">{t('sort.topRated')}</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {/* Results count */}
@@ -180,13 +227,13 @@ export default function ShopPage() {
         <div className="mb-4">
           <p className="text-sm text-muted-foreground">
             {searchQuery
-              ? t('searchResults', { count: filteredProducts.length, query: searchQuery })
-              : t('categoryResults', { count: filteredProducts.length })}
+              ? t('searchResults', { count: sortedProducts.length, query: searchQuery })
+              : t('categoryResults', { count: sortedProducts.length })}
           </p>
         </div>
       )}
 
-      <ProductGrid products={filteredProducts} />
+      <ProductGrid products={sortedProducts} />
     </div>
   )
 }

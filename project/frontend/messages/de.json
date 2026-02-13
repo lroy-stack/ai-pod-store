@@ -22,6 +22,14 @@
     "searchPlaceholder": "Produkte suchen...",
     "searchResults": "{count, plural, =0 {Keine Produkte gefunden} one {1 Produkt gefunden} other {{count} Produkte gefunden}} für \"{query}\"",
     "categoryResults": "{count, plural, =0 {Keine Produkte gefunden} one {1 Produkt} other {{count} Produkte}}",
+    "sortBy": "Sortieren nach",
+    "sort": {
+      "featured": "Empfohlen",
+      "priceLowToHigh": "Preis: Niedrig bis Hoch",
+      "priceHighToLow": "Preis: Hoch bis Niedrig",
+      "newest": "Neueste",
+      "topRated": "Am besten bewertet"
+    },
     "category": {
       "all": "Alle",
       "apparel": "Bekleidung",
