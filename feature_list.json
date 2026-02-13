@@ -278,7 +278,7 @@
     "id": 26,
     "feature": "Database & Schema",
     "description": "Supabase client initializes correctly (anon for browser + admin for API routes)",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify frontend Supabase client uses NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY",
       "Verify supabase-admin.ts uses SUPABASE_URL and SUPABASE_SERVICE_KEY for API routes",
