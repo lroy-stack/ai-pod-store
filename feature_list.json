@@ -795,7 +795,7 @@
     "id": 73,
     "feature": "Product Catalog",
     "description": "Breadcrumbs show on product detail",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to a product detail page",
       "Verify breadcrumb navigation is displayed",

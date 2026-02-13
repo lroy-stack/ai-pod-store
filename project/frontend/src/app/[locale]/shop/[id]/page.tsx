@@ -2,6 +2,7 @@
 
 import { useParams, useRouter } from 'next/navigation'
 import { useTranslations, useLocale } from 'next-intl'
+import Link from 'next/link'
 import Image from 'next/image'
 import { useState } from 'react'
 import { Star, Heart, ShoppingCart, ChevronLeft } from 'lucide-react'
@@ -19,6 +20,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb'
 
 // Mock product data - will be replaced with API call
 const mockProducts = {
@@ -88,6 +97,8 @@ export default function ProductDetailPage() {
   const params = useParams()
   const router = useRouter()
   const t = useTranslations('product')
+  const tNav = useTranslations('navigation')
+  const tCategory = useTranslations('shop.category')
   const locale = useLocale()
   const { addToCart } = useCart()
   const productId = params.id as string
@@ -182,15 +193,34 @@ export default function ProductDetailPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* Back button */}
-      <Button
-        variant="ghost"
-        onClick={() => router.back()}
-        className="mb-6"
-      >
-        <ChevronLeft className="size-4 mr-2" />
-        {t('backToShop')}
-      </Button>
+      {/* Breadcrumb Navigation */}
+      <Breadcrumb className="mb-6">
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link href={`/${locale}`}>{tNav('home')}</Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link href={`/${locale}/shop`}>{tNav('shop')}</Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link href={`/${locale}/shop?category=${product.category}`}>
+                {tCategory(product.category)}
+              </Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>{product.title}</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
         {/* Image Gallery */}
