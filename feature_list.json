@@ -476,7 +476,7 @@
     "id": 44,
     "feature": "Authentication + User Profile",
     "description": "Session persists across page refreshes",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Log in with valid credentials",
       "Refresh the page in the browser",
