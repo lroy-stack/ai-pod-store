@@ -663,7 +663,7 @@
     "id": 61,
     "feature": "Product Catalog",
     "description": "Product cards show title, image, price, rating stars, wishlist heart",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Inspect a product card on the shop page",
       "Verify the card contains an image tag, title text, and formatted price",
