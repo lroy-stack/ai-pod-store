@@ -894,7 +894,7 @@
     "id": 82,
     "feature": "Product Catalog",
     "description": "Review submission form works",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Click Write Review on a product the user has purchased",
       "Fill in the rating (stars) and review text",
@@ -905,7 +905,7 @@
     "id": 83,
     "feature": "Product Catalog",
     "description": "Verified purchase badge shows on reviews",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to a product with reviews from users who purchased it",
       "Inspect the review cards",
@@ -1469,7 +1469,8 @@
       "Verify sidebar has navigation items: Discover, Trends, New Arrivals, Favorites, Orders",
       "Verify 'Recommended' section with product thumbnails, names, and prices",
       "Verify 'Popular today' section with trending products",
-      "Verify footer shows AI live status ('Last design generated Xm ago')"
+      "Verify footer shows AI live status ('Last design generated Xm ago')",
+      "Verify sidebar recommendations update contextually when chatting about a product category (DataPart streaming)"
     ]
   },
   {
@@ -1491,7 +1492,8 @@
     "steps": [
       "Send a message in the chat",
       "Verify the response streams in word-by-word using SSE",
-      "Verify AI SDK 6 ToolLoopAgent is used for the response"
+      "Verify AI SDK 6 ToolLoopAgent is used for the response",
+      "Verify a typing indicator (animated dots) appears while waiting for the response"
     ]
   },
   {
@@ -1549,7 +1551,9 @@
       "Navigate to /en/ as a new user",
       "Verify a greeting with sparkle-text animation is displayed",
       "Verify suggested prompt buttons are displayed",
-      "Click a suggested prompt and verify it sends the message to the chat"
+      "Click a suggested prompt and verify it sends the message to the chat",
+      "Navigate as a returning user and verify personalized greeting with user's name",
+      "Verify active orders and recent favorites are shown for returning users"
     ]
   },
   {
@@ -1573,7 +1577,8 @@
       "Type 'show me cat t-shirts' in the chat",
       "Verify the product_search tool is called",
       "Verify a product grid renders INLINE in the chat message",
-      "Click on a product in the inline grid and verify it opens in the right detail panel"
+      "Click on a product in the inline grid and verify it opens in the right detail panel",
+      "Click 'Ask about this' button in the detail panel and verify it injects a question into the chat input"
     ]
   },
   {
@@ -1756,7 +1761,9 @@
       "Trigger a tool that produces an artifact (e.g., product search)",
       "Verify artifacts render INLINE in chat via message.parts.map()",
       "Verify inline artifacts have action buttons (Add to Cart, Create Product, etc.)",
-      "Click an inline artifact and verify it expands to the right detail panel"
+      "Click an inline artifact and verify it expands to the right detail panel",
+      "Verify a skeleton/shimmer component appears while the tool is processing (before result arrives)",
+      "Verify the skeleton morphs into the full artifact when the result arrives"
     ]
   },
   {
