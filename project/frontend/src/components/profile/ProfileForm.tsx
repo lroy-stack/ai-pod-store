@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 
 interface ProfileFormProps {
   locale: string;
@@ -27,6 +27,7 @@ interface UserProfile {
 export function ProfileForm({ locale }: ProfileFormProps) {
   const t = useTranslations('Profile');
   const router = useRouter();
+  const pathname = usePathname();
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -46,22 +47,14 @@ export function ProfileForm({ locale }: ProfileFormProps) {
     async function fetchProfile() {
       try {
         setLoading(true);
-        const token = localStorage.getItem('supabase.auth.token');
-
-        if (!token) {
-          router.push(`/${locale}/auth/login`);
-          return;
-        }
 
         const response = await fetch('/api/user/profile', {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
+          credentials: 'include',
         });
 
         if (!response.ok) {
           if (response.status === 401) {
-            router.push(`/${locale}/auth/login`);
+            router.push(`/${locale}/auth/login?returnUrl=${encodeURIComponent(`/${locale}/profile`)}`);
             return;
           }
           throw new Error('Failed to fetch profile');
@@ -93,23 +86,20 @@ export function ProfileForm({ locale }: ProfileFormProps) {
     setSaving(true);
 
     try {
-      const token = localStorage.getItem('supabase.auth.token');
-
-      if (!token) {
-        router.push(`/${locale}/auth/login`);
-        return;
-      }
-
       const response = await fetch('/api/user/profile', {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
         },
+        credentials: 'include',
         body: JSON.stringify(formData),
       });
 
       if (!response.ok) {
+        if (response.status === 401) {
+          router.push(`/${locale}/auth/login?returnUrl=${encodeURIComponent(`/${locale}/profile`)}`);
+          return;
+        }
         throw new Error('Failed to update profile');
       }
 
@@ -118,10 +108,12 @@ export function ProfileForm({ locale }: ProfileFormProps) {
       setSuccess(t('successMessage'));
 
       // If locale changed, redirect to new locale
-      if (formData.locale !== locale) {
+      const newLocale = data.profile.locale?.trim();
+      const currentLocale = locale?.trim();
+
+      if (newLocale && currentLocale && newLocale !== currentLocale) {
         setTimeout(() => {
-          router.push(`/${formData.locale}/profile`);
-          router.refresh();
+          router.push(`/${newLocale}/profile`);
         }, 1000);
       }
     } catch (err) {

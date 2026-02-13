@@ -1,6 +1,5 @@
 import { getTranslations } from 'next-intl/server';
 import { ProfileForm } from '@/components/profile/ProfileForm';
-import { unstable_setRequestLocale } from 'next-intl/server';
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
@@ -18,8 +17,6 @@ interface ProfilePageProps {
 
 export default async function ProfilePage({ params }: ProfilePageProps) {
   const { locale } = await params;
-  unstable_setRequestLocale(locale);
-
   const t = await getTranslations({ locale, namespace: 'Profile' });
 
   return (

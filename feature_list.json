@@ -564,7 +564,7 @@
     "id": 52,
     "feature": "Authentication + User Profile",
     "description": "Profile CRUD works",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Update the user's name field and save, verify the name is updated",
       "Update locale to 'es' and save, verify the UI switches to Spanish",
