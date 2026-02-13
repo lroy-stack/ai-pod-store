@@ -355,7 +355,7 @@
     "id": 33,
     "feature": "Database & Schema",
     "description": "Products table has avg_rating and review_count columns",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Query information_schema.columns for the products table",
       "Verify avg_rating column exists with numeric(2,1) type",
