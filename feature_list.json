@@ -311,7 +311,7 @@
     "id": 29,
     "feature": "Database & Schema",
     "description": "search_documents RPC function exists",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Call the search_documents RPC function with a test embedding vector",
       "Verify the function returns results with id, content, metadata, and similarity fields",

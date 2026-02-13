@@ -241,6 +241,53 @@ async function seedDatabase() {
       }
     }
 
+    // 5. Create test documents with sample embeddings
+    console.log('Checking for existing documents...')
+    const { count: docCount } = await supabase
+      .from('documents')
+      .select('*', { count: 'exact', head: true })
+
+    if (docCount && docCount > 0) {
+      console.log(`✓ Documents already exist (${docCount} found), skipping insert`)
+    } else {
+      console.log('Creating test documents with embeddings...')
+      // Create a simple test embedding (768 dimensions)
+      const testEmbedding = Array(768).fill(0).map((_, i) => Math.sin(i / 100) * 0.1)
+
+      const { data: docs, error: docsError } = await supabase
+        .from('documents')
+        .insert([
+          {
+            content: 'Welcome to our POD store! We offer custom t-shirts, mugs, and more.',
+            embedding: testEmbedding,
+            metadata: { description: 'Welcome message' },
+            source_type: 'faq',
+            locale: 'en',
+          },
+          {
+            content: 'Our classic t-shirts are made from 100% organic cotton.',
+            embedding: testEmbedding.map(x => x * 0.9),
+            metadata: { description: 'Product information' },
+            source_type: 'product',
+            locale: 'en',
+          },
+          {
+            content: 'We offer worldwide shipping with tracking. Orders typically arrive within 7-14 business days.',
+            embedding: testEmbedding.map(x => x * 1.1),
+            metadata: { description: 'Shipping policy' },
+            source_type: 'policy',
+            locale: 'en',
+          },
+        ])
+        .select()
+
+      if (docsError) {
+        console.error('❌ Error creating documents:', docsError)
+      } else {
+        console.log(`✓ ${docs?.length || 3} documents created`)
+      }
+    }
+
     console.log('\n✅ Database seeding completed successfully!')
   } catch (error) {
     console.error('\n❌ Seed script failed:', error)
