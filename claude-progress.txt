@@ -1285,3 +1285,89 @@ Verification (via Playwright MCP):
 - TypeScript compilation: ✅ PASSING (0 errors)
 - Clean commits with descriptive messages
 - Screenshot artifacts cleaned up
+
+---
+
+## Session 18 (Coding Agent) — 2026-02-13
+
+### Regression Checks:
+✅ Feature #69 (Pagination) — still passing
+- Verified pagination works: page 1 shows 8 products, page 2 shows 7 products
+- Previous/Next buttons enable/disable correctly
+
+### Feature Implemented:
+
+**Feature #72: Add to Cart button works on product detail** ✅
+
+Implementation:
+1. Created cart API routes (`/api/cart/route.ts`):
+   - GET: Fetch cart items (supports both authenticated users and guest sessions)
+   - POST: Add item to cart (creates or updates existing items)
+   - DELETE: Clear all cart items
+   - Uses session_id cookie for guest carts, user_id for authenticated users
+   - Handles quantity updates when same product added multiple times
+2. Created `useCart` hook with CartProvider:
+   - Global cart state management with React Context
+   - Functions: addToCart, removeFromCart, updateQuantity, clearCart, refreshCart
+   - Auto-loads cart on mount and when user changes
+   - Toast notifications for success/error using sonner
+   - Tracks itemCount for navbar badge
+3. Added Toaster component (sonner):
+   - Global toast notification system
+   - Positioned top-right with rich colors and close button
+   - Integrated into locale layout
+4. Updated Navbar to show cart count:
+   - Red badge on "Cart" link (desktop + mobile)
+   - Shows total item count from cart
+   - Badge only appears when itemCount > 0
+5. Wired up product detail page:
+   - Updated Add to Cart button to call handleAddToCart
+   - Validates variant selection (size/color) before adding
+   - Shows loading state ("Adding...") during API call
+   - Uses product.id (UUID) instead of URL param
+6. Created database migration:
+   - Inserted 3 mock products with fixed UUIDs into products table
+   - Product 1: Classic T-Shirt ($24.99, UUID: 00000000-0000-0000-0000-000000000001)
+   - Product 2: Hoodie ($49.99, UUID: 00000000-0000-0000-0000-000000000002)
+   - Product 3: Mug ($14.99, UUID: 00000000-0000-0000-0000-000000000003)
+   - Pushed to remote Supabase via `supabase db push`
+7. Updated mock product data:
+   - Changed product IDs from "1", "2", "3" to UUIDs
+   - Matches database records for cart foreign key constraint
+8. Added i18n keys in all 3 locales:
+   - `adding`: "Adding..." / "Agregando..." / "Wird hinzugefügt..."
+
+Verification (via Playwright MCP):
+✅ Navigate to product detail page (/en/shop/1)
+✅ Select size "M" and color "Black" from dropdowns
+✅ Click "Add to cart" button
+✅ Success toast appears: "Added to cart - Classic T-Shirt has been added to your cart"
+✅ Cart count badge shows "1" in navbar (red badge on "Cart" link)
+✅ Cart item persisted to database (session-based for guest users)
+
+Screenshot evidence:
+- add-to-cart-success.png: Cart badge showing "1" item + success toast notification
+
+### Commits:
+1. `b064e47` - feat: add cart functionality with toast notifications — test #72 passing
+
+### Progress:
+- **Features passing: 72/353 (20.4%)**
+- **Features this session: +1 (ID 72)**
+- **Next target: ID 73 [Product Catalog] — Cart badge updates across all pages**
+
+### Session Summary:
+- Duration: ~30 minutes
+- Regression checks: 1 feature verified (pagination)
+- New feature: Full cart functionality with API, context, toast, and navbar badge
+- Database migration: 3 mock products inserted with UUIDs
+- TypeScript compilation: ✅ PASSING (0 errors)
+- Clean commits with descriptive messages
+- Screenshot artifacts cleaned up
+
+### Technical Notes:
+- Cart uses session_id cookie for guest users, switches to user_id when authenticated
+- Foreign key constraint requires UUIDs for product_id (not string IDs)
+- Sonner toast integrated globally in locale layout
+- Cart state auto-refreshes when user auth state changes
+- Supabase CLI used to push migration to remote cloud instance
