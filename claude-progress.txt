@@ -908,3 +908,26 @@ IDs: 1-7, 11-15, 17-54
 - Time spent: ~25 minutes
 - Both features involved existing functionality verification (cross-tab sync, locale switching)
 
+
+3. **Feature #59**: Protected API routes return 401 for unauthenticated requests
+   - Tested GET /api/user/profile without authentication token
+   - Tested GET /api/shipping-addresses without authentication token
+   - Both endpoints return HTTP 401 with {"error":"Unauthorized"}
+   - Protected routes correctly validate authentication before processing requests
+
+### Verification (curl):
+✓ GET /api/user/profile (no auth) → 401 Unauthorized + error message
+✓ GET /api/shipping-addresses (no auth) → 401 Unauthorized + error message
+✓ Error response body contains appropriate message
+
+### Final Session Summary:
+- **Features passing: 59/353 (16.7%)**
+- **Features this session: +3 (IDs 57, 58, 59)**
+- **Session duration: ~30 minutes**
+- **Next target: ID 60 [Product Catalog] — Products table exists with correct schema**
+
+### Key Achievements:
+1. Cross-tab session synchronization via localStorage storage events
+2. Locale switching in profile updates entire UI language
+3. Protected API routes properly secured with 401 responses
+
