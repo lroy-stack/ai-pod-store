@@ -1,9 +1,9 @@
 {
-  "total_sessions": 11,
-  "total_tokens": 34894,
-  "total_cost_usd": 0.10470000000000002,
+  "total_sessions": 12,
+  "total_tokens": 40518,
+  "total_cost_usd": 0.12160000000000001,
   "tokens_by_model": {
-    "claude-sonnet-4-5-20250929": 34894
+    "claude-sonnet-4-5-20250929": 40518
   },
   "sessions": [
     {
@@ -310,6 +310,49 @@
         "mcp__playwright__browser_type": 9,
         "mcp__playwright__browser_fill_form": 1,
         "mcp__playwright__browser_handle_dialog": 1
+      }
+    },
+    {
+      "id": 12,
+      "type": "CODING",
+      "model": "claude-sonnet-4-5-20250929",
+      "started_at": "2026-02-13T21:16:58.643748+00:00",
+      "ended_at": "2026-02-13T21:34:35.932517+00:00",
+      "duration_seconds": 1057.29,
+      "tokens_used": 5624,
+      "cost_usd": 0.0169,
+      "features_passed": 2,
+      "total_passing": 56,
+      "total_features": 353,
+      "tool_calls": 99,
+      "tool_errors": 9,
+      "tool_breakdown": {
+        "Bash": 41,
+        "Read": 8,
+        "mcp__playwright__browser_navigate": 12,
+        "mcp__playwright__browser_take_screenshot": 5,
+        "mcp__playwright__browser_snapshot": 3,
+        "mcp__playwright__browser_click": 8,
+        "mcp__playwright__browser_wait_for": 2,
+        "mcp__playwright__browser_console_messages": 1,
+        "Edit": 3,
+        "mcp__playwright__browser_fill_form": 1,
+        "error": 9,
+        "mcp__playwright__browser_run_code": 4,
+        "Write": 1,
+        "mcp__playwright__browser_tabs": 1
+      },
+      "sub_agents_used": [],
+      "mcp_calls": {
+        "mcp__playwright__browser_navigate": 12,
+        "mcp__playwright__browser_take_screenshot": 5,
+        "mcp__playwright__browser_snapshot": 3,
+        "mcp__playwright__browser_click": 8,
+        "mcp__playwright__browser_wait_for": 2,
+        "mcp__playwright__browser_console_messages": 1,
+        "mcp__playwright__browser_fill_form": 1,
+        "mcp__playwright__browser_run_code": 4,
+        "mcp__playwright__browser_tabs": 1
       }
     }
   ]

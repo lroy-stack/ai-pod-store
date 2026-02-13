@@ -619,7 +619,7 @@
     "id": 57,
     "feature": "Authentication + User Profile",
     "description": "Session management works across multiple tabs",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Log in on tab 1 and verify session is active",
       "Open tab 2 and verify the user is also logged in",

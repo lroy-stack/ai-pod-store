@@ -52,6 +52,24 @@ export default function LoginForm({ locale }: { locale: string }) {
         localStorage.setItem('sb-session', JSON.stringify(data.session))
       }
 
+      // Broadcast login event to other tabs
+      try {
+        const event = {
+          type: 'login',
+          timestamp: Date.now(),
+        }
+        localStorage.setItem('pod-auth-sync', JSON.stringify(event))
+        setTimeout(() => {
+          try {
+            localStorage.removeItem('pod-auth-sync')
+          } catch (e) {
+            // Ignore cleanup errors
+          }
+        }, 100)
+      } catch (e) {
+        console.error('Failed to broadcast login event:', e)
+      }
+
       router.push(`/${locale}/`)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed')
