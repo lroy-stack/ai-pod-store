@@ -50,6 +50,18 @@
     "agreeToTerms": "I agree to the",
     "termsLink": "Terms of Service",
     "and": "and",
-    "privacyLink": "Privacy Policy"
+    "privacyLink": "Privacy Policy",
+    "allFieldsRequired": "All fields are required",
+    "passwordsMismatch": "Passwords do not match",
+    "passwordTooShort": "Password must be at least 6 characters",
+    "mustAgreeToTerms": "You must agree to the terms and conditions",
+    "registrationFailed": "Registration failed. Please try again.",
+    "networkError": "Network error. Please check your connection.",
+    "registrationSuccess": "Registration successful!",
+    "redirectingToLogin": "Redirecting to login page...",
+    "registering": "Creating account...",
+    "registeringButton": "Creating account...",
+    "passwordMismatch": "Passwords do not match",
+    "termsRequired": "You must agree to the Terms of Service and Privacy Policy"
   }
 }

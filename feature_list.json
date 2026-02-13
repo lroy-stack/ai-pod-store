@@ -432,7 +432,7 @@
     "id": 40,
     "feature": "Authentication + User Profile",
     "description": "User can register with email/password",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Fill in registration form with name, email, and password",
       "Submit the registration form",

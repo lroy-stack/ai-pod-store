@@ -50,6 +50,18 @@
     "agreeToTerms": "Ich stimme den",
     "termsLink": "Nutzungsbedingungen",
     "and": "und der",
-    "privacyLink": "Datenschutzerklärung zu"
+    "privacyLink": "Datenschutzerklärung zu",
+    "allFieldsRequired": "Alle Felder sind erforderlich",
+    "passwordsMismatch": "Passwörter stimmen nicht überein",
+    "passwordTooShort": "Passwort muss mindestens 6 Zeichen lang sein",
+    "mustAgreeToTerms": "Sie müssen den Geschäftsbedingungen zustimmen",
+    "registrationFailed": "Registrierung fehlgeschlagen. Bitte versuchen Sie es erneut.",
+    "networkError": "Netzwerkfehler. Bitte überprüfen Sie Ihre Verbindung.",
+    "registrationSuccess": "Registrierung erfolgreich!",
+    "redirectingToLogin": "Weiterleitung zur Anmeldeseite...",
+    "registering": "Konto wird erstellt...",
+    "registeringButton": "Konto wird erstellt...",
+    "passwordMismatch": "Passwörter stimmen nicht überein",
+    "termsRequired": "Sie müssen den Nutzungsbedingungen und der Datenschutzerklärung zustimmen"
   }
 }

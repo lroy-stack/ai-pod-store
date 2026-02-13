@@ -50,6 +50,18 @@
     "agreeToTerms": "Acepto los",
     "termsLink": "Términos de Servicio",
     "and": "y la",
-    "privacyLink": "Política de Privacidad"
+    "privacyLink": "Política de Privacidad",
+    "allFieldsRequired": "Todos los campos son obligatorios",
+    "passwordsMismatch": "Las contraseñas no coinciden",
+    "passwordTooShort": "La contraseña debe tener al menos 6 caracteres",
+    "mustAgreeToTerms": "Debes aceptar los términos y condiciones",
+    "registrationFailed": "Error al registrarse. Por favor, inténtalo de nuevo.",
+    "networkError": "Error de red. Por favor, verifica tu conexión.",
+    "registrationSuccess": "¡Registro exitoso!",
+    "redirectingToLogin": "Redirigiendo a la página de inicio de sesión...",
+    "registering": "Creando cuenta...",
+    "registeringButton": "Creando cuenta...",
+    "passwordMismatch": "Las contraseñas no coinciden",
+    "termsRequired": "Debes aceptar los Términos de Servicio y la Política de Privacidad"
   }
 }
