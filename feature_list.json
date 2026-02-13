@@ -828,7 +828,7 @@
     "id": 76,
     "feature": "Product Catalog",
     "description": "SEO meta tags exist on product pages",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to a product detail page",
       "Inspect the HTML head section",
@@ -839,7 +839,7 @@
     "id": 77,
     "feature": "Product Catalog",
     "description": "hreflang tags present on product pages",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to a product detail page",
       "Inspect the HTML head section",
@@ -850,7 +850,7 @@
     "id": 78,
     "feature": "Product Catalog",
     "description": "Structured data (JSON-LD Product) present",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to a product detail page",
       "Inspect the page source for script elements",
@@ -861,7 +861,7 @@
     "id": 79,
     "feature": "Product Catalog",
     "description": "Product API returns paginated JSON with locale parameter",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Send GET request to /api/products?page=1&limit=10&locale=en",
       "Verify the response is JSON with total, page, and items array fields",
