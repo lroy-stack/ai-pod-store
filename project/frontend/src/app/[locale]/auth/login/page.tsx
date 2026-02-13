@@ -1,5 +1,6 @@
 import { getTranslations } from 'next-intl/server'
 import LoginForm from '@/components/auth/LoginForm'
+import { Card, CardContent } from '@/components/ui/card'
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
@@ -15,8 +16,12 @@ export default async function LoginPage({ params }: { params: Promise<{ locale: 
   const { locale } = await params
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted py-12 px-4 sm:px-6 lg:px-8">
-      <LoginForm locale={locale} />
+    <div className="flex items-center justify-center py-8 md:py-12 px-4">
+      <Card className="w-full max-w-md">
+        <CardContent className="pt-6">
+          <LoginForm locale={locale} />
+        </CardContent>
+      </Card>
     </div>
   )
 }

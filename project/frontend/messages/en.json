@@ -167,7 +167,18 @@
     "addressAdded": "Address added successfully",
     "addressUpdated": "Address updated successfully",
     "errorSavingAddress": "Failed to save address. Please try again.",
-    "updateAddress": "Update Address"
+    "updateAddress": "Update Address",
+    "dangerZone": "Danger Zone",
+    "dangerZoneDescription": "Permanently delete your account and all associated data.",
+    "deleteAccount": "Delete Account",
+    "deleteAccountConfirmTitle": "Delete your account?",
+    "deleteAccountConfirmDescription": "This action cannot be undone. Your account will be permanently deleted.",
+    "deleteAccountWarning1": "• All your personal data will be anonymized",
+    "deleteAccountWarning2": "• You will be immediately logged out",
+    "confirmDelete": "Yes, delete my account",
+    "deleting": "Deleting...",
+    "accountDeletedSuccess": "Your account has been deleted",
+    "accountDeleteError": "Failed to delete account. Please try again."
   },
   "Cart": {
     "title": "Shopping Cart",

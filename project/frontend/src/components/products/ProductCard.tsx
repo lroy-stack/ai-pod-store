@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Star, Heart } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
 
 interface Product {
   id: string
@@ -44,11 +46,12 @@ export function ProductCard({ product }: ProductCardProps) {
         {[1, 2, 3, 4, 5].map((star) => (
           <Star
             key={star}
-            className={`w-4 h-4 ${
+            className={cn(
+              'size-4',
               star <= Math.round(rating)
                 ? 'fill-rating text-rating'
                 : 'text-muted-foreground/50'
-            }`}
+            )}
           />
         ))}
       </div>
@@ -58,7 +61,7 @@ export function ProductCard({ product }: ProductCardProps) {
   return (
     <Link
       href={`/shop/${product.id}`}
-      className="group block bg-card rounded-lg border border-border overflow-hidden hover:shadow-lg transition-shadow"
+      className="group block rounded-lg border border-border bg-card overflow-hidden hover:shadow-lg transition-shadow"
     >
       <div className="relative aspect-square bg-muted">
         <Image
@@ -68,17 +71,20 @@ export function ProductCard({ product }: ProductCardProps) {
           className="object-cover group-hover:scale-105 transition-transform duration-300"
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
         />
-        <button
+        <Button
+          variant="ghost"
+          size="icon"
+          className="absolute top-3 right-3 bg-card/90 hover:bg-card"
           onClick={toggleWishlist}
-          className="absolute top-3 right-3 p-2 bg-card/90 rounded-full hover:bg-card transition-colors"
           aria-label={isWishlisted ? t('removeFromWishlist') : t('addToWishlist')}
         >
           <Heart
-            className={`w-5 h-5 ${
+            className={cn(
+              'size-5',
               isWishlisted ? 'fill-destructive text-destructive' : 'text-muted-foreground'
-            }`}
+            )}
           />
-        </button>
+        </Button>
       </div>
 
       <div className="p-4">
@@ -91,11 +97,9 @@ export function ProductCard({ product }: ProductCardProps) {
         </p>
 
         <div className="flex items-center justify-between">
-          <div>
-            <p className="text-xl font-bold">
-              {formatPrice(product.price, product.currency)}
-            </p>
-          </div>
+          <p className="text-xl font-bold">
+            {formatPrice(product.price, product.currency)}
+          </p>
 
           {product.rating && (
             <div className="flex flex-col items-end">

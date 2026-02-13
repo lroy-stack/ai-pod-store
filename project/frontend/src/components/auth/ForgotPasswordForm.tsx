@@ -3,6 +3,10 @@
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
+import { Loader2 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 
 export default function ForgotPasswordForm({ locale }: { locale: string }) {
   const t = useTranslations('Auth')
@@ -41,97 +45,81 @@ export default function ForgotPasswordForm({ locale }: { locale: string }) {
 
   if (success) {
     return (
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-foreground">
+      <div className="w-full space-y-6">
+        <div className="text-center">
+          <h2 className="text-2xl md:text-3xl font-bold text-foreground">
             {t('checkYourEmail')}
           </h2>
-          <p className="mt-2 text-center text-sm text-muted-foreground">
+          <p className="mt-2 text-sm text-muted-foreground">
             {t('resetEmailSent')}
           </p>
         </div>
 
-        <div className="rounded-md bg-success/10 p-4">
-          <div className="flex">
-            <div className="ml-3">
-              <h3 className="text-sm font-medium text-success">
-                {t('passwordResetEmailSent')}
-              </h3>
-              <p className="mt-2 text-sm text-success/80">
-                {t('checkSpamFolder')}
-              </p>
-            </div>
-          </div>
+        <div className="rounded-md bg-success/10 p-3 text-sm text-success">
+          <p className="font-medium">{t('passwordResetEmailSent')}</p>
+          <p className="mt-1 text-success/80">{t('checkSpamFolder')}</p>
         </div>
 
         <div className="text-center">
-          <Link
-            href={`/${locale}/auth/login`}
-            className="font-medium text-primary hover:text-primary/80"
-          >
-            {t('backToLogin')}
-          </Link>
+          <Button variant="link" asChild>
+            <Link href={`/${locale}/auth/login`}>
+              {t('backToLogin')}
+            </Link>
+          </Button>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="max-w-md w-full space-y-8">
-      <div>
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-foreground">
+    <div className="w-full space-y-6">
+      <div className="text-center">
+        <h2 className="text-2xl md:text-3xl font-bold text-foreground">
           {t('forgotPasswordTitle')}
         </h2>
-        <p className="mt-2 text-center text-sm text-muted-foreground">
+        <p className="mt-2 text-sm text-muted-foreground">
           {t('forgotPasswordDescription')}
         </p>
       </div>
 
       {error && (
-        <div className="rounded-md bg-destructive/10 p-4">
-          <div className="flex">
-            <div className="ml-3">
-              <h3 className="text-sm font-medium text-destructive">{error}</h3>
-            </div>
-          </div>
+        <div className="rounded-md bg-destructive/10 p-3 text-sm font-medium text-destructive">
+          {error}
         </div>
       )}
 
-      <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-        <div>
-          <label htmlFor="email" className="block text-sm font-medium text-foreground">
-            {t('emailLabel')}
-          </label>
-          <div className="mt-1">
-            <input
-              id="email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={loading}
-              className="appearance-none block w-full px-3 py-2 border border-border rounded-md placeholder:text-muted-foreground text-foreground focus:outline-none focus:ring-ring focus:border-ring sm:text-sm disabled:opacity-50"
-              placeholder={t('emailPlaceholder')}
-            />
-          </div>
-        </div>
-
-        <div>
-          <button
-            type="submit"
+      <form className="space-y-4" onSubmit={handleSubmit}>
+        <div className="space-y-2">
+          <Label htmlFor="email">{t('emailLabel')}</Label>
+          <Input
+            id="email"
+            type="email"
+            autoComplete="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             disabled={loading}
-            className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-primary-foreground bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? t('sendingResetLink') : t('sendResetLink')}
-          </button>
+            placeholder={t('emailPlaceholder')}
+          />
         </div>
 
-        <div className="text-center text-sm">
-          <Link href={`/${locale}/auth/login`} className="font-medium text-primary hover:text-primary/80">
-            {t('backToLogin')}
-          </Link>
+        <Button type="submit" className="w-full" disabled={loading}>
+          {loading ? (
+            <>
+              <Loader2 className="size-4 animate-spin" />
+              {t('sendingResetLink')}
+            </>
+          ) : (
+            t('sendResetLink')
+          )}
+        </Button>
+
+        <div className="text-center">
+          <Button variant="link" asChild>
+            <Link href={`/${locale}/auth/login`}>
+              {t('backToLogin')}
+            </Link>
+          </Button>
         </div>
       </form>
     </div>

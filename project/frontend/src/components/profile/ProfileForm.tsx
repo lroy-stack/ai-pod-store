@@ -2,7 +2,22 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter } from 'next/navigation';
+import { User, Mail, Phone, Globe, DollarSign, Bell, Loader2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { Separator } from '@/components/ui/separator';
 
 interface ProfileFormProps {
   locale: string;
@@ -24,10 +39,63 @@ interface UserProfile {
   };
 }
 
+function getInitials(name: string): string {
+  return name
+    .split(' ')
+    .map((part) => part[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+}
+
+function LoadingSkeleton() {
+  return (
+    <div className="space-y-6 animate-pulse">
+      <div className="flex flex-col items-center md:items-start gap-4">
+        <div className="size-20 rounded-full bg-muted" />
+        <div className="h-4 w-24 rounded bg-muted" />
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <div className="h-4 w-16 rounded bg-muted" />
+          <div className="h-9 rounded-md bg-muted" />
+        </div>
+        <div className="space-y-2">
+          <div className="h-4 w-16 rounded bg-muted" />
+          <div className="h-9 rounded-md bg-muted" />
+        </div>
+      </div>
+      <div className="space-y-2">
+        <div className="h-4 w-16 rounded bg-muted" />
+        <div className="h-9 rounded-md bg-muted" />
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <div className="h-4 w-16 rounded bg-muted" />
+          <div className="h-9 rounded-md bg-muted" />
+        </div>
+        <div className="space-y-2">
+          <div className="h-4 w-16 rounded bg-muted" />
+          <div className="h-9 rounded-md bg-muted" />
+        </div>
+      </div>
+      <div className="h-px bg-muted" />
+      <div className="space-y-3">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="flex items-center justify-between">
+            <div className="h-4 w-32 rounded bg-muted" />
+            <div className="h-5 w-8 rounded-full bg-muted" />
+          </div>
+        ))}
+      </div>
+      <div className="h-9 rounded-md bg-muted" />
+    </div>
+  );
+}
+
 export function ProfileForm({ locale }: ProfileFormProps) {
   const t = useTranslations('Profile');
   const router = useRouter();
-  const pathname = usePathname();
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -47,7 +115,6 @@ export function ProfileForm({ locale }: ProfileFormProps) {
     },
   });
 
-  // Fetch user profile on mount
   useEffect(() => {
     async function fetchProfile() {
       try {
@@ -117,7 +184,6 @@ export function ProfileForm({ locale }: ProfileFormProps) {
       setProfile(data.profile);
       setSuccess(t('successMessage'));
 
-      // If locale changed, redirect to new locale
       const newLocale = data.profile.locale?.trim();
       const currentLocale = locale?.trim();
 
@@ -135,11 +201,7 @@ export function ProfileForm({ locale }: ProfileFormProps) {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-muted-foreground">{t('loading')}</div>
-      </div>
-    );
+    return <LoadingSkeleton />;
   }
 
   if (!profile) {
@@ -150,213 +212,202 @@ export function ProfileForm({ locale }: ProfileFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Avatar Upload Area */}
-      <div className="flex flex-col items-center space-y-4">
-        <div className="relative">
-          <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center overflow-hidden border-2 border-border">
-            {profile.avatar_url ? (
-              <img
-                src={profile.avatar_url}
-                alt={profile.name || 'Avatar'}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <svg
-                className="w-12 h-12 text-muted-foreground"
-                fill="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-              </svg>
-            )}
-          </div>
-        </div>
-        <button
-          type="button"
-          className="text-sm text-primary hover:underline focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-        >
+      {/* Avatar */}
+      <div className="flex flex-col items-center md:flex-row md:items-center gap-4">
+        <Avatar className="size-20">
+          {profile.avatar_url ? (
+            <AvatarImage src={profile.avatar_url} alt={profile.name || 'Avatar'} />
+          ) : null}
+          <AvatarFallback className="text-lg">
+            {profile.name ? getInitials(profile.name) : <User className="size-8" />}
+          </AvatarFallback>
+        </Avatar>
+        <Button type="button" variant="outline" size="sm" disabled>
           {t('uploadAvatar')}
-        </button>
+        </Button>
       </div>
 
-      {/* Form Fields */}
-      <div className="space-y-4">
-        {/* Name Field */}
-        <div>
-          <label htmlFor="name" className="block text-sm font-medium text-foreground mb-1">
+      <Separator />
+
+      {/* Name + Phone — side by side on md+ */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="name" className="flex items-center gap-1.5">
+            <User className="size-3.5" />
             {t('name')}
-          </label>
-          <input
-            type="text"
+          </Label>
+          <Input
             id="name"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="w-full px-3 py-2 border border-border rounded-md bg-card text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
             placeholder={t('namePlaceholder')}
           />
         </div>
 
-        {/* Email Field (Read-only) */}
-        <div>
-          <label htmlFor="email" className="block text-sm font-medium text-foreground mb-1">
-            {t('email')}
-          </label>
-          <input
-            type="email"
-            id="email"
-            value={profile.email}
-            disabled
-            className="w-full px-3 py-2 border border-border rounded-md bg-muted text-muted-foreground cursor-not-allowed"
-          />
-          {profile.email_verified && (
-            <p className="mt-1 text-xs text-success">{t('emailVerified')}</p>
-          )}
-        </div>
-
-        {/* Phone Field */}
-        <div>
-          <label htmlFor="phone" className="block text-sm font-medium text-foreground mb-1">
+        <div className="space-y-2">
+          <Label htmlFor="phone" className="flex items-center gap-1.5">
+            <Phone className="size-3.5" />
             {t('phone')}
-          </label>
-          <input
-            type="tel"
+          </Label>
+          <Input
             id="phone"
+            type="tel"
             value={formData.phone}
             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-            className="w-full px-3 py-2 border border-border rounded-md bg-card text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
             placeholder={t('phonePlaceholder')}
           />
         </div>
+      </div>
 
-        {/* Locale Field */}
-        <div>
-          <label htmlFor="locale" className="block text-sm font-medium text-foreground mb-1">
+      {/* Email — full width, read-only */}
+      <div className="space-y-2">
+        <Label htmlFor="email" className="flex items-center gap-1.5">
+          <Mail className="size-3.5" />
+          {t('email')}
+        </Label>
+        <Input
+          id="email"
+          type="email"
+          value={profile.email}
+          disabled
+          className="bg-muted"
+        />
+        {profile.email_verified && (
+          <p className="text-xs text-success">{t('emailVerified')}</p>
+        )}
+      </div>
+
+      {/* Language + Currency — side by side on md+ */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label className="flex items-center gap-1.5">
+            <Globe className="size-3.5" />
             {t('language')}
-          </label>
-          <select
-            id="locale"
+          </Label>
+          <Select
             value={formData.locale}
-            onChange={(e) => setFormData({ ...formData, locale: e.target.value })}
-            className="w-full px-3 py-2 border border-border rounded-md bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+            onValueChange={(value) => setFormData({ ...formData, locale: value })}
           >
-            <option value="en">English</option>
-            <option value="es">Español</option>
-            <option value="de">Deutsch</option>
-          </select>
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="en">English</SelectItem>
+              <SelectItem value="es">Español</SelectItem>
+              <SelectItem value="de">Deutsch</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
-        {/* Currency Field */}
-        <div>
-          <label htmlFor="currency" className="block text-sm font-medium text-foreground mb-1">
+        <div className="space-y-2">
+          <Label className="flex items-center gap-1.5">
+            <DollarSign className="size-3.5" />
             {t('currency')}
-          </label>
-          <select
-            id="currency"
+          </Label>
+          <Select
             value={formData.currency}
-            onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
-            className="w-full px-3 py-2 border border-border rounded-md bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+            onValueChange={(value) => setFormData({ ...formData, currency: value })}
           >
-            <option value="USD">USD ($)</option>
-            <option value="EUR">EUR (€)</option>
-          </select>
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="USD">USD ($)</SelectItem>
+              <SelectItem value="EUR">EUR (€)</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
+      </div>
 
-        {/* Notification Preferences */}
-        <div className="pt-4 border-t border-border">
-          <h3 className="text-sm font-medium text-foreground mb-3">
-            {t('notificationPreferences')}
-          </h3>
-          <div className="space-y-3">
-            {/* Email Notifications */}
-            <div className="flex items-center justify-between">
-              <label htmlFor="email-notifications" className="text-sm text-foreground">
-                {t('emailNotifications')}
-              </label>
-              <input
-                type="checkbox"
-                id="email-notifications"
-                checked={formData.notification_preferences.email}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    notification_preferences: {
-                      ...formData.notification_preferences,
-                      email: e.target.checked,
-                    },
-                  })
-                }
-                className="w-4 h-4 border-border rounded focus:ring-2 focus:ring-ring focus:ring-offset-2"
-              />
-            </div>
+      <Separator />
 
-            {/* Push Notifications */}
-            <div className="flex items-center justify-between">
-              <label htmlFor="push-notifications" className="text-sm text-foreground">
-                {t('pushNotifications')}
-              </label>
-              <input
-                type="checkbox"
-                id="push-notifications"
-                checked={formData.notification_preferences.push}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    notification_preferences: {
-                      ...formData.notification_preferences,
-                      push: e.target.checked,
-                    },
-                  })
-                }
-                className="w-4 h-4 border-border rounded focus:ring-2 focus:ring-ring focus:ring-offset-2"
-              />
-            </div>
-
-            {/* SMS Notifications */}
-            <div className="flex items-center justify-between">
-              <label htmlFor="sms-notifications" className="text-sm text-foreground">
-                {t('smsNotifications')}
-              </label>
-              <input
-                type="checkbox"
-                id="sms-notifications"
-                checked={formData.notification_preferences.sms}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    notification_preferences: {
-                      ...formData.notification_preferences,
-                      sms: e.target.checked,
-                    },
-                  })
-                }
-                className="w-4 h-4 border-border rounded focus:ring-2 focus:ring-ring focus:ring-offset-2"
-              />
-            </div>
+      {/* Notification Preferences */}
+      <div className="space-y-4">
+        <h3 className="flex items-center gap-1.5 text-sm font-medium">
+          <Bell className="size-3.5" />
+          {t('notificationPreferences')}
+        </h3>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <Label htmlFor="email-notifications" className="font-normal">
+              {t('emailNotifications')}
+            </Label>
+            <Switch
+              id="email-notifications"
+              checked={formData.notification_preferences.email}
+              onCheckedChange={(checked) =>
+                setFormData({
+                  ...formData,
+                  notification_preferences: {
+                    ...formData.notification_preferences,
+                    email: checked,
+                  },
+                })
+              }
+            />
+          </div>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="push-notifications" className="font-normal">
+              {t('pushNotifications')}
+            </Label>
+            <Switch
+              id="push-notifications"
+              checked={formData.notification_preferences.push}
+              onCheckedChange={(checked) =>
+                setFormData({
+                  ...formData,
+                  notification_preferences: {
+                    ...formData.notification_preferences,
+                    push: checked,
+                  },
+                })
+              }
+            />
+          </div>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="sms-notifications" className="font-normal">
+              {t('smsNotifications')}
+            </Label>
+            <Switch
+              id="sms-notifications"
+              checked={formData.notification_preferences.sms}
+              onCheckedChange={(checked) =>
+                setFormData({
+                  ...formData,
+                  notification_preferences: {
+                    ...formData.notification_preferences,
+                    sms: checked,
+                  },
+                })
+              }
+            />
           </div>
         </div>
       </div>
 
       {/* Error/Success Messages */}
       {error && (
-        <div className="p-3 rounded-md bg-destructive/10 text-destructive text-sm">
+        <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
           {error}
         </div>
       )}
-
       {success && (
-        <div className="p-3 rounded-md bg-success/10 text-success text-sm">
+        <div className="rounded-md bg-success/10 p-3 text-sm text-success">
           {success}
         </div>
       )}
 
-      {/* Submit Button */}
-      <button
-        type="submit"
-        disabled={saving}
-        className="w-full px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        {saving ? t('saving') : t('saveChanges')}
-      </button>
+      {/* Submit */}
+      <Button type="submit" className="w-full" disabled={saving}>
+        {saving ? (
+          <>
+            <Loader2 className="size-4 animate-spin" />
+            {t('saving')}
+          </>
+        ) : (
+          t('saveChanges')
+        )}
+      </Button>
     </form>
   );
 }

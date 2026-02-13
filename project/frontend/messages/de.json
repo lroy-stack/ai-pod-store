@@ -167,7 +167,18 @@
     "addressAdded": "Adresse erfolgreich hinzugefügt",
     "addressUpdated": "Adresse erfolgreich aktualisiert",
     "errorSavingAddress": "Fehler beim Speichern der Adresse. Bitte versuchen Sie es erneut.",
-    "updateAddress": "Adresse aktualisieren"
+    "updateAddress": "Adresse aktualisieren",
+    "dangerZone": "Gefahrenzone",
+    "dangerZoneDescription": "Löschen Sie Ihr Konto und alle zugehörigen Daten dauerhaft.",
+    "deleteAccount": "Konto löschen",
+    "deleteAccountConfirmTitle": "Ihr Konto löschen?",
+    "deleteAccountConfirmDescription": "Diese Aktion kann nicht rückgängig gemacht werden. Ihr Konto wird dauerhaft gelöscht.",
+    "deleteAccountWarning1": "• Alle Ihre persönlichen Daten werden anonymisiert",
+    "deleteAccountWarning2": "• Sie werden sofort abgemeldet",
+    "confirmDelete": "Ja, mein Konto löschen",
+    "deleting": "Wird gelöscht...",
+    "accountDeletedSuccess": "Ihr Konto wurde gelöscht",
+    "accountDeleteError": "Fehler beim Löschen des Kontos. Bitte versuchen Sie es erneut."
   },
   "Cart": {
     "title": "Warenkorb",

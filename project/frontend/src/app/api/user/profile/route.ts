@@ -24,13 +24,34 @@ export async function GET(request: NextRequest) {
     }
 
     // Get user profile from users table
-    const { data: profile, error: profileError } = await supabaseAdmin
+    let { data: profile, error: profileError } = await supabaseAdmin
       .from('users')
       .select('id, email, name, avatar_url, locale, currency, phone, email_verified, notification_preferences')
       .eq('email', user.email)
       .single();
 
-    if (profileError) {
+    // If no profile row exists, create one automatically from auth user data
+    if (profileError && profileError.code === 'PGRST116') {
+      const { data: newProfile, error: insertError } = await supabaseAdmin
+        .from('users')
+        .insert({
+          id: user.id,
+          email: user.email,
+          name: user.user_metadata?.full_name || user.email?.split('@')[0] || '',
+          locale: 'en',
+          currency: 'USD',
+          email_verified: !!user.email_confirmed_at,
+          notification_preferences: { email: true, push: true, sms: false },
+        })
+        .select('id, email, name, avatar_url, locale, currency, phone, email_verified, notification_preferences')
+        .single();
+
+      if (insertError) {
+        console.error('[GET /api/user/profile] Error creating profile:', insertError);
+        return NextResponse.json({ error: 'Failed to create profile' }, { status: 500 });
+      }
+      profile = newProfile;
+    } else if (profileError) {
       console.error('[GET /api/user/profile] Error fetching profile:', profileError);
       return NextResponse.json({ error: 'Failed to fetch profile' }, { status: 500 });
     }

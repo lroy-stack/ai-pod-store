@@ -5,7 +5,9 @@ export const metadata: Metadata = {
   description: 'AI-Managed Print-on-Demand Ecommerce Platform',
 }
 
-// Root layout - minimal, just passes through to [locale] layout
+// Root layout — pass-through only.
+// <html> and <body> are rendered by [locale]/layout.tsx
+// so the lang attribute can be set per-locale.
 export default function RootLayout({
   children,
 }: {

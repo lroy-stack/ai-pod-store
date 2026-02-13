@@ -3,19 +3,23 @@
   <version>2.1 — Architecture Expansion (Feb 2026)</version>
 
   <overview>
-    Build a fully functional AI-managed Print-on-Demand ecommerce platform where a generative
-    chat interface allows customers to discover, customize, and purchase products in 3 languages.
-    The platform integrates Printify for fulfillment, Stripe for payments, and uses a RAG pipeline
-    for intelligent product search. An autonomous AI agent ("PodClaw" — a NanoClaw-style fork of
-    OpenClaw built on Claude Agent SDK) manages the store 24/7: researching trends, generating
-    designs, creating products, processing orders, optimizing the catalog, and handling customer
-    support — augmented by Python analytics scripts (RFM, cohort, demand forecasting, A/B testing)
-    for cost-effective insights without over-relying on AI API calls.
+    Build a 100% AI-managed Print-on-Demand platform where an autonomous AI agent harness
+    ("PodClaw" — built on Claude Agent SDK) IS the store. PodClaw researches trends,
+    generates designs, creates products, sets prices, handles customer interactions, manages
+    finances, and optimizes the catalog — all autonomously, 24/7.
 
-    The frontend is a Next.js 16 App Router PWA with a three-column conversational commerce UI
-    (sidebar + chat + artifacts panel), voice input, image upload, and social login
-    (Google/Apple OAuth). Uses AI SDK 6 with ToolLoopAgent for real-time generative UI
-    (branded artifact components rendered from tool results).
+    The PRIMARY customer interface is a conversational AI storefront: a three-panel layout
+    (store navigation sidebar + generative chat + product detail panel) where customers
+    discover, customize, and purchase products through natural language in 3 languages.
+    The chat is not a feature OF a traditional store — it IS the store. PodClaw's intelligence
+    powers both the autonomous backend operations AND the real-time customer-facing chat.
+
+    Traditional pages (/shop, /products/:id) exist as secondary SEO/fallback routes for
+    search engine indexing and direct-link access, not as the primary shopping experience.
+
+    The frontend is a Next.js 16 App Router PWA where the landing page (/[locale]/) IS the
+    three-panel conversational storefront. Artifacts render INLINE in chat messages (product
+    grids, design previews with action buttons) and expand to the right detail panel on click.
     The backend uses Next.js 16 API routes (app/api/) for Printify/Stripe webhooks, order
     processing, the RAG retrieval pipeline, A/B testing, and the PodClaw agent API. No separate Express server needed.
     A Python analytics layer runs scheduled cron jobs for RFM segmentation, demand forecasting,
@@ -100,20 +104,32 @@
 
   <core_features>
     <conversational_storefront>
-      - Three-column layout: sidebar (chat list) + main (chat) + artifacts panel (product cards, previews)
+      The conversational storefront IS the primary customer interface — it IS the homepage at /[locale]/.
+
+      Three-panel layout (as defined in demo.html reference):
+      - LEFT (240px): Store navigation sidebar
+        * Navigation items: Discover, Trends, New Arrivals, Favorites, Orders
+        * "Recommended" section: AI-curated product cards (thumbnail 44x44, name, price, rating)
+        * "Popular today" section: real-time trending products
+        * Footer: green pulse dot + "Last design generated Xm ago" (PodClaw live status)
+      - CENTER: Generative chat with INLINE artifacts
+        * Chat header: search bar (pill), notification bell, cart icon with badge, avatar
+        * Inline artifacts: 3-column product grids, design previews with action buttons
+          ("Create Product", "Add to Cart", "Change") — rendered within the message flow
+        * Click on inline artifact → expands to right detail panel
+      - RIGHT (340px): Product detail panel
+        * Image gallery, price, rating, size selector, CTA buttons
+        * Activated by clicking a product in chat or sidebar
+
       - Chat-based product discovery ("show me cat t-shirts under $30") in EN/ES/DE
       - AI-powered product recommendations based on conversation context
       - Natural language search with RAG-powered semantic retrieval
-      - Product cards rendered in artifacts panel with images, price, variants, "Add to Cart"
-      - Design preview artifacts with generated image, style info, "Use This Design"
-      - Pricing table artifacts with breakdown and margin info
       - Add-to-cart and checkout flow initiated from chat
       - Order tracking and status updates via chat
       - Design customization requests ("make it blue with stars")
-      - Multi-turn conversation with session persistence (Redis + DB)
-      - Conversation list in sidebar grouped by date (Today, Yesterday, Previous 7 days)
-      - New conversation button, search, rename, delete conversations
-      - Suggested prompts for new conversations (locale-aware)
+      - Ephemeral chat sessions (no conversation persistence across visits)
+        The AI has context via user profile and PodClaw's memory system.
+      - Suggested prompts for new visitors (locale-aware)
       - Command palette (Cmd/Ctrl+K) for quick actions
       - 22 AI tools for complete shopping assistance (see chat_tools section)
       - Voice input via Web Speech API (locale-aware: en-US, es-ES, de-DE)
@@ -354,7 +370,7 @@
   <chat_tools>
     <description>
       The AI chat assistant uses 22 tools via AI SDK 6 ToolLoopAgent on the backend.
-      Tool results render as branded artifact components in the right panel via message.parts.map().
+      Tool results render as branded artifact components INLINE in chat messages via message.parts.map(). Compact artifacts (product grids, design previews with action buttons) appear directly in the chat flow. Clicking a product expands it to the right detail panel.
       Two tools require human approval (needsApproval: true): create_checkout, request_return.
     </description>
 
@@ -827,10 +843,11 @@
 
   <ui_layout>
     <pages>
-      - /[locale]/ — Homepage with featured products, hero banner, chat widget
+      - /[locale]/ — Conversational storefront (three-panel: sidebar + chat + detail) — PRIMARY INTERFACE
       - /[locale]/shop — Product catalog with filters and search
       - /[locale]/shop/:id — Product detail page with reviews
-      - /[locale]/chat — Full-screen conversational storefront (three-column)
+      - /[locale]/chat — Alias/redirect to /[locale]/ (the storefront IS the homepage)
+      NOTE: /shop and /shop/:id are secondary SEO/fallback routes. The primary experience is the conversational storefront at /.
       - /[locale]/cart — Shopping cart
       - /[locale]/checkout/success — Order confirmation
       - /[locale]/orders — My orders (authenticated)
@@ -862,21 +879,31 @@
     </pages>
 
     <main_layout>
-      - Header: Logo, navigation (Shop, Chat, Cart icon with count), locale switcher, user menu
-      - Footer: Links, policies, social, language selector
-      - Chat widget: Floating button (bottom-right) → expandable chat panel
-      - Responsive: Mobile-first, collapsible sidebar on admin/chat pages
-      - Dark/Light mode toggle in header
+      - The conversational storefront (/[locale]/) is FULL VIEWPORT — no traditional header/footer.
+        The chat header contains: search bar (pill), notification bell, cart icon with badge, avatar.
+        The left sidebar provides store navigation.
+      - Secondary pages (/shop, /admin, /profile, /orders) maintain standard header/footer.
+      - NO floating chat widget — the chat IS the primary experience.
+      - Responsive: mobile-first, sidebar collapses to Sheet drawer, detail panel stacks below chat.
+      - Dark/Light mode toggle in chat header.
     </main_layout>
 
     <chat_interface description="Three-column layout inspired by claude.ai">
-      <left_sidebar>
-        - New Chat button (prominent)
-        - Search conversations input
-        - Conversation list grouped by date (Today, Yesterday, Previous 7 days, Older)
-        - Each item: title, last message preview, timestamp
-        - Right-click context menu: Rename, Delete
-        - User profile link at bottom
+      <left_sidebar description="Store navigation + AI-curated recommendations (NOT a conversation list)">
+        - Logo + store name (header with animated gradient icon)
+        - Navigation items (vertical, icon + label):
+          * Discover (active by default)
+          * Trends — trending products and categories
+          * New Arrivals — recently added products
+          * Favorites — saved items/wishlist
+          * Orders — order history
+        - Section "Recommended": AI-curated product cards (thumbnail 44x44, name, price, rating)
+        - Section "Popular today": real-time trending products
+        - Footer: green pulse dot + "Last design generated Xm ago" (PodClaw live status)
+        - Click on sidebar product → opens in right detail panel
+        - Mobile: hidden by default, accessible via Sheet drawer
+        - NO conversation list — each chat session is ephemeral.
+          The AI has context via user profile and PodClaw's memory system.
       </left_sidebar>
 
       <main_chat_area>
@@ -884,7 +911,7 @@
         - Message history (scrollable) with streaming responses
         - User messages: right-aligned, subtle background
         - Assistant messages: left-aligned, markdown rendered
-        - Tool invocations: loading state → result rendered in artifacts panel
+        - Tool invocations: loading state → compact result rendered INLINE in chat + full detail in right panel on click
         - Input area with auto-resize textarea
         - Voice input: microphone button (Web Speech API, locale-aware)
         - Image upload: camera/paperclip button + drag-and-drop support
@@ -894,7 +921,7 @@
         - Session persistence across page reloads
       </main_chat_area>
 
-      <artifacts_panel description="Right panel for rich tool results">
+      <artifacts_panel description="Right panel for expanded product detail (activated by clicking inline artifacts or sidebar products)">
         - Product grid (from product_search, browse_catalog, get_recommendations)
         - Product detail card (from get_product_detail)
         - Product comparison table (from compare_products)
@@ -973,6 +1000,35 @@
       - Toast notifications: bottom-right, auto-dismiss 5s
       - Artifacts panel: border-l, shadow-lg, slide-in transition
     </components>
+
+    <component_library>
+      ALL interactive UI elements MUST use shadcn/ui components from @/components/ui/.
+      NEVER write raw HTML elements when a shadcn/ui component exists.
+
+      Available components and their usage:
+      - Button: All clickable actions. Variants: default, destructive, outline, secondary, ghost, link.
+        Sizes: default, sm, lg, icon. Use asChild with Link for navigation buttons.
+      - Input: All text/email/password/tel inputs. Always pair with Label.
+      - Label: All form field labels. Import from @/components/ui/label.
+      - Textarea: Multi-line text input.
+      - Select + SelectTrigger + SelectContent + SelectItem + SelectValue: All dropdowns.
+      - Checkbox: Multi-select options and terms acceptance.
+      - Switch: On/off toggles (notification preferences, feature toggles).
+      - Card + CardHeader + CardContent + CardFooter + CardTitle + CardDescription: All card layouts.
+      - Dialog + DialogTrigger + DialogContent: Modals and confirmations.
+      - Sheet + SheetTrigger + SheetContent: Mobile navigation drawers, side panels.
+      - Tabs + TabsList + TabsTrigger + TabsContent: Tabbed interfaces.
+      - Avatar + AvatarImage + AvatarFallback: User avatars.
+      - Badge: Status indicators, tags, labels.
+      - Separator: Visual dividers (replaces border-t border-border divs).
+      - DropdownMenu: Context menus, action menus.
+      - Sonner (toast): Notifications, success/error feedback.
+
+      Utilities:
+      - cn() from @/lib/utils: Merge conditional class names (clsx + tailwind-merge).
+
+      Reference implementation: src/components/Navbar.tsx
+    </component_library>
   </design_system>
 
   <webhook_flows>
@@ -1076,7 +1132,7 @@
         Reads: customer_segments table (RFM data), SOUL.md (communication style)
         Writes: notifications table, audit_log
         Tasks:
-        - Handle customer support via chat (delegates to storefront ToolLoopAgent)
+        - Powers the customer-facing conversational storefront — PodClaw's customer_manager IS the intelligence behind the ToolLoopAgent that customers interact with.
         - Manage returns and refunds (needsApproval for refunds > $100)
         - Respond to product reviews (locale-aware, brand voice from SOUL.md)
         - Send retention/re-engagement emails (targets from RFM segments)
@@ -1222,7 +1278,7 @@
       22:00 UTC — CUSTOMER MANAGER: pending tickets + retention emails (targets from RFM)
       23:00 UTC — FINANCE: daily report + revenue tracking + anomaly detection
       23:30 UTC — MEMORY: consolidate daily → weekly → MEMORY.md (three-tier)
-      CONTINUOUS — CUSTOMER CHAT: real-time responses via ToolLoopAgent (event-driven)
+      CONTINUOUS — CUSTOMER STOREFRONT: PodClaw's customer_manager powers the primary conversational interface via ToolLoopAgent — this IS the store's public face.
     </daily_cycle>
   </podclaw_agent>
 

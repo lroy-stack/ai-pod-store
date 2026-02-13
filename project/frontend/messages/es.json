@@ -167,7 +167,18 @@
     "addressAdded": "Dirección agregada exitosamente",
     "addressUpdated": "Dirección actualizada exitosamente",
     "errorSavingAddress": "Error al guardar la dirección. Inténtalo de nuevo.",
-    "updateAddress": "Actualizar Dirección"
+    "updateAddress": "Actualizar Dirección",
+    "dangerZone": "Zona de Peligro",
+    "dangerZoneDescription": "Elimina permanentemente tu cuenta y todos los datos asociados.",
+    "deleteAccount": "Eliminar Cuenta",
+    "deleteAccountConfirmTitle": "¿Eliminar tu cuenta?",
+    "deleteAccountConfirmDescription": "Esta acción no se puede deshacer. Tu cuenta será eliminada permanentemente.",
+    "deleteAccountWarning1": "• Todos tus datos personales serán anonimizados",
+    "deleteAccountWarning2": "• Se cerrará tu sesión inmediatamente",
+    "confirmDelete": "Sí, eliminar mi cuenta",
+    "deleting": "Eliminando...",
+    "accountDeletedSuccess": "Tu cuenta ha sido eliminada",
+    "accountDeleteError": "Error al eliminar la cuenta. Inténtalo de nuevo."
   },
   "Cart": {
     "title": "Carrito de Compras",

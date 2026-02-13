@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { Loader2 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 export default function EmailVerificationHandler({ locale }: { locale: string }) {
   const t = useTranslations('Auth')
@@ -13,7 +15,6 @@ export default function EmailVerificationHandler({ locale }: { locale: string })
 
   useEffect(() => {
     const verifyEmail = async () => {
-      // Get the token from URL hash (Supabase sends it there)
       const hash = window.location.hash
       if (!hash) {
         setStatus('error')
@@ -32,7 +33,6 @@ export default function EmailVerificationHandler({ locale }: { locale: string })
       }
 
       try {
-        // Call our verification API endpoint
         const response = await fetch('/api/auth/verify-email', {
           method: 'POST',
           headers: {
@@ -51,7 +51,6 @@ export default function EmailVerificationHandler({ locale }: { locale: string })
           }
         } else {
           setStatus('success')
-          // Redirect to login after 3 seconds
           setTimeout(() => {
             router.push(`/${locale}/auth/login?verified=true`)
           }, 3000)
@@ -67,17 +66,17 @@ export default function EmailVerificationHandler({ locale }: { locale: string })
 
   if (status === 'loading') {
     return (
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-foreground">
+      <div className="w-full space-y-6">
+        <div className="text-center">
+          <h2 className="text-2xl md:text-3xl font-bold text-foreground">
             {t('verifyingEmail')}
           </h2>
-          <p className="mt-2 text-center text-sm text-muted-foreground">
+          <p className="mt-2 text-sm text-muted-foreground">
             {t('pleaseWait')}
           </p>
         </div>
         <div className="flex justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          <Loader2 className="size-10 animate-spin text-primary" />
         </div>
       </div>
     )
@@ -85,33 +84,26 @@ export default function EmailVerificationHandler({ locale }: { locale: string })
 
   if (status === 'success') {
     return (
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-foreground">
+      <div className="w-full space-y-6">
+        <div className="text-center">
+          <h2 className="text-2xl md:text-3xl font-bold text-foreground">
             {t('emailVerifiedSuccess')}
           </h2>
-          <p className="mt-2 text-center text-sm text-muted-foreground">
+          <p className="mt-2 text-sm text-muted-foreground">
             {t('redirectingToLogin')}
           </p>
         </div>
 
-        <div className="rounded-md bg-success/10 p-4">
-          <div className="flex">
-            <div className="ml-3">
-              <h3 className="text-sm font-medium text-success">
-                {t('emailVerifiedMessage')}
-              </h3>
-            </div>
-          </div>
+        <div className="rounded-md bg-success/10 p-3 text-sm font-medium text-success">
+          {t('emailVerifiedMessage')}
         </div>
 
         <div className="text-center">
-          <Link
-            href={`/${locale}/auth/login`}
-            className="font-medium text-primary hover:text-primary/80"
-          >
-            {t('continueToLogin')}
-          </Link>
+          <Button variant="link" asChild>
+            <Link href={`/${locale}/auth/login`}>
+              {t('continueToLogin')}
+            </Link>
+          </Button>
         </div>
       </div>
     )
@@ -119,57 +111,50 @@ export default function EmailVerificationHandler({ locale }: { locale: string })
 
   if (status === 'already_verified') {
     return (
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-foreground">
+      <div className="w-full space-y-6">
+        <div className="text-center">
+          <h2 className="text-2xl md:text-3xl font-bold text-foreground">
             {t('emailAlreadyVerified')}
           </h2>
-          <p className="mt-2 text-center text-sm text-muted-foreground">
+          <p className="mt-2 text-sm text-muted-foreground">
             {t('emailAlreadyVerifiedDescription')}
           </p>
         </div>
 
         <div className="text-center">
-          <Link
-            href={`/${locale}/auth/login`}
-            className="font-medium text-primary hover:text-primary/80"
-          >
-            {t('continueToLogin')}
-          </Link>
+          <Button variant="link" asChild>
+            <Link href={`/${locale}/auth/login`}>
+              {t('continueToLogin')}
+            </Link>
+          </Button>
         </div>
       </div>
     )
   }
 
-  // Error state
   return (
-    <div className="max-w-md w-full space-y-8">
-      <div>
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-foreground">
+    <div className="w-full space-y-6">
+      <div className="text-center">
+        <h2 className="text-2xl md:text-3xl font-bold text-foreground">
           {t('verificationFailed')}
         </h2>
-        <p className="mt-2 text-center text-sm text-muted-foreground">
+        <p className="mt-2 text-sm text-muted-foreground">
           {t('verificationFailedDescription')}
         </p>
       </div>
 
       {error && (
-        <div className="rounded-md bg-destructive/10 p-4">
-          <div className="flex">
-            <div className="ml-3">
-              <h3 className="text-sm font-medium text-destructive">{error}</h3>
-            </div>
-          </div>
+        <div className="rounded-md bg-destructive/10 p-3 text-sm font-medium text-destructive">
+          {error}
         </div>
       )}
 
       <div className="text-center">
-        <Link
-          href={`/${locale}/auth/register`}
-          className="font-medium text-primary hover:text-primary/80"
-        >
-          {t('tryRegisterAgain')}
-        </Link>
+        <Button variant="link" asChild>
+          <Link href={`/${locale}/auth/register`}>
+            {t('tryRegisterAgain')}
+          </Link>
+        </Button>
       </div>
     </div>
   )

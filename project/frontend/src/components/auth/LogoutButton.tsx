@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
+import { Loader2, LogOut } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 export default function LogoutButton({ locale }: { locale: string }) {
   const t = useTranslations('Auth')
@@ -21,14 +23,10 @@ export default function LogoutButton({ locale }: { locale: string }) {
         throw new Error('Logout failed')
       }
 
-      // Clear any local storage session data
       localStorage.removeItem('sb-session')
-
-      // Redirect to login page
       router.push(`/${locale}/auth/login`)
     } catch (error) {
       console.error('Logout error:', error)
-      // Even if there's an error, redirect to login page
       router.push(`/${locale}/auth/login`)
     } finally {
       setLoading(false)
@@ -36,12 +34,18 @@ export default function LogoutButton({ locale }: { locale: string }) {
   }
 
   return (
-    <button
-      onClick={handleLogout}
-      disabled={loading}
-      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-destructive-foreground bg-destructive hover:bg-destructive/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-destructive disabled:opacity-50 disabled:cursor-not-allowed"
-    >
-      {loading ? t('loggingOut') : t('logoutButton')}
-    </button>
+    <Button variant="destructive" onClick={handleLogout} disabled={loading}>
+      {loading ? (
+        <>
+          <Loader2 className="size-4 animate-spin" />
+          {t('loggingOut')}
+        </>
+      ) : (
+        <>
+          <LogOut className="size-4" />
+          {t('logoutButton')}
+        </>
+      )}
+    </Button>
   )
 }

@@ -597,7 +597,7 @@
     "id": 55,
     "feature": "Authentication + User Profile",
     "description": "Account deletion works (GDPR)",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to the profile settings page",
       "Click delete account and confirm the action",
@@ -1449,25 +1449,27 @@
   {
     "id": 132,
     "feature": "Conversational Storefront / Chat",
-    "description": "Chat page renders with three-column layout",
+    "description": "Storefront renders with three-panel layout (sidebar + chat + detail panel)",
     "passes": false,
     "steps": [
-      "Navigate to /en/chat",
-      "Verify left sidebar is visible",
+      "Navigate to /en/",
+      "Verify left sidebar navigation is visible (240px width)",
       "Verify center chat area is visible",
-      "Verify right artifacts panel is visible"
+      "Verify right detail panel area is visible (340px width)",
+      "Navigate to /en/chat and verify it redirects to /en/"
     ]
   },
   {
     "id": 133,
     "feature": "Conversational Storefront / Chat",
-    "description": "Left sidebar shows conversation list",
+    "description": "Left sidebar shows store navigation and AI-curated product recommendations",
     "passes": false,
     "steps": [
-      "Navigate to /en/chat",
-      "Verify sidebar has a New Chat button",
-      "Verify sidebar has a search input",
-      "Verify conversations are grouped by date"
+      "Navigate to /en/",
+      "Verify sidebar has navigation items: Discover, Trends, New Arrivals, Favorites, Orders",
+      "Verify 'Recommended' section with product thumbnails, names, and prices",
+      "Verify 'Popular today' section with trending products",
+      "Verify footer shows AI live status ('Last design generated Xm ago')"
     ]
   },
   {
@@ -1518,12 +1520,13 @@
   {
     "id": 138,
     "feature": "Conversational Storefront / Chat",
-    "description": "Conversation CRUD works",
+    "description": "Chat session maintains context within a single visit and clears on new visit",
     "passes": false,
     "steps": [
-      "Create a new chat and verify it appears in the sidebar",
-      "Rename the chat and verify the title updates in the sidebar",
-      "Delete the chat and verify it is removed from the sidebar"
+      "Send a message in the chat and verify the AI responds with context",
+      "Send a follow-up message and verify the AI remembers the previous context",
+      "Refresh the page and verify the chat session starts fresh (ephemeral)",
+      "Verify there is no conversation list or history sidebar"
     ]
   },
   {
@@ -1540,24 +1543,25 @@
   {
     "id": 140,
     "feature": "Conversational Storefront / Chat",
-    "description": "Suggested prompts for new conversations",
+    "description": "Welcome screen with suggested prompts for new visitors",
     "passes": false,
     "steps": [
-      "Open a new chat conversation",
+      "Navigate to /en/ as a new user",
+      "Verify a greeting with sparkle-text animation is displayed",
       "Verify suggested prompt buttons are displayed",
-      "Verify prompts include options like 'Show me t-shirts' and 'Track my order'"
+      "Click a suggested prompt and verify it sends the message to the chat"
     ]
   },
   {
     "id": 141,
     "feature": "Conversational Storefront / Chat",
-    "description": "Mobile chat interface collapses sidebar",
+    "description": "Mobile storefront collapses sidebar and stacks detail panel",
     "passes": false,
     "steps": [
-      "Resize the browser to mobile width",
-      "Verify the sidebar is hidden",
-      "Verify a hamburger menu is available to toggle the sidebar",
-      "Verify the artifacts panel renders below the chat on mobile"
+      "Resize browser to 375px width",
+      "Verify the left sidebar is hidden",
+      "Verify a hamburger toggle opens the sidebar as a Sheet drawer",
+      "Verify the detail panel is hidden or stacked below the chat area"
     ]
   },
   {
@@ -1568,7 +1572,8 @@
     "steps": [
       "Type 'show me cat t-shirts' in the chat",
       "Verify the product_search tool is called",
-      "Verify a product grid renders in the artifacts panel"
+      "Verify a product grid renders INLINE in the chat message",
+      "Click on a product in the inline grid and verify it opens in the right detail panel"
     ]
   },
   {
@@ -1579,7 +1584,8 @@
     "steps": [
       "Type 'browse hoodies' in the chat",
       "Verify the browse_catalog tool is called",
-      "Verify paginated products appear in the artifacts panel"
+      "Verify paginated products appear INLINE in the chat message",
+      "Click on a product and verify it expands to the right detail panel"
     ]
   },
   {
@@ -1744,12 +1750,13 @@
   {
     "id": 158,
     "feature": "Conversational Storefront / Chat",
-    "description": "Branded artifact components render from message.parts",
+    "description": "Branded artifact components render INLINE in chat from message.parts",
     "passes": false,
     "steps": [
-      "Trigger a tool that produces an artifact",
-      "Verify artifacts render via message.parts.map()",
-      "Verify each artifact has branded styling, a type badge, and a close button"
+      "Trigger a tool that produces an artifact (e.g., product search)",
+      "Verify artifacts render INLINE in chat via message.parts.map()",
+      "Verify inline artifacts have action buttons (Add to Cart, Create Product, etc.)",
+      "Click an inline artifact and verify it expands to the right detail panel"
     ]
   },
   {
