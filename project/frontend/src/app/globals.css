@@ -1,37 +1,101 @@
 @import "tailwindcss";
 
+/* ===== POD AI Store — Design Tokens (shadcn/Tailwind v4) ===== */
+/* Light-minimalist palette, Apple-inspired */
+
 @theme {
-  --color-primary: #2563eb;
-  --color-primary-foreground: #ffffff;
-  --color-secondary: #64748b;
-  --color-secondary-foreground: #ffffff;
-  --color-background: #ffffff;
-  --color-foreground: #0f172a;
-  --color-muted: #f1f5f9;
-  --color-muted-foreground: #64748b;
-  --color-accent: #f1f5f9;
-  --color-accent-foreground: #0f172a;
-  --color-destructive: #ef4444;
-  --color-destructive-foreground: #ffffff;
-  --color-border: #e2e8f0;
-  --color-input: #e2e8f0;
-  --color-ring: #2563eb;
-  --radius: 0.5rem;
+  /* Brand & Layout */
+  --color-background: #FAFAFA;
+  --color-foreground: #1D1D1F;
+
+  /* Cards & Panels */
+  --color-card: #FFFFFF;
+  --color-card-foreground: #1D1D1F;
+
+  /* Primary — brand, links, CTA buttons */
+  --color-primary: #0071E3;
+  --color-primary-foreground: #FFFFFF;
+
+  /* Secondary — hover surfaces, subtle backgrounds */
+  --color-secondary: #F5F5F7;
+  --color-secondary-foreground: #1D1D1F;
+
+  /* Muted — toned-down backgrounds & secondary text */
+  --color-muted: #F5F5F7;
+  --color-muted-foreground: #86868B;
+
+  /* Accent — alias for primary (shadcn compat) */
+  --color-accent: #0071E3;
+  --color-accent-foreground: #FFFFFF;
+
+  /* Destructive — errors, danger actions */
+  --color-destructive: #FF3B30;
+  --color-destructive-foreground: #FFFFFF;
+
+  /* Semantic status colors */
+  --color-success: #34C759;
+  --color-success-foreground: #FFFFFF;
+  --color-warning: #FF9500;
+  --color-warning-foreground: #FFFFFF;
+
+  /* Borders, inputs, focus */
+  --color-border: rgba(0, 0, 0, 0.06);
+  --color-input: #F5F5F7;
+  --color-ring: #0071E3;
+
+  /* Charts */
+  --color-chart-1: #667EEA;
+  --color-chart-2: #764BA2;
+  --color-chart-3: #F093FB;
+  --color-chart-4: #34C759;
+  --color-chart-5: #FF9500;
+
+  /* Radius */
+  --radius: 0.75rem;
 }
 
+/* ===== Dark mode (infrastructure ready) ===== */
 @media (prefers-color-scheme: dark) {
   @theme {
-    --color-background: #020617;
-    --color-foreground: #f8fafc;
-    --color-muted: #1e293b;
-    --color-muted-foreground: #94a3b8;
-    --color-accent: #1e293b;
-    --color-accent-foreground: #f8fafc;
-    --color-border: #1e293b;
-    --color-input: #1e293b;
+    --color-background: #0A0A0B;
+    --color-foreground: #F5F5F7;
+
+    --color-card: #1C1C1E;
+    --color-card-foreground: #F5F5F7;
+
+    --color-primary: #0A84FF;
+    --color-primary-foreground: #FFFFFF;
+
+    --color-secondary: #1C1C1E;
+    --color-secondary-foreground: #F5F5F7;
+
+    --color-muted: #2C2C2E;
+    --color-muted-foreground: #98989D;
+
+    --color-accent: #0A84FF;
+    --color-accent-foreground: #FFFFFF;
+
+    --color-destructive: #FF453A;
+    --color-destructive-foreground: #FFFFFF;
+
+    --color-success: #30D158;
+    --color-success-foreground: #FFFFFF;
+    --color-warning: #FF9F0A;
+    --color-warning-foreground: #FFFFFF;
+
+    --color-border: rgba(255, 255, 255, 0.08);
+    --color-input: #1C1C1E;
+    --color-ring: #0A84FF;
+
+    --color-chart-1: #7B93F5;
+    --color-chart-2: #9B6DCC;
+    --color-chart-3: #F5A9FC;
+    --color-chart-4: #30D158;
+    --color-chart-5: #FF9F0A;
   }
 }
 
+/* ===== Base resets ===== */
 * {
   @apply border-border;
 }
@@ -39,4 +103,20 @@
 body {
   @apply bg-background text-foreground;
   font-feature-settings: "rlig" 1, "calt" 1;
+}
+
+/* ===== Utility classes ===== */
+.glass-panel {
+  @apply bg-card/80 backdrop-blur-xl border border-border rounded-2xl shadow-sm;
+}
+
+.gen-gradient {
+  background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
+}
+
+.gen-gradient-text {
+  background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }

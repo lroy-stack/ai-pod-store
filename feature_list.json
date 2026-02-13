@@ -509,7 +509,7 @@
     "id": 47,
     "feature": "Authentication + User Profile",
     "description": "Auth state reflects in navbar",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify the navbar shows a Login button when logged out",
       "Log in with valid credentials",
@@ -1963,10 +1963,10 @@
     "description": "Brand colors extended in Tailwind v4 config",
     "passes": false,
     "steps": [
-      "Inspect the Tailwind CSS configuration file",
-      "Verify indigo-600 is set as the primary color",
-      "Verify emerald-500 is set as the secondary color",
-      "Verify amber-500 is set as the accent color"
+      "Inspect globals.css @theme block in frontend/src/app/globals.css",
+      "Verify --color-primary is set to #0071E3",
+      "Verify --color-success is set to #34C759",
+      "Verify --color-warning is set to #FF9500"
     ]
   },
   {

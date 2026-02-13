@@ -11,7 +11,10 @@
     "shop": "Shop",
     "cart": "Cart",
     "orders": "Orders",
-    "profile": "Profile"
+    "profile": "Profile",
+    "login": "Log in",
+    "logout": "Log out",
+    "myAccount": "My Account"
   },
   "shop": {
     "title": "Shop",

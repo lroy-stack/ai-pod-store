@@ -934,14 +934,28 @@
 
   <design_system>
     <color_palette>
-      - Primary: Indigo-600 (#4F46E5) — brand color
-      - Secondary: Emerald-500 (#10B981) — success, confirmations
-      - Accent: Amber-500 (#F59E0B) — highlights, CTAs
-      - Background: White (light), Slate-900 (#0F172A) (dark)
-      - Surface: Slate-50 (#F8FAFC) (light), Slate-800 (#1E293B) (dark)
-      - Text: Slate-900 (light), Slate-100 (dark)
-      - Error: Red-500 (#EF4444)
+      - Primary: #0071E3 — brand color, links, CTA buttons
+      - Success: #34C759 — confirmations, passing states
+      - Warning: #FF9500 — highlights, caution indicators
+      - Error: #FF3B30 — errors, destructive actions
+      - Background: #FAFAFA (light), #0A0A0B (dark)
+      - Surface: #F5F5F7 (light), #1C1C1E (dark)
+      - Text: #1D1D1F (light), #F5F5F7 (dark)
+      - Muted text: #86868B (light), #98989D (dark)
+      - Border: rgba(0,0,0,0.06) (light), rgba(255,255,255,0.08) (dark)
+      All colors are defined as CSS custom properties (--color-*) in globals.css
+      and consumed via Tailwind v4 semantic classes (bg-primary, text-foreground, etc.)
     </color_palette>
+
+    <theme_rules>
+      - All components MUST use semantic Tailwind tokens (bg-primary, text-foreground, border-border)
+      - NEVER use raw Tailwind colors (bg-blue-600, text-gray-900, border-slate-300)
+      - Focus rings: focus:ring-ring
+      - Inputs: bg-input, border-border
+      - Cards: bg-card, text-card-foreground
+      - Destructive actions: bg-destructive, text-destructive-foreground
+      - Status colors: bg-success, bg-warning (with matching -foreground tokens)
+    </theme_rules>
 
     <typography>
       - Font: Inter (Google Fonts)
@@ -953,8 +967,8 @@
 
     <components>
       - Buttons: rounded-lg, transition-colors, hover:brightness-110
-      - Cards: rounded-xl, shadow-sm, border, hover:shadow-md
-      - Inputs: rounded-md, border-slate-300, focus:ring-2 focus:ring-indigo-500
+      - Cards: rounded-xl, shadow-sm, border-border, hover:shadow-md, bg-card
+      - Inputs: rounded-md, border-border, bg-input, focus:ring-2 focus:ring-ring
       - Badges: rounded-full, px-2 py-0.5, text-xs font-medium
       - Toast notifications: bottom-right, auto-dismiss 5s
       - Artifacts panel: border-l, shadow-lg, slide-in transition

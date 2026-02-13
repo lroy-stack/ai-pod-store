@@ -11,7 +11,10 @@
     "shop": "Tienda",
     "cart": "Carrito",
     "orders": "Pedidos",
-    "profile": "Perfil"
+    "profile": "Perfil",
+    "login": "Iniciar sesión",
+    "logout": "Cerrar sesión",
+    "myAccount": "Mi Cuenta"
   },
   "shop": {
     "title": "Tienda",
