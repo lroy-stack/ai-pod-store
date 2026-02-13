@@ -740,7 +740,7 @@
     "id": 68,
     "feature": "Product Catalog",
     "description": "Product sort works",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Select 'Price: Low to High' sort option and verify products are ordered by ascending price",
       "Select 'Newest' sort option and verify newest products appear first",

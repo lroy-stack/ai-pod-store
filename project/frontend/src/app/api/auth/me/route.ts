@@ -29,11 +29,7 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json({
-      user: {
-        id: user.id,
-        email: user.email,
-        ...profile
-      }
+      user: profile
     })
   } catch (err: any) {
     console.error('Error in /api/auth/me:', err)

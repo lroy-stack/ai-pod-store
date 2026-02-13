@@ -97,6 +97,10 @@ export default function ProductDetailPage() {
   const [quantity, setQuantity] = useState(1)
   const [isWishlisted, setIsWishlisted] = useState(false)
 
+  // Extract variants to avoid TypeScript union narrowing issues
+  const sizes = product?.variants && 'sizes' in product.variants ? product.variants.sizes : undefined
+  const colors = product?.variants && 'colors' in product.variants ? product.variants.colors : undefined
+
   if (!product) {
     return (
       <div className="container mx-auto px-4 py-16">
@@ -234,7 +238,7 @@ export default function ProductDetailPage() {
 
           {/* Variants */}
           <div className="space-y-4">
-            {product.variants.sizes && (
+            {sizes && sizes.length > 0 && (
               <div>
                 <label className="text-sm font-medium mb-2 block">{t('size')}</label>
                 <Select value={selectedSize} onValueChange={setSelectedSize}>
@@ -242,7 +246,7 @@ export default function ProductDetailPage() {
                     <SelectValue placeholder={t('selectVariant')} />
                   </SelectTrigger>
                   <SelectContent>
-                    {product.variants.sizes.map((size) => (
+                    {sizes.map((size: string) => (
                       <SelectItem key={size} value={size}>
                         {size}
                       </SelectItem>
@@ -252,7 +256,7 @@ export default function ProductDetailPage() {
               </div>
             )}
 
-            {product.variants.colors && (
+            {colors && colors.length > 0 && (
               <div>
                 <label className="text-sm font-medium mb-2 block">{t('color')}</label>
                 <Select value={selectedColor} onValueChange={setSelectedColor}>
@@ -260,7 +264,7 @@ export default function ProductDetailPage() {
                     <SelectValue placeholder={t('selectVariant')} />
                   </SelectTrigger>
                   <SelectContent>
-                    {product.variants.colors.map((color) => (
+                    {colors.map((color: string) => (
                       <SelectItem key={color} value={color}>
                         {color}
                       </SelectItem>
