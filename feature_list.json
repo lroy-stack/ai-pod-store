@@ -696,7 +696,7 @@
     "id": 64,
     "feature": "Product Catalog",
     "description": "Product variant selection works",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Click size 'L' on a product and verify it shows as selected",
       "Click color 'Black' and verify it shows as selected",
