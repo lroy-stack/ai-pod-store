@@ -14,4 +14,14 @@ export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
     autoRefreshToken: false,
     persistSession: false,
   },
+  global: {
+    headers: {
+      'x-connection-pool': 'true',
+    },
+  },
+  db: {
+    schema: 'public',
+  },
+  // Note: Supabase-js uses HTTP/2 connection pooling automatically
+  // The underlying fetch API reuses connections efficiently
 })

@@ -333,7 +333,7 @@
     "id": 31,
     "feature": "Database & Schema",
     "description": "Database connection pooling configured",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify the Supabase client is configured with connection pooling",
       "Check supabase-admin.ts pool settings for max connections",
