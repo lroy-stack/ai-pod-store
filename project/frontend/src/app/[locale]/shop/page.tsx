@@ -217,6 +217,14 @@ export default function ShopPage() {
   // Get unique categories from products
   const categories = ['all', ...Array.from(new Set(mockProducts.map((p) => p.category)))]
 
+  // Get product count per category
+  const getCategoryCount = (category: string) => {
+    if (category === 'all') {
+      return mockProducts.length
+    }
+    return mockProducts.filter((p) => p.category === category).length
+  }
+
   // Filter products based on search query and category
   const filteredProducts = mockProducts.filter((product) => {
     // Category filter
@@ -285,6 +293,9 @@ export default function ShopPage() {
       <div className="mb-8">
         <h1 className="text-4xl font-bold mb-2">{t('title')}</h1>
         <p className="text-lg text-muted-foreground">{t('subtitle')}</p>
+        <p className="text-sm text-muted-foreground mt-2">
+          {t('totalProducts', { count: mockProducts.length })}
+        </p>
       </div>
 
       {/* Search Bar */}
@@ -327,7 +338,7 @@ export default function ShopPage() {
               )}
               onClick={() => handleCategoryChange(category)}
             >
-              {t(`category.${category}`)}
+              {t(`category.${category}`)} ({getCategoryCount(category)})
             </Badge>
           ))}
         </div>

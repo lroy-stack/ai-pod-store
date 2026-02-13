@@ -19,6 +19,7 @@
   "shop": {
     "title": "Shop",
     "subtitle": "Discover our collection of custom products",
+    "totalProducts": "{count, plural, =0 {No products} one {1 product} other {{count} products}} available",
     "searchPlaceholder": "Search products...",
     "searchResults": "{count, plural, =0 {No products found} one {1 product found} other {{count} products found}} for \"{query}\"",
     "categoryResults": "{count, plural, =0 {No products found} one {1 product} other {{count} products}}",
