@@ -465,7 +465,7 @@
     "id": 43,
     "feature": "Authentication + User Profile",
     "description": "Protected routes redirect to login",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to /en/profile without being authenticated",
       "Verify the page redirects to /en/auth/login",

@@ -67,5 +67,15 @@
     "pleaseLogin": "Por favor, inicia sesión para continuar.",
     "logoutButton": "Cerrar sesión",
     "loggingOut": "Cerrando sesión..."
+  },
+  "Profile": {
+    "title": "Perfil",
+    "description": "Gestiona la configuración y preferencias de tu cuenta",
+    "profileInformation": "Información del perfil",
+    "profileDescription": "Detalles personales e información de la cuenta",
+    "nameLabel": "Nombre completo",
+    "namePlaceholder": "Nombre de Usuario",
+    "emailLabel": "Correo electrónico",
+    "emailPlaceholder": "usuario@ejemplo.com"
   }
 }
