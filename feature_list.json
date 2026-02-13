@@ -674,7 +674,7 @@
     "id": 62,
     "feature": "Product Catalog",
     "description": "Product detail page renders with all info",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to /en/shop/[id] for a specific product",
       "Verify title, description, images, and variant selector are displayed",
