@@ -377,7 +377,7 @@
     "id": 35,
     "feature": "Database & Schema",
     "description": "Product_reviews have rating CHECK(1-5) and UNIQUE per user+product",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify CHECK constraint exists on product_reviews.rating for values 1 through 5",
       "Verify UNIQUE constraint exists on (product_id, user_id, order_id)",
