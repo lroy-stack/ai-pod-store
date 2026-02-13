@@ -410,7 +410,7 @@
     "id": 38,
     "feature": "Authentication + User Profile",
     "description": "Login page renders correctly",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to /en/auth/login page",
       "Verify email input field and password input field are visible",
