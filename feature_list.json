@@ -102,7 +102,7 @@
     "id": 10,
     "feature": "Project Foundation + i18n Setup",
     "description": "Redis connection works",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Start the Next.js dev server",
       "Call GET /api/health endpoint on port 3000",
