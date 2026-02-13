@@ -30,6 +30,7 @@ import {
 } from '@/components/ui/breadcrumb'
 import { ProductCard } from '@/components/products/ProductCard'
 import { SizeGuide } from '@/components/products/SizeGuide'
+import { ReviewForm } from '@/components/products/ReviewForm'
 
 interface ProductDetailClientProps {
   product: any
@@ -51,6 +52,7 @@ export function ProductDetailClient({ product, relatedProducts, reviews }: Produ
   const [quantity, setQuantity] = useState(1)
   const [isWishlisted, setIsWishlisted] = useState(false)
   const [isAddingToCart, setIsAddingToCart] = useState(false)
+  const [showReviewForm, setShowReviewForm] = useState(false)
 
   // Extract variants to avoid TypeScript union narrowing issues
   const sizes = product?.variants && 'sizes' in product.variants ? product.variants.sizes : undefined
@@ -385,6 +387,23 @@ export function ProductDetailClient({ product, relatedProducts, reviews }: Produ
             ))}
           </div>
         )}
+
+        {/* Review Form */}
+        <div className="mt-8">
+          {!showReviewForm ? (
+            <Button onClick={() => setShowReviewForm(true)} variant="outline" className="w-full sm:w-auto">
+              {t('writeReview')}
+            </Button>
+          ) : (
+            <ReviewForm
+              productId={product.id}
+              onReviewSubmitted={() => {
+                setShowReviewForm(false)
+                router.refresh()
+              }}
+            />
+          )}
+        </div>
       </div>
 
       {/* Related Products Section */}
