@@ -1,0 +1,26 @@
+{
+  "common": {
+    "appName": "POD AI Store",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "welcome": "Welcome to POD AI Store"
+  },
+  "navigation": {
+    "home": "Home",
+    "shop": "Shop",
+    "cart": "Cart",
+    "orders": "Orders",
+    "profile": "Profile"
+  },
+  "shop": {
+    "title": "Shop",
+    "subtitle": "Discover our collection of custom products"
+  },
+  "product": {
+    "addToWishlist": "Add to wishlist",
+    "removeFromWishlist": "Remove from wishlist",
+    "addToCart": "Add to cart",
+    "viewDetails": "View details"
+  }
+}

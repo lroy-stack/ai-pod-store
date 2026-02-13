@@ -289,7 +289,7 @@
     "id": 27,
     "feature": "Database & Schema",
     "description": "Migration files exist and run cleanly",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify supabase/migrations/ directory contains .sql migration files",
       "Run the migration files against the database",

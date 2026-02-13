@@ -1,0 +1,26 @@
+{
+  "common": {
+    "appName": "POD AI Store",
+    "loading": "Wird geladen...",
+    "error": "Fehler",
+    "success": "Erfolg",
+    "welcome": "Willkommen im POD AI Store"
+  },
+  "navigation": {
+    "home": "Startseite",
+    "shop": "Shop",
+    "cart": "Warenkorb",
+    "orders": "Bestellungen",
+    "profile": "Profil"
+  },
+  "shop": {
+    "title": "Shop",
+    "subtitle": "Entdecken Sie unsere Kollektion maßgeschneiderter Produkte"
+  },
+  "product": {
+    "addToWishlist": "Zur Wunschliste hinzufügen",
+    "removeFromWishlist": "Von der Wunschliste entfernen",
+    "addToCart": "In den Warenkorb",
+    "viewDetails": "Details anzeigen"
+  }
+}

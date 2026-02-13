@@ -1,0 +1,26 @@
+{
+  "common": {
+    "appName": "Tienda POD AI",
+    "loading": "Cargando...",
+    "error": "Error",
+    "success": "Éxito",
+    "welcome": "Bienvenido a la Tienda POD AI"
+  },
+  "navigation": {
+    "home": "Inicio",
+    "shop": "Tienda",
+    "cart": "Carrito",
+    "orders": "Pedidos",
+    "profile": "Perfil"
+  },
+  "shop": {
+    "title": "Tienda",
+    "subtitle": "Descubre nuestra colección de productos personalizados"
+  },
+  "product": {
+    "addToWishlist": "Agregar a favoritos",
+    "removeFromWishlist": "Quitar de favoritos",
+    "addToCart": "Agregar al carrito",
+    "viewDetails": "Ver detalles"
+  }
+}
