@@ -251,9 +251,46 @@ export default async function ProductDetailPage({
 }: {
   params: Promise<{ id: string; locale: string }>
 }) {
-  const { id } = await params
+  const { id, locale } = await params
   const product = getProduct(id)
   const relatedProducts = getRelatedProducts(product)
 
-  return <ProductDetailClient product={product} relatedProducts={relatedProducts} />
+  // Generate JSON-LD structured data for SEO
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+  const jsonLd = product ? {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: product.title,
+    description: product.description || product.longDescription,
+    image: product.images,
+    sku: product.id,
+    offers: {
+      '@type': 'Offer',
+      url: `${baseUrl}/${locale}/shop/${id}`,
+      priceCurrency: 'USD',
+      price: product.price,
+      availability: product.inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+      seller: {
+        '@type': 'Organization',
+        name: 'POD AI Store',
+      },
+    },
+    aggregateRating: product.reviewCount > 0 ? {
+      '@type': 'AggregateRating',
+      ratingValue: product.rating,
+      reviewCount: product.reviewCount,
+    } : undefined,
+  } : null
+
+  return (
+    <>
+      {jsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      )}
+      <ProductDetailClient product={product} relatedProducts={relatedProducts} />
+    </>
+  )
 }
