@@ -630,7 +630,7 @@
     "id": 58,
     "feature": "Authentication + User Profile",
     "description": "Profile locale change updates UI language",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Change the locale to 'de' (German) in the profile settings",
       "Save the profile changes",
