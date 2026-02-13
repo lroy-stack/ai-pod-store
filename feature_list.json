@@ -608,7 +608,7 @@
     "id": 56,
     "feature": "Authentication + User Profile",
     "description": "Auth API endpoints return correct status codes",
-    "passes": false,
+    "passes": true,
     "steps": [
       "POST /api/auth/login with valid credentials and verify 200 response",
       "POST /api/auth/login with invalid credentials and verify 401 response",
