@@ -68,22 +68,22 @@ export default function LoginForm({ locale }: { locale: string }) {
   return (
     <div className="max-w-md w-full space-y-8">
       <div>
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+        <h2 className="mt-6 text-center text-3xl font-extrabold text-foreground">
           {t('loginTitle')}
         </h2>
-        <p className="mt-2 text-center text-sm text-gray-600">
+        <p className="mt-2 text-center text-sm text-muted-foreground">
           {t('noAccount')}{' '}
-          <Link href={`/${locale}/auth/register`} className="font-medium text-blue-600 hover:text-blue-500">
+          <Link href={`/${locale}/auth/register`} className="font-medium text-primary hover:text-primary/80">
             {t('signUpLink')}
           </Link>
         </p>
       </div>
 
       {justRegistered && (
-        <div className="rounded-md bg-green-50 p-4">
+        <div className="rounded-md bg-success/10 p-4">
           <div className="flex">
             <div className="ml-3">
-              <h3 className="text-sm font-medium text-green-800">
+              <h3 className="text-sm font-medium text-success">
                 {t('registrationSuccess')} {t('pleaseLogin')}
               </h3>
             </div>
@@ -92,10 +92,10 @@ export default function LoginForm({ locale }: { locale: string }) {
       )}
 
       {error && (
-        <div className="rounded-md bg-red-50 p-4">
+        <div className="rounded-md bg-destructive/10 p-4">
           <div className="flex">
             <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800">{error}</h3>
+              <h3 className="text-sm font-medium text-destructive">{error}</h3>
             </div>
           </div>
         </div>
@@ -116,7 +116,7 @@ export default function LoginForm({ locale }: { locale: string }) {
               value={formData.email}
               onChange={handleChange}
               disabled={loading}
-              className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm disabled:opacity-50"
+              className="appearance-none rounded-none relative block w-full px-3 py-2 border border-border placeholder:text-muted-foreground text-foreground rounded-t-md focus:outline-none focus:ring-ring focus:border-ring focus:z-10 sm:text-sm disabled:opacity-50"
               placeholder={t('emailPlaceholder')}
             />
           </div>
@@ -133,7 +133,7 @@ export default function LoginForm({ locale }: { locale: string }) {
               value={formData.password}
               onChange={handleChange}
               disabled={loading}
-              className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm disabled:opacity-50"
+              className="appearance-none rounded-none relative block w-full px-3 py-2 border border-border placeholder:text-muted-foreground text-foreground rounded-b-md focus:outline-none focus:ring-ring focus:border-ring focus:z-10 sm:text-sm disabled:opacity-50"
               placeholder={t('passwordPlaceholder')}
             />
           </div>
@@ -148,15 +148,15 @@ export default function LoginForm({ locale }: { locale: string }) {
               checked={formData.rememberMe}
               onChange={handleChange}
               disabled={loading}
-              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded disabled:opacity-50"
+              className="h-4 w-4 text-primary focus:ring-ring border-border rounded disabled:opacity-50"
             />
-            <label htmlFor="rememberMe" className="ml-2 block text-sm text-gray-900">
+            <label htmlFor="rememberMe" className="ml-2 block text-sm text-foreground">
               {t('rememberMe')}
             </label>
           </div>
 
           <div className="text-sm">
-            <Link href={`/${locale}/auth/forgot-password`} className="font-medium text-blue-600 hover:text-blue-500">
+            <Link href={`/${locale}/auth/forgot-password`} className="font-medium text-primary hover:text-primary/80">
               {t('forgotPassword')}
             </Link>
           </div>
@@ -166,7 +166,7 @@ export default function LoginForm({ locale }: { locale: string }) {
           <button
             type="submit"
             disabled={loading}
-            className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-primary-foreground bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? t('loggingIn') : t('loginButton')}
           </button>
@@ -176,17 +176,17 @@ export default function LoginForm({ locale }: { locale: string }) {
       <div className="mt-6">
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300" />
+            <div className="w-full border-t border-border" />
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-gray-50 text-gray-500">{t('orContinueWith')}</span>
+            <span className="px-2 bg-muted text-muted-foreground">{t('orContinueWith')}</span>
           </div>
         </div>
 
         <div className="mt-6 grid grid-cols-2 gap-3">
           <button
             type="button"
-            className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+            className="w-full inline-flex justify-center py-2 px-4 border border-border rounded-md shadow-sm bg-card text-sm font-medium text-muted-foreground hover:bg-muted"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -199,7 +199,7 @@ export default function LoginForm({ locale }: { locale: string }) {
 
           <button
             type="button"
-            className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+            className="w-full inline-flex justify-center py-2 px-4 border border-border rounded-md shadow-sm bg-card text-sm font-medium text-muted-foreground hover:bg-muted"
           >
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
               <path d="M13.762 4.29a6.51 6.51 0 0 0-5.024 3.834 6.034 6.034 0 0 0-.544 2.457 6.474 6.474 0 0 0 .544 2.457 6.486 6.486 0 0 0 1.504 2.104c1.048 1.025 2.385 1.637 3.898 1.785 1.513.148 2.982-.166 4.135-1.012a5.827 5.827 0 0 0 2.145-3.292c.135-.503.2-1.019.193-1.537-.007-.518-.082-1.034-.223-1.534a5.982 5.982 0 0 0-2.126-3.194A5.827 5.827 0 0 0 13.762 4.29zM10 0C4.477 0 0 4.477 0 10s4.477 10 10 10 10-4.477 10-10S15.523 0 10 0z"/>

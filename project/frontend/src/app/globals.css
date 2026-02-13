@@ -43,6 +43,10 @@
   --color-input: #F5F5F7;
   --color-ring: #0071E3;
 
+  /* Rating (stars) */
+  --color-rating: #FBBF24;
+  --color-rating-foreground: #92400E;
+
   /* Charts */
   --color-chart-1: #667EEA;
   --color-chart-2: #764BA2;
@@ -86,6 +90,9 @@
     --color-border: rgba(255, 255, 255, 0.08);
     --color-input: #1C1C1E;
     --color-ring: #0A84FF;
+
+    --color-rating: #FBBF24;
+    --color-rating-foreground: #92400E;
 
     --color-chart-1: #7B93F5;
     --color-chart-2: #9B6DCC;

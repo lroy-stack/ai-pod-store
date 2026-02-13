@@ -46,8 +46,8 @@ export function ProductCard({ product }: ProductCardProps) {
             key={star}
             className={`w-4 h-4 ${
               star <= Math.round(rating)
-                ? 'fill-yellow-400 text-yellow-400'
-                : 'text-gray-300'
+                ? 'fill-rating text-rating'
+                : 'text-muted-foreground/50'
             }`}
           />
         ))}
@@ -70,12 +70,12 @@ export function ProductCard({ product }: ProductCardProps) {
         />
         <button
           onClick={toggleWishlist}
-          className="absolute top-3 right-3 p-2 bg-white/90 rounded-full hover:bg-white transition-colors"
+          className="absolute top-3 right-3 p-2 bg-card/90 rounded-full hover:bg-card transition-colors"
           aria-label={isWishlisted ? t('removeFromWishlist') : t('addToWishlist')}
         >
           <Heart
             className={`w-5 h-5 ${
-              isWishlisted ? 'fill-red-500 text-red-500' : 'text-gray-600'
+              isWishlisted ? 'fill-destructive text-destructive' : 'text-muted-foreground'
             }`}
           />
         </button>

@@ -15,7 +15,7 @@ export default async function LoginPage({ params }: { params: Promise<{ locale: 
   const { locale } = await params
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-muted py-12 px-4 sm:px-6 lg:px-8">
       <LoginForm locale={locale} />
     </div>
   )

@@ -531,7 +531,7 @@
     "id": 49,
     "feature": "Authentication + User Profile",
     "description": "Password reset flow works",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Click forgot password link on login page and enter email address",
       "Verify password reset email is sent with a reset token",
