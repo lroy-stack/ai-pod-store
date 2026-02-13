@@ -23,6 +23,11 @@ const mockProducts = [
     reviewCount: 128,
     category: 'apparel',
     createdAt: '2024-01-15T10:00:00Z',
+    variants: {
+      sizes: ['S', 'M', 'L', 'XL', 'XXL'],
+      colors: ['Black', 'White', 'Navy', 'Gray'],
+    },
+    stock: 150,
   },
   {
     id: '2',
@@ -35,6 +40,11 @@ const mockProducts = [
     reviewCount: 94,
     category: 'apparel',
     createdAt: '2024-02-20T10:00:00Z',
+    variants: {
+      sizes: ['S', 'M', 'L', 'XL'],
+      colors: ['Black', 'Gray', 'Navy'],
+    },
+    stock: 85,
   },
   {
     id: '3',

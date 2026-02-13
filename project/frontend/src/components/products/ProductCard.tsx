@@ -8,6 +8,7 @@ import { Star, Heart } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { formatPrice, getLocalizedPrice } from '@/lib/currency'
 import { Button } from '@/components/ui/button'
+import { QuickViewModal, QuickViewButton } from './QuickViewModal'
 
 interface Product {
   id: string
@@ -19,6 +20,11 @@ interface Product {
   rating?: number
   reviewCount?: number
   category?: string
+  variants?: {
+    sizes?: string[]
+    colors?: string[]
+  }
+  stock?: number
 }
 
 interface ProductCardProps {
@@ -29,10 +35,16 @@ export function ProductCard({ product }: ProductCardProps) {
   const t = useTranslations('product')
   const locale = useLocale()
   const [isWishlisted, setIsWishlisted] = useState(false)
+  const [showQuickView, setShowQuickView] = useState(false)
 
   const toggleWishlist = (e: React.MouseEvent) => {
     e.preventDefault()
     setIsWishlisted(!isWishlisted)
+  }
+
+  const handleQuickView = (e: React.MouseEvent) => {
+    e.preventDefault()
+    setShowQuickView(true)
   }
 
   // Convert price to locale's currency and format it
@@ -58,33 +70,35 @@ export function ProductCard({ product }: ProductCardProps) {
   }
 
   return (
-    <Link
-      href={`/shop/${product.id}`}
-      className="group block rounded-lg border border-border bg-card overflow-hidden hover:shadow-lg transition-shadow"
-    >
-      <div className="relative aspect-square bg-muted">
-        <Image
-          src={product.image}
-          alt={product.title}
-          fill
-          className="object-cover group-hover:scale-105 transition-transform duration-300"
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-        />
-        <Button
-          variant="ghost"
-          size="icon"
-          className="absolute top-3 right-3 bg-card/90 hover:bg-card"
-          onClick={toggleWishlist}
-          aria-label={isWishlisted ? t('removeFromWishlist') : t('addToWishlist')}
-        >
-          <Heart
-            className={cn(
-              'size-5',
-              isWishlisted ? 'fill-destructive text-destructive' : 'text-muted-foreground'
-            )}
+    <>
+      <Link
+        href={`/shop/${product.id}`}
+        className="group block rounded-lg border border-border bg-card overflow-hidden hover:shadow-lg transition-shadow"
+      >
+        <div className="relative aspect-square bg-muted">
+          <Image
+            src={product.image}
+            alt={product.title}
+            fill
+            className="object-cover group-hover:scale-105 transition-transform duration-300"
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
           />
-        </Button>
-      </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute top-3 right-3 bg-card/90 hover:bg-card"
+            onClick={toggleWishlist}
+            aria-label={isWishlisted ? t('removeFromWishlist') : t('addToWishlist')}
+          >
+            <Heart
+              className={cn(
+                'size-5',
+                isWishlisted ? 'fill-destructive text-destructive' : 'text-muted-foreground'
+              )}
+            />
+          </Button>
+          <QuickViewButton onClick={handleQuickView} />
+        </div>
 
       <div className="p-4">
         <h3 className="font-semibold text-lg mb-1 line-clamp-1 group-hover:text-primary transition-colors">
@@ -113,5 +127,12 @@ export function ProductCard({ product }: ProductCardProps) {
         </div>
       </div>
     </Link>
+
+    <QuickViewModal
+      product={product}
+      open={showQuickView}
+      onOpenChange={setShowQuickView}
+    />
+  </>
   )
 }

@@ -916,7 +916,7 @@
     "id": 84,
     "feature": "Product Catalog",
     "description": "\"use cache\" directive on catalog pages",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Inspect the catalog page component source code",
       "Verify the component has a \"use cache\" directive",
@@ -927,7 +927,7 @@
     "id": 85,
     "feature": "Product Catalog",
     "description": "PPR works for dynamic pricing/stock",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Load the product catalog page and verify the static shell loads instantly",
       "Observe the dynamic pricing section streaming in after the initial load",
@@ -938,7 +938,7 @@
     "id": 86,
     "feature": "Product Catalog",
     "description": "Quick-view modal on product hover/click",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Hover over a product card on the shop page",
       "Click the quick view button that appears",

@@ -130,10 +130,59 @@
       - Ephemeral chat sessions (no conversation persistence across visits)
         The AI has context via user profile and PodClaw's memory system.
       - Suggested prompts for new visitors (locale-aware)
+      - Welcome screen differentiation:
+        * NEW visitor: greeting with sparkle animation + 4 capability cards
+          (Search Products, Design Custom, Track Orders, Get Recommendations)
+          + 6 suggested prompts as chips ("Show me trending t-shirts", "Design a cat mug", etc.)
+        * RETURNING visitor: personalized greeting ("Welcome back, [name]!")
+          + active orders summary (if any) + recent favorites + "Continue where you left off" suggestions
+        * Both: locale-aware content (EN/ES/DE)
       - Command palette (Cmd/Ctrl+K) for quick actions
       - 22 AI tools for complete shopping assistance (see chat_tools section)
       - Voice input via Web Speech API (locale-aware: en-US, es-ES, de-DE)
       - Image upload for design reference / product matching (multimodal chat)
+
+      <ai_sdk_integration description="AI SDK 6 (v5.x) technical patterns for storefront implementation">
+        FRONTEND (React hooks):
+        - useChat() from 'ai/react' with DefaultChatTransport — NOT raw fetch
+          * transport: new DefaultChatTransport({ api: '/api/chat' })
+          * sendMessage(text) replaces handleSubmit() — call directly, no form event needed
+          * messages typed as UIMessage[] (NOT Message[]) — each has .parts array
+          * message.parts[].type: 'text' | 'reasoning' | 'tool-invocation' | 'tool-result' | 'source' | 'step-start' | 'file'
+          * Tool invocation states: 'partial-call' → 'call' → 'result'
+          * DataPart for custom streaming: dataStream.writeData({ type, payload }) → useChat().data
+        - message.parts rendering pattern:
+          message.parts.map(part => {
+            if (part.type === 'text') return <MarkdownRenderer text={part.text} />
+            if (part.type === 'tool-invocation') {
+              const Component = artifactRegistry[part.toolInvocation.toolName]
+              if (part.toolInvocation.state === 'call') return <Component.Skeleton />
+              if (part.toolInvocation.state === 'result') return <Component data={part.toolInvocation.result} />
+            }
+          })
+
+        BACKEND (Route handler /api/chat):
+        - streamText() from 'ai' with tool() definitions
+        - convertToModelMessages(messages) — NOT convertToCoreMessages (renamed in v5.x)
+        - return result.toUIMessageStreamResponse() — NOT toDataStreamResponse (renamed in v5.x)
+        - ToolLoopAgent pattern: maxSteps: 5 (or stopWhen: stepCountIs(5))
+        - needsApproval: true on create_checkout and request_return tools
+        - prepareStep for injecting context per step (user profile, cart state)
+        - onStepFinish for logging/analytics
+
+        APPROVAL FLOW:
+        - Tool with needsApproval=true → response includes approval-required state
+        - Frontend renders ApprovalCardArtifact with Approve/Reject buttons
+        - User clicks → addToolApprovalResponse(toolCallId, approved)
+        - Check lastAssistantMessageIsCompleteWithApprovalResponses before re-sending
+        - Re-send messages to continue the tool loop
+
+        DATAPART STREAMING (sidebar updates):
+        - Backend: dataStream.writeData({ type: 'sidebar-recommendations', products: [...] })
+        - Backend: dataStream.writeData({ type: 'sidebar-trending', products: [...] })
+        - Frontend: useChat().data listener updates sidebar state contextually
+        - Recommendations adapt to conversation context in real-time
+      </ai_sdk_integration>
     </conversational_storefront>
 
     <product_catalog>
@@ -919,6 +968,22 @@
         - Approval dialogs for needsApproval tools (create_checkout, request_return)
         - Typing indicator during AI response
         - Session persistence across page reloads
+        - STREAMING UX PIPELINE:
+          * User sends message → input clears + user bubble appears immediately
+          * Typing indicator (3 animated dots) shows below last message
+          * Text streams token-by-token → typing indicator replaced by text bubble
+          * Tool invocation starts → skeleton component for that tool type appears INLINE
+          * Tool result arrives → skeleton morphs to full artifact component (fade transition)
+          * If multiple tools: each skeleton appears sequentially as tools are invoked
+          * DataPart updates: sidebar recommendations refresh contextually mid-stream
+        - "ASK ABOUT THIS" LOOP:
+          * Detail panel has "Ask about this product" button
+          * Click injects "Tell me more about [product.title]" into chat input
+          * Creates bidirectional flow: chat → detail panel → chat
+        - SOCIAL PROOF (contextual, shown on products):
+          * "X people viewing" indicator on popular products (simulated from analytics)
+          * "Y sold today" badge on trending items
+          * Recent purchase notifications (toast, bottom-left, auto-dismiss 5s)
       </main_chat_area>
 
       <artifacts_panel description="Right panel for expanded product detail (activated by clicking inline artifacts or sidebar products)">
@@ -933,7 +998,90 @@
         - Each artifact: header with title + type badge, close button
         - Tabs for multiple artifacts
         - Responsive: collapses below chat on mobile
+        - "Ask about this" button in product detail → injects question into chat
+        - Social proof: "X viewing now", "Y sold today" badges on product detail
+        - Share product button (copy link, share to social)
       </artifacts_panel>
+
+      <artifact_components description="8 branded artifact component types with skeleton loading states">
+        Each artifact type has: Component, Skeleton, and optional InlineCompact variant.
+        File structure: src/components/artifacts/{ArtifactName}/{ArtifactName}.tsx + Skeleton.tsx
+
+        1. ProductGridArtifact — Tools: product_search, browse_catalog, get_recommendations
+           - Grid of product cards (image, title, price, rating, category badge)
+           - InlineCompact: 3-column grid within chat message, max 6 items
+           - Action buttons: "Add to Cart", "View Details" (→ opens detail panel)
+           - Skeleton: 6 shimmer rectangles in grid layout
+
+        2. DesignPreviewArtifact — Tools: generate_design, customize_design
+           - Large image preview with before/after toggle (if customize)
+           - Action buttons: "Create Product", "Modify", "Download"
+           - InlineCompact: single image with overlay buttons
+           - Skeleton: large shimmer rectangle + 3 button placeholders
+
+        3. ComparisonTableArtifact — Tool: compare_products
+           - Side-by-side table (2-3 products), rows: image, price, rating, features
+           - Highlight best value / highest rated
+           - Skeleton: 2-column table with shimmer cells
+
+        4. CartSummaryArtifact — Tools: get_cart, add_to_cart, apply_coupon
+           - Cart items list with quantities, subtotal, discount, shipping, total
+           - Action buttons: "Checkout", "Continue Shopping"
+           - Skeleton: 3 list items + summary shimmer
+
+        5. OrderTimelineArtifact — Tools: track_order, get_order_history
+           - Vertical timeline with status dots (ordered → processing → shipped → delivered)
+           - Tracking number with copy button
+           - Skeleton: 4 timeline dots with shimmer text
+
+        6. PricingTableArtifact — Tool: estimate_shipping
+           - Table with shipping options (standard, express, overnight)
+           - Price, estimated delivery date per option
+           - Skeleton: 3-row table shimmer
+
+        7. SizeGuideArtifact — Tool: get_size_guide
+           - Size chart table (S/M/L/XL/XXL → chest/waist/length in cm/inches)
+           - Toggle cm/inches
+           - Skeleton: table grid shimmer
+
+        8. ApprovalCardArtifact — Tools: create_checkout, request_return (needsApproval)
+           - Card with tool name, parameters summary, warning icon
+           - Two buttons: "Approve" (primary), "Reject" (outline/destructive)
+           - On approve: calls addToolApprovalResponse(toolCallId, true)
+           - On reject: calls addToolApprovalResponse(toolCallId, false)
+           - Skeleton: card with shimmer text + 2 button placeholders
+
+        SKELETON/SHIMMER PATTERN:
+        - All skeletons use animate-pulse with bg-muted rounded rectangles
+        - Skeleton renders during tool-invocation state === 'call' (waiting for result)
+        - Component renders when state === 'result'
+        - Error state renders when state === 'error' (red border + retry button)
+      </artifact_components>
+
+      <responsive_strategy description="Three breakpoints for progressive panel layout">
+        DESKTOP (xl: ≥1280px):
+        - ResizablePanelGroup (horizontal) from shadcn/ui (react-resizable-panels)
+        - 3 panels: sidebar (240px min, collapsible) + chat (flex-1) + detail (340px min, collapsible)
+        - Drag handles between panels for user-resizable widths
+        - Detail panel hidden by default, slides in when product selected
+
+        TABLET (md: 768px-1279px):
+        - 2 panels: sidebar (collapsible to icon rail 60px) + chat (flex-1)
+        - Detail panel: Sheet overlay (right side, 400px width) — opens on product click
+        - Sidebar can toggle between full (240px) and icon-only (60px) modes
+
+        MOBILE (sm: <768px):
+        - 1 panel: chat only (full width)
+        - Sidebar: Sheet drawer (left side) — hamburger toggle in chat header
+        - Detail panel: Drawer (Vaul) from bottom — slides up 85vh on product click
+        - Chat header: compact (logo + hamburger + cart badge + avatar)
+        - Input area: sticky bottom with safe-area-inset-bottom padding
+
+        SHARED:
+        - All transitions: 200ms ease-in-out
+        - Panel state persisted in localStorage (desktop panel widths, sidebar collapse)
+        - Keyboard: Escape closes detail panel/drawer, Cmd+B toggles sidebar
+      </responsive_strategy>
     </chat_interface>
 
     <product_catalog_ui>

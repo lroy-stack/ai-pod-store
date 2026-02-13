@@ -13,6 +13,11 @@ const mockProducts = [
     reviewCount: 128,
     category: 'apparel',
     inStock: true,
+    variants: {
+      sizes: ['S', 'M', 'L', 'XL', 'XXL'],
+      colors: ['Black', 'White', 'Navy', 'Gray'],
+    },
+    stock: 150,
   },
   {
     id: '00000000-0000-0000-0000-000000000002',
@@ -25,6 +30,11 @@ const mockProducts = [
     reviewCount: 94,
     category: 'apparel',
     inStock: true,
+    variants: {
+      sizes: ['S', 'M', 'L', 'XL'],
+      colors: ['Black', 'Gray', 'Navy'],
+    },
+    stock: 85,
   },
   {
     id: '00000000-0000-0000-0000-000000000003',
@@ -37,6 +47,7 @@ const mockProducts = [
     reviewCount: 256,
     category: 'home',
     inStock: true,
+    stock: 200,
   },
   {
     id: '4',
