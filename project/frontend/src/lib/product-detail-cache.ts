@@ -1,9 +1,9 @@
-import { Metadata } from 'next'
-import { ProductDetailClient } from '@/components/products/ProductDetailClient'
-import { getProduct, getProductReviews, getRelatedProducts } from '@/lib/product-detail-cache'
+'use cache'
 
-// This page uses cached data fetching functions with the "use cache" directive
-// Mock product data - will be replaced with API call
+// Cached product detail data fetching functions
+// These functions use React's "use cache" directive for automatic caching
+
+// Mock product data - will be replaced with Supabase queries
 const mockProducts: Record<string, any> = {
   '1': {
     id: '00000000-0000-0000-0000-000000000001',
@@ -210,106 +210,44 @@ const mockReviews: Record<string, any[]> = {
   ],
 }
 
-// Generate metadata for SEO
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ id: string; locale: string }>
-}): Promise<Metadata> {
-  const { id, locale } = await params
-  const product = getProduct(id)
-
-  if (!product) {
-    return {
-      title: 'Product Not Found | POD AI Store',
-      description: 'The product you are looking for could not be found.',
-    }
-  }
-
-  // Generate product-specific metadata
-  const title = `${product.title} - $${product.price} | POD AI Store`
-  const description = product.description || product.longDescription || `Buy ${product.title} at POD AI Store`
-  const images = product.images && product.images.length > 0 ? [product.images[0]] : []
-
-  // Base URL for the product (without locale prefix)
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
-  const productPath = `/shop/${id}`
-
-  return {
-    title,
-    description,
-    alternates: {
-      canonical: `${baseUrl}/${locale}${productPath}`,
-      languages: {
-        'en': `${baseUrl}/en${productPath}`,
-        'es': `${baseUrl}/es${productPath}`,
-        'de': `${baseUrl}/de${productPath}`,
-        'x-default': `${baseUrl}/en${productPath}`,
-      },
-    },
-    openGraph: {
-      title,
-      description,
-      images,
-      type: 'website',
-      locale: locale,
-      alternateLocale: ['en', 'es', 'de'].filter(l => l !== locale),
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title,
-      description,
-      images,
-    },
-  }
+// Cached function to get product by ID
+export async function getProduct(id: string) {
+  // In production, this would query Supabase
+  // The "use cache" directive at the top of the file automatically caches the result
+  return mockProducts[id] || null
 }
 
-export default async function ProductDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string; locale: string }>
-}) {
-  const { id, locale } = await params
-  const product = await getProduct(id)
-  const relatedProducts = await getRelatedProducts(id)
-  const reviews = await getProductReviews(id)
+// Cached function to get product reviews
+export async function getProductReviews(id: string) {
+  // Normalize ID (handle both '1' and UUID formats)
+  const normalizedId = id.startsWith('00000000-') ? id.slice(-1) : id
+  return mockReviews[normalizedId] || []
+}
 
-  // Generate JSON-LD structured data for SEO
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
-  const jsonLd = product ? {
-    '@context': 'https://schema.org',
-    '@type': 'Product',
-    name: product.title,
-    description: product.description || product.longDescription,
-    image: product.images,
-    sku: product.id,
-    offers: {
-      '@type': 'Offer',
-      url: `${baseUrl}/${locale}/shop/${id}`,
-      priceCurrency: 'USD',
-      price: product.price,
-      availability: product.inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
-      seller: {
-        '@type': 'Organization',
-        name: 'POD AI Store',
-      },
-    },
-    aggregateRating: product.reviewCount > 0 ? {
-      '@type': 'AggregateRating',
-      ratingValue: product.rating,
-      reviewCount: product.reviewCount,
-    } : undefined,
-  } : null
+// Cached function to get related products
+export async function getRelatedProducts(productId: string) {
+  const product = await getProduct(productId)
+  if (!product) return []
 
-  return (
-    <>
-      {jsonLd && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-        />
-      )}
-      <ProductDetailClient product={product} relatedProducts={relatedProducts} reviews={reviews} />
-    </>
-  )
+  const seenIds = new Set<string>()
+  return Object.values(mockProducts)
+    .filter((p) => {
+      if (p.category !== product?.category || p.id === product?.id || seenIds.has(p.id)) {
+        return false
+      }
+      seenIds.add(p.id)
+      return true
+    })
+    .slice(0, 4)
+    .map((p) => ({
+      id: p.id,
+      title: p.title,
+      description: p.description,
+      price: p.price,
+      currency: p.currency,
+      image: p.images[0],
+      rating: p.rating,
+      reviewCount: p.reviewCount,
+      category: p.category,
+    }))
 }

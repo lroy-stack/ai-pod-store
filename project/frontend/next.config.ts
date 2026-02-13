@@ -11,6 +11,10 @@ const nextConfig: NextConfig = {
   reactCompiler: {
     compilationMode: 'annotation',
   },
+  experimental: {
+    // Enable "use cache" directive for catalog pages
+    cacheComponents: true,
+  },
   images: {
     remotePatterns: [
       {
