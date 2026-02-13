@@ -366,7 +366,7 @@
     "id": 34,
     "feature": "Database & Schema",
     "description": "Wishlists have is_public, share_token columns",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Query wishlists table columns and verify is_public and share_token exist",
       "Verify wishlist_items has a UNIQUE constraint on (wishlist_id, product_id, variant_id)",
