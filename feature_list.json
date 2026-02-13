@@ -586,7 +586,7 @@
     "id": 54,
     "feature": "Authentication + User Profile",
     "description": "Shipping addresses CRUD works",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Add a new shipping address with all fields and verify it appears in the list",
       "Edit the city field of the address and verify the update is saved",
@@ -1975,9 +1975,9 @@
     "description": "shadcn/ui components styled consistently",
     "passes": false,
     "steps": [
-      "Inspect buttons, inputs, and cards across the application",
-      "Verify they use consistent border-radius values",
-      "Verify they use consistent colors and hover states"
+      "Grep frontend/src for raw <button, <input, <select, <textarea elements outside components/ui/ \u2014 must find ZERO instances",
+      "Verify all forms use <Button>, <Input>, <Label>, <Select>, <Switch> imports from @/components/ui/",
+      "Verify all card containers use <Card>+<CardHeader>+<CardContent> from @/components/ui/card, not raw divs with shadow/border classes"
     ]
   },
   {
@@ -1986,9 +1986,9 @@
     "description": "Loading spinners/skeletons match design system",
     "passes": false,
     "steps": [
-      "Trigger loading states across different pages",
-      "Verify loading spinners use branded colors",
-      "Verify skeleton animations match the design system"
+      "Navigate to /en/profile and verify the loading state shows animate-pulse skeleton placeholders, not plain text",
+      "Verify loading spinners use Loader2 from lucide-react with animate-spin and text-primary color",
+      "Verify all async pages (profile, cart, admin) have skeleton or spinner loading states, not just text"
     ]
   },
   {
@@ -2093,10 +2093,9 @@
     "description": "Responsive breakpoints work",
     "passes": false,
     "steps": [
-      "Test the layout at 375px width for mobile",
-      "Test the layout at 768px width for tablet",
-      "Test the layout at 1280px width for desktop",
-      "Verify the layout adapts correctly at each breakpoint"
+      "At 375px: Verify auth forms are full-width inside Card, navigation uses Sheet hamburger menu, grids are single-column",
+      "At 768px: Verify form fields use grid-cols-2 where applicable, navigation shows horizontal menu, product grids show 2-3 columns",
+      "At 1280px: Verify full desktop layout with sidebars visible, product grids show 3-4 columns, forms centered with max-w constraints"
     ]
   },
   {
