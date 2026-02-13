@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
 import { Search, X, ChevronLeft, ChevronRight } from 'lucide-react'
 import { ProductGrid } from '@/components/products/ProductGrid'
@@ -204,6 +204,15 @@ export default function ShopPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [sortBy, setSortBy] = useState<SortOption>('featured')
   const [currentPage, setCurrentPage] = useState(1)
+  const [isLoading, setIsLoading] = useState(true)
+
+  // Simulate initial loading
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false)
+    }, 800) // Show skeleton for 800ms on initial load
+    return () => clearTimeout(timer)
+  }, [])
 
   // Get unique categories from products
   const categories = ['all', ...Array.from(new Set(mockProducts.map((p) => p.category)))]
@@ -354,7 +363,18 @@ export default function ShopPage() {
         </div>
       )}
 
-      <ProductGrid products={paginatedProducts} />
+      <ProductGrid
+        products={paginatedProducts}
+        isLoading={isLoading}
+        emptyMessage={
+          searchQuery
+            ? t('noResults', { query: searchQuery })
+            : selectedCategory !== 'all'
+              ? t('noCategoryResults', { category: t(`category.${selectedCategory}`) })
+              : t('noProducts')
+        }
+        skeletonCount={PRODUCTS_PER_PAGE}
+      />
 
       {/* Pagination */}
       {totalPages > 1 && (

@@ -22,6 +22,9 @@
     "searchPlaceholder": "Search products...",
     "searchResults": "{count, plural, =0 {No products found} one {1 product found} other {{count} products found}} for \"{query}\"",
     "categoryResults": "{count, plural, =0 {No products found} one {1 product} other {{count} products}}",
+    "noResults": "No products found for \"{query}\"",
+    "noCategoryResults": "No products found in {category}",
+    "noProducts": "No products available",
     "sortBy": "Sort by",
     "sort": {
       "featured": "Featured",

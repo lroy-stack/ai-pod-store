@@ -22,6 +22,9 @@
     "searchPlaceholder": "Produkte suchen...",
     "searchResults": "{count, plural, =0 {Keine Produkte gefunden} one {1 Produkt gefunden} other {{count} Produkte gefunden}} für \"{query}\"",
     "categoryResults": "{count, plural, =0 {Keine Produkte gefunden} one {1 Produkt} other {{count} Produkte}}",
+    "noResults": "Keine Produkte gefunden für \"{query}\"",
+    "noCategoryResults": "Keine Produkte gefunden in {category}",
+    "noProducts": "Keine Produkte verfügbar",
     "sortBy": "Sortieren nach",
     "sort": {
       "featured": "Empfohlen",
