@@ -751,7 +751,7 @@
     "id": 69,
     "feature": "Product Catalog",
     "description": "Pagination works on product listing",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify page 1 shows a limited number of products",
       "Click page 2 or the next button",
