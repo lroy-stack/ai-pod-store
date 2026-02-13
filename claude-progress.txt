@@ -799,3 +799,41 @@ IDs: 1-7, 11-15, 17-54
 - Feature #58: Phone number validation
 - Feature #59: Avatar upload functionality
 
+
+## Session 12 (Coding Agent) — 2026-02-13
+
+### Features Implemented:
+1. **Feature #55**: Account deletion works (GDPR)
+   - Created /api/profile/delete POST endpoint
+   - Anonymizes personal data in users table (email → deleted_{uuid}@deleted.local, name → "Deleted User")
+   - Deletes all shipping addresses for the user
+   - Deletes Supabase Auth user completely via admin.deleteUser()
+   - Signs out current session and clears cookies
+   - Frontend forces full page reload (window.location.href) to clear all client state
+   - User redirected to home page after deletion
+   - Verified deleted user cannot log in again
+
+2. **Feature #56**: Auth API endpoints return correct status codes
+   - Created GET /api/auth/me endpoint
+   - Returns 401 when no auth token provided
+   - Returns user profile when authenticated
+   - Verified POST /api/auth/login returns 200 for valid credentials
+   - Verified POST /api/auth/login returns 401 for invalid credentials
+
+### Verification:
+- Tested account deletion through browser with Playwright MCP
+- Confirmed user logged out and redirected after deletion
+- Confirmed deleted user gets 401 Unauthorized on login attempt
+- Verified auth API status codes with curl
+
+### Progress:
+- Features passing: 56/353 (15.9%)
+- Features this session: +2
+- Next target: ID 57 [Authentication + User Profile] — Session management works across multiple tabs
+
+### Technical Notes:
+- GDPR compliance: Personal data is anonymized, not just marked as deleted
+- Auth user deletion ensures complete removal from Supabase Auth
+- Cookie clearing on server response ensures clean logout
+- Full page reload ensures all React state is cleared
+
