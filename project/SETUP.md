@@ -14,7 +14,7 @@ Complete setup guide for running the Print-on-Demand AI Store platform locally.
 ```bash
 # 1. Install dependencies
 cd project/frontend && npm install
-cd ../backend && npm install
+
 
 # 2. Start Supabase (Docker required)
 cd ..
@@ -34,7 +34,7 @@ cp backend/.env.example backend/.env
 bash init.sh
 
 # ✅ Frontend: http://localhost:3000
-# ✅ Backend: http://localhost:3001
+# ✅ Backend: http://localhost:3000
 ```
 
 ## Detailed Setup
@@ -110,7 +110,7 @@ DATABASE_URL=postgresql://postgres:postgres@localhost:54322/postgres
 REDIS_URL=redis://localhost:6379
 
 # Backend
-PORT=3001
+# PORT=3001 (no longer needed — Next.js uses port 3000)
 NODE_ENV=development
 FRONTEND_URL=http://localhost:3000
 
@@ -129,7 +129,7 @@ RESEND_API_KEY=your-key              # For emails
 Create `frontend/.env.local`:
 
 ```env
-NEXT_PUBLIC_API_URL=http://localhost:3001
+NEXT_PUBLIC_API_URL=http://localhost:3000
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-from-supabase-start
@@ -139,7 +139,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-from-supabase-start
 
 ```bash
 # Health check endpoint
-curl http://localhost:3001/api/health
+curl http://localhost:3000/api/health
 
 # Expected response:
 {
@@ -169,7 +169,7 @@ bash init.sh
 
 # Or start individually:
 cd frontend && npm run dev  # Frontend on :3000
-cd backend && npm run dev   # Backend on :3001
+# Backend removed — API routes are in frontend/src/app/api/
 
 # Type checking
 cd frontend && npx tsc --noEmit
@@ -246,7 +246,7 @@ Some features require API keys:
 ```bash
 # Find and kill process
 lsof -ti:3000 | xargs kill -9  # Frontend
-lsof -ti:3001 | xargs kill -9  # Backend
+# lsof -ti:3001 (no separate backend) | xargs kill -9  # Backend
 ```
 
 ### Database connection fails

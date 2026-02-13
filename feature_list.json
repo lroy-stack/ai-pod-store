@@ -300,7 +300,7 @@
     "id": 28,
     "feature": "Database & Schema",
     "description": "Seed data script populates test data",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Run the seed data script",
       "Verify products table has rows populated",

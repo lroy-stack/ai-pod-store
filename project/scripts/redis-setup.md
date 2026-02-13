@@ -68,7 +68,7 @@ REDIS_URL=rediss://default:password@host:port
 Test Redis connection:
 
 ```bash
-curl http://localhost:3001/api/health
+curl http://localhost:3000/api/health
 
 # Expected response:
 {

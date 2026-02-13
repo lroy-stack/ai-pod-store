@@ -148,7 +148,7 @@ REDIS_URL=redis://localhost:6379
 Once configured, the backend health endpoint should return:
 
 ```bash
-curl http://localhost:3001/api/health
+curl http://localhost:3000/api/health
 
 # Expected response:
 {

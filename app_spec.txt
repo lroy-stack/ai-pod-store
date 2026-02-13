@@ -16,8 +16,8 @@
     (sidebar + chat + artifacts panel), voice input, image upload, and social login
     (Google/Apple OAuth). Uses AI SDK 6 with ToolLoopAgent for real-time generative UI
     (branded artifact components rendered from tool results).
-    The backend is a Node.js/Express API server handling Printify/Stripe webhooks, order
-    processing, the RAG retrieval pipeline, A/B testing, and the PodClaw agent API.
+    The backend uses Next.js 16 API routes (app/api/) for Printify/Stripe webhooks, order
+    processing, the RAG retrieval pipeline, A/B testing, and the PodClaw agent API. No separate Express server needed.
     A Python analytics layer runs scheduled cron jobs for RFM segmentation, demand forecasting,
     pricing optimization, and trend detection — feeding pre-calculated data to PodClaw.
     Data lives in Supabase (PostgreSQL + pgvector, 24 tables). Redis handles sessions, caching,
@@ -43,7 +43,7 @@
       <port>3000</port>
     </frontend>
     <backend>
-      <runtime>Node.js 22+ with Express</runtime>
+      <runtime>Next.js 16 API Routes (app/api/) — no separate Express server</runtime>
       <database>Supabase (PostgreSQL 16 + pgvector extension)</database>
       <cache>Redis (ioredis)</cache>
       <payments>Stripe (checkout sessions, webhooks, Stripe Tax)</payments>
@@ -52,8 +52,9 @@
       <embeddings>Google Gemini Embedding (gemini-embedding-001, 768 dims) — free via AI Studio</embeddings>
       <reranker>Phase 1: none (pgvector cosine). Phase 2: Jina Reranker v2 (free, open source)</reranker>
       <image_gen>fal.ai API (FLUX.1 / SDXL) — free tier available</image_gen>
-      <email>Resend or Nodemailer (transactional emails with i18n templates)</email>
-      <port>3001</port>
+      <email>Resend (transactional emails with i18n templates)</email>
+      <port>3000 (same as frontend)</port>
+      <note>All API endpoints are Next.js route handlers in src/app/api/. Server-side code uses Supabase admin client, Stripe SDK, and Resend — all running server-side in Node.js 22+ via Next.js.</note>
     </backend>
     <autonomous_agent>
       <name>PodClaw (NanoClaw-style fork of OpenClaw)</name>
@@ -75,7 +76,7 @@
       <templates>Email HTML templates (per locale), report markdown templates</templates>
     </analytics_layer>
     <infrastructure>
-      <hosting>Vercel (frontend) + Railway/Fly.io (backend + agent + analytics cron)</hosting>
+      <hosting>Vercel (Next.js app + API routes) + Railway/Fly.io (PodClaw agent + analytics cron)</hosting>
       <storage>Supabase Storage (design images, user uploads)</storage>
       <monitoring>OpenTelemetry + Prometheus metrics</monitoring>
       <ci_cd>GitHub Actions (lint, test, build, deploy)</ci_cd>
@@ -85,7 +86,7 @@
   <prerequisites>
     <environment_setup>
       - config/.env.required lists all needed environment variables
-      - Frontend runs on port 3000, backend API on port 3001, agent on port 8000
+      - App runs on port 3000 (frontend + API routes), agent on port 8000
       - Supabase project with pgvector extension enabled
       - Redis running (local or cloud)
       - Printify shop created with API token
@@ -1215,9 +1216,9 @@
     <phase_1 name="Foundation + i18n">
       - Next.js 16 project setup with App Router and Turbopack
       - next-intl setup: [locale] routing, messages/en.json, messages/es.json, messages/de.json
-      - Express backend with health check
+      - API routes setup (health check at /api/health)
       - Supabase schema migration (ALL tables including new ones)
-      - Redis connection
+      - Redis connection (optional — graceful fallback if not available)
       - Environment variable configuration
       - Basic layout (header with locale switcher, footer, pages skeleton)
       - Tailwind v4 + shadcn/ui setup

@@ -1,64 +1,57 @@
 #!/bin/bash
-# Development server initialization script
-# Starts both frontend (Next.js) and backend (Express) servers
+# POD Platform — Development Server Initialization
+# Starts Next.js app (frontend + API routes on port 3000)
 
 set -e
 
-echo "🚀 Starting POD Platform Development Servers..."
-echo ""
+echo "Starting POD Platform..."
 
 # Check if we're in the project directory
-if [ ! -f "package.json" ]; then
+if [ ! -d "frontend" ]; then
   cd "$(dirname "$0")"
 fi
 
-# Colors for output
-GREEN='\033[0;32m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+# Kill any existing processes on port 3000 and clean stale lock files
+lsof -ti:3000 2>/dev/null | xargs kill -9 2>/dev/null || true
+rm -f frontend/.next/dev/lock 2>/dev/null
 
 # Function to kill background processes on exit
 cleanup() {
   echo ""
-  echo "🛑 Shutting down servers..."
+  echo "Shutting down server..."
   kill $(jobs -p) 2>/dev/null || true
   exit
 }
 
 trap cleanup SIGINT SIGTERM
 
-# Start backend server
-echo -e "${BLUE}Starting backend server on port 3001...${NC}"
-cd backend
-export NODE_ENV=development
-export PORT=3001
-export FRONTEND_URL=http://localhost:3000
-npm run dev > ../backend.log 2>&1 &
-BACKEND_PID=$!
-cd ..
+# Install dependencies if needed
+if [ ! -d "frontend/node_modules" ]; then
+    echo "Installing frontend dependencies..."
+    cd frontend && npm install && cd ..
+fi
 
-# Wait a moment for backend to start
-sleep 2
-
-# Start frontend server
-echo -e "${BLUE}Starting frontend server on port 3000...${NC}"
+# Start Next.js (frontend + API routes on port 3000)
+echo "Starting Next.js on port 3000 (Turbopack)..."
 cd frontend
 npm run dev > ../frontend.log 2>&1 &
 FRONTEND_PID=$!
 cd ..
 
 echo ""
-echo -e "${GREEN}✅ Servers starting!${NC}"
+echo "==========================================="
+echo "  POD Platform — Server Starting"
+echo "==========================================="
+echo "  App:      http://localhost:3000"
+echo "  API:      http://localhost:3000/api/"
+echo "  Health:   http://localhost:3000/api/health"
+echo "  Locales:  /en/ | /es/ | /de/"
+echo "  PID:      $FRONTEND_PID"
+echo "==========================================="
 echo ""
-echo "Frontend: http://localhost:3000"
-echo "Backend:  http://localhost:3001"
-echo ""
-echo "Logs:"
-echo "  Frontend: tail -f frontend.log"
-echo "  Backend:  tail -f backend.log"
-echo ""
-echo "Press Ctrl+C to stop all servers"
+echo "Logs: tail -f frontend.log"
+echo "Press Ctrl+C to stop"
 echo ""
 
-# Wait for both processes
+# Wait for the process
 wait
