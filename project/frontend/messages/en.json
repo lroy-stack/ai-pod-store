@@ -104,14 +104,26 @@
     "invalidVerificationLink": "Invalid verification link"
   },
   "Profile": {
-    "title": "Profile",
-    "description": "Manage your account settings and preferences",
+    "title": "My Profile",
+    "subtitle": "Manage your account settings and preferences",
     "profileInformation": "Profile Information",
     "profileDescription": "Personal details and account information",
-    "nameLabel": "Full name",
-    "namePlaceholder": "User Name",
-    "emailLabel": "Email address",
-    "emailPlaceholder": "user@example.com"
+    "name": "Full name",
+    "namePlaceholder": "Enter your full name",
+    "email": "Email address",
+    "emailPlaceholder": "user@example.com",
+    "phone": "Phone number",
+    "phonePlaceholder": "+1 (555) 123-4567",
+    "language": "Language",
+    "currency": "Currency",
+    "uploadAvatar": "Change avatar",
+    "emailVerified": "Email verified",
+    "saveChanges": "Save changes",
+    "saving": "Saving...",
+    "successMessage": "Profile updated successfully",
+    "errorSaving": "Failed to update profile. Please try again.",
+    "errorLoading": "Failed to load profile. Please try again.",
+    "loading": "Loading..."
   },
   "Cart": {
     "title": "Shopping Cart",

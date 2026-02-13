@@ -79,3 +79,16 @@ dump.rdb
 # Agent memory (keep structure, not sensitive data)
 pod_workspace_agent/memory/daily_logs/*.md
 !pod_workspace_agent/memory/daily_logs/.gitkeep
+
+# Agent test artifacts
+test-*.mjs
+test-*.js
+test_*.mjs
+test_*.js
+screenshot_*.png
+FEATURE_*.md
+test-*-report.md
+test-results/
+screenshots/
+*.png
+!project/frontend/public/**/*.png

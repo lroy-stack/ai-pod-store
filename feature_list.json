@@ -553,7 +553,7 @@
     "id": 51,
     "feature": "Authentication + User Profile",
     "description": "Profile page renders with edit form",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to /en/profile while logged in",
       "Verify name, email, locale, currency, and phone fields are shown",

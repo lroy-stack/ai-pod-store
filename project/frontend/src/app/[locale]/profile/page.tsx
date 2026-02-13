@@ -1,57 +1,43 @@
-import { getTranslations } from 'next-intl/server'
-import LogoutButton from '@/components/auth/LogoutButton'
+import { getTranslations } from 'next-intl/server';
+import { ProfileForm } from '@/components/profile/ProfileForm';
+import { unstable_setRequestLocale } from 'next-intl/server';
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
-  const { locale } = await params
-  const t = await getTranslations({ locale, namespace: 'Profile' })
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: 'Profile' });
 
   return {
     title: t('title'),
-    description: t('description'),
-  }
+    description: t('subtitle'),
+  };
 }
 
-export default async function ProfilePage({ params }: { params: Promise<{ locale: string }> }) {
-  const { locale } = await params
-  const t = await getTranslations({ locale, namespace: 'Profile' })
+interface ProfilePageProps {
+  params: Promise<{ locale: string }>;
+}
+
+export default async function ProfilePage({ params }: ProfilePageProps) {
+  const { locale } = await params;
+  unstable_setRequestLocale(locale);
+
+  const t = await getTranslations({ locale, namespace: 'Profile' });
 
   return (
-    <div className="min-h-screen bg-muted">
-      <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-3xl font-bold text-foreground">{t('title')}</h1>
-            <LogoutButton locale={locale} />
+    <div className="min-h-screen bg-background py-12">
+      <div className="container mx-auto px-4 max-w-2xl">
+        <div className="bg-card rounded-lg shadow-sm border border-border p-8">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-foreground mb-2">
+              {t('title')}
+            </h1>
+            <p className="text-muted-foreground">
+              {t('subtitle')}
+            </p>
           </div>
 
-          <div className="bg-card shadow overflow-hidden sm:rounded-lg">
-            <div className="px-4 py-5 sm:px-6">
-              <h3 className="text-lg leading-6 font-medium text-foreground">
-                {t('profileInformation')}
-              </h3>
-              <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-                {t('profileDescription')}
-              </p>
-            </div>
-            <div className="border-t border-border">
-              <dl>
-                <div className="bg-muted px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt className="text-sm font-medium text-muted-foreground">{t('nameLabel')}</dt>
-                  <dd className="mt-1 text-sm text-foreground sm:mt-0 sm:col-span-2">
-                    {t('namePlaceholder')}
-                  </dd>
-                </div>
-                <div className="bg-card px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt className="text-sm font-medium text-muted-foreground">{t('emailLabel')}</dt>
-                  <dd className="mt-1 text-sm text-foreground sm:mt-0 sm:col-span-2">
-                    {t('emailPlaceholder')}
-                  </dd>
-                </div>
-              </dl>
-            </div>
-          </div>
+          <ProfileForm locale={locale} />
         </div>
       </div>
     </div>
-  )
+  );
 }

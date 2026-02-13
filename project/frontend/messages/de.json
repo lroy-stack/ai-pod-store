@@ -104,14 +104,26 @@
     "invalidVerificationLink": "Ungültiger Bestätigungslink"
   },
   "Profile": {
-    "title": "Profil",
-    "description": "Verwalten Sie Ihre Kontoeinstellungen und Präferenzen",
+    "title": "Mein Profil",
+    "subtitle": "Verwalten Sie Ihre Kontoeinstellungen und Präferenzen",
     "profileInformation": "Profilinformationen",
     "profileDescription": "Persönliche Daten und Kontoinformationen",
-    "nameLabel": "Vollständiger Name",
-    "namePlaceholder": "Benutzername",
-    "emailLabel": "E-Mail-Adresse",
-    "emailPlaceholder": "benutzer@beispiel.de"
+    "name": "Vollständiger Name",
+    "namePlaceholder": "Geben Sie Ihren vollständigen Namen ein",
+    "email": "E-Mail-Adresse",
+    "emailPlaceholder": "benutzer@beispiel.de",
+    "phone": "Telefonnummer",
+    "phonePlaceholder": "+49 30 12345678",
+    "language": "Sprache",
+    "currency": "Währung",
+    "uploadAvatar": "Avatar ändern",
+    "emailVerified": "E-Mail verifiziert",
+    "saveChanges": "Änderungen speichern",
+    "saving": "Speichern...",
+    "successMessage": "Profil erfolgreich aktualisiert",
+    "errorSaving": "Fehler beim Aktualisieren des Profils. Bitte versuchen Sie es erneut.",
+    "errorLoading": "Fehler beim Laden des Profils. Bitte versuchen Sie es erneut.",
+    "loading": "Laden..."
   },
   "Cart": {
     "title": "Warenkorb",
