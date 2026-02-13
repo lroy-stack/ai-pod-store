@@ -15,7 +15,9 @@ import {
 
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/hooks/useAuth'
+import { useCart } from '@/hooks/useCart'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Separator } from '@/components/ui/separator'
 import {
@@ -47,6 +49,7 @@ import {
 export default function Navbar() {
   const t = useTranslations('navigation')
   const { authenticated, user, loading, logout } = useAuth()
+  const { itemCount } = useCart()
   const params = useParams()
   const router = useRouter()
   const locale = params.locale as string
@@ -103,9 +106,17 @@ export default function Navbar() {
               <>
                 {authLinks.map((link) => (
                   <Button key={link.href} variant="ghost" size="sm" asChild>
-                    <Link href={link.href}>
+                    <Link href={link.href} className="relative">
                       <link.icon className="size-4" />
                       {link.label}
+                      {link.icon === ShoppingCart && itemCount > 0 && (
+                        <Badge
+                          variant="destructive"
+                          className="absolute -top-1 -right-1 size-5 flex items-center justify-center p-0 text-xs"
+                        >
+                          {itemCount}
+                        </Badge>
+                      )}
                     </Link>
                   </Button>
                 ))}
@@ -206,9 +217,17 @@ export default function Navbar() {
                           className="justify-start gap-3 h-11"
                           asChild
                         >
-                          <Link href={link.href}>
+                          <Link href={link.href} className="relative">
                             <link.icon className="size-4" />
                             {link.label}
+                            {link.icon === ShoppingCart && itemCount > 0 && (
+                              <Badge
+                                variant="destructive"
+                                className="ml-auto size-5 flex items-center justify-center p-0 text-xs"
+                              >
+                                {itemCount}
+                              </Badge>
+                            )}
                           </Link>
                         </Button>
                       ))}

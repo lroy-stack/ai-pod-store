@@ -5,6 +5,7 @@ import { useTranslations, useLocale } from 'next-intl'
 import Image from 'next/image'
 import { useState } from 'react'
 import { Star, Heart, ShoppingCart, ChevronLeft } from 'lucide-react'
+import { useCart } from '@/hooks/useCart'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
@@ -22,7 +23,7 @@ import {
 // Mock product data - will be replaced with API call
 const mockProducts = {
   '1': {
-    id: '1',
+    id: '00000000-0000-0000-0000-000000000001',
     title: 'Classic T-Shirt',
     description: 'Comfortable cotton t-shirt perfect for everyday wear. Made from 100% premium cotton with a modern fit.',
     longDescription: 'Our Classic T-Shirt combines comfort and style in one essential piece. Crafted from soft, breathable 100% cotton, this shirt features a modern fit that looks great on everyone. The durable construction ensures it will be a wardrobe staple for years to come. Available in multiple sizes and colors to match your style.',
@@ -43,7 +44,7 @@ const mockProducts = {
     },
   },
   '2': {
-    id: '2',
+    id: '00000000-0000-0000-0000-000000000002',
     title: 'Hoodie',
     description: 'Cozy fleece hoodie for chilly days',
     longDescription: 'Stay warm and comfortable in our premium fleece hoodie. Features a soft interior lining, adjustable drawstring hood, and kangaroo pocket. Perfect for layering or wearing on its own.',
@@ -63,7 +64,7 @@ const mockProducts = {
     },
   },
   '3': {
-    id: '3',
+    id: '00000000-0000-0000-0000-000000000003',
     title: 'Mug',
     description: 'Ceramic coffee mug',
     longDescription: 'Start your day right with our high-quality ceramic mug. Microwave and dishwasher safe, this 11oz mug is perfect for coffee, tea, or hot chocolate.',
@@ -88,6 +89,7 @@ export default function ProductDetailPage() {
   const router = useRouter()
   const t = useTranslations('product')
   const locale = useLocale()
+  const { addToCart } = useCart()
   const productId = params.id as string
   const product = mockProducts[productId as keyof typeof mockProducts]
 
@@ -96,6 +98,7 @@ export default function ProductDetailPage() {
   const [selectedColor, setSelectedColor] = useState<string>('')
   const [quantity, setQuantity] = useState(1)
   const [isWishlisted, setIsWishlisted] = useState(false)
+  const [isAddingToCart, setIsAddingToCart] = useState(false)
 
   // Extract variants to avoid TypeScript union narrowing issues
   const sizes = product?.variants && 'sizes' in product.variants ? product.variants.sizes : undefined
@@ -144,6 +147,37 @@ export default function ProductDetailPage() {
 
   const toggleWishlist = () => {
     setIsWishlisted(!isWishlisted)
+  }
+
+  const handleAddToCart = async () => {
+    if (!product) return
+
+    // Validate variant selection if applicable
+    if (sizes && sizes.length > 0 && !selectedSize) {
+      return // Size is required but not selected
+    }
+    if (colors && colors.length > 0 && !selectedColor) {
+      return // Color is required but not selected
+    }
+
+    setIsAddingToCart(true)
+    try {
+      await addToCart(
+        product.id, // Use product.id (the UUID) instead of productId (URL param)
+        quantity,
+        {
+          size: selectedSize || undefined,
+          color: selectedColor || undefined,
+        },
+        product.title,
+        product.price
+      )
+    } catch (error) {
+      // Error is already handled by useCart with toast
+      console.error('Failed to add to cart:', error)
+    } finally {
+      setIsAddingToCart(false)
+    }
   }
 
   return (
@@ -299,10 +333,11 @@ export default function ProductDetailPage() {
             <Button
               className="flex-1"
               size="lg"
-              disabled={!product.inStock}
+              disabled={!product.inStock || isAddingToCart}
+              onClick={handleAddToCart}
             >
               <ShoppingCart className="size-5 mr-2" />
-              {t('addToCart')}
+              {isAddingToCart ? t('adding') || 'Adding...' : t('addToCart')}
             </Button>
             <Button
               variant="outline"

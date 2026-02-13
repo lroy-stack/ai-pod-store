@@ -784,7 +784,7 @@
     "id": 72,
     "feature": "Product Catalog",
     "description": "Add to Cart button works on product detail",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Select a product variant on the product detail page",
       "Click the Add to Cart button",
