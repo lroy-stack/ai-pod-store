@@ -641,7 +641,7 @@
     "id": 59,
     "feature": "Authentication + User Profile",
     "description": "Protected API routes return 401 for unauthenticated requests",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Call GET /api/orders without an authentication token and verify 401 response",
       "Call GET /api/profile without an authentication token and verify 401 response",
