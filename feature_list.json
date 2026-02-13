@@ -762,7 +762,7 @@
     "id": 70,
     "feature": "Product Catalog",
     "description": "Empty state and loading skeleton display",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Search for a nonexistent term and verify an empty state message is displayed",
       "Reload the page and verify skeleton placeholder elements are shown during loading",
@@ -773,7 +773,7 @@
     "id": 71,
     "feature": "Product Catalog",
     "description": "Product count and categories display",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify the total product count is shown on the shop page",
       "Verify the category list or navigation is visible",
