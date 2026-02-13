@@ -421,7 +421,7 @@
     "id": 39,
     "feature": "Authentication + User Profile",
     "description": "Registration page renders correctly",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to /en/auth/register page",
       "Verify name, email, and password input fields are present",
