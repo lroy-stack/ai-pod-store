@@ -388,7 +388,7 @@
     "id": 36,
     "feature": "Database & Schema",
     "description": "Translations have UNIQUE(namespace, key, locale)",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify UNIQUE constraint exists on translations(namespace, key, locale)",
       "Insert a translation row successfully",
