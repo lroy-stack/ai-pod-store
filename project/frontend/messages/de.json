@@ -20,7 +20,14 @@
     "title": "Shop",
     "subtitle": "Entdecken Sie unsere Kollektion maßgeschneiderter Produkte",
     "searchPlaceholder": "Produkte suchen...",
-    "searchResults": "{count, plural, =0 {Keine Produkte gefunden} one {1 Produkt gefunden} other {{count} Produkte gefunden}} für \"{query}\""
+    "searchResults": "{count, plural, =0 {Keine Produkte gefunden} one {1 Produkt gefunden} other {{count} Produkte gefunden}} für \"{query}\"",
+    "categoryResults": "{count, plural, =0 {Keine Produkte gefunden} one {1 Produkt} other {{count} Produkte}}",
+    "category": {
+      "all": "Alle",
+      "apparel": "Bekleidung",
+      "home": "Haushalt",
+      "accessories": "Zubehör"
+    }
   },
   "product": {
     "addToWishlist": "Zur Wunschliste hinzufügen",

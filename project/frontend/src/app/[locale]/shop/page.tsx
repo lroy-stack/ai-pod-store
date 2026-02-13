@@ -6,6 +6,8 @@ import { Search, X } from 'lucide-react'
 import { ProductGrid } from '@/components/products/ProductGrid'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { cn } from '@/lib/utils'
 
 // Mock products for now - will be replaced with API call
 const mockProducts = [
@@ -91,16 +93,25 @@ const mockProducts = [
 export default function ShopPage() {
   const t = useTranslations('shop')
   const [searchQuery, setSearchQuery] = useState('')
+  const [selectedCategory, setSelectedCategory] = useState<string>('all')
 
-  // Filter products based on search query
-  const filteredProducts = searchQuery.trim()
-    ? mockProducts.filter(
-        (product) =>
-          product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          product.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          product.category.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    : mockProducts
+  // Get unique categories from products
+  const categories = ['all', ...Array.from(new Set(mockProducts.map((p) => p.category)))]
+
+  // Filter products based on search query and category
+  const filteredProducts = mockProducts.filter((product) => {
+    // Category filter
+    const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory
+
+    // Search filter
+    const matchesSearch =
+      !searchQuery.trim() ||
+      product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      product.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      product.category.toLowerCase().includes(searchQuery.toLowerCase())
+
+    return matchesCategory && matchesSearch
+  })
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -143,11 +154,34 @@ export default function ShopPage() {
         </div>
       </form>
 
+      {/* Category Filters */}
+      <div className="mb-6">
+        <div className="flex flex-wrap gap-2">
+          {categories.map((category) => (
+            <Badge
+              key={category}
+              variant={selectedCategory === category ? 'default' : 'outline'}
+              className={cn(
+                'cursor-pointer px-4 py-2 text-sm transition-colors',
+                selectedCategory === category
+                  ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+                  : 'hover:bg-muted'
+              )}
+              onClick={() => setSelectedCategory(category)}
+            >
+              {t(`category.${category}`)}
+            </Badge>
+          ))}
+        </div>
+      </div>
+
       {/* Results count */}
-      {searchQuery && (
+      {(searchQuery || selectedCategory !== 'all') && (
         <div className="mb-4">
           <p className="text-sm text-muted-foreground">
-            {t('searchResults', { count: filteredProducts.length, query: searchQuery })}
+            {searchQuery
+              ? t('searchResults', { count: filteredProducts.length, query: searchQuery })
+              : t('categoryResults', { count: filteredProducts.length })}
           </p>
         </div>
       )}

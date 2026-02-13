@@ -729,7 +729,7 @@
     "id": 67,
     "feature": "Product Catalog",
     "description": "Product filter by category works",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Click the 't-shirts' category filter and verify only t-shirt products are shown",
       "Click the 'mugs' category filter and verify only mug products are shown",
