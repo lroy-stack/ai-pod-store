@@ -1,0 +1,3874 @@
+[
+  {
+    "id": 1,
+    "feature": "Project Foundation + i18n Setup",
+    "description": "Frontend npm install",
+    "passes": true,
+    "steps": [
+      "Run npm install in frontend/ directory",
+      "Verify no errors in the install output",
+      "Check that node_modules directory exists in frontend/"
+    ]
+  },
+  {
+    "id": 2,
+    "feature": "Project Foundation + i18n Setup",
+    "description": "Backend npm install",
+    "passes": true,
+    "steps": [
+      "Run npm install in backend/ directory",
+      "Verify no errors in the install output",
+      "Check that node_modules directory exists in backend/"
+    ]
+  },
+  {
+    "id": 3,
+    "feature": "Project Foundation + i18n Setup",
+    "description": "Frontend dev server starts on port 3000",
+    "passes": true,
+    "steps": [
+      "Run npm run dev in frontend/ directory",
+      "Curl localhost:3000 and wait for response",
+      "Verify HTML response is returned with 200 status"
+    ]
+  },
+  {
+    "id": 4,
+    "feature": "Project Foundation + i18n Setup",
+    "description": "Backend dev server starts on port 3001",
+    "passes": true,
+    "steps": [
+      "Run npm run dev in backend/ directory",
+      "Curl localhost:3001/api/health endpoint",
+      "Verify JSON response is returned with status ok"
+    ]
+  },
+  {
+    "id": 5,
+    "feature": "Project Foundation + i18n Setup",
+    "description": "Frontend TypeScript compiles without errors",
+    "passes": true,
+    "steps": [
+      "Run npx tsc --noEmit in frontend/ directory",
+      "Verify the command exits with code 0",
+      "Confirm no TypeScript compilation errors in output"
+    ]
+  },
+  {
+    "id": 6,
+    "feature": "Project Foundation + i18n Setup",
+    "description": "Backend TypeScript compiles without errors",
+    "passes": true,
+    "steps": [
+      "Run npx tsc --noEmit in backend/ directory",
+      "Verify the command exits with code 0",
+      "Confirm no TypeScript compilation errors in output"
+    ]
+  },
+  {
+    "id": 7,
+    "feature": "Project Foundation + i18n Setup",
+    "description": "Tailwind CSS v4 + shadcn/ui configured",
+    "passes": true,
+    "steps": [
+      "Navigate to localhost:3000 in a browser",
+      "Verify styled components render correctly with Tailwind classes",
+      "Check that Tailwind CSS classes are applied to elements in the DOM"
+    ]
+  },
+  {
+    "id": 8,
+    "feature": "Project Foundation + i18n Setup",
+    "description": "Environment variables load correctly",
+    "passes": true,
+    "steps": [
+      "Verify .env file exists in the project root or backend/ directory",
+      "Verify backend reads SUPABASE_URL environment variable",
+      "Verify frontend reads NEXT_PUBLIC_ prefixed environment variables"
+    ]
+  },
+  {
+    "id": 9,
+    "feature": "Project Foundation + i18n Setup",
+    "description": "Database connection works (Supabase)",
+    "passes": false,
+    "steps": [
+      "Start the backend server",
+      "Call GET /api/health endpoint",
+      "Verify response contains db: connected status"
+    ]
+  },
+  {
+    "id": 10,
+    "feature": "Project Foundation + i18n Setup",
+    "description": "Redis connection works",
+    "passes": false,
+    "steps": [
+      "Start the backend server",
+      "Call GET /api/health endpoint",
+      "Verify response contains redis: connected status"
+    ]
+  },
+  {
+    "id": 11,
+    "feature": "Project Foundation + i18n Setup",
+    "description": "Git repository initialized",
+    "passes": true,
+    "steps": [
+      "Verify .git directory exists in the project root",
+      "Verify .gitignore file includes node_modules entry",
+      "Verify .gitignore file includes .env entry"
+    ]
+  },
+  {
+    "id": 12,
+    "feature": "Project Foundation + i18n Setup",
+    "description": "Project structure matches spec",
+    "passes": true,
+    "steps": [
+      "Verify frontend/src/app/[locale] directory exists",
+      "Verify backend/src/routes directory exists",
+      "Verify shared/types directory exists"
+    ]
+  },
+  {
+    "id": 13,
+    "feature": "Project Foundation + i18n Setup",
+    "description": "next-intl configured with message files",
+    "passes": true,
+    "steps": [
+      "Verify messages/en.json exists and contains translation keys",
+      "Verify messages/es.json and messages/de.json exist with content",
+      "Check that next-intl imports are present in the layout file"
+    ]
+  },
+  {
+    "id": 14,
+    "feature": "Project Foundation + i18n Setup",
+    "description": "Locale routing works (/en/, /es/, /de/)",
+    "passes": true,
+    "steps": [
+      "Navigate to /en/ and verify English UI text is displayed",
+      "Navigate to /es/ and verify Spanish UI text is displayed",
+      "Navigate to /de/ and verify German UI text is displayed"
+    ]
+  },
+  {
+    "id": 15,
+    "feature": "Project Foundation + i18n Setup",
+    "description": "ESLint runs without errors",
+    "passes": true,
+    "steps": [
+      "Run npx eslint . in frontend/ directory",
+      "Verify no ESLint errors are reported in the output",
+      "Confirm exit code is 0"
+    ]
+  },
+  {
+    "id": 16,
+    "feature": "Database & Schema",
+    "description": "Core tables exist (users, products, orders, designs, conversations)",
+    "passes": false,
+    "steps": [
+      "Query information_schema.tables for users, products, orders, designs, conversations tables",
+      "Verify each table exists in the public schema",
+      "Verify columns on each table match the specification"
+    ]
+  },
+  {
+    "id": 17,
+    "feature": "Database & Schema",
+    "description": "Supporting tables exist (shipping_addresses, product_variants, messages, cart_items, order_items)",
+    "passes": false,
+    "steps": [
+      "Query information_schema for shipping_addresses, product_variants, messages, cart_items, order_items",
+      "Verify each table exists in the public schema",
+      "Verify each table has the correct columns and types"
+    ]
+  },
+  {
+    "id": 18,
+    "feature": "Database & Schema",
+    "description": "Feature tables exist (wishlists, wishlist_items, product_reviews, notifications, translations)",
+    "passes": false,
+    "steps": [
+      "Query information_schema for wishlists, wishlist_items, product_reviews, notifications, translations",
+      "Verify each table exists in the public schema",
+      "Verify key columns are present on each table"
+    ]
+  },
+  {
+    "id": 19,
+    "feature": "Database & Schema",
+    "description": "Infrastructure tables exist (audit_log with actor_type/action/changes, documents with vector(768))",
+    "passes": false,
+    "steps": [
+      "Query information_schema for audit_log table and verify actor_type, action, changes columns exist",
+      "Query information_schema for documents table",
+      "Verify documents.embedding column is of type vector(768)"
+    ]
+  },
+  {
+    "id": 20,
+    "feature": "Database & Schema",
+    "description": "Agent tables exist (agent_sessions, agent_events with bigserial PK)",
+    "passes": false,
+    "steps": [
+      "Query information_schema for agent_sessions and agent_events tables",
+      "Verify agent_events.id column is bigserial type",
+      "Verify agent_events.session_id has a foreign key to agent_sessions"
+    ]
+  },
+  {
+    "id": 21,
+    "feature": "Database & Schema",
+    "description": "Analytics tables exist (customer_segments, demand_forecasts, price_history, association_rules, ab_experiments, ab_events)",
+    "passes": false,
+    "steps": [
+      "Query information_schema for all 6 analytics tables",
+      "Verify customer_segments, demand_forecasts, price_history, association_rules, ab_experiments, ab_events all exist",
+      "Verify each table has correct columns matching the specification"
+    ]
+  },
+  {
+    "id": 22,
+    "feature": "Database & Schema",
+    "description": "Foreign key constraints correct for all 24 tables",
+    "passes": false,
+    "steps": [
+      "Query pg_constraint for all foreign key relationships across the schema",
+      "Verify user_id foreign keys reference users table correctly",
+      "Verify product_id and order_id foreign keys reference their respective tables"
+    ]
+  },
+  {
+    "id": 23,
+    "feature": "Database & Schema",
+    "description": "Row-level security policies exist on user-facing tables",
+    "passes": false,
+    "steps": [
+      "Query pg_policies for RLS policies on users table",
+      "Verify RLS policies exist on orders, cart_items, wishlists, and notifications tables",
+      "Confirm RLS is enabled on each of these tables"
+    ]
+  },
+  {
+    "id": 24,
+    "feature": "Database & Schema",
+    "description": "Indexes exist (HNSW on documents.embedding, GIN on products.tags, B-tree on audit_log)",
+    "passes": false,
+    "steps": [
+      "Query pg_indexes for HNSW index on documents.embedding column",
+      "Query pg_indexes for GIN index on products.tags column",
+      "Query pg_indexes for B-tree indexes on audit_log table"
+    ]
+  },
+  {
+    "id": 25,
+    "feature": "Database & Schema",
+    "description": "created_at defaults and UUID generation work",
+    "passes": false,
+    "steps": [
+      "Insert a test row into a table without specifying id or created_at",
+      "Verify a UUID was auto-generated for the id column",
+      "Verify created_at was set to the current timestamp automatically"
+    ]
+  },
+  {
+    "id": 26,
+    "feature": "Database & Schema",
+    "description": "Supabase client initializes correctly (frontend anon + backend admin)",
+    "passes": false,
+    "steps": [
+      "Verify frontend Supabase client uses NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY",
+      "Verify backend Supabase client uses SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY",
+      "Confirm both clients can establish a connection"
+    ]
+  },
+  {
+    "id": 27,
+    "feature": "Database & Schema",
+    "description": "Migration files exist and run cleanly",
+    "passes": false,
+    "steps": [
+      "Verify supabase/migrations/ directory contains .sql migration files",
+      "Run the migration files against the database",
+      "Verify all migrations complete without errors"
+    ]
+  },
+  {
+    "id": 28,
+    "feature": "Database & Schema",
+    "description": "Seed data script populates test data",
+    "passes": false,
+    "steps": [
+      "Run the seed data script",
+      "Verify products table has rows populated",
+      "Verify users table has a test admin user created"
+    ]
+  },
+  {
+    "id": 29,
+    "feature": "Database & Schema",
+    "description": "search_documents RPC function exists",
+    "passes": false,
+    "steps": [
+      "Call the search_documents RPC function with a test embedding vector",
+      "Verify the function returns results with id, content, metadata, and similarity fields",
+      "Confirm results are ordered by similarity"
+    ]
+  },
+  {
+    "id": 30,
+    "feature": "Database & Schema",
+    "description": "update_product_rating RPC function exists",
+    "passes": false,
+    "steps": [
+      "Call the update_product_rating RPC function with a valid product_id",
+      "Verify the product's avg_rating is recalculated",
+      "Verify the product's review_count is updated correctly"
+    ]
+  },
+  {
+    "id": 31,
+    "feature": "Database & Schema",
+    "description": "Database connection pooling configured",
+    "passes": false,
+    "steps": [
+      "Verify the Supabase client is configured with connection pooling",
+      "Check backend database pool settings for max connections",
+      "Confirm pooled connections are reused correctly"
+    ]
+  },
+  {
+    "id": 32,
+    "feature": "Database & Schema",
+    "description": "Users table has locale, currency, phone, email_verified, notification_preferences columns",
+    "passes": false,
+    "steps": [
+      "Query information_schema.columns for the users table",
+      "Verify locale, currency, phone, email_verified, and notification_preferences columns exist",
+      "Verify each column has the correct data type"
+    ]
+  },
+  {
+    "id": 33,
+    "feature": "Database & Schema",
+    "description": "Products table has avg_rating and review_count columns",
+    "passes": false,
+    "steps": [
+      "Query information_schema.columns for the products table",
+      "Verify avg_rating column exists with numeric(2,1) type",
+      "Verify review_count column exists with integer type"
+    ]
+  },
+  {
+    "id": 34,
+    "feature": "Database & Schema",
+    "description": "Wishlists have is_public, share_token columns",
+    "passes": false,
+    "steps": [
+      "Query wishlists table columns and verify is_public and share_token exist",
+      "Verify wishlist_items has a UNIQUE constraint on (wishlist_id, product_id, variant_id)",
+      "Confirm share_token column allows null for private wishlists"
+    ]
+  },
+  {
+    "id": 35,
+    "feature": "Database & Schema",
+    "description": "Product_reviews have rating CHECK(1-5) and UNIQUE per user+product",
+    "passes": false,
+    "steps": [
+      "Verify CHECK constraint exists on product_reviews.rating for values 1 through 5",
+      "Verify UNIQUE constraint exists on (product_id, user_id, order_id)",
+      "Attempt to insert a rating of 0 or 6 and verify it fails"
+    ]
+  },
+  {
+    "id": 36,
+    "feature": "Database & Schema",
+    "description": "Translations have UNIQUE(namespace, key, locale)",
+    "passes": false,
+    "steps": [
+      "Verify UNIQUE constraint exists on translations(namespace, key, locale)",
+      "Insert a translation row successfully",
+      "Attempt to insert a duplicate (namespace, key, locale) and verify it fails"
+    ]
+  },
+  {
+    "id": 37,
+    "feature": "Database & Schema",
+    "description": "Ab_experiments have variants jsonb and status column",
+    "passes": false,
+    "steps": [
+      "Query ab_experiments table columns",
+      "Verify variants column is of type jsonb",
+      "Verify status column exists and defaults to 'draft'"
+    ]
+  },
+  {
+    "id": 38,
+    "feature": "Authentication + User Profile",
+    "description": "Login page renders correctly",
+    "passes": false,
+    "steps": [
+      "Navigate to /en/auth/login page",
+      "Verify email input field and password input field are visible",
+      "Verify login button and social login buttons are visible"
+    ]
+  },
+  {
+    "id": 39,
+    "feature": "Authentication + User Profile",
+    "description": "Registration page renders correctly",
+    "passes": false,
+    "steps": [
+      "Navigate to /en/auth/register page",
+      "Verify name, email, and password input fields are present",
+      "Verify register button and social login buttons are visible"
+    ]
+  },
+  {
+    "id": 40,
+    "feature": "Authentication + User Profile",
+    "description": "User can register with email/password",
+    "passes": false,
+    "steps": [
+      "Fill in registration form with name, email, and password",
+      "Submit the registration form",
+      "Verify success response and verify user record created in the database"
+    ]
+  },
+  {
+    "id": 41,
+    "feature": "Authentication + User Profile",
+    "description": "User can log in with email/password",
+    "passes": false,
+    "steps": [
+      "Fill in login form with a registered user's email and password",
+      "Submit the login form",
+      "Verify user is redirected to home page and session cookie is set"
+    ]
+  },
+  {
+    "id": 42,
+    "feature": "Authentication + User Profile",
+    "description": "User can log out",
+    "passes": false,
+    "steps": [
+      "Click the logout button or menu item while logged in",
+      "Verify user is redirected to the login page",
+      "Verify session is cleared and auth cookies are removed"
+    ]
+  },
+  {
+    "id": 43,
+    "feature": "Authentication + User Profile",
+    "description": "Protected routes redirect to login",
+    "passes": false,
+    "steps": [
+      "Navigate to /en/profile without being authenticated",
+      "Verify the page redirects to /en/auth/login",
+      "Verify redirect includes return URL parameter"
+    ]
+  },
+  {
+    "id": 44,
+    "feature": "Authentication + User Profile",
+    "description": "Session persists across page refreshes",
+    "passes": false,
+    "steps": [
+      "Log in with valid credentials",
+      "Refresh the page in the browser",
+      "Verify user is still logged in and httpOnly cookie is present"
+    ]
+  },
+  {
+    "id": 45,
+    "feature": "Authentication + User Profile",
+    "description": "Invalid credentials show error message",
+    "passes": false,
+    "steps": [
+      "Enter a valid email with an incorrect password",
+      "Submit the login form",
+      "Verify an error message is displayed indicating invalid credentials"
+    ]
+  },
+  {
+    "id": 46,
+    "feature": "Authentication + User Profile",
+    "description": "Duplicate email registration shows error",
+    "passes": false,
+    "steps": [
+      "Attempt to register with an email that is already registered",
+      "Submit the registration form",
+      "Verify an error message is displayed about the duplicate email"
+    ]
+  },
+  {
+    "id": 47,
+    "feature": "Authentication + User Profile",
+    "description": "Auth state reflects in navbar",
+    "passes": false,
+    "steps": [
+      "Verify the navbar shows a Login button when logged out",
+      "Log in with valid credentials",
+      "Verify the navbar shows user avatar/name and a Logout option"
+    ]
+  },
+  {
+    "id": 48,
+    "feature": "Authentication + User Profile",
+    "description": "Guest checkout option available",
+    "passes": false,
+    "steps": [
+      "Navigate to /en/cart without being authenticated",
+      "Proceed to the checkout flow",
+      "Verify a guest checkout option is shown allowing checkout without account"
+    ]
+  },
+  {
+    "id": 49,
+    "feature": "Authentication + User Profile",
+    "description": "Password reset flow works",
+    "passes": false,
+    "steps": [
+      "Click forgot password link on login page and enter email address",
+      "Verify password reset email is sent with a reset token",
+      "Use the token to reset the password and verify login works with the new password"
+    ]
+  },
+  {
+    "id": 50,
+    "feature": "Authentication + User Profile",
+    "description": "Email verification flow works",
+    "passes": false,
+    "steps": [
+      "Register a new user and verify email_verified is false in the database",
+      "Click the email verification link sent to the user",
+      "Verify email_verified becomes true in the database"
+    ]
+  },
+  {
+    "id": 51,
+    "feature": "Authentication + User Profile",
+    "description": "Profile page renders with edit form",
+    "passes": false,
+    "steps": [
+      "Navigate to /en/profile while logged in",
+      "Verify name, email, locale, currency, and phone fields are shown",
+      "Verify avatar upload area is present on the page"
+    ]
+  },
+  {
+    "id": 52,
+    "feature": "Authentication + User Profile",
+    "description": "Profile CRUD works",
+    "passes": false,
+    "steps": [
+      "Update the user's name field and save, verify the name is updated",
+      "Update locale to 'es' and save, verify the UI switches to Spanish",
+      "Update currency to EUR and save, verify prices display in EUR format"
+    ]
+  },
+  {
+    "id": 53,
+    "feature": "Authentication + User Profile",
+    "description": "Notification preferences toggle works",
+    "passes": false,
+    "steps": [
+      "Navigate to the profile page",
+      "Toggle email notifications off and save",
+      "Verify the notification preference is stored correctly in the database"
+    ]
+  },
+  {
+    "id": 54,
+    "feature": "Authentication + User Profile",
+    "description": "Shipping addresses CRUD works",
+    "passes": false,
+    "steps": [
+      "Add a new shipping address with all fields and verify it appears in the list",
+      "Edit the city field of the address and verify the update is saved",
+      "Delete the address and verify it is removed; set one address as default and verify"
+    ]
+  },
+  {
+    "id": 55,
+    "feature": "Authentication + User Profile",
+    "description": "Account deletion works (GDPR)",
+    "passes": false,
+    "steps": [
+      "Navigate to the profile settings page",
+      "Click delete account and confirm the action",
+      "Verify the user is soft-deleted or anonymized in the database"
+    ]
+  },
+  {
+    "id": 56,
+    "feature": "Authentication + User Profile",
+    "description": "Auth API endpoints return correct status codes",
+    "passes": false,
+    "steps": [
+      "POST /api/auth/login with valid credentials and verify 200 response",
+      "POST /api/auth/login with invalid credentials and verify 401 response",
+      "GET /api/auth/me without token and verify 401 response"
+    ]
+  },
+  {
+    "id": 57,
+    "feature": "Authentication + User Profile",
+    "description": "Session management works across multiple tabs",
+    "passes": false,
+    "steps": [
+      "Log in on tab 1 and verify session is active",
+      "Open tab 2 and verify the user is also logged in",
+      "Log out on tab 1 and verify tab 2 reflects the logout state"
+    ]
+  },
+  {
+    "id": 58,
+    "feature": "Authentication + User Profile",
+    "description": "Profile locale change updates UI language",
+    "passes": false,
+    "steps": [
+      "Change the locale to 'de' (German) in the profile settings",
+      "Save the profile changes",
+      "Verify the entire UI displays German text throughout the application"
+    ]
+  },
+  {
+    "id": 59,
+    "feature": "Authentication + User Profile",
+    "description": "Protected API routes return 401 for unauthenticated requests",
+    "passes": false,
+    "steps": [
+      "Call GET /api/orders without an authentication token and verify 401 response",
+      "Call GET /api/profile without an authentication token and verify 401 response",
+      "Verify the response body contains an appropriate error message"
+    ]
+  },
+  {
+    "id": 60,
+    "feature": "Product Catalog",
+    "description": "Products page renders with grid layout",
+    "passes": false,
+    "steps": [
+      "Navigate to /en/shop in the browser",
+      "Verify a product grid layout is visible on the page",
+      "Verify at least one product card is rendered in the grid"
+    ]
+  },
+  {
+    "id": 61,
+    "feature": "Product Catalog",
+    "description": "Product cards show title, image, price, rating stars, wishlist heart",
+    "passes": false,
+    "steps": [
+      "Inspect a product card on the shop page",
+      "Verify the card contains an image tag, title text, and formatted price",
+      "Verify star rating display and heart icon for wishlist are present"
+    ]
+  },
+  {
+    "id": 62,
+    "feature": "Product Catalog",
+    "description": "Product detail page renders with all info",
+    "passes": false,
+    "steps": [
+      "Navigate to /en/shop/[id] for a specific product",
+      "Verify title, description, images, and variant selector are displayed",
+      "Verify reviews section and add to cart button are present"
+    ]
+  },
+  {
+    "id": 63,
+    "feature": "Product Catalog",
+    "description": "Product images load with alt text and width/height",
+    "passes": false,
+    "steps": [
+      "Inspect product images on the product detail page",
+      "Verify each image has an alt attribute set with descriptive text",
+      "Verify width and height attributes are present on the image elements"
+    ]
+  },
+  {
+    "id": 64,
+    "feature": "Product Catalog",
+    "description": "Product variant selection works",
+    "passes": false,
+    "steps": [
+      "Click size 'L' on a product and verify it shows as selected",
+      "Click color 'Black' and verify it shows as selected",
+      "Verify the displayed price updates if the variant has a different price"
+    ]
+  },
+  {
+    "id": 65,
+    "feature": "Product Catalog",
+    "description": "Price displays in locale-aware currency format",
+    "passes": false,
+    "steps": [
+      "Navigate to /en/ and verify prices display in $XX.XX format",
+      "Switch to /de/ and verify prices display in XX,XX EUR format",
+      "Verify Intl.NumberFormat is used for currency formatting"
+    ]
+  },
+  {
+    "id": 66,
+    "feature": "Product Catalog",
+    "description": "Product search works",
+    "passes": false,
+    "steps": [
+      "Type 'cat' in the search bar on the shop page",
+      "Submit the search query",
+      "Verify the results contain cat-related products"
+    ]
+  },
+  {
+    "id": 67,
+    "feature": "Product Catalog",
+    "description": "Product filter by category works",
+    "passes": false,
+    "steps": [
+      "Click the 't-shirts' category filter and verify only t-shirt products are shown",
+      "Click the 'mugs' category filter and verify only mug products are shown",
+      "Verify the product count updates to reflect the filtered results"
+    ]
+  },
+  {
+    "id": 68,
+    "feature": "Product Catalog",
+    "description": "Product sort works",
+    "passes": false,
+    "steps": [
+      "Select 'Price: Low to High' sort option and verify products are ordered by ascending price",
+      "Select 'Newest' sort option and verify newest products appear first",
+      "Select 'Top Rated' sort option and verify highest rated products appear first"
+    ]
+  },
+  {
+    "id": 69,
+    "feature": "Product Catalog",
+    "description": "Pagination works on product listing",
+    "passes": false,
+    "steps": [
+      "Verify page 1 shows a limited number of products",
+      "Click page 2 or the next button",
+      "Verify different products are shown on the second page"
+    ]
+  },
+  {
+    "id": 70,
+    "feature": "Product Catalog",
+    "description": "Empty state and loading skeleton display",
+    "passes": false,
+    "steps": [
+      "Search for a nonexistent term and verify an empty state message is displayed",
+      "Reload the page and verify skeleton placeholder elements are shown during loading",
+      "Verify skeletons disappear once content has loaded"
+    ]
+  },
+  {
+    "id": 71,
+    "feature": "Product Catalog",
+    "description": "Product count and categories display",
+    "passes": false,
+    "steps": [
+      "Verify the total product count is shown on the shop page",
+      "Verify the category list or navigation is visible",
+      "Verify each category displays a product count"
+    ]
+  },
+  {
+    "id": 72,
+    "feature": "Product Catalog",
+    "description": "Add to Cart button works on product detail",
+    "passes": false,
+    "steps": [
+      "Select a product variant on the product detail page",
+      "Click the Add to Cart button",
+      "Verify a success toast is shown and the cart count increases in the navbar"
+    ]
+  },
+  {
+    "id": 73,
+    "feature": "Product Catalog",
+    "description": "Breadcrumbs show on product detail",
+    "passes": false,
+    "steps": [
+      "Navigate to a product detail page",
+      "Verify breadcrumb navigation is displayed",
+      "Verify breadcrumb shows Home > Shop > Category > Product Name"
+    ]
+  },
+  {
+    "id": 74,
+    "feature": "Product Catalog",
+    "description": "Related products section displays",
+    "passes": false,
+    "steps": [
+      "Navigate to a product detail page",
+      "Scroll to the bottom of the page",
+      "Verify a Related Products section is shown with product cards"
+    ]
+  },
+  {
+    "id": 75,
+    "feature": "Product Catalog",
+    "description": "Responsive grid layout",
+    "passes": false,
+    "steps": [
+      "Resize the browser to mobile width and verify a 1-2 column grid layout",
+      "Resize the browser to tablet width and verify the grid adjusts",
+      "Resize to desktop width and verify a 3-4 column grid layout"
+    ]
+  },
+  {
+    "id": 76,
+    "feature": "Product Catalog",
+    "description": "SEO meta tags exist on product pages",
+    "passes": false,
+    "steps": [
+      "Navigate to a product detail page",
+      "Inspect the HTML head section",
+      "Verify a title tag and meta description are present with product-relevant content"
+    ]
+  },
+  {
+    "id": 77,
+    "feature": "Product Catalog",
+    "description": "hreflang tags present on product pages",
+    "passes": false,
+    "steps": [
+      "Navigate to a product detail page",
+      "Inspect the HTML head section",
+      "Verify hreflang tags exist for en, es, and de alternate URLs"
+    ]
+  },
+  {
+    "id": 78,
+    "feature": "Product Catalog",
+    "description": "Structured data (JSON-LD Product) present",
+    "passes": false,
+    "steps": [
+      "Navigate to a product detail page",
+      "Inspect the page source for script elements",
+      "Verify a script tag with type=\"application/ld+json\" contains a Product schema"
+    ]
+  },
+  {
+    "id": 79,
+    "feature": "Product Catalog",
+    "description": "Product API returns paginated JSON with locale parameter",
+    "passes": false,
+    "steps": [
+      "Send GET request to /api/products?page=1&limit=10&locale=en",
+      "Verify the response is JSON with total, page, and items array fields",
+      "Verify items contain product data with localized content"
+    ]
+  },
+  {
+    "id": 80,
+    "feature": "Product Catalog",
+    "description": "Size guide renders for each product type",
+    "passes": false,
+    "steps": [
+      "Navigate to a product detail page for an apparel item",
+      "Click the Size Guide link or button",
+      "Verify a size chart or table displays with measurement information"
+    ]
+  },
+  {
+    "id": 81,
+    "feature": "Product Catalog",
+    "description": "Product reviews section renders",
+    "passes": false,
+    "steps": [
+      "Navigate to a product that has reviews",
+      "Verify the average rating is displayed prominently",
+      "Verify individual review cards show star ratings and review text"
+    ]
+  },
+  {
+    "id": 82,
+    "feature": "Product Catalog",
+    "description": "Review submission form works",
+    "passes": false,
+    "steps": [
+      "Click Write Review on a product the user has purchased",
+      "Fill in the rating (stars) and review text",
+      "Submit the review and verify it appears in the reviews section"
+    ]
+  },
+  {
+    "id": 83,
+    "feature": "Product Catalog",
+    "description": "Verified purchase badge shows on reviews",
+    "passes": false,
+    "steps": [
+      "Navigate to a product with reviews from users who purchased it",
+      "Inspect the review cards",
+      "Verify a 'Verified Purchase' badge is displayed on reviews from buyers"
+    ]
+  },
+  {
+    "id": 84,
+    "feature": "Product Catalog",
+    "description": "\"use cache\" directive on catalog pages",
+    "passes": false,
+    "steps": [
+      "Inspect the catalog page component source code",
+      "Verify the component has a \"use cache\" directive",
+      "Verify cached response headers are set appropriately"
+    ]
+  },
+  {
+    "id": 85,
+    "feature": "Product Catalog",
+    "description": "PPR works for dynamic pricing/stock",
+    "passes": false,
+    "steps": [
+      "Load the product catalog page and verify the static shell loads instantly",
+      "Observe the dynamic pricing section streaming in after the initial load",
+      "Verify stock availability information loads dynamically"
+    ]
+  },
+  {
+    "id": 86,
+    "feature": "Product Catalog",
+    "description": "Quick-view modal on product hover/click",
+    "passes": false,
+    "steps": [
+      "Hover over a product card on the shop page",
+      "Click the quick view button that appears",
+      "Verify a modal opens with product details including image, price, and variant options"
+    ]
+  },
+  {
+    "id": 87,
+    "feature": "Product Catalog",
+    "description": "Product API supports text search and category filter",
+    "passes": false,
+    "steps": [
+      "Send GET request to /api/products?q=shirt&category=t-shirts",
+      "Verify the response contains filtered results matching the search term",
+      "Verify all returned products belong to the t-shirts category"
+    ]
+  },
+  {
+    "id": 88,
+    "feature": "Shopping Cart + Wishlists",
+    "description": "Add to cart works from product page",
+    "passes": false,
+    "steps": [
+      "Navigate to a product detail page and select a variant",
+      "Click the Add to Cart button",
+      "Verify the item appears in the cart with the correct variant"
+    ]
+  },
+  {
+    "id": 89,
+    "feature": "Shopping Cart + Wishlists",
+    "description": "Cart icon shows item count in navbar",
+    "passes": false,
+    "steps": [
+      "Add an item to the cart",
+      "Look at the cart icon in the navbar",
+      "Verify a count badge is shown on the cart icon (e.g., '1')"
+    ]
+  },
+  {
+    "id": 90,
+    "feature": "Shopping Cart + Wishlists",
+    "description": "Cart page lists items with details",
+    "passes": false,
+    "steps": [
+      "Navigate to /en/cart with items in the cart",
+      "Verify each item shows its name and variant information",
+      "Verify quantity and unit price are displayed for each item"
+    ]
+  },
+  {
+    "id": 91,
+    "feature": "Shopping Cart + Wishlists",
+    "description": "Cart quantity update works",
+    "passes": false,
+    "steps": [
+      "Increase the quantity of an item to 3 and verify the total updates",
+      "Decrease the quantity to 1 and verify the total updates",
+      "Click the remove button and verify the item is removed from the cart"
+    ]
+  },
+  {
+    "id": 92,
+    "feature": "Shopping Cart + Wishlists",
+    "description": "Cart total updates correctly",
+    "passes": false,
+    "steps": [
+      "Add 2 different items to the cart",
+      "Verify the subtotal equals the sum of both items' prices",
+      "Change the quantity of one item and verify the total recalculates correctly"
+    ]
+  },
+  {
+    "id": 93,
+    "feature": "Shopping Cart + Wishlists",
+    "description": "Cart persists across page navigation",
+    "passes": false,
+    "steps": [
+      "Add an item to the cart",
+      "Navigate away to /en/shop and then back to /en/cart",
+      "Verify the item is still present in the cart"
+    ]
+  },
+  {
+    "id": 94,
+    "feature": "Shopping Cart + Wishlists",
+    "description": "Cart empty state shows",
+    "passes": false,
+    "steps": [
+      "Remove all items from the cart",
+      "Navigate to the cart page",
+      "Verify a 'Your cart is empty' message is displayed with a continue shopping link"
+    ]
+  },
+  {
+    "id": 95,
+    "feature": "Shopping Cart + Wishlists",
+    "description": "Adding same product twice increases quantity",
+    "passes": false,
+    "steps": [
+      "Add product variant A to the cart",
+      "Add the same product variant A to the cart again",
+      "Verify the quantity is 2 instead of a duplicate row"
+    ]
+  },
+  {
+    "id": 96,
+    "feature": "Shopping Cart + Wishlists",
+    "description": "Cart updates without full page reload",
+    "passes": false,
+    "steps": [
+      "Click the increase quantity button on a cart item",
+      "Verify the total updates without a full page refresh",
+      "Verify optimistic UI updates are applied immediately"
+    ]
+  },
+  {
+    "id": 97,
+    "feature": "Shopping Cart + Wishlists",
+    "description": "Maximum quantity limit enforced",
+    "passes": false,
+    "steps": [
+      "Try setting the quantity of an item above the maximum allowed (e.g., 100)",
+      "Verify the quantity is capped at the maximum or an error is shown",
+      "Verify the cart total reflects the capped quantity"
+    ]
+  },
+  {
+    "id": 98,
+    "feature": "Shopping Cart + Wishlists",
+    "description": "Cart API endpoints work",
+    "passes": false,
+    "steps": [
+      "Send GET /api/cart and verify it returns the cart items",
+      "Send POST /api/cart/add with a product and verify the item is added",
+      "Send PUT /api/cart/:id to update quantity and DELETE /api/cart/:id to remove an item"
+    ]
+  },
+  {
+    "id": 99,
+    "feature": "Shopping Cart + Wishlists",
+    "description": "Coupon code input + apply works",
+    "passes": false,
+    "steps": [
+      "Enter a valid coupon code in the coupon input field",
+      "Click the Apply button",
+      "Verify the discount is shown and reflected in the cart total"
+    ]
+  },
+  {
+    "id": 100,
+    "feature": "Shopping Cart + Wishlists",
+    "description": "Invalid coupon shows error",
+    "passes": false,
+    "steps": [
+      "Enter an invalid coupon code in the coupon input field",
+      "Click the Apply button",
+      "Verify an error message 'Invalid coupon code' is displayed"
+    ]
+  },
+  {
+    "id": 101,
+    "feature": "Shopping Cart + Wishlists",
+    "description": "Shipping estimate in cart works",
+    "passes": false,
+    "steps": [
+      "Enter a zip code or select a saved address on the cart page",
+      "Wait for the shipping estimate to calculate",
+      "Verify the shipping cost estimate is displayed in the cart summary"
+    ]
+  },
+  {
+    "id": 102,
+    "feature": "Shopping Cart + Wishlists",
+    "description": "Wishlist page renders",
+    "passes": false,
+    "steps": [
+      "Navigate to /en/profile/wishlists while logged in",
+      "Verify the wishlist list is shown on the page",
+      "Verify a default wishlist exists"
+    ]
+  },
+  {
+    "id": 103,
+    "feature": "Shopping Cart + Wishlists",
+    "description": "Can create wishlist + add/remove products",
+    "passes": false,
+    "steps": [
+      "Create a new wishlist named 'Birthday'",
+      "Navigate to a product and click the heart icon to add it to the wishlist",
+      "Click the heart icon again and verify the product is removed from the wishlist"
+    ]
+  },
+  {
+    "id": 104,
+    "feature": "Shopping Cart + Wishlists",
+    "description": "\"Add All to Cart\" button works on wishlist",
+    "passes": false,
+    "steps": [
+      "Add 3 products to a wishlist",
+      "Click the 'Add All to Cart' button on the wishlist page",
+      "Verify all 3 products appear in the shopping cart"
+    ]
+  },
+  {
+    "id": 105,
+    "feature": "Shopping Cart + Wishlists",
+    "description": "Share wishlist generates public link",
+    "passes": false,
+    "steps": [
+      "Navigate to a wishlist page",
+      "Click the Share button on the wishlist",
+      "Verify a URL with a share_token is generated and can be copied"
+    ]
+  },
+  {
+    "id": 106,
+    "feature": "Shopping Cart + Wishlists",
+    "description": "Public wishlist view works",
+    "passes": false,
+    "steps": [
+      "Generate a shared wishlist URL",
+      "Open the shared wishlist URL in an incognito/private browser window",
+      "Verify the wishlist products are visible without requiring authentication"
+    ]
+  },
+  {
+    "id": 107,
+    "feature": "Shopping Cart + Wishlists",
+    "description": "Multiple wishlists supported",
+    "passes": false,
+    "steps": [
+      "Create a 'Gifts' wishlist and a 'Favorites' wishlist",
+      "Add different products to each wishlist",
+      "Verify each wishlist maintains its own separate product list"
+    ]
+  },
+  {
+    "id": 108,
+    "feature": "Shopping Cart + Wishlists",
+    "description": "Wishlist API endpoints work",
+    "passes": false,
+    "steps": [
+      "Send GET /api/wishlists and verify it returns the user's wishlists",
+      "Send POST /api/wishlists to create a new wishlist and POST to add items",
+      "Send DELETE to remove items and GET /api/wishlists/shared/:token for public access"
+    ]
+  },
+  {
+    "id": 109,
+    "feature": "Shopping Cart + Wishlists",
+    "description": "Currency displays in user's preferred currency",
+    "passes": false,
+    "steps": [
+      "Set the user's preferred currency to EUR in profile settings",
+      "Navigate to the cart and wishlist pages",
+      "Verify all prices display in EUR format with the correct symbol"
+    ]
+  },
+  {
+    "id": 110,
+    "feature": "Checkout & Payments",
+    "description": "Checkout page renders with order summary",
+    "passes": false,
+    "steps": [
+      "Add items to the cart",
+      "Click the Checkout button",
+      "Verify the checkout page renders with an order summary showing the cart items"
+    ]
+  },
+  {
+    "id": 111,
+    "feature": "Checkout & Payments",
+    "description": "Saved shipping addresses selectable",
+    "passes": false,
+    "steps": [
+      "Navigate to the checkout page with saved addresses",
+      "Verify saved addresses appear in a dropdown or list",
+      "Select an address and verify it populates; click 'New Address' and verify form appears"
+    ]
+  },
+  {
+    "id": 112,
+    "feature": "Checkout & Payments",
+    "description": "Order summary shows correct items and totals",
+    "passes": false,
+    "steps": [
+      "Proceed to checkout with multiple items",
+      "Verify item names, quantities, and unit prices are shown",
+      "Verify subtotal, shipping, tax, and total lines are displayed correctly"
+    ]
+  },
+  {
+    "id": 113,
+    "feature": "Checkout & Payments",
+    "description": "Tax calculation works (Stripe Tax)",
+    "passes": false,
+    "steps": [
+      "Proceed to checkout with a shipping address",
+      "Verify a tax line item is calculated based on the address",
+      "Verify the tax amount is included in the total"
+    ]
+  },
+  {
+    "id": 114,
+    "feature": "Checkout & Payments",
+    "description": "Total amount is correct",
+    "passes": false,
+    "steps": [
+      "Review the checkout order summary",
+      "Verify total equals subtotal plus shipping plus tax minus any discount",
+      "Verify all amounts match and are mathematically correct"
+    ]
+  },
+  {
+    "id": 115,
+    "feature": "Checkout & Payments",
+    "description": "Stripe checkout session creates successfully",
+    "passes": false,
+    "steps": [
+      "Click the Pay button on the checkout page",
+      "Verify the user is redirected to Stripe Checkout page",
+      "Verify the Stripe Checkout displays the correct total amount"
+    ]
+  },
+  {
+    "id": 116,
+    "feature": "Checkout & Payments",
+    "description": "Successful payment redirects to confirmation",
+    "passes": false,
+    "steps": [
+      "Complete a Stripe test payment using card number 4242424242424242",
+      "Verify the user is redirected to /en/checkout/success",
+      "Verify the confirmation page displays the order details"
+    ]
+  },
+  {
+    "id": 117,
+    "feature": "Checkout & Payments",
+    "description": "Order created in database after payment",
+    "passes": false,
+    "steps": [
+      "Complete a successful payment through Stripe",
+      "Query the orders table in the database",
+      "Verify a new order exists with the correct total, items, and locale"
+    ]
+  },
+  {
+    "id": 118,
+    "feature": "Checkout & Payments",
+    "description": "Stripe webhook handles checkout.session.completed",
+    "passes": false,
+    "steps": [
+      "Verify the webhook endpoint is registered for checkout.session.completed events",
+      "Trigger or simulate a checkout.session.completed webhook event",
+      "Verify the order status is updated to 'paid' in the database"
+    ]
+  },
+  {
+    "id": 119,
+    "feature": "Checkout & Payments",
+    "description": "Failed payment shows error message",
+    "passes": false,
+    "steps": [
+      "Use Stripe test card for decline (4000000000000002) during checkout",
+      "Verify an error message is shown indicating the payment failed",
+      "Verify the user is redirected to the cancel or error page"
+    ]
+  },
+  {
+    "id": 120,
+    "feature": "Checkout & Payments",
+    "description": "Guest checkout creates order without account",
+    "passes": false,
+    "steps": [
+      "Proceed to checkout as a guest without an account",
+      "Enter email and shipping address, complete payment",
+      "Verify the order is created in the database with the customer_email field set"
+    ]
+  },
+  {
+    "id": 121,
+    "feature": "Checkout & Payments",
+    "description": "Order history shows in user profile",
+    "passes": false,
+    "steps": [
+      "Navigate to /en/orders",
+      "Verify list of past orders is displayed",
+      "Verify each order shows status, date, and total amount"
+    ]
+  },
+  {
+    "id": 122,
+    "feature": "Checkout & Payments",
+    "description": "Checkout form validates required fields",
+    "passes": false,
+    "steps": [
+      "Leave address fields empty on checkout form",
+      "Try to submit the form",
+      "Verify inline validation errors appear for required fields",
+      "Verify loading state is shown on submit button when form is valid and submitted"
+    ]
+  },
+  {
+    "id": 123,
+    "feature": "Checkout & Payments",
+    "description": "Stripe test cards work (4242...)",
+    "passes": false,
+    "steps": [
+      "Use card number 4242424242424242 in Stripe checkout",
+      "Verify successful payment is processed",
+      "Use card number 4000000000000341 for attach failure",
+      "Verify payment failure is handled gracefully"
+    ]
+  },
+  {
+    "id": 124,
+    "feature": "Checkout & Payments",
+    "description": "Notification + audit log entry after order",
+    "passes": false,
+    "steps": [
+      "Complete a successful order",
+      "Verify a notification is created for the user",
+      "Verify an audit_log entry exists with actor_type 'webhook'"
+    ]
+  },
+  {
+    "id": 125,
+    "feature": "Checkout & Payments",
+    "description": "Printify order submitted after payment",
+    "passes": false,
+    "steps": [
+      "Complete a payment via Stripe webhook",
+      "Verify the Printify API is called to create the order",
+      "Verify printify_order_id is stored in the orders table"
+    ]
+  },
+  {
+    "id": 126,
+    "feature": "Checkout & Payments",
+    "description": "Webhook idempotency handled",
+    "passes": false,
+    "steps": [
+      "Send the same webhook event twice to the webhook endpoint",
+      "Verify the order is not duplicated",
+      "Verify the second event is ignored gracefully"
+    ]
+  },
+  {
+    "id": 127,
+    "feature": "Checkout & Payments",
+    "description": "Stripe webhook signature verification",
+    "passes": false,
+    "steps": [
+      "Send a request to the webhook endpoint without a valid Stripe signature",
+      "Verify a 400 response is returned",
+      "Send a request with a valid Stripe signature",
+      "Verify a 200 response is returned"
+    ]
+  },
+  {
+    "id": 128,
+    "feature": "Checkout & Payments",
+    "description": "Return/refund flow works",
+    "passes": false,
+    "steps": [
+      "Navigate to an order detail page",
+      "Click the Request Return button",
+      "Fill in the return reason",
+      "Submit the return request",
+      "Verify the return request is created successfully"
+    ]
+  },
+  {
+    "id": 129,
+    "feature": "Checkout & Payments",
+    "description": "Multi-currency display works",
+    "passes": false,
+    "steps": [
+      "Set the currency to EUR",
+      "Verify checkout page shows EUR amounts",
+      "Set the currency to USD",
+      "Verify checkout page shows USD amounts"
+    ]
+  },
+  {
+    "id": 130,
+    "feature": "Checkout & Payments",
+    "description": "Checkout breadcrumb navigation",
+    "passes": false,
+    "steps": [
+      "Navigate to checkout flow",
+      "Verify breadcrumb shows Cart > Shipping > Payment > Confirmation",
+      "Verify the active step is highlighted with active state styling"
+    ]
+  },
+  {
+    "id": 131,
+    "feature": "Checkout & Payments",
+    "description": "Error handling for Printify submission failure",
+    "passes": false,
+    "steps": [
+      "Simulate a Printify API failure during order submission",
+      "Verify the order is marked for retry",
+      "Verify the admin is notified of the failure"
+    ]
+  },
+  {
+    "id": 132,
+    "feature": "Conversational Storefront / Chat",
+    "description": "Chat page renders with three-column layout",
+    "passes": false,
+    "steps": [
+      "Navigate to /en/chat",
+      "Verify left sidebar is visible",
+      "Verify center chat area is visible",
+      "Verify right artifacts panel is visible"
+    ]
+  },
+  {
+    "id": 133,
+    "feature": "Conversational Storefront / Chat",
+    "description": "Left sidebar shows conversation list",
+    "passes": false,
+    "steps": [
+      "Navigate to /en/chat",
+      "Verify sidebar has a New Chat button",
+      "Verify sidebar has a search input",
+      "Verify conversations are grouped by date"
+    ]
+  },
+  {
+    "id": 134,
+    "feature": "Conversational Storefront / Chat",
+    "description": "Chat input accepts text and sends",
+    "passes": false,
+    "steps": [
+      "Type a message in the chat input field",
+      "Press Enter or click the Send button",
+      "Verify the message appears in the chat area"
+    ]
+  },
+  {
+    "id": 135,
+    "feature": "Conversational Storefront / Chat",
+    "description": "Bot responds with streaming SSE",
+    "passes": false,
+    "steps": [
+      "Send a message in the chat",
+      "Verify the response streams in word-by-word using SSE",
+      "Verify AI SDK 6 ToolLoopAgent is used for the response"
+    ]
+  },
+  {
+    "id": 136,
+    "feature": "Conversational Storefront / Chat",
+    "description": "Conversation history displays correctly",
+    "passes": false,
+    "steps": [
+      "Send multiple messages in a conversation",
+      "Verify user messages are right-aligned",
+      "Verify assistant messages are left-aligned",
+      "Verify messages appear in correct chronological order"
+    ]
+  },
+  {
+    "id": 137,
+    "feature": "Conversational Storefront / Chat",
+    "description": "Chat scroll and loading indicator",
+    "passes": false,
+    "steps": [
+      "Send a message in the chat",
+      "Verify the chat area auto-scrolls to the bottom",
+      "Verify a typing indicator is displayed during the response"
+    ]
+  },
+  {
+    "id": 138,
+    "feature": "Conversational Storefront / Chat",
+    "description": "Conversation CRUD works",
+    "passes": false,
+    "steps": [
+      "Create a new chat and verify it appears in the sidebar",
+      "Rename the chat and verify the title updates in the sidebar",
+      "Delete the chat and verify it is removed from the sidebar"
+    ]
+  },
+  {
+    "id": 139,
+    "feature": "Conversational Storefront / Chat",
+    "description": "Chat supports markdown in responses",
+    "passes": false,
+    "steps": [
+      "Get a response that contains bold text, lists, and code blocks",
+      "Verify markdown is rendered correctly as formatted HTML",
+      "Verify raw markdown text is not displayed"
+    ]
+  },
+  {
+    "id": 140,
+    "feature": "Conversational Storefront / Chat",
+    "description": "Suggested prompts for new conversations",
+    "passes": false,
+    "steps": [
+      "Open a new chat conversation",
+      "Verify suggested prompt buttons are displayed",
+      "Verify prompts include options like 'Show me t-shirts' and 'Track my order'"
+    ]
+  },
+  {
+    "id": 141,
+    "feature": "Conversational Storefront / Chat",
+    "description": "Mobile chat interface collapses sidebar",
+    "passes": false,
+    "steps": [
+      "Resize the browser to mobile width",
+      "Verify the sidebar is hidden",
+      "Verify a hamburger menu is available to toggle the sidebar",
+      "Verify the artifacts panel renders below the chat on mobile"
+    ]
+  },
+  {
+    "id": 142,
+    "feature": "Conversational Storefront / Chat",
+    "description": "Product search tool produces product grid artifact",
+    "passes": false,
+    "steps": [
+      "Type 'show me cat t-shirts' in the chat",
+      "Verify the product_search tool is called",
+      "Verify a product grid renders in the artifacts panel"
+    ]
+  },
+  {
+    "id": 143,
+    "feature": "Conversational Storefront / Chat",
+    "description": "Browse catalog tool produces paginated products",
+    "passes": false,
+    "steps": [
+      "Type 'browse hoodies' in the chat",
+      "Verify the browse_catalog tool is called",
+      "Verify paginated products appear in the artifacts panel"
+    ]
+  },
+  {
+    "id": 144,
+    "feature": "Conversational Storefront / Chat",
+    "description": "Get detail + compare produces card/table artifacts",
+    "passes": false,
+    "steps": [
+      "Ask about a specific product in the chat",
+      "Verify a detail card artifact is rendered",
+      "Ask to compare 2 products",
+      "Verify a comparison table artifact is rendered"
+    ]
+  },
+  {
+    "id": 145,
+    "feature": "Conversational Storefront / Chat",
+    "description": "Recommendations + size guide produce grid/chart artifacts",
+    "passes": false,
+    "steps": [
+      "Ask for product recommendations in the chat",
+      "Verify a product grid artifact is rendered",
+      "Ask for a size guide",
+      "Verify a chart or table artifact is rendered"
+    ]
+  },
+  {
+    "id": 146,
+    "feature": "Conversational Storefront / Chat",
+    "description": "Cart tools: add to cart, get cart produce artifacts",
+    "passes": false,
+    "steps": [
+      "Say 'add this to cart' in the chat",
+      "Verify the add_to_cart tool is called",
+      "Say 'show my cart' in the chat",
+      "Verify a cart summary artifact is rendered"
+    ]
+  },
+  {
+    "id": 147,
+    "feature": "Conversational Storefront / Chat",
+    "description": "Cart tools: coupon + shipping estimate",
+    "passes": false,
+    "steps": [
+      "Say 'apply code SAVE10' in the chat",
+      "Verify the apply_coupon tool is called",
+      "Ask about shipping cost in the chat",
+      "Verify a pricing table artifact is rendered"
+    ]
+  },
+  {
+    "id": 148,
+    "feature": "Conversational Storefront / Chat",
+    "description": "Checkout tool: create_checkout with needsApproval",
+    "passes": false,
+    "steps": [
+      "Say 'checkout' in the chat",
+      "Verify an approval dialog appears for create_checkout",
+      "Click Approve in the dialog",
+      "Verify redirect to Stripe checkout occurs"
+    ]
+  },
+  {
+    "id": 149,
+    "feature": "Conversational Storefront / Chat",
+    "description": "Order tools: track order produces timeline artifact",
+    "passes": false,
+    "steps": [
+      "Say 'track my order' in the chat",
+      "Verify the track_order tool is called",
+      "Verify an order timeline artifact renders in the panel"
+    ]
+  },
+  {
+    "id": 150,
+    "feature": "Conversational Storefront / Chat",
+    "description": "Order tools: get_order_history produces list",
+    "passes": false,
+    "steps": [
+      "Say 'show my orders' in the chat",
+      "Verify the get_order_history tool is called",
+      "Verify an order history list artifact renders"
+    ]
+  },
+  {
+    "id": 151,
+    "feature": "Conversational Storefront / Chat",
+    "description": "Order tools: request_return with needsApproval",
+    "passes": false,
+    "steps": [
+      "Say 'return my last order' in the chat",
+      "Verify an approval dialog appears for request_return",
+      "Verify the user can approve or reject the return request"
+    ]
+  },
+  {
+    "id": 152,
+    "feature": "Conversational Storefront / Chat",
+    "description": "Design tools: generate + customize produce preview",
+    "passes": false,
+    "steps": [
+      "Say 'design a cat t-shirt' in the chat",
+      "Verify the generate_design tool is called",
+      "Verify a design preview artifact renders in the panel"
+    ]
+  },
+  {
+    "id": 153,
+    "feature": "Conversational Storefront / Chat",
+    "description": "Utility tools: add to wishlist, store policies, switch language",
+    "passes": false,
+    "steps": [
+      "Say 'add to wishlist' in the chat and verify the tool is called",
+      "Ask about store policies and verify policies are displayed",
+      "Say 'switch to Spanish' and verify the switch_language tool is called"
+    ]
+  },
+  {
+    "id": 154,
+    "feature": "Conversational Storefront / Chat",
+    "description": "analyze_image tool processes uploaded images",
+    "passes": false,
+    "steps": [
+      "Upload an image in the chat",
+      "Verify the analyze_image tool is called",
+      "Verify the response describes the uploaded image"
+    ]
+  },
+  {
+    "id": 155,
+    "feature": "Conversational Storefront / Chat",
+    "description": "Chat API has all 22 tools registered",
+    "passes": false,
+    "steps": [
+      "Inspect the /api/chat endpoint configuration",
+      "Verify all 22 tool definitions are present in the ToolLoopAgent config"
+    ]
+  },
+  {
+    "id": 156,
+    "feature": "Conversational Storefront / Chat",
+    "description": "create_checkout and request_return have needsApproval",
+    "passes": false,
+    "steps": [
+      "Inspect the tool definitions for create_checkout",
+      "Verify needsApproval is set to true for create_checkout",
+      "Inspect the tool definitions for request_return",
+      "Verify needsApproval is set to true for request_return"
+    ]
+  },
+  {
+    "id": 157,
+    "feature": "Conversational Storefront / Chat",
+    "description": "Approval dialog renders correctly",
+    "passes": false,
+    "steps": [
+      "Trigger a tool with needsApproval set to true",
+      "Verify the approval dialog displays the tool name and parameters",
+      "Verify Approve and Reject buttons are present in the dialog"
+    ]
+  },
+  {
+    "id": 158,
+    "feature": "Conversational Storefront / Chat",
+    "description": "Branded artifact components render from message.parts",
+    "passes": false,
+    "steps": [
+      "Trigger a tool that produces an artifact",
+      "Verify artifacts render via message.parts.map()",
+      "Verify each artifact has branded styling, a type badge, and a close button"
+    ]
+  },
+  {
+    "id": 159,
+    "feature": "Conversational Storefront / Chat",
+    "description": "Artifact tabs work for multiple artifacts",
+    "passes": false,
+    "steps": [
+      "Trigger multiple tools that produce artifacts",
+      "Verify a tab bar appears in the artifacts panel",
+      "Verify the user can switch between artifacts using the tabs"
+    ]
+  },
+  {
+    "id": 160,
+    "feature": "Conversational Storefront / Chat",
+    "description": "Chat error state displays",
+    "passes": false,
+    "steps": [
+      "Disconnect the backend or simulate a backend failure",
+      "Send a message in the chat",
+      "Verify an error message is shown in the chat area"
+    ]
+  },
+  {
+    "id": 161,
+    "feature": "Conversational Storefront / Chat",
+    "description": "Command palette opens with Cmd/Ctrl+K",
+    "passes": false,
+    "steps": [
+      "Press Cmd+K on macOS or Ctrl+K on other platforms",
+      "Verify the command palette overlay opens",
+      "Verify the palette contains search functionality and action options"
+    ]
+  },
+  {
+    "id": 162,
+    "feature": "RAG Pipeline",
+    "description": "Documents table has vector column (768 dims) with locale",
+    "passes": false,
+    "steps": [
+      "Query the documents table schema in the database",
+      "Verify the embedding column is of type vector(768)",
+      "Verify the locale column exists in the table"
+    ]
+  },
+  {
+    "id": 163,
+    "feature": "RAG Pipeline",
+    "description": "Gemini embedding endpoint reachable",
+    "passes": false,
+    "steps": [
+      "Call the Gemini embedding endpoint with a test text string",
+      "Verify a 768-dimension vector is returned in the response"
+    ]
+  },
+  {
+    "id": 164,
+    "feature": "RAG Pipeline",
+    "description": "Vector similarity search returns relevant results",
+    "passes": false,
+    "steps": [
+      "Embed the text 'cat t-shirt' using the embedding endpoint",
+      "Search the documents table using the resulting vector",
+      "Verify cat-related products are returned first in the results"
+    ]
+  },
+  {
+    "id": 165,
+    "feature": "RAG Pipeline",
+    "description": "Semantic search returns top-K results",
+    "passes": false,
+    "steps": [
+      "Call the search_documents RPC with K=5",
+      "Verify exactly 5 results are returned",
+      "Verify results are ordered by similarity score descending"
+    ]
+  },
+  {
+    "id": 166,
+    "feature": "RAG Pipeline",
+    "description": "RAG context injected into chat responses",
+    "passes": false,
+    "steps": [
+      "Ask a product-specific question in the chat",
+      "Verify the response references actual product data retrieved from the RAG pipeline"
+    ]
+  },
+  {
+    "id": 167,
+    "feature": "RAG Pipeline",
+    "description": "Product descriptions, FAQ, and policies embedded",
+    "passes": false,
+    "steps": [
+      "Query the documents table for source_type entries",
+      "Verify entries exist with source_type 'product'",
+      "Verify entries exist with source_type 'faq'",
+      "Verify entries exist with source_type 'policy'"
+    ]
+  },
+  {
+    "id": 168,
+    "feature": "RAG Pipeline",
+    "description": "Search API endpoint works (POST /api/rag/search)",
+    "passes": false,
+    "steps": [
+      "POST a search query to /api/rag/search",
+      "Verify the response contains a results array",
+      "Verify each result includes content, metadata, and similarity scores"
+    ]
+  },
+  {
+    "id": 169,
+    "feature": "RAG Pipeline",
+    "description": "Document indexing endpoint works (POST /api/rag/index)",
+    "passes": false,
+    "steps": [
+      "POST a new document to /api/rag/index",
+      "Verify the document is stored in the documents table",
+      "Verify the document has an embedding generated"
+    ]
+  },
+  {
+    "id": 170,
+    "feature": "RAG Pipeline",
+    "description": "Embedding batch processing works",
+    "passes": false,
+    "steps": [
+      "POST a batch of 10 documents to the indexing endpoint",
+      "Verify all 10 documents are indexed in the documents table",
+      "Verify all 10 documents have embeddings generated"
+    ]
+  },
+  {
+    "id": 171,
+    "feature": "RAG Pipeline",
+    "description": "RAG fallback when no results found",
+    "passes": false,
+    "steps": [
+      "Search for a nonsensical query that matches no documents",
+      "Verify a graceful fallback message is returned instead of an error"
+    ]
+  },
+  {
+    "id": 172,
+    "feature": "RAG Pipeline",
+    "description": "Product search uses vector similarity",
+    "passes": false,
+    "steps": [
+      "Search for 'comfortable warm clothes' using vector similarity",
+      "Verify hoodies and sweaters are returned in results",
+      "Verify results are based on semantic similarity, not just keyword matching"
+    ]
+  },
+  {
+    "id": 173,
+    "feature": "RAG Pipeline",
+    "description": "Document chunking strategy works",
+    "passes": false,
+    "steps": [
+      "Index a long document through the indexing endpoint",
+      "Verify the document is chunked into reasonable sizes",
+      "Verify each chunk is less than 1000 tokens"
+    ]
+  },
+  {
+    "id": 174,
+    "feature": "RAG Pipeline",
+    "description": "Semantic cache (Redis) works",
+    "passes": false,
+    "steps": [
+      "Search the same query twice",
+      "Verify the second response is faster due to a cache hit",
+      "Verify a Redis key is created for the cached result"
+    ]
+  },
+  {
+    "id": 175,
+    "feature": "RAG Pipeline",
+    "description": "Hybrid search combines vector + keyword",
+    "passes": false,
+    "steps": [
+      "Search with a specific product name",
+      "Verify the search combines vector similarity with text matching",
+      "Verify the specific product appears at the top of results"
+    ]
+  },
+  {
+    "id": 176,
+    "feature": "RAG Pipeline",
+    "description": "search_documents RPC accepts filter_locale",
+    "passes": false,
+    "steps": [
+      "Call search_documents RPC with filter_locale='es'",
+      "Verify only Spanish locale documents are returned in results"
+    ]
+  },
+  {
+    "id": 177,
+    "feature": "RAG Pipeline",
+    "description": "Multi-language queries translated for search",
+    "passes": false,
+    "steps": [
+      "Search in Spanish using 'camisetas de gato'",
+      "Verify English product results are returned matching the translated query"
+    ]
+  },
+  {
+    "id": 178,
+    "feature": "Design System & AI Designs",
+    "description": "Brand colors extended in Tailwind v4 config",
+    "passes": false,
+    "steps": [
+      "Inspect the Tailwind CSS configuration file",
+      "Verify indigo-600 is set as the primary color",
+      "Verify emerald-500 is set as the secondary color",
+      "Verify amber-500 is set as the accent color"
+    ]
+  },
+  {
+    "id": 179,
+    "feature": "Design System & AI Designs",
+    "description": "shadcn/ui components styled consistently",
+    "passes": false,
+    "steps": [
+      "Inspect buttons, inputs, and cards across the application",
+      "Verify they use consistent border-radius values",
+      "Verify they use consistent colors and hover states"
+    ]
+  },
+  {
+    "id": 180,
+    "feature": "Design System & AI Designs",
+    "description": "Loading spinners/skeletons match design system",
+    "passes": false,
+    "steps": [
+      "Trigger loading states across different pages",
+      "Verify loading spinners use branded colors",
+      "Verify skeleton animations match the design system"
+    ]
+  },
+  {
+    "id": 181,
+    "feature": "Design System & AI Designs",
+    "description": "Navigation bar matches spec layout",
+    "passes": false,
+    "steps": [
+      "Inspect the navigation header",
+      "Verify it contains the logo, Shop and Chat links, cart icon with item count, locale switcher, and user menu"
+    ]
+  },
+  {
+    "id": 182,
+    "feature": "Design System & AI Designs",
+    "description": "Footer matches spec layout",
+    "passes": false,
+    "steps": [
+      "Inspect the footer section",
+      "Verify it contains navigation links, policy links, social icons, and a language selector"
+    ]
+  },
+  {
+    "id": 183,
+    "feature": "Design System & AI Designs",
+    "description": "Dark/light mode toggle works",
+    "passes": false,
+    "steps": [
+      "Click the theme toggle button",
+      "Verify the background color changes appropriately",
+      "Verify text colors update for the new theme",
+      "Refresh the page and verify the theme preference persists"
+    ]
+  },
+  {
+    "id": 184,
+    "feature": "Design System & AI Designs",
+    "description": "Typography scale renders correctly",
+    "passes": false,
+    "steps": [
+      "Verify the Inter font is loaded on the page",
+      "Verify headings use font-bold and tracking-tight styles",
+      "Verify body text uses leading-relaxed line height"
+    ]
+  },
+  {
+    "id": 185,
+    "feature": "Design System & AI Designs",
+    "description": "Design generation API works (fal.ai FLUX.1)",
+    "passes": false,
+    "steps": [
+      "POST a design generation request to /api/designs/generate with a prompt",
+      "Verify an image URL is returned in the response"
+    ]
+  },
+  {
+    "id": 186,
+    "feature": "Design System & AI Designs",
+    "description": "Design preview renders in artifacts panel",
+    "passes": false,
+    "steps": [
+      "Generate a design via the chat interface",
+      "Verify a preview image is shown in the artifacts panel",
+      "Verify style information is displayed alongside the preview"
+    ]
+  },
+  {
+    "id": 187,
+    "feature": "Design System & AI Designs",
+    "description": "AI-generated design on product mockup",
+    "passes": false,
+    "steps": [
+      "Apply a generated design to a product",
+      "Verify a mockup image is generated with the design overlay on the product"
+    ]
+  },
+  {
+    "id": 188,
+    "feature": "Design System & AI Designs",
+    "description": "Design gallery page renders",
+    "passes": false,
+    "steps": [
+      "Navigate to the designs page",
+      "Verify a grid of the user's generated designs is displayed",
+      "Verify each design shows a thumbnail image"
+    ]
+  },
+  {
+    "id": 189,
+    "feature": "Design System & AI Designs",
+    "description": "Design moderation + NSFW check",
+    "passes": false,
+    "steps": [
+      "Submit a potentially inappropriate design",
+      "Verify the moderation_status is set to 'pending'",
+      "Verify an admin can approve or reject the design"
+    ]
+  },
+  {
+    "id": 190,
+    "feature": "Design System & AI Designs",
+    "description": "Responsive breakpoints work",
+    "passes": false,
+    "steps": [
+      "Test the layout at 375px width for mobile",
+      "Test the layout at 768px width for tablet",
+      "Test the layout at 1280px width for desktop",
+      "Verify the layout adapts correctly at each breakpoint"
+    ]
+  },
+  {
+    "id": 191,
+    "feature": "Design System & AI Designs",
+    "description": "Color palette accessible (WCAG contrast)",
+    "passes": false,
+    "steps": [
+      "Check the primary text color against the background color",
+      "Verify the contrast ratio meets the WCAG 4.5:1 minimum requirement"
+    ]
+  },
+  {
+    "id": 192,
+    "feature": "Design System & AI Designs",
+    "description": "Icon set renders correctly (lucide)",
+    "passes": false,
+    "steps": [
+      "Verify lucide icons load correctly throughout the application",
+      "Verify icons render for cart, search, heart, settings, and other key elements"
+    ]
+  },
+  {
+    "id": 193,
+    "feature": "Design System & AI Designs",
+    "description": "Toast/notification components + artifacts transition",
+    "passes": false,
+    "steps": [
+      "Trigger a toast notification",
+      "Verify it appears in the bottom-right corner of the screen",
+      "Verify the toast auto-dismisses after a timeout",
+      "Verify the artifacts panel has a slide-in animation"
+    ]
+  },
+  {
+    "id": 194,
+    "feature": "Order Management & Notifications",
+    "description": "Orders list in admin panel",
+    "passes": false,
+    "steps": [
+      "Navigate to /en/admin/orders",
+      "Verify a table is displayed with order ID, customer, status, date, and total columns",
+      "Verify search and filter controls are available"
+    ]
+  },
+  {
+    "id": 195,
+    "feature": "Order Management & Notifications",
+    "description": "Order detail view with status timeline",
+    "passes": false,
+    "steps": [
+      "Click an order in the admin orders table",
+      "Verify full order details are displayed",
+      "Verify the status timeline shows paid, submitted, production, and shipped stages"
+    ]
+  },
+  {
+    "id": 196,
+    "feature": "Order Management & Notifications",
+    "description": "Printify order creation + webhook updates",
+    "passes": false,
+    "steps": [
+      "Verify printify_order_id is populated in the order after payment",
+      "Simulate a shipped webhook from Printify",
+      "Verify the order status is updated to shipped"
+    ]
+  },
+  {
+    "id": 197,
+    "feature": "Order Management & Notifications",
+    "description": "Tracking number displays with carrier link",
+    "passes": false,
+    "steps": [
+      "Process a shipped webhook with tracking information",
+      "Verify the tracking number is displayed on the order detail",
+      "Verify the carrier link is clickable and points to the correct tracking URL"
+    ]
+  },
+  {
+    "id": 198,
+    "feature": "Order Management & Notifications",
+    "description": "Return request + refund flow",
+    "passes": false,
+    "steps": [
+      "Submit a return request on an order",
+      "Have an admin approve the return request",
+      "Verify the refund is initiated",
+      "Verify the order status is updated appropriately"
+    ]
+  },
+  {
+    "id": 199,
+    "feature": "Order Management & Notifications",
+    "description": "Order API returns paginated results",
+    "passes": false,
+    "steps": [
+      "Send a GET request to /api/orders?page=1&limit=10",
+      "Verify pagination metadata is present in the response",
+      "Verify the items array contains the correct number of orders"
+    ]
+  },
+  {
+    "id": 200,
+    "feature": "Order Management & Notifications",
+    "description": "Multiple items in single order display",
+    "passes": false,
+    "steps": [
+      "Create an order with 3 different items",
+      "Navigate to the order detail page",
+      "Verify all 3 items are displayed with correct quantities and prices"
+    ]
+  },
+  {
+    "id": 201,
+    "feature": "Order Management & Notifications",
+    "description": "Notification bell icon shows unread count",
+    "passes": false,
+    "steps": [
+      "Create a notification for the logged-in user",
+      "Verify the bell icon in the navbar shows a '1' badge"
+    ]
+  },
+  {
+    "id": 202,
+    "feature": "Order Management & Notifications",
+    "description": "Notification list page renders",
+    "passes": false,
+    "steps": [
+      "Navigate to /en/profile/notifications",
+      "Verify a list of notifications is displayed",
+      "Verify each notification shows type icon, title, timestamp, and read/unread state"
+    ]
+  },
+  {
+    "id": 203,
+    "feature": "Order Management & Notifications",
+    "description": "Mark notification as read + mark all",
+    "passes": false,
+    "steps": [
+      "Click an unread notification",
+      "Verify it is marked as read",
+      "Click the 'Mark All Read' button",
+      "Verify all notifications are marked as read"
+    ]
+  },
+  {
+    "id": 204,
+    "feature": "Order Management & Notifications",
+    "description": "Order shipped notification created",
+    "passes": false,
+    "steps": [
+      "Trigger a shipped webhook for an order",
+      "Verify a notification with type 'order_shipped' is created for the user"
+    ]
+  },
+  {
+    "id": 205,
+    "feature": "Order Management & Notifications",
+    "description": "Email notification sent (Resend)",
+    "passes": false,
+    "steps": [
+      "Trigger an order event that should send an email",
+      "Verify the Resend API is called with the correct email template",
+      "Verify the email template uses the correct locale"
+    ]
+  },
+  {
+    "id": 206,
+    "feature": "Order Management & Notifications",
+    "description": "Notification preferences respected",
+    "passes": false,
+    "steps": [
+      "Disable email notifications in the user profile settings",
+      "Trigger an event that would normally send an email",
+      "Verify no email is sent",
+      "Verify an in-app notification is still created"
+    ]
+  },
+  {
+    "id": 207,
+    "feature": "Order Management & Notifications",
+    "description": "Notification API endpoints work",
+    "passes": false,
+    "steps": [
+      "GET /api/notifications and verify a list is returned",
+      "PUT /api/notifications/:id/read and verify the notification is marked read",
+      "PUT /api/notifications/read-all and verify all notifications are marked read",
+      "GET /api/notifications/unread-count and verify a number is returned"
+    ]
+  },
+  {
+    "id": 208,
+    "feature": "Order Management & Notifications",
+    "description": "Old notifications paginated",
+    "passes": false,
+    "steps": [
+      "Create 30 notifications for the user",
+      "Verify the first page shows 20 notifications",
+      "Load page 2 and verify the remaining 10 notifications are displayed"
+    ]
+  },
+  {
+    "id": 209,
+    "feature": "Order Management & Notifications",
+    "description": "Notification data includes correct references",
+    "passes": false,
+    "steps": [
+      "Verify an order_shipped notification has order_id in its data jsonb column",
+      "Verify a design_ready notification has design_id in its data jsonb column"
+    ]
+  },
+  {
+    "id": 210,
+    "feature": "Order Management & Notifications",
+    "description": "Printify webhook signature validation",
+    "passes": false,
+    "steps": [
+      "Send a Printify webhook without a valid HMAC signature",
+      "Verify the request is rejected",
+      "Send a webhook with a valid HMAC signature",
+      "Verify the request is accepted and processed"
+    ]
+  },
+  {
+    "id": 211,
+    "feature": "Order Management & Notifications",
+    "description": "Audit log records order events",
+    "passes": false,
+    "steps": [
+      "Create a new order",
+      "Verify an audit_log entry exists with action 'order.create'",
+      "Trigger a shipped event",
+      "Verify the shipped event is logged in the audit_log"
+    ]
+  },
+  {
+    "id": 212,
+    "feature": "Order Management & Notifications",
+    "description": "Order confirmation notification includes details",
+    "passes": false,
+    "steps": [
+      "Trigger an order confirmation notification",
+      "Verify the notification body includes the order number",
+      "Verify the notification body includes the item count and total amount"
+    ]
+  },
+  {
+    "id": 213,
+    "feature": "Order Management & Notifications",
+    "description": "Order total in cents matches Stripe amount",
+    "passes": false,
+    "steps": [
+      "Create an order through checkout",
+      "Verify the order.total_cents value matches the Stripe checkout session amount_total"
+    ]
+  },
+  {
+    "id": 214,
+    "feature": "Admin Dashboard & Agent Monitor",
+    "description": "Admin route protection",
+    "passes": false,
+    "steps": [
+      "Navigate to /en/admin without having an admin role",
+      "Verify the user is redirected to the home page or a 403 forbidden page"
+    ]
+  },
+  {
+    "id": 215,
+    "feature": "Admin Dashboard & Agent Monitor",
+    "description": "Admin dashboard renders with summary cards",
+    "passes": false,
+    "steps": [
+      "Navigate to /en/admin as an admin user",
+      "Verify summary cards are displayed for revenue, orders count, products count, and conversion rate"
+    ]
+  },
+  {
+    "id": 216,
+    "feature": "Admin Dashboard & Agent Monitor",
+    "description": "Recent orders table renders",
+    "passes": false,
+    "steps": [
+      "Navigate to the admin dashboard",
+      "Verify a recent orders table is displayed with key columns such as order ID, status, and total"
+    ]
+  },
+  {
+    "id": 217,
+    "feature": "Admin Dashboard & Agent Monitor",
+    "description": "Admin navigation sidebar works",
+    "passes": false,
+    "steps": [
+      "Verify the admin sidebar contains links to Products, Orders, Customers, Analytics, Finance, Agent, Translations, Audit, SEO, Reviews, and Settings"
+    ]
+  },
+  {
+    "id": 218,
+    "feature": "Admin Dashboard & Agent Monitor",
+    "description": "Product management CRUD",
+    "passes": false,
+    "steps": [
+      "Create a new product in the admin panel and verify it appears in the product list",
+      "Edit the product title and verify the update is reflected",
+      "Archive the product and verify the status changes",
+      "Bulk publish products and verify status updates"
+    ]
+  },
+  {
+    "id": 219,
+    "feature": "Admin Dashboard & Agent Monitor",
+    "description": "Order management table with filters",
+    "passes": false,
+    "steps": [
+      "Navigate to /en/admin/orders",
+      "Filter orders by status 'shipped'",
+      "Verify only shipped orders are shown in the table"
+    ]
+  },
+  {
+    "id": 220,
+    "feature": "Admin Dashboard & Agent Monitor",
+    "description": "Customer list with order history",
+    "passes": false,
+    "steps": [
+      "Navigate to /en/admin/customers",
+      "Verify the list displays customer name, email, order count, and total spent",
+      "Click a customer to view their order history"
+    ]
+  },
+  {
+    "id": 221,
+    "feature": "Admin Dashboard & Agent Monitor",
+    "description": "Analytics + financial dashboard",
+    "passes": false,
+    "steps": [
+      "Navigate to /en/admin/analytics or /en/admin/finance",
+      "Verify revenue charts are displayed",
+      "Verify P&L statement and margins by product are shown"
+    ]
+  },
+  {
+    "id": 222,
+    "feature": "Admin Dashboard & Agent Monitor",
+    "description": "Admin responsive layout + breadcrumbs",
+    "passes": false,
+    "steps": [
+      "Resize the browser to mobile width",
+      "Verify the admin sidebar collapses",
+      "Verify breadcrumbs show the hierarchy Admin > Section > Page"
+    ]
+  },
+  {
+    "id": 223,
+    "feature": "Admin Dashboard & Agent Monitor",
+    "description": "Translation management page",
+    "passes": false,
+    "steps": [
+      "Navigate to /en/admin/translations",
+      "Verify a table is displayed with namespace, key, locale, and value columns",
+      "Verify translations can be edited",
+      "Verify an auto-translate button is available"
+    ]
+  },
+  {
+    "id": 224,
+    "feature": "Admin Dashboard & Agent Monitor",
+    "description": "Review moderation page",
+    "passes": false,
+    "steps": [
+      "Navigate to /en/admin/reviews",
+      "Verify a pending reviews queue is displayed",
+      "Verify reviews can be approved, rejected, or responded to"
+    ]
+  },
+  {
+    "id": 225,
+    "feature": "Admin Dashboard & Agent Monitor",
+    "description": "Audit log viewer",
+    "passes": false,
+    "steps": [
+      "Navigate to /en/admin/audit",
+      "Verify log entries are displayed with actor_type, action, resource, timestamp, and changes",
+      "Verify filtering by actor_type works"
+    ]
+  },
+  {
+    "id": 226,
+    "feature": "Admin Dashboard & Agent Monitor",
+    "description": "SEO management",
+    "passes": false,
+    "steps": [
+      "Navigate to /en/admin/seo",
+      "Verify meta tags can be edited per locale",
+      "Verify the hreflang setup is visible",
+      "Verify sitemap generation can be triggered"
+    ]
+  },
+  {
+    "id": 227,
+    "feature": "Admin Dashboard & Agent Monitor",
+    "description": "Agent monitor page renders",
+    "passes": false,
+    "steps": [
+      "Navigate to /en/admin/agent",
+      "Verify the agent status card is displayed showing running or stopped state",
+      "Verify the session history table is displayed"
+    ]
+  },
+  {
+    "id": 228,
+    "feature": "Admin Dashboard & Agent Monitor",
+    "description": "Agent status display + session history",
+    "passes": false,
+    "steps": [
+      "Verify the current agent status indicator is displayed",
+      "Verify a list of past sessions is shown with type, duration, tool_calls count, and errors"
+    ]
+  },
+  {
+    "id": 229,
+    "feature": "Admin Dashboard & Agent Monitor",
+    "description": "Agent session detail shows events",
+    "passes": false,
+    "steps": [
+      "Click a session in the session history list",
+      "Verify an event timeline is displayed",
+      "Verify each event shows event_type, data, and timestamps"
+    ]
+  },
+  {
+    "id": 230,
+    "feature": "Admin Dashboard & Agent Monitor",
+    "description": "Agent skills list + memory viewer",
+    "passes": false,
+    "steps": [
+      "Navigate to the skills section in the agent monitor",
+      "Verify a list of installed skills is displayed",
+      "Click on memory and verify MEMORY.md content is displayed"
+    ]
+  },
+  {
+    "id": 231,
+    "feature": "Admin Dashboard & Agent Monitor",
+    "description": "Agent schedule editor",
+    "passes": false,
+    "steps": [
+      "View the agent schedule in the admin panel",
+      "Verify cron times are displayed for each sub-agent",
+      "Verify the schedule can be modified"
+    ]
+  },
+  {
+    "id": 232,
+    "feature": "Admin Dashboard & Agent Monitor",
+    "description": "Sub-agent status cards + manual trigger",
+    "passes": false,
+    "steps": [
+      "Verify status cards are displayed for researcher, cataloger, designer, and other sub-agents",
+      "Verify each card shows the last run time",
+      "Click Run Now on a sub-agent and verify execution starts"
+    ]
+  },
+  {
+    "id": 233,
+    "feature": "Admin Dashboard & Agent Monitor",
+    "description": "Agent error log displays",
+    "passes": false,
+    "steps": [
+      "Navigate to the error log section of the agent monitor",
+      "Verify recent errors are displayed with stack traces and timestamps"
+    ]
+  },
+  {
+    "id": 234,
+    "feature": "Admin Dashboard & Agent Monitor",
+    "description": "Dashboard loads data asynchronously",
+    "passes": false,
+    "steps": [
+      "Navigate to the admin dashboard",
+      "Verify loading spinners are shown while data is being fetched",
+      "Verify data populates the dashboard after API responses complete"
+    ]
+  },
+  {
+    "id": 235,
+    "feature": "Admin Dashboard & Agent Monitor",
+    "description": "Admin settings page",
+    "passes": false,
+    "steps": [
+      "Navigate to /en/admin/settings",
+      "Verify a store configuration form is displayed",
+      "Verify locale settings are available",
+      "Verify API key status indicators are shown"
+    ]
+  },
+  {
+    "id": 236,
+    "feature": "Admin Dashboard & Agent Monitor",
+    "description": "A/B test management in admin",
+    "passes": false,
+    "steps": [
+      "Navigate to /en/admin/ab-tests",
+      "Verify the experiment list is displayed",
+      "Verify new experiments can be created",
+      "Verify experiments can be started or stopped and results viewed"
+    ]
+  },
+  {
+    "id": 237,
+    "feature": "Admin Dashboard & Agent Monitor",
+    "description": "Analytics dashboard with RFM + demand",
+    "passes": false,
+    "steps": [
+      "Navigate to the admin analytics page",
+      "Verify the RFM segment chart is displayed",
+      "Verify the demand forecast graph is displayed"
+    ]
+  },
+  {
+    "id": 238,
+    "feature": "Admin Dashboard & Agent Monitor",
+    "description": "Agent event replay works",
+    "passes": false,
+    "steps": [
+      "Select a past agent session in the session history",
+      "Click the Replay button",
+      "Verify events are replayed in chronological order"
+    ]
+  },
+  {
+    "id": 239,
+    "feature": "Admin Dashboard & Agent Monitor",
+    "description": "Margin analysis per category",
+    "passes": false,
+    "steps": [
+      "Navigate to the finance dashboard",
+      "Verify margin breakdown by product category is displayed"
+    ]
+  },
+  {
+    "id": 240,
+    "feature": "Admin Dashboard & Agent Monitor",
+    "description": "SEO meta tag updates per locale",
+    "passes": false,
+    "steps": [
+      "Edit meta tags for the Spanish locale in the admin SEO page",
+      "Verify the changes are reflected on the Spanish-language pages"
+    ]
+  },
+  {
+    "id": 241,
+    "feature": "Admin",
+    "description": "Sitemap generation works per locale",
+    "passes": false,
+    "steps": [
+      "Trigger sitemap generation in admin",
+      "Verify /sitemap-en.xml exists with correct /en/ URLs",
+      "Verify /sitemap-es.xml exists with correct /es/ URLs",
+      "Verify /sitemap-de.xml exists with correct /de/ URLs"
+    ]
+  },
+  {
+    "id": 242,
+    "feature": "Admin",
+    "description": "Agent schedule modification persists",
+    "passes": false,
+    "steps": [
+      "Modify researcher schedule to 07:00 UTC",
+      "Save the schedule change",
+      "Reload the page",
+      "Verify schedule shows 07:00 UTC"
+    ]
+  },
+  {
+    "id": 243,
+    "feature": "Admin",
+    "description": "Admin finance reports render",
+    "passes": false,
+    "steps": [
+      "Navigate to /en/admin/finance",
+      "Verify P&L report renders with data",
+      "Verify cash flow statement renders with data",
+      "Verify revenue chart renders with data"
+    ]
+  },
+  {
+    "id": 244,
+    "feature": "Internationalization End-to-End",
+    "description": "Locale switcher in header works",
+    "passes": false,
+    "steps": [
+      "Find locale switcher dropdown in the header",
+      "Click the locale switcher",
+      "Verify EN, ES, and DE options are shown"
+    ]
+  },
+  {
+    "id": 245,
+    "feature": "Internationalization End-to-End",
+    "description": "Switching locale updates URL and UI strings",
+    "passes": false,
+    "steps": [
+      "Navigate to /en/ page",
+      "Switch locale to ES using the locale switcher",
+      "Verify URL changes to /es/",
+      "Verify all visible text is displayed in Spanish"
+    ]
+  },
+  {
+    "id": 246,
+    "feature": "Internationalization End-to-End",
+    "description": "All UI strings translated in Spanish and German",
+    "passes": false,
+    "steps": [
+      "Navigate to /es/ pages and verify no English fallback text is visible",
+      "Navigate to /de/ pages and verify no English fallback text is visible"
+    ]
+  },
+  {
+    "id": 247,
+    "feature": "Internationalization End-to-End",
+    "description": "Date, number, and currency formatting follows locale",
+    "passes": false,
+    "steps": [
+      "Verify /en/ shows MM/DD/YYYY date format and $X.XX currency format",
+      "Verify /de/ shows DD.MM.YYYY date format and X.XX \u20ac currency format",
+      "Verify /es/ shows DD/MM/YYYY date format and X.XX \u20ac currency format"
+    ]
+  },
+  {
+    "id": 248,
+    "feature": "Internationalization End-to-End",
+    "description": "Product titles and descriptions in selected language",
+    "passes": false,
+    "steps": [
+      "View a product in /es/ and verify Spanish title and description",
+      "Switch to /de/ and verify German title and description"
+    ]
+  },
+  {
+    "id": 249,
+    "feature": "Internationalization End-to-End",
+    "description": "Chat AI responds in user's selected locale",
+    "passes": false,
+    "steps": [
+      "Set locale to ES",
+      "Send a chat message",
+      "Verify the AI response is in Spanish"
+    ]
+  },
+  {
+    "id": 250,
+    "feature": "Internationalization End-to-End",
+    "description": "Error messages display in selected locale",
+    "passes": false,
+    "steps": [
+      "Navigate to a form page in /es/",
+      "Trigger a form validation error",
+      "Verify the error message is displayed in Spanish"
+    ]
+  },
+  {
+    "id": 251,
+    "feature": "Internationalization End-to-End",
+    "description": "Email templates sent in user's locale",
+    "passes": false,
+    "steps": [
+      "Trigger an order confirmation for a Spanish-locale user",
+      "Verify the email content is in Spanish"
+    ]
+  },
+  {
+    "id": 252,
+    "feature": "Internationalization End-to-End",
+    "description": "SEO meta descriptions + hreflang in correct locale",
+    "passes": false,
+    "steps": [
+      "View /es/ page source",
+      "Verify meta description is in Spanish",
+      "Verify hreflang tags exist for all 3 locales (en, es, de)"
+    ]
+  },
+  {
+    "id": 253,
+    "feature": "Internationalization End-to-End",
+    "description": "Browser back/forward preserves locale",
+    "passes": false,
+    "steps": [
+      "Navigate from /en/ to /en/shop",
+      "Switch locale to /es/shop",
+      "Press browser back button",
+      "Verify the page stays in the correct locale"
+    ]
+  },
+  {
+    "id": 254,
+    "feature": "Internationalization End-to-End",
+    "description": "Locale persists in user profile",
+    "passes": false,
+    "steps": [
+      "Set locale to 'de' in user profile settings",
+      "Log out",
+      "Log back in",
+      "Verify UI loads in German"
+    ]
+  },
+  {
+    "id": 255,
+    "feature": "Internationalization End-to-End",
+    "description": "Guest users get locale from Accept-Language",
+    "passes": false,
+    "steps": [
+      "Set Accept-Language header to 'es'",
+      "Visit the root URL /",
+      "Verify redirect to /es/"
+    ]
+  },
+  {
+    "id": 256,
+    "feature": "Internationalization End-to-End",
+    "description": "Admin pages work in all locales",
+    "passes": false,
+    "steps": [
+      "Navigate to /es/admin and verify admin dashboard renders in Spanish",
+      "Navigate to /de/admin and verify admin dashboard renders in German"
+    ]
+  },
+  {
+    "id": 257,
+    "feature": "Internationalization End-to-End",
+    "description": "Translation cache (Redis) works",
+    "passes": false,
+    "steps": [
+      "Load a page in /es/",
+      "Verify a Redis cache key is created for translations",
+      "Load the page again and verify the second load is faster due to cache"
+    ]
+  },
+  {
+    "id": 258,
+    "feature": "Internationalization End-to-End",
+    "description": "Missing translation falls back to English",
+    "passes": false,
+    "steps": [
+      "Remove one key from es.json translations",
+      "Load the page in /es/",
+      "Verify English text is shown for the missing key"
+    ]
+  },
+  {
+    "id": 259,
+    "feature": "Internationalization End-to-End",
+    "description": "Translations API returns correct locale data",
+    "passes": false,
+    "steps": [
+      "GET /api/admin/translations?locale=es",
+      "Verify response contains Spanish translations"
+    ]
+  },
+  {
+    "id": 260,
+    "feature": "Internationalization End-to-End",
+    "description": "Chat suggested prompts change with locale",
+    "passes": false,
+    "steps": [
+      "Open a new chat in /es/ and verify suggested prompts are in Spanish",
+      "Switch to /de/ and verify suggested prompts are in German"
+    ]
+  },
+  {
+    "id": 261,
+    "feature": "Internationalization End-to-End",
+    "description": "Locale-specific sitemap exists",
+    "passes": false,
+    "steps": [
+      "Verify /sitemap-en.xml contains /en/ URLs",
+      "Verify /sitemap-es.xml contains /es/ URLs",
+      "Verify /sitemap-de.xml contains /de/ URLs"
+    ]
+  },
+  {
+    "id": 262,
+    "feature": "PodClaw Agent",
+    "description": "Agent API: start, stop, status work",
+    "passes": false,
+    "steps": [
+      "POST /api/agent/start and verify 200 response",
+      "GET /api/agent/status and verify status is 'running'",
+      "POST /api/agent/stop and verify status is 'stopped'"
+    ]
+  },
+  {
+    "id": 263,
+    "feature": "PodClaw Agent",
+    "description": "Agent API: sessions list + events",
+    "passes": false,
+    "steps": [
+      "GET /api/agent/sessions and verify paginated list returned",
+      "GET /api/agent/sessions/:id/events and verify event array returned"
+    ]
+  },
+  {
+    "id": 264,
+    "feature": "PodClaw Agent",
+    "description": "Agent API: subagent run, skills, memory",
+    "passes": false,
+    "steps": [
+      "POST /api/agent/subagent/researcher/run and verify 200 response",
+      "GET /api/agent/skills and verify skills list returned",
+      "GET /api/agent/memory and verify memory content returned"
+    ]
+  },
+  {
+    "id": 265,
+    "feature": "PodClaw Agent",
+    "description": "Agent API: schedule view + modify",
+    "passes": false,
+    "steps": [
+      "GET /api/agent/schedule and verify cron entries returned",
+      "PUT /api/agent/schedule/researcher with updated schedule and verify updated"
+    ]
+  },
+  {
+    "id": 266,
+    "feature": "PodClaw Agent",
+    "description": "Agent sessions logged to agent_sessions table",
+    "passes": false,
+    "steps": [
+      "Start the agent",
+      "Verify a new row in agent_sessions table with status 'running'",
+      "Verify session_type field is populated"
+    ]
+  },
+  {
+    "id": 267,
+    "feature": "PodClaw Agent",
+    "description": "Agent events logged to agent_events table",
+    "passes": false,
+    "steps": [
+      "Run an agent action",
+      "Verify agent_events row created with correct event_type",
+      "Verify session_id FK references agent_sessions",
+      "Verify data column contains JSONB payload"
+    ]
+  },
+  {
+    "id": 268,
+    "feature": "PodClaw Agent",
+    "description": "Agent event types + session metrics tracked",
+    "passes": false,
+    "steps": [
+      "Verify event_type values include 'tool_call', 'decision', and 'error'",
+      "Verify session record has tool_calls count metric"
+    ]
+  },
+  {
+    "id": 269,
+    "feature": "PodClaw Agent",
+    "description": "Agent memory files created",
+    "passes": false,
+    "steps": [
+      "Verify pod_workspace/memory/MEMORY.md exists",
+      "Verify pod_workspace/memory/context/ directory exists with .md files"
+    ]
+  },
+  {
+    "id": 270,
+    "feature": "PodClaw Agent",
+    "description": "Agent memory consolidation works",
+    "passes": false,
+    "steps": [
+      "Run memory consolidation process",
+      "Verify daily log entries are summarized into weekly summary",
+      "Verify weekly summaries are consolidated into MEMORY.md"
+    ]
+  },
+  {
+    "id": 271,
+    "feature": "PodClaw Agent",
+    "description": "Agent context files updated",
+    "passes": false,
+    "steps": [
+      "Verify memory/context/best_sellers.md exists with content",
+      "Verify memory/context/pricing_history.md exists with content",
+      "Verify memory/context/customer_insights.md exists with content"
+    ]
+  },
+  {
+    "id": 272,
+    "feature": "PodClaw Agent",
+    "description": "Audit log records agent actions",
+    "passes": false,
+    "steps": [
+      "Run an agent action",
+      "Verify audit_log entry created with actor_type 'ai_agent'",
+      "Verify correct action and resource fields in audit_log"
+    ]
+  },
+  {
+    "id": 273,
+    "feature": "PodClaw Agent",
+    "description": "Agent start/stop reflected in admin",
+    "passes": false,
+    "steps": [
+      "Start agent via API",
+      "Navigate to /en/admin/agent and verify status shows 'Running'",
+      "Stop agent via API and verify admin shows 'Stopped'"
+    ]
+  },
+  {
+    "id": 274,
+    "feature": "PodClaw Agent",
+    "description": "Agent errors logged and visible",
+    "passes": false,
+    "steps": [
+      "Trigger an agent error",
+      "Verify error_log field populated in agent_sessions",
+      "Verify error is visible in admin error log section"
+    ]
+  },
+  {
+    "id": 275,
+    "feature": "PodClaw Agent",
+    "description": "Agent schedule cron jobs execute",
+    "passes": false,
+    "steps": [
+      "Set schedule for a test task at current time + 1 minute",
+      "Wait for the scheduled time",
+      "Verify the task runs when due"
+    ]
+  },
+  {
+    "id": 276,
+    "feature": "PodClaw Agent",
+    "description": "Agent MCP connectors initialized",
+    "passes": false,
+    "steps": [
+      "Verify agent config has supabase connector defined",
+      "Verify agent config has redis, stripe, printify connectors defined",
+      "Verify agent config has fal_ai and gemini connectors defined"
+    ]
+  },
+  {
+    "id": 277,
+    "feature": "PodClaw Agent",
+    "description": "Agent sub-agent delegation works",
+    "passes": false,
+    "steps": [
+      "Run the researcher sub-agent",
+      "Verify it executes tools and creates events",
+      "Verify it updates context files"
+    ]
+  },
+  {
+    "id": 278,
+    "feature": "PodClaw Agent",
+    "description": "Agent skills loaded from pod_workspace/skills/",
+    "passes": false,
+    "steps": [
+      "Verify skills directory exists at pod_workspace/skills/",
+      "Verify subdirectories researcher/, cataloger/, designer/ exist",
+      "Verify each skill directory has a SKILL.md file"
+    ]
+  },
+  {
+    "id": 279,
+    "feature": "PodClaw Agent",
+    "description": "Agent SOUL.md identity loaded at session start",
+    "passes": false,
+    "steps": [
+      "Start a new agent session",
+      "Verify SOUL.md content is loaded",
+      "Verify agent references identity in its decisions"
+    ]
+  },
+  {
+    "id": 280,
+    "feature": "Performance & Quality",
+    "description": "Lighthouse score > 80",
+    "passes": false,
+    "steps": [
+      "Run Lighthouse on /en/ page",
+      "Verify performance score is >= 80"
+    ]
+  },
+  {
+    "id": 281,
+    "feature": "Performance & Quality",
+    "description": "No console errors on any page",
+    "passes": false,
+    "steps": [
+      "Navigate through /en/, /en/shop, /en/chat, /en/cart",
+      "Verify browser console has no errors on any page"
+    ]
+  },
+  {
+    "id": 282,
+    "feature": "Performance & Quality",
+    "description": "All images have width/height, CLS < 0.1",
+    "passes": false,
+    "steps": [
+      "Inspect product images and verify width/height attributes are set",
+      "Run Lighthouse and verify Cumulative Layout Shift (CLS) < 0.1"
+    ]
+  },
+  {
+    "id": 283,
+    "feature": "Performance & Quality",
+    "description": "API responses under 500ms",
+    "passes": false,
+    "steps": [
+      "Measure response time for GET /api/products",
+      "Measure response time for GET /api/cart",
+      "Measure response time for POST /api/chat",
+      "Verify all responses are under 500ms"
+    ]
+  },
+  {
+    "id": 284,
+    "feature": "Performance & Quality",
+    "description": "Frontend bundle size reasonable",
+    "passes": false,
+    "steps": [
+      "Run next build",
+      "Verify bundle sizes are reported",
+      "Verify no single chunk exceeds 500KB"
+    ]
+  },
+  {
+    "id": 285,
+    "feature": "Performance & Quality",
+    "description": "Backend health check endpoint works",
+    "passes": false,
+    "steps": [
+      "GET /api/health",
+      "Verify 200 status code",
+      "Verify response body contains {status: 'ok', db: 'connected', redis: 'connected'}"
+    ]
+  },
+  {
+    "id": 286,
+    "feature": "Performance & Quality",
+    "description": "Error boundary catches React errors",
+    "passes": false,
+    "steps": [
+      "Trigger a component error",
+      "Verify error boundary renders fallback UI instead of a white screen"
+    ]
+  },
+  {
+    "id": 287,
+    "feature": "Performance & Quality",
+    "description": "404 and 500 pages render correctly",
+    "passes": false,
+    "steps": [
+      "Navigate to /en/nonexistent and verify 404 page renders",
+      "Trigger a server error and verify 500 page renders",
+      "Verify both error pages are locale-aware"
+    ]
+  },
+  {
+    "id": 288,
+    "feature": "Performance & Quality",
+    "description": "Loading states exist for all async operations",
+    "passes": false,
+    "steps": [
+      "Verify product list has skeleton loading state",
+      "Verify cart has spinner loading state",
+      "Verify checkout has loading state"
+    ]
+  },
+  {
+    "id": 289,
+    "feature": "Performance & Quality",
+    "description": "Forms show validation errors inline",
+    "passes": false,
+    "steps": [
+      "Submit empty login form and verify inline error under each required field",
+      "Submit login form with invalid email and verify format error message"
+    ]
+  },
+  {
+    "id": 290,
+    "feature": "Performance & Quality",
+    "description": "Keyboard navigation works on forms and modals",
+    "passes": false,
+    "steps": [
+      "Tab through login form fields and verify focus is visible",
+      "Open a modal and Tab through its elements",
+      "Press Escape and verify modal closes"
+    ]
+  },
+  {
+    "id": 291,
+    "feature": "Performance & Quality",
+    "description": "API rate limiting + CORS configured",
+    "passes": false,
+    "steps": [
+      "Send 100 rapid requests to an API endpoint",
+      "Verify rate limit response (429) is returned",
+      "Verify CORS headers allow the frontend origin"
+    ]
+  },
+  {
+    "id": 292,
+    "feature": "Performance & Quality",
+    "description": "Security headers on backend (Helmet)",
+    "passes": false,
+    "steps": [
+      "Inspect response headers from the backend",
+      "Verify X-Content-Type-Options header is present",
+      "Verify X-Frame-Options header is present",
+      "Verify Strict-Transport-Security header is present"
+    ]
+  },
+  {
+    "id": 293,
+    "feature": "Performance & Quality",
+    "description": "No hardcoded secrets in codebase",
+    "passes": false,
+    "steps": [
+      "Grep codebase for API keys, passwords, and secret strings",
+      "Verify none are found hardcoded",
+      "Verify all secrets come from process.env"
+    ]
+  },
+  {
+    "id": 294,
+    "feature": "Performance & Quality",
+    "description": "README with setup instructions exists",
+    "passes": false,
+    "steps": [
+      "Verify README.md exists in the project root",
+      "Verify it contains install instructions",
+      "Verify it contains setup and run instructions"
+    ]
+  },
+  {
+    "id": 295,
+    "feature": "Performance & Quality",
+    "description": "React Compiler auto-memoization working",
+    "passes": false,
+    "steps": [
+      "Verify no manual React.memo, useMemo, useCallback in components",
+      "Verify React Compiler is configured and handles optimization automatically"
+    ]
+  },
+  {
+    "id": 296,
+    "feature": "Performance & Quality",
+    "description": "View Transitions smooth on navigation",
+    "passes": false,
+    "steps": [
+      "Navigate between pages",
+      "Verify smooth transition animations occur",
+      "Verify no jarring page jumps"
+    ]
+  },
+  {
+    "id": 297,
+    "feature": "Performance & Quality",
+    "description": "Accessibility: ARIA labels, keyboard nav, contrast",
+    "passes": false,
+    "steps": [
+      "Verify form inputs have labels and buttons have aria-labels",
+      "Verify Tab navigation works throughout the site",
+      "Verify WCAG AA contrast ratios are met"
+    ]
+  },
+  {
+    "id": 298,
+    "feature": "Social Login \u2014 Google + Apple OAuth",
+    "description": "Social login buttons render on login/register",
+    "passes": false,
+    "steps": [
+      "Navigate to /en/auth/login",
+      "Verify 'Continue with Google' button is visible",
+      "Verify 'Sign in with Apple' button is visible"
+    ]
+  },
+  {
+    "id": 299,
+    "feature": "Social Login \u2014 Google + Apple OAuth",
+    "description": "Google OAuth redirects to consent screen",
+    "passes": false,
+    "steps": [
+      "Click the Google login button",
+      "Verify redirect to accounts.google.com/o/oauth2",
+      "Verify callback creates a session"
+    ]
+  },
+  {
+    "id": 300,
+    "feature": "Social Login \u2014 Google + Apple OAuth",
+    "description": "Apple Sign-In redirects to authorization",
+    "passes": false,
+    "steps": [
+      "Click the Apple login button",
+      "Verify redirect to appleid.apple.com/auth",
+      "Verify callback creates a session"
+    ]
+  },
+  {
+    "id": 301,
+    "feature": "Social Login \u2014 Google + Apple OAuth",
+    "description": "OAuth callback route exists",
+    "passes": false,
+    "steps": [
+      "Verify /en/auth/callback route file exists",
+      "Verify it handles code exchange",
+      "Verify it redirects to home after successful auth"
+    ]
+  },
+  {
+    "id": 302,
+    "feature": "Social Login \u2014 Google + Apple OAuth",
+    "description": "First-time social login creates new user",
+    "passes": false,
+    "steps": [
+      "Complete Google OAuth with a new email address",
+      "Verify a new user is created in the database",
+      "Verify user name and email match the Google profile"
+    ]
+  },
+  {
+    "id": 303,
+    "feature": "Social Login \u2014 Google + Apple OAuth",
+    "description": "Existing email user can link social account",
+    "passes": false,
+    "steps": [
+      "Register a user with an email address",
+      "Login with Google using the same email",
+      "Verify the accounts are linked"
+    ]
+  },
+  {
+    "id": 304,
+    "feature": "Social Login \u2014 Google + Apple OAuth",
+    "description": "Social login button shows loading state",
+    "passes": false,
+    "steps": [
+      "Click the Google login button",
+      "Verify the button shows a spinner or loading indicator during redirect"
+    ]
+  },
+  {
+    "id": 305,
+    "feature": "Social Login \u2014 Google + Apple OAuth",
+    "description": "Social login errors show error message",
+    "passes": false,
+    "steps": [
+      "Simulate an OAuth error by denying consent",
+      "Verify an error message is displayed on the login page"
+    ]
+  },
+  {
+    "id": 306,
+    "feature": "Social Login \u2014 Google + Apple OAuth",
+    "description": "Social login session persists",
+    "passes": false,
+    "steps": [
+      "Login via Google OAuth",
+      "Refresh the page",
+      "Verify user is still logged in with session cookie"
+    ]
+  },
+  {
+    "id": 307,
+    "feature": "Social Login \u2014 Google + Apple OAuth",
+    "description": "Social login works from mobile",
+    "passes": false,
+    "steps": [
+      "Resize browser to mobile viewport",
+      "Verify social login buttons are visible and clickable",
+      "Verify buttons use full width layout"
+    ]
+  },
+  {
+    "id": 308,
+    "feature": "Social Login \u2014 Google + Apple OAuth",
+    "description": "OAuth env vars validated",
+    "passes": false,
+    "steps": [
+      "Verify GOOGLE_CLIENT_ID is checked on startup",
+      "Verify GOOGLE_CLIENT_SECRET is checked on startup",
+      "Verify APPLE_SERVICES_ID is checked on startup",
+      "Verify warning is logged if any are missing"
+    ]
+  },
+  {
+    "id": 309,
+    "feature": "Social Login \u2014 Google + Apple OAuth",
+    "description": "Social login integrates with Supabase Auth",
+    "passes": false,
+    "steps": [
+      "Verify Supabase Auth provider config includes google and apple",
+      "Verify signInWithOAuth calls are used for social login"
+    ]
+  },
+  {
+    "id": 310,
+    "feature": "Voice Input + Image Upload",
+    "description": "Microphone button visible when supported",
+    "passes": false,
+    "steps": [
+      "Open /en/chat in Chrome",
+      "Verify mic button is visible in chat input area",
+      "Verify mic button is hidden in unsupported browsers"
+    ]
+  },
+  {
+    "id": 311,
+    "feature": "Voice Input + Image Upload",
+    "description": "Clicking mic starts speech recognition",
+    "passes": false,
+    "steps": [
+      "Click the mic button",
+      "Verify a listening indicator appears",
+      "Verify SpeechRecognition is started with locale en-US"
+    ]
+  },
+  {
+    "id": 312,
+    "feature": "Voice Input + Image Upload",
+    "description": "Transcript auto-inserts into chat input",
+    "passes": false,
+    "steps": [
+      "Speak a phrase while mic is active",
+      "Verify transcript text appears in the chat input field",
+      "Click mic again and verify it stops listening"
+    ]
+  },
+  {
+    "id": 313,
+    "feature": "Voice Input + Image Upload",
+    "description": "Voice input works on desktop Chrome",
+    "passes": false,
+    "steps": [
+      "Open chat in Chrome on desktop",
+      "Click mic button and speak",
+      "Verify text is captured and inserted correctly"
+    ]
+  },
+  {
+    "id": 314,
+    "feature": "Voice Input + Image Upload",
+    "description": "Image upload button visible",
+    "passes": false,
+    "steps": [
+      "Navigate to /en/chat",
+      "Verify a camera/paperclip icon button is visible in the chat input area"
+    ]
+  },
+  {
+    "id": 315,
+    "feature": "Voice Input + Image Upload",
+    "description": "File picker opens and preview shown",
+    "passes": false,
+    "steps": [
+      "Click the upload button",
+      "Select an image file from the file picker",
+      "Verify a preview thumbnail is shown before sending"
+    ]
+  },
+  {
+    "id": 316,
+    "feature": "Voice Input + Image Upload",
+    "description": "Drag-and-drop image onto chat works",
+    "passes": false,
+    "steps": [
+      "Drag an image file onto the chat area",
+      "Verify a drop zone is highlighted",
+      "Verify an image preview is shown after dropping"
+    ]
+  },
+  {
+    "id": 317,
+    "feature": "Voice Input + Image Upload",
+    "description": "Image sent as base64 content part",
+    "passes": false,
+    "steps": [
+      "Send an image in chat",
+      "Inspect the message payload",
+      "Verify the image is base64 encoded in the content parts"
+    ]
+  },
+  {
+    "id": 318,
+    "feature": "Voice Input + Image Upload",
+    "description": "analyze_image tool processes image",
+    "passes": false,
+    "steps": [
+      "Upload a product photo in chat",
+      "Verify the analyze_image tool is called",
+      "Verify the response describes the image content"
+    ]
+  },
+  {
+    "id": 319,
+    "feature": "Voice Input + Image Upload",
+    "description": "Image upload max size validation (5MB)",
+    "passes": false,
+    "steps": [
+      "Try uploading an image larger than 5MB (e.g., 10MB)",
+      "Verify error message 'File too large, max 5MB' is displayed"
+    ]
+  },
+  {
+    "id": 320,
+    "feature": "Voice Input + Image Upload",
+    "description": "Invalid file format shows error",
+    "passes": false,
+    "steps": [
+      "Try uploading a .txt file",
+      "Verify error message 'Only JPEG, PNG, WebP images allowed' is displayed"
+    ]
+  },
+  {
+    "id": 321,
+    "feature": "Voice Input + Image Upload",
+    "description": "Voice and image buttons responsive on mobile",
+    "passes": false,
+    "steps": [
+      "Open chat on a mobile width viewport",
+      "Verify mic and upload buttons are visible",
+      "Verify buttons are properly sized for touch interaction"
+    ]
+  },
+  {
+    "id": 322,
+    "feature": "A/B Testing Framework",
+    "description": "Edge Middleware assigns variant cookie",
+    "passes": false,
+    "steps": [
+      "Visit the site as a new user",
+      "Verify 'ab-variant' cookie is set",
+      "Verify the cookie has a 30-day expiry"
+    ]
+  },
+  {
+    "id": 323,
+    "feature": "A/B Testing Framework",
+    "description": "x-ab-variant header set on response",
+    "passes": false,
+    "steps": [
+      "Make a request to the site",
+      "Inspect response headers",
+      "Verify x-ab-variant header is present with a variant value"
+    ]
+  },
+  {
+    "id": 324,
+    "feature": "A/B Testing Framework",
+    "description": "POST /api/ab-test/events records events",
+    "passes": false,
+    "steps": [
+      "POST an event with experiment_id, variant, and event_type",
+      "Verify the event is stored in the ab_events table"
+    ]
+  },
+  {
+    "id": 325,
+    "feature": "A/B Testing Framework",
+    "description": "GET /api/ab-test/experiments lists experiments",
+    "passes": false,
+    "steps": [
+      "Create an experiment",
+      "GET /api/ab-test/experiments",
+      "Verify the created experiment appears in the list"
+    ]
+  },
+  {
+    "id": 326,
+    "feature": "A/B Testing Framework",
+    "description": "POST /api/ab-test/experiments creates experiment",
+    "passes": false,
+    "steps": [
+      "POST /api/ab-test/experiments with name and variants",
+      "Verify experiment is created with status 'draft'"
+    ]
+  },
+  {
+    "id": 327,
+    "feature": "A/B Testing Framework",
+    "description": "GET /api/ab-test/experiments/:id returns stats",
+    "passes": false,
+    "steps": [
+      "GET a specific experiment by ID",
+      "Verify response includes variant stats",
+      "Verify response includes impressions and conversions"
+    ]
+  },
+  {
+    "id": 328,
+    "feature": "A/B Testing Framework",
+    "description": "PUT /api/ab-test/experiments/:id starts/stops",
+    "passes": false,
+    "steps": [
+      "PUT with status 'running' and verify started_at is set",
+      "PUT with status 'completed' and verify ended_at is set"
+    ]
+  },
+  {
+    "id": 329,
+    "feature": "A/B Testing Framework",
+    "description": "Admin A/B test management page renders",
+    "passes": false,
+    "steps": [
+      "Navigate to /en/admin/ab-tests",
+      "Verify experiment list is displayed",
+      "Verify create, start, and stop buttons are present",
+      "Verify results view is available"
+    ]
+  },
+  {
+    "id": 330,
+    "feature": "A/B Testing Framework",
+    "description": "A/B events stored in ab_events table",
+    "passes": false,
+    "steps": [
+      "Record 10 A/B test events",
+      "Query the ab_events table",
+      "Verify all 10 events are present with correct experiment_id"
+    ]
+  },
+  {
+    "id": 331,
+    "feature": "A/B Testing Framework",
+    "description": "Experiment status transitions",
+    "passes": false,
+    "steps": [
+      "Create experiment and verify status is 'draft'",
+      "Start experiment and verify status changes to 'running' with timestamp",
+      "Complete experiment and verify status changes to 'completed' with timestamp"
+    ]
+  },
+  {
+    "id": 332,
+    "feature": "A/B Testing Framework",
+    "description": "Variant assignment is sticky",
+    "passes": false,
+    "steps": [
+      "Get assigned a variant",
+      "Clear page state but keep the cookie",
+      "Revisit the site and verify the same variant is assigned"
+    ]
+  },
+  {
+    "id": 333,
+    "feature": "A/B Testing Framework",
+    "description": "Admin can view experiment results",
+    "passes": false,
+    "steps": [
+      "Navigate to experiment detail page in admin",
+      "Verify conversion rates are displayed",
+      "Verify confidence level is shown",
+      "Verify winner indication is present"
+    ]
+  },
+  {
+    "id": 334,
+    "feature": "PWA Support + Offline Mode",
+    "description": "Web App Manifest exists",
+    "passes": false,
+    "steps": [
+      "Verify /manifest.json or manifest.ts returns a valid manifest",
+      "Verify it contains name, short_name, icons, theme_color",
+      "Verify display is set to 'standalone'"
+    ]
+  },
+  {
+    "id": 335,
+    "feature": "PWA Support + Offline Mode",
+    "description": "Service worker registered via @serwist/next",
+    "passes": false,
+    "steps": [
+      "Open DevTools > Application > Service Workers",
+      "Verify a service worker is registered and active"
+    ]
+  },
+  {
+    "id": 336,
+    "feature": "PWA Support + Offline Mode",
+    "description": "Product catalog cached in IndexedDB",
+    "passes": false,
+    "steps": [
+      "Load the product catalog",
+      "Open DevTools > Application > IndexedDB",
+      "Verify product data is cached"
+    ]
+  },
+  {
+    "id": 337,
+    "feature": "PWA Support + Offline Mode",
+    "description": "Product images cached by service worker",
+    "passes": false,
+    "steps": [
+      "Load products page with images",
+      "Go offline",
+      "Verify product images still display from cache"
+    ]
+  },
+  {
+    "id": 338,
+    "feature": "PWA Support + Offline Mode",
+    "description": "Offline page renders",
+    "passes": false,
+    "steps": [
+      "Go offline",
+      "Navigate to a new page",
+      "Verify /en/_offline page renders with cached products"
+    ]
+  },
+  {
+    "id": 339,
+    "feature": "PWA Support + Offline Mode",
+    "description": "Chat shows offline banner",
+    "passes": false,
+    "steps": [
+      "Navigate to chat page",
+      "Go offline",
+      "Verify 'You are offline' banner is displayed"
+    ]
+  },
+  {
+    "id": 340,
+    "feature": "PWA Support + Offline Mode",
+    "description": "Cart persists offline and syncs",
+    "passes": false,
+    "steps": [
+      "Add items to the cart",
+      "Go offline and verify the cart is still accessible",
+      "Go back online and verify the cart syncs"
+    ]
+  },
+  {
+    "id": 341,
+    "feature": "PWA Support + Offline Mode",
+    "description": "App can be installed",
+    "passes": false,
+    "steps": [
+      "Verify install prompt appears or manual install via browser menu works",
+      "Verify installation succeeds on supported browsers"
+    ]
+  },
+  {
+    "id": 342,
+    "feature": "PWA Support + Offline Mode",
+    "description": "Install prompt appears after multiple visits",
+    "passes": false,
+    "steps": [
+      "Visit the site multiple times",
+      "Verify beforeinstallprompt event fires",
+      "Verify install button is shown to the user"
+    ]
+  },
+  {
+    "id": 343,
+    "feature": "PWA Support + Offline Mode",
+    "description": "Background sync for pending actions",
+    "passes": false,
+    "steps": [
+      "Go offline",
+      "Perform an action such as adding to cart",
+      "Go back online",
+      "Verify the action is synced automatically"
+    ]
+  },
+  {
+    "id": 344,
+    "feature": "Python Analytics Layer",
+    "description": "scripts/analytics/ directory exists with Python scripts",
+    "passes": false,
+    "steps": [
+      "Verify scripts/analytics/ directory exists",
+      "Verify rfm.py, cohort.py, demand.py, pricing.py, basket.py files are present"
+    ]
+  },
+  {
+    "id": 345,
+    "feature": "Python Analytics Layer",
+    "description": "scripts/connectors/supabase_client.py works",
+    "passes": false,
+    "steps": [
+      "Verify scripts/connectors/supabase_client.py exists",
+      "Verify it imports supabase-py",
+      "Verify it connects using environment variables"
+    ]
+  },
+  {
+    "id": 346,
+    "feature": "Python Analytics Layer",
+    "description": "GET /api/analytics/rfm returns segments",
+    "passes": false,
+    "steps": [
+      "Call GET /api/analytics/rfm",
+      "Verify JSON response with customer segments array",
+      "Verify each segment has rfm_score and segment fields"
+    ]
+  },
+  {
+    "id": 347,
+    "feature": "Python Analytics Layer",
+    "description": "GET /api/analytics/demand returns forecasts",
+    "passes": false,
+    "steps": [
+      "Call GET /api/analytics/demand",
+      "Verify JSON response with product forecasts",
+      "Verify each forecast has predicted_quantity and bounds"
+    ]
+  },
+  {
+    "id": 348,
+    "feature": "Python Analytics Layer",
+    "description": "GET /api/analytics/pricing returns price history",
+    "passes": false,
+    "steps": [
+      "Call GET /api/analytics/pricing",
+      "Verify JSON response with price records",
+      "Verify each record has product_id, price, and quantity_sold"
+    ]
+  },
+  {
+    "id": 349,
+    "feature": "Python Analytics Layer",
+    "description": "GET /api/analytics/basket returns association rules",
+    "passes": false,
+    "steps": [
+      "Call GET /api/analytics/basket",
+      "Verify JSON response with rules array",
+      "Verify each rule has support, confidence, and lift values"
+    ]
+  },
+  {
+    "id": 350,
+    "feature": "Python Analytics Layer",
+    "description": "GET /api/analytics/trends returns trending topics",
+    "passes": false,
+    "steps": [
+      "Call GET /api/analytics/trends",
+      "Verify JSON response with trending keywords/topics array"
+    ]
+  },
+  {
+    "id": 351,
+    "feature": "Python Analytics Layer",
+    "description": "GET /api/analytics/cohorts returns retention data",
+    "passes": false,
+    "steps": [
+      "Call GET /api/analytics/cohorts",
+      "Verify JSON response with cohort periods",
+      "Verify retention percentages are included"
+    ]
+  },
+  {
+    "id": 352,
+    "feature": "Python Analytics Layer",
+    "description": "Admin analytics dashboard shows RFM chart",
+    "passes": false,
+    "steps": [
+      "Navigate to /en/admin/analytics",
+      "Verify RFM segment distribution chart renders with data"
+    ]
+  },
+  {
+    "id": 353,
+    "feature": "Python Analytics Layer",
+    "description": "Admin analytics dashboard shows demand forecast",
+    "passes": false,
+    "steps": [
+      "Navigate to /en/admin/analytics",
+      "Verify demand forecast line chart renders for products"
+    ]
+  }
+]
