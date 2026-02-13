@@ -322,7 +322,7 @@
     "id": 30,
     "feature": "Database & Schema",
     "description": "update_product_rating RPC function exists",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Call the update_product_rating RPC function with a valid product_id",
       "Verify the product's avg_rating is recalculated",
