@@ -718,7 +718,7 @@
     "id": 66,
     "feature": "Product Catalog",
     "description": "Product search works",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Type 'cat' in the search bar on the shop page",
       "Submit the search query",

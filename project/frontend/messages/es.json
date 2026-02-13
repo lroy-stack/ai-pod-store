@@ -18,7 +18,9 @@
   },
   "shop": {
     "title": "Tienda",
-    "subtitle": "Descubre nuestra colección de productos personalizados"
+    "subtitle": "Descubre nuestra colección de productos personalizados",
+    "searchPlaceholder": "Buscar productos...",
+    "searchResults": "{count, plural, =0 {No se encontraron productos} one {1 producto encontrado} other {{count} productos encontrados}} para \"{query}\""
   },
   "product": {
     "addToWishlist": "Agregar a favoritos",

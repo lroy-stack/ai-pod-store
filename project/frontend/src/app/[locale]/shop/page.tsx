@@ -1,5 +1,11 @@
+'use client'
+
+import { useState } from 'react'
 import { useTranslations } from 'next-intl'
+import { Search, X } from 'lucide-react'
 import { ProductGrid } from '@/components/products/ProductGrid'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
 
 // Mock products for now - will be replaced with API call
 const mockProducts = [
@@ -69,10 +75,41 @@ const mockProducts = [
     reviewCount: 143,
     category: 'accessories',
   },
+  {
+    id: '7',
+    title: 'Cat Lover Mug',
+    description: 'Perfect mug for cat enthusiasts',
+    price: 12.99,
+    currency: 'USD',
+    image: 'https://via.placeholder.com/400x400/ec4899/ffffff?text=Cat+Mug',
+    rating: 4.9,
+    reviewCount: 189,
+    category: 'home',
+  },
 ]
 
 export default function ShopPage() {
   const t = useTranslations('shop')
+  const [searchQuery, setSearchQuery] = useState('')
+
+  // Filter products based on search query
+  const filteredProducts = searchQuery.trim()
+    ? mockProducts.filter(
+        (product) =>
+          product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          product.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          product.category.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : mockProducts
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    // Search filtering happens automatically via filteredProducts
+  }
+
+  const clearSearch = () => {
+    setSearchQuery('')
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -81,7 +118,41 @@ export default function ShopPage() {
         <p className="text-lg text-muted-foreground">{t('subtitle')}</p>
       </div>
 
-      <ProductGrid products={mockProducts} />
+      {/* Search Bar */}
+      <form onSubmit={handleSearchSubmit} className="mb-8">
+        <div className="relative max-w-2xl">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-5 text-muted-foreground" />
+          <Input
+            type="text"
+            placeholder={t('searchPlaceholder')}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10 pr-10"
+          />
+          {searchQuery && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={clearSearch}
+              className="absolute right-1 top-1/2 -translate-y-1/2 size-8"
+            >
+              <X className="size-4" />
+            </Button>
+          )}
+        </div>
+      </form>
+
+      {/* Results count */}
+      {searchQuery && (
+        <div className="mb-4">
+          <p className="text-sm text-muted-foreground">
+            {t('searchResults', { count: filteredProducts.length, query: searchQuery })}
+          </p>
+        </div>
+      )}
+
+      <ProductGrid products={filteredProducts} />
     </div>
   )
 }

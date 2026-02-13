@@ -18,7 +18,9 @@
   },
   "shop": {
     "title": "Shop",
-    "subtitle": "Discover our collection of custom products"
+    "subtitle": "Discover our collection of custom products",
+    "searchPlaceholder": "Search products...",
+    "searchResults": "{count, plural, =0 {No products found} one {1 product found} other {{count} products found}} for \"{query}\""
   },
   "product": {
     "addToWishlist": "Add to wishlist",
