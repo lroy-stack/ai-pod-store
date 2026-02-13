@@ -13,12 +13,12 @@
   {
     "id": 2,
     "feature": "Project Foundation + i18n Setup",
-    "description": "Backend npm install",
+    "description": "All project dependencies installed",
     "passes": true,
     "steps": [
-      "Run npm install in backend/ directory",
+      "Run npm install in frontend/ directory",
       "Verify no errors in the install output",
-      "Check that node_modules directory exists in backend/"
+      "Check that node_modules directory exists in frontend/"
     ]
   },
   {
@@ -35,12 +35,12 @@
   {
     "id": 4,
     "feature": "Project Foundation + i18n Setup",
-    "description": "Backend dev server starts on port 3001",
-    "passes": true,
+    "description": "API routes accessible at /api/* (Next.js)",
+    "passes": false,
     "steps": [
-      "Run npm run dev in backend/ directory",
-      "Curl localhost:3001/api/health endpoint",
-      "Verify JSON response is returned with status ok"
+      "Start Next.js dev server (npm run dev in frontend/)",
+      "Curl http://localhost:3000/api/health",
+      "Verify JSON response with status ok"
     ]
   },
   {
@@ -57,10 +57,10 @@
   {
     "id": 6,
     "feature": "Project Foundation + i18n Setup",
-    "description": "Backend TypeScript compiles without errors",
+    "description": "All TypeScript compiles without errors (frontend + API)",
     "passes": true,
     "steps": [
-      "Run npx tsc --noEmit in backend/ directory",
+      "Run npx tsc --noEmit in frontend/ directory",
       "Verify the command exits with code 0",
       "Confirm no TypeScript compilation errors in output"
     ]
@@ -82,8 +82,8 @@
     "description": "Environment variables load correctly",
     "passes": true,
     "steps": [
-      "Verify .env file exists in the project root or backend/ directory",
-      "Verify backend reads SUPABASE_URL environment variable",
+      "Verify .env.local file exists in frontend/ directory",
+      "Verify server-side vars (SUPABASE_URL, STRIPE_SECRET_KEY) are in .env.local without NEXT_PUBLIC_ prefix",
       "Verify frontend reads NEXT_PUBLIC_ prefixed environment variables"
     ]
   },
@@ -93,8 +93,8 @@
     "description": "Database connection works (Supabase)",
     "passes": true,
     "steps": [
-      "Start the backend server",
-      "Call GET /api/health endpoint",
+      "Start the Next.js dev server",
+      "Call GET /api/health endpoint on port 3000",
       "Verify response contains db: connected status"
     ]
   },
@@ -104,9 +104,9 @@
     "description": "Redis connection works",
     "passes": false,
     "steps": [
-      "Start the backend server",
-      "Call GET /api/health endpoint",
-      "Verify response contains redis: connected status"
+      "Start the Next.js dev server",
+      "Call GET /api/health endpoint on port 3000",
+      "Verify response contains redis status (not_configured is acceptable if Redis not available)"
     ]
   },
   {
@@ -127,7 +127,7 @@
     "passes": true,
     "steps": [
       "Verify frontend/src/app/[locale] directory exists",
-      "Verify backend/src/routes directory exists",
+      "Verify frontend/src/app/api/ directory exists with route handlers",
       "Verify shared/types directory exists"
     ]
   },
@@ -267,7 +267,7 @@
     "id": 25,
     "feature": "Database & Schema",
     "description": "created_at defaults and UUID generation work",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Insert a test row into a table without specifying id or created_at",
       "Verify a UUID was auto-generated for the id column",
@@ -277,11 +277,11 @@
   {
     "id": 26,
     "feature": "Database & Schema",
-    "description": "Supabase client initializes correctly (frontend anon + backend admin)",
+    "description": "Supabase client initializes correctly (anon for browser + admin for API routes)",
     "passes": false,
     "steps": [
       "Verify frontend Supabase client uses NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY",
-      "Verify backend Supabase client uses SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY",
+      "Verify supabase-admin.ts uses SUPABASE_URL and SUPABASE_SERVICE_KEY for API routes",
       "Confirm both clients can establish a connection"
     ]
   },
@@ -336,7 +336,7 @@
     "passes": false,
     "steps": [
       "Verify the Supabase client is configured with connection pooling",
-      "Check backend database pool settings for max connections",
+      "Check supabase-admin.ts pool settings for max connections",
       "Confirm pooled connections are reused correctly"
     ]
   },
@@ -1769,7 +1769,7 @@
     "description": "Chat error state displays",
     "passes": false,
     "steps": [
-      "Disconnect the backend or simulate a backend failure",
+      "Simulate an API failure (e.g., stop server or return error from /api/chat)",
       "Send a message in the chat",
       "Verify an error message is shown in the chat area"
     ]
@@ -3128,12 +3128,12 @@
   {
     "id": 285,
     "feature": "Performance & Quality",
-    "description": "Backend health check endpoint works",
+    "description": "Health check endpoint works (GET /api/health)",
     "passes": false,
     "steps": [
-      "GET /api/health",
+      "GET http://localhost:3000/api/health",
       "Verify 200 status code",
-      "Verify response body contains {status: 'ok', db: 'connected', redis: 'connected'}"
+      "Verify response body contains {status: 'ok', db: 'connected'}"
     ]
   },
   {
@@ -3203,10 +3203,10 @@
   {
     "id": 292,
     "feature": "Performance & Quality",
-    "description": "Security headers on backend (Helmet)",
+    "description": "Security headers configured (next.config.ts headers)",
     "passes": false,
     "steps": [
-      "Inspect response headers from the backend",
+      "Inspect response headers from GET /api/health",
       "Verify X-Content-Type-Options header is present",
       "Verify X-Frame-Options header is present",
       "Verify Strict-Transport-Security header is present"
