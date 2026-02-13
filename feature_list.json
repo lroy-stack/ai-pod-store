@@ -685,7 +685,7 @@
     "id": 63,
     "feature": "Product Catalog",
     "description": "Product images load with alt text and width/height",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Inspect product images on the product detail page",
       "Verify each image has an alt attribute set with descriptive text",
