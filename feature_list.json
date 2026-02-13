@@ -399,7 +399,7 @@
     "id": 37,
     "feature": "Database & Schema",
     "description": "Ab_experiments have variants jsonb and status column",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Query ab_experiments table columns",
       "Verify variants column is of type jsonb",
