@@ -1,8 +1,12 @@
 import { Metadata } from 'next'
+import { Suspense } from 'react'
 import { ProductDetailClient } from '@/components/products/ProductDetailClient'
 import { getProduct, getProductReviews, getRelatedProducts } from '@/lib/product-detail-cache'
+import { DynamicPriceStock } from '@/components/products/DynamicPriceStock'
+import { DynamicPriceStockSkeleton } from '@/components/products/DynamicPriceStockSkeleton'
 
 // This page uses cached data fetching functions with the "use cache" directive
+// PPR is enabled via cacheComponents in next.config.ts
 // Mock product data - will be replaced with API call
 const mockProducts: Record<string, any> = {
   '1': {

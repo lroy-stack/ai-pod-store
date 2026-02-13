@@ -12,7 +12,8 @@ const nextConfig: NextConfig = {
     compilationMode: 'annotation',
   },
   experimental: {
-    // Enable "use cache" directive for catalog pages
+    // Enable "use cache" directive and Partial Prerendering (PPR) for catalog pages
+    // In Next.js 16, cacheComponents enables both features
     cacheComponents: true,
   },
   images: {
