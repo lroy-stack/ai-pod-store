@@ -454,7 +454,7 @@
     "id": 42,
     "feature": "Authentication + User Profile",
     "description": "User can log out",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Click the logout button or menu item while logged in",
       "Verify user is redirected to the login page",

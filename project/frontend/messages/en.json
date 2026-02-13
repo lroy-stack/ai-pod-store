@@ -64,6 +64,8 @@
     "passwordMismatch": "Passwords do not match",
     "termsRequired": "You must agree to the Terms of Service and Privacy Policy",
     "loggingIn": "Signing in...",
-    "pleaseLogin": "Please log in to continue."
+    "pleaseLogin": "Please log in to continue.",
+    "logoutButton": "Log out",
+    "loggingOut": "Logging out..."
   }
 }

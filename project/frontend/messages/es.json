@@ -64,6 +64,8 @@
     "passwordMismatch": "Las contraseñas no coinciden",
     "termsRequired": "Debes aceptar los Términos de Servicio y la Política de Privacidad",
     "loggingIn": "Iniciando sesión...",
-    "pleaseLogin": "Por favor, inicia sesión para continuar."
+    "pleaseLogin": "Por favor, inicia sesión para continuar.",
+    "logoutButton": "Cerrar sesión",
+    "loggingOut": "Cerrando sesión..."
   }
 }
