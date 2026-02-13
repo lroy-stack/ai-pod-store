@@ -87,7 +87,21 @@
     "resettingPassword": "Restableciendo...",
     "passwordResetSuccess": "¡Contraseña restablecida exitosamente!",
     "passwordResetSuccessMessage": "Tu contraseña ha sido restablecida exitosamente. Ahora puedes iniciar sesión con tu nueva contraseña.",
-    "passwordsDoNotMatch": "Las contraseñas no coinciden"
+    "passwordsDoNotMatch": "Las contraseñas no coinciden",
+    "checkEmailForVerification": "Por favor, revisa tu correo electrónico para obtener un enlace de verificación.",
+    "emailVerificationTitle": "Verifica tu correo electrónico",
+    "emailVerificationDescription": "Verificando tu dirección de correo electrónico",
+    "verifyingEmail": "Verificando tu correo electrónico...",
+    "pleaseWait": "Por favor, espera mientras verificamos tu dirección de correo electrónico.",
+    "emailVerifiedSuccess": "¡Correo electrónico verificado exitosamente!",
+    "emailVerifiedMessage": "Tu dirección de correo electrónico ha sido verificada. Ahora puedes iniciar sesión en tu cuenta.",
+    "continueToLogin": "Continuar al inicio de sesión",
+    "emailAlreadyVerified": "Correo electrónico ya verificado",
+    "emailAlreadyVerifiedDescription": "Tu dirección de correo electrónico ya ha sido verificada. Puedes iniciar sesión en tu cuenta.",
+    "verificationFailed": "Verificación fallida",
+    "verificationFailedDescription": "No pudimos verificar tu dirección de correo electrónico. El enlace puede ser inválido o haber expirado.",
+    "tryRegisterAgain": "Intenta registrarte de nuevo",
+    "invalidVerificationLink": "Enlace de verificación inválido"
   },
   "Profile": {
     "title": "Perfil",

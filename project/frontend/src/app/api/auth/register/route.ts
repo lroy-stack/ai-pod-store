@@ -31,13 +31,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Create user in Supabase Auth
-    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+    // Create user in Supabase Auth and send confirmation email
+    const { data: authData, error: authError } = await supabaseAdmin.auth.signUp({
       email,
       password,
-      email_confirm: true, // Auto-confirm email for now
-      user_metadata: {
-        name,
+      options: {
+        data: {
+          name,
+        },
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/en/auth/verify-email`,
       },
     })
 
@@ -65,7 +67,7 @@ export async function POST(request: NextRequest) {
         name,
         locale: 'en', // Default locale, can be updated later
         currency: 'USD', // Default currency, can be updated later
-        email_verified: true, // Auto-verified for now
+        email_verified: false, // Will be set to true after email verification
         notification_preferences: {
           email: true,
           push: false,

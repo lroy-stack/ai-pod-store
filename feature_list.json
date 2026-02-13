@@ -542,7 +542,7 @@
     "id": 50,
     "feature": "Authentication + User Profile",
     "description": "Email verification flow works",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Register a new user and verify email_verified is false in the database",
       "Click the email verification link sent to the user",

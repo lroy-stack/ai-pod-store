@@ -87,7 +87,21 @@
     "resettingPassword": "Wird zurückgesetzt...",
     "passwordResetSuccess": "Passwort erfolgreich zurückgesetzt!",
     "passwordResetSuccessMessage": "Ihr Passwort wurde erfolgreich zurückgesetzt. Sie können sich jetzt mit Ihrem neuen Passwort anmelden.",
-    "passwordsDoNotMatch": "Passwörter stimmen nicht überein"
+    "passwordsDoNotMatch": "Passwörter stimmen nicht überein",
+    "checkEmailForVerification": "Bitte überprüfen Sie Ihre E-Mail für einen Bestätigungslink.",
+    "emailVerificationTitle": "E-Mail verifizieren",
+    "emailVerificationDescription": "Verifizierung Ihrer E-Mail-Adresse",
+    "verifyingEmail": "E-Mail wird verifiziert...",
+    "pleaseWait": "Bitte warten Sie, während wir Ihre E-Mail-Adresse verifizieren.",
+    "emailVerifiedSuccess": "E-Mail erfolgreich verifiziert!",
+    "emailVerifiedMessage": "Ihre E-Mail-Adresse wurde verifiziert. Sie können sich jetzt bei Ihrem Konto anmelden.",
+    "continueToLogin": "Zur Anmeldung fortfahren",
+    "emailAlreadyVerified": "E-Mail bereits verifiziert",
+    "emailAlreadyVerifiedDescription": "Ihre E-Mail-Adresse wurde bereits verifiziert. Sie können sich bei Ihrem Konto anmelden.",
+    "verificationFailed": "Verifizierung fehlgeschlagen",
+    "verificationFailedDescription": "Wir konnten Ihre E-Mail-Adresse nicht verifizieren. Der Link ist möglicherweise ungültig oder abgelaufen.",
+    "tryRegisterAgain": "Versuchen Sie erneut zu registrieren",
+    "invalidVerificationLink": "Ungültiger Bestätigungslink"
   },
   "Profile": {
     "title": "Profil",

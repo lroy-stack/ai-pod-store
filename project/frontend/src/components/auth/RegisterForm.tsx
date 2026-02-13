@@ -58,10 +58,7 @@ export default function RegisterForm({ locale }: { locale: string }) {
       }
 
       setSuccess(true)
-      // Redirect to login page after 2 seconds
-      setTimeout(() => {
-        router.push(`/${locale}/auth/login?registered=true`)
-      }, 2000)
+      // Don't redirect - user needs to check email for verification link
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Registration failed')
     } finally {
@@ -103,11 +100,14 @@ export default function RegisterForm({ locale }: { locale: string }) {
 
       {success && (
         <div className="rounded-md bg-success/10 p-4">
-          <div className="flex">
+          <div className="flex flex-col">
             <div className="ml-3">
               <h3 className="text-sm font-medium text-success">
                 {t('registrationSuccess')}
               </h3>
+              <p className="mt-2 text-sm text-success/80">
+                {t('checkEmailForVerification')}
+              </p>
             </div>
           </div>
         </div>

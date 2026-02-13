@@ -87,7 +87,21 @@
     "resettingPassword": "Resetting...",
     "passwordResetSuccess": "Password reset successful!",
     "passwordResetSuccessMessage": "Your password has been reset successfully. You can now log in with your new password.",
-    "passwordsDoNotMatch": "Passwords do not match"
+    "passwordsDoNotMatch": "Passwords do not match",
+    "checkEmailForVerification": "Please check your email for a verification link.",
+    "emailVerificationTitle": "Verify your email",
+    "emailVerificationDescription": "Verifying your email address",
+    "verifyingEmail": "Verifying your email...",
+    "pleaseWait": "Please wait while we verify your email address.",
+    "emailVerifiedSuccess": "Email verified successfully!",
+    "emailVerifiedMessage": "Your email address has been verified. You can now log in to your account.",
+    "continueToLogin": "Continue to login",
+    "emailAlreadyVerified": "Email already verified",
+    "emailAlreadyVerifiedDescription": "Your email address has already been verified. You can log in to your account.",
+    "verificationFailed": "Verification failed",
+    "verificationFailedDescription": "We couldn't verify your email address. The link may be invalid or expired.",
+    "tryRegisterAgain": "Try registering again",
+    "invalidVerificationLink": "Invalid verification link"
   },
   "Profile": {
     "title": "Profile",
