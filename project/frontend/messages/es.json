@@ -80,5 +80,22 @@
     "namePlaceholder": "Nombre de Usuario",
     "emailLabel": "Correo electrónico",
     "emailPlaceholder": "usuario@ejemplo.com"
+  },
+  "Cart": {
+    "title": "Carrito de Compras",
+    "description": "Revisa tu carrito y procede al pago",
+    "emptyCart": "Tu carrito está vacío",
+    "continueShopping": "Continuar Comprando",
+    "itemsInCart": "{count} artículos en el carrito",
+    "orderSummary": "Resumen del Pedido",
+    "subtotal": "Subtotal",
+    "shipping": "Envío",
+    "calculated": "Calculado al finalizar compra",
+    "total": "Total",
+    "proceedToCheckout": "Proceder al Pago",
+    "guestCheckout": "Continuar como Invitado",
+    "signInToCheckout": "Iniciar Sesión para Pagar",
+    "or": "o",
+    "loading": "Cargando carrito..."
   }
 }

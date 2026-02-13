@@ -80,5 +80,22 @@
     "namePlaceholder": "Benutzername",
     "emailLabel": "E-Mail-Adresse",
     "emailPlaceholder": "benutzer@beispiel.de"
+  },
+  "Cart": {
+    "title": "Warenkorb",
+    "description": "Überprüfen Sie Ihren Warenkorb und gehen Sie zur Kasse",
+    "emptyCart": "Ihr Warenkorb ist leer",
+    "continueShopping": "Weiter Einkaufen",
+    "itemsInCart": "{count} Artikel im Warenkorb",
+    "orderSummary": "Bestellübersicht",
+    "subtotal": "Zwischensumme",
+    "shipping": "Versand",
+    "calculated": "An der Kasse berechnet",
+    "total": "Gesamt",
+    "proceedToCheckout": "Zur Kasse",
+    "guestCheckout": "Als Gast fortfahren",
+    "signInToCheckout": "Anmelden zum Bezahlen",
+    "or": "oder",
+    "loading": "Warenkorb wird geladen..."
   }
 }

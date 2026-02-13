@@ -54,13 +54,14 @@ export async function GET(request: NextRequest) {
         }
 
         // Update cookies with new tokens
+        const refreshedUser = refreshData.user!
         const response = NextResponse.json(
           {
             authenticated: true,
             user: {
-              id: refreshData.user.id,
-              email: refreshData.user.email,
-              name: refreshData.user.user_metadata?.name,
+              id: refreshedUser.id,
+              email: refreshedUser.email,
+              name: refreshedUser.user_metadata?.name,
             },
           },
           { status: 200 }

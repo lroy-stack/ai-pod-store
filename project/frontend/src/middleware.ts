@@ -3,11 +3,10 @@ import { routing } from './i18n/routing'
 import { NextRequest, NextResponse } from 'next/server'
 
 // Protected routes that require authentication
+// Note: /cart and /checkout allow guest access for guest checkout feature
 const protectedRoutes = [
   '/profile',
   '/orders',
-  '/cart',
-  '/checkout',
   '/admin',
 ]
 

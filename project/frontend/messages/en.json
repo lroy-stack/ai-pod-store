@@ -80,5 +80,22 @@
     "namePlaceholder": "User Name",
     "emailLabel": "Email address",
     "emailPlaceholder": "user@example.com"
+  },
+  "Cart": {
+    "title": "Shopping Cart",
+    "description": "Review your cart and proceed to checkout",
+    "emptyCart": "Your cart is empty",
+    "continueShopping": "Continue Shopping",
+    "itemsInCart": "{count} items in cart",
+    "orderSummary": "Order Summary",
+    "subtotal": "Subtotal",
+    "shipping": "Shipping",
+    "calculated": "Calculated at checkout",
+    "total": "Total",
+    "proceedToCheckout": "Proceed to Checkout",
+    "guestCheckout": "Continue as Guest",
+    "signInToCheckout": "Sign In to Checkout",
+    "or": "or",
+    "loading": "Loading cart..."
   }
 }

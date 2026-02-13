@@ -520,7 +520,7 @@
     "id": 48,
     "feature": "Authentication + User Profile",
     "description": "Guest checkout option available",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to /en/cart without being authenticated",
       "Proceed to the checkout flow",
