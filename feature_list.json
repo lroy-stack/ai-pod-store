@@ -652,7 +652,7 @@
     "id": 60,
     "feature": "Product Catalog",
     "description": "Products page renders with grid layout",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to /en/shop in the browser",
       "Verify a product grid layout is visible on the page",
