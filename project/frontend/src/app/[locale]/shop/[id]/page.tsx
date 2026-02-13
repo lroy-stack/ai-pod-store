@@ -1,7 +1,7 @@
 'use client'
 
 import { useParams, useRouter } from 'next/navigation'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
 import Image from 'next/image'
 import { useState } from 'react'
 import { Star, Heart, ShoppingCart, ChevronLeft } from 'lucide-react'
@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
+import { formatPrice, getLocalizedPrice } from '@/lib/currency'
 import {
   Select,
   SelectContent,
@@ -86,6 +87,7 @@ export default function ProductDetailPage() {
   const params = useParams()
   const router = useRouter()
   const t = useTranslations('product')
+  const locale = useLocale()
   const productId = params.id as string
   const product = mockProducts[productId as keyof typeof mockProducts]
 
@@ -114,12 +116,9 @@ export default function ProductDetailPage() {
     )
   }
 
-  const formatPrice = (price: number, currency: string) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: currency,
-    }).format(price)
-  }
+  // Convert price to locale's currency and format it
+  const localizedPrice = getLocalizedPrice(product.price, product.currency, locale)
+  const formattedPrice = formatPrice(localizedPrice, locale)
 
   const renderStars = (rating: number) => {
     return (
@@ -207,7 +206,7 @@ export default function ProductDetailPage() {
                 {t('reviewsCount', { count: product.reviewCount })}
               </span>
             </div>
-            <p className="text-3xl font-bold">{formatPrice(product.price, product.currency)}</p>
+            <p className="text-3xl font-bold">{formattedPrice}</p>
           </div>
 
           <Separator />

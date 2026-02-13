@@ -707,7 +707,7 @@
     "id": 65,
     "feature": "Product Catalog",
     "description": "Price displays in locale-aware currency format",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to /en/ and verify prices display in $XX.XX format",
       "Switch to /de/ and verify prices display in XX,XX EUR format",

@@ -3,9 +3,10 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
 import { Star, Heart } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { formatPrice, getLocalizedPrice } from '@/lib/currency'
 import { Button } from '@/components/ui/button'
 
 interface Product {
@@ -26,6 +27,7 @@ interface ProductCardProps {
 
 export function ProductCard({ product }: ProductCardProps) {
   const t = useTranslations('product')
+  const locale = useLocale()
   const [isWishlisted, setIsWishlisted] = useState(false)
 
   const toggleWishlist = (e: React.MouseEvent) => {
@@ -33,12 +35,9 @@ export function ProductCard({ product }: ProductCardProps) {
     setIsWishlisted(!isWishlisted)
   }
 
-  const formatPrice = (price: number, currency: string) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: currency,
-    }).format(price)
-  }
+  // Convert price to locale's currency and format it
+  const localizedPrice = getLocalizedPrice(product.price, product.currency, locale)
+  const formattedPrice = formatPrice(localizedPrice, locale)
 
   const renderStars = (rating: number = 0) => {
     return (
@@ -98,7 +97,7 @@ export function ProductCard({ product }: ProductCardProps) {
 
         <div className="flex items-center justify-between">
           <p className="text-xl font-bold">
-            {formatPrice(product.price, product.currency)}
+            {formattedPrice}
           </p>
 
           {product.rating && (
