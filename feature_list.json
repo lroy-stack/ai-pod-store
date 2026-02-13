@@ -344,7 +344,7 @@
     "id": 32,
     "feature": "Database & Schema",
     "description": "Users table has locale, currency, phone, email_verified, notification_preferences columns",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Query information_schema.columns for the users table",
       "Verify locale, currency, phone, email_verified, and notification_preferences columns exist",
