@@ -3623,3 +3623,53 @@ http://localhost:3000/en
 - f7065fc: feat: Agent sessions and events API verified — test #263 passing
 - ace4351: feat: Agent subagent run, skills, and memory API verified — test #264 passing
 
+
+### Feature #265: Agent API: schedule view + modify
+- Verified GET /api/agent/schedule returns cron entries for all 8 agents (researcher, designer, cataloger, marketing, newsletter, customer_manager, seo_manager, finance)
+- Verified PUT /api/agent/schedule/researcher updates schedule and description
+- Confirmed update persists across requests (schedule changed from "0 7 * * *" to "0 8 * * *")
+- ✓ Test #265 passing
+
+### Feature #266: Agent sessions logged to agent_sessions table
+- Verified agent_sessions table contains session records
+- Each session has id (UUID), status (running/completed/error), and session_type (agent name)
+- Multiple sessions logged from previous agent runs (4 sessions visible)
+- ✓ Test #266 passing
+
+### Feature #267: Agent events logged to agent_events table
+- Verified agent_events table contains event records linked to sessions via session_id FK
+- Events include event_type (session_start, error, session_end, tool_use)
+- data column contains JSONB payload with event-specific data
+- agent_name field populated correctly
+- ✓ Test #267 passing
+
+### Feature #268: Agent event types + session metrics tracked
+- Verified event types: session_start, session_end, tool_use, error
+- Verified session records track tool_calls count (completed session had 42 tool_calls)
+- Session records also track tool_errors, features_before/after
+- ✓ Test #268 passing
+
+## Session 103 Final Summary
+- **Features completed**: 8 (#261, #262, #263, #264, #265, #266, #267, #268)
+- **Total passing**: 283/535 (52.9%)
+- **Duration**: ~40 minutes
+- **All features verified**: curl API testing + database queries
+
+### Key accomplishments:
+1. Locale-specific sitemaps (en, es, de) verified
+2. PodClaw bridge started and all control endpoints working (start, stop, status)
+3. Sessions and events API endpoints working
+4. Subagent run, skills, and memory endpoints working
+5. Schedule view and modify working with persistence
+6. Database logging verified (agent_sessions and agent_events tables)
+
+### Commits this session:
+- db4f50d: feat: Locale-specific sitemaps verified — test #261 passing
+- 38d3ec2: feat: Agent API start/stop/status verified — test #262 passing
+- f7065fc: feat: Agent sessions and events API verified — test #263 passing
+- ace4351: feat: Agent subagent run, skills, and memory API verified — test #264 passing
+- 6bbbdbb: feat: Agent schedule view and modify API verified — test #265 passing
+- f816a16: feat: Agent sessions logged to agent_sessions table verified — test #266 passing
+- 42712ad: feat: Agent events logged to agent_events table verified — test #267 passing
+- 8ad5561: feat: Agent event types and session metrics verified — test #268 passing
+
