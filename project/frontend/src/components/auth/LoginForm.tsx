@@ -72,7 +72,12 @@ export default function LoginForm({ locale }: { locale: string }) {
 
       router.push(`/${locale}/`)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed')
+      // Translate error messages based on error content
+      if (err instanceof Error && err.message.includes('Invalid email or password')) {
+        setError(t('invalidCredentials'))
+      } else {
+        setError(t('loginFailed'))
+      }
     } finally {
       setLoading(false)
     }

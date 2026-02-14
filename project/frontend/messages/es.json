@@ -134,6 +134,8 @@
     "passwordMismatch": "Las contraseñas no coinciden",
     "termsRequired": "Debes aceptar los Términos de Servicio y la Política de Privacidad",
     "loggingIn": "Iniciando sesión...",
+    "invalidCredentials": "Correo electrónico o contraseña incorrectos",
+    "loginFailed": "Error al iniciar sesión",
     "pleaseLogin": "Por favor, inicia sesión para continuar.",
     "logoutButton": "Cerrar sesión",
     "loggingOut": "Cerrando sesión...",

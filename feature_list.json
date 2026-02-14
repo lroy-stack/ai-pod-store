@@ -2766,7 +2766,7 @@
     "id": 250,
     "feature": "Internationalization End-to-End",
     "description": "Error messages display in selected locale",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to a form page in /es/",
       "Trigger a form validation error",

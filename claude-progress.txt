@@ -3332,3 +3332,50 @@ http://localhost:3000/en
 - 31a3f65: feat: Date, number, and currency formatting follows locale — test #247 passing
 - d52bf00: feat: Add product translations support (es/de) — test #248 WIP
 
+
+## Session 100 (Coding Agent)
+- Implemented: Features #248 and #249 (Product translations + Chat locale)
+- Verification:
+  * Product titles/descriptions translate correctly in ES/DE
+  * Chat AI responds in user's selected locale
+  * Screenshots confirm both features working
+- Tests passing: 264/535 (49.3%)
+- Tests newly passing this session: #248, #249
+- Issues encountered: None - both features worked first time after fix
+
+### Feature #248: Product titles and descriptions in selected language
+- Fixed missing 'translations' column in GET /api/products query (line 420)
+- Fixed missing 'translations' column in fallback text search (line 324)
+- applyTranslations() function now correctly receives translations from DB
+- Verified Spanish: "Sudadera Vintage", "Taza de Gato Divertida", "Póster Minimalista de Gato"
+- Verified German: "Lustige Katzen-Tasse", "Minimalistisches Katzen-Poster", "Hundeliebhaber T-Shirt"
+- Verified English: original titles preserved (no translation)
+- 6 products have complete es/de translations in database
+
+### Feature #249: Chat AI responds in user's selected locale
+- Added locale-aware system prompt instructions to chat API
+- Locale extracted from NEXT_LOCALE cookie or Accept-Language header
+- Spanish instruction: "Responde en español. Usa un tono amigable y profesional."
+- German instruction: "Antworte auf Deutsch. Verwende einen freundlichen und professionellen Ton."
+- English instruction: "Respond in English." (default)
+- Verified ES: "¡Hola! Tenemos una variedad de productos disponibles..."
+- Verified DE: "Hallo! Wir haben eine große Auswahl an Produkten..."
+- Verified EN: "We have a variety of products including..."
+
+### Database status:
+- Connected to Supabase cloud instance
+- 24 tables exist and working
+- Product translations stored in JSONB column
+
+### Environment:
+- .env.local configured correctly
+- All API keys working
+- Dev server running on port 3000
+
+### Next priorities:
+- Feature #250: Email templates render in locale-specific language
+- Continue with remaining i18n features
+
+### Commits:
+- 0f98961: feat: Product translations working (es/de) — test #248 passing
+- a753587: feat: Chat AI responds in user's selected locale — test #249 passing

@@ -134,6 +134,8 @@
     "passwordMismatch": "Passwords do not match",
     "termsRequired": "You must agree to the Terms of Service and Privacy Policy",
     "loggingIn": "Signing in...",
+    "invalidCredentials": "Invalid email or password",
+    "loginFailed": "Login failed",
     "pleaseLogin": "Please log in to continue.",
     "logoutButton": "Log out",
     "loggingOut": "Logging out...",

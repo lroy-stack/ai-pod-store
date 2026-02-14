@@ -134,6 +134,8 @@
     "passwordMismatch": "Passwörter stimmen nicht überein",
     "termsRequired": "Sie müssen den Nutzungsbedingungen und der Datenschutzerklärung zustimmen",
     "loggingIn": "Anmelden...",
+    "invalidCredentials": "Ungültige E-Mail-Adresse oder Passwort",
+    "loginFailed": "Anmeldung fehlgeschlagen",
     "pleaseLogin": "Bitte melden Sie sich an, um fortzufahren.",
     "logoutButton": "Abmelden",
     "loggingOut": "Abmelden...",
