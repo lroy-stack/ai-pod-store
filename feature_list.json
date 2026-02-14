@@ -2854,7 +2854,7 @@
     "id": 258,
     "feature": "Internationalization End-to-End",
     "description": "Missing translation falls back to English",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Remove one key from es.json translations",
       "Load the page in /es/",
