@@ -13,14 +13,10 @@ export async function GET(request: NextRequest) {
 
     // Get session ID for guest carts (fallback)
     let sessionId = cookieStore.get('cart-session-id')?.value
+    let needsSessionCookie = false
     if (!sessionId) {
       sessionId = crypto.randomUUID()
-      cookieStore.set('cart-session-id', sessionId, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 60 * 60 * 24 * 30, // 30 days
-      })
+      needsSessionCookie = true
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
@@ -59,7 +55,16 @@ export async function GET(request: NextRequest) {
     const productIds = (cartItems || []).map((item: any) => item.product_id)
 
     if (productIds.length === 0) {
-      return NextResponse.json({ items: [] })
+      const response = NextResponse.json({ items: [] })
+      if (needsSessionCookie) {
+        response.cookies.set('cart-session-id', sessionId, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          maxAge: 60 * 60 * 24 * 30, // 30 days
+        })
+      }
+      return response
     }
 
     // Get default locale (we'll use 'en' for now, should be passed as param)
@@ -116,7 +121,16 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    return NextResponse.json({ items })
+    const response = NextResponse.json({ items })
+    if (needsSessionCookie) {
+      response.cookies.set('cart-session-id', sessionId, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 60 * 60 * 24 * 30, // 30 days
+      })
+    }
+    return response
   } catch (error) {
     console.error('Cart API error:', error)
     return NextResponse.json(
@@ -134,14 +148,10 @@ export async function POST(request: NextRequest) {
 
     // Get session ID for guest carts
     let sessionId = cookieStore.get('cart-session-id')?.value
+    let needsSessionCookie = false
     if (!sessionId) {
       sessionId = crypto.randomUUID()
-      cookieStore.set('cart-session-id', sessionId, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 60 * 60 * 24 * 30, // 30 days
-      })
+      needsSessionCookie = true
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
@@ -195,7 +205,16 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      return NextResponse.json({ success: true, updated: true })
+      const response = NextResponse.json({ success: true, updated: true })
+      if (needsSessionCookie) {
+        response.cookies.set('cart-session-id', sessionId, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          maxAge: 60 * 60 * 24 * 30, // 30 days
+        })
+      }
+      return response
     }
 
     // Insert new cart item
@@ -221,7 +240,16 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    return NextResponse.json({ success: true, added: true })
+    const response = NextResponse.json({ success: true, added: true })
+    if (needsSessionCookie) {
+      response.cookies.set('cart-session-id', sessionId, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 60 * 60 * 24 * 30, // 30 days
+      })
+    }
+    return response
   } catch (error) {
     console.error('Cart API error:', error)
     return NextResponse.json(
