@@ -2588,7 +2588,7 @@
     "id": 234,
     "feature": "Admin Dashboard & Agent Monitor",
     "description": "Dashboard loads agent data asynchronously from bridge. Shows loading skeletons while fetching. Handles bridge offline gracefully (503 \u2192 'PodClaw offline' badge).",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to the admin dashboard",
       "Verify loading skeletons are shown while bridge data is being fetched",
