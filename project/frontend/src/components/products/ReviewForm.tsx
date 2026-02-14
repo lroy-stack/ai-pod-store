@@ -67,13 +67,15 @@ export function ReviewForm({ productId, onReviewSubmitted }: ReviewFormProps) {
   const renderStarInput = (index: number) => {
     const filled = index <= (hoverRating || rating)
     return (
-      <button
+      <Button
         type="button"
+        variant="ghost"
+        size="icon"
         key={index}
         onClick={() => setRating(index)}
         onMouseEnter={() => setHoverRating(index)}
         onMouseLeave={() => setHoverRating(0)}
-        className="transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 rounded"
+        className="transition-transform hover:scale-110 h-auto w-auto p-1"
         aria-label={t('ratingStars', { count: index })}
       >
         <Star
@@ -81,7 +83,7 @@ export function ReviewForm({ productId, onReviewSubmitted }: ReviewFormProps) {
             filled ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground'
           }`}
         />
-      </button>
+      </Button>
     )
   }
 

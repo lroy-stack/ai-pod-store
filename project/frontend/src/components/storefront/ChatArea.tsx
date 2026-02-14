@@ -606,12 +606,13 @@ function SuggestedPrompt({
   onClick: () => void
 }) {
   return (
-    <button
+    <Button
+      variant="outline"
       onClick={onClick}
-      className="flex items-center gap-3 p-4 rounded-lg border border-border bg-card hover:bg-muted transition-colors text-left"
+      className="flex items-center gap-3 p-4 h-auto rounded-lg border-border bg-card hover:bg-muted transition-colors justify-start"
     >
       <span className="text-2xl">{icon}</span>
       <span className="text-sm text-foreground">{text}</span>
-    </button>
+    </Button>
   )
 }

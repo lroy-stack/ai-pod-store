@@ -17,6 +17,7 @@ import { useParams, usePathname } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { Home, Store, Sparkles, Heart, ShoppingBag, ShoppingCart } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { useCart } from '@/hooks/useCart'
 import { useStorefront } from './StorefrontContext'
@@ -235,16 +236,17 @@ function ProductCard({
   onClick: () => void
 }) {
   return (
-    <button
+    <Button
+      variant="ghost"
       onClick={onClick}
-      className="flex items-center gap-3 w-full p-2 rounded-lg hover:bg-muted transition-colors text-left"
+      className="flex items-center gap-3 w-full p-2 h-auto rounded-lg hover:bg-muted transition-colors justify-start"
     >
       {image ? (
         <img src={image} alt={title} className="w-11 h-11 rounded-md object-cover flex-shrink-0" />
       ) : (
         <div className="w-11 h-11 rounded-md bg-muted flex-shrink-0" />
       )}
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-0 text-left">
         <p className="text-sm font-medium text-foreground truncate">{title}</p>
         <div className="flex items-center gap-2 mt-0.5">
           <span className="text-xs font-medium text-foreground">{price}</span>
@@ -254,6 +256,6 @@ function ProductCard({
           </div>
         </div>
       </div>
-    </button>
+    </Button>
   )
 }

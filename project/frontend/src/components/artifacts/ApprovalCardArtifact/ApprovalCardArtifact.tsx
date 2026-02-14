@@ -7,8 +7,9 @@
  * Displays cart summary and asks user to confirm proceeding to Stripe
  */
 
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
 import { ShoppingCart, CreditCard, AlertCircle } from 'lucide-react'
+import { formatPrice } from '@/lib/currency'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -35,6 +36,7 @@ export function ApprovalCardArtifact({
   onDeny,
 }: ApprovalCardArtifactProps) {
   const t = useTranslations('storefront')
+  const locale = useLocale()
 
   const itemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0)
 
@@ -72,7 +74,7 @@ export function ApprovalCardArtifact({
                   <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
                 </div>
                 <p className="font-medium text-foreground">
-                  ${(item.productPrice * item.quantity).toFixed(2)}
+                  {formatPrice(item.productPrice * item.quantity, locale)}
                 </p>
               </div>
             ))}
@@ -82,7 +84,7 @@ export function ApprovalCardArtifact({
 
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium">Subtotal</span>
-            <span className="text-lg font-bold text-foreground">${subtotal.toFixed(2)}</span>
+            <span className="text-lg font-bold text-foreground">{formatPrice(subtotal, locale)}</span>
           </div>
 
           <div className="flex items-start gap-2 rounded-lg bg-muted/50 p-3">

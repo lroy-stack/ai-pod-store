@@ -124,12 +124,14 @@ export function DetailPanel({ productId, onClose, onAskAbout }: DetailPanelProps
                   className="relative rounded-none border-b-2 border-transparent data-[state=active]:border-primary px-4 py-2 group"
                 >
                   <span className="text-sm truncate max-w-[120px]">{artifact.title}</span>
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="icon"
                     onClick={(e) => handleCloseTab(artifact.id, e)}
-                    className="ml-2 hover:bg-muted rounded-sm p-0.5 opacity-60 hover:opacity-100"
+                    className="ml-2 h-5 w-5 hover:bg-muted rounded-sm p-0.5 opacity-60 hover:opacity-100"
                   >
                     <X className="h-3 w-3" />
-                  </button>
+                  </Button>
                 </TabsTrigger>
               ))}
             </TabsList>

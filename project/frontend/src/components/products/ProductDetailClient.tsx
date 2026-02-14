@@ -237,11 +237,12 @@ export function ProductDetailClient({ product, relatedProducts, reviews }: Produ
           {product.images.filter(Boolean).length > 1 && (
             <div className="grid grid-cols-4 gap-4">
               {product.images.filter(Boolean).map((image: string, index: number) => (
-                <button
+                <Button
                   key={index}
+                  variant="outline"
                   onClick={() => setSelectedImage(index)}
                   className={cn(
-                    'relative aspect-square rounded-lg overflow-hidden border-2 transition-colors',
+                    'relative aspect-square rounded-lg overflow-hidden border-2 transition-colors p-0 h-auto',
                     selectedImage === index
                       ? 'border-primary'
                       : 'border-border hover:border-primary/50'
@@ -254,7 +255,7 @@ export function ProductDetailClient({ product, relatedProducts, reviews }: Produ
                     className="object-cover"
                     sizes="(max-width: 1024px) 25vw, 12.5vw"
                   />
-                </button>
+                </Button>
               ))}
             </div>
           )}

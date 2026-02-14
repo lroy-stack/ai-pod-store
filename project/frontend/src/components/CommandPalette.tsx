@@ -30,6 +30,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 interface CommandAction {
@@ -190,12 +191,13 @@ export function CommandPalette() {
           ) : (
             <div className="p-2">
               {filteredCommands.map((command, index) => (
-                <button
+                <Button
                   key={command.id}
+                  variant="ghost"
                   onClick={() => handleSelectCommand(command)}
                   className={cn(
-                    'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors',
-                    'hover:bg-muted focus:bg-muted focus:outline-none',
+                    'w-full flex items-center gap-3 px-3 py-2.5 h-auto rounded-lg text-sm transition-colors justify-start',
+                    'hover:bg-muted focus:bg-muted',
                     index === selectedIndex && 'bg-muted'
                   )}
                   onMouseEnter={() => setSelectedIndex(index)}
@@ -207,7 +209,7 @@ export function CommandPalette() {
                       {t('action')}
                     </span>
                   )}
-                </button>
+                </Button>
               ))}
             </div>
           )}
