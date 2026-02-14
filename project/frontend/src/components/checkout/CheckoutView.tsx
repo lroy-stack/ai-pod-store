@@ -2,8 +2,7 @@
 
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
-import Image from 'next/image'
-import { ShoppingCart, ArrowLeft, MapPin, Check } from 'lucide-react'
+import { ShoppingCart, ArrowLeft, MapPin, Check, Package } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { useCart } from '@/hooks/useCart'
 import { Button } from '@/components/ui/button'
@@ -95,7 +94,7 @@ export default function CheckoutView({ locale }: { locale: string }) {
         // Convert cart items to the format expected by the API
         const formattedCartItems = cartItems.map((item) => ({
           productId: item.product_id,
-          name: item.product_name,
+          name: item.product_title,
           amount: Math.round(item.product_price * 100), // Convert to cents
           quantity: item.quantity,
         }))
@@ -492,21 +491,17 @@ export default function CheckoutView({ locale }: { locale: string }) {
                 {cartItems.map((item) => (
                   <div key={item.id} className="flex gap-3">
                     <div className="relative size-16 md:size-20 rounded-lg overflow-hidden bg-muted flex-shrink-0">
-                      <Image
-                        src={item.product_image || 'https://via.placeholder.com/150'}
-                        alt={item.product_name}
-                        fill
-                        className="object-cover"
-                        sizes="80px"
-                      />
+                      <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">
+                        <Package className="h-6 w-6" />
+                      </div>
                     </div>
                     <div className="flex-1 min-w-0">
                       <h3 className="font-medium text-sm text-foreground line-clamp-1">
-                        {item.product_name}
+                        {item.product_title}
                       </h3>
-                      {item.variant_name && (
+                      {item.variant_details && (
                         <p className="text-xs text-muted-foreground">
-                          {item.variant_name}
+                          {[item.variant_details.size, item.variant_details.color].filter(Boolean).join(' / ')}
                         </p>
                       )}
                       <div className="flex items-center justify-between mt-1">

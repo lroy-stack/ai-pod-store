@@ -4,63 +4,112 @@
  * StorefrontSidebar - Left sidebar with store navigation + AI recommendations
  *
  * Contains:
- * - Logo + store name (animated gradient icon)
- * - Navigation items (Discover, Trends, New Arrivals, Favorites, Orders)
+ * - Logo + store name
+ * - Navigation items as real Links with active state
+ * - Cart link with badge
  * - Recommended products section
- * - Popular today section
  * - PodClaw live status footer
  */
 
+import Link from 'next/link'
+import { useParams, usePathname } from 'next/navigation'
 import { useTranslations } from 'next-intl'
-import { Home, TrendingUp, Sparkles, Heart, ShoppingBag } from 'lucide-react'
+import { Home, Store, Sparkles, Heart, ShoppingBag, ShoppingCart } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
+import { useCart } from '@/hooks/useCart'
+import { useStorefront } from './StorefrontContext'
 
 interface StorefrontSidebarProps {
-  onSelectProduct: (productId: string) => void
+  onNavigate?: () => void
 }
 
-export function StorefrontSidebar({ onSelectProduct }: StorefrontSidebarProps) {
+export function StorefrontSidebar({ onNavigate }: StorefrontSidebarProps) {
   const t = useTranslations('storefront')
+  const { itemCount } = useCart()
+  const { setSelectedProduct } = useStorefront()
+  const params = useParams()
+  const pathname = usePathname()
+  const locale = params.locale as string
 
   const navigationItems = [
-    { icon: Home, label: t('discover'), active: true },
-    { icon: TrendingUp, label: t('trends') },
-    { icon: Sparkles, label: t('newArrivals') },
-    { icon: Heart, label: t('favorites') },
-    { icon: ShoppingBag, label: t('orders') },
+    { icon: Home, label: t('discover'), href: `/${locale}` },
+    { icon: Store, label: t('shop') ?? 'Shop', href: `/${locale}/shop` },
+    { icon: Sparkles, label: t('newArrivals'), href: `/${locale}/shop?sort=newest` },
+    { icon: Heart, label: t('favorites'), href: `/${locale}/wishlist` },
+    { icon: ShoppingBag, label: t('orders'), href: `/${locale}/orders` },
   ]
+
+  const isActive = (href: string) => {
+    // Exact match for home
+    if (href === `/${locale}`) return pathname === `/${locale}` || pathname === `/${locale}/`
+    // Strip query params for comparison
+    const basePath = href.split('?')[0]
+    return pathname.startsWith(basePath)
+  }
+
+  const handleProductClick = (productId: string) => {
+    setSelectedProduct(productId)
+    onNavigate?.()
+  }
 
   return (
     <div className="flex flex-col h-full bg-card">
       {/* Logo + Store Name */}
       <div className="p-4 border-b border-border">
-        <div className="flex items-center gap-3">
+        <Link href={`/${locale}`} className="flex items-center gap-3" onClick={onNavigate}>
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center">
             <span className="text-primary-foreground font-bold text-sm">P</span>
           </div>
           <span className="font-semibold text-foreground">POD AI</span>
-        </div>
+        </Link>
       </div>
 
       {/* Navigation */}
       <nav className="flex flex-col gap-1 p-2">
-        {navigationItems.map((item, index) => {
+        {navigationItems.map((item) => {
           const Icon = item.icon
+          const active = isActive(item.href)
           return (
-            <button
-              key={index}
+            <Link
+              key={item.href}
+              href={item.href}
+              onClick={onNavigate}
               className={cn(
                 'flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors',
-                item.active
+                active
                   ? 'bg-primary/10 text-primary font-medium'
                   : 'text-muted-foreground hover:bg-muted hover:text-foreground'
               )}
             >
               <Icon className="h-4 w-4" />
               <span>{item.label}</span>
-            </button>
+            </Link>
           )
         })}
+
+        {/* Cart with badge */}
+        <Link
+          href={`/${locale}/cart`}
+          onClick={onNavigate}
+          className={cn(
+            'flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors',
+            isActive(`/${locale}/cart`)
+              ? 'bg-primary/10 text-primary font-medium'
+              : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+          )}
+        >
+          <ShoppingCart className="h-4 w-4" />
+          <span>{t('cart') ?? 'Cart'}</span>
+          {itemCount > 0 && (
+            <Badge
+              variant="destructive"
+              className="ml-auto h-5 min-w-5 rounded-full p-0 flex items-center justify-center text-xs"
+            >
+              {itemCount}
+            </Badge>
+          )}
+        </Link>
       </nav>
 
       {/* Recommended Section */}
@@ -74,13 +123,13 @@ export function StorefrontSidebar({ onSelectProduct }: StorefrontSidebarProps) {
               title="Classic T-Shirt"
               price="$24.99"
               rating={4.5}
-              onClick={() => onSelectProduct('mock-product-1')}
+              onClick={() => handleProductClick('mock-product-1')}
             />
             <ProductCard
               title="Vintage Hoodie"
               price="$49.99"
               rating={4.8}
-              onClick={() => onSelectProduct('mock-product-2')}
+              onClick={() => handleProductClick('mock-product-2')}
             />
           </div>
         </div>
@@ -94,7 +143,7 @@ export function StorefrontSidebar({ onSelectProduct }: StorefrontSidebarProps) {
               title="Minimalist Poster"
               price="$19.99"
               rating={4.7}
-              onClick={() => onSelectProduct('mock-product-3')}
+              onClick={() => handleProductClick('mock-product-3')}
             />
           </div>
         </div>
@@ -111,9 +160,6 @@ export function StorefrontSidebar({ onSelectProduct }: StorefrontSidebarProps) {
   )
 }
 
-/**
- * ProductCard - Compact product card for sidebar recommendations
- */
 function ProductCard({
   title,
   price,
@@ -130,16 +176,13 @@ function ProductCard({
       onClick={onClick}
       className="flex items-center gap-3 w-full p-2 rounded-lg hover:bg-muted transition-colors text-left"
     >
-      {/* Thumbnail placeholder */}
       <div className="w-11 h-11 rounded-md bg-muted flex-shrink-0" />
-
-      {/* Product info */}
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-foreground truncate">{title}</p>
         <div className="flex items-center gap-2 mt-0.5">
           <span className="text-xs font-medium text-foreground">{price}</span>
           <div className="flex items-center gap-1">
-            <span className="text-xs text-muted-foreground">★</span>
+            <span className="text-xs text-muted-foreground">&#9733;</span>
             <span className="text-xs text-muted-foreground">{rating}</span>
           </div>
         </div>

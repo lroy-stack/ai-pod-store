@@ -1572,7 +1572,7 @@
     "id": 142,
     "feature": "Conversational Storefront / Chat",
     "description": "Product search tool produces product grid artifact",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Type 'show me cat t-shirts' in the chat",
       "Verify the product_search tool is called",

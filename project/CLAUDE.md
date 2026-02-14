@@ -72,15 +72,34 @@ Patterns:
 
 ## Reference Implementation
 
-`src/components/Navbar.tsx` — canonical example of:
-- shadcn/ui components (Button, Sheet, Avatar, DropdownMenu, Badge)
+`src/components/storefront/StorefrontHeader.tsx` + `StorefrontSidebar.tsx` — canonical examples of:
+- shadcn/ui components (Button, Avatar, DropdownMenu, Badge, Link)
 - Semantic tokens (bg-background, text-foreground, border-border)
-- Mobile-first responsive (Sheet for mobile nav, full bar on md:)
+- Mobile-first responsive (Sheet sidebar on mobile, full layout on lg:)
+- Auth-aware UI (useAuth + useCart hooks)
+
+## Architecture — AppShell (claude.ai model)
+
+```
+[locale]/layout.tsx → Providers (i18n, CartProvider, Toaster)
+  (app)/layout.tsx  → StorefrontLayout (sidebar + header + detail panel)
+    page.tsx        → ChatArea (homepage = chat)
+    shop/           → Product grid
+    cart/           → Cart view
+    orders/         → Order list
+    profile/        → User profile
+    wishlist/       → Wishlists
+  (focused)/layout.tsx → Minimal wrapper (no sidebar)
+    auth/           → Login, register, etc.
+    checkout/       → Checkout flow
+```
+
+Route groups `(app)` and `(focused)` are invisible in URLs.
 
 ## Before Writing ANY Component — Checklist
 
 1. Does a shadcn/ui component exist for this element? → Use it.
 2. Am I using semantic tokens only? → Search for bg-blue, bg-gray, bg-white, text-gray.
 3. Is it mobile-first? → Base styles for 375px, then md: and lg: overrides.
-4. Does it match the patterns in Navbar.tsx?
+4. Does it match the patterns in StorefrontHeader.tsx / StorefrontSidebar.tsx?
 5. Am I importing cn() for conditional classes?

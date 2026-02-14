@@ -476,6 +476,8 @@
     "size": "Größe",
     "color": "Farbe",
     "addToCart": "In den Warenkorb",
-    "askAboutProduct": "Fragen Sie nach diesem Produkt"
+    "askAboutProduct": "Fragen Sie nach diesem Produkt",
+    "shop": "Shop",
+    "cart": "Warenkorb"
   }
 }

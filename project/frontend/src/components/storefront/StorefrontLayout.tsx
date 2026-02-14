@@ -1,63 +1,52 @@
 'use client'
 
 /**
- * StorefrontLayout - Three-panel conversational storefront layout
+ * StorefrontLayout - AppShell for the conversational storefront
  *
- * Inspired by claude.ai, this layout consists of:
+ * Inspired by claude.ai — sidebar + contextual header + content area.
+ * Used as the layout wrapper for all (app) route group pages.
+ *
  * - Left sidebar (240px): Store navigation + AI recommendations
- * - Center chat area (flex-1): Message history + input
- * - Right detail panel (340px): Expanded product/design details
+ * - Header: Search + notifications + cart + user avatar
+ * - Center content (flex-1): Receives children (ChatArea, ShopPage, etc.)
+ * - Right detail panel (340px): Expanded product details (conditional)
  *
- * Mobile: Sidebar collapses to Sheet drawer, detail panel stacks below
+ * Mobile: Sidebar collapses to Sheet drawer, detail panel stacks as overlay
  */
 
 import { useState } from 'react'
+import { StorefrontProvider, useStorefront } from './StorefrontContext'
 import { StorefrontSidebar } from './StorefrontSidebar'
-import { ChatArea } from './ChatArea'
+import { StorefrontHeader } from './StorefrontHeader'
 import { DetailPanel } from './DetailPanel'
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
-import { Button } from '@/components/ui/button'
-import { Menu } from 'lucide-react'
+import { Sheet, SheetContent } from '@/components/ui/sheet'
 
-export function StorefrontLayout() {
-  const [selectedProduct, setSelectedProduct] = useState<string | null>(null)
+function StorefrontShell({ children }: { children: React.ReactNode }) {
+  const { selectedProduct, setSelectedProduct, setPendingChatMessage } = useStorefront()
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
-  const [chatInputValue, setChatInputValue] = useState<string>('')
 
   const handleAskAbout = (question: string) => {
-    setChatInputValue(question)
+    setPendingChatMessage(question)
   }
 
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-background">
+    <div className="flex h-dvh w-full overflow-hidden bg-background">
       {/* Left Sidebar - Desktop */}
       <aside className="hidden lg:flex lg:w-60 lg:flex-col border-r border-border">
-        <StorefrontSidebar onSelectProduct={setSelectedProduct} />
+        <StorefrontSidebar />
       </aside>
 
       {/* Left Sidebar - Mobile (Sheet drawer) */}
       <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
-        <SheetTrigger asChild className="lg:hidden absolute top-4 left-4 z-50">
-          <Button variant="outline" size="icon">
-            <Menu className="h-5 w-5" />
-            <span className="sr-only">Toggle sidebar</span>
-          </Button>
-        </SheetTrigger>
         <SheetContent side="left" className="w-60 p-0">
-          <StorefrontSidebar onSelectProduct={(id) => {
-            setSelectedProduct(id)
-            setIsSidebarOpen(false)
-          }} />
+          <StorefrontSidebar onNavigate={() => setIsSidebarOpen(false)} />
         </SheetContent>
       </Sheet>
 
-      {/* Center Chat Area */}
+      {/* Center: Header + Content */}
       <main className="flex flex-1 flex-col min-w-0">
-        <ChatArea
-          onSelectProduct={setSelectedProduct}
-          externalInputValue={chatInputValue}
-          onExternalInputConsumed={() => setChatInputValue('')}
-        />
+        <StorefrontHeader onToggleSidebar={() => setIsSidebarOpen(true)} />
+        {children}
       </main>
 
       {/* Right Detail Panel - Desktop */}
@@ -82,5 +71,13 @@ export function StorefrontLayout() {
         </div>
       )}
     </div>
+  )
+}
+
+export function StorefrontLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <StorefrontProvider>
+      <StorefrontShell>{children}</StorefrontShell>
+    </StorefrontProvider>
   )
 }

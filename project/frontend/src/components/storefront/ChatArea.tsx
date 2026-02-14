@@ -4,7 +4,6 @@
  * ChatArea - Center panel with message history + input
  *
  * Contains:
- * - Chat header with search, notifications, cart, avatar
  * - Welcome screen for new conversations
  * - Message history (scrollable)
  * - Input area with voice + image upload
@@ -13,25 +12,21 @@
 
 import { useRef, useEffect, useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { Search, Bell, ShoppingCart, User, Send, Mic, Paperclip, Package, Heart } from 'lucide-react'
+import { User, Send, Mic, Paperclip, Package, Heart } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Card, CardContent } from '@/components/ui/card'
 import { useChat } from '@ai-sdk/react'
-import { DefaultChatTransport } from 'ai'
+import { DefaultChatTransport, isToolUIPart, getToolName } from 'ai'
 import ReactMarkdown from 'react-markdown'
 import { getArtifact } from '@/components/artifacts/registry'
+import { useStorefront } from './StorefrontContext'
 
-interface ChatAreaProps {
-  onSelectProduct: (productId: string) => void
-  externalInputValue?: string
-  onExternalInputConsumed?: () => void
-}
-
-export function ChatArea({ onSelectProduct, externalInputValue, onExternalInputConsumed }: ChatAreaProps) {
+export function ChatArea() {
   const t = useTranslations('storefront')
+  const { setSelectedProduct, pendingChatMessage, setPendingChatMessage } = useStorefront()
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const [inputValue, setInputValue] = useState('')
   const [userData, setUserData] = useState<{
@@ -44,11 +39,6 @@ export function ChatArea({ onSelectProduct, externalInputValue, onExternalInputC
   const { messages, sendMessage, status } = useChat({
     transport: new DefaultChatTransport({ api: '/api/chat' }),
   })
-
-  // Debug logging
-  useEffect(() => {
-    console.log('Messages updated:', JSON.stringify(messages, null, 2))
-  }, [messages])
 
   const isLoading = status === 'submitted' || status === 'streaming'
 
@@ -83,13 +73,13 @@ export function ChatArea({ onSelectProduct, externalInputValue, onExternalInputC
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
-  // Handle external input value (from "Ask about this" button)
+  // Handle pending chat message from DetailPanel "Ask about" button
   useEffect(() => {
-    if (externalInputValue) {
-      setInputValue(externalInputValue)
-      onExternalInputConsumed?.()
+    if (pendingChatMessage) {
+      setInputValue(pendingChatMessage)
+      setPendingChatMessage('')
     }
-  }, [externalInputValue, onExternalInputConsumed])
+  }, [pendingChatMessage, setPendingChatMessage])
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -106,59 +96,11 @@ export function ChatArea({ onSelectProduct, externalInputValue, onExternalInputC
   }
 
   const handlePromptClick = (prompt: string) => {
-    // Send the message directly instead of just filling the input
     sendMessage({ text: prompt })
   }
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Chat Header */}
-      <header className="flex items-center justify-between gap-4 px-4 py-3 border-b border-border bg-card">
-        {/* Search */}
-        <div className="flex-1 max-w-md">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder={t('searchPlaceholder')}
-              className="pl-9 rounded-full bg-muted border-0"
-            />
-          </div>
-        </div>
-
-        {/* Actions */}
-        <div className="flex items-center gap-2">
-          {/* Notifications */}
-          <Button variant="ghost" size="icon" className="relative">
-            <Bell className="h-5 w-5" />
-            <Badge
-              variant="destructive"
-              className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
-            >
-              3
-            </Badge>
-          </Button>
-
-          {/* Cart */}
-          <Button variant="ghost" size="icon" className="relative">
-            <ShoppingCart className="h-5 w-5" />
-            <Badge
-              variant="default"
-              className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
-            >
-              2
-            </Badge>
-          </Button>
-
-          {/* User Avatar */}
-          <Avatar className="h-8 w-8 cursor-pointer">
-            <AvatarFallback className="bg-primary text-primary-foreground">
-              <User className="h-4 w-4" />
-            </AvatarFallback>
-          </Avatar>
-        </div>
-      </header>
-
+    <div className="flex flex-col flex-1 min-h-0">
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto p-4 md:p-6">
         {messages.length === 0 ? (
@@ -174,12 +116,12 @@ export function ChatArea({ onSelectProduct, externalInputValue, onExternalInputC
                   {userData.user ? (
                     <>
                       {t('welcomeBackTitle', { name: userData.user.name.split(' ')[0] })}
-                      <span className="inline-block ml-2 animate-pulse">✨</span>
+                      <span className="inline-block ml-2 animate-pulse">&#10024;</span>
                     </>
                   ) : (
                     <>
                       <span className="sparkle-text">{t('welcomeTitle')}</span>
-                      <span className="inline-block ml-2 animate-pulse">✨</span>
+                      <span className="inline-block ml-2 animate-pulse">&#10024;</span>
                     </>
                   )}
                 </h1>
@@ -191,7 +133,6 @@ export function ChatArea({ onSelectProduct, externalInputValue, onExternalInputC
               {/* Active Orders and Favorites for returning users */}
               {userData.user && (userData.activeOrders || userData.recentFavorites) && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-                  {/* Active Orders */}
                   {userData.activeOrders && userData.activeOrders.length > 0 && (
                     <Card>
                       <CardContent className="p-4">
@@ -216,7 +157,6 @@ export function ChatArea({ onSelectProduct, externalInputValue, onExternalInputC
                     </Card>
                   )}
 
-                  {/* Recent Favorites */}
                   {userData.recentFavorites && userData.recentFavorites.length > 0 && (
                     <Card>
                       <CardContent className="p-4">
@@ -243,22 +183,22 @@ export function ChatArea({ onSelectProduct, externalInputValue, onExternalInputC
               {/* Suggested Prompts */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-w-xl mx-auto mt-8">
                 <SuggestedPrompt
-                  icon="✨"
+                  icon="&#10024;"
                   text={t('promptDesign')}
                   onClick={() => handlePromptClick(t('promptDesign'))}
                 />
                 <SuggestedPrompt
-                  icon="👕"
+                  icon="&#128085;"
                   text={t('promptTshirt')}
                   onClick={() => handlePromptClick(t('promptTshirt'))}
                 />
                 <SuggestedPrompt
-                  icon="🎨"
+                  icon="&#127912;"
                   text={t('promptTrending')}
                   onClick={() => handlePromptClick(t('promptTrending'))}
                 />
                 <SuggestedPrompt
-                  icon="🎁"
+                  icon="&#127873;"
                   text={t('promptGift')}
                   onClick={() => handlePromptClick(t('promptGift'))}
                 />
@@ -290,9 +230,7 @@ export function ChatArea({ onSelectProduct, externalInputValue, onExternalInputC
                   }`}
                 >
                   {message.parts.map((part, index) => {
-                    // Render text parts
                     if (part.type === 'text') {
-                      // Render assistant messages with markdown, user messages as plain text
                       if (message.role === 'assistant') {
                         return (
                           <div key={index} className="prose prose-sm max-w-none dark:prose-invert prose-p:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-0 px-4 py-2">
@@ -307,36 +245,29 @@ export function ChatArea({ onSelectProduct, externalInputValue, onExternalInputC
                       )
                     }
 
-                    // Render tool-result parts as artifacts
-                    if (part.type === 'tool-result') {
-                      // Type guard to access toolName safely
-                      const toolPart = part as any
-                      const toolName = toolPart.toolName as string | undefined
-
-                      if (!toolName) {
-                        return null
-                      }
-
+                    if (isToolUIPart(part)) {
+                      const toolName = getToolName(part)
                       const artifact = getArtifact(toolName)
+                      if (!artifact) return null
 
-                      if (!artifact) {
-                        // Unknown tool, skip rendering
-                        return null
+                      if (part.state === 'input-streaming' || part.state === 'input-available') {
+                        return <artifact.Skeleton key={index} />
                       }
 
-                      const { Component } = artifact
-
-                      // Render result
-                      if (toolPart.output) {
+                      if (part.state === 'output-available' && part.output) {
                         return (
                           <div key={index} className="p-4">
-                            <Component
-                              {...toolPart.output}
-                              onSelectProduct={onSelectProduct}
+                            <artifact.Component
+                              {...(part.output as any)}
+                              onSelectProduct={setSelectedProduct}
                               variant="inline"
                             />
                           </div>
                         )
+                      }
+
+                      if (part.state === 'output-error') {
+                        return <div key={index} className="p-4 text-sm text-destructive">Error loading results</div>
                       }
 
                       return null
@@ -382,13 +313,11 @@ export function ChatArea({ onSelectProduct, externalInputValue, onExternalInputC
       <div className="border-t border-border bg-card p-4">
         <div className="max-w-3xl mx-auto">
           <form onSubmit={handleSubmit} className="flex items-end gap-2">
-            {/* Voice Input */}
             <Button type="button" variant="ghost" size="icon" className="flex-shrink-0">
               <Mic className="h-5 w-5" />
               <span className="sr-only">Voice input</span>
             </Button>
 
-            {/* Text Input */}
             <div className="flex-1 relative">
               <Input
                 value={inputValue}
@@ -398,7 +327,6 @@ export function ChatArea({ onSelectProduct, externalInputValue, onExternalInputC
                 className="pr-20 min-h-[44px] resize-none"
                 disabled={isLoading}
               />
-              {/* Image Upload */}
               <Button
                 type="button"
                 variant="ghost"
@@ -410,7 +338,6 @@ export function ChatArea({ onSelectProduct, externalInputValue, onExternalInputC
               </Button>
             </div>
 
-            {/* Send Button */}
             <Button
               type="submit"
               size="icon"
@@ -431,9 +358,6 @@ export function ChatArea({ onSelectProduct, externalInputValue, onExternalInputC
   )
 }
 
-/**
- * SuggestedPrompt - Clickable prompt suggestion button
- */
 function SuggestedPrompt({
   icon,
   text,

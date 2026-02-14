@@ -476,6 +476,8 @@
     "size": "Size",
     "color": "Color",
     "addToCart": "Add to Cart",
-    "askAboutProduct": "Ask about this product"
+    "askAboutProduct": "Ask about this product",
+    "shop": "Shop",
+    "cart": "Cart"
   }
 }

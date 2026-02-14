@@ -100,15 +100,16 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
     const customerEmail = session.customer_details?.email || session.customer_email
 
     // Build shipping address JSONB
-    const shippingAddress = session.shipping_details?.address
+    const shipping = session.collected_information?.shipping_details
+    const shippingAddress = shipping?.address
       ? {
-          name: session.shipping_details.name,
-          line1: session.shipping_details.address.line1,
-          line2: session.shipping_details.address.line2,
-          city: session.shipping_details.address.city,
-          state: session.shipping_details.address.state,
-          postal_code: session.shipping_details.address.postal_code,
-          country: session.shipping_details.address.country,
+          name: shipping.name,
+          line1: shipping.address.line1,
+          line2: shipping.address.line2,
+          city: shipping.address.city,
+          state: shipping.address.state,
+          postal_code: shipping.address.postal_code,
+          country: shipping.address.country,
         }
       : null
 

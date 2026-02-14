@@ -1,4 +1,4 @@
-import { streamText, tool, jsonSchema } from 'ai'
+import { streamText, tool, stepCountIs, convertToModelMessages } from 'ai'
 import { createGoogleGenerativeAI } from '@ai-sdk/google'
 import { z } from 'zod'
 import { createClient } from '@supabase/supabase-js'
@@ -56,20 +56,6 @@ Examples that require the tool:
 Be friendly, helpful, and concise. Always respond in the user's language.
 If you don't know something, be honest and offer to help in other ways.`
 
-    // Convert UI messages (with parts array) to model messages
-    // UI messages have { role, parts: [{ type: 'text', text: '...' }], id }
-    // Model messages need { role, content: '...' }
-    const modelMessages = messages.map((msg: any) => {
-      // Extract text from parts array
-      const textParts = msg.parts.filter((p: any) => p.type === 'text')
-      const content = textParts.map((p: any) => p.text).join('\n')
-
-      return {
-        role: msg.role,
-        content,
-      }
-    })
-
     // Define tools
     // WORKAROUND: Gemini tool calling has schema bugs in AI SDK 6
     // Using Zod with the simplest possible schema
@@ -79,9 +65,11 @@ If you don't know something, be honest and offer to help in other ways.`
         parameters: z.object({
           query: z.string().describe('Search keywords (e.g. "cat t-shirts", "vintage hoodies")'),
         }),
+        // @ts-expect-error AI SDK 6.0.86 type mismatch — execute works at runtime
         execute: async (args: { query: string }) => {
           const { query } = args
           const limit = 6
+          console.log('[product_search] Tool executing with query:', query)
           try {
             // Build query
             let dbQuery = supabase
@@ -92,9 +80,9 @@ If you don't know something, be honest and offer to help in other ways.`
 
             // No filters in simplified version
 
-            // Simple text search (future: semantic search with embeddings)
+            // Full-text search using PostgreSQL websearch (handles stemming/plurals)
             if (query) {
-              dbQuery = dbQuery.or(`title.ilike.%${query}%,description.ilike.%${query}%,tags.cs.{${query}}`)
+              dbQuery = dbQuery.or(`title.wfts.${query},description.wfts.${query}`)
             }
 
             const { data: products, error } = await dbQuery
@@ -145,9 +133,9 @@ If you don't know something, be honest and offer to help in other ways.`
     const result = streamText({
       model: google('gemini-2.5-flash'),
       system: systemPrompt,
-      messages: modelMessages,
+      messages: await convertToModelMessages(messages),
       tools,
-      maxSteps: 5, // ToolLoopAgent pattern: allow up to 5 tool invocations
+      stopWhen: stepCountIs(3),
     })
 
     // Return streaming SSE response

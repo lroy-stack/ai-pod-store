@@ -221,7 +221,7 @@ export async function generateMetadata({
   params: Promise<{ id: string; locale: string }>
 }): Promise<Metadata> {
   const { id, locale } = await params
-  const product = getProduct(id)
+  const product = await getProduct(id)
 
   if (!product) {
     return {

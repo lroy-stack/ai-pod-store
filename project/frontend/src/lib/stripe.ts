@@ -13,10 +13,9 @@ if (!process.env.STRIPE_SECRET_KEY) {
 
 /**
  * Singleton Stripe client instance
- * Configured with API version 2024-12-18.acacia
  */
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2024-11-20.acacia',
+  apiVersion: '2026-01-28.clover',
   typescript: true,
 });
 

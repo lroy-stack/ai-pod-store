@@ -261,3 +261,117 @@ Error: `Unable to submit request because 'product_search' functionDeclaration pa
 ### Database status: Connected (Supabase remote cloud)
 ### Environment: All vars configured, Redis fallback working
 
+
+## Session 51 (Coding Agent) — 2026-02-14 09:18 UTC
+
+### Features Implemented This Session:
+- ⚠️ Feature #142: Product search tool produces product grid artifact (PARTIAL PROGRESS)
+
+### Tests passing: 141/389 (36.2%) — NO CHANGE (feature partially complete)
+### Tests newly passing this session: NONE (work in progress)
+
+### Implementation Details:
+
+#### Feature #142: Product search tool produces product grid artifact (IN PROGRESS)
+
+**Problem Identified:**
+- ChatArea was using `/api/chat-test` endpoint which was deleted in previous session
+- Gemini 2.0 Flash has known tool calling schema bugs (all Zod and jsonSchema attempts fail)
+- Products table in Supabase was empty (no data to search)
+
+**Solutions Implemented:**
+
+1. **Fixed ChatArea endpoint reference**
+   - Changed from `/api/chat-test` to `/api/chat`
+   - Removed stale test endpoint
+
+2. **Resolved Gemini tool calling schema bug**
+   - Tested gemini-2.0-flash: ❌ FAILED with "parameters schema should be of type OBJECT" error
+   - Tested with jsonSchema() helper: ❌ FAILED (same error)
+   - Tested with $schema field: ❌ FAILED (same error)
+   - Tested gemini-1.5-flash: ❌ Model not found (deprecated)
+   - **SOLUTION**: Switched to `gemini-2.5-flash` (latest stable as of June 2025)
+   - Result: ✅ Tool calling WORKS with gemini-2.5-flash + Zod schemas
+
+3. **Populated Supabase products table**
+   - Created migration: `20260214092444_add_test_products.sql`
+   - Added 6 test products:
+     * Classic Cat T-Shirt (apparel, tags: cat, t-shirt)
+     * Vintage Hoodie (apparel)
+     * Funny Cat Mug (home, tags: cat, mug)
+     * Minimalist Cat Poster (home, tags: cat, poster)
+     * Cat Phone Case (accessories, tags: cat)
+     * Dog Lover T-Shirt (apparel, tags: dog)
+   - Pushed migration to Supabase remote: `supabase db push`
+
+**Verification:**
+
+✅ **Tool calling works** (verified via curl):
+```bash
+curl -X POST /api/chat -d '{"messages":[...]}' 
+# Response:
+# tool-input-start: product_search
+# tool-input-delta: {"query":"cat t-shirts"}
+# tool-output-available: {"success":true,"products":[...6 items...],"count":6}
+# finish-step
+# finishReason: "tool-calls"
+```
+
+**Current Status:**
+- ✅ product_search tool IS being called correctly
+- ✅ Database returns 6 products matching "cat t-shirts"
+- ✅ ProductGridArtifact component exists in `src/components/artifacts/`
+- ✅ Artifact registry maps `product_search` → ProductGridArtifact
+- ✅ ChatArea has code to render tool-result parts inline (lines 311-344)
+- ⚠️ **ISSUE**: Streaming response finishes with `finishReason: "tool-calls"` instead of generating final text
+- ❌ No assistant text message rendered yet (waiting for streaming to complete)
+- ❌ Artifacts not yet visible in UI (needs final assistant message with tool-result parts)
+
+**Root Cause of Streaming Issue:**
+The AI SDK streaming stops after the tool is executed, before generating the final assistant text response. This might be due to:
+1. `maxSteps: 5` configuration - may need adjustment
+2. Gemini 2.5 expecting a different response flow
+3. Missing continuation after tool-calls finish
+
+**Files Modified:**
+- `frontend/src/app/api/chat/route.ts`:
+  * Changed model from `gemini-2.0-flash` to `gemini-2.5-flash`
+  * Enabled tools (was commented out due to 2.0 bug)
+  * Set `maxSteps: 5` for ToolLoopAgent pattern
+- `frontend/src/components/storefront/ChatArea.tsx`:
+  * Fixed API endpoint from `/api/chat-test` to `/api/chat`
+- `project/supabase/migrations/20260214092444_add_test_products.sql`:
+  * New migration with test product data
+
+**Browser Testing:**
+- Typed "show me cat t-shirts" in chat
+- Message sent successfully
+- Loading spinner appears
+- **ISSUE**: Response never completes (finishes at tool-calls stage)
+- Artifacts do not render
+
+---
+
+### Next priorities:
+- **Feature #142** [Conversational Storefront / Chat] — CONTINUE DEBUGGING
+  - **Debug streaming response** to understand why it stops after tool-calls
+  - Option 1: Check if Gemini 2.5 requires different maxSteps config
+  - Option 2: Investigate AI SDK streaming behavior with ToolLoopAgent
+  - Option 3: Add debug logging to see what happens after tool execution
+  - Once streaming works end-to-end, verify artifacts render inline
+  - Then test clicking products to open detail panel
+
+- Feature #143 [Conversational Storefront / Chat] — Artifact components render inline in chat messages
+- Feature #144 [Conversational Storefront / Chat] — Skeleton loaders display while artifacts load
+
+**Environment:**
+- Dev server: Running on port 3000 ✅
+- Database: Supabase connected, 6 products inserted ✅
+- Gemini API: gemini-2.5-flash working ✅
+- Tool calling: WORKING but streaming incomplete ⚠️
+
+**Lessons Learned:**
+1. Gemini 2.0 Flash has persistent tool calling bugs - use 2.5 Flash instead
+2. Always verify model availability via API before switching versions
+3. Test products in database are essential for feature verification
+4. Tool calling success ≠ feature complete (need full streaming response)

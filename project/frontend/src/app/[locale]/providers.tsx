@@ -2,7 +2,6 @@ import { Suspense } from 'react'
 import { NextIntlClientProvider } from 'next-intl'
 import { getMessages } from 'next-intl/server'
 import { notFound } from 'next/navigation'
-import Navbar from '@/components/Navbar'
 import { Toaster } from '@/components/ui/toaster'
 import { CartProvider } from '@/hooks/useCart'
 
@@ -27,7 +26,6 @@ async function ProvidersContent({
   return (
     <NextIntlClientProvider messages={messages} locale={locale}>
       <CartProvider>
-        <Navbar />
         {children}
         <Toaster />
       </CartProvider>
@@ -45,9 +43,7 @@ export function Providers({
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-background">
-          <div className="h-16 bg-card/80 border-b border-border" />
-        </div>
+        <div className="min-h-dvh bg-background" />
       }
     >
       <ProvidersContent params={params}>{children}</ProvidersContent>
