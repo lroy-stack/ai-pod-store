@@ -2062,7 +2062,7 @@
     "id": 186,
     "feature": "Design System & AI Designs",
     "description": "Design preview renders in artifacts panel",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Generate a design via the chat interface",
       "Verify a preview image is shown in the artifacts panel",
