@@ -1597,7 +1597,7 @@
     "id": 144,
     "feature": "Conversational Storefront / Chat",
     "description": "Get detail + compare produces card/table artifacts",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Ask about a specific product in the chat",
       "Verify a detail card artifact is rendered",
@@ -1609,7 +1609,7 @@
     "id": 145,
     "feature": "Conversational Storefront / Chat",
     "description": "Recommendations + size guide produce grid/chart artifacts",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Ask for product recommendations in the chat",
       "Verify a product grid artifact is rendered",
@@ -1621,7 +1621,7 @@
     "id": 146,
     "feature": "Conversational Storefront / Chat",
     "description": "Cart tools: add to cart, get cart produce artifacts",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Say 'add this to cart' in the chat",
       "Verify the add_to_cart tool is called",

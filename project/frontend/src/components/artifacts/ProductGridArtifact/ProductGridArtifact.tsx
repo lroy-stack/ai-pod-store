@@ -101,7 +101,7 @@ export function ProductGridArtifact({
 
               {/* Price */}
               <p className="text-lg font-bold text-foreground">
-                ${product.price.toFixed(2)}
+                {new Intl.NumberFormat('de-DE', { style: 'currency', currency: product.currency || 'EUR' }).format(product.price)}
               </p>
 
               {/* Action Buttons */}

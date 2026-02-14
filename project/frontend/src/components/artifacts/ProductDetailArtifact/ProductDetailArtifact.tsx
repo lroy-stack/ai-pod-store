@@ -84,7 +84,7 @@ export function ProductDetailArtifact({
               </div>
               <div className="text-right">
                 <div className="text-3xl font-bold">
-                  {new Intl.NumberFormat('en-US', {
+                  {new Intl.NumberFormat('de-DE', {
                     style: 'currency',
                     currency: product.currency || 'EUR',
                   }).format(product.price)}

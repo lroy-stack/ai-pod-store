@@ -1,0 +1,129 @@
+'use client'
+
+/**
+ * CartSummaryArtifact - Display shopping cart contents
+ *
+ * Tools that use this artifact:
+ * - get_cart
+ *
+ * Features:
+ * - InlineCompact: List of cart items with quantities and prices
+ * - Shows subtotal and item count
+ * - Action buttons: "View Full Cart", "Checkout"
+ * - Responsive: stacks on mobile
+ */
+
+import { ShoppingCart, Trash2 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { Separator } from '@/components/ui/separator'
+import { useTranslations } from 'next-intl'
+import { useRouter } from 'next/navigation'
+
+export interface CartItem {
+  id: string
+  productId: string
+  title: string
+  price: number
+  quantity: number
+  subtotal: number
+}
+
+interface CartSummaryArtifactProps {
+  items: CartItem[]
+  itemCount: number
+  subtotal: number
+  variant?: 'inline' | 'full'
+}
+
+export function CartSummaryArtifact({
+  items,
+  itemCount,
+  subtotal,
+  variant = 'inline',
+}: CartSummaryArtifactProps) {
+  const t = useTranslations('storefront')
+  const router = useRouter()
+
+  if (!items || items.length === 0) {
+    return (
+      <Card>
+        <CardContent className="flex flex-col items-center justify-center py-12">
+          <ShoppingCart className="h-16 w-16 text-muted-foreground mb-4" />
+          <p className="text-lg font-semibold text-foreground mb-2">Your cart is empty</p>
+          <p className="text-sm text-muted-foreground mb-4">
+            Add some products to get started!
+          </p>
+          <Button onClick={() => router.push('/en/shop')}>
+            Browse Products
+          </Button>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <ShoppingCart className="h-5 w-5" />
+          Shopping Cart ({itemCount} {itemCount === 1 ? 'item' : 'items'})
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {/* Cart Items List */}
+        {items.map((item, index) => (
+          <div key={item.id}>
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1 min-w-0">
+                <h4 className="font-medium text-sm text-foreground line-clamp-2">
+                  {item.title}
+                </h4>
+                <p className="text-xs text-muted-foreground mt-1">
+                  €{item.price.toFixed(2)} × {item.quantity}
+                </p>
+              </div>
+              <div className="flex items-center gap-3">
+                <p className="font-semibold text-foreground whitespace-nowrap">
+                  €{item.subtotal.toFixed(2)}
+                </p>
+              </div>
+            </div>
+            {index < items.length - 1 && <Separator className="mt-4" />}
+          </div>
+        ))}
+      </CardContent>
+      <Separator />
+      <CardFooter className="flex-col gap-4 pt-6">
+        {/* Subtotal */}
+        <div className="w-full flex items-center justify-between">
+          <span className="text-base font-medium text-foreground">Subtotal</span>
+          <span className="text-xl font-bold text-foreground">
+            €{subtotal.toFixed(2)}
+          </span>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="w-full flex flex-col sm:flex-row gap-2">
+          <Button
+            variant="outline"
+            className="flex-1"
+            onClick={() => router.push('/en/cart')}
+          >
+            View Full Cart
+          </Button>
+          <Button
+            className="flex-1"
+            onClick={() => router.push('/en/checkout')}
+          >
+            Proceed to Checkout
+          </Button>
+        </div>
+
+        <p className="text-xs text-muted-foreground text-center">
+          Shipping and taxes calculated at checkout
+        </p>
+      </CardFooter>
+    </Card>
+  )
+}

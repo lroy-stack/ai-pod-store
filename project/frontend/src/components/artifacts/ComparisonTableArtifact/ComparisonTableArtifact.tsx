@@ -96,7 +96,7 @@ export function ComparisonTableArtifact({
                 {products.map((product) => (
                   <td key={product.id} className="p-4 text-center">
                     <div className="text-lg font-bold">
-                      {new Intl.NumberFormat('en-US', {
+                      {new Intl.NumberFormat('de-DE', {
                         style: 'currency',
                         currency: product.currency || 'EUR',
                       }).format(product.price)}

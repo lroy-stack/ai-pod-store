@@ -13,6 +13,7 @@ import { ProductGridArtifact, ProductGridSkeleton } from './ProductGridArtifact'
 import { ProductDetailArtifact, ProductDetailSkeleton } from './ProductDetailArtifact'
 import { ComparisonTableArtifact, ComparisonTableSkeleton } from './ComparisonTableArtifact'
 import { SizeGuideArtifact, SizeGuideSkeleton } from './SizeGuideArtifact'
+import { CartSummaryArtifact, CartSummarySkeleton } from './CartSummaryArtifact'
 
 export interface ArtifactRegistryEntry {
   Component: React.ComponentType<any>
@@ -43,6 +44,10 @@ export const artifactRegistry: Record<string, ArtifactRegistryEntry> = {
   get_size_guide: {
     Component: SizeGuideArtifact,
     Skeleton: SizeGuideSkeleton,
+  },
+  get_cart: {
+    Component: CartSummaryArtifact,
+    Skeleton: CartSummarySkeleton,
   },
 }
 

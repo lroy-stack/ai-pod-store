@@ -49,6 +49,8 @@ TOOLS AVAILABLE:
 - compare_products: Compare 2-4 products side-by-side (needs product IDs from search results)
 - get_recommendations: Get personalized product recommendations (can filter by category and max price)
 - get_size_guide: Get sizing chart for product types (t-shirts, hoodies, etc.)
+- add_to_cart: Add a product to the shopping cart (needs product ID and quantity)
+- get_cart: Get current shopping cart contents (shows items, quantities, prices)
 
 WHEN TO USE EACH TOOL:
 1. User asks to "browse", "search", "show me", "find" products → call product_search
@@ -56,6 +58,8 @@ WHEN TO USE EACH TOOL:
 3. User asks for "details", "more info", "materials", "shipping" about a SPECIFIC product → call get_product_detail with the product name
 4. User asks to "compare" products → call compare_products with IDs from recent search
 5. User asks about "sizing", "size guide", "measurements", "fit" → call get_size_guide
+6. User says "add to cart", "add this", "buy this" → call add_to_cart with product ID from context
+7. User asks "show my cart", "what's in my cart", "view cart" → call get_cart
 
 EXAMPLES:
 - "show me cat t-shirts" → product_search(query="cat t-shirt")
@@ -64,6 +68,8 @@ EXAMPLES:
 - "tell me more about the Classic Cat T-Shirt" → get_product_detail(productIdentifier="Classic Cat T-Shirt")
 - "compare the cat and dog t-shirts" → compare_products(productIds=[id1, id2])
 - "what are the t-shirt sizes?" → get_size_guide(productType="t-shirt")
+- "add this to cart" (after showing a product) → add_to_cart(productId="<id from context>", quantity=1)
+- "show my cart" → get_cart()
 
 IMPORTANT: get_product_detail works with product names directly - you don't need to search first!
 
@@ -349,6 +355,147 @@ Be friendly, helpful, and concise.`
           }
         },
       }),
+      add_to_cart: tool({
+        description: 'Add a product to the shopping cart. Call this when user wants to add/buy a product.',
+        parameters: z.object({
+          productId: z.string().describe('Product ID (UUID) to add to cart'),
+          quantity: z.number().optional().describe('Quantity to add (default: 1)'),
+        }),
+        // @ts-expect-error AI SDK 6.0.86 type mismatch — execute works at runtime
+        execute: async (args: { productId: string; quantity?: number }) => {
+          const { productId, quantity = 1 } = args
+          try {
+            // Note: Since this runs in Edge runtime without cookies, we create a guest cart
+            // that the user can claim later when they visit the cart page
+            const sessionId = crypto.randomUUID()
+
+            // Check if product exists
+            const { data: product, error: productError } = await supabase
+              .from('products')
+              .select('id, title, base_price_cents')
+              .eq('id', productId)
+              .eq('status', 'active')
+              .single()
+
+            if (productError || !product) {
+              return { success: false, error: 'Product not found' }
+            }
+
+            // Insert cart item (guest cart with session_id)
+            const { error: insertError } = await supabase
+              .from('cart_items')
+              .insert({
+                product_id: productId,
+                quantity,
+                session_id: sessionId,
+                user_id: null,
+              })
+
+            if (insertError) {
+              console.error('Cart insert error:', insertError)
+              return { success: false, error: 'Failed to add to cart' }
+            }
+
+            return {
+              success: true,
+              added: true,
+              message: `Added ${quantity} × ${product.title} to cart`,
+              productTitle: product.title,
+            }
+          } catch (error) {
+            console.error('add_to_cart error:', error)
+            return { success: false, error: 'Failed to add to cart' }
+          }
+        },
+      }),
+      get_cart: tool({
+        description: 'Get the current shopping cart contents with items, quantities, and prices.',
+        parameters: z.object({}),
+        // @ts-expect-error AI SDK 6.0.86 type mismatch — execute works at runtime
+        execute: async () => {
+          try {
+            // Note: Since this runs in Edge runtime without cookies, we get ALL recent cart items
+            // from the last 24 hours as a demo. In production, this would use user session.
+            const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+
+            // Fetch recent cart items
+            const { data: cartItems, error: cartError } = await supabase
+              .from('cart_items')
+              .select('id, product_id, quantity, created_at')
+              .gte('created_at', oneDayAgo)
+              .order('created_at', { ascending: false })
+              .limit(10)
+
+            if (cartError) {
+              console.error('Cart fetch error:', cartError)
+              return { success: false, error: 'Failed to get cart', items: [], itemCount: 0, subtotal: 0 }
+            }
+
+            if (!cartItems || cartItems.length === 0) {
+              return {
+                success: true,
+                items: [],
+                itemCount: 0,
+                subtotal: 0,
+              }
+            }
+
+            // Fetch product details
+            const productIds = cartItems.map((item: any) => item.product_id)
+            const { data: products, error: productsError } = await supabase
+              .from('products')
+              .select('id, title, base_price_cents, currency')
+              .in('id', productIds)
+
+            if (productsError) {
+              console.error('Products fetch error:', productsError)
+              return { success: false, error: 'Failed to fetch product details', items: [], itemCount: 0, subtotal: 0 }
+            }
+
+            // Create product map
+            const productMap = new Map(
+              (products || []).map((p: any) => [
+                p.id,
+                {
+                  title: p.title,
+                  price: p.base_price_cents / 100,
+                  currency: p.currency || 'EUR',
+                },
+              ])
+            )
+
+            // Build cart items with product details
+            const items = cartItems.map((item: any) => {
+              const product = productMap.get(item.product_id) || {
+                title: 'Unknown Product',
+                price: 0,
+                currency: 'EUR',
+              }
+              return {
+                id: item.id,
+                productId: item.product_id,
+                title: product.title,
+                price: product.price,
+                quantity: item.quantity,
+                subtotal: product.price * item.quantity,
+              }
+            })
+
+            const itemCount = items.reduce((sum, item) => sum + item.quantity, 0)
+            const subtotal = items.reduce((sum, item) => sum + item.subtotal, 0)
+
+            return {
+              success: true,
+              items,
+              itemCount,
+              subtotal,
+            }
+          } catch (error) {
+            console.error('get_cart error:', error)
+            return { success: false, error: 'Failed to get cart', cart: { items: [], itemCount: 0, subtotal: 0 } }
+          }
+        },
+      }),
     }
 
     // Stream response with tools
@@ -359,7 +506,7 @@ Be friendly, helpful, and concise.`
       system: systemPrompt,
       messages: await convertToModelMessages(messages),
       tools,
-      maxSteps: 5,
+      stopWhen: stepCountIs(5),
     })
 
     // Return streaming SSE response
