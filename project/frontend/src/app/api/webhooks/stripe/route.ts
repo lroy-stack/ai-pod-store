@@ -118,6 +118,19 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
         ? fullSession.payment_intent
         : fullSession.payment_intent?.id
 
+    // Idempotency check: Check if order already exists for this session
+    const { data: existingOrder } = await supabase
+      .from('orders')
+      .select('id, status, created_at')
+      .eq('stripe_session_id', session.id)
+      .single()
+
+    if (existingOrder) {
+      console.log('Order already exists for session:', session.id, '— skipping (idempotent)')
+      console.log('Existing order ID:', existingOrder.id)
+      return // Idempotent: order already processed
+    }
+
     // Create order record
     const { data: order, error: orderError } = await supabase
       .from('orders')

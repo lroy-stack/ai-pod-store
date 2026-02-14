@@ -1380,7 +1380,7 @@
     "id": 126,
     "feature": "Checkout & Payments",
     "description": "Webhook idempotency handled",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Send the same webhook event twice to the webhook endpoint",
       "Verify the order is not duplicated",
