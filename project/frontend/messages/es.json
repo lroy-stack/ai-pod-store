@@ -525,5 +525,25 @@
     "notFoundTitle": "Página no encontrada",
     "notFoundDescription": "La página que buscas no existe o ha sido movida.",
     "backToStore": "Volver a la tienda"
+  },
+  "footer": {
+    "description": "Tienda de impresión bajo demanda impulsada por IA. Diseña, personaliza y ordena productos únicos.",
+    "shop": "Tienda",
+    "allProducts": "Todos los Productos",
+    "apparel": "Ropa",
+    "accessories": "Accesorios",
+    "home": "Hogar y Vida",
+    "company": "Empresa",
+    "about": "Acerca de Nosotros",
+    "contact": "Contacto",
+    "faq": "Preguntas Frecuentes",
+    "legal": "Legal",
+    "privacy": "Política de Privacidad",
+    "terms": "Términos de Servicio",
+    "returns": "Devoluciones y Reembolsos",
+    "shipping": "Política de Envío",
+    "language": "Idioma",
+    "copyright": "© {year} PodClaw. Todos los derechos reservados.",
+    "powered": "Impulsado por IA • Diseñado con cuidado"
   }
 }

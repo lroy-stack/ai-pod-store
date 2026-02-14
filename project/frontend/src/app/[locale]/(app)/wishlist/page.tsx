@@ -19,6 +19,7 @@ import Link from 'next/link';
 import { Heart, ShoppingCart, Share2, Trash2, Copy, Check } from 'lucide-react';
 import { formatPrice } from '@/lib/currency';
 import { useAuth } from '@/hooks/useAuth';
+import { Footer } from '@/components/Footer';
 
 interface Product {
   id: string;
@@ -420,6 +421,8 @@ export default function WishlistPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <Footer />
     </div>
   );
 }

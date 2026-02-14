@@ -525,5 +525,25 @@
     "notFoundTitle": "Seite nicht gefunden",
     "notFoundDescription": "Die gesuchte Seite existiert nicht oder wurde verschoben.",
     "backToStore": "Zurück zum Shop"
+  },
+  "footer": {
+    "description": "KI-gestützte Print-on-Demand-Plattform. Entwerfen, anpassen und bestellen Sie einzigartige Produkte.",
+    "shop": "Shop",
+    "allProducts": "Alle Produkte",
+    "apparel": "Kleidung",
+    "accessories": "Accessoires",
+    "home": "Wohnen & Leben",
+    "company": "Unternehmen",
+    "about": "Über Uns",
+    "contact": "Kontakt",
+    "faq": "Häufige Fragen",
+    "legal": "Rechtliches",
+    "privacy": "Datenschutzerklärung",
+    "terms": "Nutzungsbedingungen",
+    "returns": "Rückgabe & Erstattung",
+    "shipping": "Versandrichtlinien",
+    "language": "Sprache",
+    "copyright": "© {year} PodClaw. Alle Rechte vorbehalten.",
+    "powered": "Powered by AI • Mit Sorgfalt gestaltet"
   }
 }

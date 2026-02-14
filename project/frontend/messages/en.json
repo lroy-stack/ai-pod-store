@@ -525,5 +525,25 @@
     "notFoundTitle": "Page Not Found",
     "notFoundDescription": "The page you are looking for does not exist or has been moved.",
     "backToStore": "Back to Store"
+  },
+  "footer": {
+    "description": "AI-powered print-on-demand storefront. Design, customize, and order unique products.",
+    "shop": "Shop",
+    "allProducts": "All Products",
+    "apparel": "Apparel",
+    "accessories": "Accessories",
+    "home": "Home & Living",
+    "company": "Company",
+    "about": "About Us",
+    "contact": "Contact",
+    "faq": "FAQ",
+    "legal": "Legal",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "returns": "Returns & Refunds",
+    "shipping": "Shipping Policy",
+    "language": "Language",
+    "copyright": "© {year} PodClaw. All rights reserved.",
+    "powered": "Powered by AI • Designed with care"
   }
 }
