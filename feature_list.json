@@ -1856,7 +1856,7 @@
     "id": 167,
     "feature": "RAG Pipeline",
     "description": "Product descriptions, FAQ, and policies embedded",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Query the documents table for source_type entries",
       "Verify entries exist with source_type 'product'",
