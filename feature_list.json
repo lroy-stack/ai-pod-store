@@ -1059,7 +1059,7 @@
     "id": 97,
     "feature": "Shopping Cart + Wishlists",
     "description": "Maximum quantity limit enforced",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Try setting the quantity of an item above the maximum allowed (e.g., 100)",
       "Verify the quantity is capped at the maximum or an error is shown",

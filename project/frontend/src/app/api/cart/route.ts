@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 
+// Maximum quantity allowed per cart item
+const MAX_CART_QUANTITY = 99
+
 // GET /api/cart - Fetch cart items
 export async function GET(request: NextRequest) {
   try {
@@ -176,7 +179,7 @@ export async function POST(request: NextRequest) {
     if (existingItems && existingItems.length > 0) {
       // Update quantity if item already exists
       const existingItem = existingItems[0]
-      const newQuantity = existingItem.quantity + quantity
+      const newQuantity = Math.min(existingItem.quantity + quantity, MAX_CART_QUANTITY)
 
       const { error: updateError } = await supabase
         .from('cart_items')
@@ -267,6 +270,14 @@ export async function PATCH(request: NextRequest) {
     if (!item_id || typeof quantity !== 'number' || quantity < 0) {
       return NextResponse.json(
         { error: 'Invalid request', message: 'item_id and quantity are required' },
+        { status: 400 }
+      )
+    }
+
+    // Enforce maximum quantity limit
+    if (quantity > MAX_CART_QUANTITY) {
+      return NextResponse.json(
+        { error: 'Quantity exceeds maximum', message: `Maximum quantity is ${MAX_CART_QUANTITY}` },
         { status: 400 }
       )
     }

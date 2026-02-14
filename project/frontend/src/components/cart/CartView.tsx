@@ -13,6 +13,9 @@ import { Badge } from '@/components/ui/badge'
 import { useState } from 'react'
 import { toast } from 'sonner'
 
+// Maximum quantity allowed per cart item
+const MAX_CART_QUANTITY = 99
+
 export default function CartView({ locale }: { locale: string }) {
   const t = useTranslations('Cart')
   const { authenticated, loading: authLoading } = useAuth()
@@ -23,6 +26,12 @@ export default function CartView({ locale }: { locale: string }) {
   const cartTotal = cartItems.reduce((total, item) => total + (item.product_price * item.quantity), 0)
 
   const updateQuantity = async (itemId: string, newQuantity: number) => {
+    // Enforce maximum quantity on client side
+    if (newQuantity > MAX_CART_QUANTITY) {
+      toast.error(t('maxQuantityExceeded', { max: MAX_CART_QUANTITY }))
+      return
+    }
+
     setUpdatingItems(prev => new Set(prev).add(itemId))
 
     try {
@@ -33,7 +42,8 @@ export default function CartView({ locale }: { locale: string }) {
       })
 
       if (!response.ok) {
-        throw new Error('Failed to update quantity')
+        const errorData = await response.json()
+        throw new Error(errorData.message || 'Failed to update quantity')
       }
 
       await refreshCart()
@@ -45,7 +55,7 @@ export default function CartView({ locale }: { locale: string }) {
       }
     } catch (error) {
       console.error('Update quantity error:', error)
-      toast.error(t('updateFailed'))
+      toast.error(error instanceof Error ? error.message : t('updateFailed'))
     } finally {
       setUpdatingItems(prev => {
         const next = new Set(prev)
@@ -148,7 +158,7 @@ export default function CartView({ locale }: { locale: string }) {
                               size="icon"
                               className="size-8"
                               onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                              disabled={updatingItems.has(item.id)}
+                              disabled={updatingItems.has(item.id) || item.quantity >= MAX_CART_QUANTITY}
                             >
                               <Plus className="size-4" />
                             </Button>

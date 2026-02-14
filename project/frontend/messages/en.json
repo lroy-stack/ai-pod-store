@@ -263,6 +263,7 @@
     "remove": "Remove",
     "itemRemoved": "Item removed from cart",
     "quantityUpdated": "Quantity updated",
-    "updateFailed": "Failed to update cart"
+    "updateFailed": "Failed to update cart",
+    "maxQuantityExceeded": "Maximum quantity is {max} per item"
   }
 }

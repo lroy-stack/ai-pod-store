@@ -263,6 +263,7 @@
     "remove": "Entfernen",
     "itemRemoved": "Artikel aus dem Warenkorb entfernt",
     "quantityUpdated": "Menge aktualisiert",
-    "updateFailed": "Aktualisierung des Warenkorbs fehlgeschlagen"
+    "updateFailed": "Aktualisierung des Warenkorbs fehlgeschlagen",
+    "maxQuantityExceeded": "Die maximale Menge beträgt {max} pro Artikel"
   }
 }

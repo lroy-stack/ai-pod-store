@@ -263,6 +263,7 @@
     "remove": "Eliminar",
     "itemRemoved": "Artículo eliminado del carrito",
     "quantityUpdated": "Cantidad actualizada",
-    "updateFailed": "Error al actualizar el carrito"
+    "updateFailed": "Error al actualizar el carrito",
+    "maxQuantityExceeded": "La cantidad máxima es {max} por artículo"
   }
 }
