@@ -2094,7 +2094,7 @@
     "id": 189,
     "feature": "Design System & AI Designs",
     "description": "Design moderation + NSFW check",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Submit a potentially inappropriate design",
       "Verify the moderation_status is set to 'pending'",
