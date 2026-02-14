@@ -38,7 +38,7 @@ interface StorefrontSidebarProps {
 export function StorefrontSidebar({ onNavigate }: StorefrontSidebarProps) {
   const t = useTranslations('storefront')
   const { itemCount } = useCart()
-  const { setSelectedProduct } = useStorefront()
+  const { setSelectedProduct, addArtifact } = useStorefront()
   const params = useParams()
   const pathname = usePathname()
   const locale = params.locale as string
@@ -87,8 +87,28 @@ export function StorefrontSidebar({ onNavigate }: StorefrontSidebarProps) {
     return pathname.startsWith(basePath)
   }
 
-  const handleProductClick = (productId: string) => {
+  const handleProductClick = (productId: string, productData?: SidebarProduct) => {
+    // Backward compatibility - set selectedProduct
     setSelectedProduct(productId)
+
+    // Add to artifact system for tabs
+    if (productData) {
+      addArtifact({
+        id: productId,
+        type: 'product',
+        title: productData.title || `Product ${productId}`,
+        data: productData,
+      })
+    } else {
+      // If no product data, create placeholder
+      addArtifact({
+        id: productId,
+        type: 'product',
+        title: `Product ${productId}`,
+        data: { id: productId },
+      })
+    }
+
     onNavigate?.()
   }
 
@@ -165,7 +185,7 @@ export function StorefrontSidebar({ onNavigate }: StorefrontSidebarProps) {
                 price={formatPrice(product.price, locale, product.currency)}
                 rating={product.rating}
                 image={product.image}
-                onClick={() => handleProductClick(product.id)}
+                onClick={() => handleProductClick(product.id, product)}
               />
             ))}
           </div>
@@ -183,7 +203,7 @@ export function StorefrontSidebar({ onNavigate }: StorefrontSidebarProps) {
                 price={formatPrice(product.price, locale, product.currency)}
                 rating={product.rating}
                 image={product.image}
-                onClick={() => handleProductClick(product.id)}
+                onClick={() => handleProductClick(product.id, product)}
               />
             ))}
           </div>

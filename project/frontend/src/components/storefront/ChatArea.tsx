@@ -26,7 +26,7 @@ import { useStorefront } from './StorefrontContext'
 
 export function ChatArea() {
   const t = useTranslations('storefront')
-  const { setSelectedProduct, pendingChatMessage, setPendingChatMessage } = useStorefront()
+  const { setSelectedProduct, pendingChatMessage, setPendingChatMessage, addArtifact } = useStorefront()
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [inputValue, setInputValue] = useState('')
@@ -326,6 +326,22 @@ export function ChatArea() {
                       if (part.state === 'output-available' && part.output) {
                         const output = part.output as any
 
+                        // Create a handler to add artifacts to the detail panel when clicked
+                        const handleSelectProduct = (productId: string) => {
+                          // For backward compatibility, also set selectedProduct
+                          setSelectedProduct(productId)
+
+                          // Add to artifact system - we need to fetch product data
+                          // For now, create a placeholder artifact that will be filled by DetailPanel
+                          const newArtifact = {
+                            id: productId,
+                            type: 'product' as const,
+                            title: `Product ${productId}`,
+                            data: { id: productId },
+                          }
+                          addArtifact(newArtifact)
+                        }
+
                         // Handle approval workflow for checkout (tool returned needsApproval: true)
                         if (output.needsApproval && toolName === 'create_checkout') {
                           const handleApprove = async () => {
@@ -433,7 +449,7 @@ export function ChatArea() {
                           <div key={index} className="p-4">
                             <artifact.Component
                               {...output}
-                              onSelectProduct={setSelectedProduct}
+                              onSelectProduct={handleSelectProduct}
                               variant="inline"
                             />
                           </div>

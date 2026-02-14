@@ -22,12 +22,21 @@ import { DetailPanel } from './DetailPanel'
 import { Sheet, SheetContent } from '@/components/ui/sheet'
 
 function StorefrontShell({ children }: { children: React.ReactNode }) {
-  const { selectedProduct, setSelectedProduct, setPendingChatMessage } = useStorefront()
+  const { selectedProduct, setSelectedProduct, setPendingChatMessage, artifacts, clearArtifacts } =
+    useStorefront()
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
   const handleAskAbout = (question: string) => {
     setPendingChatMessage(question)
   }
+
+  const handleClosePanel = () => {
+    setSelectedProduct(null)
+    clearArtifacts()
+  }
+
+  // Show detail panel if we have artifacts OR selectedProduct (backward compatibility)
+  const showDetailPanel = artifacts.length > 0 || selectedProduct
 
   return (
     <div className="flex h-dvh w-full overflow-hidden bg-background">
@@ -50,24 +59,16 @@ function StorefrontShell({ children }: { children: React.ReactNode }) {
       </main>
 
       {/* Right Detail Panel - Desktop */}
-      {selectedProduct && (
+      {showDetailPanel && (
         <aside className="hidden lg:flex lg:w-[340px] border-l border-border">
-          <DetailPanel
-            productId={selectedProduct}
-            onClose={() => setSelectedProduct(null)}
-            onAskAbout={handleAskAbout}
-          />
+          <DetailPanel productId={selectedProduct || undefined} onClose={handleClosePanel} onAskAbout={handleAskAbout} />
         </aside>
       )}
 
       {/* Right Detail Panel - Mobile (full screen overlay) */}
-      {selectedProduct && (
+      {showDetailPanel && (
         <div className="lg:hidden fixed inset-0 z-50 bg-background">
-          <DetailPanel
-            productId={selectedProduct}
-            onClose={() => setSelectedProduct(null)}
-            onAskAbout={handleAskAbout}
-          />
+          <DetailPanel productId={selectedProduct || undefined} onClose={handleClosePanel} onAskAbout={handleAskAbout} />
         </div>
       )}
     </div>

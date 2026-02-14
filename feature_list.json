@@ -1770,7 +1770,7 @@
     "id": 159,
     "feature": "Conversational Storefront / Chat",
     "description": "Artifact tabs work for multiple artifacts",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Trigger multiple tools that produce artifacts",
       "Verify a tab bar appears in the artifacts panel",
