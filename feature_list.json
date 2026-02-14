@@ -1070,7 +1070,7 @@
     "id": 98,
     "feature": "Shopping Cart + Wishlists",
     "description": "Cart API endpoints work",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Send GET /api/cart and verify it returns the cart items",
       "Send POST /api/cart/add with a product and verify the item is added",
