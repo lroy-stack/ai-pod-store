@@ -9,6 +9,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { headers } from 'next/headers'
 import { stripe } from '@/lib/stripe'
 import { printify, buildPrintifyAddress } from '@/lib/printify'
+import { sendOrderConfirmationEmail } from '@/lib/resend'
 import { createClient } from '@supabase/supabase-js'
 import Stripe from 'stripe'
 
@@ -393,7 +394,25 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
       await handleCreditPackPurchase(session)
     }
 
-    // TODO: Send confirmation email (future feature)
+    // Send order confirmation email
+    if (customerEmail) {
+      try {
+        const orderNumber = order.id.slice(0, 8)
+        await sendOrderConfirmationEmail({
+          to: customerEmail,
+          orderId: order.id,
+          orderNumber,
+          itemCount: validOrderItems.length,
+          totalCents: order.total_cents,
+          currency: order.currency,
+          locale: order.locale || 'en',
+        })
+        console.log('Order confirmation email sent to:', customerEmail)
+      } catch (emailError) {
+        console.error('Failed to send order confirmation email:', emailError)
+        // Don't throw - email failure shouldn't fail the webhook
+      }
+    }
 
     console.log('Successfully processed checkout session:', session.id)
   } catch (error) {

@@ -2777,7 +2777,7 @@
     "id": 251,
     "feature": "Internationalization End-to-End",
     "description": "Email templates sent in user's locale",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Trigger an order confirmation for a Spanish-locale user",
       "Verify the email content is in Spanish"

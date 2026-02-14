@@ -100,6 +100,13 @@ class Orchestrator:
         self._active_sessions[agent_name] = session_id
         start_time = datetime.now(timezone.utc)
 
+        # Write session row to agent_sessions table
+        await self.events.record_session(
+            session_id=session_id,
+            session_type=agent_name,
+            status="running",
+        )
+
         await self.events.record(
             agent_name=agent_name,
             event_type="session_start",
@@ -186,6 +193,25 @@ class Orchestrator:
                 event_type="session_end",
                 payload=result,
                 session_id=session_id,
+            )
+
+            # Update session row in agent_sessions table
+            await self.events.update_session(
+                session_id=session_id,
+                status=result.get("status", "completed"),
+                tool_calls=result.get("tool_calls", 0),
+                tool_errors=0,
+                error_log=result.get("error"),
+            )
+
+            # Record to audit_log for traceability
+            await self.events.record_audit(
+                actor_id=f"podclaw:{agent_name}",
+                action="agent_session",
+                resource_type="agent_session",
+                resource_id=session_id,
+                changes={"status": result.get("status", "completed"), "tool_calls": result.get("tool_calls", 0)},
+                metadata={"agent": agent_name, "duration_seconds": result.get("duration_seconds")},
             )
 
         return result

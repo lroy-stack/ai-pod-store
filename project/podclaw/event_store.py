@@ -105,6 +105,113 @@ class EventStore:
         result = await asyncio.to_thread(_run_query)
         return result.data if result.data else []
 
+    async def query_sessions(
+        self,
+        agent_name: str | None = None,
+        limit: int = 20,
+    ) -> list[dict[str, Any]]:
+        """Query agent_sessions table."""
+        if not self._client:
+            return []
+
+        def _run_query():
+            q = self._client.table("agent_sessions").select("*")
+            if agent_name:
+                q = q.eq("session_type", agent_name)
+            q = q.order("started_at", desc=True).limit(limit)
+            return q.execute()
+
+        result = await asyncio.to_thread(_run_query)
+        return result.data if result.data else []
+
+    async def record_session(
+        self,
+        session_id: str,
+        session_type: str,
+        status: str = "running",
+    ) -> None:
+        """Insert a new session record into agent_sessions."""
+        if not self._client:
+            return
+
+        row = {
+            "id": session_id,
+            "session_type": session_type,
+            "status": status,
+        }
+
+        try:
+            await asyncio.to_thread(
+                lambda: self._client.table("agent_sessions").insert(row).execute()
+            )
+        except Exception as e:
+            logger.error("session_insert_failed", error=str(e), session_id=session_id)
+
+    async def update_session(
+        self,
+        session_id: str,
+        status: str,
+        tool_calls: int = 0,
+        tool_errors: int = 0,
+        error_log: str | None = None,
+    ) -> None:
+        """Update a session record (on completion/error)."""
+        if not self._client:
+            return
+
+        from datetime import datetime, timezone
+        updates: dict[str, Any] = {
+            "status": status,
+            "ended_at": datetime.now(timezone.utc).isoformat(),
+            "tool_calls": tool_calls,
+            "tool_errors": tool_errors,
+        }
+        if error_log:
+            updates["error_log"] = error_log
+
+        try:
+            await asyncio.to_thread(
+                lambda: (
+                    self._client.table("agent_sessions")
+                    .update(updates)
+                    .eq("id", session_id)
+                    .execute()
+                )
+            )
+        except Exception as e:
+            logger.error("session_update_failed", error=str(e), session_id=session_id)
+
+    async def record_audit(
+        self,
+        actor_id: str,
+        action: str,
+        resource_type: str,
+        resource_id: str | None = None,
+        changes: dict | None = None,
+        metadata: dict | None = None,
+    ) -> None:
+        """Record an action to the audit_log table."""
+        if not self._client:
+            return
+
+        row = {
+            "actor_type": "ai_agent",
+            "actor_id": actor_id,
+            "action": action,
+            "resource_type": resource_type,
+            "changes": changes or {},
+            "metadata": metadata or {},
+        }
+        if resource_id:
+            row["resource_id"] = resource_id
+
+        try:
+            await asyncio.to_thread(
+                lambda: self._client.table("audit_log").insert(row).execute()
+            )
+        except Exception as e:
+            logger.error("audit_log_failed", error=str(e), action=action)
+
     async def get_session_events(self, session_id: str) -> list[dict[str, Any]]:
         """Get all events for a specific session."""
         if not self._client:
