@@ -18,6 +18,7 @@ import { PricingTableArtifact, PricingTableSkeleton } from './PricingTableArtifa
 import { ApprovalCardArtifact, ApprovalCardSkeleton } from './ApprovalCardArtifact'
 import { OrderTimelineArtifact, OrderTimelineSkeleton } from './OrderTimelineArtifact'
 import { OrderListArtifact, OrderListSkeleton } from './OrderListArtifact'
+import { ReturnRequestArtifact, ReturnRequestSkeleton } from './ReturnRequestArtifact'
 
 export interface ArtifactRegistryEntry {
   Component: React.ComponentType<any>
@@ -68,6 +69,10 @@ export const artifactRegistry: Record<string, ArtifactRegistryEntry> = {
   get_order_history: {
     Component: OrderListArtifact,
     Skeleton: OrderListSkeleton,
+  },
+  request_return: {
+    Component: ReturnRequestArtifact,
+    Skeleton: ReturnRequestSkeleton,
   },
 }
 

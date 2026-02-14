@@ -992,6 +992,105 @@ Be friendly, helpful, and concise.`
           }
         },
       }),
+      request_return: tool({
+        description: 'Request a return for an order. Call this when user wants to return an order, get a refund, or cancel their order. This requires user approval.',
+        parameters: z.object({
+          orderId: z.string().optional().describe('Order ID to return (optional - if not provided, returns most recent eligible order)'),
+          reason: z.string().optional().describe('Reason for return (optional - user will be prompted)'),
+        }),
+        // @ts-expect-error AI SDK 6.0.86 type mismatch — execute works at runtime
+        execute: async (args: { orderId?: string; reason?: string }) => {
+          const { orderId, reason } = args
+          try {
+            // User must be authenticated
+            if (!chatUserId) {
+              return {
+                success: false,
+                error: 'Please log in to request a return.',
+              }
+            }
+
+            let targetOrder: any = null
+
+            // If order ID is provided, fetch that specific order
+            if (orderId) {
+              const { data: order, error: orderError } = await supabase
+                .from('orders')
+                .select('*')
+                .eq('id', orderId)
+                .eq('user_id', chatUserId)
+                .single()
+
+              if (orderError || !order) {
+                return {
+                  success: false,
+                  error: 'Order not found. Please check the order ID and try again.',
+                }
+              }
+
+              targetOrder = order
+            } else {
+              // Fetch the most recent eligible order for return
+              const { data: orders, error: ordersError } = await supabase
+                .from('orders')
+                .select('*')
+                .eq('user_id', chatUserId)
+                .in('status', ['paid', 'submitted', 'in_production', 'shipped', 'delivered'])
+                .order('created_at', { ascending: false })
+                .limit(1)
+
+              if (ordersError || !orders || orders.length === 0) {
+                return {
+                  success: false,
+                  error: 'No eligible orders found for return. Only paid, submitted, in_production, shipped, or delivered orders can be returned.',
+                }
+              }
+
+              targetOrder = orders[0]
+            }
+
+            // Check if order is eligible for return
+            if (!['paid', 'submitted', 'in_production', 'shipped', 'delivered'].includes(targetOrder.status)) {
+              return {
+                success: false,
+                error: `Order ${targetOrder.id} is not eligible for return. Current status: ${targetOrder.status}`,
+              }
+            }
+
+            // Check if a return request already exists
+            const { data: existingReturn } = await supabase
+              .from('return_requests')
+              .select('id, status')
+              .eq('order_id', targetOrder.id)
+              .single()
+
+            if (existingReturn) {
+              return {
+                success: false,
+                error: `A return request already exists for this order (status: ${existingReturn.status})`,
+              }
+            }
+
+            // Return approval request with order details
+            return {
+              success: true,
+              needsApproval: true,
+              orderId: targetOrder.id,
+              status: targetOrder.status,
+              totalCents: targetOrder.total_cents,
+              currency: targetOrder.currency || 'EUR',
+              createdAt: targetOrder.created_at,
+              paidAt: targetOrder.paid_at,
+              shippedAt: targetOrder.shipped_at,
+              reason: reason || '',
+              message: 'Please confirm you want to request a return for this order.',
+            }
+          } catch (error) {
+            console.error('request_return error:', error)
+            return { success: false, error: 'Failed to process return request' }
+          }
+        },
+      }),
     }
 
     // Stream response with tools

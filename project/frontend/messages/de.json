@@ -488,6 +488,11 @@
     "approvalSubtitle": "Überprüfen Sie Ihre Bestellung vor der Zahlung",
     "approvalNote": "Sie werden zu Stripe weitergeleitet, um Ihre Zahlung abzuschließen. Steuern und Versand werden an der Kasse berechnet.",
     "approvalApprove": "Zur Zahlung Gehen",
-    "approvalDeny": "Abbrechen"
+    "approvalDeny": "Abbrechen",
+    "returnRequestTitle": "Rückgabe Anfordern",
+    "returnRequestSubtitle": "Bestätigen Sie Ihre Rückgabeanfrage",
+    "returnRequestNote": "Ihre Rückgabeanfrage wird von unserem Team geprüft. Sie erhalten eine Bestätigungs-E-Mail nach Genehmigung. Rückerstattungen werden in der Regel innerhalb von 5-7 Werktagen bearbeitet.",
+    "returnRequestApprove": "Rückgabeanfrage Einreichen",
+    "returnRequestDeny": "Abbrechen"
   }
 }

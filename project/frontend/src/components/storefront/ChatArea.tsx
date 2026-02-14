@@ -257,7 +257,7 @@ export function ChatArea() {
                       if (part.state === 'output-available' && part.output) {
                         const output = part.output as any
 
-                        // Handle approval workflow (tool returned needsApproval: true)
+                        // Handle approval workflow for checkout (tool returned needsApproval: true)
                         if (output.needsApproval && toolName === 'create_checkout') {
                           const handleApprove = async () => {
                             try {
@@ -307,10 +307,56 @@ export function ChatArea() {
                           )
                         }
 
+                        // Handle approval workflow for return request
+                        if (output.needsApproval && toolName === 'request_return') {
+                          const handleApprove = async (reason: string) => {
+                            try {
+                              // Call the return request API directly
+                              const response = await fetch(`/api/orders/${output.orderId}/returns`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                  reason,
+                                }),
+                              })
+
+                              if (response.ok) {
+                                const data = await response.json()
+                                sendMessage({ text: `Return request submitted successfully! Your request ID is ${data.return_request?.id?.slice(0, 8)}. You'll receive an email confirmation shortly.` })
+                              } else {
+                                const error = await response.json()
+                                sendMessage({ text: `Failed to submit return request: ${error.error || 'Unknown error'}` })
+                              }
+                            } catch (error) {
+                              console.error('Return request error:', error)
+                              sendMessage({ text: 'There was an error submitting your return request. Please try again.' })
+                            }
+                          }
+                          const handleDeny = () => {
+                            sendMessage({ text: 'Return request cancelled.' })
+                          }
+
+                          return (
+                            <div key={index} className="p-4">
+                              <artifact.Component
+                                {...output}
+                                onApprove={handleApprove}
+                                onDeny={handleDeny}
+                                variant="inline"
+                              />
+                            </div>
+                          )
+                        }
+
                         // Handle successful checkout redirect (not needed anymore since we redirect directly)
                         if (output.checkoutUrl && toolName === 'confirm_checkout') {
                           // Redirect to Stripe checkout
                           window.location.href = output.checkoutUrl
+                          return null
+                        }
+
+                        // Don't render artifact if tool execution failed
+                        if (output.success === false) {
                           return null
                         }
 

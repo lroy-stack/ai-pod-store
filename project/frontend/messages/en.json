@@ -488,6 +488,11 @@
     "approvalSubtitle": "Review your order before proceeding to payment",
     "approvalNote": "You will be redirected to Stripe to complete your payment. Tax and shipping will be calculated at checkout.",
     "approvalApprove": "Proceed to Payment",
-    "approvalDeny": "Cancel"
+    "approvalDeny": "Cancel",
+    "returnRequestTitle": "Request Return",
+    "returnRequestSubtitle": "Confirm your return request",
+    "returnRequestNote": "Your return request will be reviewed by our team. You will receive a confirmation email once approved. Refunds typically process within 5-7 business days.",
+    "returnRequestApprove": "Submit Return Request",
+    "returnRequestDeny": "Cancel"
   }
 }

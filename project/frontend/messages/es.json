@@ -488,6 +488,11 @@
     "approvalSubtitle": "Revisa tu pedido antes de proceder al pago",
     "approvalNote": "Serás redirigido a Stripe para completar tu pago. Los impuestos y el envío se calcularán al finalizar la compra.",
     "approvalApprove": "Proceder al Pago",
-    "approvalDeny": "Cancelar"
+    "approvalDeny": "Cancelar",
+    "returnRequestTitle": "Solicitar Devolución",
+    "returnRequestSubtitle": "Confirma tu solicitud de devolución",
+    "returnRequestNote": "Tu solicitud de devolución será revisada por nuestro equipo. Recibirás un correo de confirmación una vez aprobada. Los reembolsos suelen procesarse en 5-7 días hábiles.",
+    "returnRequestApprove": "Enviar Solicitud de Devolución",
+    "returnRequestDeny": "Cancelar"
   }
 }
