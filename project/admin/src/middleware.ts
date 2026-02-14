@@ -5,8 +5,9 @@ export function middleware(request: NextRequest) {
 
   console.log('[MIDDLEWARE] Request:', pathname);
 
-  // Allow access to login page and API routes without auth
-  if (pathname === '/login' || pathname.startsWith('/api/auth/login')) {
+  // Allow access to login page and all API routes without middleware
+  // (API routes will handle their own auth if needed)
+  if (pathname === '/login' || pathname.startsWith('/api/')) {
     console.log('[MIDDLEWARE] Allowing access to:', pathname);
     return NextResponse.next();
   }
