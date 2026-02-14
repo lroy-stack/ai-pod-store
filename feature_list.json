@@ -1037,7 +1037,7 @@
     "id": 95,
     "feature": "Shopping Cart + Wishlists",
     "description": "Adding same product twice increases quantity",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Add product variant A to the cart",
       "Add the same product variant A to the cart again",
