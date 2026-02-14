@@ -47,11 +47,14 @@ export async function POST(req: Request) {
 - Guide them through the shopping experience
 - Provide design suggestions and customization options
 
-IMPORTANT: When the customer asks to see, browse, find, or search for products, you MUST use the product_search tool.
-Examples that require the tool:
-- "show me cat t-shirts" → use product_search with query="cat t-shirts"
-- "I want a hoodie" → use product_search with query="hoodie"
-- "what do you have?" → use product_search with query=""
+IMPORTANT: When the customer asks to see, browse, find, or search for products, you MUST use the appropriate tool:
+- Use product_search for keyword searches: "show me cat t-shirts", "find vintage designs"
+- Use browse_catalog for category browsing: "browse hoodies", "show me all mugs", "what apparel do you have?"
+
+Examples:
+- "show me cat t-shirts" → product_search with query="cat t-shirts"
+- "browse hoodies" → browse_catalog with category="hoodies"
+- "what do you have?" → browse_catalog with no category (shows all)
 
 Be friendly, helpful, and concise. Always respond in the user's language.
 If you don't know something, be honest and offer to help in other ways.`
@@ -117,6 +120,72 @@ If you don't know something, be honest and offer to help in other ways.`
             }
           } catch (error) {
             console.error('Product search execution error:', error)
+            return {
+              success: false,
+              error: error instanceof Error ? error.message : 'Unknown error',
+              products: [],
+            }
+          }
+        },
+      }),
+      browse_catalog: tool({
+        description: 'Browse products by category. Call this when user wants to browse a specific category (e.g. "browse hoodies", "show me mugs").',
+        parameters: z.object({
+          category: z.string().optional().describe('Product category (e.g. "apparel", "home", "accessories")'),
+          limit: z.number().optional().describe('Number of products to return (default 6, max 12)'),
+        }),
+        // @ts-expect-error AI SDK 6.0.86 type mismatch — execute works at runtime
+        execute: async (args: { category?: string; limit?: number }) => {
+          const { category, limit = 6 } = args
+          console.log('[browse_catalog] Tool executing with category:', category, 'limit:', limit)
+          try {
+            // Build query
+            let dbQuery = supabase
+              .from('products')
+              .select('id, title, description, category, base_price_cents, images, avg_rating, review_count')
+              .eq('status', 'active')
+              .limit(Math.min(limit, 12))
+
+            // Filter by category if specified
+            if (category) {
+              dbQuery = dbQuery.ilike('category', `%${category}%`)
+            }
+
+            // Sort by popularity (review count)
+            dbQuery = dbQuery.order('review_count', { ascending: false })
+
+            const { data: products, error } = await dbQuery
+
+            if (error) {
+              console.error('Browse catalog error:', error)
+              return {
+                success: false,
+                error: error.message,
+                products: [],
+              }
+            }
+
+            // Format products for display
+            const formattedProducts = (products || []).map((p) => ({
+              id: p.id,
+              title: p.title,
+              description: p.description?.substring(0, 150) + (p.description?.length > 150 ? '...' : ''),
+              category: p.category,
+              price: p.base_price_cents / 100,
+              currency: 'USD',
+              image: Array.isArray(p.images) && p.images.length > 0 ? p.images[0].src : null,
+              rating: p.avg_rating || 0,
+              reviewCount: p.review_count || 0,
+            }))
+
+            return {
+              success: true,
+              products: formattedProducts,
+              count: formattedProducts.length,
+              category: category || 'all',
+            }
+          } catch (error) {
+            console.error('Browse catalog execution error:', error)
             return {
               success: false,
               error: error instanceof Error ? error.message : 'Unknown error',

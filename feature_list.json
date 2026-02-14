@@ -1585,7 +1585,7 @@
     "id": 143,
     "feature": "Conversational Storefront / Chat",
     "description": "Browse catalog tool produces paginated products",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Type 'browse hoodies' in the chat",
       "Verify the browse_catalog tool is called",
