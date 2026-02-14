@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { useAuth } from '@/hooks/useAuth'
 import { useCart } from '@/hooks/useCart'
+import { useNotifications } from '@/hooks/useNotifications'
 import { cn } from '@/lib/utils'
 import { ThemeToggle } from '@/components/ThemeToggle'
 
@@ -42,6 +43,7 @@ export function StorefrontHeader({ onToggleSidebar }: StorefrontHeaderProps) {
   const tNav = useTranslations('navigation')
   const { authenticated, user, loading, logout } = useAuth()
   const { itemCount } = useCart()
+  const { unreadCount } = useNotifications()
   const params = useParams()
   const router = useRouter()
   const pathname = usePathname()
@@ -136,6 +138,14 @@ export function StorefrontHeader({ onToggleSidebar }: StorefrontHeaderProps) {
         {/* Notifications */}
         <Button variant="ghost" size="icon" className="relative hidden sm:inline-flex">
           <Bell className="h-5 w-5" />
+          {unreadCount > 0 && (
+            <Badge
+              variant="destructive"
+              className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
+            >
+              {unreadCount}
+            </Badge>
+          )}
           <span className="sr-only">Notifications</span>
         </Button>
 
