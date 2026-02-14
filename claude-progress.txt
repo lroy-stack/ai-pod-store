@@ -1,159 +1,78 @@
-# POD AI Store - Agent Progress Log
+# POD AI Store — Development Progress Log
+
+This file tracks feature implementation progress across coding sessions.
 
 ---
 
-## Session 28 (Coding Agent) - 2026-02-14 00:44 UTC
+## Session 30 (Coding Agent) — 2026-02-14
 
-### Work Completed:
+**Features implemented**: 3
+**Tests passing**: 98/389 (25.2%)
+**Tests newly passing this session**: IDs 96, 97, 98
 
-**MAJOR FIX**: Cart API products query error resolved
-- Root cause: Cart GET endpoint tried to join non-existent `products_l10n` table
-- Products table has `title` and `base_price_cents` columns directly (no separate localization table)
-- Solution: Fixed cart GET to query `products` table directly without join
-- Switched to using pre-configured `supabaseAdmin` client for proper RLS bypass
+### Feature #96: Cart updates without full page reload ✅
 
-**Feature #88-90 COMPLETED**: Shopping cart now fully functional
-- Cart POST saves items to database successfully
-- Cart GET retrieves items with product details
-- Cart page displays items with quantities, prices, and totals
-- Cart icon badge shows correct item count
+**Implementation**:
+- Added optimistic UI updates to `useCart.tsx` hook
+- Modified `updateQuantity()` and `removeFromCart()` to update local state immediately
+- API calls happen in background with rollback on error
+- Removed `refreshCart()` calls that caused loading states and full re-fetches
 
-**Feature #91 COMPLETED**: Cart quantity update controls
-- Added PATCH /api/cart endpoint to update item quantities
-- CartView component now has increment (+) and decrement (-) buttons
-- Remove button with trash icon deletes items (sets quantity to 0)
-- Real-time UI updates with toast notifications
-- All 3 locales (EN/ES/DE) have new translation keys
-- Cart icon badge updates instantly on quantity changes
+**Verification**:
+- Clicked + button on cart item — quantity updated instantly from 2→3
+- Cart badge, item total, and order total all updated without page reload
+- No loading spinner displayed during updates
+- Toast notification appeared: "Quantity updated"
+- Verified with Playwright MCP browser testing
 
-**Feature #92 COMPLETED**: Cart total calculations verified
-- Totals update correctly when quantities change
-- Verified: 4 items @ $24.99 = $99.96, 5 items = $124.95
-- Subtotal and Total display correctly
-- Item-level totals calculate properly
+### Feature #97: Maximum quantity limit enforced ✅
 
-### Verification Steps Taken:
+**Implementation**:
+- Added `MAX_CART_QUANTITY = 99` constant to cart API and CartView
+- PATCH `/api/cart` validates `quantity <= 99`, returns 400 if exceeded
+- POST `/api/cart` caps quantity at maximum when adding duplicate items
+- Plus button disabled when quantity reaches 99
+- Client-side validation prevents exceeding max before API call
+- Added `maxQuantityExceeded` translation key (EN/ES/DE)
 
-1. ✅ Fixed cart API products query (removed products_l10n join)
-2. ✅ Switched to supabaseAdmin client
-3. ✅ API test: POST adds item, GET returns it with full details
-4. ✅ Browser test: cart page shows items with correct totals
-5. ✅ Cart icon badge updates (shows "4", "5", then "0" after removal)
-6. ✅ Increment button: 4 → 5 items, total updates to $124.95
-7. ✅ Decrement button: 5 → 4 items, total updates to $99.96
-8. ✅ Remove button: deletes item, shows empty cart message
-9. ✅ Toast notifications appear for all actions
+**Verification**:
+- Set cart quantity to 98 via API
+- Clicked + button to increase to 99 — succeeded
+- Plus button became disabled (grayed out)
+- Attempted to update to 100 via API — returned HTTP 400 with error message
+- Error message: "Maximum quantity is 99"
+- Cart total correctly shows $2474.01 (99 × $24.99)
 
-### Current Status:
+### Feature #98: Cart API endpoints work ✅
 
-- **Tests passing**: 92/389 (23.7%) — +4 features this session
-- **Feature ID 88** [Shopping Cart + Wishlists] - Add to cart works from product page: ✅ **PASSING**
-- **Feature ID 89** [Shopping Cart + Wishlists] - Cart icon shows item count in navbar: ✅ **PASSING**
-- **Feature ID 90** [Shopping Cart + Wishlists] - Cart page lists items with details: ✅ **PASSING**
-- **Feature ID 91** [Shopping Cart + Wishlists] - Cart quantity update works: ✅ **PASSING**
-- **Feature ID 92** [Shopping Cart + Wishlists] - Cart total updates correctly: ✅ **PASSING**
+**Verification via curl**:
+1. **GET /api/cart**: Returns `{"items": []}` initially
+2. **POST /api/cart**: Added item with product_id and quantity → `{"success": true, "added": true}`
+3. **GET /api/cart** (with session cookie): Returns added item with id, product_id, quantity, product_title, product_price
+4. **PATCH /api/cart**: Updated quantity from 2 to 5 → `{"success": true, "updated": true}`
+5. **PATCH /api/cart** (quantity=0): Deleted item → `{"success": true, "deleted": true}`
+6. **GET /api/cart**: Verified cart empty after delete → `{"items": []}`
 
-### Issues Encountered:
+All endpoints work correctly with proper HTTP status codes and response bodies.
 
-1. **Non-existent products_l10n table**: The cart API tried to join with a table that doesn't exist
-   - Products table stores title/description directly
-   - Fixed by removing the join and querying products directly
+### Issues encountered:
+- None — all features implemented and verified successfully
 
-2. **RLS bypass not working**: Creating a new client in cart route didn't bypass RLS correctly
-   - Fixed by using the pre-configured supabaseAdmin client from @/lib/supabase-admin
-
-### Next Steps:
-
-1. Continue Shopping Cart + Wishlists features (IDs 93-109)
-2. Next target: ID 93 - Cart persists across sessions
-
-### Database Status:
-
-- Connected to remote Supabase instance (https://your-project.supabase.co)
-- 24 tables exist and operational
-- cart_items table working correctly with service key bypass
-- Products table: 00000000-0000-0000-0000-000000000001/2/3 (T-Shirt, Hoodie, Mug)
+### Database status:
+- Supabase (remote cloud) connected: ✅
+- Cart_items table operational: ✅
 
 ### Environment:
-
-- .env.local configured correctly with all API keys
-- Dev server running on port 3000
-- No TypeScript errors
-- Cart API fully functional (GET, POST, PATCH, DELETE all working)
+- Dev server running on port 3000: ✅
+- .env.local configured correctly: ✅
+- API keys working: ✅
 
 ---
 
 ## Next Session Priorities:
 
-1. Feature #93: Cart persistence across sessions
-2. Continue Shopping Cart + Wishlists features (IDs 94-109)
+1. Feature #99: Wishlist add/remove buttons work
+2. Continue Shopping Cart + Wishlists features (IDs 99-109)
 3. Then move to Checkout & Payments (IDs 110-131)
 
 ---
-
-
----
-
-## Session 29 (Coding Agent) - 2026-02-14 00:55 UTC - CONTINUED
-
-### Additional Work Completed:
-
-**Feature #94 COMPLETED**: Cart empty state verified
-- Removed item from cart via "Remove" button
-- Empty state displayed with "Your cart is empty" message
-- "Continue Shopping" link present (navigates to /shop)
-- Cart badge updated to show no count
-- Toast notification appeared: "Item removed from cart"
-
-**Feature #95 COMPLETED**: Adding same product twice increases quantity
-- Added Classic T-Shirt (Size M, Color Black) to cart — cart badge showed "1"
-- Added the exact same product/variant again — cart badge updated to "2"
-- Verified cart page shows only 1 row with quantity 2 (not 2 duplicate rows)
-- Item total correctly calculated: $49.98 (2 × $24.99)
-- This behavior works via existing cart API logic (lines 176-204) that checks for duplicates
-
-### Verification Steps Taken:
-
-**Feature #94:**
-1. ✅ Clicked "Remove" button on cart item
-2. ✅ Empty state message appeared: "Your cart is empty"
-3. ✅ "Continue Shopping" link present
-4. ✅ Cart badge cleared (no number)
-5. ✅ Toast notification: "Item removed from cart"
-
-**Feature #95:**
-1. ✅ Selected Size M and Color Black
-2. ✅ Clicked "Add to cart" — badge showed "1", toast appeared
-3. ✅ Clicked "Add to cart" again with same variants — badge updated to "2"
-4. ✅ Navigated to /cart
-5. ✅ Verified only 1 cart row displayed (no duplicates)
-6. ✅ Verified quantity shows "2"
-7. ✅ Verified totals: Item total $49.98, Subtotal $49.98, Total $49.98
-
-### Final Status:
-
-- **Tests passing**: 95/389 (24.4%) — +3 features this session (IDs 93, 94, 95)
-- **Feature ID 93** [Shopping Cart + Wishlists] - Cart persists across page navigation: ✅ **PASSING**
-- **Feature ID 94** [Shopping Cart + Wishlists] - Cart empty state shows: ✅ **PASSING**
-- **Feature ID 95** [Shopping Cart + Wishlists] - Adding same product twice increases quantity: ✅ **PASSING**
-
-### Session Summary:
-
-This session focused on cart functionality and verification:
-1. Fixed cart API endpoint mismatch in useCart hook (PATCH operations)
-2. Verified cart persistence across page navigation
-3. Verified empty cart state with proper UI messaging
-4. Verified duplicate product handling (quantity increment vs duplicate rows)
-
-All features verified through comprehensive browser testing with Playwright MCP.
-
----
-
-## Next Session Priorities:
-
-1. Feature #96: Cart updates without full page reload
-2. Continue Shopping Cart + Wishlists features (IDs 97-109)
-3. Then move to Checkout & Payments (IDs 110-131)
-
----
-
