@@ -1745,7 +1745,7 @@
     "id": 157,
     "feature": "Conversational Storefront / Chat",
     "description": "Approval dialog renders correctly",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Trigger a tool with needsApproval set to true",
       "Verify the approval dialog displays the tool name and parameters",
