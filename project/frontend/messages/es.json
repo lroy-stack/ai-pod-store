@@ -447,5 +447,31 @@
       "processing": "Procesando Reembolso",
       "completed": "Reembolso Completado"
     }
+  },
+  "storefront": {
+    "discover": "Descubrir",
+    "trends": "Tendencias",
+    "newArrivals": "Nuevos Productos",
+    "favorites": "Favoritos",
+    "orders": "Pedidos",
+    "recommended": "Recomendados",
+    "popularToday": "Popular Hoy",
+    "lastDesignGenerated": "Último diseño hace 2m",
+    "searchPlaceholder": "Buscar productos...",
+    "welcomeTitle": "Bienvenido a POD AI",
+    "welcomeSubtitle": "Tu tienda print-on-demand con IA. ¡Pregúntame lo que quieras!",
+    "promptDesign": "Diseñar una camiseta personalizada",
+    "promptTshirt": "Mostrar camisetas en tendencia",
+    "promptTrending": "¿Qué está de moda hoy?",
+    "promptGift": "Encontrar un regalo para mi amigo",
+    "inputPlaceholder": "Pregúntame lo que quieras...",
+    "aiDisclaimer": "Las respuestas de IA pueden variar. Siempre verifica los detalles del producto.",
+    "productDetails": "Detalles del Producto",
+    "reviews": "reseñas",
+    "description": "Descripción",
+    "size": "Talla",
+    "color": "Color",
+    "addToCart": "Añadir al Carrito",
+    "askAboutProduct": "Preguntar sobre este producto"
   }
 }

@@ -447,5 +447,31 @@
       "processing": "Processing Refund",
       "completed": "Refund Completed"
     }
+  },
+  "storefront": {
+    "discover": "Discover",
+    "trends": "Trends",
+    "newArrivals": "New Arrivals",
+    "favorites": "Favorites",
+    "orders": "Orders",
+    "recommended": "Recommended",
+    "popularToday": "Popular Today",
+    "lastDesignGenerated": "Last design 2m ago",
+    "searchPlaceholder": "Search products...",
+    "welcomeTitle": "Welcome to POD AI",
+    "welcomeSubtitle": "Your AI-powered print-on-demand store. Ask me anything!",
+    "promptDesign": "Design a custom t-shirt",
+    "promptTshirt": "Show me trending t-shirts",
+    "promptTrending": "What's trending today?",
+    "promptGift": "Find a gift for my friend",
+    "inputPlaceholder": "Ask me anything...",
+    "aiDisclaimer": "AI-powered responses may vary. Always verify product details.",
+    "productDetails": "Product Details",
+    "reviews": "reviews",
+    "description": "Description",
+    "size": "Size",
+    "color": "Color",
+    "addToCart": "Add to Cart",
+    "askAboutProduct": "Ask about this product"
   }
 }

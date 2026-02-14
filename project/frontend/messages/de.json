@@ -447,5 +447,31 @@
       "processing": "Erstattung Wird Bearbeitet",
       "completed": "Erstattung Abgeschlossen"
     }
+  },
+  "storefront": {
+    "discover": "Entdecken",
+    "trends": "Trends",
+    "newArrivals": "Neuheiten",
+    "favorites": "Favoriten",
+    "orders": "Bestellungen",
+    "recommended": "Empfohlen",
+    "popularToday": "Heute Beliebt",
+    "lastDesignGenerated": "Letztes Design vor 2m",
+    "searchPlaceholder": "Produkte suchen...",
+    "welcomeTitle": "Willkommen bei POD AI",
+    "welcomeSubtitle": "Ihr KI-gestützter Print-on-Demand-Shop. Fragen Sie mich etwas!",
+    "promptDesign": "Erstelle ein individuelles T-Shirt",
+    "promptTshirt": "Zeige mir Trend-T-Shirts",
+    "promptTrending": "Was ist heute im Trend?",
+    "promptGift": "Finde ein Geschenk für meinen Freund",
+    "inputPlaceholder": "Fragen Sie mich etwas...",
+    "aiDisclaimer": "KI-gestützte Antworten können variieren. Überprüfen Sie immer die Produktdetails.",
+    "productDetails": "Produktdetails",
+    "reviews": "Bewertungen",
+    "description": "Beschreibung",
+    "size": "Größe",
+    "color": "Farbe",
+    "addToCart": "In den Warenkorb",
+    "askAboutProduct": "Fragen Sie nach diesem Produkt"
   }
 }

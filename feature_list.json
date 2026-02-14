@@ -1450,7 +1450,7 @@
     "id": 132,
     "feature": "Conversational Storefront / Chat",
     "description": "Storefront renders with three-panel layout (sidebar + chat + detail panel)",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to /en/",
       "Verify left sidebar navigation is visible (240px width)",
