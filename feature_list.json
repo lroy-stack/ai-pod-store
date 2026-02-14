@@ -1975,7 +1975,7 @@
     "id": 178,
     "feature": "Design System & AI Designs",
     "description": "Brand colors extended in Tailwind v4 config",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Inspect globals.css @theme block in frontend/src/app/globals.css",
       "Verify --color-primary is set to #0071E3",
@@ -1987,7 +1987,7 @@
     "id": 179,
     "feature": "Design System & AI Designs",
     "description": "shadcn/ui components styled consistently",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Grep frontend/src for raw <button, <input, <select, <textarea elements outside components/ui/ \u2014 must find ZERO instances",
       "Verify all forms use <Button>, <Input>, <Label>, <Select>, <Switch> imports from @/components/ui/",
