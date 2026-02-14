@@ -1965,7 +1965,7 @@
     "id": 177,
     "feature": "RAG Pipeline",
     "description": "Multi-language queries translated for search",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Search in Spanish using 'camisetas de gato'",
       "Verify English product results are returned matching the translated query"
