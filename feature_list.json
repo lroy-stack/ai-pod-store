@@ -2083,7 +2083,7 @@
     "id": 188,
     "feature": "Design System & AI Designs",
     "description": "Design gallery page renders",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to the designs page",
       "Verify a grid of the user's generated designs is displayed",
