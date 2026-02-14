@@ -5,141 +5,160 @@ import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Bot, Play, Square, Clock, CheckCircle, XCircle, AlertCircle, ChevronRight, Zap, Brain, Eye } from 'lucide-react'
-import { formatDistanceToNow } from 'date-fns'
+import { Bot, Play, Square, Clock, CheckCircle, XCircle, AlertCircle, ChevronRight, Zap, Brain, Eye, Calendar, WifiOff } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 
-interface AgentSession {
-  id: string
-  session_number: number
-  session_type: string
-  status: 'running' | 'completed' | 'error'
-  started_at: string
-  ended_at: string | null
-  features_before: number
-  features_after: number
-  tool_calls: number
-  tool_errors: number
+interface BridgeAgent {
+  agent: string
+  running: boolean
+  session_id: string | null
+  model: string | null
+  tools: string[]
 }
 
-interface Skill {
-  id: string
-  name: string
-  description: string
-  status: 'active' | 'inactive'
-  usage_count: number
-}
-
-const statusIcons = {
-  running: Clock,
-  completed: CheckCircle,
-  error: XCircle,
-}
-
-const statusColors = {
-  running: 'bg-blue-500/10 text-blue-700 dark:text-blue-400',
-  completed: 'bg-success/10 text-success',
-  error: 'bg-destructive/10 text-destructive',
+interface BridgeStatus {
+  running: boolean
+  active_sessions: Record<string, string>
+  agent_count: number
+  agents: string[]
 }
 
 export default function AgentsPage() {
   const router = useRouter()
-  const [agentStatus, setAgentStatus] = useState<'running' | 'stopped'>('stopped')
-  const [sessions, setSessions] = useState<AgentSession[]>([])
-  const [skills, setSkills] = useState<Skill[]>([])
-  const [memory, setMemory] = useState<string>('')
+  const [status, setStatus] = useState<BridgeStatus | null>(null)
+  const [agents, setAgents] = useState<BridgeAgent[]>([])
+  const [soulMemory, setSoulMemory] = useState<string>('')
   const [loading, setLoading] = useState(true)
+  const [offline, setOffline] = useState(false)
   const [showMemoryDialog, setShowMemoryDialog] = useState(false)
+  const [triggeringAgent, setTriggeringAgent] = useState<string | null>(null)
 
   useEffect(() => {
-    fetchAgentStatus()
-    fetchSessions()
-    fetchSkills()
+    fetchAll()
   }, [])
 
-  async function fetchAgentStatus() {
+  async function fetchAll() {
     setLoading(true)
+    setOffline(false)
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 500))
-      setAgentStatus('stopped')
-    } catch (err) {
-      console.error('Failed to fetch agent status:', err)
+      const [statusRes, agentsRes] = await Promise.all([
+        fetch('/api/agent/status'),
+        fetch('/api/agent/agents'),
+      ])
+
+      if (statusRes.status === 503 || agentsRes.status === 503) {
+        setOffline(true)
+        return
+      }
+
+      if (statusRes.ok) {
+        setStatus(await statusRes.json())
+      }
+      if (agentsRes.ok) {
+        setAgents(await agentsRes.json())
+      }
+    } catch {
+      setOffline(true)
     } finally {
       setLoading(false)
     }
   }
 
-  async function fetchSessions() {
+  async function handleStop() {
     try {
-      // Mock data for now
-      const mockSessions: AgentSession[] = [
-        {
-          id: '1',
-          session_number: 90,
-          session_type: 'coding',
-          status: 'completed',
-          started_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-          ended_at: new Date(Date.now() - 1.5 * 60 * 60 * 1000).toISOString(),
-          features_before: 223,
-          features_after: 224,
-          tool_calls: 178,
-          tool_errors: 17,
-        },
-        {
-          id: '2',
-          session_number: 89,
-          session_type: 'coding',
-          status: 'completed',
-          started_at: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
-          ended_at: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
-          features_before: 221,
-          features_after: 223,
-          tool_calls: 87,
-          tool_errors: 3,
-        },
-      ]
-      setSessions(mockSessions)
-    } catch (err) {
-      console.error('Failed to fetch sessions:', err)
+      await fetch('/api/agent/stop', { method: 'POST' })
+      await fetchAll()
+    } catch {
+      console.error('Failed to stop agents')
     }
   }
 
-  async function fetchSkills() {
+  async function handleTriggerAgent(agentName: string) {
+    setTriggeringAgent(agentName)
     try {
-      const res = await fetch('/api/agent/skills')
-      if (res.ok) {
-        const data = await res.json()
-        setSkills(data)
-      }
-    } catch (err) {
-      console.error('Failed to fetch skills:', err)
+      await fetch(`/api/agent/agents/${agentName}/run`, { method: 'POST' })
+      await fetchAll()
+    } catch {
+      console.error('Failed to trigger agent:', agentName)
+    } finally {
+      setTriggeringAgent(null)
     }
   }
 
-  async function fetchMemory() {
+  async function handlePause(agentName: string) {
     try {
-      const res = await fetch('/api/agent/memory')
+      await fetch(`/api/agent/agents/${agentName}/pause`, { method: 'POST' })
+    } catch {
+      console.error('Failed to pause agent:', agentName)
+    }
+  }
+
+  async function handleResume(agentName: string) {
+    try {
+      await fetch(`/api/agent/agents/${agentName}/resume`, { method: 'POST' })
+    } catch {
+      console.error('Failed to resume agent:', agentName)
+    }
+  }
+
+  async function fetchSoulMemory() {
+    try {
+      const res = await fetch('/api/agent/memory/soul')
       if (res.ok) {
         const data = await res.json()
-        setMemory(data.content)
+        setSoulMemory(data.content || 'No SOUL.md found')
         setShowMemoryDialog(true)
       }
-    } catch (err) {
-      console.error('Failed to fetch memory:', err)
+    } catch {
+      setSoulMemory('Failed to load SOUL.md — PodClaw bridge may be offline')
+      setShowMemoryDialog(true)
     }
   }
 
-  async function handleStart() {
-    setAgentStatus('running')
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+          <span className="text-foreground">Admin</span>
+          <span>&gt;</span>
+          <span>Agent Monitor</span>
+        </div>
+        <h1 className="text-3xl font-bold">Agent Monitor</h1>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="h-40 animate-pulse rounded-lg bg-muted" />
+          ))}
+        </div>
+      </div>
+    )
   }
 
-  async function handleStop() {
-    setAgentStatus('stopped')
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+  if (offline) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+          <span className="text-foreground">Admin</span>
+          <span>&gt;</span>
+          <span>Agent Monitor</span>
+        </div>
+        <h1 className="text-3xl font-bold">Agent Monitor</h1>
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+            <WifiOff className="h-12 w-12 text-muted-foreground mb-4" />
+            <Badge variant="outline" className="bg-destructive/10 text-destructive mb-4">
+              PodClaw Offline
+            </Badge>
+            <p className="text-lg font-medium">PodClaw bridge is not reachable</p>
+            <p className="text-sm text-muted-foreground mt-1">
+              Start PodClaw with: <code className="text-xs bg-muted px-1 py-0.5 rounded">python3 -m podclaw.main --workspace ./pod_workspace</code>
+            </p>
+            <Button onClick={fetchAll} variant="outline" className="mt-4">
+              Retry Connection
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
   }
 
   return (
@@ -152,269 +171,153 @@ export default function AgentsPage() {
       </div>
 
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold">Agent Monitor</h1>
-        <p className="text-muted-foreground mt-1">
-          Monitor PodClaw autonomous agent status and session history
-        </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Agent Monitor</h1>
+          <p className="text-muted-foreground mt-1">
+            Monitor PodClaw autonomous agent status and controls
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Button onClick={fetchAll} variant="outline" size="sm">
+            Refresh
+          </Button>
+          <Button
+            onClick={() => router.push('/agent/schedule')}
+            variant="outline"
+            size="sm"
+          >
+            <Calendar className="h-4 w-4 mr-2" />
+            Schedule
+          </Button>
+        </div>
       </div>
 
-      {/* Agent Status Card */}
+      {/* PodClaw Status Card */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Bot className="h-5 w-5" />
             PodClaw Status
           </CardTitle>
-          <CardDescription>Current agent execution status</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {loading ? (
-            <div className="flex items-center justify-center py-8">
-              <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-            </div>
-          ) : (
-            <>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div
-                    className={`flex h-12 w-12 items-center justify-center rounded-full ${
-                      agentStatus === 'running'
-                        ? 'bg-success/20'
-                        : 'bg-muted'
-                    }`}
-                  >
-                    {agentStatus === 'running' ? (
-                      <Play className="h-6 w-6 text-success" />
-                    ) : (
-                      <Square className="h-6 w-6 text-muted-foreground" />
-                    )}
-                  </div>
-                  <div>
-                    <p className="text-lg font-semibold">
-                      {agentStatus === 'running' ? 'Running' : 'Stopped'}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {agentStatus === 'running'
-                        ? 'Agent is currently executing tasks'
-                        : 'Agent is not running'}
-                    </p>
-                  </div>
-                </div>
-
-                <Badge
-                  variant="outline"
-                  className={
-                    agentStatus === 'running'
-                      ? 'bg-success/10 text-success'
-                      : 'bg-muted'
-                  }
-                >
-                  {agentStatus === 'running' ? 'Active' : 'Inactive'}
-                </Badge>
-              </div>
-
-              <div className="flex gap-3">
-                <Button
-                  onClick={handleStart}
-                  disabled={agentStatus === 'running'}
-                  size="sm"
-                >
-                  <Play className="mr-2 h-4 w-4" />
-                  Start Agent
-                </Button>
-                <Button
-                  onClick={handleStop}
-                  disabled={agentStatus === 'stopped'}
-                  variant="outline"
-                  size="sm"
-                >
-                  <Square className="mr-2 h-4 w-4" />
-                  Stop Agent
-                </Button>
-              </div>
-
-              {agentStatus === 'stopped' && (
-                <div className="rounded-lg bg-muted/50 p-4">
-                  <p className="text-sm text-muted-foreground">
-                    💡 <strong>Tip:</strong> PodClaw runs autonomously on a scheduled cycle.
-                    Manual control is for testing and emergency stop only.
-                  </p>
-                </div>
-              )}
-            </>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Session History */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Session History</CardTitle>
-          <CardDescription>Recent agent execution sessions</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {sessions.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <Bot className="h-12 w-12 text-muted-foreground mb-4" />
-              <p className="text-lg font-medium">No sessions yet</p>
-              <p className="text-sm text-muted-foreground mt-1">
-                Agent sessions will appear here once PodClaw starts running
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {sessions.map((session) => {
-                const Icon = statusIcons[session.status]
-                const colorClass = statusColors[session.status]
-
-                return (
-                  <div
-                    key={session.id}
-                    className="flex items-start gap-4 rounded-lg border border-border p-4 hover:bg-muted/50 transition-colors cursor-pointer"
-                    onClick={() => router.push(`/agent/${session.id}`)}
-                  >
-                    {/* Status Icon */}
-                    <div
-                      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${colorClass}`}
-                    >
-                      <Icon className="h-5 w-5" />
-                    </div>
-
-                    {/* Session Info */}
-                    <div className="flex-1 space-y-2">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <p className="font-medium">
-                              Session #{session.session_number}
-                            </p>
-                            <Badge variant="outline" className={colorClass}>
-                              {session.status}
-                            </Badge>
-                            <Badge variant="outline">
-                              {session.session_type}
-                            </Badge>
-                          </div>
-                          <p className="text-sm text-muted-foreground mt-1">
-                            Started{' '}
-                            {formatDistanceToNow(new Date(session.started_at), {
-                              addSuffix: true,
-                            })}
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Metrics */}
-                      <div className="grid grid-cols-2 gap-4 rounded-lg bg-muted/50 p-3 md:grid-cols-4">
-                        <div>
-                          <p className="text-xs text-muted-foreground">
-                            Features
-                          </p>
-                          <p className="text-sm font-medium">
-                            {session.features_before} → {session.features_after}
-                            <span className="ml-1 text-success">
-                              (+{session.features_after - session.features_before})
-                            </span>
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-muted-foreground">
-                            Tool Calls
-                          </p>
-                          <p className="text-sm font-medium">
-                            {session.tool_calls}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-muted-foreground">
-                            Errors
-                          </p>
-                          <p className="text-sm font-medium">
-                            {session.tool_errors}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-muted-foreground">
-                            Duration
-                          </p>
-                          <p className="text-sm font-medium">
-                            {session.ended_at
-                              ? Math.round(
-                                  (new Date(session.ended_at).getTime() -
-                                    new Date(session.started_at).getTime()) /
-                                    60000
-                                ) + 'm'
-                              : 'Running...'}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Arrow indicator */}
-                    <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0 mt-2" />
-                  </div>
-                )
-              })}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Skills */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Zap className="h-5 w-5" />
-            Agent Skills
-          </CardTitle>
           <CardDescription>
-            {skills.length} skill{skills.length !== 1 ? 's' : ''} available to PodClaw
+            {status?.agent_count ?? 0} sub-agents configured
+            {status?.running ? ' — orchestrator running' : ' — orchestrator stopped'}
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          {skills.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <Zap className="h-12 w-12 text-muted-foreground mb-4" />
-              <p className="text-lg font-medium">No skills loaded</p>
-              <p className="text-sm text-muted-foreground mt-1">
-                Skills will appear here once the agent is configured
-              </p>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className={`flex h-12 w-12 items-center justify-center rounded-full ${
+                status?.running ? 'bg-success/20' : 'bg-muted'
+              }`}>
+                {status?.running ? (
+                  <Play className="h-6 w-6 text-success" />
+                ) : (
+                  <Square className="h-6 w-6 text-muted-foreground" />
+                )}
+              </div>
+              <div>
+                <p className="text-lg font-semibold">
+                  {status?.running ? 'Running' : 'Stopped'}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {Object.keys(status?.active_sessions ?? {}).length} active session(s)
+                </p>
+              </div>
             </div>
-          ) : (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {skills.map((skill) => (
-                <div
-                  key={skill.id}
-                  className="rounded-lg border border-border p-4 space-y-2"
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <p className="font-medium">{skill.name}</p>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {skill.description}
-                      </p>
-                    </div>
-                    <Badge
-                      variant="outline"
-                      className={
-                        skill.status === 'active'
-                          ? 'bg-success/10 text-success'
-                          : 'bg-muted'
-                      }
-                    >
-                      {skill.status}
-                    </Badge>
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    {skill.usage_count.toLocaleString()} uses
-                  </div>
-                </div>
-              ))}
-            </div>
+
+            <Badge
+              variant="outline"
+              className={status?.running ? 'bg-success/10 text-success' : 'bg-muted'}
+            >
+              {status?.running ? 'Active' : 'Inactive'}
+            </Badge>
+          </div>
+
+          {status?.running && (
+            <Button onClick={handleStop} variant="outline" size="sm">
+              <Square className="mr-2 h-4 w-4" />
+              Emergency Stop
+            </Button>
           )}
         </CardContent>
       </Card>
+
+      {/* Sub-Agent Cards */}
+      <div>
+        <h2 className="text-xl font-semibold mb-4">Sub-Agents ({agents.length})</h2>
+        {agents.length === 0 ? (
+          <Card>
+            <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+              <Bot className="h-12 w-12 text-muted-foreground mb-4" />
+              <p className="text-lg font-medium">No agents loaded</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                Agents will appear when PodClaw is running
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {agents.map((agent) => (
+              <Card key={agent.agent} className="hover:border-primary/50 transition-colors">
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between">
+                    <CardTitle className="text-base">{agent.agent}</CardTitle>
+                    <Badge
+                      variant="outline"
+                      className={agent.running ? 'bg-success/10 text-success' : 'bg-muted'}
+                    >
+                      {agent.running ? 'Running' : 'Idle'}
+                    </Badge>
+                  </div>
+                  <CardDescription className="text-xs">
+                    {agent.model ?? 'unknown model'}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {/* Tools */}
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Tools ({agent.tools.length})</p>
+                    <div className="flex flex-wrap gap-1">
+                      {agent.tools.map((tool) => (
+                        <Badge key={tool} variant="secondary" className="text-xs">
+                          {tool}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex gap-2 pt-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="flex-1"
+                      disabled={agent.running || triggeringAgent === agent.agent}
+                      onClick={() => handleTriggerAgent(agent.agent)}
+                    >
+                      {triggeringAgent === agent.agent ? (
+                        <div className="h-3 w-3 animate-spin rounded-full border-2 border-primary border-t-transparent mr-1" />
+                      ) : (
+                        <Play className="h-3 w-3 mr-1" />
+                      )}
+                      Run
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => router.push(`/agent/${agent.agent}`)}
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* Memory */}
       <Card>
@@ -424,13 +327,13 @@ export default function AgentsPage() {
             Agent Memory
           </CardTitle>
           <CardDescription>
-            View PodClaw's long-term memory and context
+            View PodClaw&apos;s SOUL.md identity and long-term memory
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Button onClick={fetchMemory} variant="outline" size="sm">
+          <Button onClick={fetchSoulMemory} variant="outline" size="sm">
             <Eye className="mr-2 h-4 w-4" />
-            View MEMORY.md
+            View SOUL.md
           </Button>
         </CardContent>
       </Card>
@@ -439,14 +342,14 @@ export default function AgentsPage() {
       <Dialog open={showMemoryDialog} onOpenChange={setShowMemoryDialog}>
         <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Agent Memory (MEMORY.md)</DialogTitle>
+            <DialogTitle>Agent Identity (SOUL.md)</DialogTitle>
             <DialogDescription>
-              PodClaw's consolidated long-term memory and context
+              PodClaw&apos;s core identity and behavioral guidelines
             </DialogDescription>
           </DialogHeader>
           <div className="rounded-lg bg-muted/50 p-4 mt-4">
             <pre className="text-sm whitespace-pre-wrap font-mono">
-              {memory || 'Loading...'}
+              {soulMemory || 'Loading...'}
             </pre>
           </div>
         </DialogContent>

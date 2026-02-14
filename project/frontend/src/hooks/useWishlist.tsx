@@ -99,8 +99,16 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ name: 'My Wishlist' }),
             })
+            if (!createRes.ok) {
+              toast.error('Please sign in to use wishlists')
+              return
+            }
             const createData = await createRes.json()
-            wishlistId = createData.wishlist.id
+            wishlistId = createData.wishlist?.id
+            if (!wishlistId) {
+              toast.error('Failed to create wishlist')
+              return
+            }
           }
 
           const response = await fetch('/api/wishlist/items', {

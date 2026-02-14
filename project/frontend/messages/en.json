@@ -573,7 +573,9 @@
     "productType": "Product Type",
     "noMockupAvailable": "No mockup available",
     "itemsInCartCount": "{count} {count, plural, one {item} other {items}} in cart",
-    "errorLoadingResults": "Error loading results"
+    "errorLoadingResults": "Error loading results",
+    "collapseSidebar": "Collapse sidebar",
+    "podclawActive": "AI Store Manager Active"
   },
   "commandPalette": {
     "searchPlaceholder": "Search for pages, products, or actions...",
@@ -615,7 +617,7 @@
     "returns": "Returns & Refunds",
     "shipping": "Shipping Policy",
     "language": "Language",
-    "copyright": "© {year} PodClaw. All rights reserved.",
+    "copyright": "© {year} {storeName}. All rights reserved.",
     "powered": "Powered by AI • Designed with care"
   },
   "theme": {

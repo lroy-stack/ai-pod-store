@@ -573,7 +573,9 @@
     "productType": "Produkttyp",
     "noMockupAvailable": "Keine Vorschau verfügbar",
     "itemsInCartCount": "{count} {count, plural, one {Artikel} other {Artikel}} im Warenkorb",
-    "errorLoadingResults": "Fehler beim Laden der Ergebnisse"
+    "errorLoadingResults": "Fehler beim Laden der Ergebnisse",
+    "collapseSidebar": "Seitenleiste einklappen",
+    "podclawActive": "KI-Shop-Manager aktiv"
   },
   "commandPalette": {
     "searchPlaceholder": "Seiten, Produkte oder Aktionen suchen...",
@@ -615,7 +617,7 @@
     "returns": "Rückgabe & Erstattung",
     "shipping": "Versandrichtlinien",
     "language": "Sprache",
-    "copyright": "© {year} PodClaw. Alle Rechte vorbehalten.",
+    "copyright": "© {year} {storeName}. Alle Rechte vorbehalten.",
     "powered": "Powered by AI • Mit Sorgfalt gestaltet"
   },
   "theme": {

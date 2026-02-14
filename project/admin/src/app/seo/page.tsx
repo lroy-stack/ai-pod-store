@@ -39,12 +39,48 @@ export default function SEOPage() {
   const [metaTags, setMetaTags] = useState<MetaTags>(defaultMetaTags)
   const [saving, setSaving] = useState(false)
   const [generating, setGenerating] = useState(false)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchMetaTags()
+  }, [])
+
+  const fetchMetaTags = async () => {
+    try {
+      const response = await fetch('/api/admin/seo')
+      if (response.ok) {
+        const data = await response.json()
+        setMetaTags(data)
+      }
+    } catch (error) {
+      console.error('Error fetching meta tags:', error)
+      toast.error('Failed to load meta tags')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleSave = async () => {
     setSaving(true)
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      // Save all three locales
+      await Promise.all([
+        fetch('/api/admin/seo', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ locale: 'en', ...metaTags.en }),
+        }),
+        fetch('/api/admin/seo', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ locale: 'es', ...metaTags.es }),
+        }),
+        fetch('/api/admin/seo', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ locale: 'de', ...metaTags.de }),
+        }),
+      ])
       toast.success('SEO meta tags saved successfully')
     } catch (err) {
       toast.error('Failed to save meta tags')
@@ -64,6 +100,25 @@ export default function SEOPage() {
     } finally {
       setGenerating(false)
     }
+  }
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+          <span className="text-foreground">Admin</span>
+          <span>&gt;</span>
+          <span>SEO Management</span>
+        </div>
+        <div>
+          <h1 className="text-3xl font-bold">SEO Management</h1>
+          <p className="text-muted-foreground mt-1">
+            Manage meta tags, hreflang configuration, and sitemaps
+          </p>
+        </div>
+        <p className="text-center py-12 text-muted-foreground">Loading SEO configuration...</p>
+      </div>
+    )
   }
 
   return (

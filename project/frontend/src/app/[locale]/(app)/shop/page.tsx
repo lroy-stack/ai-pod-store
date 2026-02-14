@@ -84,9 +84,10 @@ export default function ShopPage() {
         if (data.success && data.items) {
           const counts: Record<string, number> = {}
           for (const p of data.items as Product[]) {
-            counts[p.category] = (counts[p.category] || 0) + 1
+            const cat = p.category || 'other'
+            counts[cat] = (counts[cat] || 0) + 1
           }
-          const cats = Object.keys(counts)
+          const cats = Object.keys(counts).filter(Boolean)
           setCategories(['all', ...cats])
           setCategoryCounts({ all: data.items.length, ...counts })
         }
@@ -182,7 +183,7 @@ export default function ShopPage() {
               )}
               onClick={() => handleCategoryChange(category)}
             >
-              {t(`category.${category}`)} ({getCategoryCount(category)})
+              {t.has(`category.${category}`) ? t(`category.${category}`) : category.charAt(0).toUpperCase() + category.slice(1)} ({getCategoryCount(category)})
             </Badge>
           ))}
         </div>

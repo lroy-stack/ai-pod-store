@@ -1627,17 +1627,21 @@
     </phase_9>
 
     <phase_10 name="PodClaw Agent Monitor + Bridge">
-      - Bridge proxy: admin /api/agent/* → PodClaw FastAPI (PODCLAW_BRIDGE_URL, default localhost:8000)
-      - Agent monitor page: 8 sub-agent cards with status, last run, daily cost
-      - Agent run/pause/resume buttons via bridge POST endpoints
-      - Agent detail page: event log table, cost breakdown, error log
-      - Agent memory viewer: SOUL.md + daily log content
-      - Agent skills list with descriptions
-      - Agent schedule editor: modify cron schedules, view next runs
-      - Agent event replay: chronological timeline of past session events
-      - SSE endpoint: /api/events/stream for new_order, order_shipped, printify_error, agent_cycle_complete, budget_alert
-      - TopBar: notification bell with unread count + dropdown + toast notifications (sonner)
+      - CRITICAL: Admin /api/agent/* routes MUST proxy to PodClaw FastAPI bridge (PODCLAW_BRIDGE_URL)
+      - Catch-all proxy: admin/src/app/api/agent/[...path]/route.ts forwards GET/POST to bridge
+      - NEVER create mock/hardcoded agent data — if bridge is offline, show "PodClaw offline" state
+      - Agent monitor page: 8 sub-agent cards showing REAL data from GET /agents endpoint
+      - Agent cards show: name, model (haiku/sonnet), status (running/idle/paused), last_run, daily_cost
+      - Agent run/pause/resume buttons via bridge POST /agents/{name}/run|pause|resume
+      - Agent detail page: real event log from GET /events?agent={name}, cost from GET /costs
+      - Agent memory viewer: SOUL.md from GET /memory/soul, daily from GET /memory/daily
+      - Agent skills = each agent's tools[] from GET /agents (NOT a separate skills endpoint)
+      - Agent schedule editor: reads from GET /schedule, shows cron expression + next_run per job
+      - Agent event replay: chronological timeline from GET /events?agent={name}&limit=100
+      - SSE endpoint: /api/events/stream for new_order, order_shipped, agent_cycle_complete, budget_alert
+      - TopBar: notification bell with unread count + dropdown (sonner toasts)
       - Messaging config page: Telegram/WhatsApp channel setup
+      - Env vars required: PODCLAW_BRIDGE_URL=http://localhost:8000, PODCLAW_BRIDGE_AUTH_TOKEN
     </phase_10>
 
     <phase_11 name="Python Analytics Layer">

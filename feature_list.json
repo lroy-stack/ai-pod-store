@@ -2611,7 +2611,7 @@
     "id": 236,
     "feature": "Admin Dashboard & Agent Monitor",
     "description": "A/B test management in admin",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to http://localhost:3001/ab-tests",
       "Verify the experiment list is displayed",
@@ -2623,7 +2623,7 @@
     "id": 237,
     "feature": "Admin Dashboard & Agent Monitor",
     "description": "Analytics dashboard with RFM + demand",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to the admin analytics page",
       "Verify the RFM segment chart is displayed",
@@ -2634,7 +2634,7 @@
     "id": 238,
     "feature": "Admin Dashboard & Agent Monitor",
     "description": "Agent event replay works",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Select a past agent session in the session history",
       "Click the Replay button",
@@ -2645,7 +2645,7 @@
     "id": 239,
     "feature": "Admin Dashboard & Agent Monitor",
     "description": "Margin analysis per category",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to the finance dashboard",
       "Verify margin breakdown by product category is displayed"
@@ -2655,7 +2655,7 @@
     "id": 240,
     "feature": "Admin Dashboard & Agent Monitor",
     "description": "SEO meta tag updates per locale",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Edit meta tags for the Spanish locale in the admin SEO page",
       "Verify the changes are reflected on the Spanish-language pages"
