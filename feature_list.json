@@ -2961,7 +2961,7 @@
     "id": 268,
     "feature": "PodClaw Agent",
     "description": "Agent event types + session metrics tracked",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify event_type values include 'tool_call', 'decision', and 'error'",
       "Verify session record has tool_calls count metric"
