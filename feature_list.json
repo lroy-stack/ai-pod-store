@@ -2928,7 +2928,7 @@
     "id": 265,
     "feature": "PodClaw Agent",
     "description": "Agent API: schedule view + modify",
-    "passes": false,
+    "passes": true,
     "steps": [
       "GET /api/agent/schedule and verify cron entries returned",
       "PUT /api/agent/schedule/researcher with updated schedule and verify updated"
