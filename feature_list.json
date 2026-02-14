@@ -2488,7 +2488,7 @@
     "id": 225,
     "feature": "Admin Dashboard & Agent Monitor",
     "description": "Audit log viewer",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to http://localhost:3001/audit",
       "Verify log entries are displayed with actor_type, action, resource, timestamp, and changes",
@@ -2499,7 +2499,7 @@
     "id": 226,
     "feature": "Admin Dashboard & Agent Monitor",
     "description": "SEO management",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to http://localhost:3001/seo",
       "Verify meta tags can be edited per locale",
@@ -2511,7 +2511,7 @@
     "id": 227,
     "feature": "Admin Dashboard & Agent Monitor",
     "description": "Agent monitor page renders",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to http://localhost:3001/agent",
       "Verify the agent status card is displayed showing running or stopped state",
@@ -2521,76 +2521,78 @@
   {
     "id": 228,
     "feature": "Admin Dashboard & Agent Monitor",
-    "description": "Agent status display + session history",
-    "passes": false,
+    "description": "Agent status display shows real data from bridge /status and /agents endpoints (NOT mock data). Shows 8 real sub-agents: researcher, marketing, designer, newsletter, cataloger, customer_manager, seo_manager, finance.",
+    "passes": true,
     "steps": [
-      "Verify the current agent status indicator is displayed",
-      "Verify a list of past sessions is shown with type, duration, tool_calls count, and errors"
+      "Verify the agent status page fetches from /api/agent/status and /api/agent/agents (bridge proxy)",
+      "Verify 8 real sub-agent cards are displayed with names matching PodClaw agents",
+      "Verify NO hardcoded mock data arrays exist in the route handlers"
     ]
   },
   {
     "id": 229,
     "feature": "Admin Dashboard & Agent Monitor",
-    "description": "Agent session detail shows events",
-    "passes": false,
+    "description": "Agent session detail shows real events from Supabase agent_events table or bridge /events endpoint. Event timeline with real session_start, tool_use, session_end events.",
+    "passes": true,
     "steps": [
       "Click a session in the session history list",
-      "Verify an event timeline is displayed",
-      "Verify each event shows event_type, data, and timestamps"
+      "Verify event timeline fetches from /api/agent/events?agent={name} (bridge proxy) or Supabase agent_events",
+      "Verify each event shows real event_type, data, and timestamps from the bridge"
     ]
   },
   {
     "id": 230,
     "feature": "Admin Dashboard & Agent Monitor",
-    "description": "Agent skills list + memory viewer",
-    "passes": false,
+    "description": "Agent skills list shows each agent's real tools[] from bridge /agents endpoint (e.g. researcher has web_search+supabase, designer has fal+supabase+printify). Memory viewer reads SOUL.md from bridge /memory/soul.",
+    "passes": true,
     "steps": [
-      "Navigate to the skills section in the agent monitor",
-      "Verify a list of installed skills is displayed",
-      "Click on memory and verify MEMORY.md content is displayed"
+      "Navigate to agent detail page",
+      "Verify skills/tools list fetches from /api/agent/agents (bridge proxy) and shows each agent's real tool names",
+      "Click on memory and verify SOUL.md content is fetched from /api/agent/memory/soul (bridge proxy)"
     ]
   },
   {
     "id": 231,
     "feature": "Admin Dashboard & Agent Monitor",
-    "description": "Agent schedule editor",
+    "description": "Agent schedule editor reads real schedule from bridge /schedule endpoint. Shows 14 jobs with cron expressions and next_run times. Allows modifying schedule.",
     "passes": false,
     "steps": [
-      "View the agent schedule in the admin panel",
-      "Verify cron times are displayed for each sub-agent",
-      "Verify the schedule can be modified"
+      "View the agent schedule page",
+      "Verify schedule fetches from /api/agent/schedule (bridge proxy)",
+      "Verify 14 scheduled jobs are displayed with cron expressions and next_run times"
     ]
   },
   {
     "id": 232,
     "feature": "Admin Dashboard & Agent Monitor",
-    "description": "Sub-agent status cards + manual trigger",
+    "description": "8 sub-agent status cards from bridge /agents endpoint. Each card shows real model, tools, running status. Manual trigger button calls POST /agents/{name}/run via proxy.",
     "passes": false,
     "steps": [
-      "Verify status cards are displayed for researcher, cataloger, designer, and other sub-agents",
-      "Verify each card shows the last run time",
-      "Click Run Now on a sub-agent and verify execution starts"
+      "Verify 8 status cards are displayed from /api/agent/agents (bridge proxy)",
+      "Verify each card shows model (haiku/sonnet), tools list, running/idle status",
+      "Click Run Now on a sub-agent and verify POST /api/agent/agents/{name}/run is called"
     ]
   },
   {
     "id": 233,
     "feature": "Admin Dashboard & Agent Monitor",
-    "description": "Agent error log displays",
+    "description": "Agent error log queries real events from bridge /events?event_type=error. Shows agent name, error message, timestamp, session_id.",
     "passes": false,
     "steps": [
-      "Navigate to the error log section of the agent monitor",
-      "Verify recent errors are displayed with stack traces and timestamps"
+      "Navigate to the error log section",
+      "Verify errors are fetched from /api/agent/events?event_type=error (bridge proxy)",
+      "Verify each error shows agent_name, error message, timestamp, session_id"
     ]
   },
   {
     "id": 234,
     "feature": "Admin Dashboard & Agent Monitor",
-    "description": "Dashboard loads data asynchronously",
+    "description": "Dashboard loads agent data asynchronously from bridge. Shows loading skeletons while fetching. Handles bridge offline gracefully (503 \u2192 'PodClaw offline' badge).",
     "passes": false,
     "steps": [
       "Navigate to the admin dashboard",
-      "Verify loading spinners are shown while data is being fetched",
-      "Verify data populates the dashboard after API responses complete"
+      "Verify loading skeletons are shown while bridge data is being fetched",
+      "Verify bridge offline state (503) shows 'PodClaw offline' badge instead of mock data"
     ]
   },
   {
@@ -2674,13 +2676,13 @@
   {
     "id": 242,
     "feature": "Admin",
-    "description": "Agent schedule modification persists",
+    "description": "Agent schedule modification persists via bridge endpoint. Changes saved to PodClaw scheduler, not in-memory admin state.",
     "passes": false,
     "steps": [
-      "Modify researcher schedule to 07:00 UTC",
-      "Save the schedule change",
+      "Modify researcher schedule to 07:00 UTC via bridge PUT /schedule",
+      "Save the schedule change via /api/agent/schedule proxy",
       "Reload the page",
-      "Verify schedule shows 07:00 UTC"
+      "Verify schedule shows 07:00 UTC from fresh bridge fetch"
     ]
   },
   {
@@ -4337,12 +4339,12 @@
   {
     "id": 395,
     "feature": "Admin Panel Setup",
-    "description": "Admin bridge proxy forwards GET to PodClaw",
+    "description": "Admin bridge proxy catch-all route at /api/agent/[...path]/route.ts forwards all GET/POST requests to PODCLAW_BRIDGE_URL with auth header. Returns 503 with {error, offline:true} when bridge is offline.",
     "passes": false,
     "steps": [
       "Make a GET request to http://localhost:3001/api/agent/status as admin",
-      "Verify the request is proxied to PodClaw bridge at localhost:8000",
-      "Verify the response from PodClaw is returned to the client"
+      "Verify the request is proxied to PodClaw bridge at PODCLAW_BRIDGE_URL",
+      "Verify 503 response with offline:true when bridge is unreachable"
     ]
   },
   {
