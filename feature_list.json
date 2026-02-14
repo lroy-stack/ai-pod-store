@@ -2724,7 +2724,7 @@
     "id": 246,
     "feature": "Internationalization End-to-End",
     "description": "All UI strings translated in Spanish and German",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to /es/ pages and verify no English fallback text is visible",
       "Navigate to /de/ pages and verify no English fallback text is visible"
