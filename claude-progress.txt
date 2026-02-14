@@ -1453,3 +1453,65 @@ The @ai-sdk/react package was updated from v1.0.0 to v3.0.88, introducing breaki
 **Time spent:** ~90 minutes (significant time debugging AI SDK versions)
 **Files modified:** 9 files, +380 lines
 **Commits:** 1 commit (partial progress)
+
+## Session 46 (Coding Agent)
+**Date:** 2026-02-14 08:32 UTC
+**Target Feature:** ID 135 [Conversational Storefront / Chat] — Bot responds with streaming SSE
+
+### Work Completed
+
+1. **Fixed AI SDK 6 integration** (Feature #135)
+   - Added `DefaultChatTransport` from 'ai' package
+   - Corrected useChat hook configuration: `transport: new DefaultChatTransport({ api: '/api/chat' })`
+   - Manual UIMessage to model message conversion in API route
+   - Removed unused `convertToModelMessages` (was causing schema validation errors)
+   - Proper message.parts rendering with type checking
+   - Status-based loading indicator: `status === 'submitted' || status === 'streaming'`
+
+2. **Verified conversation history** (Feature #136)
+   - User messages right-aligned in blue bubbles with user avatar
+   - Assistant messages left-aligned with PodClaw avatar
+   - Chronological order maintained across multiple turns
+   - Full scrollable message history
+
+3. **Verified chat UX features** (Feature #137)
+   - Auto-scroll to bottom on new messages (useEffect with messagesEndRef)
+   - Animated typing indicator with three bouncing dots
+   - Indicator shows during `submitted` and `streaming` status
+
+### Verification Method
+- Playwright MCP browser testing for all features
+- Multi-turn conversations tested (3+ exchanges)
+- Captured screenshots of typing indicator and message history
+- No console errors during interaction
+
+### Tests Passing
+**Total:** 137/389 (35.2%) — +3 features this session
+- ✅ Feature #135: Bot responds with streaming SSE
+- ✅ Feature #136: Conversation history displays correctly
+- ✅ Feature #137: Chat scroll and loading indicator
+
+### Technical Details
+**AI SDK 6 Pattern Discovered:**
+- Frontend: `useChat({ transport: new DefaultChatTransport({ api: '/api/chat' }) })`
+- Backend: Manual conversion from UIMessage format to simple `{ role, content }` format
+- UIMessage has `parts: [{ type: 'text', text: '...' }]` structure
+- Render via `message.parts.map()` with type checking
+
+**Key Files Modified:**
+- `src/components/storefront/ChatArea.tsx` — Added DefaultChatTransport, parts rendering
+- `src/app/api/chat/route.ts` — Manual message conversion, removed convertToModelMessages
+
+### Issues Resolved
+- AI SDK v3.x `convertToModelMessages` schema validation error
+- Manual conversion pattern works reliably
+- Proper status handling for loading states
+
+### Next Session Priorities
+- Feature #138: Chat session maintains context
+- Feature #139: Suggested prompts work
+- Feature #140: Error handling and retry
+
+**Time spent:** ~50 minutes
+**Files modified:** 3 files, ~30 lines
+**Commits:** 3 commits (all features passing)
