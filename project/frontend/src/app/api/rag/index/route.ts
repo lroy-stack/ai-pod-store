@@ -5,6 +5,48 @@ export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 /**
+ * Chunk text into smaller pieces for better RAG retrieval
+ * Strategy: Split on sentence boundaries, keep chunks under 1000 tokens (~750 chars)
+ */
+function chunkText(text: string, maxChunkSize = 750): string[] {
+  // If text is short enough, return as single chunk
+  if (text.length <= maxChunkSize) {
+    return [text]
+  }
+
+  const chunks: string[] = []
+
+  // Split on sentence boundaries (., !, ?, followed by space or newline)
+  const sentences = text.match(/[^.!?\n]+[.!?\n]+/g) || [text]
+
+  let currentChunk = ''
+
+  for (const sentence of sentences) {
+    // If adding this sentence would exceed max size, save current chunk and start new one
+    if (currentChunk.length > 0 && currentChunk.length + sentence.length > maxChunkSize) {
+      chunks.push(currentChunk.trim())
+      currentChunk = sentence
+    } else {
+      currentChunk += sentence
+    }
+  }
+
+  // Add the last chunk if it has content
+  if (currentChunk.trim().length > 0) {
+    chunks.push(currentChunk.trim())
+  }
+
+  // If no chunks were created (e.g., single long sentence), split by character limit
+  if (chunks.length === 0) {
+    for (let i = 0; i < text.length; i += maxChunkSize) {
+      chunks.push(text.slice(i, i + maxChunkSize))
+    }
+  }
+
+  return chunks
+}
+
+/**
  * Index a new document into the RAG knowledge base
  * POST /api/rag/index
  * Body: {
@@ -58,69 +100,84 @@ export async function POST(request: Request) {
       )
     }
 
-    // 1. Generate embedding for the content using Gemini
+    // 1. Chunk the content if it's long
+    const chunks = chunkText(content, 750) // ~750 chars ≈ 200-250 tokens (well under 1000 token limit)
+
+    const indexedChunks = []
     const embeddingUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent?key=${apiKey}`
 
-    const embeddingResponse = await fetch(embeddingUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'models/gemini-embedding-001',
-        content: {
-          parts: [{ text: content }],
+    // 2. Process each chunk: generate embedding + insert into DB
+    for (let i = 0; i < chunks.length; i++) {
+      const chunk = chunks[i]
+
+      // Generate embedding for this chunk
+      const embeddingResponse = await fetch(embeddingUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-        outputDimensionality: 768,
-      }),
-    })
-
-    if (!embeddingResponse.ok) {
-      const errorData = await embeddingResponse.text()
-      console.error('Gemini embedding error:', errorData)
-      return NextResponse.json(
-        {
-          error: 'Failed to generate embedding',
-          details: errorData,
-        },
-        { status: 500 }
-      )
-    }
-
-    const embeddingData = await embeddingResponse.json()
-    const embedding = embeddingData.embedding?.values || []
-
-    if (embedding.length !== 768) {
-      return NextResponse.json(
-        {
-          error: 'Invalid embedding dimension',
-          expected: 768,
-          received: embedding.length,
-        },
-        { status: 500 }
-      )
-    }
-
-    // 2. Insert document with embedding into the database
-    const { data: document, error: insertError } = await supabaseAdmin
-      .from('documents')
-      .insert({
-        content,
-        metadata,
-        embedding: JSON.stringify(embedding), // Store as JSON string for pgvector
-        source_type,
-        source_id,
-        locale,
+        body: JSON.stringify({
+          model: 'models/gemini-embedding-001',
+          content: {
+            parts: [{ text: chunk }],
+          },
+          outputDimensionality: 768,
+        }),
       })
-      .select()
-      .single()
 
-    if (insertError) {
-      console.error('Document insert error:', insertError)
+      if (!embeddingResponse.ok) {
+        const errorData = await embeddingResponse.text()
+        console.error(`Gemini embedding error for chunk ${i}:`, errorData)
+        continue // Skip this chunk but continue with others
+      }
+
+      const embeddingData = await embeddingResponse.json()
+      const embedding = embeddingData.embedding?.values || []
+
+      if (embedding.length !== 768) {
+        console.error(`Invalid embedding dimension for chunk ${i}: ${embedding.length}`)
+        continue
+      }
+
+      // Insert chunk with embedding into the database
+      const chunkMetadata = {
+        ...metadata,
+        chunk_index: i,
+        total_chunks: chunks.length,
+        chunk_size: chunk.length,
+      }
+
+      const { data: document, error: insertError } = await supabaseAdmin
+        .from('documents')
+        .insert({
+          content: chunk,
+          metadata: chunkMetadata,
+          embedding: JSON.stringify(embedding),
+          source_type,
+          source_id,
+          locale,
+        })
+        .select()
+        .single()
+
+      if (insertError) {
+        console.error(`Document insert error for chunk ${i}:`, insertError)
+        continue
+      }
+
+      indexedChunks.push({
+        id: document.id,
+        chunk_index: i,
+        content_length: chunk.length,
+        has_embedding: true,
+      })
+    }
+
+    if (indexedChunks.length === 0) {
       return NextResponse.json(
         {
-          error: 'Failed to insert document',
-          details: insertError.message,
+          error: 'Failed to index any chunks',
+          details: 'All chunks failed embedding or insertion',
         },
         { status: 500 }
       )
@@ -129,18 +186,17 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         success: true,
-        document: {
-          id: document.id,
-          content: document.content,
-          metadata: document.metadata,
-          source_type: document.source_type,
-          source_id: document.source_id,
-          locale: document.locale,
-          created_at: document.created_at,
-          has_embedding: !!document.embedding,
-          embedding_dimension: embedding.length,
-        },
         message: 'Document indexed successfully',
+        chunks: indexedChunks,
+        summary: {
+          total_chunks: chunks.length,
+          indexed_chunks: indexedChunks.length,
+          original_length: content.length,
+          max_chunk_size: Math.max(...chunks.map((c) => c.length)),
+          avg_chunk_size: Math.round(
+            chunks.reduce((sum, c) => sum + c.length, 0) / chunks.length
+          ),
+        },
       },
       { status: 201 }
     )

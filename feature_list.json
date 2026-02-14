@@ -1922,7 +1922,7 @@
     "id": 173,
     "feature": "RAG Pipeline",
     "description": "Document chunking strategy works",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Index a long document through the indexing endpoint",
       "Verify the document is chunked into reasonable sizes",
