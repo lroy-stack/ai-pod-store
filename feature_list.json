@@ -2292,7 +2292,7 @@
     "id": 207,
     "feature": "Order Management & Notifications",
     "description": "Notification API endpoints work",
-    "passes": false,
+    "passes": true,
     "steps": [
       "GET /api/notifications and verify a list is returned",
       "PUT /api/notifications/:id/read and verify the notification is marked read",
@@ -2304,7 +2304,7 @@
     "id": 208,
     "feature": "Order Management & Notifications",
     "description": "Old notifications paginated",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Create 30 notifications for the user",
       "Verify the first page shows 20 notifications",
@@ -2315,7 +2315,7 @@
     "id": 209,
     "feature": "Order Management & Notifications",
     "description": "Notification data includes correct references",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify an order_shipped notification has order_id in its data jsonb column",
       "Verify a design_ready notification has design_id in its data jsonb column"

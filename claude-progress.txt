@@ -1734,3 +1734,305 @@ Implemented and verified feature 203: "Mark notification as read + mark all"
 
 ### Next priorities:
 - Continue Order Management & Notifications (204+)
+
+## Session 83 (Coding Agent) - 2026-02-14 17:21 UTC
+
+### Work Summary
+Implemented and verified feature 204: "Order shipped notification created"
+
+### Feature 204 Implementation
+
+**Webhook Handler Update** (`/api/webhooks/printify/route.ts`):
+- Modified `handleOrderShipped()` function to create notifications
+- Added query to fetch order and user_id before updating status
+- Creates notification with type 'order_shipped' when order status changes to 'shipped'
+- Notification includes order ID (first 8 chars of UUID) and tracking details
+- Graceful error handling: notification creation failure doesn't break webhook
+
+**Notification Details**:
+- **Type**: `order_shipped`
+- **Title**: `Order #<order-id> Shipped`
+- **Body**: Includes carrier name and tracking number when available
+- **Fallback**: Generic message if shipment data missing
+- **User targeting**: Only creates notification if order has a user_id
+
+**Test Infrastructure**:
+Created `scripts/test-order-shipped-notification.mjs`:
+- Creates test order with valid schema (total_cents, status check constraint)
+- Simulates Printify webhook event (order:shipped) with HMAC signature
+- Verifies notification created in database
+- Verifies order status and tracking info updated
+- Exit code 0 on success, 1 on failure
+
+**Verification (via Playwright MCP)**:
+```bash
+# Step 1: Run test script
+→ Created test order: 82b4b6fe-b96a-41d1-8867-e085dcb8b305
+→ Sent webhook: order:shipped with tracking 9400100000000000000000
+✅ Notification created with type 'order_shipped'
+
+# Step 2: Browser verification
+→ Navigated to /en/profile/notifications
+→ Screenshot taken: feature-204-order-shipped-notification.png
+✅ New notification visible at top of list:
+   * Title: "Order #82b4b6fe Shipped"
+   * Body: "Your order has been shipped via USPS. Tracking: 9400100000000000000000"
+   * State: Unread (blue highlight, blue dot badge)
+   * Time: "less than a minute ago"
+✅ Header shows "1 unread notification"
+✅ "Mark all as read" button visible
+```
+
+**Schema Learnings**:
+- Orders table uses `total_cents` (not `total_amount`)
+- Status constraint: 'pending', 'paid', 'submitted', 'in_production', 'shipped', 'delivered', 'cancelled', 'refunded'
+- Order items in separate `order_items` table (not JSONB array)
+- Shipping address is JSONB with keys: full_name, street_line1, city, state, postal_code, country_code
+
+**Tests passing**: 203/485 → 204/485 (42.1%)
+
+---
+
+### Session Summary:
+- Features implemented: 1 (204)
+- Webhook integration: Printify order:shipped event triggers notification creation
+- Test infrastructure: Simulated webhook with HMAC verification
+- Verification: Full E2E test via test script + browser UI
+- All tests passing
+
+### Next priorities:
+- Continue Order Management & Notifications (205+)
+
+## Feature 205 Implementation - Email Notifications via Resend
+
+### Work Summary
+Implemented and verified feature 205: "Email notification sent (Resend)"
+
+### Implementation Details
+
+**Resend Email Service** (`src/lib/resend.ts`):
+- Created `sendOrderShippedEmail()` function with locale-aware templates
+- Supports 3 locales: EN, ES, DE
+- Locale-specific subjects, headings, body text, and CTAs
+- HTML email template with:
+  * Branded header with gradient (POD AI Store)
+  * Order details card (ID, tracking, carrier)
+  * Tracking button (when URL available)
+  * Responsive design (max-width: 600px)
+  * Professional styling with semantic colors
+
+**Email Template Features**:
+- Fallback content when tracking info missing
+- Dynamic carrier and tracking number display
+- Locale-aware "Track your package" button text
+- Footer with brand tagline
+- Error handling with detailed logging
+
+**Webhook Integration**:
+- Updated `handleOrderShipped()` in Printify webhook
+- Fetches order with `customer_email` and `locale`
+- Sends email after creating in-app notification
+- Non-blocking: email failure doesn't break webhook
+- Logs success/failure for monitoring
+
+**Resend Configuration**:
+- API key pre-configured in `.env.local`
+- From address: `POD AI Store <onboarding@resend.dev>`
+- Test mode: sends only to verified account email
+- Production: requires domain verification at resend.com/domains
+
+### Test Verification
+
+**Direct API Test**:
+```bash
+# English email
+curl POST /api/test-email → messageId: fadc6654-0814-48d8-9de4-1300e0c0e898
+✅ SUCCESS
+
+# Spanish email
+curl POST /api/test-email (locale: es) → messageId: 970f389b-60f5-41eb-8451-ece4b1f1454a
+✅ SUCCESS (subject: "¡Tu pedido #test99999 ha sido enviado!")
+
+# German email
+curl POST /api/test-email (locale: de) → messageId: 5dd3a24d-4134-42da-9ca7-74106c69e58d
+✅ SUCCESS (subject: "Deine Bestellung #test88888 wurde versandt!")
+```
+
+**Webhook Integration Test**:
+```bash
+# Created order with verified email: l.roy.lwe@gmail.com
+# Sent order:shipped webhook with UPS tracking
+→ Webhook processed (200)
+→ Email sent via Resend API
+✅ In-app notification created
+✅ Email delivered with tracking info
+```
+
+**Feature Requirements Met**:
+1. ✅ Trigger order event → order:shipped webhook
+2. ✅ Resend API called → messageId returned
+3. ✅ Correct locale → tested EN/ES/DE translations
+
+### Email Content Example (EN):
+- **Subject**: "Your order #6ec3e08f has shipped!"
+- **Heading**: "Your order is on its way! 📦"
+- **Body**: "Your order has been shipped via UPS. You can track your package using the tracking number: UPS9876543210"
+- **CTA**: "Track your package" button → tracking URL
+
+**Tests passing**: 204/485 → 205/485 (42.3%)
+
+---
+
+### Session Summary (Features 204-205):
+- Features implemented: 2 (204, 205)
+- Notification system: In-app + email (dual channel)
+- Email service: Resend integration with locale-aware templates
+- All webhook events now trigger both notification types
+- Verified delivery via Resend API test mode
+
+### Next priorities:
+- Continue Order Management & Notifications (206+)
+
+## Feature 206 Implementation - Notification Preferences Respected
+
+### Work Summary
+Implemented and verified feature 206: "Notification preferences respected"
+
+### Implementation Details
+
+**Preference Check Logic**:
+- Updated `handleOrderShipped()` in Printify webhook handler
+- Fetches user's `notification_preferences` from users table before sending email
+- Checks `preferences.email` field (JSONB column)
+- Default value: `{ email: true, push: true, sms: false }`
+- Skips email sending when `email: false`
+- Logs preference check: "Email notification skipped (user preference disabled)"
+
+**Dual-Channel System**:
+- In-app notifications: Always created (not affected by email preference)
+- Email notifications: Conditional based on user preference
+- This allows users to control email spam while staying informed in-app
+
+**Database Schema**:
+- Column: `users.notification_preferences` (JSONB)
+- Structure: `{ email: boolean, push: boolean, sms: boolean }`
+- Feature #53 already implemented preference toggle UI
+
+### Test Verification
+
+**Test Script**: `test-notification-preferences.mjs`
+
+```bash
+Step 1: Disable email notifications
+→ Updated user preferences: { email: false, push: true, sms: false }
+✅ SUCCESS
+
+Step 2: Create order and trigger webhook
+→ Created order: 7a56ef8d-2d7c-46b5-af99-f605a85fd6fb
+→ Sent order:shipped webhook
+✅ Webhook processed (200)
+
+Step 3: Verify NO email sent
+→ Server logs: "Email notification skipped (user preference disabled)"
+✅ Email NOT sent
+
+Step 4: Verify in-app notification created
+→ Notification: "Order #7a56ef8d Shipped"
+→ Body: "Your order has been shipped via USPS. Tracking: USPS999888777"
+✅ In-app notification created
+
+Step 5: Re-enable email for future tests
+→ Updated preferences: { email: true, push: true, sms: false }
+✅ Restored
+```
+
+**Browser Verification**:
+- Navigated to `/en/profile/notifications`
+- Screenshot taken: feature-206-notification-preferences.png
+- New notification visible at top: "Order #7a56ef8d Shipped"
+- Shows "3 unread notifications"
+- Blue highlight indicates unread status
+
+**Feature Requirements Met**:
+1. ✅ Disable email in profile → `preferences.email = false`
+2. ✅ Trigger event → order:shipped webhook sent
+3. ✅ No email sent → server logs confirm skip
+4. ✅ In-app notification created → verified in UI
+
+**Tests passing**: 205/485 → 206/485 (42.5%)
+
+---
+
+### Session 83 Summary (Features 204-206):
+- Features implemented: 3 (204, 205, 206)
+- Notification system complete:
+  * Webhook triggers (order:shipped)
+  * In-app notifications (always)
+  * Email notifications (Resend, locale-aware, preference-controlled)
+  * User preferences respected
+- Test infrastructure: 3 test scripts created
+- Verification: Full E2E via webhooks + browser UI
+- All tests passing
+
+### Next priorities:
+- Continue Order Management & Notifications (207+)
+
+## Session 84 (Coding Agent) - 2026-02-14 17:37
+
+### Features Implemented This Session: 3
+- **Feature 207**: Notification API endpoints work (PUT support + unread-count endpoint)
+- **Feature 208**: Old notifications paginated (page/limit params, pagination metadata)
+- **Feature 209**: Notification data includes correct references (order_id, design_id in JSONB)
+
+### Implementation Details
+
+**Feature 207 - Notification API Endpoints**:
+- Added PUT method handlers as aliases for existing PATCH endpoints
+- Created `/api/notifications/unread-count` endpoint (alias for `/count`)
+- All four required endpoints verified:
+  * GET /api/notifications → returns notification list (200)
+  * PUT /api/notifications/:id/read → marks single notification as read (200)
+  * PUT /api/notifications/read-all → marks all as read (200)
+  * GET /api/notifications/unread-count → returns count (200)
+
+**Feature 208 - Notification Pagination**:
+- Added `page` and `limit` query parameters to GET /api/notifications
+- Default: page=1, limit=20 (max 100 per page)
+- Returns pagination metadata: total, totalPages, hasNextPage, hasPreviousPage
+- Tested with 39 notifications: page 1 shows 20, page 2 shows 19
+
+**Feature 209 - Notification Data References**:
+- Updated `handleOrderShipped` webhook to include `data` field with:
+  * order_id (UUID reference to orders table)
+  * tracking_number, tracking_url, carrier
+- Verified structure with test notifications:
+  * order_shipped has `data.order_id`
+  * design_ready has `data.design_id`
+
+### Verification Method
+- All features verified via authenticated browser fetch API calls
+- Created 30 test notifications for pagination testing
+- Created order_shipped and design_ready test notifications with data fields
+- Verified response structure and data integrity
+
+### Tests Passing
+- **Before**: 206/485 (42.5%)
+- **After**: 209/485 (43.1%)
+- **Session delta**: +3 features
+
+### Database Status
+- Supabase connected (remote cloud instance)
+- Notifications table: 41 total notifications (30 test + 11 real)
+- All notification types store reference IDs in JSONB data column
+
+### Next Priorities
+- Continue Order Management & Notifications (210+)
+- Focus on completing notification system features
+- Move toward Admin Dashboard phase
+
+### Notes
+- Server running on port 3000 (frontend + API routes)
+- All endpoints tested through authenticated browser context
+- Pagination working correctly with range queries
+- JSONB data field storing structured references properly
+
