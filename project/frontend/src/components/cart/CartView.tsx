@@ -13,14 +13,18 @@ import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { useState } from 'react'
 import { toast } from 'sonner'
+import { formatPrice } from '@/lib/currency'
 
 // Maximum quantity allowed per cart item
 const MAX_CART_QUANTITY = 99
 
 export default function CartView({ locale }: { locale: string }) {
   const t = useTranslations('Cart')
-  const { authenticated, loading: authLoading } = useAuth()
+  const { authenticated, loading: authLoading, user } = useAuth()
   const { items: cartItems, loading: cartLoading, refreshCart } = useCart()
+
+  // Get user's preferred currency, fallback to locale default
+  const userCurrency = user?.currency || (locale === 'es' || locale === 'de' ? 'EUR' : 'USD')
   const [updatingItems, setUpdatingItems] = useState<Set<string>>(new Set())
   const [couponCode, setCouponCode] = useState('')
   const [appliedCoupon, setAppliedCoupon] = useState<{
@@ -235,7 +239,7 @@ export default function CartView({ locale }: { locale: string }) {
 
                         {/* Price */}
                         <p className="text-sm font-medium text-foreground mb-3">
-                          ${item.product_price.toFixed(2)} each
+                          {formatPrice(item.product_price, locale, userCurrency)} each
                         </p>
 
                         {/* Quantity Controls */}
@@ -278,7 +282,7 @@ export default function CartView({ locale }: { locale: string }) {
 
                         {/* Item Total */}
                         <p className="text-sm font-semibold text-foreground mt-2">
-                          Item total: ${(item.product_price * item.quantity).toFixed(2)}
+                          Item total: {formatPrice(item.product_price * item.quantity, locale, userCurrency)}
                         </p>
                       </div>
                     </div>
@@ -328,7 +332,7 @@ export default function CartView({ locale }: { locale: string }) {
                           {t('couponCode')}: {appliedCoupon.code}
                         </p>
                         <p className="text-xs text-success/80">
-                          -${appliedCoupon.discount_amount.toFixed(2)} {t('discount')}
+                          -{formatPrice(appliedCoupon.discount_amount, locale, userCurrency)} {t('discount')}
                         </p>
                       </div>
                       <Button
@@ -374,7 +378,7 @@ export default function CartView({ locale }: { locale: string }) {
                           {shippingEstimate.isFree ? t('freeShipping') : t('shippingCost')}
                         </span>
                         <span className="text-sm font-semibold text-foreground">
-                          {shippingEstimate.isFree ? t('free') : `$${shippingEstimate.cost.toFixed(2)}`}
+                          {shippingEstimate.isFree ? t('free') : formatPrice(shippingEstimate.cost, locale, userCurrency)}
                         </span>
                       </div>
                       <p className="text-xs text-muted-foreground">
@@ -398,12 +402,12 @@ export default function CartView({ locale }: { locale: string }) {
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span className="text-foreground">{t('subtotal')}</span>
-                    <span className="text-foreground font-medium">${cartTotal.toFixed(2)}</span>
+                    <span className="text-foreground font-medium">{formatPrice(cartTotal, locale, userCurrency)}</span>
                   </div>
                   {appliedCoupon && (
                     <div className="flex justify-between text-success">
                       <span>{t('discount')}</span>
-                      <span className="font-medium">-${appliedCoupon.discount_amount.toFixed(2)}</span>
+                      <span className="font-medium">-{formatPrice(appliedCoupon.discount_amount, locale, userCurrency)}</span>
                     </div>
                   )}
                   <div className="flex justify-between">
@@ -412,7 +416,7 @@ export default function CartView({ locale }: { locale: string }) {
                       {shippingEstimate
                         ? shippingEstimate.isFree
                           ? t('free')
-                          : `$${shippingEstimate.cost.toFixed(2)}`
+                          : formatPrice(shippingEstimate.cost, locale, userCurrency)
                         : t('calculated')}
                     </span>
                   </div>
@@ -420,7 +424,7 @@ export default function CartView({ locale }: { locale: string }) {
                 <Separator />
                 <div className="flex justify-between">
                   <span className="text-lg font-bold text-foreground">{t('total')}</span>
-                  <span className="text-lg font-bold text-foreground">${finalTotal.toFixed(2)}</span>
+                  <span className="text-lg font-bold text-foreground">{formatPrice(finalTotal, locale, userCurrency)}</span>
                 </div>
 
                 <div className="space-y-3 pt-2">

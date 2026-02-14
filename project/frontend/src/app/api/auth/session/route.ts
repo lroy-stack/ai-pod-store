@@ -53,8 +53,15 @@ export async function GET(request: NextRequest) {
           return response
         }
 
-        // Update cookies with new tokens
+        // Fetch user profile from users table to get locale and currency
         const refreshedUser = refreshData.user!
+        const { data: profile } = await supabase
+          .from('users')
+          .select('locale, currency')
+          .eq('id', refreshedUser.id)
+          .single()
+
+        // Update cookies with new tokens
         const response = NextResponse.json(
           {
             authenticated: true,
@@ -62,6 +69,8 @@ export async function GET(request: NextRequest) {
               id: refreshedUser.id,
               email: refreshedUser.email,
               name: refreshedUser.user_metadata?.name,
+              locale: profile?.locale || 'en',
+              currency: profile?.currency || 'USD',
             },
           },
           { status: 200 }
@@ -100,7 +109,14 @@ export async function GET(request: NextRequest) {
       return response
     }
 
-    // Token is valid, return user data
+    // Token is valid, fetch user profile from users table to get locale and currency
+    const { data: profile } = await supabase
+      .from('users')
+      .select('locale, currency')
+      .eq('id', user.id)
+      .single()
+
+    // Return user data
     return NextResponse.json(
       {
         authenticated: true,
@@ -108,6 +124,8 @@ export async function GET(request: NextRequest) {
           id: user.id,
           email: user.email,
           name: user.user_metadata?.name,
+          locale: profile?.locale || 'en',
+          currency: profile?.currency || 'USD',
         },
       },
       { status: 200 }

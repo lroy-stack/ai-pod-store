@@ -10,6 +10,8 @@ import { Separator } from '@/components/ui/separator';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Heart, ShoppingCart } from 'lucide-react';
+import { formatPrice } from '@/lib/currency';
+import { useAuth } from '@/hooks/useAuth';
 
 interface Product {
   id: string;
@@ -37,10 +39,15 @@ interface Wishlist {
 
 export default function SharedWishlistPage() {
   const t = useTranslations();
+  const { user } = useAuth();
   const params = useParams();
   const token = params.token as string;
 
   const [wishlist, setWishlist] = useState<Wishlist | null>(null);
+
+  // Get user's preferred currency, fallback to USD
+  const userCurrency = user?.currency || 'USD';
+  const userLocale = user?.locale || 'en';
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -192,7 +199,7 @@ export default function SharedWishlistPage() {
                       {item.products.title}
                     </h3>
                     <p className="text-sm text-primary font-semibold">
-                      ${item.products.base_price.toFixed(2)}
+                      {formatPrice(item.products.base_price, userLocale, userCurrency)}
                     </p>
                   </Link>
                   <div className="mt-3">

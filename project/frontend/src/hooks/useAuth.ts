@@ -6,6 +6,8 @@ interface User {
   id: string
   email: string
   name?: string
+  locale?: string
+  currency?: string
 }
 
 interface AuthState {

@@ -1191,7 +1191,7 @@
     "id": 109,
     "feature": "Shopping Cart + Wishlists",
     "description": "Currency displays in user's preferred currency",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Set the user's preferred currency to EUR in profile settings",
       "Navigate to the cart and wishlist pages",
