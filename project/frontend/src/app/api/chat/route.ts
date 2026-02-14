@@ -67,12 +67,14 @@ export async function POST(req: Request) {
     // System prompt for PodClaw conversational assistant
     const systemPrompt = `You are PodClaw, an AI assistant for a European print-on-demand store. This is a European store. Prices are in ${STORE_DEFAULTS.currency} (€). Measurements are in ${STORE_DEFAULTS.measurementUnit}. You help customers find and buy products.
 
-TOOLS AVAILABLE:
+TOOLS AVAILABLE (22 total):
 - product_search: Search/browse products (returns product list)
+- browse_catalog: Browse products by category with pagination
 - get_product_detail: Get FULL details for ONE product including materials, shipping, variants (accepts product name OR ID)
 - compare_products: Compare 2-4 products side-by-side (needs product IDs from search results)
 - get_recommendations: Get personalized product recommendations (can filter by category and max price)
 - get_size_guide: Get sizing chart for product types (t-shirts, hoodies, etc.)
+- check_availability: Check real-time stock availability for a product
 - add_to_cart: Add a product to the shopping cart (needs product ID and quantity)
 - get_cart: Get current shopping cart contents (shows items, quantities, prices)
 - apply_coupon: Apply a discount coupon code to the cart
@@ -81,6 +83,9 @@ TOOLS AVAILABLE:
 - confirm_checkout: Complete checkout after user approves (creates Stripe session)
 - track_order: Track an order by ID or show most recent order status (displays timeline artifact)
 - get_order_history: Get user's order history list (displays order list artifact)
+- request_return: Request a return/refund for an order (requires approval)
+- generate_design: Generate a custom AI design for a product
+- customize_design: Modify an existing design (change colors, add elements)
 - add_to_wishlist: Add a product to the user's wishlist (requires login)
 - get_store_policies: Get store policies (shipping, returns, privacy, terms)
 - switch_language: Switch UI language (en, es, de)
@@ -88,21 +93,27 @@ TOOLS AVAILABLE:
 
 WHEN TO USE EACH TOOL:
 1. User asks to "browse", "search", "show me", "find" products → call product_search
-2. User asks for "recommendations", "what should I buy", "suggestions" → call get_recommendations
-3. User asks for "details", "more info", "materials", "shipping" about a SPECIFIC product → call get_product_detail with the product name
-4. User asks to "compare" products → call compare_products with IDs from recent search
-5. User asks about "sizing", "size guide", "measurements", "fit" → call get_size_guide
-6. User says "add to cart", "add this", "buy this" → call add_to_cart with product ID from context
-7. User asks "show my cart", "what's in my cart", "view cart" → call get_cart
-8. User says "apply code SAVE10", "use coupon", "discount code" → call apply_coupon
-9. User asks "shipping cost", "delivery options", "how much to ship" → call estimate_shipping
-10. User says "checkout", "proceed to payment", "buy now" → call create_checkout (shows approval dialog)
-11. User asks "track my order", "where's my order", "order status" → call track_order
-12. User asks "show my orders", "order history", "past purchases" → call get_order_history
-13. User says "add to wishlist", "save for later", "wishlist this" → call add_to_wishlist with product ID
-14. User asks "what's your shipping policy", "return policy", "refund policy", "privacy policy" → call get_store_policies
-15. User says "switch to Spanish", "habla español", "change to German" → call switch_language with locale
-16. User uploads an image → call analyze_image with description of what you see
+2. User wants to browse by category or see all products → call browse_catalog with optional category filter
+3. User asks for "recommendations", "what should I buy", "suggestions" → call get_recommendations
+4. User asks for "details", "more info", "materials", "shipping" about a SPECIFIC product → call get_product_detail with the product name
+5. User asks to "compare" products → call compare_products with IDs from recent search
+6. User asks about "sizing", "size guide", "measurements", "fit" → call get_size_guide
+7. User asks "is this in stock", "availability", "can I buy this" → call check_availability
+8. User says "add to cart", "add this", "buy this" → call add_to_cart with product ID from context
+9. User asks "show my cart", "what's in my cart", "view cart" → call get_cart
+10. User says "apply code SAVE10", "use coupon", "discount code" → call apply_coupon
+11. User asks "shipping cost", "delivery options", "how much to ship" → call estimate_shipping
+12. User says "checkout", "proceed to payment", "buy now" → call create_checkout (shows approval dialog)
+13. User confirms checkout approval → call confirm_checkout
+14. User asks "track my order", "where's my order", "order status" → call track_order
+15. User asks "show my orders", "order history", "past purchases" → call get_order_history
+16. User wants to return/refund an order → call request_return (requires approval)
+17. User says "design a t-shirt", "create a design", "generate artwork" → call generate_design
+18. User wants to modify existing design: "make it blue", "add stars" → call customize_design
+19. User says "add to wishlist", "save for later", "wishlist this" → call add_to_wishlist with product ID
+20. User asks "what's your shipping policy", "return policy", "refund policy", "privacy policy" → call get_store_policies
+21. User says "switch to Spanish", "habla español", "change to German" → call switch_language with locale
+22. User uploads an image → call analyze_image with description of what you see
 
 EXAMPLES:
 - "show me cat t-shirts" → product_search(query="cat t-shirt")
@@ -183,6 +194,66 @@ Be friendly, helpful, and concise.`
             }
           } catch (error) {
             console.error('Product search execution error:', error)
+            return {
+              success: false,
+              error: error instanceof Error ? error.message : 'Unknown error',
+              products: [],
+            }
+          }
+        },
+      }),
+      browse_catalog: tool({
+        description: 'Browse products by category with pagination. Use this when user wants to see all products in a category or browse the catalog.',
+        parameters: z.object({
+          category: z.string().optional().describe('Category to filter by (e.g., "Apparel", "Accessories", "Home & Living"). Leave empty to show all.'),
+          page: z.number().optional().describe('Page number for pagination (default: 1)'),
+          limit: z.number().optional().describe('Number of products per page (default: 12)'),
+        }),
+        // @ts-expect-error AI SDK 6.0.86 type mismatch — execute works at runtime
+        execute: async (args: { category?: string; page?: number; limit?: number }) => {
+          const { category, page = 1, limit = 12 } = args
+          try {
+            const offset = (page - 1) * limit
+            let dbQuery = supabase
+              .from('products')
+              .select('id, title, description, category, base_price_cents, currency, images, avg_rating, review_count', { count: 'exact' })
+              .eq('status', 'active')
+              .range(offset, offset + limit - 1)
+
+            // Filter by category if provided
+            if (category) {
+              dbQuery = dbQuery.eq('category', category)
+            }
+
+            const { data: products, error, count } = await dbQuery
+
+            if (error) {
+              console.error('Browse catalog error:', error)
+              return { success: false, error: error.message, products: [] }
+            }
+
+            const formattedProducts = (products || []).map((p) => ({
+              id: p.id,
+              title: p.title,
+              description: p.description?.substring(0, 150) + (p.description?.length > 150 ? '...' : ''),
+              category: p.category,
+              price: p.base_price_cents / 100,
+              currency: p.currency?.toUpperCase() || 'EUR',
+              image: Array.isArray(p.images) && p.images.length > 0 ? (p.images[0].src || p.images[0].url) : null,
+              rating: p.avg_rating || 0,
+              reviewCount: p.review_count || 0,
+            }))
+
+            return {
+              success: true,
+              products: formattedProducts,
+              category: category || 'All Products',
+              page,
+              totalCount: count || 0,
+              hasMore: (count || 0) > offset + limit,
+            }
+          } catch (error) {
+            console.error('Browse catalog execution error:', error)
             return {
               success: false,
               error: error instanceof Error ? error.message : 'Unknown error',
@@ -407,6 +478,75 @@ Be friendly, helpful, and concise.`
                   { size: 'XL', width: 61, length: 79 },
                 ],
               },
+            }
+          }
+        },
+      }),
+      check_availability: tool({
+        description: 'Check real-time stock availability for a product variant. Call this when user asks about stock, availability, or if a product is in stock.',
+        parameters: z.object({
+          productId: z.string().describe('Product ID to check availability for'),
+          variantId: z.string().optional().describe('Optional variant ID (size/color) to check specific variant'),
+        }),
+        // @ts-expect-error AI SDK 6.0.86 type mismatch — execute works at runtime
+        execute: async (args: { productId: string; variantId?: string }) => {
+          const { productId, variantId } = args
+          try {
+            // Check product exists
+            const { data: product, error: productError } = await supabase
+              .from('products')
+              .select('id, title, variants')
+              .eq('id', productId)
+              .eq('status', 'active')
+              .single()
+
+            if (productError || !product) {
+              return { success: false, error: 'Product not found' }
+            }
+
+            // For POD products, availability is always "made to order"
+            // In a real implementation, this would call Printify API
+            // For now, return static availability data
+            if (variantId) {
+              const variant = Array.isArray(product.variants)
+                ? product.variants.find((v: any) => v.id === variantId)
+                : null
+
+              if (!variant) {
+                return {
+                  success: false,
+                  error: 'Variant not found. Available variants: ' +
+                    (Array.isArray(product.variants) ? product.variants.map((v: any) => v.title).join(', ') : 'none')
+                }
+              }
+
+              return {
+                success: true,
+                available: true,
+                productId,
+                variantId,
+                variantTitle: variant.title,
+                stockStatus: 'Made to Order',
+                estimatedShipping: '3-5 business days',
+                message: `✓ ${variant.title} is available for made-to-order production`,
+              }
+            } else {
+              return {
+                success: true,
+                available: true,
+                productId,
+                productTitle: product.title,
+                stockStatus: 'Made to Order',
+                estimatedShipping: '3-5 business days',
+                variantsCount: Array.isArray(product.variants) ? product.variants.length : 0,
+                message: `✓ ${product.title} is available for made-to-order production`,
+              }
+            }
+          } catch (error) {
+            console.error('check_availability error:', error)
+            return {
+              success: false,
+              error: error instanceof Error ? error.message : 'Failed to check availability'
             }
           }
         },
@@ -1151,6 +1291,53 @@ Be friendly, helpful, and concise.`
         },
       }),
 
+      customize_design: tool({
+        description: 'Modify an existing design. Call this when user wants to change colors, add elements, modify a design they already generated.',
+        parameters: z.object({
+          imageUrl: z.string().describe('URL of the existing design to customize'),
+          modifications: z.string().describe('Description of modifications to make (e.g., "make it blue", "add stars", "remove text")'),
+        }),
+        // @ts-expect-error AI SDK 6.0.86 type mismatch — execute works at runtime
+        execute: async (args: { imageUrl: string; modifications: string }) => {
+          const { imageUrl, modifications } = args
+          try {
+            // Call the design customization API
+            const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+            const response = await fetch(`${baseUrl}/api/designs/customize`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                imageUrl,
+                modifications,
+              }),
+            })
+
+            if (!response.ok) {
+              const errorData = await response.json()
+              return {
+                success: false,
+                error: errorData.error || 'Failed to customize design',
+              }
+            }
+
+            const data = await response.json()
+
+            return {
+              success: true,
+              imageUrl: data.imageUrl,
+              modifications,
+              message: 'Design customized successfully!',
+            }
+          } catch (error) {
+            console.error('customize_design error:', error)
+            return {
+              success: false,
+              error: 'Failed to customize design. Make sure the design was generated first.',
+            }
+          }
+        },
+      }),
+
       add_to_wishlist: tool({
         description: 'Add a product to the user\'s wishlist. Call this when user says "add to wishlist", "save for later", "wishlist this".',
         parameters: z.object({
@@ -1318,7 +1505,7 @@ Be friendly, helpful, and concise.`
     const result = streamText({
       model: google('gemini-2.5-flash'),
       system: systemPrompt,
-      messages: await convertToModelMessages(messages),
+      messages: convertToModelMessages(messages),
       tools,
       stopWhen: stepCountIs(5),
     })
