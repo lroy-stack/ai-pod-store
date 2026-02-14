@@ -2,6 +2,36 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 
 /**
+ * Apply locale-specific translations to product title and description
+ */
+function applyTranslations(product: any, locale: string) {
+  // Default to English or if no translations exist
+  if (!locale || locale === 'en') {
+    return {
+      title: product.title,
+      description: product.description,
+    }
+  }
+
+  // Check if translations field exists and has the requested locale
+  if (product.translations && typeof product.translations === 'object') {
+    const translations = product.translations[locale]
+    if (translations && typeof translations === 'object') {
+      return {
+        title: translations.title || product.title,
+        description: translations.description || product.description,
+      }
+    }
+  }
+
+  // Fallback to original title/description
+  return {
+    title: product.title,
+    description: product.description,
+  }
+}
+
+/**
  * Batch-fetch product variants grouped by product ID
  */
 async function fetchVariantsByProductId(productIds: string[]): Promise<Map<string, { sizes: string[]; colors: string[] }>> {
@@ -113,26 +143,29 @@ async function hybridSearch(
     const variantsMap = await fetchVariantsByProductId(paginatedProducts.map(p => p.id))
 
     // Map to frontend format
-    const items = paginatedProducts.map((p) => ({
-      id: p.id,
-      title: p.title,
-      description: p.description,
-      price: p.base_price_cents / 100,
-      currency: p.currency?.toUpperCase() || 'EUR',
-      image: Array.isArray(p.images) && p.images.length > 0 ? (p.images[0].src || p.images[0].url) : '',
-      images: Array.isArray(p.images) ? p.images.map((img: { src?: string; url?: string; alt?: string }) => img.src || img.url || '') : [],
-      rating: Number(p.avg_rating) || 0,
-      reviewCount: p.review_count || 0,
-      category: p.category?.toLowerCase(),
-      tags: p.tags || [],
-      inStock: true,
-      createdAt: p.created_at,
-      variants: buildVariantsField(variantsMap, p.id),
-      // Include search metadata for debugging
-      vectorRank: p.vectorRank,
-      keywordRank: p.keywordRank,
-      vectorSimilarity: p.vectorSimilarity,
-    }))
+    const items = paginatedProducts.map((p) => {
+      const { title, description } = applyTranslations(p, locale)
+      return {
+        id: p.id,
+        title,
+        description,
+        price: p.base_price_cents / 100,
+        currency: p.currency?.toUpperCase() || 'EUR',
+        image: Array.isArray(p.images) && p.images.length > 0 ? (p.images[0].src || p.images[0].url) : '',
+        images: Array.isArray(p.images) ? p.images.map((img: { src?: string; url?: string; alt?: string }) => img.src || img.url || '') : [],
+        rating: Number(p.avg_rating) || 0,
+        reviewCount: p.review_count || 0,
+        category: p.category?.toLowerCase(),
+        tags: p.tags || [],
+        inStock: true,
+        createdAt: p.created_at,
+        variants: buildVariantsField(variantsMap, p.id),
+        // Include search metadata for debugging
+        vectorRank: p.vectorRank,
+        keywordRank: p.keywordRank,
+        vectorSimilarity: p.vectorSimilarity,
+      }
+    })
 
     const total = rankedProducts.length
     const totalPages = Math.ceil(total / limit)
@@ -216,7 +249,7 @@ async function getVectorSearchResults(
     // Fetch full product details
     let query = supabaseAdmin
       .from('products')
-      .select('id, title, description, category, tags, base_price_cents, currency, images, status, avg_rating, review_count, created_at')
+      .select('id, title, description, category, tags, base_price_cents, currency, images, status, avg_rating, review_count, created_at, translations')
       .eq('status', 'active')
       .in('id', productIds)
 
@@ -253,7 +286,7 @@ async function getKeywordSearchResults(
   try {
     let query = supabaseAdmin
       .from('products')
-      .select('id, title, description, category, tags, base_price_cents, currency, images, status, avg_rating, review_count, created_at')
+      .select('id, title, description, category, tags, base_price_cents, currency, images, status, avg_rating, review_count, created_at, translations')
       .eq('status', 'active')
 
     if (category && category !== 'all') {
@@ -332,22 +365,25 @@ async function fallbackTextSearch(
 
   const variantsMap = await fetchVariantsByProductId((products || []).map(p => p.id))
 
-  const items = (products || []).map((p) => ({
-    id: p.id,
-    title: p.title,
-    description: p.description,
-    price: p.base_price_cents / 100,
-    currency: p.currency?.toUpperCase() || 'EUR',
-    image: Array.isArray(p.images) && p.images.length > 0 ? (p.images[0].src || p.images[0].url) : '',
-    images: Array.isArray(p.images) ? p.images.map((img: { src?: string; url?: string; alt?: string }) => img.src || img.url || '') : [],
-    rating: Number(p.avg_rating) || 0,
-    reviewCount: p.review_count || 0,
-    category: p.category?.toLowerCase(),
-    tags: p.tags || [],
-    inStock: true,
-    createdAt: p.created_at,
-    variants: buildVariantsField(variantsMap, p.id),
-  }))
+  const items = (products || []).map((p) => {
+    const { title, description } = applyTranslations(p, locale)
+    return {
+      id: p.id,
+      title,
+      description,
+      price: p.base_price_cents / 100,
+      currency: p.currency?.toUpperCase() || 'EUR',
+      image: Array.isArray(p.images) && p.images.length > 0 ? (p.images[0].src || p.images[0].url) : '',
+      images: Array.isArray(p.images) ? p.images.map((img: { src?: string; url?: string; alt?: string }) => img.src || img.url || '') : [],
+      rating: Number(p.avg_rating) || 0,
+      reviewCount: p.review_count || 0,
+      category: p.category?.toLowerCase(),
+      tags: p.tags || [],
+      inStock: true,
+      createdAt: p.created_at,
+      variants: buildVariantsField(variantsMap, p.id),
+    }
+  })
 
   return NextResponse.json({
     success: true,
@@ -432,22 +468,29 @@ export async function GET(request: NextRequest) {
     const variantsMap = await fetchVariantsByProductId((products || []).map(p => p.id))
 
     // Map DB schema to frontend format
-    const items = (products || []).map((p) => ({
-      id: p.id,
-      title: p.title,
-      description: p.description,
-      price: p.base_price_cents / 100,
-      currency: p.currency?.toUpperCase() || 'EUR',
-      image: Array.isArray(p.images) && p.images.length > 0 ? (p.images[0].src || p.images[0].url) : '',
-      images: Array.isArray(p.images) ? p.images.map((img: { src?: string; url?: string; alt?: string }) => img.src || img.url || '') : [],
-      rating: Number(p.avg_rating) || 0,
-      reviewCount: p.review_count || 0,
-      category: p.category?.toLowerCase(),
-      tags: p.tags || [],
-      inStock: true,
-      createdAt: p.created_at,
-      variants: buildVariantsField(variantsMap, p.id),
-    }))
+    const items = (products || []).map((p) => {
+      // Debug: log translations field for Classic T-Shirt
+      if (p.title === 'Classic T-Shirt') {
+        console.log('[DEBUG] Classic T-Shirt translations:', JSON.stringify(p.translations))
+      }
+      const { title, description } = applyTranslations(p, locale)
+      return {
+        id: p.id,
+        title,
+        description,
+        price: p.base_price_cents / 100,
+        currency: p.currency?.toUpperCase() || 'EUR',
+        image: Array.isArray(p.images) && p.images.length > 0 ? (p.images[0].src || p.images[0].url) : '',
+        images: Array.isArray(p.images) ? p.images.map((img: { src?: string; url?: string; alt?: string }) => img.src || img.url || '') : [],
+        rating: Number(p.avg_rating) || 0,
+        reviewCount: p.review_count || 0,
+        category: p.category?.toLowerCase(),
+        tags: p.tags || [],
+        inStock: true,
+        createdAt: p.created_at,
+        variants: buildVariantsField(variantsMap, p.id),
+      }
+    })
 
     return NextResponse.json({
       success: true,

@@ -31,10 +31,17 @@ CREATE INDEX IF NOT EXISTS idx_user_usage_lookup ON user_usage(identifier, actio
 ALTER TABLE user_usage ENABLE ROW LEVEL SECURITY;
 
 -- RLS: service role can do everything, users can read their own usage
-CREATE POLICY IF NOT EXISTS "Service role full access on user_usage"
-  ON user_usage FOR ALL
-  USING (true)
-  WITH CHECK (true);
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'user_usage' AND policyname = 'Service role full access on user_usage'
+  ) THEN
+    CREATE POLICY "Service role full access on user_usage"
+      ON user_usage FOR ALL
+      USING (true)
+      WITH CHECK (true);
+  END IF;
+END$$;
 
 -- Credit transactions log
 CREATE TABLE IF NOT EXISTS credit_transactions (

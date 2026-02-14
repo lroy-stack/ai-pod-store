@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { useParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { Search, X, ChevronLeft, ChevronRight } from 'lucide-react'
 import { ProductGrid } from '@/components/products/ProductGrid'
@@ -39,6 +40,8 @@ const sortMap: Record<SortOption, string | undefined> = {
 }
 
 export default function ShopPage() {
+  const params = useParams()
+  const locale = params?.locale as string || 'en'
   const t = useTranslations('shop')
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
@@ -56,6 +59,7 @@ export default function ShopPage() {
       const params = new URLSearchParams()
       params.set('page', currentPage.toString())
       params.set('limit', PRODUCTS_PER_PAGE.toString())
+      params.set('locale', locale)
       if (selectedCategory !== 'all') params.set('category', selectedCategory)
       if (searchQuery.trim()) params.set('q', searchQuery.trim())
       const sortParam = sortMap[sortBy]
@@ -73,13 +77,13 @@ export default function ShopPage() {
     } finally {
       setIsLoading(false)
     }
-  }, [currentPage, selectedCategory, searchQuery, sortBy])
+  }, [currentPage, selectedCategory, searchQuery, sortBy, locale])
 
   // Fetch all products once to extract categories
   useEffect(() => {
     async function fetchCategories() {
       try {
-        const res = await fetch('/api/products?limit=100')
+        const res = await fetch(`/api/products?limit=100&locale=${locale}`)
         const data = await res.json()
         if (data.success && data.items) {
           const counts: Record<string, number> = {}
@@ -96,7 +100,7 @@ export default function ShopPage() {
       }
     }
     fetchCategories()
-  }, [])
+  }, [locale])
 
   // Fetch products when filters change
   useEffect(() => {
