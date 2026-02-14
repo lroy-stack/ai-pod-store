@@ -825,6 +825,7 @@ Be friendly, helpful, and concise.`
         parameters: z.object({
           customerEmail: z.string().optional().describe('Customer email address (optional for guest checkout)'),
         }),
+        needsApproval: true,
         // @ts-expect-error AI SDK 6.0.86 type mismatch — execute works at runtime
         execute: async (args: { customerEmail?: string }) => {
           const { customerEmail } = args
@@ -1153,6 +1154,7 @@ Be friendly, helpful, and concise.`
           orderId: z.string().optional().describe('Order ID to return (optional - if not provided, returns most recent eligible order)'),
           reason: z.string().optional().describe('Reason for return (optional - user will be prompted)'),
         }),
+        needsApproval: true,
         // @ts-expect-error AI SDK 6.0.86 type mismatch — execute works at runtime
         execute: async (args: { orderId?: string; reason?: string }) => {
           const { orderId, reason } = args
