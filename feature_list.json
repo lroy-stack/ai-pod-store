@@ -1998,7 +1998,7 @@
     "id": 180,
     "feature": "Design System & AI Designs",
     "description": "Loading spinners/skeletons match design system",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to /en/profile and verify the loading state shows animate-pulse skeleton placeholders, not plain text",
       "Verify loading spinners use Loader2 from lucide-react with animate-spin and text-primary color",
