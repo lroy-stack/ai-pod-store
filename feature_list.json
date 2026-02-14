@@ -1933,7 +1933,7 @@
     "id": 174,
     "feature": "RAG Pipeline",
     "description": "Semantic cache (Redis) works",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Search the same query twice",
       "Verify the second response is faster due to a cache hit",
