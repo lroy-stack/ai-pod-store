@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation'
 import { ThemeProvider } from 'next-themes'
 import { Toaster } from '@/components/ui/toaster'
 import { CartProvider } from '@/hooks/useCart'
+import { WishlistProvider } from '@/hooks/useWishlist'
 import { CommandPalette } from '@/components/CommandPalette'
 
 const locales = ['en', 'es', 'de']
@@ -34,9 +35,11 @@ async function ProvidersContent({
         disableTransitionOnChange
       >
         <CartProvider>
-          {children}
-          <Toaster />
-          <CommandPalette />
+          <WishlistProvider>
+            {children}
+            <Toaster />
+            <CommandPalette />
+          </WishlistProvider>
         </CartProvider>
       </ThemeProvider>
     </NextIntlClientProvider>

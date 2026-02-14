@@ -2337,7 +2337,7 @@
     "id": 211,
     "feature": "Order Management & Notifications",
     "description": "Audit log records order events",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Create a new order",
       "Verify an audit_log entry exists with action 'order.create'",

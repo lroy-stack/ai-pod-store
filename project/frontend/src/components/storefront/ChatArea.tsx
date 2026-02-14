@@ -24,12 +24,13 @@ import ReactMarkdown from 'react-markdown'
 import { getArtifact } from '@/components/artifacts/registry'
 import { useStorefront } from './StorefrontContext'
 import { useCart } from '@/hooks/useCart'
-import { toast } from 'sonner'
+import { useWishlist } from '@/hooks/useWishlist'
 
 export function ChatArea() {
   const t = useTranslations('storefront')
   const { setSelectedProduct, pendingChatMessage, setPendingChatMessage, addArtifact } = useStorefront()
   const { addToCart } = useCart()
+  const { toggleWishlist } = useWishlist()
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [inputValue, setInputValue] = useState('')
@@ -126,19 +127,8 @@ export function ChatArea() {
     await addToCart(productId, 1, undefined, title, price)
   }
 
-  const handleAddToWishlist = async (productId: string) => {
-    try {
-      const response = await fetch('/api/wishlist', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ productId }),
-      })
-      if (response.ok) {
-        toast.success(t('add'))
-      }
-    } catch (error) {
-      console.error('Failed to add to wishlist:', error)
-    }
+  const handleAddToWishlist = (productId: string) => {
+    toggleWishlist(productId)
   }
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {

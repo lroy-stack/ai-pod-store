@@ -21,6 +21,7 @@ import { Separator } from '@/components/ui/separator'
 import { useTranslations, useLocale } from 'next-intl'
 import { formatPrice } from '@/lib/currency'
 import { cn } from '@/lib/utils'
+import { useWishlist } from '@/hooks/useWishlist'
 
 export interface ProductDetail {
   id: string
@@ -53,12 +54,14 @@ export function ProductDetailArtifact({
 }: ProductDetailArtifactProps) {
   const t = useTranslations('storefront')
   const locale = useLocale()
+  const { isWishlisted, toggleWishlist } = useWishlist()
+  const wishlisted = isWishlisted(product.id)
 
   return (
     <Card className="overflow-hidden">
       <div className={cn('grid gap-6', variant === 'full' ? 'md:grid-cols-2' : 'md:grid-cols-[300px_1fr]')}>
         {/* Product Image */}
-        <div className="bg-muted">
+        <div className="aspect-square bg-muted">
           {product.images && product.images.length > 0 ? (
             <img
               src={product.images[0].src}
@@ -68,7 +71,7 @@ export function ProductDetailArtifact({
               height={300}
             />
           ) : (
-            <div className="flex h-64 w-full items-center justify-center">
+            <div className="flex h-full w-full items-center justify-center">
               <Package className="h-16 w-16 text-muted-foreground" />
             </div>
           )}
@@ -90,7 +93,7 @@ export function ProductDetailArtifact({
                 </div>
                 {product.rating > 0 && (
                   <div className="mt-2 flex items-center gap-1 text-sm text-muted-foreground">
-                    <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                    <Star className="h-4 w-4 fill-rating text-rating" />
                     <span className="font-medium">{product.rating.toFixed(1)}</span>
                     <span>({product.reviewCount})</span>
                   </div>
@@ -170,9 +173,9 @@ export function ProductDetailArtifact({
             <Button
               variant="outline"
               size="icon"
-              onClick={() => onAddToWishlist?.(product.id)}
+              onClick={() => toggleWishlist(product.id)}
             >
-              <Heart className="h-4 w-4" />
+              <Heart className={cn('h-4 w-4', wishlisted ? 'fill-destructive text-destructive' : 'text-muted-foreground')} />
             </Button>
           </CardFooter>
         </div>

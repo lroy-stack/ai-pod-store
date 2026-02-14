@@ -15,11 +15,13 @@
  */
 
 import { useState } from 'react'
-import { Star, ShoppingCart, ImageOff } from 'lucide-react'
+import { Star, ShoppingCart, ImageOff, Heart } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useTranslations, useLocale } from 'next-intl'
 import { formatPrice } from '@/lib/currency'
 import { useCart } from '@/hooks/useCart'
+import { useWishlist } from '@/hooks/useWishlist'
+import { cn } from '@/lib/utils'
 
 export interface Product {
   id: string
@@ -95,14 +97,16 @@ function ProductCard({
   onAddToCart: () => void
 }) {
   const [imgError, setImgError] = useState(false)
+  const { isWishlisted, toggleWishlist } = useWishlist()
+  const wishlisted = isWishlisted(product.id)
 
   return (
     <div
       className="group relative rounded-2xl bg-card overflow-hidden border border-border/40 hover:border-border/80 shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer"
       onClick={onSelect}
     >
-      {/* Image — edge-to-edge, no gap */}
-      <div className="aspect-[4/3] bg-muted relative overflow-hidden">
+      {/* Image — edge-to-edge, square */}
+      <div className="aspect-square bg-muted relative overflow-hidden">
         {product.image && !imgError ? (
           <img
             src={product.image}
@@ -126,6 +130,19 @@ function ProductCard({
             {product.category}
           </span>
         )}
+
+        {/* Wishlist heart — top right, frosted */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="absolute top-2.5 right-2.5 h-8 w-8 rounded-full bg-card/80 backdrop-blur-sm"
+          onClick={(e) => {
+            e.stopPropagation()
+            toggleWishlist(product.id)
+          }}
+        >
+          <Heart className={cn('h-4 w-4', wishlisted ? 'fill-destructive text-destructive' : 'text-muted-foreground')} />
+        </Button>
 
         {/* Cart button — reveals on hover, slides up */}
         <Button
@@ -152,7 +169,7 @@ function ProductCard({
           </p>
           {product.rating > 0 && (
             <div className="flex items-center gap-0.5 text-[11px] text-muted-foreground">
-              <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+              <Star className="h-3 w-3 fill-rating text-rating" />
               <span>{product.rating.toFixed(1)}</span>
             </div>
           )}

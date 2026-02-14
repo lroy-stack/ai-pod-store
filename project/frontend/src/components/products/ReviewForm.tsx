@@ -80,7 +80,7 @@ export function ReviewForm({ productId, onReviewSubmitted }: ReviewFormProps) {
       >
         <Star
           className={`w-8 h-8 ${
-            filled ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground'
+            filled ? 'fill-rating text-rating' : 'text-muted-foreground'
           }`}
         />
       </Button>

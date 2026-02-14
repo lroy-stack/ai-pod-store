@@ -1,26 +1,21 @@
-import { Skeleton } from '@/components/ui/skeleton'
-import { Card, CardContent, CardFooter } from '@/components/ui/card'
-
 export function ProductCardSkeleton() {
   return (
-    <Card className="group overflow-hidden transition-shadow hover:shadow-lg">
-      <div className="relative aspect-square overflow-hidden">
-        <Skeleton className="h-full w-full" />
-      </div>
-      <CardContent className="p-4">
-        <Skeleton className="h-6 w-3/4 mb-2" />
-        <Skeleton className="h-4 w-full mb-4" />
-        <div className="flex items-center justify-between">
-          <Skeleton className="h-6 w-20" />
-          <div className="flex items-center gap-1">
-            <Skeleton className="h-4 w-16" />
-            <Skeleton className="h-4 w-10" />
-          </div>
+    <div className="rounded-2xl bg-card overflow-hidden border border-border/40">
+      {/* Image Skeleton — square */}
+      <div className="aspect-square bg-muted animate-pulse" />
+
+      {/* Content — matches ProductCard px-3.5 py-3 */}
+      <div className="px-3.5 py-3 space-y-1.5">
+        {/* Title */}
+        <div className="h-4 bg-muted rounded-md animate-pulse w-3/4" />
+        {/* Description */}
+        <div className="h-3 bg-muted rounded-md animate-pulse w-full" />
+        {/* Price + Rating row */}
+        <div className="flex items-center justify-between pt-1">
+          <div className="h-4 bg-muted rounded-md animate-pulse w-16" />
+          <div className="h-3 bg-muted rounded-md animate-pulse w-12" />
         </div>
-      </CardContent>
-      <CardFooter className="p-4 pt-0">
-        <Skeleton className="h-10 w-full" />
-      </CardFooter>
-    </Card>
+      </div>
+    </div>
   )
 }

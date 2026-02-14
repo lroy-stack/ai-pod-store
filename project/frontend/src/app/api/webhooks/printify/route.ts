@@ -222,13 +222,28 @@ async function handleOrderShipped(resource: Record<string, unknown>) {
     actor_id: 'printify_webhook',
     action: 'order_shipped',
     resource_type: 'order',
-    resource_id: printifyOrderId,
+    resource_id: order.id, // Use order UUID, not printify_order_id string
     changes: updateData,
+    metadata: {
+      printify_order_id: printifyOrderId,
+    },
   })
 }
 
 async function handleOrderDelivered(resource: Record<string, unknown>) {
   const printifyOrderId = resource.id as string
+
+  // Get the order to find the UUID
+  const { data: order, error: fetchError } = await supabase
+    .from('orders')
+    .select('id')
+    .eq('printify_order_id', printifyOrderId)
+    .single()
+
+  if (fetchError || !order) {
+    console.error('Failed to fetch order for delivered event:', fetchError)
+    throw fetchError || new Error('Order not found')
+  }
 
   const { error } = await supabase
     .from('orders')
@@ -250,13 +265,28 @@ async function handleOrderDelivered(resource: Record<string, unknown>) {
     actor_id: 'printify_webhook',
     action: 'order_delivered',
     resource_type: 'order',
-    resource_id: printifyOrderId,
+    resource_id: order.id, // Use order UUID, not printify_order_id string
     changes: { status: 'delivered' },
+    metadata: {
+      printify_order_id: printifyOrderId,
+    },
   })
 }
 
 async function handleOrderCancelled(resource: Record<string, unknown>) {
   const printifyOrderId = resource.id as string
+
+  // Get the order to find the UUID
+  const { data: order, error: fetchError } = await supabase
+    .from('orders')
+    .select('id')
+    .eq('printify_order_id', printifyOrderId)
+    .single()
+
+  if (fetchError || !order) {
+    console.error('Failed to fetch order for cancelled event:', fetchError)
+    throw fetchError || new Error('Order not found')
+  }
 
   const { error } = await supabase
     .from('orders')
@@ -275,8 +305,11 @@ async function handleOrderCancelled(resource: Record<string, unknown>) {
     actor_id: 'printify_webhook',
     action: 'order_cancelled',
     resource_type: 'order',
-    resource_id: printifyOrderId,
+    resource_id: order.id, // Use order UUID, not printify_order_id string
     changes: { status: 'cancelled' },
+    metadata: {
+      printify_order_id: printifyOrderId,
+    },
   })
 }
 

@@ -181,3 +181,7 @@ p {
 .dark .detail-scroll::-webkit-scrollbar-thumb:hover { background: rgb(255 255 255 / 0.15); }
 .detail-scroll { scrollbar-width: thin; scrollbar-color: rgb(0 0 0 / 0.08) transparent; }
 .dark .detail-scroll { scrollbar-color: rgb(255 255 255 / 0.08) transparent; }
+
+/* Tab horizontal scroll — hidden scrollbar */
+.tab-scroll { scrollbar-width: none; -ms-overflow-style: none; }
+.tab-scroll::-webkit-scrollbar { display: none; }

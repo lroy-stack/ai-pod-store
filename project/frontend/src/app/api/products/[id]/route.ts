@@ -8,12 +8,23 @@ export async function GET(
   try {
     const { id } = await params
 
-    const { data: product, error } = await supabaseAdmin
-      .from('products')
-      .select('*')
-      .eq('id', id)
-      .eq('status', 'active')
-      .single()
+    // Fetch product and its variants in parallel (same pattern as product-detail-cache.ts)
+    const [productResult, variantsResult] = await Promise.all([
+      supabaseAdmin
+        .from('products')
+        .select('*')
+        .eq('id', id)
+        .eq('status', 'active')
+        .single(),
+      supabaseAdmin
+        .from('product_variants')
+        .select('size, color, price_cents, is_enabled, is_available')
+        .eq('product_id', id)
+        .eq('is_enabled', true)
+        .eq('is_available', true),
+    ])
+
+    const { data: product, error } = productResult
 
     if (error || !product) {
       return NextResponse.json(
@@ -21,6 +32,11 @@ export async function GET(
         { status: 404 }
       )
     }
+
+    // Deduplicate variant sizes and colors
+    const variants = variantsResult.data || []
+    const sizes = [...new Set(variants.map((v) => v.size).filter(Boolean))] as string[]
+    const colors = [...new Set(variants.map((v) => v.color).filter(Boolean))] as string[]
 
     // Map DB schema to frontend format
     const mapped = {
@@ -38,6 +54,10 @@ export async function GET(
       inStock: true,
       printifyId: product.printify_id,
       createdAt: product.created_at,
+      variants: {
+        ...(sizes.length > 0 ? { sizes } : {}),
+        ...(colors.length > 0 ? { colors } : {}),
+      },
     }
 
     return NextResponse.json({ success: true, product: mapped })

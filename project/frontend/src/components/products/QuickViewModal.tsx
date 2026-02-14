@@ -4,10 +4,11 @@ import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useTranslations, useLocale } from 'next-intl'
-import { Star, Heart, X, Eye, Loader2 } from 'lucide-react'
+import { Star, Heart, Eye, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { formatPrice, getLocalizedPrice } from '@/lib/currency'
 import { useCart } from '@/hooks/useCart'
+import { useWishlist } from '@/hooks/useWishlist'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -53,9 +54,10 @@ export function QuickViewModal({ product, open, onOpenChange }: QuickViewModalPr
   const [selectedSize, setSelectedSize] = useState<string>('')
   const [selectedColor, setSelectedColor] = useState<string>('')
   const [quantity, setQuantity] = useState(1)
-  const [isWishlisted, setIsWishlisted] = useState(false)
   const [isAddingToCart, setIsAddingToCart] = useState(false)
   const { addToCart } = useCart()
+  const { isWishlisted, toggleWishlist } = useWishlist()
+  const wishlisted = isWishlisted(product.id)
 
   // Convert price to locale's currency and format it
   const localizedPrice = getLocalizedPrice(product.price, product.currency, locale)
@@ -95,10 +97,6 @@ export function QuickViewModal({ product, open, onOpenChange }: QuickViewModalPr
     } finally {
       setIsAddingToCart(false)
     }
-  }
-
-  const toggleWishlist = () => {
-    setIsWishlisted(!isWishlisted)
   }
 
   return (
@@ -244,13 +242,13 @@ export function QuickViewModal({ product, open, onOpenChange }: QuickViewModalPr
               <Button
                 variant="outline"
                 size="icon"
-                onClick={toggleWishlist}
-                aria-label={isWishlisted ? t('removeFromWishlist') : t('addToWishlist')}
+                onClick={() => toggleWishlist(product.id)}
+                aria-label={wishlisted ? t('removeFromWishlist') : t('addToWishlist')}
               >
                 <Heart
                   className={cn(
                     'size-5',
-                    isWishlisted ? 'fill-destructive text-destructive' : 'text-muted-foreground'
+                    wishlisted ? 'fill-destructive text-destructive' : 'text-muted-foreground'
                   )}
                 />
               </Button>
@@ -281,13 +279,12 @@ export function QuickViewButton({ onClick }: QuickViewButtonProps) {
 
   return (
     <Button
-      variant="secondary"
-      size="sm"
-      className="absolute bottom-3 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-card/95 backdrop-blur-sm hover:bg-card"
+      size="icon"
+      className="absolute bottom-2.5 left-2.5 h-9 w-9 rounded-full shadow-lg bg-card/80 backdrop-blur-sm text-foreground hover:bg-card/95 opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300"
       onClick={onClick}
+      title={t('quickView')}
     >
-      <Eye className="size-4 mr-2" />
-      {t('quickView')}
+      <Eye className="h-4 w-4" />
     </Button>
   )
 }

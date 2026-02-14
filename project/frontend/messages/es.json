@@ -484,6 +484,7 @@
     "description": "Descripción",
     "size": "Talla",
     "color": "Color",
+    "quantity": "Cantidad",
     "addToCart": "Añadir al Carrito",
     "askAboutProduct": "Preguntar sobre este producto",
     "shop": "Tienda",

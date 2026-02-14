@@ -99,6 +99,23 @@ export async function GET(request: NextRequest) {
       })
     )
 
+    // Fetch variant details for cart items that have a variant_id
+    const variantIds = (cartItems || [])
+      .map((item: any) => item.variant_id)
+      .filter(Boolean)
+
+    let variantMap = new Map<string, { size?: string; color?: string }>()
+    if (variantIds.length > 0) {
+      const { data: variants } = await supabase
+        .from('product_variants')
+        .select('id, size, color')
+        .in('id', variantIds)
+
+      variantMap = new Map(
+        (variants || []).map((v: any) => [v.id, { size: v.size, color: v.color }])
+      )
+    }
+
     // Transform cart items to include product details
     const items = (cartItems || []).map((item: any) => {
       const productDetails = productMap.get(item.product_id) || {
@@ -117,7 +134,7 @@ export async function GET(request: NextRequest) {
         product_price: productDetails.price,
         product_image: productDetails.image || '',
         product_currency: productDetails.currency || 'EUR',
-        variant_details: {},
+        variant_details: item.variant_id ? (variantMap.get(item.variant_id) || {}) : {},
       }
     })
 
@@ -173,11 +190,40 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if item already exists in cart
+    // Resolve variant_id from variant_details (size/color)
+    let variantId: string | null = null
+    if (variant_details && (variant_details.size || variant_details.color)) {
+      let variantQuery = supabase
+        .from('product_variants')
+        .select('id')
+        .eq('product_id', product_id)
+        .eq('is_enabled', true)
+        .eq('is_available', true)
+
+      if (variant_details.size) {
+        variantQuery = variantQuery.eq('size', variant_details.size)
+      }
+      if (variant_details.color) {
+        variantQuery = variantQuery.eq('color', variant_details.color)
+      }
+
+      const { data: matchedVariants } = await variantQuery.limit(1)
+      if (matchedVariants && matchedVariants.length > 0) {
+        variantId = matchedVariants[0].id
+      }
+    }
+
+    // Check if item already exists in cart (same product + same variant)
     const existingQuery = supabase
       .from('cart_items')
       .select('*')
       .eq('product_id', product_id)
+
+    if (variantId) {
+      existingQuery.eq('variant_id', variantId)
+    } else {
+      existingQuery.is('variant_id', null)
+    }
 
     if (userId) {
       existingQuery.eq('user_id', userId)
@@ -223,10 +269,8 @@ export async function POST(request: NextRequest) {
       quantity,
       session_id: userId ? null : sessionId,
       user_id: userId,
+      ...(variantId ? { variant_id: variantId } : {}),
     }
-
-    // Note: variant_id would be used if we have a proper product_variants table
-    // For now, we're using mock data so variant_id is not set
 
     const { error: insertError } = await supabase
       .from('cart_items')

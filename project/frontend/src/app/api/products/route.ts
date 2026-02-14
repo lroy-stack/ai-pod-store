@@ -2,6 +2,45 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 
 /**
+ * Batch-fetch product variants grouped by product ID
+ */
+async function fetchVariantsByProductId(productIds: string[]): Promise<Map<string, { sizes: string[]; colors: string[] }>> {
+  if (productIds.length === 0) return new Map()
+
+  const { data: allVariants } = await supabaseAdmin
+    .from('product_variants')
+    .select('product_id, size, color')
+    .in('product_id', productIds)
+    .eq('is_enabled', true)
+    .eq('is_available', true)
+
+  const grouped = new Map<string, { sizes: Set<string>; colors: Set<string> }>()
+  for (const v of allVariants || []) {
+    if (!grouped.has(v.product_id)) {
+      grouped.set(v.product_id, { sizes: new Set(), colors: new Set() })
+    }
+    const entry = grouped.get(v.product_id)!
+    if (v.size) entry.sizes.add(v.size)
+    if (v.color) entry.colors.add(v.color)
+  }
+
+  const result = new Map<string, { sizes: string[]; colors: string[] }>()
+  for (const [id, { sizes, colors }] of grouped) {
+    result.set(id, { sizes: [...sizes], colors: [...colors] })
+  }
+  return result
+}
+
+function buildVariantsField(variantsMap: Map<string, { sizes: string[]; colors: string[] }>, productId: string) {
+  const pv = variantsMap.get(productId)
+  if (!pv) return {}
+  return {
+    ...(pv.sizes.length > 0 ? { sizes: pv.sizes } : {}),
+    ...(pv.colors.length > 0 ? { colors: pv.colors } : {}),
+  }
+}
+
+/**
  * Hybrid search using Reciprocal Rank Fusion (RRF) to combine vector + keyword results
  */
 async function hybridSearch(
@@ -70,6 +109,9 @@ async function hybridSearch(
     const offset = (page - 1) * limit
     const paginatedProducts = rankedProducts.slice(offset, offset + limit)
 
+    // Batch-fetch variants for paginated products
+    const variantsMap = await fetchVariantsByProductId(paginatedProducts.map(p => p.id))
+
     // Map to frontend format
     const items = paginatedProducts.map((p) => ({
       id: p.id,
@@ -85,6 +127,7 @@ async function hybridSearch(
       tags: p.tags || [],
       inStock: true,
       createdAt: p.created_at,
+      variants: buildVariantsField(variantsMap, p.id),
       // Include search metadata for debugging
       vectorRank: p.vectorRank,
       keywordRank: p.keywordRank,
@@ -287,6 +330,8 @@ async function fallbackTextSearch(
   const total = count || 0
   const totalPages = Math.ceil(total / limit)
 
+  const variantsMap = await fetchVariantsByProductId((products || []).map(p => p.id))
+
   const items = (products || []).map((p) => ({
     id: p.id,
     title: p.title,
@@ -301,6 +346,7 @@ async function fallbackTextSearch(
     tags: p.tags || [],
     inStock: true,
     createdAt: p.created_at,
+    variants: buildVariantsField(variantsMap, p.id),
   }))
 
   return NextResponse.json({
@@ -374,6 +420,9 @@ export async function GET(request: NextRequest) {
     const total = count || 0
     const totalPages = Math.ceil(total / limit)
 
+    // Batch-fetch variants for returned products
+    const variantsMap = await fetchVariantsByProductId((products || []).map(p => p.id))
+
     // Map DB schema to frontend format
     const items = (products || []).map((p) => ({
       id: p.id,
@@ -389,6 +438,7 @@ export async function GET(request: NextRequest) {
       tags: p.tags || [],
       inStock: true,
       createdAt: p.created_at,
+      variants: buildVariantsField(variantsMap, p.id),
     }))
 
     return NextResponse.json({

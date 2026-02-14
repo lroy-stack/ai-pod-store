@@ -7,6 +7,7 @@ import Image from 'next/image'
 import { useState } from 'react'
 import { Star, Heart, ShoppingCart, ChevronLeft } from 'lucide-react'
 import { useCart } from '@/hooks/useCart'
+import { useWishlist } from '@/hooks/useWishlist'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
@@ -45,12 +46,12 @@ export function ProductDetailClient({ product, relatedProducts, reviews }: Produ
   const tCategory = useTranslations('shop.category')
   const locale = useLocale()
   const { addToCart } = useCart()
+  const { isWishlisted, toggleWishlist } = useWishlist()
 
   const [selectedImage, setSelectedImage] = useState(0)
   const [selectedSize, setSelectedSize] = useState<string>('')
   const [selectedColor, setSelectedColor] = useState<string>('')
   const [quantity, setQuantity] = useState(1)
-  const [isWishlisted, setIsWishlisted] = useState(false)
   const [isAddingToCart, setIsAddingToCart] = useState(false)
   const [showReviewForm, setShowReviewForm] = useState(false)
 
@@ -99,57 +100,7 @@ export function ProductDetailClient({ product, relatedProducts, reviews }: Produ
     )
   }
 
-  const toggleWishlist = async () => {
-    if (!product) return
-
-    try {
-      if (isWishlisted) {
-        // Remove from wishlist - for now just toggle state
-        // Will need item_id to properly remove, so just toggle
-        setIsWishlisted(false)
-      } else {
-        // Add to wishlist - need to get user's default wishlist first
-        const wishlistsRes = await fetch('/api/wishlist')
-        const wishlistsData = await wishlistsRes.json()
-
-        let wishlistId: string
-
-        if (wishlistsData.wishlists && wishlistsData.wishlists.length > 0) {
-          // Use first wishlist
-          wishlistId = wishlistsData.wishlists[0].id
-        } else {
-          // Create new wishlist
-          const createRes = await fetch('/api/wishlist', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name: 'My Wishlist' }),
-          })
-          const createData = await createRes.json()
-          wishlistId = createData.wishlist.id
-        }
-
-        // Add item to wishlist
-        const response = await fetch('/api/wishlist/items', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            wishlist_id: wishlistId,
-            product_id: product.id,
-            variant_id: null,
-          }),
-        })
-
-        if (response.ok) {
-          setIsWishlisted(true)
-        } else if (response.status === 409) {
-          // Already in wishlist
-          setIsWishlisted(true)
-        }
-      }
-    } catch (error) {
-      console.error('Error toggling wishlist:', error)
-    }
-  }
+  const wishlisted = product ? isWishlisted(product.id) : false
 
   const handleAddToCart = async () => {
     if (!product) return
@@ -373,13 +324,13 @@ export function ProductDetailClient({ product, relatedProducts, reviews }: Produ
             <Button
               variant="outline"
               size="lg"
-              onClick={toggleWishlist}
-              aria-label={isWishlisted ? t('removeFromWishlist') : t('addToWishlist')}
+              onClick={() => toggleWishlist(product.id)}
+              aria-label={wishlisted ? t('removeFromWishlist') : t('addToWishlist')}
             >
               <Heart
                 className={cn(
                   'size-5',
-                  isWishlisted ? 'fill-destructive text-destructive' : ''
+                  wishlisted ? 'fill-destructive text-destructive' : 'text-muted-foreground'
                 )}
               />
             </Button>
@@ -468,7 +419,7 @@ export function ProductDetailClient({ product, relatedProducts, reviews }: Produ
 
           <div>
             <h2 className="text-2xl font-bold mb-6">{t('relatedProducts')}</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {relatedProducts.map((relatedProduct) => (
                 <ProductCard key={relatedProduct.id} product={relatedProduct} />
               ))}

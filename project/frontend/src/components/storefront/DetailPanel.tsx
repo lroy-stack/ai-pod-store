@@ -20,13 +20,14 @@
 
 import { useTranslations } from 'next-intl'
 import { useParams } from 'next/navigation'
-import { X, Star, ShoppingCart, MessageCircle, ImageOff, AlertCircle } from 'lucide-react'
+import { X, Star, ShoppingCart, MessageCircle, ImageOff, AlertCircle, Heart, Minus, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { useEffect, useState } from 'react'
 import { formatPrice } from '@/lib/currency'
 import { useStorefront } from './StorefrontContext'
 import { useCart } from '@/hooks/useCart'
+import { useWishlist } from '@/hooks/useWishlist'
 import { cn } from '@/lib/utils'
 
 interface DetailPanelProps {
@@ -90,9 +91,9 @@ export function DetailPanel({ productId, onClose, onAskAbout }: DetailPanelProps
   const hasArtifacts = artifacts.length > 0
   const hasMultipleArtifacts = artifacts.length > 1
 
-  const handleAddToCart = async (variants?: { size?: string; color?: string }) => {
+  const handleAddToCart = async (quantity: number, variants?: { size?: string; color?: string }) => {
     if (!product) return
-    await addToCart(product.id, 1, variants, product.title, product.price)
+    await addToCart(product.id, quantity, variants, product.title, product.price)
   }
 
   const handleAskAbout = () => {
@@ -135,7 +136,7 @@ export function DetailPanel({ productId, onClose, onAskAbout }: DetailPanelProps
             onValueChange={setActiveArtifactId}
             className="flex-1 flex flex-col overflow-hidden"
           >
-            <TabsList className="w-full justify-start rounded-none border-b border-border/40 p-0 h-auto bg-transparent">
+            <TabsList className="w-full justify-start rounded-none border-b border-border/40 p-0 h-auto bg-transparent overflow-x-auto tab-scroll flex-nowrap">
               {artifacts.map((artifact) => (
                 <TabsTrigger
                   key={artifact.id}
@@ -244,6 +245,7 @@ function ProductView({
   onAskAbout,
 }: {
   product: {
+    id?: string
     title: string
     description?: string
     price: number
@@ -255,22 +257,25 @@ function ProductView({
     variants?: { sizes?: string[]; colors?: string[] }
   }
   locale: string
-  onAddToCart?: (variants?: { size?: string; color?: string }) => void
+  onAddToCart?: (quantity: number, variants?: { size?: string; color?: string }) => void
   onAskAbout?: () => void
 }) {
   const t = useTranslations('storefront')
+  const { isWishlisted, toggleWishlist } = useWishlist()
   const image = product.image || (product.images && product.images.length > 0 ? product.images[0] : null)
   const [selectedSize, setSelectedSize] = useState('')
   const [selectedColor, setSelectedColor] = useState('')
+  const [quantity, setQuantity] = useState(1)
 
   const hasSizes = (product.variants?.sizes?.length ?? 0) > 0
   const hasColors = (product.variants?.colors?.length ?? 0) > 0
+  const wishlisted = product.id ? isWishlisted(product.id) : false
 
   const handleAddToCart = () => {
     const variants: { size?: string; color?: string } = {}
     if (selectedSize) variants.size = selectedSize
     if (selectedColor) variants.color = selectedColor
-    onAddToCart?.(Object.keys(variants).length > 0 ? variants : undefined)
+    onAddToCart?.(quantity, Object.keys(variants).length > 0 ? variants : undefined)
   }
 
   return (
@@ -383,6 +388,32 @@ function ProductView({
             </div>
           </>
         )}
+
+        {/* Quantity Selector */}
+        <div className="h-px bg-border/40" />
+        <div className="flex items-center gap-3">
+          <label className="text-[13px] font-medium text-foreground/80">{t('quantity')}</label>
+          <div className="flex items-center border border-border/60 rounded-lg">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 rounded-l-lg rounded-r-none"
+              onClick={() => setQuantity(Math.max(1, quantity - 1))}
+              disabled={quantity <= 1}
+            >
+              <Minus className="h-3.5 w-3.5" />
+            </Button>
+            <span className="w-10 text-center text-sm font-medium tabular-nums">{quantity}</span>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 rounded-r-lg rounded-l-none"
+              onClick={() => setQuantity(Math.min(99, quantity + 1))}
+            >
+              <Plus className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+        </div>
       </div>
 
       {/* Footer Actions */}
@@ -391,16 +422,28 @@ function ProductView({
           <ShoppingCart className="h-4 w-4 mr-2" />
           {t('addToCart')}
         </Button>
-        {onAskAbout && (
-          <Button
-            variant="ghost"
-            className="w-full h-10 text-sm text-muted-foreground hover:text-foreground"
-            onClick={onAskAbout}
-          >
-            <MessageCircle className="h-4 w-4 mr-2" />
-            {t('askAboutProduct')}
-          </Button>
-        )}
+        <div className="flex gap-2">
+          {product.id && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-10 w-10 rounded-full"
+              onClick={() => toggleWishlist(product.id!)}
+            >
+              <Heart className={cn('h-4 w-4', wishlisted ? 'fill-destructive text-destructive' : 'text-muted-foreground')} />
+            </Button>
+          )}
+          {onAskAbout && (
+            <Button
+              variant="ghost"
+              className="flex-1 h-10 text-sm text-muted-foreground hover:text-foreground"
+              onClick={onAskAbout}
+            >
+              <MessageCircle className="h-4 w-4 mr-2" />
+              {t('askAboutProduct')}
+            </Button>
+          )}
+        </div>
       </div>
     </>
   )
@@ -458,8 +501,8 @@ function ArtifactContent({
     }
 
     if (productData) {
-      const handleAddToCart = (variants?: { size?: string; color?: string }) => {
-        addToCart(productData.id, 1, variants, productData.title, productData.price)
+      const handleAddToCart = (quantity: number, variants?: { size?: string; color?: string }) => {
+        addToCart(productData.id, quantity, variants, productData.title, productData.price)
       }
 
       return (

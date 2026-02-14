@@ -28,10 +28,14 @@ export function ProductGrid({
   emptyMessage = 'No products found',
   skeletonCount = 8
 }: ProductGridProps) {
+  // CSS grid with auto-fill so columns adapt to available container width
+  // min 200px per card → naturally goes from 1→2→3→4 cols as space allows
+  const gridClasses = 'grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-4'
+
   // Show loading skeletons
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      <div className={gridClasses}>
         {Array.from({ length: skeletonCount }).map((_, i) => (
           <ProductCardSkeleton key={i} />
         ))}
@@ -50,7 +54,7 @@ export function ProductGrid({
 
   // Show products
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+    <div className={gridClasses}>
       {products.map((product) => (
         <ProductCard key={product.id} product={product} />
       ))}

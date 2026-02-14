@@ -72,12 +72,12 @@ export function ComparisonTableArtifact({
                         <img
                           src={product.image}
                           alt={product.title}
-                          className="mx-auto h-24 w-24 rounded object-cover"
+                          className="mx-auto h-24 w-24 rounded-lg object-cover"
                           width={96}
                           height={96}
                         />
                       ) : (
-                        <div className="mx-auto h-24 w-24 rounded bg-muted" />
+                        <div className="mx-auto h-24 w-24 rounded-lg bg-muted" />
                       )}
                       <div className="text-sm font-semibold">{product.title}</div>
                       <Badge variant="secondary" className="text-xs">
@@ -112,7 +112,7 @@ export function ComparisonTableArtifact({
                   <td key={product.id} className="p-4 text-center">
                     {product.rating > 0 ? (
                       <div className="flex items-center justify-center gap-1">
-                        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                        <Star className="h-4 w-4 fill-rating text-rating" />
                         <span className="font-medium">{product.rating.toFixed(1)}</span>
                         <span className="text-sm text-muted-foreground">
                           ({product.reviewCount})
