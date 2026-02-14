@@ -1944,7 +1944,7 @@
     "id": 175,
     "feature": "RAG Pipeline",
     "description": "Hybrid search combines vector + keyword",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Search with a specific product name",
       "Verify the search combines vector similarity with text matching",

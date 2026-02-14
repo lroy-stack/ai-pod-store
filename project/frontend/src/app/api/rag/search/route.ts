@@ -102,12 +102,15 @@ export async function POST(request: Request) {
       )
     }
 
-    // 2. Perform vector similarity search using pgvector
-    // Note: We use the RPC function for vector search
+    // 2. Perform hybrid search (vector + keyword text matching)
+    // Uses the hybrid_search_documents RPC function which combines:
+    // - 70% vector similarity (semantic)
+    // - 30% text relevance (keyword matching via PostgreSQL full-text search)
     const { data: searchResults, error: searchError } = await supabaseAdmin.rpc(
-      'search_documents',
+      'hybrid_search_documents',
       {
         query_embedding: queryEmbedding,
+        query_text: query, // Pass original query text for keyword matching
         match_count: limit,
         filter_locale: locale || null,
       }
