@@ -4,13 +4,13 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
 import { useTranslations, useLocale } from 'next-intl'
-import { Star, Heart, ShoppingCart, ImageOff } from 'lucide-react'
+import { Star, Heart, ShoppingCart, ImageOff, Eye } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { formatPrice, getLocalizedPrice } from '@/lib/currency'
 import { Button } from '@/components/ui/button'
 import { useWishlist } from '@/hooks/useWishlist'
 import { useCart } from '@/hooks/useCart'
-import { QuickViewModal, QuickViewButton } from './QuickViewModal'
+import { QuickViewModal } from './QuickViewModal'
 
 interface Product {
   id: string
@@ -56,10 +56,10 @@ export function ProductCard({ product }: ProductCardProps) {
 
   const handleQuickView = (e: React.MouseEvent) => {
     e.preventDefault()
+    e.stopPropagation()
     setShowQuickView(true)
   }
 
-  // Convert price to locale's currency and format it
   const localizedPrice = getLocalizedPrice(product.price, product.currency, locale)
   const formattedPrice = formatPrice(localizedPrice, locale)
 
@@ -69,7 +69,7 @@ export function ProductCard({ product }: ProductCardProps) {
         href={`/shop/${product.id}`}
         className="group block rounded-2xl bg-card overflow-hidden border border-border/40 hover:border-border/80 shadow-sm hover:shadow-xl transition-all duration-300"
       >
-        {/* Image — edge-to-edge, square */}
+        {/* Image */}
         <div className="relative aspect-square bg-muted overflow-hidden">
           {product.image && !imgError ? (
             <Image
@@ -87,17 +87,7 @@ export function ProductCard({ product }: ProductCardProps) {
             </div>
           )}
 
-          {/* Gradient overlay — hover for contrast */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-
-          {/* Category — frosted glass pill */}
-          {product.category && (
-            <span className="absolute top-2.5 left-2.5 text-[11px] font-medium px-2.5 py-0.5 rounded-full bg-background/70 text-foreground/80 backdrop-blur-md border border-border/30">
-              {product.category}
-            </span>
-          )}
-
-          {/* Wishlist heart — top right, frosted */}
+          {/* Wishlist heart — always visible */}
           <Button
             variant="ghost"
             size="icon"
@@ -112,45 +102,51 @@ export function ProductCard({ product }: ProductCardProps) {
               )}
             />
           </Button>
-
-          {/* Quick View — center bottom on hover */}
-          <QuickViewButton onClick={handleQuickView} />
-
-          {/* Cart button — reveals on hover, bottom right */}
-          <Button
-            size="icon"
-            className="absolute bottom-2.5 right-2.5 h-9 w-9 rounded-full shadow-lg bg-primary text-primary-foreground opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300"
-            onClick={handleAddToCart}
-            title={t('addToCart')}
-          >
-            <ShoppingCart className="h-4 w-4" />
-          </Button>
         </div>
 
-        {/* Info — clean, minimal */}
-        <div className="px-3.5 py-3 space-y-1">
-          <h3 className="font-medium text-sm leading-snug line-clamp-1 text-foreground group-hover:text-primary transition-colors">
-            {product.title}
-          </h3>
+        {/* Info + Actions */}
+        <div className="px-3.5 py-3 space-y-2">
+          <div className="space-y-0.5">
+            <h3 className="font-medium text-sm leading-snug line-clamp-1 text-foreground group-hover:text-primary transition-colors">
+              {product.title}
+            </h3>
+            <p className="text-xs text-muted-foreground line-clamp-1">
+              {product.description}
+            </p>
+          </div>
 
-          <p className="text-xs text-muted-foreground line-clamp-1">
-            {product.description}
-          </p>
-
-          <div className="flex items-center justify-between pt-1">
+          <div className="flex items-center justify-between">
             <p className="text-sm font-semibold text-foreground tracking-tight">
               {formattedPrice}
             </p>
-
             {product.rating && product.rating > 0 && (
               <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
                 <Star className="h-3 w-3 fill-rating text-rating" />
                 <span>{product.rating.toFixed(1)}</span>
-                {product.reviewCount ? (
-                  <span>({product.reviewCount})</span>
-                ) : null}
+                {product.reviewCount ? <span>({product.reviewCount})</span> : null}
               </div>
             )}
+          </div>
+
+          {/* Action buttons — always visible, touch-friendly */}
+          <div className="flex gap-1.5 pt-0.5">
+            <Button
+              size="sm"
+              className="flex-1 h-8 text-xs font-medium rounded-lg"
+              onClick={handleAddToCart}
+            >
+              <ShoppingCart className="h-3.5 w-3.5 mr-1.5" />
+              {t('addToCart')}
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8 rounded-lg flex-shrink-0"
+              onClick={handleQuickView}
+              title={t('quickView')}
+            >
+              <Eye className="h-3.5 w-3.5" />
+            </Button>
           </div>
         </div>
       </Link>

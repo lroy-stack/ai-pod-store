@@ -15,16 +15,25 @@
  */
 
 import { useState } from 'react'
+import { usePathname, useParams } from 'next/navigation'
 import { StorefrontProvider, useStorefront } from './StorefrontContext'
 import { StorefrontSidebar } from './StorefrontSidebar'
 import { StorefrontHeader } from './StorefrontHeader'
 import { DetailPanel } from './DetailPanel'
+import { Footer } from '@/components/Footer'
 import { Sheet, SheetContent } from '@/components/ui/sheet'
+import { useSidebarCollapsed } from '@/hooks/useSidebarCollapsed'
+import { cn } from '@/lib/utils'
 
 function StorefrontShell({ children }: { children: React.ReactNode }) {
   const { selectedProduct, setSelectedProduct, setPendingChatMessage, artifacts, clearArtifacts } =
     useStorefront()
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const { isCollapsed, toggle: toggleDesktopSidebar } = useSidebarCollapsed()
+  const pathname = usePathname()
+  const params = useParams()
+  const locale = params.locale as string
+  const isChatPage = pathname === `/${locale}` || pathname === `/${locale}/`
 
   const handleAskAbout = (question: string) => {
     setPendingChatMessage(question)
@@ -41,8 +50,11 @@ function StorefrontShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex h-dvh w-full overflow-hidden bg-background">
       {/* Left Sidebar - Desktop */}
-      <aside className="hidden lg:flex lg:w-60 lg:flex-col border-r border-border">
-        <StorefrontSidebar />
+      <aside className={cn(
+        "hidden lg:flex lg:flex-col border-r border-border transition-all duration-300 ease-in-out",
+        isCollapsed ? "lg:w-0 lg:overflow-hidden lg:border-r-0" : "lg:w-60"
+      )}>
+        <StorefrontSidebar onCollapse={toggleDesktopSidebar} />
       </aside>
 
       {/* Left Sidebar - Mobile (Sheet drawer) */}
@@ -54,9 +66,14 @@ function StorefrontShell({ children }: { children: React.ReactNode }) {
 
       {/* Center: Header + Content */}
       <main className="flex flex-1 flex-col min-w-0 overflow-hidden">
-        <StorefrontHeader onToggleSidebar={() => setIsSidebarOpen(true)} />
+        <StorefrontHeader
+          onToggleSidebar={() => setIsSidebarOpen(true)}
+          isSidebarCollapsed={isCollapsed}
+          onToggleDesktopSidebar={toggleDesktopSidebar}
+        />
         <div className="flex flex-1 flex-col min-h-0 overflow-y-auto">
           {children}
+          {!isChatPage && <Footer />}
         </div>
       </main>
 

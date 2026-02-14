@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useParams, useRouter, usePathname } from 'next/navigation'
 import { useTranslations } from 'next-intl'
-import { Search, Bell, ShoppingCart, User, LogOut, Menu, Globe } from 'lucide-react'
+import { Search, Bell, ShoppingCart, User, LogOut, Menu, Globe, PanelLeftOpen } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -24,6 +24,8 @@ import { ThemeToggle } from '@/components/ThemeToggle'
 
 interface StorefrontHeaderProps {
   onToggleSidebar?: () => void
+  isSidebarCollapsed?: boolean
+  onToggleDesktopSidebar?: () => void
 }
 
 const localeNames: Record<string, string> = {
@@ -38,7 +40,7 @@ const localeFlags: Record<string, string> = {
   de: '🇩🇪',
 }
 
-export function StorefrontHeader({ onToggleSidebar }: StorefrontHeaderProps) {
+export function StorefrontHeader({ onToggleSidebar, isSidebarCollapsed, onToggleDesktopSidebar }: StorefrontHeaderProps) {
   const t = useTranslations('storefront')
   const tNav = useTranslations('navigation')
   const { authenticated, user, loading, logout } = useAuth()
@@ -78,7 +80,7 @@ export function StorefrontHeader({ onToggleSidebar }: StorefrontHeaderProps) {
           <Button
             variant="ghost"
             size="icon"
-            className="md:hidden"
+            className="lg:hidden"
             onClick={onToggleSidebar}
           >
             <Menu className="h-5 w-5" />
@@ -86,13 +88,18 @@ export function StorefrontHeader({ onToggleSidebar }: StorefrontHeaderProps) {
           </Button>
         )}
 
-        {/* Logo */}
-        <Link href={`/${locale}`} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-          <div className="size-8 rounded-md bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center">
-            <span className="text-primary-foreground font-bold text-sm">P</span>
-          </div>
-          <span className="font-semibold text-foreground hidden sm:inline">POD AI</span>
-        </Link>
+        {/* Expand sidebar button (visible when sidebar is collapsed on desktop) */}
+        {isSidebarCollapsed && onToggleDesktopSidebar && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="hidden lg:inline-flex"
+            onClick={onToggleDesktopSidebar}
+          >
+            <PanelLeftOpen className="h-5 w-5" />
+            <span className="sr-only">Expand sidebar</span>
+          </Button>
+        )}
 
         {/* Navigation Links */}
         <nav className="hidden md:flex items-center gap-1">

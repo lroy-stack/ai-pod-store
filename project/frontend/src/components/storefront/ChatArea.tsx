@@ -12,7 +12,7 @@
 
 import { useRef, useEffect, useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { User, Send, Mic, Paperclip, Package, Heart, X } from 'lucide-react'
+import { User, Send, Paperclip, Package, Heart, X, Mic } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -170,30 +170,22 @@ export function ChatArea() {
   }
 
   return (
-    <div className="flex flex-col flex-1 min-h-0">
-      {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto px-3 py-4 sm:px-4 md:px-6 md:py-6">
+    <div className="flex flex-col flex-1 min-h-0 overflow-y-auto">
+      {/* Messages + Input (all scrollable, input sticky at bottom) */}
+      <div className="flex-1 px-3 py-4 sm:px-4 md:px-6 md:py-6">
         {messages.length === 0 ? (
           /* Welcome Screen */
-          <div className="max-w-4xl mx-auto">
-            <div className="text-center space-y-6 py-12">
+          <div className="flex flex-col items-center justify-center min-h-[60vh]">
+            <div className="text-center space-y-6 w-full max-w-2xl mx-auto">
               <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary/60">
                 <span className="text-3xl font-bold text-primary-foreground">P</span>
               </div>
 
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground mb-2">
-                  {userData.user ? (
-                    <>
-                      {t('welcomeBackTitle', { name: userData.user.name?.split(' ')[0] || 'there' })}
-                      <span className="inline-block ml-2 animate-pulse">&#10024;</span>
-                    </>
-                  ) : (
-                    <>
-                      <span className="sparkle-text">{t('welcomeTitle')}</span>
-                      <span className="inline-block ml-2 animate-pulse">&#10024;</span>
-                    </>
-                  )}
+                  {userData.user
+                    ? t('welcomeBackTitle', { name: userData.user.name?.split(' ')[0] || 'there' })
+                    : t('welcomeTitle')}
                 </h1>
                 <p className="text-muted-foreground">
                   {userData.user ? t('welcomeBackSubtitle') : t('welcomeSubtitle')}
@@ -202,74 +194,74 @@ export function ChatArea() {
 
               {/* Active Orders and Favorites for returning users */}
               {userData.user && (userData.activeOrders || userData.recentFavorites) && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
                   {userData.activeOrders && userData.activeOrders.length > 0 && (
-                    <Card>
-                      <CardContent className="p-4">
-                        <div className="flex items-center gap-2 mb-3">
-                          <Package className="h-4 w-4 text-primary" />
-                          <h3 className="text-sm font-semibold tracking-tight">{t('activeOrders')}</h3>
-                        </div>
-                        <div className="space-y-2">
-                          {userData.activeOrders.map((order) => (
-                            <div key={order.id} className="text-xs text-left">
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">#{order.id.slice(0, 8)}</span>
-                                <span className="font-medium">€{order.total.toFixed(2)}</span>
-                              </div>
-                              <Badge variant="secondary" className="text-xs mt-1">
-                                {order.status}
-                              </Badge>
+                    <div className="rounded-2xl border border-border/60 bg-card p-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Package className="h-4 w-4 text-primary" />
+                        <h3 className="text-sm font-semibold tracking-tight">{t('activeOrders')}</h3>
+                      </div>
+                      <div className="space-y-2">
+                        {userData.activeOrders.map((order) => (
+                          <div key={order.id} className="text-xs text-left">
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">#{order.id.slice(0, 8)}</span>
+                              <span className="font-medium">€{order.total.toFixed(2)}</span>
                             </div>
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
+                            <Badge variant="secondary" className="text-xs mt-1">
+                              {order.status}
+                            </Badge>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   )}
 
                   {userData.recentFavorites && userData.recentFavorites.length > 0 && (
-                    <Card>
-                      <CardContent className="p-4">
-                        <div className="flex items-center gap-2 mb-3">
-                          <Heart className="h-4 w-4 text-primary" />
-                          <h3 className="text-sm font-semibold tracking-tight">{t('recentFavorites')}</h3>
-                        </div>
-                        <div className="space-y-2">
-                          {userData.recentFavorites.map((item) => (
-                            <div key={item.id} className="text-xs text-left">
-                              <div className="flex justify-between">
-                                <span className="text-foreground truncate">{item.name}</span>
-                                <span className="font-medium">€{item.price.toFixed(2)}</span>
-                              </div>
+                    <div className="rounded-2xl border border-border/60 bg-card p-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Heart className="h-4 w-4 text-primary" />
+                        <h3 className="text-sm font-semibold tracking-tight">{t('recentFavorites')}</h3>
+                      </div>
+                      <div className="space-y-2">
+                        {userData.recentFavorites.map((item) => (
+                          <div key={item.id} className="text-xs text-left">
+                            <div className="flex justify-between">
+                              <span className="text-foreground truncate">{item.name}</span>
+                              <span className="font-medium">€{item.price.toFixed(2)}</span>
                             </div>
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   )}
                 </div>
               )}
 
               {/* Suggested Prompts */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-w-xl mx-auto mt-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-2xl mx-auto mt-8">
                 <SuggestedPrompt
                   icon="&#10024;"
                   text={t('promptDesign')}
+                  description={t('promptDesignDesc')}
                   onClick={() => handlePromptClick(t('promptDesign'))}
                 />
                 <SuggestedPrompt
                   icon="&#128085;"
                   text={t('promptTshirt')}
+                  description={t('promptTshirtDesc')}
                   onClick={() => handlePromptClick(t('promptTshirt'))}
                 />
                 <SuggestedPrompt
                   icon="&#127912;"
                   text={t('promptTrending')}
+                  description={t('promptTrendingDesc')}
                   onClick={() => handlePromptClick(t('promptTrending'))}
                 />
                 <SuggestedPrompt
                   icon="&#127873;"
                   text={t('promptGift')}
+                  description={t('promptGiftDesc')}
                   onClick={() => handlePromptClick(t('promptGift'))}
                 />
               </div>
@@ -531,45 +523,32 @@ export function ChatArea() {
         )}
       </div>
 
-      {/* Input Area */}
-      <div className="border-t border-border bg-card px-3 py-3 sm:p-4">
+      {/* Floating Input Bar — sticky at bottom */}
+      <div className="sticky bottom-0 z-10 px-3 pb-3 pt-2 sm:px-4 md:px-6">
         <div className="max-w-4xl mx-auto">
-          {/* Image Preview */}
-          {selectedImage && (
-            <div className="mb-3 relative inline-block">
-              <img
-                src={selectedImage}
-                alt="Selected image"
-                className="h-20 w-20 object-cover rounded-lg border border-border"
-              />
-              <Button
-                type="button"
-                variant="destructive"
-                size="icon"
-                onClick={handleRemoveImage}
-                className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
-              >
-                <X className="h-3 w-3" />
-                <span className="sr-only">Remove image</span>
-              </Button>
-            </div>
-          )}
+          <div className="bg-card/80 backdrop-blur-xl border border-border/60 rounded-2xl shadow-lg px-3 py-3 sm:px-4 sm:py-3">
+            {/* Image Preview */}
+            {selectedImage && (
+              <div className="mb-3 relative inline-block">
+                <img
+                  src={selectedImage}
+                  alt="Selected image"
+                  className="h-16 w-16 object-cover rounded-xl border border-border"
+                />
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="icon"
+                  onClick={handleRemoveImage}
+                  className="absolute -top-2 -right-2 h-5 w-5 rounded-full"
+                >
+                  <X className="h-3 w-3" />
+                  <span className="sr-only">Remove image</span>
+                </Button>
+              </div>
+            )}
 
-          <form onSubmit={handleSubmit} className="flex items-end gap-2">
-            <Button type="button" variant="ghost" size="icon" className="flex-shrink-0 hidden sm:flex">
-              <Mic className="h-5 w-5" />
-              <span className="sr-only">Voice input</span>
-            </Button>
-
-            <div className="flex-1 relative">
-              <Input
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder={t('inputPlaceholder')}
-                className="pr-20 min-h-[44px] resize-none"
-                disabled={isLoading}
-              />
+            <form onSubmit={handleSubmit} className="flex items-center gap-2">
               <input
                 ref={fileInputRef}
                 type="file"
@@ -582,25 +561,44 @@ export function ChatArea() {
                 variant="ghost"
                 size="icon"
                 onClick={handleAttachClick}
-                className="absolute right-10 top-1/2 -translate-y-1/2"
+                className="flex-shrink-0 h-9 w-9 rounded-full text-muted-foreground hover:text-foreground"
               >
                 <Paperclip className="h-4 w-4" />
                 <span className="sr-only">Attach image</span>
               </Button>
-            </div>
 
-            <Button
-              type="submit"
-              size="icon"
-              className="flex-shrink-0"
-              disabled={isLoading || (!inputValue.trim() && !selectedImage)}
-            >
-              <Send className="h-5 w-5" />
-              <span className="sr-only">Send message</span>
-            </Button>
-          </form>
+              <Input
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder={t('inputPlaceholder')}
+                className="flex-1 min-h-[40px] border-0 bg-transparent shadow-none focus-visible:ring-0 px-1 text-sm"
+                disabled={isLoading}
+              />
 
-          <p className="text-xs text-muted-foreground text-center mt-2">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="flex-shrink-0 h-9 w-9 rounded-full text-muted-foreground hover:text-foreground"
+              >
+                <Mic className="h-4 w-4" />
+                <span className="sr-only">Voice input</span>
+              </Button>
+
+              <Button
+                type="submit"
+                size="icon"
+                className="flex-shrink-0 h-9 w-9 rounded-full"
+                disabled={isLoading || (!inputValue.trim() && !selectedImage)}
+              >
+                <Send className="h-4 w-4" />
+                <span className="sr-only">Send message</span>
+              </Button>
+            </form>
+          </div>
+
+          <p className="text-xs text-muted-foreground text-center mt-2 px-2">
             {t('aiDisclaimer')}
           </p>
         </div>
@@ -612,20 +610,28 @@ export function ChatArea() {
 function SuggestedPrompt({
   icon,
   text,
+  description,
   onClick,
 }: {
   icon: string
   text: string
+  description?: string
   onClick: () => void
 }) {
   return (
-    <Button
-      variant="outline"
+    <button
       onClick={onClick}
-      className="flex items-center gap-3 p-4 h-auto rounded-lg border-border bg-card hover:bg-muted transition-colors justify-start"
+      className="group flex items-start gap-3.5 p-4 rounded-2xl border border-border/60 bg-card hover:bg-muted/50 hover:border-border transition-all duration-200 text-left"
     >
-      <span className="text-2xl">{icon}</span>
-      <span className="text-sm text-foreground">{text}</span>
-    </Button>
+      <span className="text-2xl mt-0.5 flex-shrink-0 group-hover:scale-110 transition-transform duration-200">
+        {icon}
+      </span>
+      <div className="min-w-0">
+        <p className="text-sm font-medium text-foreground leading-snug">{text}</p>
+        {description && (
+          <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{description}</p>
+        )}
+      </div>
+    </button>
   )
 }

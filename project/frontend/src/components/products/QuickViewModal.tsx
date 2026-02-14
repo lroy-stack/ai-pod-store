@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useTranslations, useLocale } from 'next-intl'
-import { Star, Heart, Eye, Loader2, Minus, Plus, ShoppingCart, ImageOff } from 'lucide-react'
+import { Star, Heart, Loader2, Minus, Plus, ShoppingCart, ImageOff } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { formatPrice, getLocalizedPrice } from '@/lib/currency'
 import { useCart } from '@/hooks/useCart'
@@ -291,22 +291,3 @@ export function QuickViewModal({ product, open, onOpenChange }: QuickViewModalPr
   )
 }
 
-// Quick View Button — frosted icon, bottom-left on hover
-interface QuickViewButtonProps {
-  onClick: (e: React.MouseEvent) => void
-}
-
-export function QuickViewButton({ onClick }: QuickViewButtonProps) {
-  const t = useTranslations('product')
-
-  return (
-    <Button
-      size="icon"
-      className="absolute bottom-2.5 left-2.5 h-9 w-9 rounded-full shadow-lg bg-card/80 backdrop-blur-sm text-foreground hover:bg-card/95 opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300"
-      onClick={onClick}
-      title={t('quickView')}
-    >
-      <Eye className="h-4 w-4" />
-    </Button>
-  )
-}

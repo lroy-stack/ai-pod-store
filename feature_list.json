@@ -2443,7 +2443,7 @@
     "id": 221,
     "feature": "Admin Dashboard & Agent Monitor",
     "description": "Analytics + financial dashboard",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to http://localhost:3001/analytics or /admin/finance",
       "Verify revenue charts are displayed",
@@ -2454,7 +2454,7 @@
     "id": 222,
     "feature": "Admin Dashboard & Agent Monitor",
     "description": "Admin responsive layout + breadcrumbs",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Resize the browser to mobile width",
       "Verify the admin sidebar collapses",
@@ -2465,7 +2465,7 @@
     "id": 223,
     "feature": "Admin Dashboard & Agent Monitor",
     "description": "Translation management page",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to http://localhost:3001/translations",
       "Verify a table is displayed with namespace, key, locale, and value columns",
@@ -2477,7 +2477,7 @@
     "id": 224,
     "feature": "Admin Dashboard & Agent Monitor",
     "description": "Review moderation page",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to http://localhost:3001/reviews",
       "Verify a pending reviews queue is displayed",

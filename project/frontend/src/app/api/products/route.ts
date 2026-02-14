@@ -371,6 +371,7 @@ export async function GET(request: NextRequest) {
     const category = searchParams.get('category')
     const search = searchParams.get('q') || searchParams.get('search')
     const sort = searchParams.get('sort')
+    const newArrivals = searchParams.get('newArrivals')
 
     // If search query exists, use hybrid search (vector + keyword)
     if (search && search.trim().length > 0) {
@@ -386,6 +387,13 @@ export async function GET(request: NextRequest) {
     // Filter by category (case-insensitive — DB has mixed casing)
     if (category && category !== 'all') {
       query = query.ilike('category', category)
+    }
+
+    // Filter new arrivals (last 14 days)
+    if (newArrivals === 'true') {
+      const fourteenDaysAgo = new Date()
+      fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14)
+      query = query.gte('created_at', fourteenDaysAgo.toISOString())
     }
 
     // Sort products

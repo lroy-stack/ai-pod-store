@@ -15,7 +15,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useParams, usePathname } from 'next/navigation'
 import { useTranslations } from 'next-intl'
-import { Home, Store, Sparkles, Heart, ShoppingBag, ShoppingCart } from 'lucide-react'
+import { Home, Store, Sparkles, Heart, ShoppingBag, ShoppingCart, PanelLeftClose } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -34,9 +34,10 @@ interface SidebarProduct {
 
 interface StorefrontSidebarProps {
   onNavigate?: () => void
+  onCollapse?: () => void
 }
 
-export function StorefrontSidebar({ onNavigate }: StorefrontSidebarProps) {
+export function StorefrontSidebar({ onNavigate, onCollapse }: StorefrontSidebarProps) {
   const t = useTranslations('storefront')
   const { itemCount } = useCart()
   const { setSelectedProduct, addArtifact } = useStorefront()
@@ -46,36 +47,49 @@ export function StorefrontSidebar({ onNavigate }: StorefrontSidebarProps) {
   const [recommended, setRecommended] = useState<SidebarProduct[]>([])
   const [popular, setPopular] = useState<SidebarProduct[]>([])
 
+  // Recommended: fetch top 6 by rating, shuffle, pick 2 — re-fetch every 5 min
   useEffect(() => {
-    async function fetchSidebarProducts() {
+    async function fetchRecommended() {
       try {
-        // Fetch top-rated for recommended
-        const recRes = await fetch('/api/products?limit=3&sort=topRated')
-        const recData = await recRes.json()
-        if (recData.success && recData.items) {
-          const recItems = recData.items.slice(0, 2)
-          setRecommended(recItems)
-
-          // Fetch popular, excluding recommended IDs to avoid duplicates
-          const excludeIds = new Set(recItems.map((p: SidebarProduct) => p.id))
-          const popRes = await fetch('/api/products?limit=3&sort=popular')
-          const popData = await popRes.json()
-          if (popData.success && popData.items) {
-            const filtered = popData.items.filter((p: SidebarProduct) => !excludeIds.has(p.id))
-            setPopular(filtered.slice(0, 1))
-          }
+        const res = await fetch('/api/products?limit=6&sort=topRated')
+        const data = await res.json()
+        if (data.success && data.items) {
+          const shuffled = [...data.items].sort(() => Math.random() - 0.5)
+          setRecommended(shuffled.slice(0, 2))
         }
-      } catch (error) {
-        console.error('Error fetching sidebar products:', error)
+      } catch (e) {
+        console.error('Sidebar recommended fetch error:', e)
       }
     }
-    fetchSidebarProducts()
+    fetchRecommended()
+    const interval = setInterval(fetchRecommended, 5 * 60 * 1000)
+    return () => clearInterval(interval)
+  }, [])
+
+  // Popular Today: fetch top 4 by review_count, pick 1 using day-of-year as seed
+  useEffect(() => {
+    async function fetchPopular() {
+      try {
+        const res = await fetch('/api/products?limit=4&sort=popular')
+        const data = await res.json()
+        if (data.success && data.items?.length > 0) {
+          const dayOfYear = Math.floor(
+            (Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000
+          )
+          const index = dayOfYear % data.items.length
+          setPopular([data.items[index]])
+        }
+      } catch (e) {
+        console.error('Sidebar popular fetch error:', e)
+      }
+    }
+    fetchPopular()
   }, [])
 
   const navigationItems = [
     { icon: Home, label: t('discover'), href: `/${locale}` },
     { icon: Store, label: t('shop') ?? 'Shop', href: `/${locale}/shop` },
-    { icon: Sparkles, label: t('newArrivals'), href: `/${locale}/shop?sort=newest` },
+    { icon: Sparkles, label: t('newArrivals'), href: `/${locale}/shop?sort=newest&newArrivals=true` },
     { icon: Heart, label: t('favorites'), href: `/${locale}/wishlist` },
     { icon: ShoppingBag, label: t('orders'), href: `/${locale}/orders` },
   ]
@@ -116,13 +130,19 @@ export function StorefrontSidebar({ onNavigate }: StorefrontSidebarProps) {
   return (
     <div className="flex flex-col h-full bg-card">
       {/* Logo + Store Name */}
-      <div className="p-4 border-b border-border">
+      <div className="p-4 border-b border-border flex items-center justify-between">
         <Link href={`/${locale}`} className="flex items-center gap-3" onClick={onNavigate}>
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center">
             <span className="text-primary-foreground font-bold text-sm">P</span>
           </div>
           <span className="font-semibold text-foreground">POD AI</span>
         </Link>
+        {onCollapse && (
+          <Button variant="ghost" size="icon" className="h-7 w-7 hidden lg:inline-flex" onClick={onCollapse}>
+            <PanelLeftClose className="h-4 w-4" />
+            <span className="sr-only">{t('collapseSidebar') ?? 'Collapse sidebar'}</span>
+          </Button>
+        )}
       </div>
 
       {/* Navigation */}
@@ -215,7 +235,7 @@ export function StorefrontSidebar({ onNavigate }: StorefrontSidebarProps) {
       <div className="p-4 border-t border-border">
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
-          <span>{t('lastDesignGenerated')}</span>
+          <span>{t('podclawActive') ?? 'AI Store Manager Active'}</span>
         </div>
       </div>
     </div>

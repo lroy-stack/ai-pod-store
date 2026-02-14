@@ -46,9 +46,9 @@ export function Footer() {
   const currentYear = new Date().getFullYear()
 
   return (
-    <footer className="border-t border-border bg-card mt-auto">
-      <div className="container mx-auto px-4 py-8 md:py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+    <footer className="border-t border-border bg-card">
+      <div className="px-4 sm:px-6 md:px-8 pt-8 pb-12 md:pt-12 md:pb-12 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
           {/* Brand & Description */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-foreground">PodClaw</h3>

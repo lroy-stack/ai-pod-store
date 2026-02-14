@@ -77,10 +77,10 @@ export async function POST(req: Request) {
 
 TOOLS AVAILABLE (22 total):
 - product_search: Search/browse products (returns product list)
-- browse_catalog: Browse products by category with pagination
+- browse_catalog: Browse products by category with pagination and sorting (newest, topRated, popular, price). Can filter to new arrivals only.
 - get_product_detail: Get FULL details for ONE product including materials, shipping, variants (accepts product name OR ID)
 - compare_products: Compare 2-4 products side-by-side (needs product IDs from search results)
-- get_recommendations: Get personalized product recommendations (can filter by category and max price)
+- get_recommendations: Get product recommendations by mode: "top_rated" (default), "new_arrivals" (last 14 days), "popular" (most reviewed). Can filter by category and max price.
 - get_size_guide: Get sizing chart for product types (t-shirts, hoodies, etc.)
 - check_availability: Check real-time stock availability for a product
 - add_to_cart: Add a product to the shopping cart (needs product ID and quantity)
@@ -122,6 +122,9 @@ WHEN TO USE EACH TOOL:
 20. User asks "what's your shipping policy", "return policy", "refund policy", "privacy policy" → call get_store_policies
 21. User says "switch to Spanish", "habla español", "change to German" → call switch_language with locale
 22. User uploads an image → call analyze_image with description of what you see
+23. User asks "what's new", "new arrivals", "latest products" → get_recommendations(mode="new_arrivals")
+24. User asks "what's popular", "trending", "best sellers" → get_recommendations(mode="popular")
+25. User asks "cheapest t-shirts", "sort by price" → browse_catalog(sort="priceLowToHigh", category="...")
 
 EXAMPLES:
 - "show me cat t-shirts" → product_search(query="cat t-shirt")
@@ -142,6 +145,10 @@ EXAMPLES:
 - "what's your return policy?" → get_store_policies()
 - "switch to Spanish" → switch_language(locale="es")
 - [user uploads image of a cat] → analyze_image(description="A cute orange cat sitting on a windowsill")
+- "what's new?" → get_recommendations(mode="new_arrivals")
+- "show me popular items" → get_recommendations(mode="popular")
+- "cheapest accessories" → browse_catalog(category="Accessories", sort="priceLowToHigh")
+- "latest apparel" → browse_catalog(category="Apparel", sort="newest", newArrivals=true)
 
 IMPORTANT:
 - get_product_detail works with product names directly - you don't need to search first!
@@ -211,15 +218,17 @@ Be friendly, helpful, and concise.`
         },
       }),
       browse_catalog: tool({
-        description: 'Browse products by category with pagination. Use this when user wants to see all products in a category or browse the catalog.',
+        description: 'Browse products by category with pagination and sorting. Use this when user wants to see all products in a category, browse the catalog, or sort products.',
         parameters: z.object({
           category: z.string().optional().describe('Category to filter by (e.g., "Apparel", "Accessories", "Home & Living"). Leave empty to show all.'),
           page: z.number().optional().describe('Page number for pagination (default: 1)'),
           limit: z.number().optional().describe('Number of products per page (default: 12)'),
+          sort: z.string().optional().describe('Sort order: "newest", "topRated", "popular", "priceLowToHigh", "priceHighToLow"'),
+          newArrivals: z.boolean().optional().describe('Filter to products added in last 14 days'),
         }),
         // @ts-expect-error AI SDK 6.0.86 type mismatch — execute works at runtime
-        execute: async (args: { category?: string; page?: number; limit?: number }) => {
-          const { category, page = 1, limit = 12 } = args
+        execute: async (args: { category?: string; page?: number; limit?: number; sort?: string; newArrivals?: boolean }) => {
+          const { category, page = 1, limit = 12, sort, newArrivals } = args
           try {
             const offset = (page - 1) * limit
             let dbQuery = supabase
@@ -231,6 +240,26 @@ Be friendly, helpful, and concise.`
             // Filter by category if provided
             if (category) {
               dbQuery = dbQuery.eq('category', category)
+            }
+
+            // Sort
+            if (sort === 'newest') {
+              dbQuery = dbQuery.order('created_at', { ascending: false })
+            } else if (sort === 'topRated') {
+              dbQuery = dbQuery.order('avg_rating', { ascending: false })
+            } else if (sort === 'popular') {
+              dbQuery = dbQuery.order('review_count', { ascending: false })
+            } else if (sort === 'priceLowToHigh') {
+              dbQuery = dbQuery.order('base_price_cents', { ascending: true })
+            } else if (sort === 'priceHighToLow') {
+              dbQuery = dbQuery.order('base_price_cents', { ascending: false })
+            }
+
+            // New arrivals filter (last 14 days)
+            if (newArrivals) {
+              const fourteenDaysAgo = new Date()
+              fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14)
+              dbQuery = dbQuery.gte('created_at', fourteenDaysAgo.toISOString())
             }
 
             const { data: products, error, count } = await dbQuery
@@ -376,22 +405,35 @@ Be friendly, helpful, and concise.`
         },
       }),
       get_recommendations: tool({
-        description: 'Get personalized product recommendations based on category, price range, or user preferences.',
+        description: 'Get product recommendations by mode. Supports "top_rated" (default), "new_arrivals" (last 14 days), and "popular" (most reviewed). Can filter by category and max price.',
         parameters: z.object({
           category: z.string().optional().describe('Product category to filter by (e.g., "apparel", "accessories")'),
           maxPrice: z.number().optional().describe('Maximum price in EUR'),
+          mode: z.string().optional().describe('Recommendation mode: "top_rated" (default), "new_arrivals", "popular"'),
         }),
         // @ts-expect-error AI SDK 6.0.86 type mismatch — execute works at runtime
-        execute: async (args: { category?: string; maxPrice?: number }) => {
-          const { category, maxPrice } = args
+        execute: async (args: { category?: string; maxPrice?: number; mode?: string }) => {
+          const { category, maxPrice, mode = 'top_rated' } = args
           const limit = 6
           try {
             let dbQuery = supabase
               .from('products')
-              .select('id, title, description, category, base_price_cents, currency, images, avg_rating, review_count')
+              .select('id, title, description, category, base_price_cents, currency, images, avg_rating, review_count, created_at')
               .eq('status', 'active')
               .limit(limit)
-              .order('avg_rating', { ascending: false })
+
+            // Sort by mode
+            if (mode === 'new_arrivals') {
+              const fourteenDaysAgo = new Date()
+              fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14)
+              dbQuery = dbQuery
+                .gte('created_at', fourteenDaysAgo.toISOString())
+                .order('created_at', { ascending: false })
+            } else if (mode === 'popular') {
+              dbQuery = dbQuery.order('review_count', { ascending: false })
+            } else {
+              dbQuery = dbQuery.order('avg_rating', { ascending: false })
+            }
 
             if (category) {
               dbQuery = dbQuery.ilike('category', `%${category}%`)
@@ -424,6 +466,7 @@ Be friendly, helpful, and concise.`
               products: formattedProducts,
               count: formattedProducts.length,
               category: category || 'all',
+              mode,
             }
           } catch (error) {
             return { success: false, error: 'Failed to get recommendations', products: [] }

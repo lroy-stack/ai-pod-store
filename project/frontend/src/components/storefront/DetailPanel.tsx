@@ -418,32 +418,32 @@ function ProductView({
 
       {/* Footer Actions */}
       <div className="px-5 py-4 border-t border-border/40 space-y-2">
-        <Button className="w-full h-11 text-sm font-semibold" onClick={handleAddToCart}>
-          <ShoppingCart className="h-4 w-4 mr-2" />
-          {t('addToCart')}
-        </Button>
         <div className="flex gap-2">
+          <Button className="flex-1 h-11 text-sm font-semibold" onClick={handleAddToCart}>
+            <ShoppingCart className="h-4 w-4 mr-2" />
+            {t('addToCart')}
+          </Button>
           {product.id && (
             <Button
-              variant="ghost"
+              variant="outline"
               size="icon"
-              className="h-10 w-10 rounded-full"
+              className="h-11 w-11 flex-shrink-0 rounded-lg"
               onClick={() => toggleWishlist(product.id!)}
             >
               <Heart className={cn('h-4 w-4', wishlisted ? 'fill-destructive text-destructive' : 'text-muted-foreground')} />
             </Button>
           )}
-          {onAskAbout && (
-            <Button
-              variant="ghost"
-              className="flex-1 h-10 text-sm text-muted-foreground hover:text-foreground"
-              onClick={onAskAbout}
-            >
-              <MessageCircle className="h-4 w-4 mr-2" />
-              {t('askAboutProduct')}
-            </Button>
-          )}
         </div>
+        {onAskAbout && (
+          <Button
+            variant="ghost"
+            className="w-full h-10 text-sm text-muted-foreground hover:text-foreground"
+            onClick={onAskAbout}
+          >
+            <MessageCircle className="h-4 w-4 mr-2" />
+            {t('askAboutProduct')}
+          </Button>
+        )}
       </div>
     </>
   )

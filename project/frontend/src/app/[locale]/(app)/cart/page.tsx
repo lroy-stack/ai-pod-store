@@ -1,6 +1,5 @@
 import { getTranslations } from 'next-intl/server'
 import CartView from '@/components/cart/CartView'
-import { Footer } from '@/components/Footer'
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
@@ -18,7 +17,6 @@ export default async function CartPage({ params }: { params: Promise<{ locale: s
   return (
     <div className="py-8 md:py-12 px-4 md:px-6 lg:px-8">
       <CartView locale={locale} />
-      <Footer />
     </div>
   )
 }

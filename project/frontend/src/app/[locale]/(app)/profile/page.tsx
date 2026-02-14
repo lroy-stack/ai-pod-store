@@ -2,7 +2,7 @@ import { getTranslations } from 'next-intl/server';
 import { ProfileForm } from '@/components/profile/ProfileForm';
 import { ShippingAddressList } from '@/components/profile/ShippingAddressList';
 import { DeleteAccountSection } from '@/components/profile/DeleteAccountSection';
-import { Footer } from '@/components/Footer';
+
 import {
   Card,
   CardHeader,
@@ -52,7 +52,6 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
         <DeleteAccountSection />
       </div>
 
-      <Footer />
     </div>
   );
 }

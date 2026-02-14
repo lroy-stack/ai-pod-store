@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Footer } from '@/components/Footer'
+
 import { cn } from '@/lib/utils'
 
 type SortOption = 'featured' | 'priceLowToHigh' | 'priceHighToLow' | 'newest' | 'topRated'
@@ -48,6 +48,7 @@ export default function ShopPage() {
   const [products, setProducts] = useState<Product[]>([])
   const [totalProducts, setTotalProducts] = useState(0)
   const [categories, setCategories] = useState<string[]>(['all'])
+  const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({})
 
   const fetchProducts = useCallback(async () => {
     setIsLoading(true)
@@ -81,8 +82,13 @@ export default function ShopPage() {
         const res = await fetch('/api/products?limit=100')
         const data = await res.json()
         if (data.success && data.items) {
-          const cats = Array.from(new Set(data.items.map((p: Product) => p.category))) as string[]
+          const counts: Record<string, number> = {}
+          for (const p of data.items as Product[]) {
+            counts[p.category] = (counts[p.category] || 0) + 1
+          }
+          const cats = Object.keys(counts)
           setCategories(['all', ...cats])
+          setCategoryCounts({ all: data.items.length, ...counts })
         }
       } catch (error) {
         console.error('Error fetching categories:', error)
@@ -98,12 +104,7 @@ export default function ShopPage() {
 
   const totalPages = Math.ceil(totalProducts / PRODUCTS_PER_PAGE)
 
-  // Get product count per category (from all fetched products — approximate)
-  const getCategoryCount = (category: string) => {
-    if (category === 'all') return totalProducts
-    // For category counts we show the total when that category is selected
-    return category === selectedCategory ? totalProducts : '...'
-  }
+  const getCategoryCount = (category: string) => categoryCounts[category] ?? 0
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -272,7 +273,6 @@ export default function ShopPage() {
         </div>
       )}
 
-      <Footer />
     </div>
   )
 }

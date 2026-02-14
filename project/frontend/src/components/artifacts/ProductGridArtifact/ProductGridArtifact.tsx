@@ -11,11 +11,11 @@
  * Features:
  * - InlineCompact: 3-column grid within chat message, max 6 items
  * - Action buttons: "Add to Cart", "View Details" (→ opens detail panel)
- * - Responsive: stacks on mobile
+ * - Touch-friendly: action buttons always visible
  */
 
 import { useState } from 'react'
-import { Star, ShoppingCart, ImageOff, Heart } from 'lucide-react'
+import { Star, ShoppingCart, ImageOff, Heart, Eye } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useTranslations, useLocale } from 'next-intl'
 import { formatPrice } from '@/lib/currency'
@@ -105,7 +105,7 @@ function ProductCard({
       className="group relative rounded-2xl bg-card overflow-hidden border border-border/40 hover:border-border/80 shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer"
       onClick={onSelect}
     >
-      {/* Image — edge-to-edge, square */}
+      {/* Image — square */}
       <div className="aspect-square bg-muted relative overflow-hidden">
         {product.image && !imgError ? (
           <img
@@ -121,21 +121,11 @@ function ProductCard({
           </div>
         )}
 
-        {/* Gradient overlay — visible on hover for cart button contrast */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-
-        {/* Category — frosted glass pill */}
-        {product.category && (
-          <span className="absolute top-2.5 left-2.5 text-[11px] font-medium px-2.5 py-0.5 rounded-full bg-background/70 text-foreground/80 backdrop-blur-md border border-border/30">
-            {product.category}
-          </span>
-        )}
-
-        {/* Wishlist heart — top right, frosted */}
+        {/* Wishlist heart — always visible */}
         <Button
           variant="ghost"
           size="icon"
-          className="absolute top-2.5 right-2.5 h-8 w-8 rounded-full bg-card/80 backdrop-blur-sm"
+          className="absolute top-2.5 right-2.5 h-8 w-8 rounded-full bg-card/80 backdrop-blur-sm hover:bg-card/90"
           onClick={(e) => {
             e.stopPropagation()
             toggleWishlist(product.id)
@@ -143,27 +133,14 @@ function ProductCard({
         >
           <Heart className={cn('h-4 w-4', wishlisted ? 'fill-destructive text-destructive' : 'text-muted-foreground')} />
         </Button>
-
-        {/* Cart button — reveals on hover, slides up */}
-        <Button
-          size="icon"
-          className="absolute bottom-2.5 right-2.5 h-9 w-9 rounded-full shadow-lg bg-primary text-primary-foreground opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 sm:opacity-0 sm:group-hover:opacity-100"
-          onClick={(e) => {
-            e.stopPropagation()
-            onAddToCart()
-          }}
-          title={t('addToCart')}
-        >
-          <ShoppingCart className="h-4 w-4" />
-        </Button>
       </div>
 
-      {/* Info — clean, minimal */}
-      <div className="px-3.5 py-3 space-y-0.5">
+      {/* Info + Actions */}
+      <div className="px-3.5 py-3 space-y-1.5">
         <h3 className="font-medium text-[13px] leading-snug line-clamp-1 text-foreground">
           {product.title}
         </h3>
-        <div className="flex items-center justify-between pt-0.5">
+        <div className="flex items-center justify-between">
           <p className="text-sm font-semibold text-foreground tracking-tight">
             {formatPrice(product.price, locale, product.currency)}
           </p>
@@ -173,6 +150,33 @@ function ProductCard({
               <span>{product.rating.toFixed(1)}</span>
             </div>
           )}
+        </div>
+
+        {/* Action buttons — always visible, touch-friendly */}
+        <div className="flex gap-1.5 pt-0.5">
+          <Button
+            size="sm"
+            className="flex-1 h-8 text-xs font-medium rounded-lg"
+            onClick={(e) => {
+              e.stopPropagation()
+              onAddToCart()
+            }}
+          >
+            <ShoppingCart className="h-3.5 w-3.5 mr-1.5" />
+            {t('addToCart')}
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8 rounded-lg flex-shrink-0"
+            onClick={(e) => {
+              e.stopPropagation()
+              onSelect()
+            }}
+            title={t('viewDetails')}
+          >
+            <Eye className="h-3.5 w-3.5" />
+          </Button>
         </div>
       </div>
     </div>
