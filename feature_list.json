@@ -2798,7 +2798,7 @@
     "id": 253,
     "feature": "Internationalization End-to-End",
     "description": "Browser back/forward preserves locale",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate from /en/ to /en/shop",
       "Switch locale to /es/shop",
