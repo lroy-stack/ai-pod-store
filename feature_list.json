@@ -1180,7 +1180,7 @@
     "id": 108,
     "feature": "Shopping Cart + Wishlists",
     "description": "Wishlist API endpoints work",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Send GET /api/wishlists and verify it returns the user's wishlists",
       "Send POST /api/wishlists to create a new wishlist and POST to add items",
