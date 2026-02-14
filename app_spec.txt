@@ -87,9 +87,36 @@
     </infrastructure>
   </technology_stack>
 
+  <brand_identity>
+    <store_name>POD AI</store_name>
+    <domain>podai.com</domain>
+    <base_url>https://podai.com</base_url>
+    <support_email>support@podai.com</support_email>
+    <noreply_email>noreply@podai.com</noreply_email>
+    <currency>EUR</currency>
+    <country>DE</country>
+    <rule>The store domain is ALWAYS podai.com. Do NOT use any other domain name in code, content, or configuration.</rule>
+    <rule>All URL fallbacks must use https://podai.com (via NEXT_PUBLIC_BASE_URL env var)</rule>
+    <rule>All email senders must use @podai.com domain</rule>
+    <rule>Currency is EUR — NEVER default to USD</rule>
+  </brand_identity>
+
+  <project_structure>
+    All project code lives under pod_workspace/project/:
+    ├── frontend/    — Next.js 16 storefront (port 3000)
+    ├── admin/       — Next.js 16 admin panel (port 3001)
+    ├── podclaw/     — Python autonomous agent (FastAPI bridge port 8000)
+    ├── supabase/    — Database migrations
+    ├── scripts/     — Utility scripts
+    └── shared/      — Shared types/config
+
+    Nothing project-related lives outside pod_workspace/project/.
+  </project_structure>
+
   <prerequisites>
     <environment_setup>
       - config/.env.required lists all needed environment variables
+      - NEXT_PUBLIC_BASE_URL=https://podai.com (mandatory — used for sitemaps, SEO, emails, push)
       - App runs on port 3000 (frontend + API routes), agent on port 8000
       - Supabase project with pgvector extension enabled
       - Redis running (local or cloud)
@@ -1234,9 +1261,10 @@
     </printify_order_shipped>
   </webhook_flows>
 
-  <podclaw_agent description="Autonomous AI agent managing the store 24/7">
+  <podclaw_agent description="Autonomous AI agent managing the store 24/7" location="pod_workspace/project/podclaw/">
     <architecture>
-      PodClaw is a NanoClaw-style fork (~500 lines core) built on Claude Agent SDK.
+      PodClaw lives in pod_workspace/project/podclaw/ alongside frontend/ and admin/.
+      It is a NanoClaw-style fork (~500 lines core) built on Claude Agent SDK.
       It uses event-sourced state management where every action is recorded as an
       immutable event in agent_events table for perfect auditability and replay.
 
@@ -1250,7 +1278,7 @@
     </architecture>
 
     <soul_md description="Agent persistent identity — loaded at every session start">
-      pod_workspace/SOUL.md contains:
+      pod_workspace/project/podclaw/SOUL.md contains:
       - Identity: "I am PodClaw, the autonomous store manager for [store_name]"
       - Values: Customer satisfaction, brand consistency, cost efficiency, data-driven decisions
       - Constraints: Never exceed daily cost budget, never delete customer data, always log decisions
@@ -1351,7 +1379,7 @@
       </seo_manager>
 
       <marketing model="claude-sonnet-4-5-20250929" schedule="daily 07:00 + 15:00 UTC">
-        Skills file: podclaw/skills/marketing/SKILL.md
+        Skills file: pod_workspace/project/podclaw/skills/marketing/SKILL.md
         Tools: supabase (read/write), web_search, resend
         Reads: memory/context/best_sellers.md, memory/context/customer_insights.md, memory/context/design_library.md, memory/context/marketing_calendar.md
         Writes: supabase marketing_content table, memory/context/marketing_calendar.md
@@ -1366,7 +1394,7 @@
       </marketing>
 
       <newsletter model="claude-sonnet-4-5-20250929" schedule="daily 09:00 + 17:00 UTC">
-        Skills file: podclaw/skills/newsletter/SKILL.md
+        Skills file: pod_workspace/project/podclaw/skills/newsletter/SKILL.md
         Tools: supabase (read/write), resend (send + batch), gemini (embeddings for personalization)
         Reads: memory/context/customer_insights.md, memory/context/marketing_calendar.md, memory/context/newsletter_segments.md
         Writes: supabase email_campaigns table, memory/context/newsletter_segments.md
@@ -1755,6 +1783,49 @@
       - Tier limits as code constants not DB (intentional — limit changes require deploy)
       - Redis TTL for daily reset (counter reset on Redis restart is acceptable soft quota)
     </phase_15>
+
+    <phase_16 name="Engagement & Conversion System">
+      <!-- Guest Wishlist (localStorage + Sync) -->
+      - Guest wishlist: localStorage key 'pod-guest-wishlist' for anonymous users, max 50 items
+      - useWishlist hook refactored for dual mode: localStorage (guest) / Supabase (authenticated)
+      - Wishlist sync: on login, POST /api/wishlist/sync merges guest items to server, clears localStorage
+      - Guest wishlist hint: "Sign in to save your favorites across devices" in sidebar
+
+      <!-- Engagement UI Components -->
+      - AuthWallModal: shown when anonymous hits chat limit (10/day) or tries design generation
+      - UpgradeModal: shown when free user hits design/chat daily limit, shows tier comparison
+      - UsageMeter: sidebar widget showing today's usage (chats, designs, credits) for registered users
+      - SignupBanner: subtle prompt in chat area when guest uses 50%+ of daily chat limit
+      - useEngagement hook: centralized action gating with modal triggers (checkAction returns boolean)
+      - GET /api/usage/status: returns tier, usage counters, credit balance, subscription info
+
+      <!-- Web Push Notifications -->
+      - Service worker at /sw.js handles push events + notification clicks
+      - VAPID keys in env (NEXT_PUBLIC_VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_SUBJECT)
+      - POST /api/push/subscribe: stores PushSubscription for authenticated user
+      - POST /api/push/send: admin/system sends notification to user_id via web-push
+      - push_subscriptions table: user_id, endpoint, p256dh, auth keys
+      - usePushNotifications hook: permission request + subscription management
+      - PushPermissionPrompt: dialog shown after first login or first purchase
+      - Push triggers: order updates, design ready, wishlist price drops, PodClaw campaigns
+
+      <!-- Monetisation: Stripe Subscription + Credit Packs -->
+      - POST /api/subscription/create: Stripe Checkout for premium tier (€9.99/mo)
+      - POST /api/credits/purchase: Stripe Checkout for credit packs (small=15/€4.99, medium=50/€14.99, large=150/€39.99)
+      - Stripe webhook handlers: customer.subscription.created/updated/deleted, checkout.session.completed (credit_pack)
+      - On subscription activation: tier='premium', +10 bonus credits/month
+      - On subscription cancellation: tier='free'
+      - Credit consumption: after daily limit exceeded, premium users can use credit balance
+      - credit_transactions table: tracks all credit additions/deductions with balance_after
+      - Pricing page: /[locale]/pricing with tier comparison + credit pack cards
+
+      <!-- Architecture Decisions -->
+      - Guest browsing, cart, and checkout are NEVER blocked (only AI features are gated)
+      - Anonymous: 10 chat/day, 0 designs; Free: 50 chat, 3 designs; Premium: 500 chat, 30 designs
+      - Usage identifiers: user.id for authenticated, IP address for anonymous
+      - Engagement modals use shadcn Dialog component with semantic tokens
+      - Push notification cleanup: expired/invalid subscriptions auto-removed on 410/404
+    </phase_16>
   </implementation_phases>
 
   <success_criteria>

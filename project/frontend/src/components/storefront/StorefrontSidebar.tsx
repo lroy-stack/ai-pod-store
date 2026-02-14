@@ -22,6 +22,7 @@ import { cn } from '@/lib/utils'
 import { useCart } from '@/hooks/useCart'
 import { useStorefront } from './StorefrontContext'
 import { formatPrice } from '@/lib/currency'
+import { UsageMeter } from '@/components/engagement/UsageMeter'
 
 interface SidebarProduct {
   id: string
@@ -191,6 +192,9 @@ export function StorefrontSidebar({ onNavigate, onCollapse }: StorefrontSidebarP
           )}
         </Link>
       </nav>
+
+      {/* Usage Meter */}
+      <UsageMeter />
 
       {/* Recommended Section */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">

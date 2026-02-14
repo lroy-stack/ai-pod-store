@@ -1,0 +1,255 @@
+"""
+PodClaw — Main Entry Point
+=============================
+
+Starts the PodClaw autonomous store manager:
+1. Loads configuration from .env
+2. Initializes MCP connectors
+3. Sets up hook chains
+4. Creates the orchestrator
+5. Starts the APScheduler daily cycle
+6. Runs the FastAPI bridge for admin dashboard
+
+Run: python3 -m podclaw.main --workspace ./pod_workspace
+     python3 -m podclaw.main --workspace ./pod_workspace --dry-run
+"""
+
+from __future__ import annotations
+
+import argparse
+import asyncio
+import signal
+import sys
+from pathlib import Path
+
+import structlog
+from dotenv import load_dotenv
+
+logger = structlog.get_logger(__name__)
+
+
+def _parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="PodClaw — Autonomous POD Store Manager")
+    parser.add_argument(
+        "--workspace", type=str, default="./pod_workspace",
+        help="Path to the pod_workspace directory",
+    )
+    parser.add_argument(
+        "--dry-run", action="store_true",
+        help="Initialize everything but don't start scheduler or server",
+    )
+    parser.add_argument(
+        "--no-bridge", action="store_true",
+        help="Skip starting the FastAPI bridge server",
+    )
+    return parser.parse_args()
+
+
+def _load_env(workspace: Path) -> None:
+    """Load environment variables from .env files."""
+    # Try harness config first
+    harness_env = workspace.parent / "config" / ".env.required"
+    if harness_env.exists():
+        load_dotenv(harness_env)
+
+    # Then frontend .env.local (has all the real keys)
+    frontend_env = workspace / "project" / "frontend" / ".env.local"
+    if frontend_env.exists():
+        load_dotenv(frontend_env, override=True)
+
+
+def _build_connectors() -> dict:
+    """Initialize all MCP connectors."""
+    from podclaw.mcp.supabase_connector import SupabaseMCPConnector
+    from podclaw.mcp.stripe_connector import StripeMCPConnector
+    from podclaw.mcp.printify_connector import PrintifyMCPConnector
+    from podclaw.mcp.fal_connector import FalMCPConnector
+    from podclaw.mcp.gemini_connector import GeminiMCPConnector
+    from podclaw.mcp.resend_connector import ResendMCPConnector
+    from podclaw.mcp.jina_connector import JinaMCPConnector
+    from podclaw.mcp.web_search_connector import WebSearchMCPConnector
+    from podclaw.mcp.telegram_connector import TelegramMCPConnector
+    from podclaw.mcp.whatsapp_connector import WhatsAppMCPConnector
+    from podclaw import config
+
+    connectors = {
+        "supabase": SupabaseMCPConnector(config.SUPABASE_URL, config.SUPABASE_SERVICE_KEY),
+        "stripe": StripeMCPConnector(config.STRIPE_SECRET_KEY),
+        "printify": PrintifyMCPConnector(config.PRINTIFY_API_TOKEN, config.PRINTIFY_SHOP_ID),
+        "fal": FalMCPConnector(config.FAL_KEY),
+        "gemini": GeminiMCPConnector(config.GEMINI_API_KEY),
+        "resend": ResendMCPConnector(config.RESEND_API_KEY, config.RESEND_FROM_EMAIL),
+        "jina": JinaMCPConnector(config.JINA_API_KEY),
+        "web_search": WebSearchMCPConnector(config.JINA_API_KEY),
+        "telegram": TelegramMCPConnector(config.TELEGRAM_BOT_TOKEN),
+        "whatsapp": WhatsAppMCPConnector(config.WHATSAPP_PHONE_NUMBER_ID, config.WHATSAPP_ACCESS_TOKEN),
+    }
+
+    logger.info("connectors_initialized", count=len(connectors))
+    return connectors
+
+
+def _build_hooks(event_store, memory_manager) -> dict[str, list]:
+    """Build the hook chains for all sub-agents."""
+    from podclaw.hooks.security_hook import security_hook
+    from podclaw.hooks.cost_guard_hook import cost_guard_hook
+    from podclaw.hooks.rate_limit_hook import rate_limit_hook
+    from podclaw.hooks.event_log_hook import event_log_hook
+    from podclaw.hooks.memory_hook import memory_hook
+    from podclaw.hooks.metrics_hook import metrics_pre_hook, metrics_hook
+
+    return {
+        "pre_tool_use": [
+            security_hook,
+            cost_guard_hook,
+            rate_limit_hook,
+            metrics_pre_hook,
+        ],
+        "post_tool_use": [
+            event_log_hook(event_store),
+            memory_hook(memory_manager),
+            metrics_hook,
+        ],
+        "stop": [],
+    }
+
+
+async def _run(args: argparse.Namespace) -> None:
+    """Main async entry point."""
+    workspace = Path(args.workspace).resolve()
+
+    if not workspace.exists():
+        logger.error("workspace_not_found", path=str(workspace))
+        sys.exit(1)
+
+    _load_env(workspace)
+
+    # Import after env is loaded
+    from podclaw.event_store import EventStore
+    from podclaw.memory_manager import MemoryManager
+    from podclaw.client_factory import ClientFactory
+    from podclaw.core import Orchestrator
+    from podclaw.scheduler import PodClawScheduler
+
+    # Initialize components
+    memory_manager = MemoryManager(workspace)
+
+    # Initialize Supabase client for EventStore
+    supabase_client = None
+    from podclaw import config as _cfg
+    if _cfg.SUPABASE_URL and _cfg.SUPABASE_SERVICE_KEY:
+        try:
+            from supabase import create_client
+            supabase_client = create_client(_cfg.SUPABASE_URL, _cfg.SUPABASE_SERVICE_KEY)
+            logger.info("supabase_client_initialized")
+        except Exception as e:
+            logger.warning("supabase_client_failed", error=str(e))
+
+    event_store = EventStore(supabase_client=supabase_client)
+
+    # Initialize hooks with Supabase persistence
+    if supabase_client:
+        from podclaw.hooks.cost_guard_hook import init_cost_guard
+        from podclaw.hooks.rate_limit_hook import init_rate_limit
+        from podclaw.hooks.security_hook import init_security
+        init_cost_guard(supabase_client)
+        init_rate_limit(supabase_client)
+        init_security(supabase_client)
+
+    connectors = _build_connectors()
+    hooks = _build_hooks(event_store, memory_manager)
+
+    skills_dir = Path(__file__).parent / "skills"
+
+    client_factory = ClientFactory(
+        memory_manager=memory_manager,
+        mcp_connectors=connectors,
+        hooks=hooks,
+        skills_dir=skills_dir,
+    )
+
+    orchestrator = Orchestrator(
+        client_factory=client_factory,
+        event_store=event_store,
+        memory_manager=memory_manager,
+    )
+
+    scheduler = PodClawScheduler(orchestrator, workspace_root=workspace)
+
+    if args.dry_run:
+        logger.info("dry_run_mode", workspace=str(workspace))
+        status = orchestrator.get_status()
+        jobs = scheduler.get_jobs()
+        logger.info("status", **status)
+        logger.info("scheduled_jobs", count=len(jobs))
+        for job in jobs:
+            logger.info("job", **job)
+        print(f"\n✓ PodClaw initialized successfully")
+        print(f"  Workspace: {workspace}")
+        print(f"  Agents: {status['agent_count']}")
+        print(f"  Scheduled jobs: {len(jobs)}")
+        print(f"  SOUL.md: {'found' if memory_manager.soul_path.exists() else 'missing'}")
+        return
+
+    # Start orchestrator
+    orchestrator.start()
+    scheduler.start()
+
+    # Start FastAPI bridge
+    if not args.no_bridge:
+        from podclaw.bridge.api import create_app
+        import uvicorn
+        from podclaw.config import BRIDGE_HOST, BRIDGE_PORT
+
+        app = create_app(orchestrator, scheduler, event_store, memory_manager)
+
+        config = uvicorn.Config(
+            app, host=BRIDGE_HOST, port=BRIDGE_PORT,
+            log_level="info", access_log=False,
+        )
+        server = uvicorn.Server(config)
+
+        # Handle shutdown signals
+        loop = asyncio.get_event_loop()
+        for sig in (signal.SIGINT, signal.SIGTERM):
+            loop.add_signal_handler(sig, lambda: asyncio.create_task(_shutdown(scheduler, orchestrator, server)))
+
+        logger.info("podclaw_started", bridge=f"http://{BRIDGE_HOST}:{BRIDGE_PORT}")
+        await server.serve()
+    else:
+        # No bridge — just run scheduler
+        logger.info("podclaw_started_no_bridge")
+        stop_event = asyncio.Event()
+
+        loop = asyncio.get_event_loop()
+        for sig in (signal.SIGINT, signal.SIGTERM):
+            loop.add_signal_handler(sig, stop_event.set)
+
+        await stop_event.wait()
+        scheduler.stop()
+        orchestrator.stop()
+
+
+async def _shutdown(scheduler, orchestrator, server) -> None:
+    """Graceful shutdown."""
+    logger.info("shutdown_initiated")
+    scheduler.stop()
+    orchestrator.stop()
+    server.should_exit = True
+
+
+def main() -> None:
+    """Sync entry point."""
+    args = _parse_args()
+    structlog.configure(
+        processors=[
+            structlog.processors.TimeStamper(fmt="iso"),
+            structlog.processors.add_log_level,
+            structlog.dev.ConsoleRenderer(),
+        ]
+    )
+    asyncio.run(_run(args))
+
+
+if __name__ == "__main__":
+    main()

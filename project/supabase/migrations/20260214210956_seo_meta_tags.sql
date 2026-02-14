@@ -11,9 +11,9 @@ CREATE TABLE IF NOT EXISTS seo_meta_tags (
 
 -- Insert default meta tags for all locales
 INSERT INTO seo_meta_tags (locale, title, description, keywords) VALUES
-  ('en', 'Insomnialz - Custom Print on Demand', 'Create custom designs and order high-quality print-on-demand products.', 'print on demand, custom designs, t-shirts, AI designs'),
-  ('es', 'Insomnialz - Impresión bajo demanda personalizada', 'Crea diseños personalizados y ordena productos de impresión bajo demanda de alta calidad.', 'impresión bajo demanda, diseños personalizados, camisetas, diseños AI'),
-  ('de', 'Insomnialz - Benutzerdefinierter Print-on-Demand', 'Erstellen Sie individuelle Designs und bestellen Sie hochwertige Print-on-Demand-Produkte.', 'Print-on-Demand, individuelle Designs, T-Shirts, KI-Designs')
+  ('en', 'POD AI - Custom Print on Demand', 'Create custom designs and order high-quality print-on-demand products.', 'print on demand, custom designs, t-shirts, AI designs'),
+  ('es', 'POD AI - Impresión bajo demanda personalizada', 'Crea diseños personalizados y ordena productos de impresión bajo demanda de alta calidad.', 'impresión bajo demanda, diseños personalizados, camisetas, diseños AI'),
+  ('de', 'POD AI - Benutzerdefinierter Print-on-Demand', 'Erstellen Sie individuelle Designs und bestellen Sie hochwertige Print-on-Demand-Produkte.', 'Print-on-Demand, individuelle Designs, T-Shirts, KI-Designs')
 ON CONFLICT (locale) DO NOTHING;
 
 -- Create index on locale for faster lookups

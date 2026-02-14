@@ -37,6 +37,16 @@ export const ALLOWED_SHIPPING_COUNTRIES = [
   'DE', 'FR', 'ES', 'IT', 'NL', 'BE', 'AT', 'PT', 'IE', 'GB', 'US', 'CA',
 ] as const
 
+/** Pricing & Tier constants */
+export const PRICING = {
+  premium: { priceCents: 999, currency: 'EUR', label: 'Premium', period: 'month' },
+  creditPacks: {
+    small:  { credits: 15,  priceCents: 499 },
+    medium: { credits: 50,  priceCents: 1499 },
+    large:  { credits: 150, priceCents: 3999 },
+  },
+} as const
+
 /** Shipping rates in store currency */
 export const SHIPPING_RATES: Record<string, Array<{ method: string; price: number; days: string }>> = {
   DE: [

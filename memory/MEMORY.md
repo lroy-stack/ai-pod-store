@@ -168,3 +168,7 @@
 - [2026-02-14T20:51:19.302869+00:00] Session 94: 2 features implemented. Total 237/485. Next target: ID 238 [Admin Dashboard & Agent Monitor] — Agent event replay works
 
 - [2026-02-14T21:04:39.912380+00:00] Session 95: 1 features implemented. Total 238/485. Next target: ID 239 [Admin Dashboard & Agent Monitor] — Margin analysis per category
+
+- [2026-02-14T21:14:40.849995+00:00] Session 96: 2 features implemented. Total 240/485. Next target: ID 241 [Admin] — Sitemap generation works per locale
+
+- [2026-02-14T21:54:45.739557+00:00] Session 97: 1 features implemented. Total 241/520. Next target: ID 242 [Admin] — Agent schedule modification persists via bridge endpoint. Changes saved to PodClaw scheduler, not in-memory admin state.

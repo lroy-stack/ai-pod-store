@@ -55,7 +55,7 @@ export function MobileSidebar({ open, onOpenChange }: MobileSidebarProps) {
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="left" className="w-64 p-0">
         <SheetHeader className="border-b p-4">
-          <SheetTitle className="text-xl font-bold">Insomnialz</SheetTitle>
+          <SheetTitle className="text-xl font-bold">POD AI</SheetTitle>
         </SheetHeader>
         <nav className="flex flex-col gap-1 p-4">
           {navigation.map((item) => {

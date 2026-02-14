@@ -5,8 +5,8 @@ import { createClient } from '@supabase/supabase-js'
 import { STORE_DEFAULTS, SHIPPING_RATES, LOCALE_FORMAT } from '@/lib/store-config'
 import { chatLimiter } from '@/lib/rate-limit'
 import { generateDesign } from '@/lib/design-generation'
+import { checkAndIncrementUsage, usageHeaders, UserTier } from '@/lib/usage-limiter'
 
-export const runtime = 'edge'
 export const maxDuration = 60
 
 // Initialize Google AI with API key
@@ -33,13 +33,16 @@ const supabase = createClient(
  */
 export async function POST(req: Request) {
   try {
-    const ip = req.headers.get('x-forwarded-for') || 'unknown'
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+      req.headers.get('x-real-ip') || 'unknown'
+
+    // Burst rate limit (still applies to all tiers)
     const { success } = chatLimiter.check(ip)
     if (!success) {
       return Response.json({ error: 'Too many requests' }, { status: 429 })
     }
 
-    // Parse cookies from request headers (Edge runtime compatible)
+    // Parse cookies from request headers
     const cookieHeader = req.headers.get('cookie') || ''
     const cookieMap = Object.fromEntries(
       cookieHeader.split(';').map((c) => {
@@ -55,11 +58,36 @@ export async function POST(req: Request) {
     const localeCookie = cookieMap['NEXT_LOCALE'] || ''
     const chatLocale = localeCookie || (acceptLang.startsWith('de') ? 'de' : acceptLang.startsWith('es') ? 'es' : 'en')
 
-    // Resolve user ID from Supabase auth token (if logged in)
+    // Resolve user ID and tier from Supabase auth token (if logged in)
     let chatUserId: string | null = null
+    let chatUserTier: UserTier = 'anonymous'
     if (sbAccessToken) {
       const { data: { user } } = await supabase.auth.getUser(sbAccessToken)
       chatUserId = user?.id || null
+      if (chatUserId) {
+        const { data: profile } = await supabase
+          .from('users')
+          .select('tier')
+          .eq('id', chatUserId)
+          .single()
+        chatUserTier = (profile?.tier as UserTier) || 'free'
+      }
+    }
+
+    // Per-tier daily usage check
+    const chatIdentifier = chatUserId || ip
+    const usageResult = await checkAndIncrementUsage(chatIdentifier, 'chat', chatUserTier, chatUserId || undefined)
+    if (!usageResult.allowed) {
+      return Response.json(
+        {
+          error: chatUserId
+            ? 'Daily chat limit reached. Upgrade for more.'
+            : 'Daily chat limit reached. Sign up for more.',
+          usage: usageResult,
+          code: 'LIMIT_REACHED',
+        },
+        { status: 429, headers: usageHeaders(usageResult) }
+      )
     }
 
     const body = await req.json()

@@ -2,10 +2,11 @@
  * Order Details API
  *
  * GET /api/orders/:id
- * Returns order details with items
+ * Returns order details with items. Requires auth + ownership check.
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { requireAuth, authErrorResponse } from '@/lib/auth-guard'
 import { createClient } from '@supabase/supabase-js'
 
 const supabase = createClient(
@@ -18,9 +19,16 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    let user
+    try {
+      user = await requireAuth(req)
+    } catch (error) {
+      return authErrorResponse(error)
+    }
+
     const { id } = await params
 
-    // Fetch order
+    // Fetch order with ownership check
     const { data: order, error: orderError } = await supabase
       .from('orders')
       .select('*')
@@ -28,6 +36,14 @@ export async function GET(
       .single()
 
     if (orderError || !order) {
+      return NextResponse.json(
+        { error: 'Order not found' },
+        { status: 404 }
+      )
+    }
+
+    // Ownership check: user can only view their own orders (admins see all)
+    if (order.user_id && order.user_id !== user.id && user.role !== 'admin') {
       return NextResponse.json(
         { error: 'Order not found' },
         { status: 404 }

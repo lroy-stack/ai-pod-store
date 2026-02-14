@@ -43,7 +43,7 @@ export function Sidebar() {
   return (
     <aside className="fixed left-0 top-0 h-screen w-64 border-r bg-card">
       <div className="flex h-16 items-center border-b px-6">
-        <h1 className="text-xl font-bold">Insomnialz</h1>
+        <h1 className="text-xl font-bold">POD AI</h1>
       </div>
       <nav className="flex flex-col gap-1 p-4">
         {navigation.map((item) => {

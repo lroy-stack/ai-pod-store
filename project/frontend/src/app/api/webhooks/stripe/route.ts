@@ -53,13 +53,20 @@ export async function POST(req: NextRequest) {
       await handleCheckoutSessionCompleted(event.data.object as Stripe.Checkout.Session)
       break
 
+    case 'customer.subscription.created':
+    case 'customer.subscription.updated':
+      await handleSubscriptionUpdate(event.data.object as Stripe.Subscription)
+      break
+
+    case 'customer.subscription.deleted':
+      await handleSubscriptionDeleted(event.data.object as Stripe.Subscription)
+      break
+
     case 'payment_intent.succeeded':
-      // Future: handle payment intent succeeded
       console.log('PaymentIntent succeeded:', event.data.object.id)
       break
 
     case 'payment_intent.payment_failed':
-      // Future: handle payment failure
       console.log('PaymentIntent failed:', event.data.object.id)
       break
 
@@ -381,12 +388,156 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
       console.log('Missing shipping address or items - skipping Printify submission')
     }
 
+    // Handle credit pack purchases
+    if (session.metadata?.type === 'credit_pack' && session.metadata?.user_id) {
+      await handleCreditPackPurchase(session)
+    }
+
     // TODO: Send confirmation email (future feature)
 
     console.log('Successfully processed checkout session:', session.id)
   } catch (error) {
     console.error('Error handling checkout session:', error)
     // Don't throw - we don't want to cause Stripe to retry indefinitely
+  }
+}
+
+/**
+ * Handle subscription created/updated
+ * Updates user tier and subscription info
+ */
+async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
+  try {
+    // Find user by Stripe customer ID
+    const customerId = typeof subscription.customer === 'string'
+      ? subscription.customer
+      : subscription.customer.id
+
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('id, credit_balance')
+      .eq('stripe_customer_id', customerId)
+      .single()
+
+    if (userError || !user) {
+      console.error('Subscription update: user not found for customer', customerId)
+      return
+    }
+
+    const isActive = subscription.status === 'active'
+    const periodEnd = subscription.current_period_end
+      ? new Date(subscription.current_period_end * 1000).toISOString()
+      : null
+
+    // Update user tier and subscription info
+    const { error: updateError } = await supabase
+      .from('users')
+      .update({
+        tier: isActive ? 'premium' : 'free',
+        stripe_subscription_id: subscription.id,
+        subscription_status: subscription.status === 'active' ? 'active'
+          : subscription.status === 'past_due' ? 'past_due'
+          : 'none',
+        subscription_period_end: periodEnd,
+      })
+      .eq('id', user.id)
+
+    if (updateError) {
+      console.error('Failed to update user subscription:', updateError)
+      return
+    }
+
+    // Add monthly bonus credits on new subscription activation
+    if (isActive) {
+      const bonusCredits = 10
+      const newBalance = (user.credit_balance || 0) + bonusCredits
+
+      await supabase
+        .from('users')
+        .update({ credit_balance: newBalance })
+        .eq('id', user.id)
+
+      await supabase.from('credit_transactions').insert({
+        user_id: user.id,
+        amount: bonusCredits,
+        reason: 'subscription_bonus',
+        balance_after: newBalance,
+      })
+
+      console.log(`Added ${bonusCredits} bonus credits for user ${user.id}`)
+    }
+
+    console.log(`Updated subscription for user ${user.id}: tier=${isActive ? 'premium' : 'free'}`)
+  } catch (error) {
+    console.error('Error handling subscription update:', error)
+  }
+}
+
+/**
+ * Handle subscription deleted/cancelled
+ */
+async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
+  try {
+    const customerId = typeof subscription.customer === 'string'
+      ? subscription.customer
+      : subscription.customer.id
+
+    const { error } = await supabase
+      .from('users')
+      .update({
+        tier: 'free',
+        subscription_status: 'cancelled',
+      })
+      .eq('stripe_customer_id', customerId)
+
+    if (error) {
+      console.error('Failed to handle subscription deletion:', error)
+    } else {
+      console.log('Subscription cancelled for customer:', customerId)
+    }
+  } catch (error) {
+    console.error('Error handling subscription deletion:', error)
+  }
+}
+
+/**
+ * Handle credit pack purchase from checkout.session.completed
+ */
+async function handleCreditPackPurchase(session: Stripe.Checkout.Session) {
+  try {
+    const userId = session.metadata?.user_id
+    const credits = parseInt(session.metadata?.credits || '0')
+
+    if (!userId || !credits) return
+
+    // Fetch current balance
+    const { data: user } = await supabase
+      .from('users')
+      .select('credit_balance')
+      .eq('id', userId)
+      .single()
+
+    const currentBalance = user?.credit_balance || 0
+    const newBalance = currentBalance + credits
+
+    // Update balance
+    await supabase
+      .from('users')
+      .update({ credit_balance: newBalance })
+      .eq('id', userId)
+
+    // Log transaction
+    await supabase.from('credit_transactions').insert({
+      user_id: userId,
+      amount: credits,
+      reason: 'purchase',
+      stripe_payment_id: session.payment_intent as string || session.id,
+      balance_after: newBalance,
+    })
+
+    console.log(`Added ${credits} credits for user ${userId} (new balance: ${newBalance})`)
+  } catch (error) {
+    console.error('Error handling credit pack purchase:', error)
   }
 }
 

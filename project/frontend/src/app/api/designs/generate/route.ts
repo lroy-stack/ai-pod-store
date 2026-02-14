@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { generateDesign } from '@/lib/design-generation'
+import { requireAuth, authErrorResponse } from '@/lib/auth-guard'
+import { checkAndIncrementUsage, usageHeaders, UserTier } from '@/lib/usage-limiter'
 
 const designRequestSchema = z.object({
   prompt: z.string().min(3, 'Prompt must be at least 3 characters'),
@@ -10,6 +12,28 @@ const designRequestSchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
+    // Auth required for design generation
+    let user
+    try {
+      user = await requireAuth(req)
+    } catch (error) {
+      return authErrorResponse(error)
+    }
+
+    // Check usage limits
+    const tier = (user.tier || 'free') as UserTier
+    const usageResult = await checkAndIncrementUsage(user.id, 'design:generate', tier, user.id)
+    if (!usageResult.allowed) {
+      return NextResponse.json(
+        {
+          error: 'Daily design limit reached',
+          usage: usageResult,
+          code: 'LIMIT_REACHED',
+        },
+        { status: 429, headers: usageHeaders(usageResult) }
+      )
+    }
+
     // Parse and validate request body
     const body = await req.json()
     const validation = designRequestSchema.safeParse(body)
@@ -41,6 +65,7 @@ export async function POST(req: NextRequest) {
       timings: result.timings,
       placeholder: result.placeholder,
       note: result.note,
+      usage: usageResult,
     })
   } catch (error) {
     console.error('POST /api/designs/generate error:', error)

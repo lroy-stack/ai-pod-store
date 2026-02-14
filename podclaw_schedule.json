@@ -1,0 +1,50 @@
+{
+  "researcher": {
+    "schedule": "0 7 * * *",
+    "description": "Daily trend research",
+    "model": "haiku",
+    "enabled": true
+  },
+  "designer": {
+    "schedule": "0 7 * * *",
+    "description": "Generate designs based on trends",
+    "model": "sonnet",
+    "enabled": true
+  },
+  "cataloger": {
+    "schedule": "0 8,14,18 * * *",
+    "description": "Create and update products (3x daily)",
+    "model": "sonnet",
+    "enabled": true
+  },
+  "marketing": {
+    "schedule": "0 9,15 * * *",
+    "description": "Social media campaigns (2x daily)",
+    "model": "sonnet",
+    "enabled": true
+  },
+  "newsletter": {
+    "schedule": "0 10,17 * * *",
+    "description": "Email campaigns (2x daily)",
+    "model": "sonnet",
+    "enabled": true
+  },
+  "customer_manager": {
+    "schedule": "0 12,22 * * *",
+    "description": "Customer support (2x daily)",
+    "model": "sonnet",
+    "enabled": true
+  },
+  "seo_manager": {
+    "schedule": "0 16 * * 0",
+    "description": "SEO optimization (weekly, Sunday)",
+    "model": "haiku",
+    "enabled": true
+  },
+  "finance": {
+    "schedule": "0 23 * * *",
+    "description": "Daily financial reconciliation",
+    "model": "sonnet",
+    "enabled": true
+  }
+}

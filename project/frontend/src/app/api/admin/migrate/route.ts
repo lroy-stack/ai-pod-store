@@ -1,8 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireAdmin, authErrorResponse } from '@/lib/auth-guard'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 
 export async function POST(request: NextRequest) {
   try {
+    // Require admin auth
+    try {
+      await requireAdmin(request)
+    } catch (error) {
+      return authErrorResponse(error)
+    }
+
+    // Block in production
+    if (process.env.NODE_ENV === 'production' && !process.env.ALLOW_ADMIN_MIGRATE) {
+      return NextResponse.json(
+        { error: 'Migrations are blocked in production' },
+        { status: 403 }
+      )
+    }
+
     const { sql } = await request.json()
 
     if (!sql) {

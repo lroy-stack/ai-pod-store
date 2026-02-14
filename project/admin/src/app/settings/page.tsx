@@ -18,8 +18,8 @@ export default function SettingsPage() {
     podclawBridgeUrl: process.env.NEXT_PUBLIC_PODCLAW_BRIDGE_URL || 'http://localhost:8000',
 
     // Store settings
-    storeName: 'Insomnialz',
-    storeEmail: 'support@insomnialz.com',
+    storeName: 'POD AI',
+    storeEmail: 'support@podai.com',
     defaultCurrency: 'EUR',
     defaultLocale: 'en',
 

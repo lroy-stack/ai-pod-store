@@ -982,3 +982,74 @@ Total passing: 183/389 (47.0%)
 - Total: **227/485** (46.8%)
 - This session: +3 (IDs 225, 226, 227)
 - Next target: ID 228 — [category unknown]
+
+
+## Session 97 (Coding Agent) - 2026-02-14 21:47-22:00 UTC
+
+### Feature Implemented: Sitemap Generation Works Per Locale
+
+**ID 241:** Sitemap generation works per locale
+
+The sitemap functionality was already mostly implemented, but had incorrect paths displayed in the admin UI and needed a working "Generate Sitemap Now" button.
+
+**Issues Found:**
+1. Admin UI showed wrong sitemap paths: `/en/sitemap.xml` instead of `/sitemap-en.xml`
+2. "Generate Sitemap Now" button wasn't functional (API endpoint missing)
+3. Brand name was "Insomnialz" instead of "POD AI" in some places
+4. Domain was "insomnialz.com" instead of "podai.com" in hreflang examples
+
+**Changes Made:**
+1. Created `/api/admin/sitemap` endpoint in frontend:
+   - POST: Revalidates all sitemap routes using Next.js `revalidatePath()`
+   - GET: Returns sitemap information with product counts
+   - Returns correct sitemap URLs: `/sitemap-en.xml`, `/sitemap-es.xml`, `/sitemap-de.xml`
+
+2. Fixed admin SEO page (`admin/src/app/seo/page.tsx`):
+   - Updated displayed sitemap paths from `/en/sitemap.xml` to `/sitemap-en.xml` (and ES, DE)
+   - Connected "Generate Sitemap Now" button to real API endpoint
+   - Added toast notification showing product count after generation
+   - Fixed brand name from "Insomnialz" to "POD AI" in default meta tags
+   - Fixed domain from "insomnialz.com" to "podai.com" in hreflang examples
+
+**Existing Sitemap Infrastructure (already working):**
+- `/sitemap.xml` - Main sitemap index listing all locale sitemaps
+- `/sitemap-en.xml` - Dynamic route handler with EN-prefixed URLs
+- `/sitemap-es.xml` - Dynamic route handler with ES-prefixed URLs
+- `/sitemap-de.xml` - Dynamic route handler with DE-prefixed URLs
+- All sitemaps query Supabase products table on each request
+- Include static pages (about, privacy, terms, shipping, returns) + all products
+- Use correct base URL from `NEXT_PUBLIC_BASE_URL` env var (https://podai.com)
+
+### Verification
+Browser testing with Playwright MCP + curl verification:
+
+1. ✅ Admin SEO page renders correctly at http://localhost:3001/seo
+2. ✅ Sitemap section shows correct paths: `/sitemap-en.xml`, `/sitemap-es.xml`, `/sitemap-de.xml`
+3. ✅ "Generate Sitemap Now" button calls `/api/admin/sitemap` endpoint
+4. ✅ API responds with success: `{"success": true, "productCount": 16, "locales": ["en", "es", "de"]}`
+5. ✅ `/sitemap-en.xml` exists with correct `/en/` URLs (verified with curl)
+6. ✅ `/sitemap-es.xml` exists with correct `/es/` URLs (verified with curl)
+7. ✅ `/sitemap-de.xml` exists with correct `/de/` URLs (verified with curl)
+
+All 4 test steps passing:
+✅ Trigger sitemap generation in admin
+✅ Verify /sitemap-en.xml exists with correct /en/ URLs
+✅ Verify /sitemap-es.xml exists with correct /es/ URLs
+✅ Verify /sitemap-de.xml exists with correct /de/ URLs
+
+### Progress
+- Features this session: +1 (ID 241)
+- Total passing: 241/520 (46.3%)
+- Next target: ID 242+
+
+### Technical Notes
+- Next.js 16 sitemaps are dynamically generated on each request (no static generation needed)
+- `revalidatePath()` in POST endpoint triggers Next.js to refresh cached sitemap routes
+- All locale-specific sitemaps query Supabase for current product list
+- Each sitemap includes 7 static pages + all products for that locale
+- Domain consistency fixed: all URLs use podai.com (not insomnialz.com)
+- Brand consistency fixed: all references use "POD AI" (not "Insomnialz")
+
+### Commits
+- 42b5c1b: feat: Sitemap generation works per locale — test #241 passing
+

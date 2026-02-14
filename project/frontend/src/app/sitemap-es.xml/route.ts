@@ -1,0 +1,88 @@
+import { NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY!
+
+export async function GET() {
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://podai.com'
+  const locale = 'es'
+
+  try {
+    // Create Supabase client with service key for full access
+    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: { persistSession: false }
+    })
+
+    // Fetch all products
+    const { data: products, error } = await supabase
+      .from('products')
+      .select('id, updated_at')
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      console.error('Error fetching products for sitemap-es:', error)
+    }
+
+    const urls: string[] = []
+
+    // Add main pages
+    const pages = [
+      { path: '', priority: '1.0', changefreq: 'daily' },
+      { path: '/shop', priority: '0.9', changefreq: 'daily' },
+      { path: '/about', priority: '0.5', changefreq: 'monthly' },
+      { path: '/privacy', priority: '0.3', changefreq: 'monthly' },
+      { path: '/terms', priority: '0.3', changefreq: 'monthly' },
+      { path: '/shipping', priority: '0.4', changefreq: 'monthly' },
+      { path: '/returns', priority: '0.4', changefreq: 'monthly' },
+    ]
+
+    pages.forEach((page) => {
+      urls.push(`
+  <url>
+    <loc>${baseUrl}/${locale}${page.path}</loc>
+    <lastmod>${new Date().toISOString()}</lastmod>
+    <changefreq>${page.changefreq}</changefreq>
+    <priority>${page.priority}</priority>
+  </url>`)
+    })
+
+    // Add product pages
+    if (products && products.length > 0) {
+      products.forEach((product) => {
+        const lastmod = product.updated_at
+          ? new Date(product.updated_at).toISOString()
+          : new Date().toISOString()
+
+        urls.push(`
+  <url>
+    <loc>${baseUrl}/${locale}/products/${product.id}</loc>
+    <lastmod>${lastmod}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>`)
+      })
+    }
+
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${urls.join('')}
+</urlset>`
+
+    return new NextResponse(xml, {
+      headers: {
+        'Content-Type': 'application/xml',
+      },
+    })
+  } catch (error) {
+    console.error('Error generating sitemap-es.xml:', error)
+    return new NextResponse(
+      '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>',
+      {
+        headers: {
+          'Content-Type': 'application/xml',
+        },
+      }
+    )
+  }
+}

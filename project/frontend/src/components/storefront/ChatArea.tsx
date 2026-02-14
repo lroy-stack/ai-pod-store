@@ -25,6 +25,7 @@ import { getArtifact } from '@/components/artifacts/registry'
 import { useStorefront } from './StorefrontContext'
 import { useCart } from '@/hooks/useCart'
 import { useWishlist } from '@/hooks/useWishlist'
+import { SignupBanner } from '@/components/engagement/SignupBanner'
 
 export function ChatArea() {
   const t = useTranslations('storefront')
@@ -522,6 +523,9 @@ export function ChatArea() {
           </div>
         )}
       </div>
+
+      {/* Signup Banner for guests */}
+      <SignupBanner />
 
       {/* Floating Input Bar — sticky at bottom */}
       <div className="sticky bottom-0 z-10 px-3 pb-3 pt-2 sm:px-4 md:px-6">

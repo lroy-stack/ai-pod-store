@@ -2677,7 +2677,7 @@
     "id": 242,
     "feature": "Admin",
     "description": "Agent schedule modification persists via bridge endpoint. Changes saved to PodClaw scheduler, not in-memory admin state.",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Modify researcher schedule to 07:00 UTC via bridge PUT /schedule",
       "Save the schedule change via /api/agent/schedule proxy",

@@ -23,13 +23,13 @@ export async function GET(
       console.error('Error fetching SEO meta tags:', error);
       // Return defaults if not found
       return NextResponse.json({
-        title: 'Insomnialz',
+        title: 'POD AI',
         description: '',
         keywords: '',
       });
     }
 
-    return NextResponse.json(data || { title: 'Insomnialz', description: '', keywords: '' });
+    return NextResponse.json(data || { title: 'POD AI', description: '', keywords: '' });
   } catch (error) {
     console.error('Error in SEO API:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

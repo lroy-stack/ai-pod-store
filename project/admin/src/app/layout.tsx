@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Insomnialz Admin",
-  description: "Admin panel for Insomnialz store management",
+  title: "POD AI Admin",
+  description: "Admin panel for POD AI store management",
 };
 
 export default function RootLayout({

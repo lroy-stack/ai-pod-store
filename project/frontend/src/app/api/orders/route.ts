@@ -6,8 +6,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { requireAuth, authErrorResponse } from '@/lib/auth-guard'
 import { createClient } from '@supabase/supabase-js'
-import { cookies } from 'next/headers'
 
 const supabase = createClient(
   process.env.SUPABASE_URL!,
@@ -16,34 +16,11 @@ const supabase = createClient(
 
 export async function GET(req: NextRequest) {
   try {
-    // Get session from cookie
-    const cookieStore = await cookies()
-    const sessionCookie = cookieStore.get('sb-auth-token')
-
-    if (!sessionCookie) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
-
-    let sessionData
+    let user
     try {
-      sessionData = JSON.parse(sessionCookie.value)
-    } catch {
-      return NextResponse.json(
-        { error: 'Invalid session' },
-        { status: 401 }
-      )
-    }
-
-    const userId = sessionData.user?.id
-
-    if (!userId) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+      user = await requireAuth(req)
+    } catch (error) {
+      return authErrorResponse(error)
     }
 
     // Parse pagination parameters
@@ -59,7 +36,7 @@ export async function GET(req: NextRequest) {
     let query = supabase
       .from('orders')
       .select('id, status, total_cents, currency, created_at, paid_at, shipped_at, tracking_number, customer_email', { count: 'exact' })
-      .eq('user_id', userId)
+      .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1)
 
