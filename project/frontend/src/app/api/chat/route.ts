@@ -47,7 +47,12 @@ export async function POST(req: Request) {
 - Guide them through the shopping experience
 - Provide design suggestions and customization options
 
-When searching for products, use the product_search tool to find items matching the customer's request.
+IMPORTANT: When the customer asks to see, browse, find, or search for products, you MUST use the product_search tool.
+Examples that require the tool:
+- "show me cat t-shirts" → use product_search with query="cat t-shirts"
+- "I want a hoodie" → use product_search with query="hoodie"
+- "what do you have?" → use product_search with query=""
+
 Be friendly, helpful, and concise. Always respond in the user's language.
 If you don't know something, be honest and offer to help in other ways.`
 
@@ -66,13 +71,15 @@ If you don't know something, be honest and offer to help in other ways.`
     })
 
     // Define tools
+    // WORKAROUND: Gemini tool calling has schema bugs in AI SDK 6
+    // Using Zod with the simplest possible schema
     const tools = {
       product_search: tool({
-        description: 'Search for products in the catalog',
+        description: 'Search for products in the catalog. Call this when user asks to see/find/browse products.',
         parameters: z.object({
-          query: z.string(),
+          query: z.string().describe('Search keywords (e.g. "cat t-shirts", "vintage hoodies")'),
         }),
-        execute: async (args) => {
+        execute: async (args: { query: string }) => {
           const { query } = args
           const limit = 6
           try {
@@ -133,15 +140,14 @@ If you don't know something, be honest and offer to help in other ways.`
     }
 
     // Stream response with tools
-    // NOTE: Google Gemini + AI SDK 6 has a known incompatibility with tool schemas
-    // All Zod/JSON schemas fail with "parameters schema should be of type OBJECT"
-    // See: https://github.com/vercel/ai/issues (search for gemini tool schema)
-    // Workaround: Disable tools for now, implement manual detection
+    // Using gemini-2.5-flash (latest stable as of June 2025)
+    // Testing if tool calling works better than 2.0
     const result = streamText({
-      model: google('gemini-2.0-flash'),
+      model: google('gemini-2.5-flash'),
       system: systemPrompt,
       messages: modelMessages,
-      // tools,  // DISABLED due to Gemini schema bug
+      tools,
+      maxSteps: 5, // ToolLoopAgent pattern: allow up to 5 tool invocations
     })
 
     // Return streaming SSE response

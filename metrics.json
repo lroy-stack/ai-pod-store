@@ -1,9 +1,9 @@
 {
-  "total_sessions": 49,
-  "total_tokens": 201407,
-  "total_cost_usd": 0.6045000000000001,
+  "total_sessions": 50,
+  "total_tokens": 205575,
+  "total_cost_usd": 0.6170000000000001,
   "tokens_by_model": {
-    "claude-sonnet-4-5-20250929": 201407
+    "claude-sonnet-4-5-20250929": 205575
   },
   "sessions": [
     {
@@ -1725,6 +1725,50 @@
         "mcp__playwright__browser_console_messages": 1,
         "mcp__playwright__browser_network_requests": 1,
         "mcp__playwright__browser_snapshot": 1,
+        "mcp__playwright__browser_evaluate": 1
+      }
+    },
+    {
+      "id": 50,
+      "type": "CODING",
+      "model": "claude-sonnet-4-5-20250929",
+      "started_at": "2026-02-14T09:09:01.711047+00:00",
+      "ended_at": "2026-02-14T09:17:23.797077+00:00",
+      "duration_seconds": 502.09,
+      "tokens_used": 4168,
+      "cost_usd": 0.0125,
+      "features_passed": 0,
+      "total_passing": 141,
+      "total_features": 389,
+      "tool_calls": 85,
+      "tool_errors": 3,
+      "tool_breakdown": {
+        "Bash": 24,
+        "Read": 9,
+        "blocked": 2,
+        "Edit": 20,
+        "mcp__playwright__browser_navigate": 4,
+        "mcp__playwright__browser_wait_for": 9,
+        "mcp__playwright__browser_snapshot": 4,
+        "mcp__playwright__browser_click": 1,
+        "mcp__playwright__browser_console_messages": 2,
+        "mcp__playwright__browser_network_requests": 2,
+        "mcp__playwright__browser_take_screenshot": 2,
+        "mcp__playwright__browser_type": 3,
+        "error": 1,
+        "Write": 1,
+        "mcp__playwright__browser_evaluate": 1
+      },
+      "sub_agents_used": [],
+      "mcp_calls": {
+        "mcp__playwright__browser_navigate": 4,
+        "mcp__playwright__browser_wait_for": 9,
+        "mcp__playwright__browser_snapshot": 4,
+        "mcp__playwright__browser_click": 1,
+        "mcp__playwright__browser_console_messages": 2,
+        "mcp__playwright__browser_network_requests": 2,
+        "mcp__playwright__browser_take_screenshot": 2,
+        "mcp__playwright__browser_type": 3,
         "mcp__playwright__browser_evaluate": 1
       }
     }

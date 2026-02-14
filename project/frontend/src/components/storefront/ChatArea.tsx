@@ -41,9 +41,8 @@ export function ChatArea({ onSelectProduct, externalInputValue, onExternalInputC
   }>({ user: null, activeOrders: null, recentFavorites: null })
 
   // AI SDK 6 useChat hook with DefaultChatTransport
-  // TEMPORARY: Using /api/chat-test to bypass Gemini tool schema bug
   const { messages, sendMessage, status } = useChat({
-    transport: new DefaultChatTransport({ api: '/api/chat-test' }),
+    transport: new DefaultChatTransport({ api: '/api/chat' }),
   })
 
   // Debug logging
