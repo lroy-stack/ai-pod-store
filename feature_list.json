@@ -2126,7 +2126,7 @@
     "id": 192,
     "feature": "Design System & AI Designs",
     "description": "Icon set renders correctly (lucide)",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify lucide icons load correctly throughout the application",
       "Verify icons render for cart, search, heart, settings, and other key elements"
@@ -4906,6 +4906,470 @@
       "Send an OPTIONS preflight request from http://localhost:3001 to PodClaw bridge",
       "Verify the bridge responds with appropriate CORS headers",
       "Verify Access-Control-Allow-Origin includes localhost:3001"
+    ]
+  },
+  {
+    "id": 446,
+    "feature": "Security Hardening \u2014 Auth Guard Module",
+    "description": "auth-guard.ts module exists with getAuthUser export",
+    "passes": false,
+    "steps": [
+      "Verify file exists at frontend/src/lib/auth-guard.ts",
+      "Verify it exports a getAuthUser function that accepts a Request parameter",
+      "Verify getAuthUser reads sb-access-token cookie and calls supabase.auth.getUser()",
+      "Verify it returns { user, error } shape with user containing id, email, role, tier"
+    ]
+  },
+  {
+    "id": 447,
+    "feature": "Security Hardening \u2014 Auth Guard Module",
+    "description": "auth-guard.ts exports requireAuth that throws 401",
+    "passes": false,
+    "steps": [
+      "Verify auth-guard.ts exports a requireAuth function",
+      "Verify requireAuth calls getAuthUser internally",
+      "Verify it throws AuthError with status 401 when no valid session exists",
+      "Verify it returns the authenticated user object on success"
+    ]
+  },
+  {
+    "id": 448,
+    "feature": "Security Hardening \u2014 Auth Guard Module",
+    "description": "auth-guard.ts exports requireAdmin that throws 403",
+    "passes": false,
+    "steps": [
+      "Verify auth-guard.ts exports a requireAdmin function",
+      "Verify it calls requireAuth internally first",
+      "Verify it throws AuthError with status 403 when user role is not admin",
+      "Verify it returns the admin user object on success"
+    ]
+  },
+  {
+    "id": 449,
+    "feature": "Security Hardening \u2014 Auth Guard Module",
+    "description": "auth-guard.ts exports handleAuthError and getClientIP helpers",
+    "passes": false,
+    "steps": [
+      "Verify handleAuthError converts AuthError to NextResponse with correct status code",
+      "Verify getClientIP reads cf-connecting-ip, then x-real-ip, then x-forwarded-for headers",
+      "Verify AuthError class has a status property of type number"
+    ]
+  },
+  {
+    "id": 450,
+    "feature": "Security Hardening \u2014 Usage Limiter Module",
+    "description": "usage-limiter.ts module exists with USAGE_TIERS constant",
+    "passes": false,
+    "steps": [
+      "Verify file exists at frontend/src/lib/usage-limiter.ts",
+      "Verify it exports a USAGE_TIERS constant",
+      "Verify USAGE_TIERS has keys for anonymous, free, and premium tiers",
+      "Verify each tier defines limits for chat, design:generate, design:mockup, design:save actions"
+    ]
+  },
+  {
+    "id": 451,
+    "feature": "Security Hardening \u2014 Usage Limiter Module",
+    "description": "USAGE_TIERS defines correct limits per tier",
+    "passes": false,
+    "steps": [
+      "Verify anonymous tier: chat=10/day, design:generate=0 (blocked), design:mockup=0 (blocked)",
+      "Verify free tier: chat=50/day, design:generate=3/day, design:mockup=5/day, design:save=20 total",
+      "Verify premium tier: chat=500/day, design:generate=30/day, design:mockup=50/day, design:save=unlimited"
+    ]
+  },
+  {
+    "id": 452,
+    "feature": "Security Hardening \u2014 Usage Limiter Module",
+    "description": "checkAndIncrementUsage function with Redis primary storage",
+    "passes": false,
+    "steps": [
+      "Verify usage-limiter.ts exports checkAndIncrementUsage(identifier, action, tier)",
+      "Verify it uses Redis INCR with key format usage:{id}:{action}:{YYYY-MM-DD}",
+      "Verify Redis keys have EXPIRE TTL set to seconds until midnight UTC",
+      "Verify return shape is { allowed, current, limit, remaining, resetAt }"
+    ]
+  },
+  {
+    "id": 453,
+    "feature": "Security Hardening \u2014 Usage Limiter Module",
+    "description": "checkAndIncrementUsage falls back to Supabase RPC",
+    "passes": false,
+    "steps": [
+      "Verify when Redis is unavailable, the function calls supabaseAdmin.rpc('increment_usage')",
+      "Verify the Supabase RPC fallback passes identifier, action, period, and limit parameters",
+      "Verify when both Redis and Supabase fail, the function fails-open (allows request with warning log)"
+    ]
+  },
+  {
+    "id": 454,
+    "feature": "Security Hardening \u2014 Usage Limiter Module",
+    "description": "Blocked actions denied immediately without storage",
+    "passes": false,
+    "steps": [
+      "Verify when USAGE_TIERS limit for an action is 0, checkAndIncrementUsage returns allowed=false",
+      "Verify no Redis INCR or Supabase RPC is called for blocked actions",
+      "Verify the response includes limit=0 and remaining=0"
+    ]
+  },
+  {
+    "id": 455,
+    "feature": "Security Hardening \u2014 Usage Limiter Module",
+    "description": "usageHeaders helper returns X-RateLimit-* headers",
+    "passes": false,
+    "steps": [
+      "Verify usage-limiter.ts exports a usageHeaders function",
+      "Verify it returns headers with X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset",
+      "Verify the headers are formatted as strings suitable for NextResponse headers"
+    ]
+  },
+  {
+    "id": 456,
+    "feature": "Security Hardening \u2014 DB Migration",
+    "description": "users table has tier column with default free",
+    "passes": false,
+    "steps": [
+      "Verify migration file exists at supabase/migrations/20260214180000_user_usage_tracking.sql",
+      "Verify ALTER TABLE users ADD COLUMN tier with VARCHAR(20) DEFAULT 'free'",
+      "Verify CHECK constraint allows only 'free' and 'premium' values"
+    ]
+  },
+  {
+    "id": 457,
+    "feature": "Security Hardening \u2014 DB Migration",
+    "description": "user_usage table created with correct schema",
+    "passes": false,
+    "steps": [
+      "Verify user_usage table has columns: id UUID PK, identifier VARCHAR, action VARCHAR, period VARCHAR, count INTEGER",
+      "Verify UNIQUE constraint on (identifier, action, period)",
+      "Verify index idx_user_usage_lookup on (identifier, action, period)",
+      "Verify RLS enabled with service_role only access"
+    ]
+  },
+  {
+    "id": 458,
+    "feature": "Security Hardening \u2014 DB Migration",
+    "description": "increment_usage RPC function exists",
+    "passes": false,
+    "steps": [
+      "Verify CREATE FUNCTION increment_usage with parameters p_identifier, p_action, p_period, p_limit",
+      "Verify it performs atomic INSERT ON CONFLICT UPDATE (upsert)",
+      "Verify it returns JSONB with allowed, current, and limit fields",
+      "Verify it checks count against p_limit before incrementing"
+    ]
+  },
+  {
+    "id": 459,
+    "feature": "Security Hardening \u2014 DB Migration",
+    "description": "designs table has moderation audit columns",
+    "passes": false,
+    "steps": [
+      "Verify ALTER TABLE designs ADD COLUMN moderated_by UUID REFERENCES users(id)",
+      "Verify ALTER TABLE designs ADD COLUMN moderated_at TIMESTAMPTZ",
+      "Verify both columns use IF NOT EXISTS"
+    ]
+  },
+  {
+    "id": 460,
+    "feature": "Security Hardening \u2014 Admin Migrate Endpoint",
+    "description": "POST /api/admin/migrate requires admin auth",
+    "passes": false,
+    "steps": [
+      "Send POST to /api/admin/migrate without auth cookie",
+      "Verify response is 401 Unauthorized",
+      "Login as non-admin user, send POST to /api/admin/migrate",
+      "Verify response is 403 Forbidden"
+    ]
+  },
+  {
+    "id": 461,
+    "feature": "Security Hardening \u2014 Admin Migrate Endpoint",
+    "description": "POST /api/admin/migrate blocked in production",
+    "passes": false,
+    "steps": [
+      "Verify route.ts checks NODE_ENV === 'production'",
+      "Verify it returns 403 with message indicating migration is disabled in production",
+      "Verify admin auth check runs before production check"
+    ]
+  },
+  {
+    "id": 462,
+    "feature": "Security Hardening \u2014 Admin Moderate Endpoint",
+    "description": "POST /api/admin/designs/moderate requires admin auth",
+    "passes": false,
+    "steps": [
+      "Send POST to /api/admin/designs/moderate without auth cookie",
+      "Verify response is 401 Unauthorized",
+      "Login as non-admin user, send POST to /api/admin/designs/moderate",
+      "Verify response is 403 Forbidden"
+    ]
+  },
+  {
+    "id": 463,
+    "feature": "Security Hardening \u2014 Admin Moderate Endpoint",
+    "description": "Moderation records admin identity and timestamp",
+    "passes": false,
+    "steps": [
+      "Login as admin, send POST to /api/admin/designs/moderate with valid design ID",
+      "Verify the designs table update includes moderated_by set to admin user ID",
+      "Verify the designs table update includes moderated_at set to current timestamp"
+    ]
+  },
+  {
+    "id": 464,
+    "feature": "Security Hardening \u2014 Orders Detail Endpoint",
+    "description": "GET /api/orders/[id] requires authentication",
+    "passes": false,
+    "steps": [
+      "Send GET to /api/orders/{valid-order-id} without auth cookie",
+      "Verify response is 401 Unauthorized",
+      "Verify no order data is returned in the response body"
+    ]
+  },
+  {
+    "id": 465,
+    "feature": "Security Hardening \u2014 Orders Detail Endpoint",
+    "description": "GET /api/orders/[id] enforces ownership with 404",
+    "passes": false,
+    "steps": [
+      "Login as User A, create or identify an order belonging to User A",
+      "Login as User B, send GET to /api/orders/{user-a-order-id}",
+      "Verify response is 404 Not Found (not 403, to prevent ID enumeration)",
+      "Login as User A, send GET to /api/orders/{user-a-order-id}",
+      "Verify response is 200 with order data"
+    ]
+  },
+  {
+    "id": 466,
+    "feature": "Security Hardening \u2014 Orders Detail Endpoint",
+    "description": "Admin can view any order",
+    "passes": false,
+    "steps": [
+      "Login as admin user",
+      "Send GET to /api/orders/{any-order-id}",
+      "Verify response is 200 with order data regardless of order owner"
+    ]
+  },
+  {
+    "id": 467,
+    "feature": "Security Hardening \u2014 Orders List Endpoint",
+    "description": "GET /api/orders uses correct cookie name sb-access-token",
+    "passes": false,
+    "steps": [
+      "Verify /api/orders/route.ts uses requireAuth from auth-guard (not manual cookie parsing)",
+      "Verify no reference to sb-auth-token cookie name in the file",
+      "Verify authenticated request returns user's orders successfully"
+    ]
+  },
+  {
+    "id": 468,
+    "feature": "Security Hardening \u2014 Orders List Endpoint",
+    "description": "GET /api/orders filters by authenticated user ID",
+    "passes": false,
+    "steps": [
+      "Login as User A with known orders",
+      "Send GET to /api/orders",
+      "Verify response contains only orders belonging to User A",
+      "Verify user.id from requireAuth is used in the query filter"
+    ]
+  },
+  {
+    "id": 469,
+    "feature": "Security Hardening \u2014 Design Generate Endpoint",
+    "description": "POST /api/designs/generate requires authentication",
+    "passes": false,
+    "steps": [
+      "Send POST to /api/designs/generate without auth cookie",
+      "Verify response is 401 Unauthorized",
+      "Verify no design generation is triggered (no fal.ai call made)"
+    ]
+  },
+  {
+    "id": 470,
+    "feature": "Security Hardening \u2014 Design Generate Endpoint",
+    "description": "POST /api/designs/generate enforces tier usage limits",
+    "passes": false,
+    "steps": [
+      "Login as free user (tier=free, limit=3/day)",
+      "Send POST to /api/designs/generate successfully 3 times",
+      "Send 4th POST to /api/designs/generate",
+      "Verify response is 429 with upgradeMessage and X-RateLimit-* headers"
+    ]
+  },
+  {
+    "id": 471,
+    "feature": "Security Hardening \u2014 Design Generate Endpoint",
+    "description": "POST /api/designs/generate returns X-RateLimit headers",
+    "passes": false,
+    "steps": [
+      "Login as free user, send POST to /api/designs/generate",
+      "Verify response includes X-RateLimit-Limit header (value: 3)",
+      "Verify response includes X-RateLimit-Remaining header",
+      "Verify response includes X-RateLimit-Reset header with UTC timestamp"
+    ]
+  },
+  {
+    "id": 472,
+    "feature": "Security Hardening \u2014 Design Mockup Endpoint",
+    "description": "POST /api/designs/mockup requires authentication",
+    "passes": false,
+    "steps": [
+      "Send POST to /api/designs/mockup without auth cookie",
+      "Verify response is 401 Unauthorized",
+      "Verify no mockup generation is triggered"
+    ]
+  },
+  {
+    "id": 473,
+    "feature": "Security Hardening \u2014 Design Mockup Endpoint",
+    "description": "POST /api/designs/mockup enforces tier usage limits",
+    "passes": false,
+    "steps": [
+      "Login as free user (tier=free, limit=5/day)",
+      "Send POST to /api/designs/mockup successfully 5 times",
+      "Send 6th POST to /api/designs/mockup",
+      "Verify response is 429 with upgradeMessage and X-RateLimit-* headers"
+    ]
+  },
+  {
+    "id": 474,
+    "feature": "Security Hardening \u2014 Chat Endpoint",
+    "description": "POST /api/chat does not use edge runtime",
+    "passes": false,
+    "steps": [
+      "Read /api/chat/route.ts source code",
+      "Verify there is no export const runtime = 'edge' declaration",
+      "Verify the route runs on Node.js runtime (default)"
+    ]
+  },
+  {
+    "id": 475,
+    "feature": "Security Hardening \u2014 Chat Endpoint",
+    "description": "POST /api/chat uses getAuthUser for session resolution",
+    "passes": false,
+    "steps": [
+      "Verify /api/chat/route.ts imports getAuthUser from auth-guard",
+      "Verify it uses getAuthUser instead of manual sb-access-token cookie parsing",
+      "Verify the user object includes tier information for usage limit checks"
+    ]
+  },
+  {
+    "id": 476,
+    "feature": "Security Hardening \u2014 Chat Endpoint",
+    "description": "POST /api/chat enforces per-tier daily limits",
+    "passes": false,
+    "steps": [
+      "Send chat messages as anonymous user (no auth)",
+      "Verify anonymous users are limited to 10 messages per day",
+      "Send 11th message and verify 429 response with sign-up CTA",
+      "Verify free users get 50/day and premium users get 500/day limits"
+    ]
+  },
+  {
+    "id": 477,
+    "feature": "Security Hardening \u2014 Chat Endpoint",
+    "description": "Chat generate_design tool checks auth and design quota separately",
+    "passes": false,
+    "steps": [
+      "Login as free user with design quota exhausted (3/3 used)",
+      "Send a chat message that triggers the generate_design tool",
+      "Verify the tool returns a friendly message about quota being exhausted",
+      "Verify no fal.ai API call is made when design quota is exceeded"
+    ]
+  },
+  {
+    "id": 478,
+    "feature": "Security Hardening \u2014 Chat Endpoint",
+    "description": "Chat keeps in-memory chatLimiter as burst protection",
+    "passes": false,
+    "steps": [
+      "Verify chatLimiter from rate-limit.ts is still imported and used",
+      "Verify burst limit of 30 requests per minute is maintained",
+      "Verify chatLimiter runs before the tier-based daily limit check"
+    ]
+  },
+  {
+    "id": 479,
+    "feature": "Security Hardening \u2014 Wishlist Endpoint",
+    "description": "GET /api/wishlist uses correct auth method",
+    "passes": false,
+    "steps": [
+      "Verify /api/wishlist/route.ts uses getAuthUser from auth-guard",
+      "Verify no reference to sb-session cookie name in the file",
+      "Verify authenticated request returns user's wishlist successfully"
+    ]
+  },
+  {
+    "id": 480,
+    "feature": "Security Hardening \u2014 429 Response Format",
+    "description": "Usage limit exceeded returns 429 with upgrade message",
+    "passes": false,
+    "steps": [
+      "Trigger a 429 response on any usage-limited endpoint",
+      "Verify response status is 429",
+      "Verify response body contains an upgradeMessage field with tier upgrade CTA",
+      "Verify response includes X-RateLimit-* headers showing current usage"
+    ]
+  },
+  {
+    "id": 481,
+    "feature": "Security Hardening \u2014 Tier System",
+    "description": "Users table has tier column defaulting to free",
+    "passes": false,
+    "steps": [
+      "Query users table schema in Supabase",
+      "Verify tier column exists with type VARCHAR(20)",
+      "Verify default value is 'free'",
+      "Verify CHECK constraint only allows 'free' and 'premium'"
+    ]
+  },
+  {
+    "id": 482,
+    "feature": "Security Hardening \u2014 Tier System",
+    "description": "Premium users get higher usage limits",
+    "passes": false,
+    "steps": [
+      "Login as premium user (tier=premium)",
+      "Send POST to /api/designs/generate",
+      "Verify X-RateLimit-Limit header shows 30 (not 3)",
+      "Verify the user can generate more than 3 designs per day"
+    ]
+  },
+  {
+    "id": 483,
+    "feature": "Security Hardening \u2014 Cookie Consistency",
+    "description": "All API routes use sb-access-token cookie name",
+    "passes": false,
+    "steps": [
+      "Search all API route files for cookie parsing",
+      "Verify no route uses sb-auth-token cookie name",
+      "Verify no route uses sb-session cookie name",
+      "Verify all routes either use auth-guard or sb-access-token directly"
+    ]
+  },
+  {
+    "id": 484,
+    "feature": "Security Hardening \u2014 Fail-Open Usage Limits",
+    "description": "Usage limits fail-open when storage is unavailable",
+    "passes": false,
+    "steps": [
+      "Simulate Redis unavailable (connection refused)",
+      "Simulate Supabase RPC failure",
+      "Send POST to /api/designs/generate as authenticated user",
+      "Verify request is allowed through (not blocked)",
+      "Verify a warning is logged about storage unavailability"
+    ]
+  },
+  {
+    "id": 485,
+    "feature": "Security Hardening \u2014 Fail-Closed Auth",
+    "description": "Auth checks fail-closed when Supabase is unavailable",
+    "passes": false,
+    "steps": [
+      "Simulate Supabase auth service unavailable",
+      "Send POST to /api/designs/generate with a cookie",
+      "Verify request is rejected (401 or 500, not allowed through)",
+      "Verify the error message does not leak internal details"
     ]
   }
 ]
