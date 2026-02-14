@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { DollarSign, ShoppingCart, Package, TrendingUp } from 'lucide-react';
+import { DashboardLayout } from '@/components/DashboardLayout';
 
 interface DashboardStats {
   revenue: number;
@@ -71,28 +72,31 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen p-8">
-        <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {[1, 2, 3, 4].map((i) => (
-            <Card key={i} className="animate-pulse">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <div className="h-4 w-24 bg-muted rounded" />
-                <div className="h-4 w-4 bg-muted rounded" />
-              </CardHeader>
-              <CardContent>
-                <div className="h-8 w-32 bg-muted rounded mb-2" />
-                <div className="h-3 w-40 bg-muted rounded" />
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </main>
+      <DashboardLayout>
+        <main className="min-h-screen p-8">
+          <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {[1, 2, 3, 4].map((i) => (
+              <Card key={i} className="animate-pulse">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <div className="h-4 w-24 bg-muted rounded" />
+                  <div className="h-4 w-4 bg-muted rounded" />
+                </CardHeader>
+                <CardContent>
+                  <div className="h-8 w-32 bg-muted rounded mb-2" />
+                  <div className="h-3 w-40 bg-muted rounded" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </main>
+      </DashboardLayout>
     );
   }
 
   return (
-    <main className="min-h-screen p-8">
+    <DashboardLayout>
+      <main className="min-h-screen p-8">
       <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -222,5 +226,6 @@ export default function DashboardPage() {
         </CardContent>
       </Card>
     </main>
+    </DashboardLayout>
   );
 }
