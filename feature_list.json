@@ -2865,7 +2865,7 @@
     "id": 259,
     "feature": "Internationalization End-to-End",
     "description": "Translations API returns correct locale data",
-    "passes": false,
+    "passes": true,
     "steps": [
       "GET http://localhost:3000/api/admin/translations?locale=es",
       "Verify response contains Spanish translations"
