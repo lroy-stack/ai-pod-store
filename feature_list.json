@@ -2971,7 +2971,7 @@
     "id": 269,
     "feature": "PodClaw Agent",
     "description": "Agent memory files created",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify pod_workspace/memory/MEMORY.md exists",
       "Verify pod_workspace/memory/context/ directory exists with .md files"
