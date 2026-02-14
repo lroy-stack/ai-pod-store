@@ -2360,7 +2360,7 @@
     "id": 213,
     "feature": "Order Management & Notifications",
     "description": "Order total in cents matches Stripe amount",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Create an order through checkout",
       "Verify the order.total_cents value matches the Stripe checkout session amount_total"
