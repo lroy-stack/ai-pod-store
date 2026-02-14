@@ -2280,7 +2280,7 @@
     "id": 206,
     "feature": "Order Management & Notifications",
     "description": "Notification preferences respected",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Disable email notifications in the user profile settings",
       "Trigger an event that would normally send an email",
