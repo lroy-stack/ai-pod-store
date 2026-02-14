@@ -1224,7 +1224,7 @@
     "id": 112,
     "feature": "Checkout & Payments",
     "description": "Order summary shows correct items and totals",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Proceed to checkout with multiple items",
       "Verify item names, quantities, and unit prices are shown",
