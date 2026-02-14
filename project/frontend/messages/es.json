@@ -631,5 +631,9 @@
     "createDesign": "Crea tu primer diseño",
     "download": "Descargar",
     "apply": "Aplicar a producto"
+  },
+  "profile": {
+    "notifications": "Notificaciones",
+    "notificationsDescription": "Gestiona tus preferencias de notificación"
   }
 }

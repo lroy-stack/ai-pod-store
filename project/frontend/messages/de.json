@@ -631,5 +631,9 @@
     "createDesign": "Erstellen Sie Ihr erstes Design",
     "download": "Herunterladen",
     "apply": "Auf Produkt anwenden"
+  },
+  "profile": {
+    "notifications": "Benachrichtigungen",
+    "notificationsDescription": "Benachrichtigungseinstellungen verwalten"
   }
 }

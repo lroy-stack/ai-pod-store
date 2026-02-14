@@ -631,5 +631,9 @@
     "createDesign": "Create Your First Design",
     "download": "Download",
     "apply": "Apply to Product"
+  },
+  "profile": {
+    "notifications": "Notifications",
+    "notificationsDescription": "Manage your notification preferences"
   }
 }
