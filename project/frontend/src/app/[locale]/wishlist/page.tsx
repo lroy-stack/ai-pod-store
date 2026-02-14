@@ -6,9 +6,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Heart, ShoppingCart, Share2, Trash2 } from 'lucide-react';
+import { Heart, ShoppingCart, Share2, Trash2, Copy, Check } from 'lucide-react';
 
 interface Product {
   id: string;
@@ -39,6 +47,9 @@ export default function WishlistPage() {
   const t = useTranslations();
   const [wishlists, setWishlists] = useState<Wishlist[]>([]);
   const [loading, setLoading] = useState(true);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [shareUrl, setShareUrl] = useState('');
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     fetchWishlists();
@@ -128,6 +139,37 @@ export default function WishlistPage() {
     }
   };
 
+  const shareWishlist = async (wishlistId: string) => {
+    try {
+      const response = await fetch('/api/wishlist/share', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ wishlist_id: wishlistId }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setShareUrl(data.share_url);
+        setShareDialogOpen(true);
+        setCopied(false);
+        // Refresh wishlists to show updated is_public status
+        await fetchWishlists();
+      }
+    } catch (error) {
+      console.error('Error sharing wishlist:', error);
+    }
+  };
+
+  const copyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (error) {
+      console.error('Error copying to clipboard:', error);
+    }
+  };
+
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -195,7 +237,11 @@ export default function WishlistPage() {
                     )}
                   </div>
                   <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => shareWishlist(wishlist.id)}
+                    >
                       <Share2 className="h-4 w-4 mr-2" />
                       {t('wishlist.share', { default: 'Share' })}
                     </Button>
@@ -272,6 +318,42 @@ export default function WishlistPage() {
           ))}
         </div>
       )}
+
+      <Dialog open={shareDialogOpen} onOpenChange={setShareDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {t('wishlist.shareTitle', { default: 'Share Wishlist' })}
+            </DialogTitle>
+            <DialogDescription>
+              {t('wishlist.shareDescription', {
+                default: 'Anyone with this link can view your wishlist',
+              })}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex gap-2 mt-4">
+            <Input
+              value={shareUrl}
+              readOnly
+              className="flex-1"
+              onClick={(e) => e.currentTarget.select()}
+            />
+            <Button onClick={copyToClipboard} variant="outline">
+              {copied ? (
+                <>
+                  <Check className="h-4 w-4 mr-2" />
+                  {t('wishlist.copied', { default: 'Copied' })}
+                </>
+              ) : (
+                <>
+                  <Copy className="h-4 w-4 mr-2" />
+                  {t('wishlist.copy', { default: 'Copy' })}
+                </>
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

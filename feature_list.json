@@ -1147,7 +1147,7 @@
     "id": 105,
     "feature": "Shopping Cart + Wishlists",
     "description": "Share wishlist generates public link",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to a wishlist page",
       "Click the Share button on the wishlist",

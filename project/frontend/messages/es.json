@@ -304,6 +304,10 @@
     "addToCart": "Añadir al Carrito",
     "remove": "Eliminar",
     "created": "Creado",
-    "items": "{count, plural, =0 {Sin artículos} one {1 artículo} other {{count} artículos}}"
+    "items": "{count, plural, =0 {Sin artículos} one {1 artículo} other {{count} artículos}}",
+    "shareTitle": "Compartir Lista de Deseos",
+    "shareDescription": "Cualquier persona con este enlace puede ver tu lista de deseos",
+    "copy": "Copiar",
+    "copied": "Copiado"
   }
 }

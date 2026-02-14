@@ -304,6 +304,10 @@
     "addToCart": "Add to Cart",
     "remove": "Remove",
     "created": "Created",
-    "items": "{count, plural, =0 {No items} one {1 item} other {{count} items}}"
+    "items": "{count, plural, =0 {No items} one {1 item} other {{count} items}}",
+    "shareTitle": "Share Wishlist",
+    "shareDescription": "Anyone with this link can view your wishlist",
+    "copy": "Copy",
+    "copied": "Copied"
   }
 }
