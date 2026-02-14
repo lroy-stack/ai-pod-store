@@ -670,3 +670,138 @@ curl -X POST http://localhost:3000/api/rag/search -d '{
 - RAG Pipeline: **100% complete** ✅
 
 **Next section**: Design System & AI Designs (Features 178-193)
+
+---
+
+## Session 71 — 2026-02-14 14:05 UTC
+
+### Features Implemented This Session: 3
+- **#178**: Brand colors extended in Tailwind v4 config ✅
+- **#179**: shadcn/ui components styled consistently ✅
+- **#180**: Loading spinners/skeletons match design system ✅
+
+### Feature #178: Brand colors extended in Tailwind v4 config ✅
+
+**Status**: Already implemented, verification only.
+
+**Verification**:
+```bash
+grep -E "(--color-primary|--color-success|--color-warning):" globals.css
+→ --color-primary: #0071E3; ✅
+→ --color-success: #34C759; ✅
+→ --color-warning: #FF9500; ✅
+```
+
+All three brand colors are correctly set in the Tailwind v4 `@theme` block in `globals.css`.
+
+---
+
+### Feature #179: shadcn/ui components styled consistently ✅
+
+**Problem**: Found 6 files with raw `<button>` elements instead of shadcn/ui Button component:
+- StorefrontSidebar.tsx (ProductCard)
+- ChatArea.tsx (SuggestedPrompt)
+- DetailPanel.tsx (tab close button)
+- ProductDetailClient.tsx (thumbnail gallery buttons)
+- ReviewForm.tsx (star rating buttons)
+- CommandPalette.tsx (command list items)
+
+Also found 1 raw `<input type="file">` which is acceptable (hidden, for file selection).
+
+**Solution**:
+1. Added `Button` import to all affected files
+2. Replaced raw `<button>` with `<Button variant="ghost">` or `<Button variant="outline">`
+3. Added proper Button props: `h-auto`, `justify-start` for custom layouts
+4. Maintained all existing functionality and styling
+
+**Verification**:
+```bash
+grep -r "<button" src/ --include="*.tsx" | grep -v "components/ui/" | wc -l
+→ 0 ✅ (zero raw buttons remaining)
+
+grep -r "<select" src/ --include="*.tsx" | grep -v "components/ui/" | wc -l
+→ 0 ✅
+
+grep -r "<textarea" src/ --include="*.tsx" | grep -v "components/ui/" | wc -l
+→ 0 ✅
+```
+
+Tested via Playwright MCP:
+- Navigated to `/en/` storefront
+- Clicked "Design a custom t-shirt" suggested prompt button
+- ✅ Button click worked, chat responded correctly
+- All buttons now use shadcn/ui Button component
+
+---
+
+### Feature #180: Loading spinners/skeletons match design system ✅
+
+**Changes Made**:
+
+1. **Updated Skeleton component** (`src/components/ui/skeleton.tsx`):
+   - Changed from `bg-accent` to `bg-muted` (proper semantic token)
+   - Already had `animate-pulse` ✅
+
+2. **Updated CartView loader**:
+   - Changed `text-muted-foreground` to `text-primary` for Loader2 spinner
+   - Matches design system requirement for loading spinners
+
+3. **Created loading.tsx for profile page**:
+   - Comprehensive skeleton layout matching ProfileForm structure
+   - Uses Card + Skeleton components
+   - All skeletons use `bg-muted animate-pulse`
+
+4. **Created loading.tsx for cart page**:
+   - Full cart layout skeleton (2 item cards + order summary sidebar)
+   - Responsive grid layout (lg:grid-cols-3)
+   - Matches actual cart page structure
+
+**Verification**:
+```bash
+# Verify skeleton uses bg-muted
+grep "bg-muted animate-pulse" src/components/ui/skeleton.tsx
+→ ✅ Found
+
+# Verify artifact skeletons use proper pattern
+grep "animate-pulse" src/components/artifacts/*/Skeleton.tsx | head -5
+→ ✅ All use "bg-muted animate-pulse"
+
+# Verify cart loader uses text-primary
+grep "text-primary" src/components/cart/CartView.tsx
+→ ✅ Loader2 className="size-8 animate-spin text-primary"
+```
+
+**Files Changed**:
+- `src/components/ui/skeleton.tsx` — bg-accent → bg-muted
+- `src/components/cart/CartView.tsx` — text-muted-foreground → text-primary
+- `src/app/[locale]/(app)/profile/loading.tsx` — NEW
+- `src/app/[locale]/(app)/cart/loading.tsx` — NEW
+
+---
+
+### Session Summary
+
+**Tests passing**: 177/389 → 180/389 (46.3%)
+**Tests newly passing this session**: #178, #179, #180
+**Duration**: ~10 minutes
+**Commits**: 4
+  1. feat: Replace raw HTML elements with shadcn/ui components
+  2. chore: Mark features #178 and #179 as passing
+  3. feat: Standardize loading states with design system
+  4. chore: Mark feature #180 as passing
+
+**Key Improvements**:
+- Zero raw HTML form elements (all use shadcn/ui)
+- Consistent loading UX across all pages
+- Proper semantic token usage (bg-muted for skeletons, text-primary for spinners)
+- Added Next.js loading.tsx files for better loading states
+
+**Next priorities**:
+- ID 181 [Design System & AI Designs] — Navigation bar matches spec layout
+
+**Environment Status**:
+- Dev server: Running (port 3000) ✅
+- Database: Connected (Supabase remote) ✅
+- Redis: Disconnected (expected, graceful fallback) ⚠️
+- No regressions detected ✅
+
