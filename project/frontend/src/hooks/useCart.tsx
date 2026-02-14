@@ -94,7 +94,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [refreshCart])
 
   const removeFromCart = useCallback(async (itemId: string) => {
+    // Store previous state for rollback
+    const previousItems = [...items]
+
     try {
+      // Optimistic update: remove item immediately
+      setItems(prevItems => prevItems.filter(item => item.id !== itemId))
+
+      // Make API call in background
       const response = await fetch('/api/cart', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -105,17 +112,34 @@ export function CartProvider({ children }: { children: ReactNode }) {
         throw new Error('Failed to remove from cart')
       }
 
-      await refreshCart()
       toast.success('Removed from cart')
     } catch (error) {
+      // Rollback on error
+      setItems(previousItems)
       console.error('Remove from cart error:', error)
       toast.error('Failed to remove from cart')
       throw error
     }
-  }, [refreshCart])
+  }, [items])
 
   const updateQuantity = useCallback(async (itemId: string, quantity: number) => {
+    // Store previous state for rollback
+    const previousItems = [...items]
+
     try {
+      // Optimistic update: update local state immediately
+      setItems(prevItems => {
+        if (quantity === 0) {
+          // Remove item if quantity is 0
+          return prevItems.filter(item => item.id !== itemId)
+        }
+        // Update quantity
+        return prevItems.map(item =>
+          item.id === itemId ? { ...item, quantity } : item
+        )
+      })
+
+      // Make API call in background
       const response = await fetch('/api/cart', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -126,13 +150,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
         throw new Error('Failed to update quantity')
       }
 
-      await refreshCart()
+      // No need to call refreshCart() - we already updated optimistically
     } catch (error) {
+      // Rollback on error
+      setItems(previousItems)
       console.error('Update quantity error:', error)
       toast.error('Failed to update quantity')
       throw error
     }
-  }, [refreshCart])
+  }, [items])
 
   const clearCart = useCallback(async () => {
     try {

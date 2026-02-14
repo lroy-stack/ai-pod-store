@@ -1048,7 +1048,7 @@
     "id": 96,
     "feature": "Shopping Cart + Wishlists",
     "description": "Cart updates without full page reload",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Click the increase quantity button on a cart item",
       "Verify the total updates without a full page refresh",
