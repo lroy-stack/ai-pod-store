@@ -558,3 +558,99 @@ Modified `/api/webhooks/stripe/route.ts` to add:
 
 ### Next priorities:
 - Feature #146 [Conversational Storefront / Chat] — Next feature in queue
+
+## Session 65 (Coding Agent)
+
+### Summary
+- Implemented: RAG Pipeline features #162-165
+- Verification: Browser testing + curl verification + database queries
+- Tests passing: 165/389 (42.4%)
+- Tests newly passing this session: #162, #163, #164, #165
+- Issues encountered: None — all RAG features working correctly
+- Database status: Connected (Supabase remote cloud), 17 documents with 768-dim embeddings
+- Environment: All env vars configured correctly
+
+### Feature #162: Documents table has vector column (768 dims) with locale ✅
+
+**Implementation**:
+- Created /api/rag/verify-schema endpoint to verify table structure
+- Created /api/rag/test-vector to test 768-dimensional vector insertion
+- Verified documents table schema:
+  - embedding VECTOR(768) column ✅
+  - locale CHAR(5) column ✅
+  - content TEXT column ✅
+  - All columns accessible via Supabase client ✅
+
+**Verification**:
+- ✅ Table exists with all required columns
+- ✅ Successfully inserted and deleted test document with 768-dim vector
+- ✅ 3 existing documents in table
+- Migration: 20260213000000_initial_schema.sql (already applied)
+
+### Feature #163: Gemini embedding endpoint reachable ✅
+
+**Implementation**:
+- Created /api/rag/test-gemini endpoint
+- Model: gemini-embedding-001
+- API: https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent
+- Key parameter: outputDimensionality: 768
+- Default dimension is 3072, reduced to 768 for pgvector compatibility
+
+**Verification**:
+- ✅ API key configured
+- ✅ Successfully generated embeddings
+- ✅ Dimension: 768 (configured)
+- ✅ All verification checks passed
+
+### Feature #164: Vector similarity search returns relevant results ✅
+
+**Implementation**:
+- Created /api/rag/search endpoint for vector similarity search
+- Created /api/rag/seed-embeddings to populate test data
+- Created search_documents RPC function (migration 20260214124326)
+- Added test documents: cat t-shirt, cat phone case, dog mug
+
+**SQL Function**:
+```sql
+CREATE FUNCTION search_documents(
+  query_embedding vector(768),
+  match_count int DEFAULT 10,
+  filter_locale text DEFAULT NULL
+)
+RETURNS TABLE (id, content, metadata, source_type, source_id, locale, similarity)
+```
+
+**Verification**:
+- ✅ Query "cat t-shirt" returns cat t-shirt first (similarity: 0.786)
+- ✅ Query "cat phone case" returns cat phone case first (similarity: 0.825)
+- ✅ Query "dog mug" returns dog mug first (similarity: 0.818)
+- ✅ Results ordered by relevance (cosine similarity)
+
+### Feature #165: Semantic search returns top-K results ✅
+
+**Implementation**:
+- Created /api/rag/add-documents for batch document insertion
+- Created /api/rag/list-all to inspect all documents
+- Added 6 more cat-themed products to test top-K functionality
+
+**Test Data** (17 total documents):
+- 8 cat-themed products
+- 1 dog-themed product
+- 2 phone cases
+- 4 t-shirts
+- 2 mugs
+- All with 768-dim embeddings
+
+**Verification**:
+- ✅ Query: "cat lover cute kitten adorable" with limit=5
+- ✅ Exactly 5 results returned
+- ✅ Results ordered by similarity descending:
+  1. Cat lover t-shirt (0.840)
+  2. Funny cat t-shirt (0.792)
+  3. Cat lover hoodie (0.776)
+  4. Cute cat pillow (0.774)
+  5. Adorable cat mug (0.718)
+
+### Next priorities:
+- Feature #166 [RAG Pipeline] — Documents indexed from product catalog
+- Feature #167 [RAG Pipeline] — Chat uses RAG for product questions

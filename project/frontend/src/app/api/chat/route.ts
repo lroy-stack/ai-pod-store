@@ -1510,11 +1510,14 @@ Be friendly, helpful, and concise.`
 
     // Stream response with tools
     // Using gemini-2.5-flash (latest stable as of June 2025)
-    // Testing if tool calling works better than 2.0
+    // Convert UIMessage format (with parts array) to CoreMessage format (with content string)
+    // This is needed because useChat sends UIMessage but streamText expects CoreMessage
+    const convertedMessages = convertToModelMessages(messages)
+
     const result = streamText({
       model: google('gemini-2.5-flash'),
       system: systemPrompt,
-      messages: convertToModelMessages(messages),
+      messages: convertedMessages,
       tools,
       stopWhen: stepCountIs(5),
     })

@@ -47,6 +47,7 @@ export function ProductGridArtifact({
 }: ProductGridArtifactProps) {
   const t = useTranslations('storefront')
   const locale = useLocale()
+  const { addToCart } = useCart()
 
   // Limit to 6 items for inline compact variant
   const displayProducts = variant === 'inline' ? products.slice(0, 6) : products
@@ -122,8 +123,7 @@ export function ProductGridArtifact({
                   className="flex-1"
                   onClick={(e) => {
                     e.stopPropagation()
-                    // TODO: Add to cart functionality
-                    console.log('Add to cart:', product.id)
+                    addToCart(product.id, 1, undefined, product.title, product.price)
                   }}
                 >
                   <ShoppingCart className="h-4 w-4 mr-1" />

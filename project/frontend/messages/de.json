@@ -515,5 +515,14 @@
     "noResults": "Keine Ergebnisse gefunden",
     "navigate": "Navigieren",
     "select": "Auswählen"
+  },
+  "errors": {
+    "title": "Etwas ist schiefgelaufen",
+    "description": "Ein unerwarteter Fehler ist aufgetreten. Bitte versuche es erneut oder gehe zurück zum Shop.",
+    "retry": "Erneut versuchen",
+    "goHome": "Zur Startseite",
+    "notFoundTitle": "Seite nicht gefunden",
+    "notFoundDescription": "Die gesuchte Seite existiert nicht oder wurde verschoben.",
+    "backToStore": "Zurück zum Shop"
   }
 }

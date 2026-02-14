@@ -515,5 +515,14 @@
     "noResults": "No se encontraron resultados",
     "navigate": "Navegar",
     "select": "Seleccionar"
+  },
+  "errors": {
+    "title": "Algo salió mal",
+    "description": "Ocurrió un error inesperado. Por favor, inténtalo de nuevo o vuelve a la tienda.",
+    "retry": "Reintentar",
+    "goHome": "Ir al inicio",
+    "notFoundTitle": "Página no encontrada",
+    "notFoundDescription": "La página que buscas no existe o ha sido movida.",
+    "backToStore": "Volver a la tienda"
   }
 }

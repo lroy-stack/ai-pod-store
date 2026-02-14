@@ -515,5 +515,14 @@
     "noResults": "No results found",
     "navigate": "Navigate",
     "select": "Select"
+  },
+  "errors": {
+    "title": "Something went wrong",
+    "description": "An unexpected error occurred. Please try again or go back to the store.",
+    "retry": "Try again",
+    "goHome": "Go Home",
+    "notFoundTitle": "Page Not Found",
+    "notFoundDescription": "The page you are looking for does not exist or has been moved.",
+    "backToStore": "Back to Store"
   }
 }
