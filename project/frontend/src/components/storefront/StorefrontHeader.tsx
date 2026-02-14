@@ -19,6 +19,7 @@ import {
 import { useAuth } from '@/hooks/useAuth'
 import { useCart } from '@/hooks/useCart'
 import { cn } from '@/lib/utils'
+import { ThemeToggle } from '@/components/ThemeToggle'
 
 interface StorefrontHeaderProps {
   onToggleSidebar?: () => void
@@ -153,6 +154,9 @@ export function StorefrontHeader({ onToggleSidebar }: StorefrontHeaderProps) {
             <span className="sr-only">{tNav('cart')}</span>
           </Link>
         </Button>
+
+        {/* Theme Toggle */}
+        <ThemeToggle />
 
         {/* Locale Switcher */}
         <DropdownMenu>

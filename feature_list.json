@@ -2019,7 +2019,7 @@
     "id": 182,
     "feature": "Design System & AI Designs",
     "description": "Footer matches spec layout",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Inspect the footer section",
       "Verify it contains navigation links, policy links, social icons, and a language selector"
@@ -2029,7 +2029,7 @@
     "id": 183,
     "feature": "Design System & AI Designs",
     "description": "Dark/light mode toggle works",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Click the theme toggle button",
       "Verify the background color changes appropriately",

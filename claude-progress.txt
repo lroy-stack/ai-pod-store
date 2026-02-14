@@ -852,3 +852,62 @@ Tested via Playwright MCP on both /en/shop and /en/ pages:
 ### Next Target
 - ID 182 [Design System & AI Designs] — Footer renders with links and locale info
 
+
+## Session 73 (Coding Agent) - 2026-02-14T14:26
+
+### Implemented Features
+- **Feature #182**: Footer matches spec layout ✅
+
+### Implementation Details
+Created comprehensive Footer component with:
+- **Four-column layout**: Brand (PodClaw + description + social icons), Shop (product categories), Company (About/Contact/FAQ), Legal (Privacy/Terms/Returns/Shipping + Language selector)
+- **Social media integration**: Facebook, Twitter, Instagram, LinkedIn icons using shadcn/ui Button components
+- **Language selector**: Integrated with next-intl locale routing
+- **Responsive design**: Mobile-first (1 col → md:2 cols → lg:4 cols)
+- **Semantic tokens**: Used bg-card, text-foreground, text-muted-foreground, border-border throughout
+- **Complete i18n**: Added footer.* keys to en.json, es.json, de.json
+
+### Footer Integration
+Added Footer component to all secondary pages:
+- /shop (shop/page.tsx)
+- /profile (profile/page.tsx)
+- /orders (orders/page.tsx)
+- /cart (cart/page.tsx)
+- /wishlist (wishlist/page.tsx)
+
+Note: Homepage (/) uses StorefrontLayout which is full viewport without footer per spec.
+
+### Verification
+- ✅ Verified via Playwright MCP on /en/shop page
+- ✅ All footer sections render correctly
+- ✅ Navigation links work (Shop, Company, Legal categories)
+- ✅ Social icons display correctly
+- ✅ Language selector integrated
+- ✅ Copyright and "Powered by AI" text display
+- ✅ Translation keys working correctly (fixed privacyLink/termsLink)
+
+### Technical Notes
+- Footer is a client component ('use client') imported into server components
+- Uses useLocale() and useRouter() from next-intl for language switching
+- Language change updates URL path (e.g., /en/shop → /es/shop)
+- Social links open in new tab with rel="noopener noreferrer"
+- Responsive touch targets (minimum p-3 for interactive elements)
+
+### Tests Passing
+- Total: 182/389 (46.8%)
+- Newly passing this session: #182
+
+### Next Priority
+- **Feature #183**: Design generation UI works
+
+### Environment Status
+- ✅ Dev server running (localhost:3000)
+- ✅ Database connected (Supabase remote)
+- ⚠️  Redis disconnected (expected — not installed)
+- ✅ All API keys configured
+
+### Commit
+- Hash: 17e1f5f
+- Message: "feat: add Footer component with navigation, policy links, social icons, and language selector — test #182 passing"
+- Files changed: 9 (Footer.tsx + 5 pages + 3 i18n files)
+

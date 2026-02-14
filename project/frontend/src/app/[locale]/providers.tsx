@@ -2,6 +2,7 @@ import { Suspense } from 'react'
 import { NextIntlClientProvider } from 'next-intl'
 import { getMessages } from 'next-intl/server'
 import { notFound } from 'next/navigation'
+import { ThemeProvider } from 'next-themes'
 import { Toaster } from '@/components/ui/toaster'
 import { CartProvider } from '@/hooks/useCart'
 import { CommandPalette } from '@/components/CommandPalette'
@@ -26,11 +27,18 @@ async function ProvidersContent({
 
   return (
     <NextIntlClientProvider messages={messages} locale={locale}>
-      <CartProvider>
-        {children}
-        <Toaster />
-        <CommandPalette />
-      </CartProvider>
+      <ThemeProvider
+        attribute="class"
+        defaultTheme="system"
+        enableSystem
+        disableTransitionOnChange
+      >
+        <CartProvider>
+          {children}
+          <Toaster />
+          <CommandPalette />
+        </CartProvider>
+      </ThemeProvider>
     </NextIntlClientProvider>
   )
 }

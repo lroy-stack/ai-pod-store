@@ -545,5 +545,11 @@
     "language": "Sprache",
     "copyright": "© {year} PodClaw. Alle Rechte vorbehalten.",
     "powered": "Powered by AI • Mit Sorgfalt gestaltet"
+  },
+  "theme": {
+    "toggle": "Design wechseln",
+    "light": "Hell",
+    "dark": "Dunkel",
+    "system": "System"
   }
 }

@@ -545,5 +545,11 @@
     "language": "Language",
     "copyright": "© {year} PodClaw. All rights reserved.",
     "powered": "Powered by AI • Designed with care"
+  },
+  "theme": {
+    "toggle": "Toggle theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
   }
 }
