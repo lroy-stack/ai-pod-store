@@ -129,6 +129,19 @@ async function handleOrderShipped(resource: Record<string, unknown>) {
     updateData.carrier = shipment.carrier
   }
 
+  // Get the order to find the user_id
+  const { data: order, error: fetchError } = await supabase
+    .from('orders')
+    .select('id, user_id')
+    .eq('printify_order_id', printifyOrderId)
+    .single()
+
+  if (fetchError || !order) {
+    console.error('Failed to fetch order for shipped event:', fetchError)
+    throw fetchError || new Error('Order not found')
+  }
+
+  // Update order status
   const { error } = await supabase
     .from('orders')
     .update(updateData)
@@ -140,6 +153,27 @@ async function handleOrderShipped(resource: Record<string, unknown>) {
   }
 
   console.log('Order marked as shipped:', printifyOrderId)
+
+  // Create notification for user
+  if (order.user_id) {
+    const orderDisplayId = order.id.slice(0, 8) // Use first 8 chars of UUID as display ID
+    const { error: notificationError } = await supabase.from('notifications').insert({
+      user_id: order.user_id,
+      type: 'order_shipped',
+      title: `Order #${orderDisplayId} Shipped`,
+      body: shipment
+        ? `Your order has been shipped via ${shipment.carrier}. Tracking: ${shipment.number}`
+        : 'Your order has been shipped and is on its way!',
+      is_read: false,
+    })
+
+    if (notificationError) {
+      console.error('Failed to create notification:', notificationError)
+      // Don't throw — notification is not critical
+    } else {
+      console.log('Created order_shipped notification for user:', order.user_id)
+    }
+  }
 
   // Create audit log entry
   await supabase.from('audit_log').insert({
