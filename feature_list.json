@@ -2938,7 +2938,7 @@
     "id": 266,
     "feature": "PodClaw Agent",
     "description": "Agent sessions logged to agent_sessions table",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Start the agent",
       "Verify a new row in agent_sessions table with status 'running'",
