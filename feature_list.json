@@ -1246,7 +1246,7 @@
     "id": 114,
     "feature": "Checkout & Payments",
     "description": "Total amount is correct",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Review the checkout order summary",
       "Verify total equals subtotal plus shipping plus tax minus any discount",
