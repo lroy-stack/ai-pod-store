@@ -2204,7 +2204,7 @@
     "id": 199,
     "feature": "Order Management & Notifications",
     "description": "Order API returns paginated results",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Send a GET request to /api/orders?page=1&limit=10",
       "Verify pagination metadata is present in the response",

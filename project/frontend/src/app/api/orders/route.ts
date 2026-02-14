@@ -46,12 +46,31 @@ export async function GET(req: NextRequest) {
       )
     }
 
-    // Fetch orders for this user, ordered by created_at DESC
-    const { data: orders, error } = await supabase
+    // Parse pagination parameters
+    const searchParams = req.nextUrl.searchParams
+    const page = parseInt(searchParams.get('page') || '1')
+    const limit = Math.min(parseInt(searchParams.get('limit') || '10'), 100) // Max 100 per page
+    const status = searchParams.get('status') // Optional status filter
+
+    // Calculate offset for pagination
+    const offset = (page - 1) * limit
+
+    // Build query with pagination
+    let query = supabase
       .from('orders')
-      .select('id, status, total_cents, currency, created_at, paid_at, shipped_at, tracking_number, customer_email')
+      .select('id, status, total_cents, currency, created_at, paid_at, shipped_at, tracking_number, customer_email', { count: 'exact' })
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1)
+
+    // Apply status filter if provided
+    if (status) {
+      // Support comma-separated statuses (e.g., "pending,processing")
+      const statuses = status.split(',').map(s => s.trim())
+      query = query.in('status', statuses)
+    }
+
+    const { data: orders, error, count } = await query
 
     if (error) {
       console.error('Error fetching orders:', error)
@@ -61,7 +80,21 @@ export async function GET(req: NextRequest) {
       )
     }
 
-    return NextResponse.json(orders || [])
+    // Calculate pagination metadata
+    const total = count || 0
+    const totalPages = Math.ceil(total / limit)
+
+    return NextResponse.json({
+      orders: orders || [],
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
+      },
+    })
   } catch (error) {
     console.error('Orders API error:', error)
     return NextResponse.json(
