@@ -287,6 +287,8 @@
     <admin_dashboard>
       - SEPARATE Next.js 16 project at pod_workspace/project/admin/ (port 3001)
       - English-only (no i18n), no locale prefix in routes
+      - IMPORTANT: NO admin UI pages exist in the storefront (frontend/). All admin UI is in project/admin/.
+      - Admin API routes (/api/admin/*) in the storefront are OK — they serve data, not UI.
       - Auth: Supabase login + role='admin' check in middleware (redirect to /login)
       - Shares same Supabase instance as storefront
       - Bridge proxy: /api/agent/* → PodClaw FastAPI bridge (PODCLAW_BRIDGE_URL)
@@ -878,7 +880,10 @@
     </rag>
 
     <admin>
-      NOTE: These API routes live in the ADMIN project (admin/src/app/api/), NOT the storefront.
+      NOTE: Most of these API routes live in the ADMIN project (admin/src/app/api/).
+      EXCEPTION: Some admin API routes exist in the storefront (frontend/src/app/api/admin/)
+      for operations that need direct access to storefront data (orders, returns, designs).
+      Admin UI PAGES always live in the admin project — NEVER create admin page.tsx files in frontend/.
       - GET  /api/auth/session — Check admin session (Supabase + role='admin')
       - GET  /api/agent/[...path] — Proxy to PodClaw bridge (localhost:8000)
       - GET  /api/admin/analytics — Dashboard stats (revenue, orders, conversion)
@@ -990,7 +995,7 @@
       - The conversational storefront (/[locale]/) is FULL VIEWPORT — no traditional header/footer.
         The chat header contains: search bar (pill), notification bell, cart icon with badge, avatar.
         The left sidebar provides store navigation.
-      - Secondary pages (/shop, /admin, /profile, /orders) maintain standard header/footer.
+      - Secondary pages (/shop, /profile, /orders) maintain standard header/footer.
       - NO floating chat widget — the chat IS the primary experience.
       - Responsive: mobile-first, sidebar collapses to Sheet drawer, detail panel stacks below chat.
       - Dark/Light mode toggle in chat header.

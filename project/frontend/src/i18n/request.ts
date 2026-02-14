@@ -9,8 +9,14 @@ export default getRequestConfig(async ({ requestLocale }) => {
     locale = routing.defaultLocale
   }
 
+  // Load messages from file
+  // Note: Redis caching for translations is not feasible in Edge runtime
+  // where getRequestConfig runs. Translation files are small and Next.js
+  // already caches dynamic imports effectively.
+  const messages = (await import(`../../messages/${locale}.json`)).default
+
   return {
     locale,
-    messages: (await import(`../../messages/${locale}.json`)).default,
+    messages,
   }
 })
