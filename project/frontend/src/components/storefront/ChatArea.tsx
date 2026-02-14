@@ -8,61 +8,49 @@
  * - Welcome screen for new conversations
  * - Message history (scrollable)
  * - Input area with voice + image upload
- *
- * Future: AI SDK integration with useChat(), message streaming, artifact rendering
+ * - AI SDK 6 integration with streaming SSE
  */
 
-import { useState, useRef, useEffect } from 'react'
+import { useRef, useEffect, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Search, Bell, ShoppingCart, User, Send, Mic, Paperclip } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { useChat } from '@ai-sdk/react'
 
 interface ChatAreaProps {
   onSelectProduct: (productId: string) => void
 }
 
-interface Message {
-  id: string
-  role: 'user' | 'assistant'
-  content: string
-  timestamp: Date
-}
-
 export function ChatArea({ onSelectProduct }: ChatAreaProps) {
   const t = useTranslations('storefront')
-  const [messages, setMessages] = useState<Message[]>([])
-  const [inputValue, setInputValue] = useState('')
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const [inputValue, setInputValue] = useState('')
+
+  // AI SDK 6 useChat hook with streaming
+  const { messages, sendMessage, status } = useChat()
+
+  const isLoading = status === 'streaming' || status === 'awaiting-message'
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
-  const handleSend = () => {
-    if (!inputValue.trim()) return
-
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      role: 'user',
-      content: inputValue,
-      timestamp: new Date(),
-    }
-
-    setMessages((prev) => [...prev, userMessage])
-    setInputValue('')
-
-    // TODO: Future - call AI SDK chat API here
-  }
-
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
-      handleSend()
+      handleSubmit(e)
     }
+  }
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!inputValue.trim()) return
+    sendMessage(inputValue)
+    setInputValue('')
   }
 
   const handlePromptClick = (prompt: string) => {
@@ -197,6 +185,25 @@ export function ChatArea({ onSelectProduct }: ChatAreaProps) {
                 )}
               </div>
             ))}
+
+            {/* Typing Indicator */}
+            {isLoading && (
+              <div className="flex gap-3 justify-start">
+                <Avatar className="h-8 w-8 flex-shrink-0">
+                  <AvatarFallback className="bg-primary text-primary-foreground text-sm">
+                    P
+                  </AvatarFallback>
+                </Avatar>
+                <div className="rounded-lg px-4 py-3 bg-muted">
+                  <div className="flex gap-1">
+                    <div className="w-2 h-2 rounded-full bg-muted-foreground animate-bounce [animation-delay:-0.3s]" />
+                    <div className="w-2 h-2 rounded-full bg-muted-foreground animate-bounce [animation-delay:-0.15s]" />
+                    <div className="w-2 h-2 rounded-full bg-muted-foreground animate-bounce" />
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div ref={messagesEndRef} />
           </div>
         )}
@@ -205,9 +212,9 @@ export function ChatArea({ onSelectProduct }: ChatAreaProps) {
       {/* Input Area */}
       <div className="border-t border-border bg-card p-4">
         <div className="max-w-3xl mx-auto">
-          <div className="flex items-end gap-2">
+          <form onSubmit={handleSubmit} className="flex items-end gap-2">
             {/* Voice Input */}
-            <Button variant="ghost" size="icon" className="flex-shrink-0">
+            <Button type="button" variant="ghost" size="icon" className="flex-shrink-0">
               <Mic className="h-5 w-5" />
               <span className="sr-only">Voice input</span>
             </Button>
@@ -220,9 +227,11 @@ export function ChatArea({ onSelectProduct }: ChatAreaProps) {
                 onKeyDown={handleKeyDown}
                 placeholder={t('inputPlaceholder')}
                 className="pr-20 min-h-[44px] resize-none"
+                disabled={isLoading}
               />
               {/* Image Upload */}
               <Button
+                type="button"
                 variant="ghost"
                 size="icon"
                 className="absolute right-10 top-1/2 -translate-y-1/2"
@@ -233,11 +242,16 @@ export function ChatArea({ onSelectProduct }: ChatAreaProps) {
             </div>
 
             {/* Send Button */}
-            <Button onClick={handleSend} size="icon" className="flex-shrink-0">
+            <Button
+              type="submit"
+              size="icon"
+              className="flex-shrink-0"
+              disabled={isLoading || !inputValue.trim()}
+            >
               <Send className="h-5 w-5" />
               <span className="sr-only">Send message</span>
             </Button>
-          </div>
+          </form>
 
           <p className="text-xs text-muted-foreground text-center mt-2">
             {t('aiDisclaimer')}

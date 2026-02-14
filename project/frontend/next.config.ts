@@ -12,9 +12,9 @@ const nextConfig: NextConfig = {
     compilationMode: 'annotation',
   },
   experimental: {
-    // Enable "use cache" directive and Partial Prerendering (PPR) for catalog pages
-    // In Next.js 16, cacheComponents enables both features
-    cacheComponents: true,
+    // Temporarily disable cacheComponents to allow Edge runtime for chat API
+    // TODO: Re-enable once chat API is refactored to work with cacheComponents
+    // cacheComponents: true,
   },
   images: {
     remotePatterns: [
