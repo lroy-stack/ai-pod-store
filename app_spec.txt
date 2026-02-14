@@ -1317,6 +1317,37 @@
         - Translate SEO content
         Guardrails: Max 15 web searches per cycle, all translations cached in Redis
       </seo_manager>
+
+      <marketing model="claude-sonnet-4-5-20250929" schedule="daily 07:00 + 15:00 UTC">
+        Skills file: podclaw/skills/marketing/SKILL.md
+        Tools: supabase (read/write), web_search, resend
+        Reads: memory/context/best_sellers.md, memory/context/customer_insights.md, memory/context/design_library.md, memory/context/marketing_calendar.md
+        Writes: supabase marketing_content table, memory/context/marketing_calendar.md
+        Tasks:
+        - Generate social media content (Instagram, Twitter/X, Pinterest, TikTok scripts)
+        - Create ad copy for top-performing products (Google Ads, Meta Ads)
+        - Draft promotional emails for upcoming campaigns
+        - Research trending hashtags and viral content angles
+        - Track content performance and adjust strategy
+        - Coordinate with newsletter agent for email campaigns
+        Guardrails: Max 30 content pieces per cycle, brand voice from SOUL.md, no competitor disparagement
+      </marketing>
+
+      <newsletter model="claude-sonnet-4-5-20250929" schedule="daily 09:00 + 17:00 UTC">
+        Skills file: podclaw/skills/newsletter/SKILL.md
+        Tools: supabase (read/write), resend (send + batch), gemini (embeddings for personalization)
+        Reads: memory/context/customer_insights.md, memory/context/marketing_calendar.md, memory/context/newsletter_segments.md
+        Writes: supabase email_campaigns table, memory/context/newsletter_segments.md
+        Tasks:
+        - Create personalized email content per RFM segment (Champions, Loyal, At-Risk, New)
+        - Set up A/B test variants (subject lines, CTAs) — auto-select winner after 4 hours
+        - Manage drip sequences (welcome series: 3 emails over 7 days, post-purchase, win-back)
+        - Generate content embeddings for personalization via Gemini
+        - Track open rates, click-through rates, unsubscribe rates
+        - Ensure CAN-SPAM compliance (unsubscribe link, physical address, no misleading subjects)
+        - Send locale-aware emails (en/es/de) respecting subscriber timezone preferences
+        Guardrails: Max 500 emails per cycle, CAN-SPAM compliant, unsubscribe rate target < 0.5%
+      </newsletter>
     </sub_agents>
 
     <hook_chains description="Claude Agent SDK hooks for security, logging, cost control">
@@ -1352,9 +1383,15 @@
       ├── finance/
       │   ├── SKILL.md
       │   └── templates/        — Report templates (P&L, cash flow, anomaly alerts)
-      └── seo_manager/
+      ├── seo_manager/
+      │   ├── SKILL.md
+      │   └── templates/        — SEO audit template, keyword research format
+      ├── marketing/
+      │   ├── SKILL.md
+      │   └── templates/        — Social post templates, ad copy formats, campaign briefs
+      └── newsletter/
           ├── SKILL.md
-          └── templates/        — SEO audit template, keyword research format
+          └── templates/        — Email campaign templates, A/B test formats, drip sequences
     </skills_ecosystem>
 
     <memory_system description="Three-tier memory consolidation (daily → weekly → long-term)">
@@ -1368,7 +1405,9 @@
           ├── best_sellers.md   — Top products (updated by researcher)
           ├── customer_insights.md — Customer patterns (updated by customer_manager)
           ├── pricing_history.md   — Price change history with reasons (updated by finance)
-          └── design_library.md    — Design catalog and style guide (updated by designer)
+          ├── design_library.md    — Design catalog and style guide (updated by designer)
+          ├── marketing_calendar.md — Campaign schedule, content plan, ad performance (updated by marketing)
+          └── newsletter_segments.md — RFM segments, A/B results, drip sequences (updated by newsletter)
 
       Consolidation process (runs at 23:30 UTC):
       1. Extract key facts/decisions from today's daily log
@@ -1417,13 +1456,17 @@
 
     <daily_cycle>
       06:00 UTC — RESEARCHER: trends + competitor analysis (reads scripts/favorites/)
+      07:00 UTC — MARKETING (AM): content creation + scheduling (reads best_sellers, customer_insights)
       08:00 UTC — DESIGNER: batch design generation (reads association_rules for trending combos)
-      10:00 UTC — CATALOGER: create products + translate + sync Printify (reads demand_forecasts)
-      12:00 UTC — CUSTOMER MANAGER: reviews + tickets + follow-ups (reads customer_segments)
-      14:00 UTC — CATALOGER: second sync + inventory adjustment + dynamic pricing (reads price_history)
-      16:00 UTC — SEO MANAGER: optimize meta + sitemap + keywords
-      18:00 UTC — CATALOGER: peak hours preparation
-      22:00 UTC — CUSTOMER MANAGER: pending tickets + retention emails (targets from RFM)
+      09:00 UTC — NEWSLETTER (AM): campaign creation + sends (reads customer_segments, marketing_calendar)
+      10:00 UTC — CATALOGER #1: create products + translate + sync Printify (reads demand_forecasts)
+      12:00 UTC — CUSTOMER MANAGER #1: reviews + tickets + follow-ups (reads customer_segments)
+      14:00 UTC — CATALOGER #2: second sync + inventory adjustment + dynamic pricing (reads price_history)
+      15:00 UTC — MARKETING (PM): performance review + engagement responses
+      16:00 UTC — SEO MANAGER: optimize meta + sitemap + keywords (weekly, Sunday only)
+      17:00 UTC — NEWSLETTER (PM): performance analysis + drip sequence triggers
+      18:00 UTC — CATALOGER #3: peak hours preparation
+      22:00 UTC — CUSTOMER MANAGER #2: pending tickets + retention emails (targets from RFM)
       23:00 UTC — FINANCE: daily report + revenue tracking + anomaly detection
       23:30 UTC — MEMORY: consolidate daily → weekly → MEMORY.md (three-tier)
       CONTINUOUS — CUSTOMER STOREFRONT: PodClaw's customer_manager powers the primary conversational interface via ToolLoopAgent — this IS the store's public face.

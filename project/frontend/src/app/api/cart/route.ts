@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
     // Fetch cart items (either by user_id or session_id)
     const query = supabase
       .from('cart_items')
-      .select('*')
+      .select('id, product_id, quantity, variant_id, created_at, updated_at')
       .order('created_at', { ascending: false })
 
     if (userId) {
@@ -54,7 +54,69 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    return NextResponse.json({ items: cartItems || [] })
+    // Fetch product details for each cart item
+    // We need to get product_id list and query products + products_l10n
+    const productIds = (cartItems || []).map((item: any) => item.product_id)
+
+    if (productIds.length === 0) {
+      return NextResponse.json({ items: [] })
+    }
+
+    // Get default locale (we'll use 'en' for now, should be passed as param)
+    const locale = 'en'
+
+    const { data: products, error: productsError } = await supabase
+      .from('products')
+      .select(`
+        id,
+        base_price,
+        products_l10n!inner (
+          title,
+          price,
+          locale
+        )
+      `)
+      .in('id', productIds)
+      .eq('products_l10n.locale', locale)
+
+    if (productsError) {
+      console.error('Products fetch error:', productsError)
+      return NextResponse.json(
+        { error: 'Failed to fetch products', message: productsError.message },
+        { status: 500 }
+      )
+    }
+
+    // Create a map of product details
+    const productMap = new Map(
+      (products || []).map((p: any) => [
+        p.id,
+        {
+          title: p.products_l10n?.[0]?.title || 'Unknown Product',
+          price: p.products_l10n?.[0]?.price || p.base_price || 0,
+        },
+      ])
+    )
+
+    // Transform cart items to include product details
+    const items = (cartItems || []).map((item: any) => {
+      const productDetails = productMap.get(item.product_id) || {
+        title: 'Unknown Product',
+        price: 0,
+      }
+
+      return {
+        id: item.id,
+        product_id: item.product_id,
+        variant_id: item.variant_id,
+        quantity: item.quantity,
+        product_title: productDetails.title,
+        product_price: productDetails.price,
+        variant_details: {}, // TODO: Fetch from product_variants if needed
+      }
+    })
+
+    return NextResponse.json({ items })
   } catch (error) {
     console.error('Cart API error:', error)
     return NextResponse.json(

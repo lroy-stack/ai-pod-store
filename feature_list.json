@@ -3883,5 +3883,400 @@
       "Navigate to /en/admin/analytics",
       "Verify demand forecast line chart renders for products"
     ]
+  },
+  {
+    "id": 354,
+    "feature": "Marketing Agent",
+    "description": "Marketing agent module exists with correct model and schedule config",
+    "passes": false,
+    "steps": [
+      "Verify podclaw/agents/marketing.py exists",
+      "Verify model is claude-sonnet-4-5-20250929",
+      "Verify schedule includes 07:00 and 15:00 UTC"
+    ]
+  },
+  {
+    "id": 355,
+    "feature": "Marketing Agent",
+    "description": "Marketing SKILL.md defines identity, tools, and guardrails",
+    "passes": false,
+    "steps": [
+      "Verify podclaw/skills/marketing/SKILL.md exists",
+      "Verify it defines tools: supabase, web_search, resend",
+      "Verify guardrails: max 30 content pieces per cycle"
+    ]
+  },
+  {
+    "id": 356,
+    "feature": "Marketing Agent",
+    "description": "Marketing templates directory contains social_post.md",
+    "passes": false,
+    "steps": [
+      "Verify podclaw/skills/marketing/templates/social_post.md exists",
+      "Verify template has fields for platform, copy, hashtags, CTA"
+    ]
+  },
+  {
+    "id": 357,
+    "feature": "Marketing Agent",
+    "description": "Marketing agent generates social media content for multiple platforms",
+    "passes": false,
+    "steps": [
+      "Trigger marketing agent via POST /agents/marketing/run",
+      "Verify generated content includes Instagram, Twitter/X variations",
+      "Verify content matches brand voice from SOUL.md"
+    ]
+  },
+  {
+    "id": 358,
+    "feature": "Marketing Agent",
+    "description": "Marketing agent creates ad copy for top products",
+    "passes": false,
+    "steps": [
+      "Trigger marketing agent with best_sellers context",
+      "Verify ad copy is generated for Google Ads and Meta Ads formats",
+      "Verify character limits are respected per platform"
+    ]
+  },
+  {
+    "id": 359,
+    "feature": "Marketing Agent",
+    "description": "Marketing agent respects brand voice guidelines",
+    "passes": false,
+    "steps": [
+      "Trigger marketing content generation",
+      "Verify no aggressive sales language or fake urgency",
+      "Verify tone is friendly and approachable"
+    ]
+  },
+  {
+    "id": 360,
+    "feature": "Marketing Agent",
+    "description": "Marketing agent enforces rate limit of 30 posts per cycle",
+    "passes": false,
+    "steps": [
+      "Verify rate_limit_hook blocks marketing after 30 content generations",
+      "Verify hook returns deny with appropriate message"
+    ]
+  },
+  {
+    "id": 361,
+    "feature": "Marketing Agent",
+    "description": "Marketing agent logs events to agent_events table",
+    "passes": false,
+    "steps": [
+      "Trigger marketing agent cycle",
+      "Query agent_events for agent_name='marketing'",
+      "Verify session_start and tool_call events are recorded"
+    ]
+  },
+  {
+    "id": 362,
+    "feature": "Marketing Agent",
+    "description": "Marketing agent runs on schedule (07:00 + 15:00 UTC)",
+    "passes": false,
+    "steps": [
+      "Verify scheduler has marketing_am job at 07:00",
+      "Verify scheduler has marketing_pm job at 15:00",
+      "Verify both jobs target the marketing agent"
+    ]
+  },
+  {
+    "id": 363,
+    "feature": "Marketing Agent",
+    "description": "Marketing agent updates marketing_calendar.md after each cycle",
+    "passes": false,
+    "steps": [
+      "Trigger marketing agent cycle",
+      "Verify memory/context/marketing_calendar.md is updated",
+      "Verify today's activity is logged"
+    ]
+  },
+  {
+    "id": 364,
+    "feature": "Marketing Agent",
+    "description": "Marketing agent reads cross-agent context files",
+    "passes": false,
+    "steps": [
+      "Verify marketing agent loads best_sellers.md",
+      "Verify marketing agent loads customer_insights.md",
+      "Verify marketing agent loads design_library.md",
+      "Verify marketing agent loads marketing_calendar.md"
+    ]
+  },
+  {
+    "id": 365,
+    "feature": "Marketing Agent",
+    "description": "Marketing agent content passes moderation (no competitor disparagement)",
+    "passes": false,
+    "steps": [
+      "Generate marketing content",
+      "Verify no negative references to competitors",
+      "Verify all image descriptions include alt-text"
+    ]
+  },
+  {
+    "id": 366,
+    "feature": "Marketing Agent",
+    "description": "Marketing agent cost tracking stays within daily budget",
+    "passes": false,
+    "steps": [
+      "Verify cost_guard_hook tracks marketing agent costs",
+      "Verify daily budget is $1.00 for marketing",
+      "Verify hook denies when budget exceeded"
+    ]
+  },
+  {
+    "id": 367,
+    "feature": "Marketing Agent",
+    "description": "Marketing agent campaigns stored in supabase",
+    "passes": false,
+    "steps": [
+      "Trigger marketing cycle",
+      "Query supabase for marketing content records",
+      "Verify content includes platform, copy, scheduled_at fields"
+    ]
+  },
+  {
+    "id": 368,
+    "feature": "Marketing Agent",
+    "description": "Marketing agent AM cycle creates content, PM cycle reviews performance",
+    "passes": false,
+    "steps": [
+      "Verify AM default_task includes content creation",
+      "Verify PM default_task includes performance review",
+      "Verify both cycles update marketing_calendar.md"
+    ]
+  },
+  {
+    "id": 369,
+    "feature": "Marketing Agent",
+    "description": "Marketing agent includes hashtag research via web_search",
+    "passes": false,
+    "steps": [
+      "Trigger marketing agent",
+      "Verify web_search tool is called for hashtag discovery",
+      "Verify results are platform-specific"
+    ]
+  },
+  {
+    "id": 370,
+    "feature": "Marketing Agent",
+    "description": "Marketing agent can be paused and resumed via bridge API",
+    "passes": false,
+    "steps": [
+      "POST /agents/marketing/pause",
+      "Verify scheduler jobs for marketing are paused",
+      "POST /agents/marketing/resume",
+      "Verify scheduler jobs are resumed"
+    ]
+  },
+  {
+    "id": 371,
+    "feature": "Marketing Agent",
+    "description": "Marketing agent appears in bridge /agents endpoint",
+    "passes": false,
+    "steps": [
+      "GET /agents from bridge API",
+      "Verify marketing agent is listed with correct tools",
+      "Verify running status is accurate"
+    ]
+  },
+  {
+    "id": 372,
+    "feature": "Newsletter Agent",
+    "description": "Newsletter agent module exists with correct model and schedule config",
+    "passes": false,
+    "steps": [
+      "Verify podclaw/agents/newsletter.py exists",
+      "Verify model is claude-sonnet-4-5-20250929",
+      "Verify schedule includes 09:00 and 17:00 UTC"
+    ]
+  },
+  {
+    "id": 373,
+    "feature": "Newsletter Agent",
+    "description": "Newsletter SKILL.md defines identity, tools, and compliance rules",
+    "passes": false,
+    "steps": [
+      "Verify podclaw/skills/newsletter/SKILL.md exists",
+      "Verify it defines tools: supabase, resend, gemini",
+      "Verify CAN-SPAM compliance requirements are listed"
+    ]
+  },
+  {
+    "id": 374,
+    "feature": "Newsletter Agent",
+    "description": "Newsletter templates directory contains email_campaign.md",
+    "passes": false,
+    "steps": [
+      "Verify podclaw/skills/newsletter/templates/email_campaign.md exists",
+      "Verify template has A/B variant fields for subject and CTA"
+    ]
+  },
+  {
+    "id": 375,
+    "feature": "Newsletter Agent",
+    "description": "Newsletter agent creates RFM-personalized email content",
+    "passes": false,
+    "steps": [
+      "Trigger newsletter agent with customer_segments data",
+      "Verify different content for Champions vs At-Risk segments",
+      "Verify personalization includes customer name and preferences"
+    ]
+  },
+  {
+    "id": 376,
+    "feature": "Newsletter Agent",
+    "description": "Newsletter agent sets up A/B test variants",
+    "passes": false,
+    "steps": [
+      "Trigger newsletter campaign creation",
+      "Verify at least 2 subject line variants are created",
+      "Verify A/B test configuration includes auto-select after 4 hours"
+    ]
+  },
+  {
+    "id": 377,
+    "feature": "Newsletter Agent",
+    "description": "Newsletter agent manages drip sequences (welcome, post-purchase, win-back)",
+    "passes": false,
+    "steps": [
+      "Verify welcome series: 3 emails (Day 1, Day 3, Day 7)",
+      "Verify post-purchase series: 2 emails (Day 7, Day 14)",
+      "Verify win-back series: 3 emails (Week 1, Week 3, Week 6)"
+    ]
+  },
+  {
+    "id": 378,
+    "feature": "Newsletter Agent",
+    "description": "Newsletter agent sends locale-aware emails (en/es/de)",
+    "passes": false,
+    "steps": [
+      "Trigger newsletter for subscribers in different locales",
+      "Verify email content is in subscriber's preferred language",
+      "Verify subject lines are localized"
+    ]
+  },
+  {
+    "id": 379,
+    "feature": "Newsletter Agent",
+    "description": "Newsletter agent tracks open rates and click-through rates",
+    "passes": false,
+    "steps": [
+      "Trigger newsletter send",
+      "Verify tracking data is stored in supabase",
+      "Verify open_rate and click_rate fields exist"
+    ]
+  },
+  {
+    "id": 380,
+    "feature": "Newsletter Agent",
+    "description": "Newsletter agent respects unsubscribe requests",
+    "passes": false,
+    "steps": [
+      "Verify every email includes unsubscribe link",
+      "Verify unsubscribed users are excluded from future sends",
+      "Verify compliance with 24-hour unsubscribe honor window"
+    ]
+  },
+  {
+    "id": 381,
+    "feature": "Newsletter Agent",
+    "description": "Newsletter agent enforces rate limit of 500 emails per cycle",
+    "passes": false,
+    "steps": [
+      "Verify rate_limit_hook blocks newsletter after 500 sends",
+      "Verify hook returns deny with appropriate message"
+    ]
+  },
+  {
+    "id": 382,
+    "feature": "Newsletter Agent",
+    "description": "Newsletter agent logs events to agent_events table",
+    "passes": false,
+    "steps": [
+      "Trigger newsletter agent cycle",
+      "Query agent_events for agent_name='newsletter'",
+      "Verify session_start and tool_call events are recorded"
+    ]
+  },
+  {
+    "id": 383,
+    "feature": "Newsletter Agent",
+    "description": "Newsletter agent runs on schedule (09:00 + 17:00 UTC)",
+    "passes": false,
+    "steps": [
+      "Verify scheduler has newsletter_am job at 09:00",
+      "Verify scheduler has newsletter_pm job at 17:00",
+      "Verify both jobs target the newsletter agent"
+    ]
+  },
+  {
+    "id": 384,
+    "feature": "Newsletter Agent",
+    "description": "Newsletter agent uses gemini embeddings for content personalization",
+    "passes": false,
+    "steps": [
+      "Trigger newsletter with personalization enabled",
+      "Verify gemini_embed_text is called for content matching",
+      "Verify embeddings are 768-dimensional"
+    ]
+  },
+  {
+    "id": 385,
+    "feature": "Newsletter Agent",
+    "description": "Newsletter agent updates newsletter_segments.md after each cycle",
+    "passes": false,
+    "steps": [
+      "Trigger newsletter agent cycle",
+      "Verify memory/context/newsletter_segments.md is updated",
+      "Verify send history and A/B results are logged"
+    ]
+  },
+  {
+    "id": 386,
+    "feature": "Newsletter Agent",
+    "description": "Newsletter agent post-purchase emails trigger 7 days after delivery",
+    "passes": false,
+    "steps": [
+      "Verify post-purchase drip sequence configuration",
+      "Verify Day 7 email includes satisfaction survey",
+      "Verify Day 14 email includes review request"
+    ]
+  },
+  {
+    "id": 387,
+    "feature": "Newsletter Agent",
+    "description": "Newsletter agent cost tracking stays within daily budget",
+    "passes": false,
+    "steps": [
+      "Verify cost_guard_hook tracks newsletter agent costs",
+      "Verify daily budget is $0.80 for newsletter",
+      "Verify hook denies when budget exceeded"
+    ]
+  },
+  {
+    "id": 388,
+    "feature": "Newsletter Agent",
+    "description": "Newsletter agent CAN-SPAM compliance (physical address in footer)",
+    "passes": false,
+    "steps": [
+      "Trigger newsletter email send",
+      "Verify email footer contains physical mailing address",
+      "Verify sender name is identifiable",
+      "Verify subject line is not misleading"
+    ]
+  },
+  {
+    "id": 389,
+    "feature": "Newsletter Agent",
+    "description": "Newsletter agent appears in bridge /agents endpoint",
+    "passes": false,
+    "steps": [
+      "GET /agents from bridge API",
+      "Verify newsletter agent is listed with correct tools",
+      "Verify running status is accurate"
+    ]
   }
 ]

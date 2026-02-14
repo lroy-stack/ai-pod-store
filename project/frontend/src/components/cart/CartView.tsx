@@ -2,18 +2,22 @@
 
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Loader2 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
+import { useCart } from '@/hooks/useCart'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
+import { Badge } from '@/components/ui/badge'
 
 export default function CartView({ locale }: { locale: string }) {
   const t = useTranslations('Cart')
-  const { authenticated, loading } = useAuth()
+  const { authenticated, loading: authLoading } = useAuth()
+  const { items: cartItems, loading: cartLoading } = useCart()
 
-  const cartItems: any[] = []
-  const cartTotal = 0
+  const loading = authLoading || cartLoading
+  const cartTotal = cartItems.reduce((total, item) => total + (item.product_price * item.quantity), 0)
 
   if (loading) {
     return (
@@ -44,8 +48,64 @@ export default function CartView({ locale }: { locale: string }) {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
             <Card>
-              <CardContent>
-                <p className="text-foreground">{t('itemsInCart', { count: cartItems.length })}</p>
+              <CardHeader>
+                <CardTitle>{t('itemsInCart', { count: cartItems.length })}</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {cartItems.map((item) => (
+                  <div key={item.id}>
+                    <div className="flex gap-4">
+                      {/* Product Image */}
+                      <div className="relative size-24 md:size-32 rounded-lg overflow-hidden bg-muted shrink-0">
+                        <Image
+                          src={`https://via.placeholder.com/150`}
+                          alt={item.product_title}
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+
+                      {/* Product Details */}
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-medium text-foreground mb-1 truncate">
+                          {item.product_title}
+                        </h3>
+
+                        {/* Variant Details */}
+                        {item.variant_details && (
+                          <div className="flex gap-2 mb-2">
+                            {item.variant_details.size && (
+                              <Badge variant="secondary" className="text-xs">
+                                Size: {item.variant_details.size}
+                              </Badge>
+                            )}
+                            {item.variant_details.color && (
+                              <Badge variant="secondary" className="text-xs">
+                                Color: {item.variant_details.color}
+                              </Badge>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Price and Quantity */}
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                          <p className="text-sm text-muted-foreground">
+                            Qty: {item.quantity}
+                          </p>
+                          <p className="font-medium text-foreground">
+                            ${item.product_price.toFixed(2)} each
+                          </p>
+                        </div>
+
+                        {/* Item Total */}
+                        <p className="text-sm font-semibold text-foreground mt-2">
+                          Item total: ${(item.product_price * item.quantity).toFixed(2)}
+                        </p>
+                      </div>
+                    </div>
+                    <Separator className="mt-4" />
+                  </div>
+                ))}
               </CardContent>
             </Card>
           </div>
