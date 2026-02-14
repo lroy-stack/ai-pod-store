@@ -264,6 +264,18 @@
     "itemRemoved": "Item removed from cart",
     "quantityUpdated": "Quantity updated",
     "updateFailed": "Failed to update cart",
-    "maxQuantityExceeded": "Maximum quantity is {max} per item"
+    "maxQuantityExceeded": "Maximum quantity is {max} per item",
+    "couponCode": "Coupon Code",
+    "couponPlaceholder": "Enter coupon code",
+    "applyCoupon": "Apply",
+    "applying": "Applying...",
+    "removeCoupon": "Remove",
+    "couponApplied": "Coupon applied successfully",
+    "discount": "Discount",
+    "couponInvalid": "Invalid coupon code",
+    "couponExpired": "This coupon has expired",
+    "couponNotYetValid": "This coupon is not yet valid",
+    "couponUsageLimitExceeded": "This coupon has reached its usage limit",
+    "couponMinimumNotMet": "Minimum purchase amount not met"
   }
 }

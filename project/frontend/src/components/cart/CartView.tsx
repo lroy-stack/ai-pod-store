@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
 import { useState } from 'react'
 import { toast } from 'sonner'
 
@@ -21,9 +22,17 @@ export default function CartView({ locale }: { locale: string }) {
   const { authenticated, loading: authLoading } = useAuth()
   const { items: cartItems, loading: cartLoading, refreshCart } = useCart()
   const [updatingItems, setUpdatingItems] = useState<Set<string>>(new Set())
+  const [couponCode, setCouponCode] = useState('')
+  const [appliedCoupon, setAppliedCoupon] = useState<{
+    code: string
+    discount_amount: number
+    new_total: number
+  } | null>(null)
+  const [applyingCoupon, setApplyingCoupon] = useState(false)
 
   const loading = authLoading || cartLoading
   const cartTotal = cartItems.reduce((total, item) => total + (item.product_price * item.quantity), 0)
+  const finalTotal = appliedCoupon ? appliedCoupon.new_total : cartTotal
 
   const updateQuantity = async (itemId: string, newQuantity: number) => {
     // Enforce maximum quantity on client side
@@ -63,6 +72,48 @@ export default function CartView({ locale }: { locale: string }) {
         return next
       })
     }
+  }
+
+  const applyCoupon = async () => {
+    if (!couponCode.trim()) {
+      toast.error(t('couponInvalid'))
+      return
+    }
+
+    setApplyingCoupon(true)
+
+    try {
+      const response = await fetch('/api/coupons/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: couponCode.trim(), cartTotal }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok || !data.valid) {
+        toast.error(data.error || t('couponInvalid'))
+        return
+      }
+
+      setAppliedCoupon({
+        code: data.coupon.code,
+        discount_amount: data.discount_amount,
+        new_total: data.new_total,
+      })
+      toast.success(t('couponApplied'))
+    } catch (error) {
+      console.error('Coupon application error:', error)
+      toast.error(t('couponInvalid'))
+    } finally {
+      setApplyingCoupon(false)
+    }
+  }
+
+  const removeCoupon = () => {
+    setAppliedCoupon(null)
+    setCouponCode('')
+    toast.success(t('itemRemoved'))
   }
 
   if (loading) {
@@ -195,12 +246,66 @@ export default function CartView({ locale }: { locale: string }) {
                 <CardTitle>{t('orderSummary')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                {/* Coupon Code Input */}
+                {!appliedCoupon ? (
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-foreground">
+                      {t('couponCode')}
+                    </label>
+                    <div className="flex gap-2">
+                      <Input
+                        type="text"
+                        placeholder={t('couponPlaceholder')}
+                        value={couponCode}
+                        onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                        onKeyDown={(e) => e.key === 'Enter' && applyCoupon()}
+                        disabled={applyingCoupon}
+                        className="flex-1"
+                      />
+                      <Button
+                        onClick={applyCoupon}
+                        disabled={applyingCoupon || !couponCode.trim()}
+                        size="default"
+                      >
+                        {applyingCoupon ? t('applying') : t('applyCoupon')}
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between p-3 bg-success/10 rounded-lg border border-success/20">
+                      <div>
+                        <p className="text-sm font-medium text-success">
+                          {t('couponCode')}: {appliedCoupon.code}
+                        </p>
+                        <p className="text-xs text-success/80">
+                          -${appliedCoupon.discount_amount.toFixed(2)} {t('discount')}
+                        </p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={removeCoupon}
+                        className="text-success hover:text-success"
+                      >
+                        {t('removeCoupon')}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
                 <Separator />
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span className="text-foreground">{t('subtotal')}</span>
                     <span className="text-foreground font-medium">${cartTotal.toFixed(2)}</span>
                   </div>
+                  {appliedCoupon && (
+                    <div className="flex justify-between text-success">
+                      <span>{t('discount')}</span>
+                      <span className="font-medium">-${appliedCoupon.discount_amount.toFixed(2)}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between">
                     <span className="text-foreground">{t('shipping')}</span>
                     <span className="text-foreground font-medium">{t('calculated')}</span>
@@ -209,7 +314,7 @@ export default function CartView({ locale }: { locale: string }) {
                 <Separator />
                 <div className="flex justify-between">
                   <span className="text-lg font-bold text-foreground">{t('total')}</span>
-                  <span className="text-lg font-bold text-foreground">${cartTotal.toFixed(2)}</span>
+                  <span className="text-lg font-bold text-foreground">${finalTotal.toFixed(2)}</span>
                 </div>
 
                 <div className="space-y-3 pt-2">

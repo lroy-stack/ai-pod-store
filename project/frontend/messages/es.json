@@ -264,6 +264,18 @@
     "itemRemoved": "Artículo eliminado del carrito",
     "quantityUpdated": "Cantidad actualizada",
     "updateFailed": "Error al actualizar el carrito",
-    "maxQuantityExceeded": "La cantidad máxima es {max} por artículo"
+    "maxQuantityExceeded": "La cantidad máxima es {max} por artículo",
+    "couponCode": "Código de Cupón",
+    "couponPlaceholder": "Ingresa código de cupón",
+    "applyCoupon": "Aplicar",
+    "applying": "Aplicando...",
+    "removeCoupon": "Eliminar",
+    "couponApplied": "Cupón aplicado exitosamente",
+    "discount": "Descuento",
+    "couponInvalid": "Código de cupón inválido",
+    "couponExpired": "Este cupón ha expirado",
+    "couponNotYetValid": "Este cupón aún no es válido",
+    "couponUsageLimitExceeded": "Este cupón ha alcanzado su límite de uso",
+    "couponMinimumNotMet": "No se alcanza el monto mínimo de compra"
   }
 }

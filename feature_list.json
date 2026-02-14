@@ -1081,7 +1081,7 @@
     "id": 99,
     "feature": "Shopping Cart + Wishlists",
     "description": "Coupon code input + apply works",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Enter a valid coupon code in the coupon input field",
       "Click the Apply button",

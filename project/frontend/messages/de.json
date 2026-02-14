@@ -264,6 +264,18 @@
     "itemRemoved": "Artikel aus dem Warenkorb entfernt",
     "quantityUpdated": "Menge aktualisiert",
     "updateFailed": "Aktualisierung des Warenkorbs fehlgeschlagen",
-    "maxQuantityExceeded": "Die maximale Menge beträgt {max} pro Artikel"
+    "maxQuantityExceeded": "Die maximale Menge beträgt {max} pro Artikel",
+    "couponCode": "Gutscheincode",
+    "couponPlaceholder": "Gutscheincode eingeben",
+    "applyCoupon": "Anwenden",
+    "applying": "Wird angewendet...",
+    "removeCoupon": "Entfernen",
+    "couponApplied": "Gutschein erfolgreich angewendet",
+    "discount": "Rabatt",
+    "couponInvalid": "Ungültiger Gutscheincode",
+    "couponExpired": "Dieser Gutschein ist abgelaufen",
+    "couponNotYetValid": "Dieser Gutschein ist noch nicht gültig",
+    "couponUsageLimitExceeded": "Dieser Gutschein hat sein Nutzungslimit erreicht",
+    "couponMinimumNotMet": "Mindestbestellwert nicht erreicht"
   }
 }
