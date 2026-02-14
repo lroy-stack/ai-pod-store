@@ -982,7 +982,7 @@
     "id": 90,
     "feature": "Shopping Cart + Wishlists",
     "description": "Cart page lists items with details",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to /en/cart with items in the cart",
       "Verify each item shows its name and variant information",

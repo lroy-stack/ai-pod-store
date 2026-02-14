@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
-
-const supabaseUrl = process.env.SUPABASE_URL!
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY!
+import { supabaseAdmin } from '@/lib/supabase-admin'
 
 // GET /api/cart - Fetch cart items
 export async function GET(request: NextRequest) {
@@ -19,7 +16,7 @@ export async function GET(request: NextRequest) {
       needsSessionCookie = true
     }
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey)
+    const supabase = supabaseAdmin
 
     // Try to get user from session
     let userId: string | null = null
@@ -67,22 +64,11 @@ export async function GET(request: NextRequest) {
       return response
     }
 
-    // Get default locale (we'll use 'en' for now, should be passed as param)
-    const locale = 'en'
-
+    // Fetch products with their base info
     const { data: products, error: productsError } = await supabase
       .from('products')
-      .select(`
-        id,
-        base_price,
-        products_l10n!inner (
-          title,
-          price,
-          locale
-        )
-      `)
+      .select('id, title, base_price_cents, currency')
       .in('id', productIds)
-      .eq('products_l10n.locale', locale)
 
     if (productsError) {
       console.error('Products fetch error:', productsError)
@@ -97,8 +83,8 @@ export async function GET(request: NextRequest) {
       (products || []).map((p: any) => [
         p.id,
         {
-          title: p.products_l10n?.[0]?.title || 'Unknown Product',
-          price: p.products_l10n?.[0]?.price || p.base_price || 0,
+          title: p.title || 'Unknown Product',
+          price: p.base_price_cents ? p.base_price_cents / 100 : 0, // Convert cents to dollars
         },
       ])
     )
@@ -154,7 +140,7 @@ export async function POST(request: NextRequest) {
       needsSessionCookie = true
     }
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey)
+    const supabase = supabaseAdmin
 
     // Try to get user from session
     let userId: string | null = null
@@ -266,7 +252,7 @@ export async function DELETE(request: NextRequest) {
     const sessionCookie = cookieStore.get('sb-access-token')
     const sessionId = cookieStore.get('cart-session-id')?.value
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey)
+    const supabase = supabaseAdmin
 
     // Try to get user from session
     let userId: string | null = null
