@@ -2259,7 +2259,7 @@
     "id": 204,
     "feature": "Order Management & Notifications",
     "description": "Order shipped notification created",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Trigger a shipped webhook for an order",
       "Verify a notification with type 'order_shipped' is created for the user"
