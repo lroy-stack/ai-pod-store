@@ -1,5 +1,8 @@
 /** Store-wide defaults — single source of truth */
 export const STORE_DEFAULTS = {
+  platformName: 'POD AI',
+  storeName: 'POD AI Store',
+  assistantName: 'POD AI Assistant',
   currency: 'EUR',
   country: 'DE',
   measurementUnit: 'cm',

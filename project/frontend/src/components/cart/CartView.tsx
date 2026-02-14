@@ -173,7 +173,7 @@ export default function CartView({ locale }: { locale: string }) {
     return (
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-center py-12">
-          <Loader2 className="size-8 animate-spin text-muted-foreground" />
+          <Loader2 className="size-8 animate-spin text-primary" />
         </div>
       </div>
     )

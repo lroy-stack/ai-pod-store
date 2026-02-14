@@ -78,6 +78,7 @@ class PrintifyClient {
       headers: {
         'Authorization': `Bearer ${this.apiToken}`,
         'Content-Type': 'application/json',
+        'User-Agent': 'POD-AI-Store/1.0',
         ...options.headers,
       },
     })
@@ -90,6 +91,16 @@ class PrintifyClient {
     }
 
     return response.json()
+  }
+
+  /**
+   * Create a product in Printify
+   */
+  async createProduct(productData: Record<string, unknown>): Promise<{ id: string }> {
+    return this.request(`/shops/${this.shopId}/products.json`, {
+      method: 'POST',
+      body: JSON.stringify(productData),
+    })
   }
 
   /**
@@ -134,8 +145,8 @@ class PrintifyClient {
    */
   async cancelOrder(orderId: string): Promise<void> {
     await this.request(
-      `/shops/${this.shopId}/orders/${orderId}.json`,
-      { method: 'DELETE' }
+      `/shops/${this.shopId}/orders/${orderId}/cancel.json`,
+      { method: 'POST' }
     )
   }
 
@@ -144,6 +155,42 @@ class PrintifyClient {
    * @param lineItems - Products and variants to ship
    * @param address - Shipping address
    */
+  /**
+   * Upload an image to Printify via public URL
+   */
+  async uploadImage(url: string, fileName: string): Promise<{ id: string; file_name: string; preview_url: string }> {
+    return this.request(`/uploads/images.json`, {
+      method: 'POST',
+      body: JSON.stringify({ file_name: fileName, url }),
+    })
+  }
+
+  /**
+   * Publish a product to the connected sales channel
+   */
+  async publishProduct(productId: string): Promise<void> {
+    await this.request(
+      `/shops/${this.shopId}/products/${productId}/publish.json`,
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          title: true,
+          description: true,
+          images: true,
+          variants: true,
+          tags: true,
+        }),
+      }
+    )
+  }
+
+  /**
+   * Get a single product by ID
+   */
+  async getProduct(productId: string): Promise<Record<string, unknown>> {
+    return this.request(`/shops/${this.shopId}/products/${productId}.json`)
+  }
+
   async calculateShipping(
     lineItems: PrintifyLineItem[],
     address: Partial<PrintifyShippingAddress>
