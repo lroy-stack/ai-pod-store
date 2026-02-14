@@ -993,7 +993,7 @@
     "id": 91,
     "feature": "Shopping Cart + Wishlists",
     "description": "Cart quantity update works",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Increase the quantity of an item to 3 and verify the total updates",
       "Decrease the quantity to 1 and verify the total updates",

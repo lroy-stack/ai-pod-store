@@ -259,6 +259,10 @@
     "guestCheckout": "Als Gast fortfahren",
     "signInToCheckout": "Anmelden zum Bezahlen",
     "or": "oder",
-    "loading": "Warenkorb wird geladen..."
+    "loading": "Warenkorb wird geladen...",
+    "remove": "Entfernen",
+    "itemRemoved": "Artikel aus dem Warenkorb entfernt",
+    "quantityUpdated": "Menge aktualisiert",
+    "updateFailed": "Aktualisierung des Warenkorbs fehlgeschlagen"
   }
 }

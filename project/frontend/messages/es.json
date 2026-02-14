@@ -259,6 +259,10 @@
     "guestCheckout": "Continuar como Invitado",
     "signInToCheckout": "Iniciar Sesión para Pagar",
     "or": "o",
-    "loading": "Cargando carrito..."
+    "loading": "Cargando carrito...",
+    "remove": "Eliminar",
+    "itemRemoved": "Artículo eliminado del carrito",
+    "quantityUpdated": "Cantidad actualizada",
+    "updateFailed": "Error al actualizar el carrito"
   }
 }

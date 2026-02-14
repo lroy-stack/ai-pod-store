@@ -3,21 +3,57 @@
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Minus, Plus, Trash2 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { useCart } from '@/hooks/useCart'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
+import { useState } from 'react'
+import { toast } from 'sonner'
 
 export default function CartView({ locale }: { locale: string }) {
   const t = useTranslations('Cart')
   const { authenticated, loading: authLoading } = useAuth()
-  const { items: cartItems, loading: cartLoading } = useCart()
+  const { items: cartItems, loading: cartLoading, refreshCart } = useCart()
+  const [updatingItems, setUpdatingItems] = useState<Set<string>>(new Set())
 
   const loading = authLoading || cartLoading
   const cartTotal = cartItems.reduce((total, item) => total + (item.product_price * item.quantity), 0)
+
+  const updateQuantity = async (itemId: string, newQuantity: number) => {
+    setUpdatingItems(prev => new Set(prev).add(itemId))
+
+    try {
+      const response = await fetch('/api/cart', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ item_id: itemId, quantity: newQuantity }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to update quantity')
+      }
+
+      await refreshCart()
+
+      if (newQuantity === 0) {
+        toast.success(t('itemRemoved'))
+      } else {
+        toast.success(t('quantityUpdated'))
+      }
+    } catch (error) {
+      console.error('Update quantity error:', error)
+      toast.error(t('updateFailed'))
+    } finally {
+      setUpdatingItems(prev => {
+        const next = new Set(prev)
+        next.delete(itemId)
+        return next
+      })
+    }
+  }
 
   if (loading) {
     return (
@@ -87,14 +123,47 @@ export default function CartView({ locale }: { locale: string }) {
                           </div>
                         )}
 
-                        {/* Price and Quantity */}
-                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-                          <p className="text-sm text-muted-foreground">
-                            Qty: {item.quantity}
-                          </p>
-                          <p className="font-medium text-foreground">
-                            ${item.product_price.toFixed(2)} each
-                          </p>
+                        {/* Price */}
+                        <p className="text-sm font-medium text-foreground mb-3">
+                          ${item.product_price.toFixed(2)} each
+                        </p>
+
+                        {/* Quantity Controls */}
+                        <div className="flex items-center gap-4">
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="size-8"
+                              onClick={() => updateQuantity(item.id, Math.max(0, item.quantity - 1))}
+                              disabled={updatingItems.has(item.id)}
+                            >
+                              <Minus className="size-4" />
+                            </Button>
+                            <span className="w-12 text-center font-medium text-foreground">
+                              {item.quantity}
+                            </span>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="size-8"
+                              onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                              disabled={updatingItems.has(item.id)}
+                            >
+                              <Plus className="size-4" />
+                            </Button>
+                          </div>
+
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-destructive hover:text-destructive"
+                            onClick={() => updateQuantity(item.id, 0)}
+                            disabled={updatingItems.has(item.id)}
+                          >
+                            <Trash2 className="size-4 mr-1" />
+                            {t('remove')}
+                          </Button>
                         </div>
 
                         {/* Item Total */}

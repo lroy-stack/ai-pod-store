@@ -259,6 +259,10 @@
     "guestCheckout": "Continue as Guest",
     "signInToCheckout": "Sign In to Checkout",
     "or": "or",
-    "loading": "Loading cart..."
+    "loading": "Loading cart...",
+    "remove": "Remove",
+    "itemRemoved": "Item removed from cart",
+    "quantityUpdated": "Quantity updated",
+    "updateFailed": "Failed to update cart"
   }
 }

@@ -245,6 +245,74 @@ export async function POST(request: NextRequest) {
   }
 }
 
+// PATCH /api/cart - Update cart item quantity
+export async function PATCH(request: NextRequest) {
+  try {
+    const cookieStore = await cookies()
+    const sessionCookie = cookieStore.get('sb-access-token')
+    const sessionId = cookieStore.get('cart-session-id')?.value
+
+    const supabase = supabaseAdmin
+
+    // Try to get user from session
+    let userId: string | null = null
+    if (sessionCookie) {
+      const { data: { user } } = await supabase.auth.getUser(sessionCookie.value)
+      userId = user?.id || null
+    }
+
+    const body = await request.json()
+    const { item_id, quantity } = body
+
+    if (!item_id || typeof quantity !== 'number' || quantity < 0) {
+      return NextResponse.json(
+        { error: 'Invalid request', message: 'item_id and quantity are required' },
+        { status: 400 }
+      )
+    }
+
+    // If quantity is 0, delete the item
+    if (quantity === 0) {
+      const { error } = await supabase
+        .from('cart_items')
+        .delete()
+        .eq('id', item_id)
+
+      if (error) {
+        console.error('Cart item delete error:', error)
+        return NextResponse.json(
+          { error: 'Failed to remove item', message: error.message },
+          { status: 500 }
+        )
+      }
+
+      return NextResponse.json({ success: true, deleted: true })
+    }
+
+    // Update quantity
+    const { error } = await supabase
+      .from('cart_items')
+      .update({ quantity, updated_at: new Date().toISOString() })
+      .eq('id', item_id)
+
+    if (error) {
+      console.error('Cart item update error:', error)
+      return NextResponse.json(
+        { error: 'Failed to update quantity', message: error.message },
+        { status: 500 }
+      )
+    }
+
+    return NextResponse.json({ success: true, updated: true })
+  } catch (error) {
+    console.error('Cart API error:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}
+
 // DELETE /api/cart - Clear all cart items
 export async function DELETE(request: NextRequest) {
   try {
