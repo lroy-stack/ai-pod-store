@@ -55,8 +55,44 @@
 
 **Environment**: All env vars configured correctly
 
+---
+
+### Feature #167: Product descriptions, FAQ, and policies embedded ✅
+
+**Implementation**:
+- Created `/api/rag/seed-faqs-policies` endpoint to seed FAQ and policy content
+- Created `/api/rag/seed-products` endpoint to seed product documents from database
+- Created `/api/rag/stats` endpoint for knowledge base diagnostics
+- Fixed locale column padding issue (`'en   '` → `'en'` by trimming existing records)
+- Created `search_documents()` RPC function for vector similarity search
+
+**Seeded Documents**:
+- **57 total documents** with 768-dim Gemini embeddings
+- **46 product documents** (titles, descriptions, prices, ratings from products table)
+- **6 FAQ documents** (shipping, returns, payment, tracking, sustainability)
+- **5 policy documents** (shipping, returns, privacy, refunds)
+
+**Verification**:
+- ✅ Documents table has entries with source_type 'product' (46)
+- ✅ Documents table has entries with source_type 'faq' (6)
+- ✅ Documents table has entries with source_type 'policy' (5)
+- ✅ All documents have locale='en' (trimmed correctly)
+- ✅ All documents have 768-dimension embeddings
+
+**Tests passing**: 167/389 (42.9%)
+**Tests newly passing this session**: #135, #166, #167 (3 features)
+
+**Issues encountered**:
+- Locale column was CHAR(4) causing padding ('en   ') — fixed with migration to VARCHAR + TRIM
+- search_documents RPC function created but fallback query still used (PostgREST permission issue, non-critical)
+
+**Database status**: Connected (Supabase remote cloud), 57 documents in RAG knowledge base
+
+**Environment**: All env vars configured correctly
+
 ### Next priorities:
-- Feature #167 [RAG Pipeline] — Jina Reranker v2 integration (Phase 2 enhancement)
+- Feature #168 [RAG Pipeline] — Locale-specific embeddings (EN/ES/DE)
+- Feature #169 [RAG Pipeline] — Jina Reranker v2 integration (Phase 2 enhancement)
 
 
 ---
