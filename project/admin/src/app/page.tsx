@@ -73,7 +73,7 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <DashboardLayout>
-        <main className="min-h-screen p-8">
+        <main>
           <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             {[1, 2, 3, 4].map((i) => (
@@ -96,7 +96,7 @@ export default function DashboardPage() {
 
   return (
     <DashboardLayout>
-      <main className="min-h-screen p-8">
+      <main>
       <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
