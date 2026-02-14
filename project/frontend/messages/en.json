@@ -289,5 +289,21 @@
     "freeShippingThreshold": "Add ${amount} more for free shipping!",
     "shippingCalculated": "Shipping estimate updated",
     "shippingCalculationFailed": "Failed to calculate shipping"
+  },
+  "wishlist": {
+    "title": "My Wishlists",
+    "createNew": "Create New Wishlist",
+    "createFirst": "Create Your First Wishlist",
+    "empty": "No wishlists yet",
+    "emptyDescription": "Create a wishlist to save your favorite products",
+    "noItems": "No items in this wishlist yet",
+    "public": "Public",
+    "private": "Private",
+    "share": "Share",
+    "addAllToCart": "Add All to Cart",
+    "addToCart": "Add to Cart",
+    "remove": "Remove",
+    "created": "Created",
+    "items": "{count, plural, =0 {No items} one {1 item} other {{count} items}}"
   }
 }
