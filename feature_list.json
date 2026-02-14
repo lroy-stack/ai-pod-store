@@ -1835,7 +1835,7 @@
     "id": 165,
     "feature": "RAG Pipeline",
     "description": "Semantic search returns top-K results",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Call the search_documents RPC with K=5",
       "Verify exactly 5 results are returned",
