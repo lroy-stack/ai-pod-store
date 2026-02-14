@@ -1,15 +1,29 @@
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
+import { getCached, setCached, isRedisAvailable } from '@/lib/redis'
+import crypto from 'crypto'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 /**
- * Vector similarity search in documents
+ * Create a cache key for semantic search
+ */
+function createCacheKey(query: string, limit: number, locale?: string): string {
+  const normalizedQuery = query.toLowerCase().trim()
+  const cacheInput = JSON.stringify({ query: normalizedQuery, limit, locale: locale || 'all' })
+  const hash = crypto.createHash('sha256').update(cacheInput).digest('hex').substring(0, 16)
+  return `rag:search:${hash}`
+}
+
+/**
+ * Vector similarity search in documents with semantic caching
  * POST /api/rag/search
  * Body: { query: string, limit?: number, locale?: string }
  */
 export async function POST(request: Request) {
+  const startTime = Date.now()
+
   try {
     const { query, limit = 10, locale } = await request.json()
 
@@ -19,6 +33,23 @@ export async function POST(request: Request) {
         { status: 400 }
       )
     }
+
+    // Try to get cached result
+    const cacheKey = createCacheKey(query, limit, locale)
+    const cachedResult = await getCached(cacheKey)
+
+    if (cachedResult) {
+      const responseTime = Date.now() - startTime
+      console.log(`[RAG Cache HIT] Query: "${query}" | Response time: ${responseTime}ms`)
+      return NextResponse.json({
+        ...cachedResult,
+        cached: true,
+        cacheKey,
+        responseTime,
+      })
+    }
+
+    console.log(`[RAG Cache MISS] Query: "${query}" | Key: ${cacheKey}`)
 
     const apiKey = process.env.GEMINI_API_KEY
     if (!apiKey) {
@@ -124,6 +155,8 @@ export async function POST(request: Request) {
     const hasRelevantResults = searchResults && searchResults.length > 0 &&
       searchResults.some((r: any) => r.similarity >= SIMILARITY_THRESHOLD)
 
+    const responseTime = Date.now() - startTime
+
     const response: any = {
       success: true,
       query,
@@ -132,12 +165,33 @@ export async function POST(request: Request) {
       embedding: {
         dimension: queryEmbedding.length,
       },
+      cached: false,
+      responseTime,
     }
 
     // Add fallback message if no relevant results
     if (!hasRelevantResults) {
       response.message = 'No highly relevant results found. Showing best matches with low similarity scores.'
       response.lowRelevance = true
+    }
+
+    // Cache the response for 1 hour (3600 seconds)
+    // Only cache if we have results and Redis is available
+    if (searchResults && searchResults.length > 0) {
+      await setCached(cacheKey, {
+        success: true,
+        query,
+        results: searchResults,
+        count: searchResults.length,
+        embedding: { dimension: queryEmbedding.length },
+        message: response.message,
+        lowRelevance: response.lowRelevance,
+      }, 3600)
+
+      if (isRedisAvailable()) {
+        response.cacheKey = cacheKey
+        console.log(`[RAG Cache SET] Query: "${query}" | Key: ${cacheKey}`)
+      }
     }
 
     return NextResponse.json(response)

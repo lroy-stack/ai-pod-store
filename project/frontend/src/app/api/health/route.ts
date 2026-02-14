@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { getRedisStatus } from '@/lib/redis'
 
 export async function GET() {
   const health: Record<string, unknown> = {
@@ -44,8 +45,13 @@ export async function GET() {
     health.db = 'not_configured'
   }
 
-  // Redis is optional — skip if not configured
-  health.redis = process.env.REDIS_URL ? 'not_checked' : 'not_configured'
+  // Check Redis connection (optional, non-blocking)
+  try {
+    const redisStatus = await getRedisStatus()
+    health.redis = redisStatus.status
+  } catch (error) {
+    health.redis = 'error'
+  }
 
   const statusCode = health.db === 'error' ? 503 : 200
   return NextResponse.json(health, { status: statusCode })
