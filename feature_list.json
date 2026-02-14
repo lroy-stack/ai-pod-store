@@ -1158,7 +1158,7 @@
     "id": 106,
     "feature": "Shopping Cart + Wishlists",
     "description": "Public wishlist view works",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Generate a shared wishlist URL",
       "Open the shared wishlist URL in an incognito/private browser window",

@@ -308,6 +308,11 @@
     "shareTitle": "Wunschliste teilen",
     "shareDescription": "Jeder mit diesem Link kann deine Wunschliste ansehen",
     "copy": "Kopieren",
-    "copied": "Kopiert"
+    "copied": "Kopiert",
+    "sharedList": "Geteilte Wunschliste",
+    "sharedNotFound": "Wunschliste Nicht Gefunden",
+    "sharedNotFoundDescription": "Diese Wunschliste wurde möglicherweise gelöscht oder ist nicht mehr öffentlich.",
+    "browseProducts": "Produkte Durchsuchen",
+    "itemCount": "{count, plural, =0 {Keine Artikel} one {1 Artikel} other {{count} Artikel}}"
   }
 }

@@ -308,6 +308,11 @@
     "shareTitle": "Compartir Lista de Deseos",
     "shareDescription": "Cualquier persona con este enlace puede ver tu lista de deseos",
     "copy": "Copiar",
-    "copied": "Copiado"
+    "copied": "Copiado",
+    "sharedList": "Lista Compartida",
+    "sharedNotFound": "Lista No Encontrada",
+    "sharedNotFoundDescription": "Esta lista puede haber sido eliminada o ya no es pública.",
+    "browseProducts": "Ver Productos",
+    "itemCount": "{count, plural, =0 {Sin artículos} one {1 artículo} other {{count} artículos}}"
   }
 }

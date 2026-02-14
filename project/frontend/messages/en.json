@@ -308,6 +308,11 @@
     "shareTitle": "Share Wishlist",
     "shareDescription": "Anyone with this link can view your wishlist",
     "copy": "Copy",
-    "copied": "Copied"
+    "copied": "Copied",
+    "sharedList": "Shared Wishlist",
+    "sharedNotFound": "Wishlist Not Found",
+    "sharedNotFoundDescription": "This wishlist may have been deleted or is no longer public.",
+    "browseProducts": "Browse Products",
+    "itemCount": "{count, plural, =0 {No items} one {1 item} other {{count} items}}"
   }
 }
