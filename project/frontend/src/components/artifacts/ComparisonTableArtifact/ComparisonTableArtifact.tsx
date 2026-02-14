@@ -19,7 +19,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { useTranslations, useLocale } from 'next-intl'
 import { formatPrice } from '@/lib/currency'
-import { cn } from '@/lib/utils'
 
 export interface ComparisonProduct {
   id: string
@@ -54,7 +53,7 @@ export function ComparisonTableArtifact({
   )
 
   return (
-    <Card className={cn('overflow-hidden', variant === 'inline' && 'max-w-4xl')}>
+    <Card className="overflow-hidden">
       <CardHeader>
         <CardTitle className="text-xl">{t('productComparison')}</CardTitle>
       </CardHeader>

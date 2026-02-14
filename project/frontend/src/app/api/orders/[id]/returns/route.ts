@@ -62,10 +62,13 @@ export async function POST(
     }
 
     // Check if a return request already exists for this order
+    // Only block if status is pending, approved, processing, or completed
+    // Allow new requests if previous was rejected
     const { data: existingReturn } = await supabase
       .from('return_requests')
       .select('id, status')
       .eq('order_id', orderId)
+      .in('status', ['pending', 'approved', 'processing', 'completed'])
       .single();
 
     if (existingReturn) {

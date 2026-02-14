@@ -38,7 +38,7 @@ export function SizeGuideArtifact({ guide }: SizeGuideArtifactProps) {
   const hasSleeve = sizes.some((s) => s.sleeve !== undefined)
 
   return (
-    <Card className="w-full max-w-2xl bg-card">
+    <Card className="w-full bg-card">
       <CardHeader className="space-y-2">
         <div className="flex items-center gap-2">
           <Shirt className="h-5 w-5 text-primary" />

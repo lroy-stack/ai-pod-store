@@ -346,6 +346,7 @@ function ProductView({
 
 /**
  * ArtifactContent - Renders the content for a single artifact
+ * Fetches product data from API when artifact only contains an id
  */
 function ArtifactContent({
   artifact,
@@ -358,17 +359,46 @@ function ArtifactContent({
 }) {
   const params = useParams()
   const locale = (params.locale as string) || 'en'
+  const [fetchedProduct, setFetchedProduct] = useState<any>(null)
+  const [fetchLoading, setFetchLoading] = useState(false)
+
+  // If product artifact has incomplete data (only id), fetch the full product
+  const hasFullData = artifact.data?.title && artifact.data?.price !== undefined
+  useEffect(() => {
+    if (artifact.type === 'product' && artifact.data?.id && !hasFullData && !fetchedProduct && !fetchLoading) {
+      setFetchLoading(true)
+      fetch(`/api/products/${artifact.data.id}`)
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (data) setFetchedProduct(data.product || data)
+        })
+        .catch(() => {})
+        .finally(() => setFetchLoading(false))
+    }
+  }, [artifact.data?.id, artifact.type, hasFullData, fetchedProduct, fetchLoading])
 
   // For product artifacts, render the product detail view
-  if (artifact.type === 'product' && artifact.data) {
-    return (
-      <ProductView
-        product={artifact.data}
-        locale={locale}
-        onAddToCart={onAddToCart}
-        onAskAbout={onAskAbout ? () => onAskAbout(`Tell me more about ${artifact.data.title}`) : undefined}
-      />
-    )
+  if (artifact.type === 'product') {
+    const productData = hasFullData ? artifact.data : fetchedProduct
+
+    if (fetchLoading || (!productData && !hasFullData)) {
+      return (
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-muted-foreground">Loading...</div>
+        </div>
+      )
+    }
+
+    if (productData) {
+      return (
+        <ProductView
+          product={productData}
+          locale={locale}
+          onAddToCart={onAddToCart}
+          onAskAbout={onAskAbout ? () => onAskAbout(`Tell me more about ${productData.title}`) : undefined}
+        />
+      )
+    }
   }
 
   // For other artifact types, render a placeholder

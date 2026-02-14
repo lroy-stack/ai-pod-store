@@ -2192,7 +2192,7 @@
     "id": 198,
     "feature": "Order Management & Notifications",
     "description": "Return request + refund flow",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Submit a return request on an order",
       "Have an admin approve the return request",

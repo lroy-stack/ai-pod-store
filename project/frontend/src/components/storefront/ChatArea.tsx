@@ -185,7 +185,7 @@ export function ChatArea() {
       <div className="flex-1 overflow-y-auto px-3 py-4 sm:px-4 md:px-6 md:py-6">
         {messages.length === 0 ? (
           /* Welcome Screen */
-          <div className="max-w-2xl mx-auto">
+          <div className="max-w-4xl mx-auto">
             <div className="text-center space-y-6 py-12">
               <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary/60">
                 <span className="text-3xl font-bold text-primary-foreground">P</span>
@@ -287,7 +287,7 @@ export function ChatArea() {
           </div>
         ) : (
           /* Message History */
-          <div className="max-w-2xl mx-auto space-y-4">
+          <div className="max-w-4xl mx-auto space-y-4">
             {messages.map((message) => (
               <div
                 key={message.id}
@@ -313,7 +313,7 @@ export function ChatArea() {
                     if (part.type === 'text') {
                       if (message.role === 'assistant') {
                         return (
-                          <div key={index} className="prose prose-sm max-w-none dark:prose-invert prose-p:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-0 px-4 py-2">
+                          <div key={index} className="prose prose-sm dark:prose-invert prose-p:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-0 px-4 py-2">
                             <ReactMarkdown>{part.text}</ReactMarkdown>
                           </div>
                         )
@@ -349,17 +349,16 @@ export function ChatArea() {
                         const output = part.output as any
 
                         // Create a handler to add artifacts to the detail panel when clicked
-                        const handleSelectProduct = (productId: string) => {
+                        const handleSelectProduct = (productId: string, productData?: any) => {
                           // For backward compatibility, also set selectedProduct
                           setSelectedProduct(productId)
 
-                          // Add to artifact system - we need to fetch product data
-                          // For now, create a placeholder artifact that will be filled by DetailPanel
+                          // Add to artifact system with full product data when available
                           const newArtifact = {
                             id: productId,
                             type: 'product' as const,
-                            title: `Product ${productId}`,
-                            data: { id: productId },
+                            title: productData?.title || `Product #${productId.slice(0, 8)}`,
+                            data: productData || { id: productId },
                           }
                           addArtifact(newArtifact)
                         }
@@ -403,7 +402,7 @@ export function ChatArea() {
                           }
 
                           return (
-                            <div key={index} className="p-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                            <div key={index} className="py-2 animate-in fade-in slide-in-from-bottom-2 duration-300">
                               <artifact.Component
                                 {...output}
                                 onApprove={handleApprove}
@@ -444,7 +443,7 @@ export function ChatArea() {
                           }
 
                           return (
-                            <div key={index} className="p-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                            <div key={index} className="py-2 animate-in fade-in slide-in-from-bottom-2 duration-300">
                               <artifact.Component
                                 {...output}
                                 onApprove={handleApprove}
@@ -468,7 +467,7 @@ export function ChatArea() {
                         }
 
                         return (
-                          <div key={index} className="p-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                          <div key={index} className="py-2 animate-in fade-in slide-in-from-bottom-2 duration-300">
                             <artifact.Component
                               {...output}
                               onSelectProduct={handleSelectProduct}
@@ -544,7 +543,7 @@ export function ChatArea() {
 
       {/* Input Area */}
       <div className="border-t border-border bg-card px-3 py-3 sm:p-4">
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-4xl mx-auto">
           {/* Image Preview */}
           {selectedImage && (
             <div className="mb-3 relative inline-block">

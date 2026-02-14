@@ -55,7 +55,7 @@ export function ProductDetailArtifact({
   const locale = useLocale()
 
   return (
-    <Card className={cn('overflow-hidden', variant === 'inline' && 'max-w-2xl')}>
+    <Card className="overflow-hidden">
       <div className={cn('grid gap-6', variant === 'full' ? 'md:grid-cols-2' : 'md:grid-cols-[300px_1fr]')}>
         {/* Product Image */}
         <div className="bg-muted">
