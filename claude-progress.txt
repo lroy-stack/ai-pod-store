@@ -953,3 +953,102 @@ events are processed, protecting against unauthorized order creation.
 - Feature #128: Return/refund flow (requires UI + API + database)
 - Feature #129: Order history page renders
 - Feature #130: Order tracking works
+
+---
+
+### Feature #128: Return/refund flow works ✅
+
+**Implementation:**
+
+Created a complete return/refund request system:
+
+1. **Database Layer:**
+   - Created `return_requests` table with columns: id, order_id, user_id, reason, status, refund_amount_cents, refund_currency, stripe_refund_id, admin_notes, approved_by, approved_at, completed_at, created_at, updated_at
+   - Status values: pending, approved, rejected, processing, completed
+   - Added RLS policies (users can view/create their own, admins can view/update all)
+   - Added indexes for order_id, user_id, status
+   - Added update trigger for updated_at timestamp
+
+2. **API Endpoints:**
+   - `POST /api/orders/:id/returns` — Create return request
+   - `GET /api/orders/:id/returns` — Fetch return requests for an order
+   - Validation: reason must be at least 10 characters
+   - Business rules:
+     * Only eligible order statuses can request returns: paid, submitted, in_production, shipped, delivered
+     * One return request per order (duplicate prevention)
+     * Refund amount auto-populated from order total
+
+3. **UI Components:**
+   - Created order detail page at `/[locale]/orders/[id]`
+   - Created `OrderDetailView` component with:
+     * Order summary (items, total, status)
+     * Shipping address card
+     * Tracking info card
+     * "Request Return" button (only shown for eligible orders)
+     * Return request dialog with textarea for reason
+     * Return requests list with status badges
+   - All components responsive (mobile-first)
+   - Used shadcn/ui components (Dialog, Textarea, Button, Card, Badge)
+
+4. **Internationalization:**
+   - Added 30+ new translation keys to all 3 locales (EN/ES/DE)
+   - Return status translations: pending, approved, rejected, processing, completed
+   - Form labels, placeholders, validation messages
+
+5. **Bug Fixes:**
+   - Fixed Next.js 16 params Promise handling in both API routes
+   - `params` is now awaited before accessing properties
+
+**Verification:**
+```bash
+# Test 1: Create return request
+curl -X POST 'http://localhost:3000/api/orders/00000000-0000-0000-0000-000000000100/returns' \
+  -H 'Content-Type: application/json' \
+  -d '{"reason": "Product arrived damaged and does not match the description shown on the website"}'
+# ✅ Response: 201 Created with return_request object
+
+# Test 2: Fetch return requests
+curl -X GET 'http://localhost:3000/api/orders/00000000-0000-0000-0000-000000000100/returns'
+# ✅ Response: 200 OK with array of return requests
+
+# Test 3: Duplicate prevention
+curl -X POST 'http://localhost:3000/api/orders/00000000-0000-0000-0000-000000000100/returns' \
+  -H 'Content-Type: application/json' \
+  -d '{"reason": "Another reason"}'
+# ✅ Response: 409 Conflict "A return request already exists"
+
+# Test 4: Validation
+curl -X POST 'http://localhost:3000/api/orders/.../returns' \
+  -H 'Content-Type: application/json' \
+  -d '{"reason": "Bad"}'
+# ✅ Response: 400 Bad Request "Reason must be at least 10 characters"
+```
+
+**Database Migrations:**
+- `20260214031838_create_return_requests_table.sql` — Table + RLS + indexes
+- `20260214032311_insert_test_order_for_returns.sql` — Test order with shipped status
+
+**Modified Files:**
+- `frontend/src/app/api/orders/[id]/returns/route.ts` (NEW, 155 lines)
+- `frontend/src/app/[locale]/orders/[id]/page.tsx` (NEW, 30 lines)
+- `frontend/src/components/orders/OrderDetailView.tsx` (NEW, 597 lines)
+- `frontend/messages/en.json` — +30 keys
+- `frontend/messages/es.json` — +30 keys
+- `frontend/messages/de.json` — +30 keys
+- `supabase/migrations/20260214031838_create_return_requests_table.sql` (NEW)
+- `supabase/migrations/20260214032311_insert_test_order_for_returns.sql` (NEW)
+
+---
+
+**Session 42 Summary:**
+- Features this session: +1 (128)
+- Total passing: 128/389 (32.9%)
+- Tool calls: ~95
+- Commits: 1
+- Database migrations: 2
+
+**Next Session Priorities:**
+- Feature #129: Order history page renders
+- Feature #130: Order tracking works
+- Feature #131: Printify webhook updates order status
+

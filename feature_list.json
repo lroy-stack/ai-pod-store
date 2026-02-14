@@ -1416,7 +1416,7 @@
     "id": 129,
     "feature": "Checkout & Payments",
     "description": "Multi-currency display works",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Set the currency to EUR",
       "Verify checkout page shows EUR amounts",
