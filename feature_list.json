@@ -2349,7 +2349,7 @@
     "id": 212,
     "feature": "Order Management & Notifications",
     "description": "Order confirmation notification includes details",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Trigger an order confirmation notification",
       "Verify the notification body includes the order number",

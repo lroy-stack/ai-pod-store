@@ -2036,3 +2036,54 @@ Step 5: Re-enable email for future tests
 - Pagination working correctly with range queries
 - JSONB data field storing structured references properly
 
+
+## Session 85 (Coding Agent) - 2026-02-14 17:51
+
+### Features Implemented This Session: 1
+- **Feature 211**: Audit log records order events (order_created + order_shipped verified)
+
+### Implementation Details
+
+**Feature 211 - Audit Log Records Order Events**:
+- Fixed bug in Printify webhook handlers where `resource_id` was set to printify_order_id (string) instead of order UUID
+- Updated three webhook handlers:
+  * `handleOrderShipped`: Now fetches order.id first, uses UUID for resource_id
+  * `handleOrderDelivered`: Same fix applied
+  * `handleOrderCancelled`: Same fix applied
+- Added `metadata` field to store printify_order_id as reference data
+- Verified audit_log table structure:
+  * `resource_id` is UUID type (not nullable)
+  * `resource_type` = 'order'
+  * `action` = 'order_created', 'order_shipped', 'order_delivered', 'order_cancelled'
+  * `actor_type` = 'webhook'
+  * `actor_id` = 'stripe_webhook' or 'printify_webhook'
+- Stripe webhook already correctly logged order_created events with order UUID
+
+### Verification Method
+1. Queried existing audit_log entries via Supabase REST API
+2. Found 2 existing `order_created` entries from previous tests
+3. Triggered test `order:shipped` webhook with valid HMAC signature
+4. Verified new `order_shipped` audit_log entry created with:
+   - Correct UUID resource_id
+   - Proper metadata.printify_order_id reference
+   - Timestamp and actor_type correct
+
+### Tests Passing
+- **Before**: 210/485 (43.3%)
+- **After**: 211/485 (43.5%)
+- **Session delta**: +1 feature
+
+### Database Status
+- Supabase connected (remote cloud instance)
+- audit_log table: 3 order-related entries (2 created, 1 shipped)
+- All future order events will now correctly log with UUID resource_id
+
+### Next Priorities
+- Continue Order Management & Notifications (212+)
+- Focus on completing notification/audit infrastructure
+- Move toward Admin Dashboard integration
+
+### Notes
+- Server running on port 3000 (frontend + API routes)
+- Bug fix was critical — previous audit_log inserts were failing silently due to type mismatch
+- Now all Printify webhook events will correctly create audit trail

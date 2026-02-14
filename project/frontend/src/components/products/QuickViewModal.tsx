@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useTranslations, useLocale } from 'next-intl'
-import { Star, Heart, Eye, Loader2 } from 'lucide-react'
+import { Star, Heart, Eye, Loader2, Minus, Plus, ShoppingCart, ImageOff } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { formatPrice, getLocalizedPrice } from '@/lib/currency'
 import { useCart } from '@/hooks/useCart'
@@ -16,13 +16,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 
 interface Product {
@@ -54,32 +47,17 @@ export function QuickViewModal({ product, open, onOpenChange }: QuickViewModalPr
   const [selectedSize, setSelectedSize] = useState<string>('')
   const [selectedColor, setSelectedColor] = useState<string>('')
   const [quantity, setQuantity] = useState(1)
+  const [imgError, setImgError] = useState(false)
   const [isAddingToCart, setIsAddingToCart] = useState(false)
   const { addToCart } = useCart()
   const { isWishlisted, toggleWishlist } = useWishlist()
   const wishlisted = isWishlisted(product.id)
 
-  // Convert price to locale's currency and format it
   const localizedPrice = getLocalizedPrice(product.price, product.currency, locale)
   const formattedPrice = formatPrice(localizedPrice, locale)
 
-  const renderStars = (rating: number = 0) => {
-    return (
-      <div className="flex items-center gap-1">
-        {[1, 2, 3, 4, 5].map((star) => (
-          <Star
-            key={star}
-            className={cn(
-              'size-4',
-              star <= Math.round(rating)
-                ? 'fill-rating text-rating'
-                : 'text-muted-foreground/50'
-            )}
-          />
-        ))}
-      </div>
-    )
-  }
+  const hasSizes = (product.variants?.sizes?.length ?? 0) > 0
+  const hasColors = (product.variants?.colors?.length ?? 0) > 0
 
   const handleAddToCart = async () => {
     setIsAddingToCart(true)
@@ -101,15 +79,15 @@ export function QuickViewModal({ product, open, onOpenChange }: QuickViewModalPr
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="sr-only">{product.title}</DialogTitle>
+      <DialogContent className="max-w-2xl p-0 gap-0 overflow-hidden rounded-2xl max-h-[90dvh]">
+        <DialogHeader className="sr-only">
+          <DialogTitle>{product.title}</DialogTitle>
         </DialogHeader>
 
-        <div className="grid gap-6 md:grid-cols-2">
-          {/* Product Image */}
-          <div className="relative aspect-square bg-muted rounded-lg overflow-hidden">
-            {product.image ? (
+        <div className="grid md:grid-cols-2 max-h-[90dvh]">
+          {/* Image — smaller on mobile, square on desktop */}
+          <div className="relative aspect-[4/3] md:aspect-auto md:min-h-full bg-muted overflow-hidden">
+            {product.image && !imgError ? (
               <Image
                 src={product.image}
                 alt={product.title}
@@ -117,151 +95,195 @@ export function QuickViewModal({ product, open, onOpenChange }: QuickViewModalPr
                 className="object-cover"
                 sizes="(max-width: 768px) 100vw, 50vw"
                 priority
+                onError={() => setImgError(true)}
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                {product.title}
+              <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground/40 gap-2 min-h-[200px]">
+                <ImageOff className="h-10 w-10" />
+                <span className="text-xs font-medium text-muted-foreground/60">{product.title}</span>
               </div>
+            )}
+
+            {/* Category pill */}
+            {product.category && (
+              <span className="absolute top-3 left-3 text-[11px] font-medium px-2.5 py-0.5 rounded-full bg-background/70 text-foreground/80 backdrop-blur-md border border-border/30">
+                {product.category}
+              </span>
             )}
           </div>
 
-          {/* Product Details */}
-          <div className="flex flex-col gap-4">
-            <div>
-              <h2 className="text-2xl font-bold mb-2">{product.title}</h2>
+          {/* Details — scrollable */}
+          <div className="flex flex-col overflow-y-auto detail-scroll">
+            <div className="px-5 py-4 space-y-4 flex-1">
+              {/* Title + Rating */}
+              <div>
+                <h2 className="text-lg font-semibold leading-snug tracking-tight">
+                  {product.title}
+                </h2>
+                {product.rating && product.rating > 0 && (
+                  <div className="flex items-center gap-1.5 mt-1.5">
+                    <div className="flex items-center gap-0.5">
+                      {[1, 2, 3, 4, 5].map((s) => (
+                        <Star
+                          key={s}
+                          className={cn(
+                            'size-3.5',
+                            s <= Math.round(product.rating || 0)
+                              ? 'fill-rating text-rating'
+                              : 'text-muted-foreground/25'
+                          )}
+                        />
+                      ))}
+                    </div>
+                    {product.reviewCount ? (
+                      <span className="text-xs text-muted-foreground">
+                        ({product.reviewCount})
+                      </span>
+                    ) : null}
+                  </div>
+                )}
+              </div>
 
-              {/* Rating */}
-              {product.rating && (
-                <div className="flex items-center gap-2 mb-3">
-                  {renderStars(product.rating)}
-                  {product.reviewCount && (
-                    <span className="text-sm text-muted-foreground">
-                      ({product.reviewCount} {t('reviews')})
-                    </span>
-                  )}
-                </div>
-              )}
-
-              {/* Price */}
-              <div className="flex items-center gap-3 mb-4">
-                <p className="text-3xl font-bold">{formattedPrice}</p>
+              {/* Price + Stock */}
+              <div className="flex items-center gap-3">
+                <span className="text-2xl font-bold tracking-tight">{formattedPrice}</span>
                 {product.stock !== undefined && product.stock > 0 && (
-                  <Badge variant="outline" className="bg-success/10 text-success border-success/20">
+                  <Badge variant="outline" className="bg-success/10 text-success border-success/20 text-xs">
                     {t('inStock')}
                   </Badge>
                 )}
               </div>
 
               {/* Description */}
-              <p className="text-muted-foreground mb-6">
+              <p className="text-sm text-muted-foreground leading-relaxed line-clamp-3">
                 {product.description}
               </p>
-            </div>
 
-            {/* Variant Selectors */}
-            <div className="space-y-4">
-              {/* Size Selector */}
-              {product.variants?.sizes && product.variants.sizes.length > 0 && (
-                <div>
-                  <label className="text-sm font-medium mb-2 block">
-                    {t('size')}
-                  </label>
-                  <Select value={selectedSize} onValueChange={setSelectedSize}>
-                    <SelectTrigger>
-                      <SelectValue placeholder={t('selectSize')} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {product.variants.sizes.map((size) => (
-                        <SelectItem key={size} value={size}>
-                          {size}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+              {/* Variant selectors — pill/chip style (matching DetailPanel) */}
+              {(hasSizes || hasColors) && (
+                <>
+                  <div className="h-px bg-border/40" />
+                  <div className="space-y-3">
+                    {hasSizes && (
+                      <div>
+                        <label className="text-[13px] font-medium text-foreground/80 mb-2 block">
+                          {t('size')}
+                        </label>
+                        <div className="flex flex-wrap gap-1.5">
+                          {product.variants!.sizes!.map((size) => (
+                            <button
+                              key={size}
+                              onClick={() => setSelectedSize(selectedSize === size ? '' : size)}
+                              className={cn(
+                                'px-3 py-1.5 rounded-lg text-[13px] font-medium border transition-all duration-200',
+                                selectedSize === size
+                                  ? 'bg-foreground text-background border-foreground'
+                                  : 'bg-transparent text-foreground border-border/60 hover:border-border'
+                              )}
+                            >
+                              {size}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {hasColors && (
+                      <div>
+                        <label className="text-[13px] font-medium text-foreground/80 mb-2 block">
+                          {t('color')}
+                        </label>
+                        <div className="flex flex-wrap gap-1.5">
+                          {product.variants!.colors!.map((color) => (
+                            <button
+                              key={color}
+                              onClick={() => setSelectedColor(selectedColor === color ? '' : color)}
+                              className={cn(
+                                'px-3 py-1.5 rounded-lg text-[13px] font-medium border transition-all duration-200',
+                                selectedColor === color
+                                  ? 'bg-foreground text-background border-foreground'
+                                  : 'bg-transparent text-foreground border-border/60 hover:border-border'
+                              )}
+                            >
+                              {color}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </>
               )}
 
-              {/* Color Selector */}
-              {product.variants?.colors && product.variants.colors.length > 0 && (
-                <div>
-                  <label className="text-sm font-medium mb-2 block">
-                    {t('color')}
-                  </label>
-                  <Select value={selectedColor} onValueChange={setSelectedColor}>
-                    <SelectTrigger>
-                      <SelectValue placeholder={t('selectColor')} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {product.variants.colors.map((color) => (
-                        <SelectItem key={color} value={color}>
-                          {color}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+              {/* Quantity — +/- stepper (matching DetailPanel) */}
+              <div className="h-px bg-border/40" />
+              <div className="flex items-center gap-3">
+                <label className="text-[13px] font-medium text-foreground/80">{t('quantity')}</label>
+                <div className="flex items-center border border-border/60 rounded-lg">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 rounded-l-lg rounded-r-none"
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    disabled={quantity <= 1}
+                  >
+                    <Minus className="h-3.5 w-3.5" />
+                  </Button>
+                  <span className="w-10 text-center text-sm font-medium tabular-nums">{quantity}</span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 rounded-r-lg rounded-l-none"
+                    onClick={() => setQuantity(Math.min(99, quantity + 1))}
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                  </Button>
                 </div>
-              )}
-
-              {/* Quantity Selector */}
-              <div>
-                <label className="text-sm font-medium mb-2 block">
-                  {t('quantity')}
-                </label>
-                <Select
-                  value={quantity.toString()}
-                  onValueChange={(val) => setQuantity(parseInt(val))}
-                >
-                  <SelectTrigger className="w-24">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
-                      <SelectItem key={num} value={num.toString()}>
-                        {num}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
               </div>
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex gap-3 mt-auto pt-4">
-              <Button
-                className="flex-1"
-                onClick={handleAddToCart}
-                disabled={
-                  isAddingToCart ||
-                  (product.variants?.sizes && !selectedSize) ||
-                  (product.variants?.colors && !selectedColor)
-                }
-              >
-                {isAddingToCart ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                {t('addToCart')}
-              </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => toggleWishlist(product.id)}
-                aria-label={wishlisted ? t('removeFromWishlist') : t('addToWishlist')}
-              >
-                <Heart
-                  className={cn(
-                    'size-5',
-                    wishlisted ? 'fill-destructive text-destructive' : 'text-muted-foreground'
+            {/* Footer — sticky actions */}
+            <div className="px-5 py-4 border-t border-border/40 space-y-2">
+              <div className="flex gap-2">
+                <Button
+                  className="flex-1 h-11 text-sm font-semibold"
+                  onClick={handleAddToCart}
+                  disabled={
+                    isAddingToCart ||
+                    (hasSizes && !selectedSize) ||
+                    (hasColors && !selectedColor)
+                  }
+                >
+                  {isAddingToCart ? (
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  ) : (
+                    <ShoppingCart className="h-4 w-4 mr-2" />
                   )}
-                />
-              </Button>
+                  {t('addToCart')}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-11 w-11 flex-shrink-0 rounded-lg"
+                  onClick={() => toggleWishlist(product.id)}
+                  aria-label={wishlisted ? t('removeFromWishlist') : t('addToWishlist')}
+                >
+                  <Heart
+                    className={cn(
+                      'size-4',
+                      wishlisted ? 'fill-destructive text-destructive' : 'text-muted-foreground'
+                    )}
+                  />
+                </Button>
+              </div>
+              <Link
+                href={`/shop/${product.id}`}
+                className="block text-center text-sm text-muted-foreground hover:text-primary transition-colors py-1"
+                onClick={() => onOpenChange(false)}
+              >
+                {t('viewFullDetails')}
+              </Link>
             </div>
-
-            {/* View Full Details Link */}
-            <Link
-              href={`/shop/${product.id}`}
-              className="text-sm text-primary hover:underline text-center"
-              onClick={() => onOpenChange(false)}
-            >
-              {t('viewFullDetails')}
-            </Link>
           </div>
         </div>
       </DialogContent>
@@ -269,7 +291,7 @@ export function QuickViewModal({ product, open, onOpenChange }: QuickViewModalPr
   )
 }
 
-// Quick View Button Component
+// Quick View Button — frosted icon, bottom-left on hover
 interface QuickViewButtonProps {
   onClick: (e: React.MouseEvent) => void
 }

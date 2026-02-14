@@ -187,15 +187,21 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
     // Create notification for the user (if user_id is found)
     // For guest checkouts, we'll create a notification linked to the email
     // Note: In a real system, you'd look up user by email first
+    const orderDisplayId = order.id.slice(0, 8) // Use first 8 chars of UUID as display ID
+    const itemCount = validOrderItems.length
+    const totalAmount = (order.total_cents / 100).toFixed(2)
+    const currencyCode = order.currency.toUpperCase()
+
     const notificationData = {
       type: 'order_confirmation',
-      title: `Order Confirmed - ${order.id}`,
-      body: `Your order has been confirmed. Total: ${(order.total_cents / 100).toFixed(2)} ${order.currency.toUpperCase()}`,
+      title: `Order #${orderDisplayId} Confirmed`,
+      body: `Your order has been confirmed. ${itemCount} ${itemCount === 1 ? 'item' : 'items'} • Total: ${totalAmount} ${currencyCode}`,
       data: {
         order_id: order.id,
         session_id: session.id,
         total_cents: order.total_cents,
         currency: order.currency,
+        item_count: itemCount,
       },
       is_read: false,
     }
