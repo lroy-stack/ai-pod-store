@@ -1391,7 +1391,7 @@
     "id": 127,
     "feature": "Checkout & Payments",
     "description": "Stripe webhook signature verification",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Send a request to the webhook endpoint without a valid Stripe signature",
       "Verify a 400 response is returned",
