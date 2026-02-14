@@ -166,6 +166,12 @@ async function handleOrderShipped(resource: Record<string, unknown>) {
       body: shipment
         ? `Your order has been shipped via ${shipment.carrier}. Tracking: ${shipment.number}`
         : 'Your order has been shipped and is on its way!',
+      data: {
+        order_id: order.id,
+        tracking_number: shipment?.number,
+        tracking_url: shipment?.url,
+        carrier: shipment?.carrier,
+      },
       is_read: false,
     })
 
