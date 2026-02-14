@@ -2,6 +2,7 @@ import { streamText, tool, stepCountIs, convertToModelMessages } from 'ai'
 import { createGoogleGenerativeAI } from '@ai-sdk/google'
 import { z } from 'zod'
 import { createClient } from '@supabase/supabase-js'
+import { STORE_DEFAULTS, SHIPPING_RATES, LOCALE_FORMAT } from '@/lib/store-config'
 
 export const runtime = 'edge'
 export const maxDuration = 60
@@ -41,6 +42,11 @@ export async function POST(req: Request) {
     const cartSessionId = cookieMap['cart-session-id'] || null
     const sbAccessToken = cookieMap['sb-access-token'] || null
 
+    // Extract locale from request
+    const acceptLang = req.headers.get('accept-language') || ''
+    const localeCookie = cookieMap['NEXT_LOCALE'] || ''
+    const chatLocale = localeCookie || (acceptLang.startsWith('de') ? 'de' : acceptLang.startsWith('es') ? 'es' : 'en')
+
     // Resolve user ID from Supabase auth token (if logged in)
     let chatUserId: string | null = null
     if (sbAccessToken) {
@@ -59,7 +65,7 @@ export async function POST(req: Request) {
     }
 
     // System prompt for PodClaw conversational assistant
-    const systemPrompt = `You are PodClaw, an AI assistant for a print-on-demand store. You help customers find and buy products.
+    const systemPrompt = `You are PodClaw, an AI assistant for a European print-on-demand store. This is a European store. Prices are in ${STORE_DEFAULTS.currency} (€). Measurements are in ${STORE_DEFAULTS.measurementUnit}. You help customers find and buy products.
 
 TOOLS AVAILABLE:
 - product_search: Search/browse products (returns product list)
@@ -73,6 +79,7 @@ TOOLS AVAILABLE:
 - estimate_shipping: Calculate shipping cost estimates for different delivery options
 - create_checkout: Show checkout confirmation (displays cart summary and asks for approval)
 - confirm_checkout: Complete checkout after user approves (creates Stripe session)
+- track_order: Track an order by ID or show most recent order status (displays timeline artifact)
 
 WHEN TO USE EACH TOOL:
 1. User asks to "browse", "search", "show me", "find" products → call product_search
@@ -85,11 +92,12 @@ WHEN TO USE EACH TOOL:
 8. User says "apply code SAVE10", "use coupon", "discount code" → call apply_coupon
 9. User asks "shipping cost", "delivery options", "how much to ship" → call estimate_shipping
 10. User says "checkout", "proceed to payment", "buy now" → call create_checkout (shows approval dialog)
+11. User asks "track my order", "where's my order", "order status" → call track_order
 
 EXAMPLES:
 - "show me cat t-shirts" → product_search(query="cat t-shirt")
 - "recommend some products for me" → get_recommendations()
-- "suggest apparel under $30" → get_recommendations(category="apparel", maxPrice=30)
+- "suggest apparel under €30" → get_recommendations(category="apparel", maxPrice=30)
 - "tell me more about the Classic Cat T-Shirt" → get_product_detail(productIdentifier="Classic Cat T-Shirt")
 - "compare the cat and dog t-shirts" → compare_products(productIds=[id1, id2])
 - "what are the t-shirt sizes?" → get_size_guide(productType="t-shirt")
@@ -98,6 +106,8 @@ EXAMPLES:
 - "apply code SAVE10" → apply_coupon(code="SAVE10")
 - "how much is shipping?" → estimate_shipping()
 - "checkout" → create_checkout() (will show approval dialog with cart summary)
+- "track my order" → track_order() (shows most recent order timeline)
+- "track order abc123" → track_order(orderId="abc123")
 
 IMPORTANT: get_product_detail works with product names directly - you don't need to search first!
 
@@ -219,7 +229,7 @@ Be friendly, helpful, and concise.`
                 reviewCount: product.review_count || 0,
                 variants: product.variants || [],
                 materials: product.materials || null,
-                shippingInfo: 'Free shipping on orders over $50',
+                shippingInfo: `Free shipping on orders over €${STORE_DEFAULTS.freeShippingThreshold}`,
                 available: product.stock_quantity > 0,
               },
             }
@@ -272,7 +282,7 @@ Be friendly, helpful, and concise.`
         description: 'Get personalized product recommendations based on category, price range, or user preferences.',
         parameters: z.object({
           category: z.string().optional().describe('Product category to filter by (e.g., "apparel", "accessories")'),
-          maxPrice: z.number().optional().describe('Maximum price in USD'),
+          maxPrice: z.number().optional().describe('Maximum price in EUR'),
         }),
         // @ts-expect-error AI SDK 6.0.86 type mismatch — execute works at runtime
         execute: async (args: { category?: string; maxPrice?: number }) => {
@@ -339,14 +349,14 @@ Be friendly, helpful, and concise.`
               success: true,
               guide: {
                 productType: 'T-Shirt',
-                unit: 'inches',
+                unit: STORE_DEFAULTS.measurementUnit,
                 sizes: [
-                  { size: 'XS', chest: 31, length: 27, width: 16 },
-                  { size: 'S', chest: 34, length: 28, width: 18 },
-                  { size: 'M', chest: 37, length: 29, width: 20 },
-                  { size: 'L', chest: 40, length: 30, width: 22 },
-                  { size: 'XL', chest: 43, length: 31, width: 24 },
-                  { size: '2XL', chest: 46, length: 32, width: 26 },
+                  { size: 'XS', chest: 79, length: 69, width: 41 },
+                  { size: 'S', chest: 86, length: 71, width: 46 },
+                  { size: 'M', chest: 94, length: 74, width: 51 },
+                  { size: 'L', chest: 102, length: 76, width: 56 },
+                  { size: 'XL', chest: 109, length: 79, width: 61 },
+                  { size: '2XL', chest: 117, length: 81, width: 66 },
                 ],
               },
             }
@@ -355,13 +365,13 @@ Be friendly, helpful, and concise.`
               success: true,
               guide: {
                 productType: 'Hoodie',
-                unit: 'inches',
+                unit: STORE_DEFAULTS.measurementUnit,
                 sizes: [
-                  { size: 'S', chest: 36, length: 27, sleeve: 33 },
-                  { size: 'M', chest: 40, length: 28, sleeve: 34 },
-                  { size: 'L', chest: 44, length: 29, sleeve: 35 },
-                  { size: 'XL', chest: 48, length: 30, sleeve: 36 },
-                  { size: '2XL', chest: 52, length: 31, sleeve: 37 },
+                  { size: 'S', chest: 91, length: 69, sleeve: 84 },
+                  { size: 'M', chest: 102, length: 71, sleeve: 86 },
+                  { size: 'L', chest: 112, length: 74, sleeve: 89 },
+                  { size: 'XL', chest: 122, length: 76, sleeve: 91 },
+                  { size: '2XL', chest: 132, length: 79, sleeve: 94 },
                 ],
               },
             }
@@ -371,12 +381,12 @@ Be friendly, helpful, and concise.`
               success: true,
               guide: {
                 productType: productType,
-                unit: 'inches',
+                unit: STORE_DEFAULTS.measurementUnit,
                 sizes: [
-                  { size: 'S', width: 18, length: 28 },
-                  { size: 'M', width: 20, length: 29 },
-                  { size: 'L', width: 22, length: 30 },
-                  { size: 'XL', width: 24, length: 31 },
+                  { size: 'S', width: 46, length: 71 },
+                  { size: 'M', width: 51, length: 74 },
+                  { size: 'L', width: 56, length: 76 },
+                  { size: 'XL', width: 61, length: 79 },
                 ],
               },
             }
@@ -616,7 +626,7 @@ Be friendly, helpful, and concise.`
               message: `Coupon "${coupon.code}" applied! ${
                 coupon.discount_type === 'percentage'
                   ? `${coupon.discount_value}% off`
-                  : `$${coupon.discount_value} off`
+                  : `€${coupon.discount_value} off`
               }`,
             }
           } catch (error) {
@@ -628,42 +638,23 @@ Be friendly, helpful, and concise.`
       estimate_shipping: tool({
         description: 'Calculate shipping cost estimates for different delivery options. Call this when user asks about shipping costs.',
         parameters: z.object({
-          country: z.string().optional().describe('Destination country code (default: "US")'),
+          country: z.string().optional().describe(`Destination country code (default: "${STORE_DEFAULTS.country}")`),
         }),
         // @ts-expect-error AI SDK 6.0.86 type mismatch — execute works at runtime
         execute: async (args: { country?: string }) => {
-          const { country = 'US' } = args
+          const { country = STORE_DEFAULTS.country } = args
           try {
-            // Mock shipping estimates based on destination
-            // In production, this would call Printify API or shipping provider
-            const baseRates = {
-              US: [
-                { method: 'Standard', price: 4.99, days: '5-7 business days', currency: 'USD' },
-                { method: 'Express', price: 14.99, days: '2-3 business days', currency: 'USD' },
-                { method: 'Overnight', price: 24.99, days: '1 business day', currency: 'USD' },
-              ],
-              CA: [
-                { method: 'Standard', price: 9.99, days: '7-10 business days', currency: 'USD' },
-                { method: 'Express', price: 19.99, days: '3-5 business days', currency: 'USD' },
-              ],
-              GB: [
-                { method: 'Standard', price: 12.99, days: '10-14 business days', currency: 'USD' },
-                { method: 'Express', price: 24.99, days: '5-7 business days', currency: 'USD' },
-              ],
-              EU: [
-                { method: 'Standard', price: 14.99, days: '10-14 business days', currency: 'USD' },
-                { method: 'Express', price: 29.99, days: '5-7 business days', currency: 'USD' },
-              ],
-            }
-
-            const rates = baseRates[country as keyof typeof baseRates] || baseRates.US
+            const rates = (SHIPPING_RATES[country] || SHIPPING_RATES['EU']).map(r => ({
+              ...r,
+              currency: STORE_DEFAULTS.currency,
+            }))
 
             return {
               success: true,
               country,
               options: rates,
-              freeShippingThreshold: 50,
-              message: `Free shipping on orders over $50!`,
+              freeShippingThreshold: STORE_DEFAULTS.freeShippingThreshold,
+              message: `Free shipping on orders over €${STORE_DEFAULTS.freeShippingThreshold}!`,
             }
           } catch (error) {
             console.error('estimate_shipping error:', error)
@@ -680,15 +671,23 @@ Be friendly, helpful, and concise.`
         execute: async (args: { customerEmail?: string }) => {
           const { customerEmail } = args
           try {
-            // Get cart items from the last 24 hours (demo - in production would use session)
-            const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+            // Get cart items for this user/session
+            if (!chatUserId && !cartSessionId) {
+              return { success: false, error: 'Your cart is empty. Add some items before checking out.' }
+            }
 
-            const { data: cartItems, error: cartError } = await supabase
+            const cartQuery = supabase
               .from('cart_items')
               .select('id, product_id, quantity, created_at')
-              .gte('created_at', oneDayAgo)
               .order('created_at', { ascending: false })
-              .limit(10)
+
+            if (chatUserId) {
+              cartQuery.eq('user_id', chatUserId)
+            } else {
+              cartQuery.eq('session_id', cartSessionId!)
+            }
+
+            const { data: cartItems, error: cartError } = await cartQuery
 
             if (cartError || !cartItems || cartItems.length === 0) {
               return {
@@ -757,15 +756,23 @@ Be friendly, helpful, and concise.`
           }
 
           try {
-            // Get cart items again (same logic as create_checkout)
-            const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+            // Get cart items for this user/session (same logic as create_checkout)
+            if (!chatUserId && !cartSessionId) {
+              return { success: false, error: 'Your cart is empty.' }
+            }
 
-            const { data: cartItems, error: cartError } = await supabase
+            const confirmCartQuery = supabase
               .from('cart_items')
               .select('id, product_id, quantity, created_at')
-              .gte('created_at', oneDayAgo)
               .order('created_at', { ascending: false })
-              .limit(10)
+
+            if (chatUserId) {
+              confirmCartQuery.eq('user_id', chatUserId)
+            } else {
+              confirmCartQuery.eq('session_id', cartSessionId!)
+            }
+
+            const { data: cartItems, error: cartError } = await confirmCartQuery
 
             if (cartError || !cartItems || cartItems.length === 0) {
               return {
@@ -810,8 +817,8 @@ Be friendly, helpful, and concise.`
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                 cartItems: stripeCartItems,
-                locale: 'en',
-                currency: 'usd',
+                locale: chatLocale,
+                currency: STORE_DEFAULTS.stripeCurrency,
               }),
             })
 
@@ -833,6 +840,91 @@ Be friendly, helpful, and concise.`
           } catch (error) {
             console.error('confirm_checkout error:', error)
             return { success: false, error: 'Failed to create checkout session' }
+          }
+        },
+      }),
+      track_order: tool({
+        description: 'Track an order by order ID or retrieve the most recent orders for the user. Call this when user wants to track their order, check order status, or see order history.',
+        parameters: z.object({
+          orderId: z.string().optional().describe('Order ID to track (optional - if not provided, returns most recent orders)'),
+        }),
+        // @ts-expect-error AI SDK 6.0.86 type mismatch — execute works at runtime
+        execute: async (args: { orderId?: string }) => {
+          const { orderId } = args
+          try {
+            // If user is not authenticated and no order ID provided, return error
+            if (!orderId && !chatUserId) {
+              return {
+                success: false,
+                error: 'Please log in to view your order history, or provide an order ID.',
+              }
+            }
+
+            // If order ID is provided, fetch that specific order
+            if (orderId) {
+              const { data: order, error: orderError } = await supabase
+                .from('orders')
+                .select('*')
+                .eq('id', orderId)
+                .single()
+
+              if (orderError || !order) {
+                return {
+                  success: false,
+                  error: 'Order not found. Please check the order ID and try again.',
+                }
+              }
+
+              // Return order timeline data
+              return {
+                success: true,
+                orderId: order.id,
+                status: order.status,
+                trackingNumber: order.tracking_number,
+                estimatedDelivery: order.estimated_delivery,
+                createdAt: order.created_at,
+                paidAt: order.paid_at,
+                shippedAt: order.shipped_at,
+                deliveredAt: order.delivered_at,
+                currency: order.currency || 'EUR',
+                total: order.total_cents,
+              }
+            }
+
+            // Otherwise, fetch recent orders for this user
+            const { data: orders, error: ordersError } = await supabase
+              .from('orders')
+              .select('*')
+              .eq('user_id', chatUserId!)
+              .order('created_at', { ascending: false })
+              .limit(1)
+
+            if (ordersError || !orders || orders.length === 0) {
+              return {
+                success: false,
+                error: 'No orders found. Place an order first!',
+              }
+            }
+
+            const mostRecentOrder = orders[0]
+
+            // Return timeline data for most recent order
+            return {
+              success: true,
+              orderId: mostRecentOrder.id,
+              status: mostRecentOrder.status,
+              trackingNumber: mostRecentOrder.tracking_number,
+              estimatedDelivery: mostRecentOrder.estimated_delivery,
+              createdAt: mostRecentOrder.created_at,
+              paidAt: mostRecentOrder.paid_at,
+              shippedAt: mostRecentOrder.shipped_at,
+              deliveredAt: mostRecentOrder.delivered_at,
+              currency: mostRecentOrder.currency || 'EUR',
+              total: mostRecentOrder.total_cents,
+            }
+          } catch (error) {
+            console.error('track_order error:', error)
+            return { success: false, error: 'Failed to fetch order details' }
           }
         },
       }),

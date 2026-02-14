@@ -16,6 +16,7 @@ import { SizeGuideArtifact, SizeGuideSkeleton } from './SizeGuideArtifact'
 import { CartSummaryArtifact, CartSummarySkeleton } from './CartSummaryArtifact'
 import { PricingTableArtifact, PricingTableSkeleton } from './PricingTableArtifact'
 import { ApprovalCardArtifact, ApprovalCardSkeleton } from './ApprovalCardArtifact'
+import { OrderTimelineArtifact, OrderTimelineSkeleton } from './OrderTimelineArtifact'
 
 export interface ArtifactRegistryEntry {
   Component: React.ComponentType<any>
@@ -58,6 +59,10 @@ export const artifactRegistry: Record<string, ArtifactRegistryEntry> = {
   create_checkout: {
     Component: ApprovalCardArtifact,
     Skeleton: ApprovalCardSkeleton,
+  },
+  track_order: {
+    Component: OrderTimelineArtifact,
+    Skeleton: OrderTimelineSkeleton,
   },
 }
 
