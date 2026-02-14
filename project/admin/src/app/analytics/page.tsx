@@ -40,6 +40,13 @@ interface FinanceReport {
     estimatedMargin: number;
     marginPercent: number;
   }>;
+  categoryMarginBreakdown: Array<{
+    category: string;
+    revenue: number;
+    quantity: number;
+    estimatedMargin: number;
+    marginPercent: number;
+  }>;
   monthlyRevenue: Array<{
     month: string;
     revenue: number;
@@ -410,6 +417,52 @@ export default function AnalyticsPage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Category Margin Breakdown */}
+        {report.categoryMarginBreakdown && report.categoryMarginBreakdown.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Margin Analysis by Category</CardTitle>
+              <CardDescription>
+                Profit margin breakdown across product categories
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {report.categoryMarginBreakdown.map((category) => (
+                  <div
+                    key={category.category}
+                    className="border rounded-lg p-4 space-y-2 bg-card hover:bg-muted/50 transition-colors"
+                  >
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-semibold capitalize">{category.category}</h3>
+                      <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary font-medium">
+                        {category.marginPercent}% margin
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div>
+                        <p className="text-xs text-muted-foreground">Revenue</p>
+                        <p className="font-medium">{formatCurrency(category.revenue, currency)}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground">Est. Margin</p>
+                        <p className="font-medium text-green-600">
+                          {formatCurrency(category.estimatedMargin, currency)}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="pt-2 border-t">
+                      <p className="text-xs text-muted-foreground">
+                        {category.quantity} {category.quantity === 1 ? 'item' : 'items'} sold
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Revenue Chart (Simple Bar Chart using divs) */}
         <Card>

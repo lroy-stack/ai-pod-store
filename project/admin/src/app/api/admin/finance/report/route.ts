@@ -93,6 +93,34 @@ export async function GET() {
       });
     }
 
+    // Calculate margin breakdown by category
+    const categoryMargins = new Map<string, { revenue: number; quantity: number; margin: number }>();
+
+    productMargins.forEach(product => {
+      const existing = categoryMargins.get(product.category);
+      if (existing) {
+        existing.revenue += product.revenue;
+        existing.quantity += product.quantity;
+        existing.margin += product.estimatedMargin;
+      } else {
+        categoryMargins.set(product.category, {
+          revenue: product.revenue,
+          quantity: product.quantity,
+          margin: product.estimatedMargin,
+        });
+      }
+    });
+
+    const categoryMarginBreakdown = Array.from(categoryMargins.entries())
+      .map(([category, data]) => ({
+        category,
+        revenue: data.revenue,
+        quantity: data.quantity,
+        estimatedMargin: data.margin,
+        marginPercent: data.revenue > 0 ? Math.round((data.margin / data.revenue) * 100 * 10) / 10 : 0,
+      }))
+      .sort((a, b) => b.revenue - a.revenue);
+
     // Calculate P&L statement
     const totalCosts = totalRevenue * 0.65; // Simplified: assume 65% costs (Printify, Stripe, ops)
     const grossProfit = totalRevenue - totalCosts;
@@ -118,6 +146,7 @@ export async function GET() {
         },
       },
       productMargins,
+      categoryMarginBreakdown,
       monthlyRevenue,
     };
 
