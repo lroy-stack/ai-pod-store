@@ -2810,7 +2810,7 @@
     "id": 254,
     "feature": "Internationalization End-to-End",
     "description": "Locale persists in user profile",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Set locale to 'de' in user profile settings",
       "Log out",

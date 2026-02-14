@@ -70,7 +70,9 @@ export default function LoginForm({ locale }: { locale: string }) {
         console.error('Failed to broadcast login event:', e)
       }
 
-      router.push(`/${locale}/`)
+      // Redirect to user's preferred locale if different from current
+      const userLocale = data.user?.locale || locale
+      router.push(`/${userLocale}/`)
     } catch (err) {
       // Translate error messages based on error content
       if (err instanceof Error && err.message.includes('Invalid email or password')) {

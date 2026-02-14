@@ -71,6 +71,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Fetch user's locale preference from database
+    const { data: userData } = await supabase
+      .from('users')
+      .select('locale')
+      .eq('email', email)
+      .single()
+
+    const userLocale = userData?.locale || 'en'
+
     // Create response with session data
     const response = NextResponse.json(
       {
@@ -79,6 +88,7 @@ export async function POST(request: NextRequest) {
           id: authData.user.id,
           email: authData.user.email,
           name: authData.user.user_metadata?.name,
+          locale: userLocale,
         },
         session: {
           access_token: authData.session.access_token,
