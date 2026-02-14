@@ -1890,7 +1890,7 @@
     "id": 170,
     "feature": "RAG Pipeline",
     "description": "Embedding batch processing works",
-    "passes": false,
+    "passes": true,
     "steps": [
       "POST a batch of 10 documents to the indexing endpoint",
       "Verify all 10 documents are indexed in the documents table",
