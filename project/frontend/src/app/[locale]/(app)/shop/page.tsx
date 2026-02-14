@@ -134,7 +134,7 @@ export default function ShopPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-2">{t('title')}</h1>
+        <h1 className="text-4xl font-bold tracking-tight mb-2">{t('title')}</h1>
         <p className="text-lg text-muted-foreground">{t('subtitle')}</p>
         <p className="text-sm text-muted-foreground mt-2">
           {t('totalProducts', { count: totalProducts })}

@@ -2041,7 +2041,7 @@
     "id": 184,
     "feature": "Design System & AI Designs",
     "description": "Typography scale renders correctly",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify the Inter font is loaded on the page",
       "Verify headings use font-bold and tracking-tight styles",

@@ -170,7 +170,7 @@ export function ChatArea() {
               </div>
 
               <div>
-                <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
+                <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground mb-2">
                   {userData.user ? (
                     <>
                       {t('welcomeBackTitle', { name: userData.user.name.split(' ')[0] })}
@@ -196,7 +196,7 @@ export function ChatArea() {
                       <CardContent className="p-4">
                         <div className="flex items-center gap-2 mb-3">
                           <Package className="h-4 w-4 text-primary" />
-                          <h3 className="text-sm font-semibold">{t('activeOrders')}</h3>
+                          <h3 className="text-sm font-semibold tracking-tight">{t('activeOrders')}</h3>
                         </div>
                         <div className="space-y-2">
                           {userData.activeOrders.map((order) => (
@@ -220,7 +220,7 @@ export function ChatArea() {
                       <CardContent className="p-4">
                         <div className="flex items-center gap-2 mb-3">
                           <Heart className="h-4 w-4 text-primary" />
-                          <h3 className="text-sm font-semibold">{t('recentFavorites')}</h3>
+                          <h3 className="text-sm font-semibold tracking-tight">{t('recentFavorites')}</h3>
                         </div>
                         <div className="space-y-2">
                           {userData.recentFavorites.map((item) => (
