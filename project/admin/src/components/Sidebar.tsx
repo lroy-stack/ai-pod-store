@@ -27,7 +27,7 @@ const navigation = [
   { name: 'Customers', href: '/customers', icon: Users },
   { name: 'Analytics', href: '/analytics', icon: TrendingUp },
   { name: 'Finance', href: '/finance', icon: DollarSign },
-  { name: 'Agents', href: '/agents', icon: Bot },
+  { name: 'Agent Monitor', href: '/agent', icon: Bot },
   { name: 'Translations', href: '/translations', icon: Languages },
   { name: 'Audit Log', href: '/audit', icon: FileText },
   { name: 'SEO', href: '/seo', icon: Search },
