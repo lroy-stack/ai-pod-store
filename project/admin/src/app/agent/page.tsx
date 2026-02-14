@@ -1,10 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Bot, Play, Square, Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react'
+import { Bot, Play, Square, Clock, CheckCircle, XCircle, AlertCircle, ChevronRight } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 
 interface AgentSession {
@@ -33,6 +34,7 @@ const statusColors = {
 }
 
 export default function AgentsPage() {
+  const router = useRouter()
   const [agentStatus, setAgentStatus] = useState<'running' | 'stopped'>('stopped')
   const [sessions, setSessions] = useState<AgentSession[]>([])
   const [loading, setLoading] = useState(true)
@@ -231,7 +233,8 @@ export default function AgentsPage() {
                 return (
                   <div
                     key={session.id}
-                    className="flex items-start gap-4 rounded-lg border border-border p-4"
+                    className="flex items-start gap-4 rounded-lg border border-border p-4 hover:bg-muted/50 transition-colors cursor-pointer"
+                    onClick={() => router.push(`/agent/${session.id}`)}
                   >
                     {/* Status Icon */}
                     <div
@@ -309,6 +312,9 @@ export default function AgentsPage() {
                         </div>
                       </div>
                     </div>
+
+                    {/* Arrow indicator */}
+                    <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0 mt-2" />
                   </div>
                 )
               })}
