@@ -61,6 +61,21 @@ export async function POST(req: NextRequest) {
     if (!falResponse.ok) {
       const errorText = await falResponse.text()
       console.error('fal.ai API error:', errorText)
+
+      // In development, if API fails due to credits, return a placeholder
+      if (process.env.NODE_ENV === 'development' && errorText.includes('Exhausted balance')) {
+        console.warn('fal.ai credits exhausted - returning placeholder image')
+        return NextResponse.json({
+          success: true,
+          imageUrl: `https://placehold.co/1024x1024/667eea/ffffff?text=${encodeURIComponent(prompt.substring(0, 50))}`,
+          prompt: finalPrompt,
+          seed: Math.floor(Math.random() * 1000000),
+          timings: { inference: 0 },
+          placeholder: true,
+          note: 'Placeholder image - fal.ai credits exhausted'
+        })
+      }
+
       return NextResponse.json(
         { error: 'Failed to generate design', details: errorText },
         { status: 500 }

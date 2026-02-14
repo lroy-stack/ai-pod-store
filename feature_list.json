@@ -2052,7 +2052,7 @@
     "id": 185,
     "feature": "Design System & AI Designs",
     "description": "Design generation API works (fal.ai FLUX.1)",
-    "passes": false,
+    "passes": true,
     "steps": [
       "POST a design generation request to /api/designs/generate with a prompt",
       "Verify an image URL is returned in the response"
@@ -2372,8 +2372,8 @@
     "description": "Admin route protection",
     "passes": false,
     "steps": [
-      "Navigate to /en/admin without having an admin role",
-      "Verify the user is redirected to the home page or a 403 forbidden page"
+      "Navigate to http://localhost:3001 without having an admin role",
+      "Verify the user is redirected to /login"
     ]
   },
   {
@@ -2382,7 +2382,7 @@
     "description": "Admin dashboard renders with summary cards",
     "passes": false,
     "steps": [
-      "Navigate to /en/admin as an admin user",
+      "Navigate to admin panel at http://localhost:3001 as an admin user",
       "Verify summary cards are displayed for revenue, orders count, products count, and conversion rate"
     ]
   },
@@ -2402,7 +2402,7 @@
     "description": "Admin navigation sidebar works",
     "passes": false,
     "steps": [
-      "Verify the admin sidebar contains links to Products, Orders, Customers, Analytics, Finance, Agent, Translations, Audit, SEO, Reviews, and Settings"
+      "Verify the admin sidebar contains links to Products, Orders, Customers, Analytics, Finance, Agents, Translations, Audit Log, SEO, Reviews, Returns, Messaging, and Settings"
     ]
   },
   {
@@ -2423,7 +2423,7 @@
     "description": "Order management table with filters",
     "passes": false,
     "steps": [
-      "Navigate to /en/admin/orders",
+      "Navigate to http://localhost:3001/orders",
       "Filter orders by status 'shipped'",
       "Verify only shipped orders are shown in the table"
     ]
@@ -2434,7 +2434,7 @@
     "description": "Customer list with order history",
     "passes": false,
     "steps": [
-      "Navigate to /en/admin/customers",
+      "Navigate to http://localhost:3001/customers",
       "Verify the list displays customer name, email, order count, and total spent",
       "Click a customer to view their order history"
     ]
@@ -2445,7 +2445,7 @@
     "description": "Analytics + financial dashboard",
     "passes": false,
     "steps": [
-      "Navigate to /en/admin/analytics or /en/admin/finance",
+      "Navigate to http://localhost:3001/analytics or /admin/finance",
       "Verify revenue charts are displayed",
       "Verify P&L statement and margins by product are shown"
     ]
@@ -2467,7 +2467,7 @@
     "description": "Translation management page",
     "passes": false,
     "steps": [
-      "Navigate to /en/admin/translations",
+      "Navigate to http://localhost:3001/translations",
       "Verify a table is displayed with namespace, key, locale, and value columns",
       "Verify translations can be edited",
       "Verify an auto-translate button is available"
@@ -2479,7 +2479,7 @@
     "description": "Review moderation page",
     "passes": false,
     "steps": [
-      "Navigate to /en/admin/reviews",
+      "Navigate to http://localhost:3001/reviews",
       "Verify a pending reviews queue is displayed",
       "Verify reviews can be approved, rejected, or responded to"
     ]
@@ -2490,7 +2490,7 @@
     "description": "Audit log viewer",
     "passes": false,
     "steps": [
-      "Navigate to /en/admin/audit",
+      "Navigate to http://localhost:3001/audit",
       "Verify log entries are displayed with actor_type, action, resource, timestamp, and changes",
       "Verify filtering by actor_type works"
     ]
@@ -2501,7 +2501,7 @@
     "description": "SEO management",
     "passes": false,
     "steps": [
-      "Navigate to /en/admin/seo",
+      "Navigate to http://localhost:3001/seo",
       "Verify meta tags can be edited per locale",
       "Verify the hreflang setup is visible",
       "Verify sitemap generation can be triggered"
@@ -2513,7 +2513,7 @@
     "description": "Agent monitor page renders",
     "passes": false,
     "steps": [
-      "Navigate to /en/admin/agent",
+      "Navigate to http://localhost:3001/agent",
       "Verify the agent status card is displayed showing running or stopped state",
       "Verify the session history table is displayed"
     ]
@@ -2599,7 +2599,7 @@
     "description": "Admin settings page",
     "passes": false,
     "steps": [
-      "Navigate to /en/admin/settings",
+      "Navigate to http://localhost:3001/settings",
       "Verify a store configuration form is displayed",
       "Verify locale settings are available",
       "Verify API key status indicators are shown"
@@ -2611,7 +2611,7 @@
     "description": "A/B test management in admin",
     "passes": false,
     "steps": [
-      "Navigate to /en/admin/ab-tests",
+      "Navigate to http://localhost:3001/ab-tests",
       "Verify the experiment list is displayed",
       "Verify new experiments can be created",
       "Verify experiments can be started or stopped and results viewed"
@@ -2689,7 +2689,7 @@
     "description": "Admin finance reports render",
     "passes": false,
     "steps": [
-      "Navigate to /en/admin/finance",
+      "Navigate to http://localhost:3001/finance",
       "Verify P&L report renders with data",
       "Verify cash flow statement renders with data",
       "Verify revenue chart renders with data"
@@ -4277,6 +4277,635 @@
       "GET /agents from bridge API",
       "Verify newsletter agent is listed with correct tools",
       "Verify running status is accurate"
+    ]
+  },
+  {
+    "id": 390,
+    "feature": "Admin Panel Setup",
+    "description": "Admin project npm install succeeds",
+    "passes": false,
+    "steps": [
+      "Run npm install in admin/ directory",
+      "Verify no errors in the install output",
+      "Check that node_modules directory exists in admin/"
+    ]
+  },
+  {
+    "id": 391,
+    "feature": "Admin Panel Setup",
+    "description": "Admin dev server starts on port 3001",
+    "passes": false,
+    "steps": [
+      "Run npm run dev in admin/ directory",
+      "Verify the dev server starts on port 3001",
+      "Navigate to http://localhost:3001 and verify a page renders"
+    ]
+  },
+  {
+    "id": 392,
+    "feature": "Admin Panel Setup",
+    "description": "Admin login page renders with Supabase auth",
+    "passes": false,
+    "steps": [
+      "Navigate to http://localhost:3001/login",
+      "Verify the login page renders with email and password fields",
+      "Verify Supabase auth is configured for the login form"
+    ]
+  },
+  {
+    "id": 393,
+    "feature": "Admin Panel Setup",
+    "description": "Admin login rejects customer role users",
+    "passes": false,
+    "steps": [
+      "Log in with a user that has role='customer'",
+      "Verify the user is rejected and cannot access admin pages",
+      "Verify an error message is displayed indicating admin access required"
+    ]
+  },
+  {
+    "id": 394,
+    "feature": "Admin Panel Setup",
+    "description": "Admin middleware redirects unauthenticated to /login",
+    "passes": false,
+    "steps": [
+      "Navigate to http://localhost:3001/ without being authenticated",
+      "Verify the user is redirected to /login",
+      "Verify protected routes like /products also redirect to /login"
+    ]
+  },
+  {
+    "id": 395,
+    "feature": "Admin Panel Setup",
+    "description": "Admin bridge proxy forwards GET to PodClaw",
+    "passes": false,
+    "steps": [
+      "Make a GET request to http://localhost:3001/api/agent/status as admin",
+      "Verify the request is proxied to PodClaw bridge at localhost:8000",
+      "Verify the response from PodClaw is returned to the client"
+    ]
+  },
+  {
+    "id": 396,
+    "feature": "Admin Panel Setup",
+    "description": "Admin bridge proxy forwards POST to PodClaw",
+    "passes": false,
+    "steps": [
+      "Make a POST request to http://localhost:3001/api/agent/start as admin",
+      "Verify the request is proxied to PodClaw bridge at localhost:8000",
+      "Verify the response from PodClaw is returned to the client"
+    ]
+  },
+  {
+    "id": 397,
+    "feature": "Admin Panel Setup",
+    "description": "Admin bridge proxy requires admin auth",
+    "passes": false,
+    "steps": [
+      "Make a request to http://localhost:3001/api/agent/status without authentication",
+      "Verify the request is rejected with 401 Unauthorized",
+      "Make the same request with admin auth and verify it succeeds"
+    ]
+  },
+  {
+    "id": 398,
+    "feature": "Admin Panel Setup",
+    "description": "Admin SSE stream connects and delivers events",
+    "passes": false,
+    "steps": [
+      "Connect to http://localhost:3001/api/events/stream with admin auth",
+      "Verify the connection uses Server-Sent Events (text/event-stream content type)",
+      "Verify events are delivered when triggered (e.g., new_order, agent_cycle_complete)"
+    ]
+  },
+  {
+    "id": 399,
+    "feature": "Admin Panel Setup",
+    "description": "Admin TopBar notification bell shows unread count",
+    "passes": false,
+    "steps": [
+      "Log in to admin panel at http://localhost:3001",
+      "Verify the TopBar contains a notification bell icon",
+      "Verify the bell shows an unread count badge when there are pending notifications",
+      "Click the bell and verify a dropdown with notification items appears"
+    ]
+  },
+  {
+    "id": 400,
+    "feature": "Admin Panel Setup",
+    "description": "Designs gallery with approve/reject actions",
+    "passes": false,
+    "steps": [
+      "Navigate to http://localhost:3001/designs",
+      "Verify a gallery grid of AI-generated designs is displayed",
+      "Verify each design card has approve and reject action buttons",
+      "Click approve on a design and verify its status updates"
+    ]
+  },
+  {
+    "id": 401,
+    "feature": "Admin Panel Setup",
+    "description": "Design create-product pipeline from admin",
+    "passes": false,
+    "steps": [
+      "Navigate to a design detail page at http://localhost:3001/designs/:id",
+      "Verify a 'Create Product' button exists",
+      "Click the button and verify a product creation form is shown with the design pre-attached",
+      "Verify the pipeline connects design \u2192 product template \u2192 Printify"
+    ]
+  },
+  {
+    "id": 402,
+    "feature": "Admin Panel Setup",
+    "description": "Returns management page with refund action",
+    "passes": false,
+    "steps": [
+      "Navigate to http://localhost:3001/returns",
+      "Verify a list of return requests is displayed",
+      "Verify each request has approve/deny buttons",
+      "Click approve and verify a Stripe refund is triggered"
+    ]
+  },
+  {
+    "id": 403,
+    "feature": "Admin Panel Setup",
+    "description": "Messaging config page renders",
+    "passes": false,
+    "steps": [
+      "Navigate to http://localhost:3001/messaging",
+      "Verify the page shows Telegram and WhatsApp channel configuration sections",
+      "Verify each channel has enable/disable toggle and config fields",
+      "Verify the messaging link in the admin sidebar is present"
+    ]
+  },
+  {
+    "id": 404,
+    "feature": "Admin Panel Setup",
+    "description": "Order Printify retry button works from admin",
+    "passes": false,
+    "steps": [
+      "Navigate to an order detail page at http://localhost:3001/orders/:id",
+      "Verify a retry button exists for orders with failed Printify status",
+      "Click the retry button and verify it triggers a POST to /api/admin/orders/:id/retry",
+      "Verify the order status updates after retry"
+    ]
+  },
+  {
+    "id": 405,
+    "feature": "Telegram Integration",
+    "description": "Telegram webhook endpoint exists on storefront",
+    "passes": false,
+    "steps": [
+      "Verify /api/webhooks/telegram route exists in the storefront project",
+      "Send a POST request to the endpoint with a valid Telegram update payload",
+      "Verify the endpoint responds with 200 OK"
+    ]
+  },
+  {
+    "id": 406,
+    "feature": "Telegram Integration",
+    "description": "Telegram webhook rejects invalid token",
+    "passes": false,
+    "steps": [
+      "Send a POST request to /api/webhooks/telegram with an invalid secret token header",
+      "Verify the endpoint responds with 403 Forbidden",
+      "Verify no message processing occurs"
+    ]
+  },
+  {
+    "id": 407,
+    "feature": "Telegram Integration",
+    "description": "Telegram /start command responds with welcome",
+    "passes": false,
+    "steps": [
+      "Send a Telegram update with /start command to the webhook",
+      "Verify the bot responds with a welcome message",
+      "Verify the welcome message includes instructions for available commands"
+    ]
+  },
+  {
+    "id": 408,
+    "feature": "Telegram Integration",
+    "description": "Telegram /status admin command returns PodClaw status",
+    "passes": false,
+    "steps": [
+      "Link a Telegram account to an admin user",
+      "Send /status command from the linked Telegram account",
+      "Verify the bot responds with current PodClaw agent status information"
+    ]
+  },
+  {
+    "id": 409,
+    "feature": "Telegram Integration",
+    "description": "Telegram /agents command lists 8 agents",
+    "passes": false,
+    "steps": [
+      "Send /agents command from a linked admin Telegram account",
+      "Verify the bot responds with a list of all 8 PodClaw sub-agents",
+      "Verify each agent shows its name and current status"
+    ]
+  },
+  {
+    "id": 410,
+    "feature": "Telegram Integration",
+    "description": "Telegram /run command triggers agent",
+    "passes": false,
+    "steps": [
+      "Send /run researcher command from a linked admin Telegram account",
+      "Verify the bot acknowledges the command",
+      "Verify the specified agent is triggered via the PodClaw bridge"
+    ]
+  },
+  {
+    "id": 411,
+    "feature": "Telegram Integration",
+    "description": "Telegram /pause command pauses agent",
+    "passes": false,
+    "steps": [
+      "Send /pause researcher command from a linked admin Telegram account",
+      "Verify the bot acknowledges the pause command",
+      "Verify the specified agent is paused via the PodClaw bridge"
+    ]
+  },
+  {
+    "id": 412,
+    "feature": "Telegram Integration",
+    "description": "Telegram /orders command shows today's summary",
+    "passes": false,
+    "steps": [
+      "Send /orders command from a linked admin Telegram account",
+      "Verify the bot responds with today's order summary",
+      "Verify the summary includes order count, total revenue, and status breakdown"
+    ]
+  },
+  {
+    "id": 413,
+    "feature": "Telegram Integration",
+    "description": "Telegram /revenue command shows stats",
+    "passes": false,
+    "steps": [
+      "Send /revenue command from a linked admin Telegram account",
+      "Verify the bot responds with revenue statistics",
+      "Verify the stats include today, this week, and this month totals"
+    ]
+  },
+  {
+    "id": 414,
+    "feature": "Telegram Integration",
+    "description": "Telegram customer product search works",
+    "passes": false,
+    "steps": [
+      "Send a product search message (e.g., 'show me t-shirts') from a non-admin Telegram user",
+      "Verify the bot responds with matching products",
+      "Verify each product shows name, price, and a link to the storefront"
+    ]
+  },
+  {
+    "id": 415,
+    "feature": "Telegram Integration",
+    "description": "Telegram customer gets product detail with image",
+    "passes": false,
+    "steps": [
+      "Send a product detail request from a Telegram user",
+      "Verify the bot responds with product details including an image",
+      "Verify the response includes name, description, price, and available variants"
+    ]
+  },
+  {
+    "id": 416,
+    "feature": "Telegram Integration",
+    "description": "Telegram customer receives checkout link",
+    "passes": false,
+    "steps": [
+      "Request to buy a product from Telegram",
+      "Verify the bot provides a checkout link to the storefront",
+      "Verify the link includes the product and variant information"
+    ]
+  },
+  {
+    "id": 417,
+    "feature": "Telegram Integration",
+    "description": "Telegram /link associates admin account",
+    "passes": false,
+    "steps": [
+      "Send /link command from Telegram with a linking code",
+      "Verify the Telegram account is associated with the admin user in user_messaging_links",
+      "Verify subsequent admin commands work from this Telegram account"
+    ]
+  },
+  {
+    "id": 418,
+    "feature": "Telegram Integration",
+    "description": "Telegram conversations stored in DB",
+    "passes": false,
+    "steps": [
+      "Send several messages via Telegram",
+      "Query the messaging_conversations table",
+      "Verify both inbound and outbound messages are stored with correct platform and direction"
+    ]
+  },
+  {
+    "id": 419,
+    "feature": "Telegram Integration",
+    "description": "PodClaw telegram_send tool works",
+    "passes": false,
+    "steps": [
+      "Verify telegram_send is in the customer_manager agent's tool list",
+      "Trigger the tool with a test message and chat_id",
+      "Verify the message is sent via the Telegram Bot API"
+    ]
+  },
+  {
+    "id": 420,
+    "feature": "Telegram Integration",
+    "description": "PodClaw telegram_broadcast works",
+    "passes": false,
+    "steps": [
+      "Verify telegram_broadcast is in the marketing agent's tool list",
+      "Trigger the tool with a broadcast message",
+      "Verify the message is sent to all linked Telegram users"
+    ]
+  },
+  {
+    "id": 421,
+    "feature": "Telegram Integration",
+    "description": "Telegram connector in customer_manager + marketing tools",
+    "passes": false,
+    "steps": [
+      "Check podclaw/config.py AGENT_TOOLS for customer_manager",
+      "Verify 'telegram' is in the customer_manager tools list",
+      "Check podclaw/config.py AGENT_TOOLS for marketing",
+      "Verify 'telegram' is in the marketing tools list"
+    ]
+  },
+  {
+    "id": 422,
+    "feature": "WhatsApp Integration",
+    "description": "WhatsApp webhook verification (GET challenge)",
+    "passes": false,
+    "steps": [
+      "Send a GET request to /api/webhooks/whatsapp with hub.mode=subscribe and hub.verify_token",
+      "Verify the endpoint responds with the hub.challenge value",
+      "Verify invalid verify_token is rejected with 403"
+    ]
+  },
+  {
+    "id": 423,
+    "feature": "WhatsApp Integration",
+    "description": "WhatsApp webhook receives messages",
+    "passes": false,
+    "steps": [
+      "Send a POST request to /api/webhooks/whatsapp with a valid message payload",
+      "Verify the endpoint responds with 200 OK",
+      "Verify the message is processed and a response is sent"
+    ]
+  },
+  {
+    "id": 424,
+    "feature": "WhatsApp Integration",
+    "description": "WhatsApp webhook rejects invalid signature",
+    "passes": false,
+    "steps": [
+      "Send a POST request to /api/webhooks/whatsapp with an invalid X-Hub-Signature-256 header",
+      "Verify the endpoint responds with 403 Forbidden",
+      "Verify no message processing occurs"
+    ]
+  },
+  {
+    "id": 425,
+    "feature": "WhatsApp Integration",
+    "description": "WhatsApp admin status command",
+    "passes": false,
+    "steps": [
+      "Send 'status' message from a linked admin WhatsApp number",
+      "Verify the bot responds with current PodClaw agent status",
+      "Verify the response format is appropriate for WhatsApp"
+    ]
+  },
+  {
+    "id": 426,
+    "feature": "WhatsApp Integration",
+    "description": "WhatsApp customer product search",
+    "passes": false,
+    "steps": [
+      "Send a product search message from a customer WhatsApp number",
+      "Verify the bot responds with matching products",
+      "Verify each product includes name, price, and storefront link"
+    ]
+  },
+  {
+    "id": 427,
+    "feature": "WhatsApp Integration",
+    "description": "WhatsApp customer order tracking",
+    "passes": false,
+    "steps": [
+      "Send an order tracking request from a linked customer WhatsApp number",
+      "Verify the bot responds with order status and tracking information",
+      "Verify the response includes Printify fulfillment status if available"
+    ]
+  },
+  {
+    "id": 428,
+    "feature": "WhatsApp Integration",
+    "description": "WhatsApp template: order confirmation",
+    "passes": false,
+    "steps": [
+      "Trigger an order confirmation event",
+      "Verify a WhatsApp template message is sent to the customer",
+      "Verify the template includes order number, items, and total"
+    ]
+  },
+  {
+    "id": 429,
+    "feature": "WhatsApp Integration",
+    "description": "WhatsApp template: shipping update",
+    "passes": false,
+    "steps": [
+      "Trigger a shipping update event (order shipped)",
+      "Verify a WhatsApp template message is sent to the customer",
+      "Verify the template includes tracking number and estimated delivery"
+    ]
+  },
+  {
+    "id": 430,
+    "feature": "WhatsApp Integration",
+    "description": "WhatsApp conversation stored in DB",
+    "passes": false,
+    "steps": [
+      "Send several messages via WhatsApp",
+      "Query the messaging_conversations table",
+      "Verify both inbound and outbound messages are stored with platform='whatsapp'"
+    ]
+  },
+  {
+    "id": 431,
+    "feature": "WhatsApp Integration",
+    "description": "WhatsApp account linking",
+    "passes": false,
+    "steps": [
+      "Send a linking request from WhatsApp with a verification code",
+      "Verify the WhatsApp number is linked to the user in user_messaging_links",
+      "Verify subsequent messages from this number are associated with the user"
+    ]
+  },
+  {
+    "id": 432,
+    "feature": "WhatsApp Integration",
+    "description": "PodClaw whatsapp_send tool works",
+    "passes": false,
+    "steps": [
+      "Verify whatsapp_send is in the customer_manager agent's tool list",
+      "Trigger the tool with a test message and phone number",
+      "Verify the message is sent via the WhatsApp Business API"
+    ]
+  },
+  {
+    "id": 433,
+    "feature": "WhatsApp Integration",
+    "description": "PodClaw whatsapp_template tool works",
+    "passes": false,
+    "steps": [
+      "Verify whatsapp_template is in the marketing agent's tool list",
+      "Trigger the tool with a template name and parameters",
+      "Verify the template message is sent via the WhatsApp Business API"
+    ]
+  },
+  {
+    "id": 434,
+    "feature": "WhatsApp Integration",
+    "description": "WhatsApp connector in customer_manager tools",
+    "passes": false,
+    "steps": [
+      "Check podclaw/config.py AGENT_TOOLS for customer_manager",
+      "Verify 'whatsapp' is in the customer_manager tools list",
+      "Verify the whatsapp connector is configured in MCP connectors"
+    ]
+  },
+  {
+    "id": 435,
+    "feature": "WhatsApp Integration",
+    "description": "Marketing agent WhatsApp broadcast",
+    "passes": false,
+    "steps": [
+      "Verify 'whatsapp' is in the marketing agent's tool list",
+      "Trigger a broadcast via the marketing agent",
+      "Verify the broadcast message is sent to linked WhatsApp users"
+    ]
+  },
+  {
+    "id": 436,
+    "feature": "Messaging Infrastructure",
+    "description": "messaging_channels table exists with correct schema",
+    "passes": false,
+    "steps": [
+      "Query the messaging_channels table structure",
+      "Verify columns: id (UUID), platform (VARCHAR), config (JSONB), is_active (BOOLEAN), created_at, updated_at",
+      "Verify platform CHECK constraint allows 'telegram' and 'whatsapp'"
+    ]
+  },
+  {
+    "id": 437,
+    "feature": "Messaging Infrastructure",
+    "description": "user_messaging_links table exists",
+    "passes": false,
+    "steps": [
+      "Query the user_messaging_links table structure",
+      "Verify columns: id, user_id (FK to users), platform, platform_user_id, platform_username, is_admin_mode, linked_at",
+      "Verify unique constraint on (platform, platform_user_id)"
+    ]
+  },
+  {
+    "id": 438,
+    "feature": "Messaging Infrastructure",
+    "description": "messaging_conversations table exists",
+    "passes": false,
+    "steps": [
+      "Query the messaging_conversations table structure",
+      "Verify columns: id, user_messaging_link_id (FK), platform, direction, message_type, content, metadata, created_at",
+      "Verify direction CHECK constraint allows 'inbound' and 'outbound'"
+    ]
+  },
+  {
+    "id": 439,
+    "feature": "Messaging Infrastructure",
+    "description": "RLS on messaging tables blocks non-service-role",
+    "passes": false,
+    "steps": [
+      "Verify RLS is enabled on messaging_channels, user_messaging_links, and messaging_conversations",
+      "Attempt to query messaging_channels with anon key",
+      "Verify the query returns no results or is blocked",
+      "Query with service role key and verify data is accessible"
+    ]
+  },
+  {
+    "id": 440,
+    "feature": "Messaging Infrastructure",
+    "description": "Admin toast notification for live SSE events",
+    "passes": false,
+    "steps": [
+      "Log in to admin panel at http://localhost:3001",
+      "Trigger an SSE event (e.g., new order)",
+      "Verify a toast notification appears in the admin panel via sonner",
+      "Verify the toast includes relevant event information"
+    ]
+  },
+  {
+    "id": 441,
+    "feature": "Messaging Infrastructure",
+    "description": "Telegram admin alert for order errors",
+    "passes": false,
+    "steps": [
+      "Configure Telegram notifications for admin alerts",
+      "Trigger a Printify order error event",
+      "Verify a Telegram message is sent to the linked admin account",
+      "Verify the message includes order ID and error details"
+    ]
+  },
+  {
+    "id": 442,
+    "feature": "Messaging Infrastructure",
+    "description": "Preferred notification channel setting",
+    "passes": false,
+    "steps": [
+      "Navigate to admin messaging config page",
+      "Set preferred notification channel to 'telegram'",
+      "Verify the setting is saved in messaging_channels config",
+      "Trigger a notification and verify it goes to Telegram"
+    ]
+  },
+  {
+    "id": 443,
+    "feature": "Messaging Infrastructure",
+    "description": "Messaging config CRUD from admin panel",
+    "passes": false,
+    "steps": [
+      "Navigate to http://localhost:3001/messaging",
+      "Create a new Telegram channel config",
+      "Update the channel config (e.g., change bot token)",
+      "Verify changes are persisted in the messaging_channels table"
+    ]
+  },
+  {
+    "id": 444,
+    "feature": "Messaging Infrastructure",
+    "description": "Messaging connector rate limits in PodClaw config",
+    "passes": false,
+    "steps": [
+      "Check podclaw/config.py RATE_LIMITS for customer_manager",
+      "Verify telegram_send: 100 and whatsapp_send: 100 are present",
+      "Check RATE_LIMITS for marketing",
+      "Verify telegram_broadcast: 50 and whatsapp_broadcast: 50 are present"
+    ]
+  },
+  {
+    "id": 445,
+    "feature": "Messaging Infrastructure",
+    "description": "PodClaw bridge CORS allows admin panel origin",
+    "passes": false,
+    "steps": [
+      "Send an OPTIONS preflight request from http://localhost:3001 to PodClaw bridge",
+      "Verify the bridge responds with appropriate CORS headers",
+      "Verify Access-Control-Allow-Origin includes localhost:3001"
     ]
   }
 ]
