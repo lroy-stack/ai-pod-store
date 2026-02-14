@@ -155,3 +155,74 @@ Screenshot evidence:
 - All text properly internationalized (EN, ES, DE)
 - Responsive design with proper spacing and typography
 - Cards maintain consistent design system (semantic tokens)
+
+---
+
+## Session 24 (2026-02-14 00:00 UTC) — Coding Agent
+
+### Features Implemented: 1
+- **ID 86**: Quick-view modal on product hover/click
+
+### Implementation Details:
+
+#### Feature #86: Quick-view modal on product hover/click
+**Status: PASSING ✅**
+
+**Implementation:**
+- Created `QuickViewModal.tsx` component using shadcn/ui Dialog
+- Added `QuickViewButton` component that appears on hover (opacity transition)
+- Integrated modal into ProductCard component with state management
+- Modal displays complete product information:
+  * Product image (responsive with Next Image)
+  * Title, rating with review count
+  * Price with locale-aware formatting
+  * "In Stock" badge (green success color)
+  * Product description
+  * Variant selectors (Size and Color) when available
+  * Quantity selector (1-10)
+  * "Add to cart" button (disabled until required variants selected)
+  * Wishlist heart button
+  * "View full details" link to product page
+  * Close button (X)
+- Added mock variant data to products (sizes: S/M/L/XL/XXL, colors: Black/White/Navy/Gray)
+- Added stock information to product data
+- Translation keys added to all 3 locales (EN/ES/DE)
+
+**Verification:**
+- Tested via Playwright MCP on /en/shop
+- ✅ Quick View button appears on product cards
+- ✅ Button clickable and opens modal
+- ✅ Modal displays all product information correctly
+- ✅ Variant selectors populate with available options
+- ✅ Size dropdown shows all sizes (S, M, L, XL, XXL)
+- ✅ "In Stock" badge displays for products with stock data
+- ✅ Add to cart button properly disabled when variants not selected
+- ✅ Modal responsive and properly styled
+- ✅ Close button works correctly
+
+**Files Modified:**
+- frontend/src/components/products/QuickViewModal.tsx (new)
+- frontend/src/components/products/ProductCard.tsx (integrated modal)
+- frontend/src/app/api/products/route.ts (added variants/stock)
+- frontend/src/app/[locale]/shop/page.tsx (added variants/stock)
+- frontend/messages/en.json (added 4 keys)
+- frontend/messages/es.json (added 4 keys)
+- frontend/messages/de.json (added 4 keys)
+
+### Commits:
+- `8088d25` — feat: add quick-view modal for products — test #86 passing
+
+### Progress:
+- **Features passing: 86/353 (24.4%)**
+- **Features this session: +1 (ID 86)**
+- **Next target: ID 87 [Product Catalog] — Product images lazy load with blur placeholder**
+
+### Session Summary:
+- Duration: ~15 minutes
+- Regression checks: Verified shop page and product detail page still working
+- New feature: Quick-view modal for fast product browsing
+- Server running: http://localhost:3000
+- Clean commit with comprehensive description
+- No regressions introduced
+- All test artifacts cleaned up
+

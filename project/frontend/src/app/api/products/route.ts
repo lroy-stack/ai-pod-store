@@ -202,7 +202,8 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '10', 10)
     const locale = searchParams.get('locale') || 'en'
     const category = searchParams.get('category')
-    const search = searchParams.get('search')
+    // Support both 'q' and 'search' parameters for text search
+    const search = searchParams.get('q') || searchParams.get('search')
     const sort = searchParams.get('sort')
 
     // Filter products

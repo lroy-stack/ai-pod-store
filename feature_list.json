@@ -949,7 +949,7 @@
     "id": 87,
     "feature": "Product Catalog",
     "description": "Product API supports text search and category filter",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Send GET request to /api/products?q=shirt&category=t-shirts",
       "Verify the response contains filtered results matching the search term",
