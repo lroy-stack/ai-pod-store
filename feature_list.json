@@ -2073,7 +2073,7 @@
     "id": 187,
     "feature": "Design System & AI Designs",
     "description": "AI-generated design on product mockup",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Apply a generated design to a product",
       "Verify a mockup image is generated with the design overlay on the product"
