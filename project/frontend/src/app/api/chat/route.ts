@@ -100,8 +100,18 @@ export async function POST(req: Request) {
       )
     }
 
+    // Locale-aware greeting and language instruction
+    const localeConfig: Record<string, { name: string; instruction: string }> = {
+      en: { name: 'English', instruction: 'Respond in English.' },
+      es: { name: 'Español', instruction: 'Responde en español. Usa un tono amigable y profesional.' },
+      de: { name: 'Deutsch', instruction: 'Antworte auf Deutsch. Verwende einen freundlichen und professionellen Ton.' },
+    }
+    const currentLocaleConfig = localeConfig[chatLocale] || localeConfig.en
+
     // System prompt for storefront chat assistant
     const systemPrompt = `You are ${STORE_DEFAULTS.assistantName}, an AI assistant for ${STORE_DEFAULTS.storeName}, a European print-on-demand store. This is a European store. Prices are in ${STORE_DEFAULTS.currency} (€). Measurements are in ${STORE_DEFAULTS.measurementUnit}. You help customers find and buy products.
+
+${currentLocaleConfig.instruction}
 
 TOOLS AVAILABLE (22 total):
 - product_search: Search/browse products (returns product list)

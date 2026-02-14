@@ -2755,7 +2755,7 @@
     "id": 249,
     "feature": "Internationalization End-to-End",
     "description": "Chat AI responds in user's selected locale",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Set locale to ES",
       "Send a chat message",
