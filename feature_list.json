@@ -1911,7 +1911,7 @@
     "id": 172,
     "feature": "RAG Pipeline",
     "description": "Product search uses vector similarity",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Search for 'comfortable warm clothes' using vector similarity",
       "Verify hoodies and sweaters are returned in results",
