@@ -58,3 +58,7 @@
 - [2026-02-14T01:43:07.526498+00:00] Session 33: 3 features implemented. Total 104/389. Next target: ID 105 [Shopping Cart + Wishlists] — Share wishlist generates public link
 
 - [2026-02-14T01:53:32.423893+00:00] Session 34: 3 features implemented. Total 107/389. Next target: ID 108 [Shopping Cart + Wishlists] — Wishlist API endpoints work
+
+- [2026-02-14T02:08:35.797346+00:00] Session 35: 2 features implemented. Total 109/389. Next target: ID 110 [Checkout & Payments] — Checkout page renders with order summary
+
+- [2026-02-14T02:17:42.468199+00:00] Session 36: 3 features implemented. Total 112/389. Next target: ID 113 [Checkout & Payments] — Tax calculation works (Stripe Tax)

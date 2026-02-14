@@ -36,6 +36,8 @@ export default function CheckoutView({ locale }: { locale: string }) {
   const [loadingAddresses, setLoadingAddresses] = useState(false)
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null)
   const [showNewAddressForm, setShowNewAddressForm] = useState(false)
+  const [calculatedTax, setCalculatedTax] = useState<number | null>(null)
+  const [calculatingTax, setCalculatingTax] = useState(false)
 
   // Get user's preferred currency, fallback to locale default
   const userCurrency = user?.currency || (locale === 'es' || locale === 'de' ? 'EUR' : 'USD')
@@ -69,6 +71,65 @@ export default function CheckoutView({ locale }: { locale: string }) {
       setLoadingAddresses(false)
     }
   }
+
+  // Calculate tax when shipping address is selected
+  useEffect(() => {
+    const calculateTaxForAddress = async () => {
+      if (!selectedAddressId || cartItems.length === 0) {
+        setCalculatedTax(null)
+        return
+      }
+
+      const selectedAddress = addresses.find((addr) => addr.id === selectedAddressId)
+      if (!selectedAddress) return
+
+      setCalculatingTax(true)
+      try {
+        // Convert cart items to the format expected by the API
+        const formattedCartItems = cartItems.map((item) => ({
+          productId: item.product_id,
+          name: item.product_name,
+          amount: Math.round(item.product_price * 100), // Convert to cents
+          quantity: item.quantity,
+        }))
+
+        const response = await fetch('/api/checkout/calculate-tax', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            cartItems: formattedCartItems,
+            shippingAddress: {
+              line1: selectedAddress.street_address,
+              line2: selectedAddress.street_address_2,
+              city: selectedAddress.city,
+              state: selectedAddress.state,
+              postal_code: selectedAddress.postal_code,
+              country: selectedAddress.country_code,
+            },
+            currency: userCurrency.toLowerCase(),
+          }),
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          // Tax is returned in cents, convert to dollars
+          setCalculatedTax(data.tax / 100)
+        } else {
+          console.error('Tax calculation failed')
+          setCalculatedTax(null)
+        }
+      } catch (error) {
+        console.error('Error calculating tax:', error)
+        setCalculatedTax(null)
+      } finally {
+        setCalculatingTax(false)
+      }
+    }
+
+    calculateTaxForAddress()
+  }, [selectedAddressId, addresses, cartItems, userCurrency])
 
   if (loading) {
     return (
@@ -346,9 +407,17 @@ export default function CheckoutView({ locale }: { locale: string }) {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-foreground">{t('tax')}</span>
-                  <span className="text-muted-foreground text-sm">
-                    {t('calculatedAtNextStep')}
-                  </span>
+                  {calculatingTax ? (
+                    <span className="text-muted-foreground text-sm">Calculating...</span>
+                  ) : calculatedTax !== null ? (
+                    <span className="text-foreground font-medium">
+                      {formatPrice(calculatedTax, locale, userCurrency)}
+                    </span>
+                  ) : (
+                    <span className="text-muted-foreground text-sm">
+                      {t('calculatedAtNextStep')}
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -358,7 +427,11 @@ export default function CheckoutView({ locale }: { locale: string }) {
               <div className="flex justify-between">
                 <span className="text-lg font-bold text-foreground">{t('total')}</span>
                 <span className="text-lg font-bold text-foreground">
-                  {formatPrice(cartTotal, locale, userCurrency)}
+                  {formatPrice(
+                    cartTotal + (calculatedTax || 0),
+                    locale,
+                    userCurrency
+                  )}
                 </span>
               </div>
             </CardContent>

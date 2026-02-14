@@ -1235,7 +1235,7 @@
     "id": 113,
     "feature": "Checkout & Payments",
     "description": "Tax calculation works (Stripe Tax)",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Proceed to checkout with a shipping address",
       "Verify a tax line item is calculated based on the address",
