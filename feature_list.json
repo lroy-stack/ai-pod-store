@@ -2181,7 +2181,7 @@
     "id": 197,
     "feature": "Order Management & Notifications",
     "description": "Tracking number displays with carrier link",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Process a shipped webhook with tracking information",
       "Verify the tracking number is displayed on the order detail",
