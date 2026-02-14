@@ -2136,7 +2136,7 @@
     "id": 193,
     "feature": "Design System & AI Designs",
     "description": "Toast/notification components + artifacts transition",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Trigger a toast notification",
       "Verify it appears in the bottom-right corner of the screen",

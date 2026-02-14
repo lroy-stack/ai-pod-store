@@ -28,6 +28,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { useEffect, useState } from 'react'
 import { formatPrice } from '@/lib/currency'
 import { useStorefront } from './StorefrontContext'
+import { useCart } from '@/hooks/useCart'
 
 interface DetailPanelProps {
   productId?: string
@@ -53,6 +54,7 @@ export function DetailPanel({ productId, onClose, onAskAbout }: DetailPanelProps
   const params = useParams()
   const locale = (params.locale as string) || 'en'
   const { artifacts, activeArtifactId, setActiveArtifactId, removeArtifact } = useStorefront()
+  const { addToCart } = useCart()
   const [product, setProduct] = useState<Product | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -84,6 +86,17 @@ export function DetailPanel({ productId, onClose, onAskAbout }: DetailPanelProps
   // If we have artifacts, use the artifact system
   const hasArtifacts = artifacts.length > 0
   const hasMultipleArtifacts = artifacts.length > 1
+
+  const handleAddToCart = async () => {
+    if (!product) return
+    await addToCart({
+      id: product.id,
+      name: product.title,
+      price: product.price,
+      image: product.image || undefined,
+      quantity: 1,
+    })
+  }
 
   const handleAskAbout = () => {
     if (product && onAskAbout) {
@@ -142,14 +155,14 @@ export function DetailPanel({ productId, onClose, onAskAbout }: DetailPanelProps
                 value={artifact.id}
                 className="flex-1 overflow-hidden mt-0"
               >
-                <ArtifactContent artifact={artifact} onAskAbout={onAskAbout} />
+                <ArtifactContent artifact={artifact} onAskAbout={onAskAbout} onAddToCart={handleAddToCart} />
               </TabsContent>
             ))}
           </Tabs>
         ) : (
           // Single artifact - no tabs needed
           <div className="flex-1 overflow-hidden">
-            <ArtifactContent artifact={artifacts[0]} onAskAbout={onAskAbout} />
+            <ArtifactContent artifact={artifacts[0]} onAskAbout={onAskAbout} onAddToCart={handleAddToCart} />
           </div>
         )}
       </div>
@@ -287,7 +300,7 @@ export function DetailPanel({ productId, onClose, onAskAbout }: DetailPanelProps
 
         {/* Footer Actions */}
         <div className="p-4 border-t border-border space-y-2">
-          <Button className="w-full" size="lg">
+          <Button className="w-full" size="lg" onClick={handleAddToCart}>
             <ShoppingCart className="h-5 w-5 mr-2" />
             {t('addToCart')}
           </Button>
@@ -311,9 +324,11 @@ export function DetailPanel({ productId, onClose, onAskAbout }: DetailPanelProps
 function ArtifactContent({
   artifact,
   onAskAbout,
+  onAddToCart,
 }: {
   artifact: { id: string; type: string; title: string; data: any }
   onAskAbout?: (question: string) => void
+  onAddToCart?: () => void
 }) {
   const t = useTranslations('storefront')
   const params = useParams()
@@ -404,7 +419,7 @@ function ArtifactContent({
 
         {/* Footer Actions */}
         <div className="p-4 border-t border-border space-y-2">
-          <Button className="w-full" size="lg">
+          <Button className="w-full" size="lg" onClick={onAddToCart}>
             <ShoppingCart className="h-5 w-5 mr-2" />
             {t('addToCart')}
           </Button>

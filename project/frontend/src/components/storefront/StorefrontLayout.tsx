@@ -53,21 +53,23 @@ function StorefrontShell({ children }: { children: React.ReactNode }) {
       </Sheet>
 
       {/* Center: Header + Content */}
-      <main className="flex flex-1 flex-col min-w-0">
+      <main className="flex flex-1 flex-col min-w-0 overflow-hidden">
         <StorefrontHeader onToggleSidebar={() => setIsSidebarOpen(true)} />
-        {children}
+        <div className="flex flex-1 flex-col min-h-0 overflow-y-auto">
+          {children}
+        </div>
       </main>
 
       {/* Right Detail Panel - Desktop */}
       {showDetailPanel && (
-        <aside className="hidden lg:flex lg:w-[340px] border-l border-border">
+        <aside className="hidden lg:flex lg:w-[340px] border-l border-border animate-in slide-in-from-right duration-300">
           <DetailPanel productId={selectedProduct || undefined} onClose={handleClosePanel} onAskAbout={handleAskAbout} />
         </aside>
       )}
 
       {/* Right Detail Panel - Mobile (full screen overlay) */}
       {showDetailPanel && (
-        <div className="lg:hidden fixed inset-0 z-50 bg-background">
+        <div className="lg:hidden fixed inset-0 z-50 bg-background animate-in slide-in-from-bottom duration-300">
           <DetailPanel productId={selectedProduct || undefined} onClose={handleClosePanel} onAskAbout={handleAskAbout} />
         </div>
       )}

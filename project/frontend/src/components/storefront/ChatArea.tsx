@@ -381,7 +381,7 @@ export function ChatArea() {
                           }
 
                           return (
-                            <div key={index} className="p-4">
+                            <div key={index} className="p-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
                               <artifact.Component
                                 {...output}
                                 onApprove={handleApprove}
@@ -422,7 +422,7 @@ export function ChatArea() {
                           }
 
                           return (
-                            <div key={index} className="p-4">
+                            <div key={index} className="p-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
                               <artifact.Component
                                 {...output}
                                 onApprove={handleApprove}
@@ -446,7 +446,7 @@ export function ChatArea() {
                         }
 
                         return (
-                          <div key={index} className="p-4">
+                          <div key={index} className="p-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
                             <artifact.Component
                               {...output}
                               onSelectProduct={handleSelectProduct}
