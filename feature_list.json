@@ -1901,7 +1901,7 @@
     "id": 171,
     "feature": "RAG Pipeline",
     "description": "RAG fallback when no results found",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Search for a nonsensical query that matches no documents",
       "Verify a graceful fallback message is returned instead of an error"

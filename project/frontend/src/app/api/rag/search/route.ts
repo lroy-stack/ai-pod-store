@@ -119,15 +119,28 @@ export async function POST(request: Request) {
       })
     }
 
-    return NextResponse.json({
+    // Check if all results have low similarity (< 0.65 threshold)
+    const SIMILARITY_THRESHOLD = 0.65
+    const hasRelevantResults = searchResults && searchResults.length > 0 &&
+      searchResults.some((r: any) => r.similarity >= SIMILARITY_THRESHOLD)
+
+    const response: any = {
       success: true,
       query,
-      results: searchResults,
+      results: searchResults || [],
       count: searchResults?.length || 0,
       embedding: {
         dimension: queryEmbedding.length,
       },
-    })
+    }
+
+    // Add fallback message if no relevant results
+    if (!hasRelevantResults) {
+      response.message = 'No highly relevant results found. Showing best matches with low similarity scores.'
+      response.lowRelevance = true
+    }
+
+    return NextResponse.json(response)
   } catch (error: any) {
     console.error('RAG search error:', error)
     return NextResponse.json(
