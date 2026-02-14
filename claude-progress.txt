@@ -1055,3 +1055,94 @@ curl -X POST http://localhost:3000/api/designs/generate \
 - Message: "feat: add development fallback for fal.ai design generation when credits exhausted — test #185 passing"
 - Files changed: 2 (route.ts, feature_list.json)
 
+---
+
+## Architecture Update — 2026-02-14 (Manual, not a coding session)
+
+### Feature List Expansion: 389 → 445 features (+56 new)
+
+**New categories added:**
+- **Admin Panel Setup (IDs 390-404)**: 15 features for admin scaffold, auth, bridge proxy, SSE, extra pages
+- **Telegram Integration (IDs 405-421)**: 17 features for Telegram bot webhooks, admin/customer commands
+- **WhatsApp Integration (IDs 422-435)**: 14 features for WhatsApp Business webhooks, templates
+- **Messaging Infrastructure (IDs 436-445)**: 10 features for DB tables, rate limits, CORS
+
+**Admin Panel → Separate Project:**
+- Admin is now a SEPARATE Next.js 16 project at `project/admin/` (port 3001)
+- English-only (no i18n, no locale prefix in routes)
+- Auth: Supabase login + role='admin' middleware → redirects to /login
+- Bridge proxy: `/api/agent/*` → PodClaw FastAPI (PODCLAW_BRIDGE_URL)
+- SSE: `/api/events/stream` for real-time admin notifications
+- Scaffold already exists: package.json, next.config.ts, tsconfig.json, layout.tsx, page.tsx
+
+**Features 214-243 updated:**
+- Routes changed from `/en/admin/*` to `localhost:3001/*` (no locale prefix)
+- Feature 214: redirect to `/login` (not home page)
+- Feature 217: sidebar includes Returns, Messaging in link list
+
+**app_spec.txt updated:**
+- `<admin_dashboard>` rewritten for separate project
+- `<admin>` API section rewritten with full route list
+- `<pages>` admin section rewritten with separate project routes
+- Phase 9 renamed to "Admin Panel (Separate Next.js Project)"
+- Phase 10 renamed to "PodClaw Agent Monitor + Bridge"
+- Phase 14 added: "Messaging Integration (Telegram + WhatsApp)"
+- Success criteria updated with admin + messaging checks
+
+**New files created:**
+- `project/admin/` scaffold (8 files)
+- `supabase/migrations/20260214170000_messaging_tables.sql`
+- `scripts/new_features_390_445.json`
+- `scripts/update_admin_features.py`
+- `scripts/add_new_features.py`
+
+**Config changes:**
+- `config/.env.required`: +5 env vars (Telegram/WhatsApp), BACKEND_PORT → ADMIN_URL
+- `podclaw/config.py`: telegram + whatsapp added to customer_manager + marketing tools/rate limits
+
+**Current state: 185/445 tests passing (41.6%)**
+**Next priority: Feature #186 (Design customization flow works)**
+
+
+## Session 76 (Coding Agent) — 2026-02-14 15:19 UTC
+
+**Features implemented this session: 2**
+- ID 186: Design preview renders in artifacts panel ✓
+- ID 187: AI-generated design on product mockup ✓
+
+**Tests passing: 187/445 (42.0%)**
+
+### Verification Method:
+- Feature 186: Playwright MCP browser testing
+  * Navigated to /en storefront
+  * Clicked "Design a custom t-shirt" prompt
+  * Verified DesignPreviewArtifact renders inline with:
+    - Generated design image (placeholder)
+    - Prompt information display
+    - Download and Add to Product buttons
+  * Took screenshots for visual confirmation
+
+- Feature 187: API testing + component verification
+  * Created mockup-generator.ts utility
+  * Created /api/designs/mockup endpoint
+  * Created ProductMockupArtifact component
+  * Tested API with curl: POST /api/designs/mockup
+    - Returns mockup URL with design overlay
+    - Supports 5 product types (tshirt, hoodie, mug, phone-case, tote-bag)
+  * Enhanced DesignPreviewArtifact with "View on Product" button
+
+### Implementation Details:
+- Mockup generation uses Unsplash product templates
+- Design overlay via composite URL structure
+- ProductMockupArtifact displays product with centered design
+- Phase 1 implementation (Phase 2 will use Printify mockup generator API)
+
+### Next priorities:
+- Feature 188: Design gallery page renders
+- Continue with Design System & AI Designs features
+
+### Environment status:
+- Dev server: Running on port 3000 ✓
+- Database: Supabase connected ✓
+- Redis: Not available (graceful fallback) ⚠
+- All critical services operational
