@@ -2577,7 +2577,7 @@
     "id": 233,
     "feature": "Admin Dashboard & Agent Monitor",
     "description": "Agent error log queries real events from bridge /events?event_type=error. Shows agent name, error message, timestamp, session_id.",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to the error log section",
       "Verify errors are fetched from /api/agent/events?event_type=error (bridge proxy)",
