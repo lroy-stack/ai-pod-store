@@ -1290,7 +1290,7 @@
     "id": 118,
     "feature": "Checkout & Payments",
     "description": "Stripe webhook handles checkout.session.completed",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify the webhook endpoint is registered for checkout.session.completed events",
       "Trigger or simulate a checkout.session.completed webhook event",
