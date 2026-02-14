@@ -22,12 +22,15 @@ import { Card, CardContent } from '@/components/ui/card'
 import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport } from 'ai'
 import ReactMarkdown from 'react-markdown'
+import { getArtifact } from '@/components/artifacts/registry'
 
 interface ChatAreaProps {
   onSelectProduct: (productId: string) => void
+  externalInputValue?: string
+  onExternalInputConsumed?: () => void
 }
 
-export function ChatArea({ onSelectProduct }: ChatAreaProps) {
+export function ChatArea({ onSelectProduct, externalInputValue, onExternalInputConsumed }: ChatAreaProps) {
   const t = useTranslations('storefront')
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const [inputValue, setInputValue] = useState('')
@@ -74,6 +77,14 @@ export function ChatArea({ onSelectProduct }: ChatAreaProps) {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
+
+  // Handle external input value (from "Ask about this" button)
+  useEffect(() => {
+    if (externalInputValue) {
+      setInputValue(externalInputValue)
+      onExternalInputConsumed?.()
+    }
+  }, [externalInputValue, onExternalInputConsumed])
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -267,18 +278,19 @@ export function ChatArea({ onSelectProduct }: ChatAreaProps) {
                   </Avatar>
                 )}
                 <div
-                  className={`rounded-lg px-4 py-2 max-w-[80%] ${
+                  className={`rounded-lg ${
                     message.role === 'user'
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted text-foreground'
+                      ? 'bg-primary text-primary-foreground px-4 py-2 max-w-[80%]'
+                      : 'bg-muted text-foreground max-w-full'
                   }`}
                 >
                   {message.parts.map((part, index) => {
+                    // Render text parts
                     if (part.type === 'text') {
                       // Render assistant messages with markdown, user messages as plain text
                       if (message.role === 'assistant') {
                         return (
-                          <div key={index} className="prose prose-sm max-w-none dark:prose-invert prose-p:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-0">
+                          <div key={index} className="prose prose-sm max-w-none dark:prose-invert prose-p:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-0 px-4 py-2">
                             <ReactMarkdown>{part.text}</ReactMarkdown>
                           </div>
                         )
@@ -289,6 +301,42 @@ export function ChatArea({ onSelectProduct }: ChatAreaProps) {
                         </p>
                       )
                     }
+
+                    // Render tool-result parts as artifacts
+                    if (part.type === 'tool-result') {
+                      // Type guard to access toolName safely
+                      const toolPart = part as any
+                      const toolName = toolPart.toolName as string | undefined
+
+                      if (!toolName) {
+                        return null
+                      }
+
+                      const artifact = getArtifact(toolName)
+
+                      if (!artifact) {
+                        // Unknown tool, skip rendering
+                        return null
+                      }
+
+                      const { Component } = artifact
+
+                      // Render result
+                      if (toolPart.output) {
+                        return (
+                          <div key={index} className="p-4">
+                            <Component
+                              {...toolPart.output}
+                              onSelectProduct={onSelectProduct}
+                              variant="inline"
+                            />
+                          </div>
+                        )
+                      }
+
+                      return null
+                    }
+
                     return null
                   })}
                 </div>

@@ -22,6 +22,11 @@ import { Menu } from 'lucide-react'
 export function StorefrontLayout() {
   const [selectedProduct, setSelectedProduct] = useState<string | null>(null)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const [chatInputValue, setChatInputValue] = useState<string>('')
+
+  const handleAskAbout = (question: string) => {
+    setChatInputValue(question)
+  }
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-background">
@@ -48,7 +53,11 @@ export function StorefrontLayout() {
 
       {/* Center Chat Area */}
       <main className="flex flex-1 flex-col min-w-0">
-        <ChatArea onSelectProduct={setSelectedProduct} />
+        <ChatArea
+          onSelectProduct={setSelectedProduct}
+          externalInputValue={chatInputValue}
+          onExternalInputConsumed={() => setChatInputValue('')}
+        />
       </main>
 
       {/* Right Detail Panel - Desktop */}
@@ -57,6 +66,7 @@ export function StorefrontLayout() {
           <DetailPanel
             productId={selectedProduct}
             onClose={() => setSelectedProduct(null)}
+            onAskAbout={handleAskAbout}
           />
         </aside>
       )}
@@ -67,6 +77,7 @@ export function StorefrontLayout() {
           <DetailPanel
             productId={selectedProduct}
             onClose={() => setSelectedProduct(null)}
+            onAskAbout={handleAskAbout}
           />
         </div>
       )}

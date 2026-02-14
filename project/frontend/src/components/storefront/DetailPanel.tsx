@@ -22,24 +22,91 @@ import { X, Star, ShoppingCart, MessageCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
+import { useEffect, useState } from 'react'
 
 interface DetailPanelProps {
   productId: string
   onClose: () => void
+  onAskAbout?: (question: string) => void
 }
 
-export function DetailPanel({ productId, onClose }: DetailPanelProps) {
-  const t = useTranslations('storefront')
+interface Product {
+  id: string
+  title: string
+  description: string
+  category: string
+  base_price_cents: number
+  images: Array<{ src: string }>
+  avg_rating: number
+  review_count: number
+}
 
-  // Mock product data - will be replaced with real data fetch
-  const product = {
-    title: 'Classic T-Shirt',
-    price: '$24.99',
-    rating: 4.5,
-    reviewCount: 128,
-    description: 'Premium cotton t-shirt with custom print. Soft, comfortable, and durable.',
-    images: ['/placeholder.jpg'],
+export function DetailPanel({ productId, onClose, onAskAbout }: DetailPanelProps) {
+  const t = useTranslations('storefront')
+  const [product, setProduct] = useState<Product | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  // Fetch product data
+  useEffect(() => {
+    async function fetchProduct() {
+      try {
+        setLoading(true)
+        const response = await fetch(`/api/products/${productId}`)
+        if (response.ok) {
+          const data = await response.json()
+          setProduct(data)
+        } else {
+          console.error('Failed to fetch product:', response.statusText)
+        }
+      } catch (error) {
+        console.error('Error fetching product:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchProduct()
+  }, [productId])
+
+  const handleAskAbout = () => {
+    if (product && onAskAbout) {
+      onAskAbout(`Tell me more about ${product.title}`)
+    }
   }
+
+  if (loading) {
+    return (
+      <div className="flex flex-col h-full w-full bg-card">
+        <div className="flex items-center justify-between p-4 border-b border-border">
+          <h2 className="font-semibold text-foreground">{t('productDetails')}</h2>
+          <Button variant="ghost" size="icon" onClick={onClose}>
+            <X className="h-5 w-5" />
+          </Button>
+        </div>
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-muted-foreground">Loading...</div>
+        </div>
+      </div>
+    )
+  }
+
+  if (!product) {
+    return (
+      <div className="flex flex-col h-full w-full bg-card">
+        <div className="flex items-center justify-between p-4 border-b border-border">
+          <h2 className="font-semibold text-foreground">{t('productDetails')}</h2>
+          <Button variant="ghost" size="icon" onClick={onClose}>
+            <X className="h-5 w-5" />
+          </Button>
+        </div>
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-destructive">Product not found</div>
+        </div>
+      </div>
+    )
+  }
+
+  const price = (product.base_price_cents / 100).toFixed(2)
+  const image = product.images && product.images.length > 0 ? product.images[0].src : null
 
   return (
     <div className="flex flex-col h-full w-full bg-card">
@@ -60,7 +127,15 @@ export function DetailPanel({ productId, onClose }: DetailPanelProps) {
       {/* Scrollable content */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {/* Product Image */}
-        <div className="aspect-square w-full rounded-lg bg-muted" />
+        <div className="aspect-square w-full rounded-lg bg-muted overflow-hidden">
+          {image ? (
+            <img src={image} alt={product.title} className="w-full h-full object-cover" />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+              No image
+            </div>
+          )}
+        </div>
 
         {/* Title & Price */}
         <div>
@@ -69,15 +144,15 @@ export function DetailPanel({ productId, onClose }: DetailPanelProps) {
           </h3>
           <div className="flex items-center gap-2">
             <span className="text-2xl font-bold text-foreground">
-              {product.price}
+              ${price}
             </span>
             <Badge variant="secondary" className="ml-auto">
               <Star className="h-3 w-3 fill-current mr-1" />
-              {product.rating}
+              {product.avg_rating || 0}
             </Badge>
           </div>
           <p className="text-sm text-muted-foreground mt-1">
-            {product.reviewCount} {t('reviews')}
+            {product.review_count || 0} {t('reviews')}
           </p>
         </div>
 
@@ -140,7 +215,7 @@ export function DetailPanel({ productId, onClose }: DetailPanelProps) {
           {t('addToCart')}
         </Button>
 
-        <Button variant="outline" className="w-full" size="lg">
+        <Button variant="outline" className="w-full" size="lg" onClick={handleAskAbout}>
           <MessageCircle className="h-5 w-5 mr-2" />
           {t('askAboutProduct')}
         </Button>

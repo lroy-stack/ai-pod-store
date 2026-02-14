@@ -1,5 +1,7 @@
-import { streamText } from 'ai'
+import { streamText, tool, zodSchema } from 'ai'
 import { createGoogleGenerativeAI } from '@ai-sdk/google'
+import { z } from 'zod'
+import { createClient } from '@supabase/supabase-js'
 
 export const runtime = 'edge'
 export const maxDuration = 60
@@ -9,20 +11,22 @@ const google = createGoogleGenerativeAI({
   apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.GEMINI_API_KEY,
 })
 
+// Initialize Supabase client for database access
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_KEY!
+)
+
 /**
  * POST /api/chat
  *
- * AI SDK 6 chat endpoint with streaming SSE
+ * AI SDK 6 chat endpoint with ToolLoopAgent pattern
  *
- * Uses:
- * - Google Gemini 2.0 Flash model (free tier, fast)
- * - streamText() from AI SDK 6
- * - toUIMessageStreamResponse() for SSE streaming
+ * Tools implemented:
+ * - product_search: Search products with semantic filters
  *
- * Future enhancements:
- * - ToolLoopAgent with 22 chat tools
- * - needsApproval for checkout/returns
- * - DataPart streaming for sidebar updates
+ * Future tools:
+ * - browse_catalog, get_product_detail, compare_products, etc.
  */
 export async function POST(req: Request) {
   try {
@@ -43,6 +47,7 @@ export async function POST(req: Request) {
 - Guide them through the shopping experience
 - Provide design suggestions and customization options
 
+When searching for products, use the product_search tool to find items matching the customer's request.
 Be friendly, helpful, and concise. Always respond in the user's language.
 If you don't know something, be honest and offer to help in other ways.`
 
@@ -60,12 +65,92 @@ If you don't know something, be honest and offer to help in other ways.`
       }
     })
 
-    // Stream response using Google Gemini
-    const result = await streamText({
+    // Define tools
+    const tools = {
+      // @ts-ignore - AI SDK tool type inference issue
+      product_search: tool({
+        description: 'Search for products in the catalog. Use this when customers ask for specific items like "cat t-shirts", "hoodies", "mugs with dogs", etc.',
+        parameters: zodSchema(z.object({
+          query: z.string().describe('The search query (e.g., "cat t-shirts", "blue hoodie")'),
+          category: z.string().optional().describe('Filter by category (apparel, drinkware, home-decor, accessories)'),
+          minPrice: z.number().optional().describe('Minimum price in cents'),
+          maxPrice: z.number().optional().describe('Maximum price in cents'),
+          limit: z.number().default(6).describe('Number of results to return (max 12)'),
+        })),
+        execute: async (args) => {
+          const { query, category, minPrice, maxPrice, limit } = args
+          try {
+            // Build query
+            let dbQuery = supabase
+              .from('products')
+              .select('id, title, description, category, base_price_cents, images, avg_rating, review_count')
+              .eq('status', 'active')
+              .limit(Math.min(limit, 12))
+
+            // Apply filters
+            if (category) {
+              dbQuery = dbQuery.eq('category', category)
+            }
+            if (minPrice !== undefined) {
+              dbQuery = dbQuery.gte('base_price_cents', minPrice)
+            }
+            if (maxPrice !== undefined) {
+              dbQuery = dbQuery.lte('base_price_cents', maxPrice)
+            }
+
+            // Simple text search (future: semantic search with embeddings)
+            if (query) {
+              dbQuery = dbQuery.or(`title.ilike.%${query}%,description.ilike.%${query}%,tags.cs.{${query}}`)
+            }
+
+            const { data: products, error } = await dbQuery
+
+            if (error) {
+              console.error('Product search error:', error)
+              return {
+                success: false,
+                error: error.message,
+                products: [],
+              }
+            }
+
+            // Format products for display
+            const formattedProducts = (products || []).map((p) => ({
+              id: p.id,
+              title: p.title,
+              description: p.description?.substring(0, 150) + (p.description?.length > 150 ? '...' : ''),
+              category: p.category,
+              price: p.base_price_cents / 100,
+              currency: 'USD',
+              image: Array.isArray(p.images) && p.images.length > 0 ? p.images[0].src : null,
+              rating: p.avg_rating || 0,
+              reviewCount: p.review_count || 0,
+            }))
+
+            return {
+              success: true,
+              products: formattedProducts,
+              count: formattedProducts.length,
+              query,
+            }
+          } catch (error) {
+            console.error('Product search execution error:', error)
+            return {
+              success: false,
+              error: error instanceof Error ? error.message : 'Unknown error',
+              products: [],
+            }
+          }
+        },
+      }),
+    }
+
+    // Stream response with tools
+    const result = streamText({
       model: google('gemini-2.0-flash'),
       system: systemPrompt,
       messages: modelMessages,
-      maxSteps: 1, // Single-turn response (no tools yet)
+      tools,
     })
 
     // Return streaming SSE response
