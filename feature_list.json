@@ -2170,7 +2170,7 @@
     "id": 196,
     "feature": "Order Management & Notifications",
     "description": "Printify order creation + webhook updates",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify printify_order_id is populated in the order after payment",
       "Simulate a shipped webhook from Printify",
