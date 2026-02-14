@@ -1334,7 +1334,7 @@
     "id": 122,
     "feature": "Checkout & Payments",
     "description": "Checkout form validates required fields",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Leave address fields empty on checkout form",
       "Try to submit the form",

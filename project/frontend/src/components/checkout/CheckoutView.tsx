@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { formatPrice } from '@/lib/currency'
 import { useState, useEffect } from 'react'
+import AddressForm, { AddressFormData } from './AddressForm'
 
 interface ShippingAddress {
   id: string
@@ -135,6 +136,43 @@ export default function CheckoutView({ locale }: { locale: string }) {
 
     calculateTaxForAddress()
   }, [selectedAddressId, addresses, cartItems, userCurrency])
+
+  // Handle address form submission
+  const handleAddressSubmit = async (addressData: AddressFormData) => {
+    try {
+      const response = await fetch('/api/shipping-addresses', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          label: addressData.label,
+          full_name: addressData.full_name,
+          street_line1: addressData.street_address,
+          street_line2: addressData.street_address_2,
+          city: addressData.city,
+          state: addressData.state,
+          postal_code: addressData.postal_code,
+          country_code: addressData.country_code,
+          phone: addressData.phone,
+          is_default: addressData.is_default,
+        }),
+      })
+
+      if (response.ok) {
+        // Refresh addresses
+        await fetchAddresses()
+        // Close form
+        setShowNewAddressForm(false)
+      } else {
+        console.error('Failed to save address')
+        alert('Failed to save address. Please try again.')
+      }
+    } catch (error) {
+      console.error('Error saving address:', error)
+      alert('Failed to save address. Please try again.')
+    }
+  }
 
   // Validate guest email
   const validateEmail = (email: string): boolean => {
@@ -346,37 +384,43 @@ export default function CheckoutView({ locale }: { locale: string }) {
                           </div>
                         ))}
                       </div>
-                      <Button
-                        variant="outline"
-                        onClick={() => {
-                          setShowNewAddressForm(true)
-                          setSelectedAddressId(null)
-                        }}
-                        className="w-full mt-4"
-                      >
-                        {t('addNewAddress')}
-                      </Button>
+                      {!showNewAddressForm && (
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setShowNewAddressForm(true)
+                            setSelectedAddressId(null)
+                          }}
+                          className="w-full mt-4"
+                        >
+                          {t('addNewAddress')}
+                        </Button>
+                      )}
                       {showNewAddressForm && (
-                        <div className="mt-4 p-4 border-2 border-primary rounded-lg bg-primary/5">
-                          <p className="text-sm text-foreground">
-                            New address form will be implemented here.
-                          </p>
+                        <div className="mt-4">
+                          <AddressForm
+                            onSubmit={handleAddressSubmit}
+                            onCancel={() => setShowNewAddressForm(false)}
+                          />
                         </div>
                       )}
                     </>
                   ) : (
                     <div className="text-center py-8">
                       <p className="text-muted-foreground mb-4">{t('noSavedAddresses')}</p>
-                      <Button
-                        onClick={() => setShowNewAddressForm(true)}
-                      >
-                        {t('addNewAddress')}
-                      </Button>
+                      {!showNewAddressForm && (
+                        <Button
+                          onClick={() => setShowNewAddressForm(true)}
+                        >
+                          {t('addNewAddress')}
+                        </Button>
+                      )}
                       {showNewAddressForm && (
-                        <div className="mt-4 p-4 border-2 border-primary rounded-lg bg-primary/5 text-left">
-                          <p className="text-sm text-foreground">
-                            New address form will be implemented here.
-                          </p>
+                        <div className="mt-4 text-left">
+                          <AddressForm
+                            onSubmit={handleAddressSubmit}
+                            onCancel={() => setShowNewAddressForm(false)}
+                          />
                         </div>
                       )}
                     </div>
