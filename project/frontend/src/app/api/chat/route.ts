@@ -81,6 +81,9 @@ TOOLS AVAILABLE:
 - confirm_checkout: Complete checkout after user approves (creates Stripe session)
 - track_order: Track an order by ID or show most recent order status (displays timeline artifact)
 - get_order_history: Get user's order history list (displays order list artifact)
+- add_to_wishlist: Add a product to the user's wishlist (requires login)
+- get_store_policies: Get store policies (shipping, returns, privacy, terms)
+- switch_language: Switch UI language (en, es, de)
 
 WHEN TO USE EACH TOOL:
 1. User asks to "browse", "search", "show me", "find" products → call product_search
@@ -95,6 +98,9 @@ WHEN TO USE EACH TOOL:
 10. User says "checkout", "proceed to payment", "buy now" → call create_checkout (shows approval dialog)
 11. User asks "track my order", "where's my order", "order status" → call track_order
 12. User asks "show my orders", "order history", "past purchases" → call get_order_history
+13. User says "add to wishlist", "save for later", "wishlist this" → call add_to_wishlist with product ID
+14. User asks "what's your shipping policy", "return policy", "refund policy", "privacy policy" → call get_store_policies
+15. User says "switch to Spanish", "habla español", "change to German" → call switch_language with locale
 
 EXAMPLES:
 - "show me cat t-shirts" → product_search(query="cat t-shirt")
@@ -111,6 +117,9 @@ EXAMPLES:
 - "track my order" → track_order() (shows most recent order timeline)
 - "track order abc123" → track_order(orderId="abc123")
 - "show my orders" → get_order_history() (shows order history list)
+- "add to wishlist" (after showing a product) → add_to_wishlist(product_id="<id from context>")
+- "what's your return policy?" → get_store_policies()
+- "switch to Spanish" → switch_language(locale="es")
 
 IMPORTANT: get_product_detail works with product names directly - you don't need to search first!
 
@@ -1132,6 +1141,142 @@ Be friendly, helpful, and concise.`
           } catch (error) {
             console.error('generate_design error:', error)
             return { success: false, error: 'Failed to generate design' }
+          }
+        },
+      }),
+
+      add_to_wishlist: tool({
+        description: 'Add a product to the user\'s wishlist. Call this when user says "add to wishlist", "save for later", "wishlist this".',
+        parameters: z.object({
+          product_id: z.string().describe('Product ID to add to wishlist'),
+          variant_id: z.string().optional().describe('Optional variant ID (size/color)'),
+        }),
+        // @ts-expect-error AI SDK 6.0.86 type mismatch — execute works at runtime
+        execute: async (args: { product_id: string; variant_id?: string }) => {
+          const { product_id, variant_id } = args
+          try {
+            // Check if user is logged in
+            if (!chatUserId) {
+              return {
+                success: false,
+                error: 'Please log in to use the wishlist feature.',
+                requiresAuth: true,
+              }
+            }
+
+            // Get or create user's default wishlist
+            const { data: wishlists } = await supabase
+              .from('wishlists')
+              .select('id')
+              .eq('user_id', chatUserId)
+              .order('created_at', { ascending: true })
+              .limit(1)
+
+            let wishlistId: string
+
+            if (!wishlists || wishlists.length === 0) {
+              // Create default wishlist
+              const { data: newWishlist, error: createError } = await supabase
+                .from('wishlists')
+                .insert({
+                  user_id: chatUserId,
+                  name: 'My Wishlist',
+                  is_public: false,
+                })
+                .select('id')
+                .single()
+
+              if (createError || !newWishlist) {
+                return { success: false, error: 'Failed to create wishlist' }
+              }
+
+              wishlistId = newWishlist.id
+            } else {
+              wishlistId = wishlists[0].id
+            }
+
+            // Add item to wishlist
+            const { error: addError } = await supabase
+              .from('wishlist_items')
+              .insert({
+                wishlist_id: wishlistId,
+                product_id,
+                variant_id: variant_id || null,
+              })
+
+            if (addError) {
+              if (addError.code === '23505') {
+                return {
+                  success: false,
+                  error: 'This item is already in your wishlist.',
+                }
+              }
+              return { success: false, error: 'Failed to add item to wishlist' }
+            }
+
+            return {
+              success: true,
+              message: 'Added to your wishlist!',
+              wishlistId,
+            }
+          } catch (error) {
+            console.error('add_to_wishlist error:', error)
+            return { success: false, error: 'Failed to add item to wishlist' }
+          }
+        },
+      }),
+
+      get_store_policies: tool({
+        description: 'Get store policies (shipping, returns, privacy, terms). Call this when user asks about "policies", "shipping", "returns", "refunds", "privacy", "terms".',
+        parameters: z.object({}),
+        // @ts-expect-error AI SDK 6.0.86 type mismatch — execute works at runtime
+        execute: async () => {
+          try {
+            const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+            const response = await fetch(`${baseUrl}/api/policies?locale=${chatLocale}`)
+
+            if (!response.ok) {
+              return { success: false, error: 'Failed to fetch policies' }
+            }
+
+            const data = await response.json()
+
+            return {
+              success: true,
+              locale: data.locale,
+              policies: data.policies,
+              message: 'Here are our store policies:',
+            }
+          } catch (error) {
+            console.error('get_store_policies error:', error)
+            return { success: false, error: 'Failed to fetch policies' }
+          }
+        },
+      }),
+
+      switch_language: tool({
+        description: 'Switch the UI language. Call this when user says "switch to Spanish/German/English", "change language", "habla español", "sprich Deutsch".',
+        parameters: z.object({
+          locale: z.string().describe('Target locale code: "en" (English), "es" (Spanish), or "de" (German)'),
+        }),
+        // @ts-expect-error AI SDK 6.0.86 type mismatch — execute works at runtime
+        execute: async (args: { locale: string }) => {
+          const { locale } = args
+          const validLocales = ['en', 'es', 'de']
+
+          if (!validLocales.includes(locale)) {
+            return {
+              success: false,
+              error: `Invalid locale. Supported languages: English (en), Spanish (es), German (de)`,
+            }
+          }
+
+          return {
+            success: true,
+            locale,
+            message: `Language switched to ${locale === 'en' ? 'English' : locale === 'es' ? 'Spanish' : 'German'}`,
+            action: 'redirect',
+            redirectUrl: `/${locale}`,
           }
         },
       }),

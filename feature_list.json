@@ -1657,7 +1657,7 @@
     "id": 149,
     "feature": "Conversational Storefront / Chat",
     "description": "Order tools: track order produces timeline artifact",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Say 'track my order' in the chat",
       "Verify the track_order tool is called",
@@ -1668,7 +1668,7 @@
     "id": 150,
     "feature": "Conversational Storefront / Chat",
     "description": "Order tools: get_order_history produces list",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Say 'show my orders' in the chat",
       "Verify the get_order_history tool is called",
@@ -1679,7 +1679,7 @@
     "id": 151,
     "feature": "Conversational Storefront / Chat",
     "description": "Order tools: request_return with needsApproval",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Say 'return my last order' in the chat",
       "Verify an approval dialog appears for request_return",
@@ -1690,7 +1690,7 @@
     "id": 152,
     "feature": "Conversational Storefront / Chat",
     "description": "Design tools: generate + customize produce preview",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Say 'design a cat t-shirt' in the chat",
       "Verify the generate_design tool is called",
@@ -1701,7 +1701,7 @@
     "id": 153,
     "feature": "Conversational Storefront / Chat",
     "description": "Utility tools: add to wishlist, store policies, switch language",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Say 'add to wishlist' in the chat and verify the tool is called",
       "Ask about store policies and verify policies are displayed",
