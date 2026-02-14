@@ -258,22 +258,33 @@
     </rag_pipeline>
 
     <admin_dashboard>
-      - Protected admin routes (/[locale]/admin/*)
-      - Product management CRUD with bulk operations
-      - Order management with status updates
+      - SEPARATE Next.js 16 project at pod_workspace/project/admin/ (port 3001)
+      - English-only (no i18n), no locale prefix in routes
+      - Auth: Supabase login + role='admin' check in middleware (redirect to /login)
+      - Shares same Supabase instance as storefront
+      - Bridge proxy: /api/agent/* → PodClaw FastAPI bridge (PODCLAW_BRIDGE_URL)
+      - SSE endpoint: /api/events/stream for real-time admin notifications
+      - Product management CRUD with bulk operations and Printify sync status
+      - Order management with status updates, Printify tracking, retry button
       - Analytics overview (revenue, orders, popular products, conversion rate)
       - Financial dashboard (P&L, margins per product, Stripe reports)
-      - Design management (approve/reject AI-generated designs)
-      - Customer list with order history
-      - Settings page (store name, Printify config, Stripe config, locales)
-      - AI Agent monitor (/admin/agent) — sessions, actions, errors, memory viewer
-      - AI Agent event log (/admin/agent/logs) — event-sourced replay
-      - AI Agent skills (/admin/agent/skills) — installed skills, configuration
-      - Translation management (/admin/translations) — EN/ES/DE content
-      - Audit log (/admin/audit) — all actions by admin, AI agent, webhooks
-      - SEO management (/admin/seo) — meta tags, hreflang, sitemaps
-      - Review moderation (/admin/reviews) — approve/flag/respond
-      - Notification management (/admin/notifications) — templates, send history
+      - Design management (approve/reject AI-generated designs, create-product pipeline)
+      - Customer list with order history and RFM segments
+      - Settings page (store name, Printify config, Stripe config, shipping zones)
+      - AI Agent monitor — 8 sub-agent cards, run/pause/resume, logs, events, costs
+      - AI Agent event log — event-sourced replay
+      - AI Agent skills — installed skills, configuration
+      - AI Agent schedule editor — modify cron schedules
+      - Translation management — EN/ES/DE content CRUD, auto-translate via Gemini
+      - Audit log — all actions by admin, AI agent, webhooks (filterable timeline)
+      - SEO management — meta tags per locale, hreflang, sitemap generation
+      - Review moderation — approve/flag/respond
+      - Return requests — approve/deny/refund via Stripe
+      - Messaging config — Telegram/WhatsApp channel management
+      - Notification bell in TopBar with unread count + dropdown
+      - Responsive: sidebar collapses on mobile, breadcrumb navigation
+      - UI: shadcn/ui, Recharts, TanStack Table, sonner toasts
+      - Env: SUPABASE_URL, SUPABASE_SERVICE_KEY, PODCLAW_BRIDGE_URL, PODCLAW_BRIDGE_AUTH_TOKEN
     </admin_dashboard>
 
     <authentication>
@@ -840,18 +851,30 @@
     </rag>
 
     <admin>
-      - GET /api/admin/analytics — Dashboard stats
-      - GET /api/admin/products — Product management
-      - GET /api/admin/customers — Customer list
-      - GET /api/admin/finance/report — Financial report (P&L, margins)
-      - GET /api/admin/audit — Audit log (paginated, filterable)
-      - GET /api/admin/translations — Translation management
-      - PUT /api/admin/translations/:id — Update translation
-      - POST /api/admin/translations/auto-translate — Trigger AI translation
-      - GET /api/admin/reviews — Review moderation queue
-      - PUT /api/admin/reviews/:id — Moderate review (approve/reject/respond)
-      - GET /api/admin/seo — SEO settings
-      - PUT /api/admin/seo/:locale — Update SEO for locale
+      NOTE: These API routes live in the ADMIN project (admin/src/app/api/), NOT the storefront.
+      - GET  /api/auth/session — Check admin session (Supabase + role='admin')
+      - GET  /api/agent/[...path] — Proxy to PodClaw bridge (localhost:8000)
+      - GET  /api/admin/analytics — Dashboard stats (revenue, orders, conversion)
+      - GET  /api/admin/products — Product list (paginated, filterable)
+      - PUT  /api/admin/products/:id — Update product
+      - POST /api/admin/products/:id/publish — Publish/unpublish on Printify
+      - GET  /api/admin/orders — Order list (paginated, filterable by status/date)
+      - POST /api/admin/orders/:id/retry — Retry failed Printify order
+      - GET  /api/admin/customers — Customer list with segments
+      - GET  /api/admin/finance/report — Financial report (P&L, margins)
+      - GET  /api/admin/audit — Audit log (paginated, filterable by actor/action/date)
+      - GET  /api/admin/translations — Translation list
+      - PUT  /api/admin/translations/:id — Update translation
+      - POST /api/admin/translations/auto-translate — Trigger Gemini translation
+      - GET  /api/admin/reviews — Review moderation queue
+      - PUT  /api/admin/reviews/:id — Moderate review (approve/reject/respond)
+      - GET  /api/admin/seo — SEO settings per locale
+      - PUT  /api/admin/seo/:locale — Update SEO for locale
+      - GET  /api/admin/settings — Store configuration
+      - PUT  /api/admin/settings — Update store config
+      - GET  /api/admin/messaging — Messaging channel config
+      - PUT  /api/admin/messaging/:platform — Update channel config
+      - GET  /api/events/stream — SSE endpoint for real-time notifications
     </admin>
 
     <agent>
@@ -908,22 +931,31 @@
       - /[locale]/auth/login — Login page
       - /[locale]/auth/register — Registration page
       - /[locale]/auth/forgot-password — Password reset request
-      - /[locale]/admin — Admin dashboard (protected)
-      - /[locale]/admin/products — Product management
-      - /[locale]/admin/orders — Order management
-      - /[locale]/admin/designs — Design management
-      - /[locale]/admin/analytics — Analytics
-      - /[locale]/admin/finance — Financial dashboard
-      - /[locale]/admin/agent — AI Agent monitor
-      - /[locale]/admin/agent/logs — Agent event log
-      - /[locale]/admin/agent/skills — Agent skills manager
-      - /[locale]/admin/translations — Translation management
-      - /[locale]/admin/audit — Audit log viewer
-      - /[locale]/admin/seo — SEO management
-      - /[locale]/admin/reviews — Review moderation
-      - /[locale]/admin/notifications — Notification management
-      - /[locale]/admin/ab-tests — A/B experiment management
-      - /[locale]/admin/analytics — Python analytics dashboard (RFM, cohorts, demand, pricing)
+      ADMIN PANEL (separate project at admin/, port 3001):
+      - /login — Admin login page
+      - / — Admin dashboard (protected)
+      - /products — Product management
+      - /products/:id — Product edit
+      - /orders — Order management
+      - /orders/:id — Order detail with Printify tracking
+      - /designs — Design gallery (approve/reject)
+      - /designs/:id — Design detail + create product
+      - /customers — Customer list with RFM segments
+      - /customers/:id — Customer detail + LTV
+      - /analytics — Revenue charts, conversion funnel
+      - /analytics/ab-tests — A/B experiment management
+      - /finance — P&L, margins, Stripe reports
+      - /marketing — Campaign calendar
+      - /agents — PodClaw agent monitor (8 agents)
+      - /agents/:name — Agent detail (logs, events, costs)
+      - /agents/schedule — Schedule editor
+      - /translations — Translation CRUD (en/es/de)
+      - /audit-log — Audit log viewer
+      - /seo — SEO meta editor
+      - /reviews — Review moderation
+      - /returns — Return requests
+      - /messaging — Telegram/WhatsApp config
+      - /settings — Store settings
       - /[locale]/_offline — PWA offline page with cached products
     </pages>
 
@@ -1572,29 +1604,40 @@
       - Design artifacts in chat panel
     </phase_8>
 
-    <phase_9 name="Admin Dashboard">
-      - Admin layout with sidebar navigation
-      - Product management CRUD with bulk operations
-      - Order management with status updates
-      - Analytics overview (revenue, orders, conversion)
-      - Financial dashboard (P&L, margins)
-      - Customer list with order history
-      - Translation management panel
-      - Review moderation
-      - Audit log viewer
-      - SEO management panel
-      - Settings page
+    <phase_9 name="Admin Panel (Separate Next.js Project)">
+      - Create admin/ Next.js 16 project at pod_workspace/project/admin/ (port 3001, no i18n)
+      - package.json with: next, react, @supabase/supabase-js, @tanstack/react-query, @tanstack/react-table, recharts, lucide-react, shadcn/ui deps, sonner
+      - Admin auth: Supabase login page + middleware role='admin' check
+      - Admin layout: sidebar navigation + TopBar with breadcrumbs + PodClaw status
+      - Dashboard page: KPI cards (revenue, orders, products, conversion) + recent orders table + revenue chart
+      - Orders: filterable/paginated table, detail view with Printify tracking + retry button
+      - Products: CRUD table, Printify sync status, publish/unpublish toggle, bulk operations
+      - Designs: gallery grid, approve/reject/quarantine, create-product pipeline
+      - Customers: list with RFM segments, detail page with order history + lifetime value
+      - Analytics: revenue charts (Recharts), conversion funnel, top products
+      - Finance: P&L statement, margins per product
+      - Marketing: campaign calendar, newsletter history
+      - Reviews: moderation queue (approve/flag/respond)
+      - Returns: request list (approve/deny/refund)
+      - Audit log: filterable timeline (actor_type, action, date range)
+      - Translations: table CRUD (en/es/de), auto-translate via Gemini
+      - SEO: meta tag editor per locale, sitemap generation trigger
+      - Settings: store config, shipping zones, tax rules
+      - Responsive: sidebar collapses on mobile, breadcrumb navigation
     </phase_9>
 
-    <phase_10 name="PodClaw Agent Integration">
-      - Agent API endpoints (/api/agent/*)
-      - Agent monitor dashboard (/admin/agent)
-      - Agent event log viewer with replay
-      - Agent skills manager UI
-      - Agent memory viewer
-      - Agent schedule editor
-      - Sub-agent configuration
-      - Event-sourced logging to agent_sessions + agent_events tables
+    <phase_10 name="PodClaw Agent Monitor + Bridge">
+      - Bridge proxy: admin /api/agent/* → PodClaw FastAPI (PODCLAW_BRIDGE_URL, default localhost:8000)
+      - Agent monitor page: 8 sub-agent cards with status, last run, daily cost
+      - Agent run/pause/resume buttons via bridge POST endpoints
+      - Agent detail page: event log table, cost breakdown, error log
+      - Agent memory viewer: SOUL.md + daily log content
+      - Agent skills list with descriptions
+      - Agent schedule editor: modify cron schedules, view next runs
+      - Agent event replay: chronological timeline of past session events
+      - SSE endpoint: /api/events/stream for new_order, order_shipped, printify_error, agent_cycle_complete, budget_alert
+      - TopBar: notification bell with unread count + dropdown + toast notifications (sonner)
+      - Messaging config page: Telegram/WhatsApp channel setup
     </phase_10>
 
     <phase_11 name="Python Analytics Layer">
@@ -1643,6 +1686,71 @@
       - Voice input cross-browser testing
       - Social login flow testing (Google + Apple)
     </phase_13>
+
+    <phase_14 name="Messaging Integration (Telegram + WhatsApp)">
+      - Telegram bot webhook: /api/webhooks/telegram on STOREFRONT (Vercel)
+      - Telegram admin mode: /status, /agents, /run, /pause, /orders, /revenue commands
+      - Telegram customer mode: product search, details, cart link, checkout link
+      - Telegram /link command: associate Telegram account with admin user
+      - WhatsApp Business webhook: /api/webhooks/whatsapp on STOREFRONT (Vercel)
+      - WhatsApp admin mode: same commands as Telegram via free-text messages
+      - WhatsApp customer mode: product search, order tracking, support
+      - WhatsApp template messages: order_confirmation, shipping_update, delivery_complete
+      - PodClaw telegram_connector (MCP): send_message, send_photo, broadcast tools
+      - PodClaw whatsapp_connector (MCP): send_message, send_template tools
+      - DB migration: messaging_channels, user_messaging_links, messaging_conversations tables
+      - customer_manager agent: tools include telegram + whatsapp connectors
+      - marketing agent: can broadcast promotions via Telegram + WhatsApp
+      - Rate limits: telegram_send 100/cycle, whatsapp_send 100/cycle
+    </phase_14>
+
+    <phase_15 name="Security Hardening + Tiered Usage Limits">
+      <!-- Auth Guard Module (src/lib/auth-guard.ts) -->
+      - Create reusable auth-guard.ts module eliminating cookie-parsing duplication across 8+ API routes
+      - Exports: getAuthUser(req), requireAuth(req), requireAdmin(req), handleAuthError(error), getClientIP(req), AuthError class
+      - getAuthUser reads sb-access-token cookie, verifies with supabase.auth.getUser(), fetches role + tier from users table
+      - requireAuth throws 401 if no valid session; requireAdmin throws 403 if role !== 'admin'
+      - getClientIP resolves cf-connecting-ip > x-real-ip > x-forwarded-for
+
+      <!-- Usage Limiter Module (src/lib/usage-limiter.ts) -->
+      - Create usage-limiter.ts with USAGE_TIERS constant, checkAndIncrementUsage(), usageHeaders()
+      - USAGE_TIERS defines limits per tier (anonymous/free/premium) per action (chat, design:generate, design:mockup, design:save)
+      - Tier limits: anonymous=10 chat/day + BLOCKED design; free=50 chat + 3 generate + 5 mockup + 20 save; premium=500/30/50/unlimited
+      - Redis primary storage: key usage:{id}:{action}:{YYYY-MM-DD} with INCR + EXPIRE (TTL until midnight UTC)
+      - Supabase fallback via RPC increment_usage when Redis unavailable
+      - Fail-open: if both Redis and Supabase down, allow request with warning log (do not block paying users)
+      - Blocked actions (limit=0) denied immediately without touching storage
+      - Response includes X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset headers
+
+      <!-- DB Migration (supabase/migrations/20260214180000_user_usage_tracking.sql) -->
+      - ALTER TABLE users ADD COLUMN tier VARCHAR(20) DEFAULT 'free' CHECK (tier IN ('free', 'premium'))
+      - CREATE TABLE user_usage (id, identifier, action, period, count, created_at, updated_at) with UNIQUE(identifier, action, period)
+      - CREATE FUNCTION increment_usage(p_identifier, p_action, p_period, p_limit) RETURNS JSONB (atomic upsert)
+      - ALTER TABLE designs ADD COLUMN moderated_by UUID REFERENCES users(id), moderated_at TIMESTAMPTZ
+      - RLS on user_usage: only service_role access
+
+      <!-- Critical Vulnerability Fixes -->
+      - POST /api/admin/migrate: add requireAdmin + block in production (NODE_ENV=production → 403) + audit log
+      - POST /api/admin/designs/moderate: replace TODO comment with requireAdmin, add moderated_by + moderated_at
+      - GET /api/orders/[id]: add requireAuth + ownership check (return 404 not 403 to prevent ID enumeration)
+      - GET /api/orders: fix cookie name bug (sb-auth-token → sb-access-token), replace manual parsing with requireAuth
+      - GET /api/wishlist: fix cookie name bug (sb-session → sb-access-token), replace with getAuthUser
+
+      <!-- AI Endpoint Usage Limits -->
+      - POST /api/designs/generate: requireAuth (anonymous blocked) + checkAndIncrementUsage('design:generate')
+      - POST /api/designs/mockup: requireAuth (anonymous blocked) + checkAndIncrementUsage('design:mockup')
+      - POST /api/chat: remove edge runtime (ioredis needs Node.js), use getAuthUser, add per-tier daily limits
+      - POST /api/chat generate_design tool: verify auth + separate design quota check inside tool execution
+      - 429 responses include upgradeMessage with tier upgrade CTA
+      - Keep existing chatLimiter in-memory as burst protection (30/min), complementing daily tier limits
+
+      <!-- Architecture Decisions -->
+      - Fail-open for usage limits, fail-closed for auth (outage allows usage but blocks unverified identity)
+      - 404 instead of 403 for ownership failures (prevents order ID enumeration)
+      - Edge runtime removed from chat (ioredis requires TCP sockets, chat already does 5+ DB queries)
+      - Tier limits as code constants not DB (intentional — limit changes require deploy)
+      - Redis TTL for daily reset (counter reset on Redis restart is acceptable soft quota)
+    </phase_15>
   </implementation_phases>
 
   <success_criteria>
@@ -1666,6 +1774,14 @@
       - PWA installs correctly and works offline (cached catalog)
       - Python analytics scripts run on schedule and populate results tables
       - PodClaw reads pre-calculated analytics for cost-effective decisions
+      - Admin panel (separate project) renders all pages with data from shared Supabase
+      - Admin auth blocks non-admin users with redirect to /login
+      - PodClaw bridge proxy works from admin /api/agent/* routes
+      - SSE stream delivers real-time events to admin TopBar
+      - Telegram bot responds to admin commands and customer queries
+      - WhatsApp webhook processes inbound messages and sends templates
+      - Messaging conversations stored in messaging_conversations table
+      - Marketing agent can broadcast promotions via Telegram and WhatsApp
     </functionality>
 
     <user_experience>
@@ -1700,6 +1816,14 @@
       - A/B test variant assignment happens at edge (zero layout shift)
       - Service worker properly caches catalog for offline use
       - 24 database tables with proper indexes and RLS policies
+      - Auth guard module eliminates cookie-parsing duplication (single source of truth)
+      - All admin endpoints require requireAdmin check (no TODO auth stubs)
+      - All order endpoints enforce ownership (user can only see own orders, 404 on mismatch)
+      - AI generation endpoints (designs, mockup) require authentication + tier-based usage limits
+      - Chat endpoint enforces per-tier daily limits (anonymous 10, free 50, premium 500)
+      - Usage limiter uses Redis primary with Supabase RPC fallback (fail-open on total outage)
+      - Cookie name consistently uses sb-access-token across all API routes
+      - No SQL migration endpoint accessible without admin auth or in production
     </technical_quality>
   </success_criteria>
 </project_specification>

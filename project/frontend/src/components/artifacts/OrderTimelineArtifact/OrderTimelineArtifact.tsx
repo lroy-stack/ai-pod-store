@@ -22,6 +22,7 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { useTranslations, useLocale } from 'next-intl'
 import { useRouter } from 'next/navigation'
+import { formatPrice } from '@/lib/currency'
 import { cn } from '@/lib/utils'
 
 export interface OrderStatus {
@@ -74,35 +75,35 @@ export function OrderTimelineArtifact({
   // Build timeline events
   const timelineEvents = [
     {
-      label: 'Order Placed',
+      label: t('orderPlaced'),
       status: 'placed',
       timestamp: createdAt,
       icon: Package,
       completed: true,
     },
     {
-      label: 'Payment Confirmed',
+      label: t('paymentConfirmed'),
       status: 'paid',
       timestamp: paidAt,
       icon: CheckCircle,
       completed: !!paidAt,
     },
     {
-      label: 'Processing',
+      label: t('processing'),
       status: 'processing',
       timestamp: status === 'processing' ? new Date().toISOString() : undefined,
       icon: Clock,
       completed: ['processing', 'shipped', 'delivered'].includes(status),
     },
     {
-      label: 'Shipped',
+      label: t('shipped'),
       status: 'shipped',
       timestamp: shippedAt,
       icon: Truck,
       completed: !!shippedAt || status === 'delivered',
     },
     {
-      label: 'Delivered',
+      label: t('delivered'),
       status: 'delivered',
       timestamp: deliveredAt,
       icon: MapPin,
@@ -125,20 +126,13 @@ export function OrderTimelineArtifact({
     })
   }
 
-  const formatPrice = (cents: number, curr: string) => {
-    return new Intl.NumberFormat(locale, {
-      style: 'currency',
-      currency: curr.toUpperCase(),
-    }).format(cents / 100)
-  }
-
   const statusColors: Record<string, string> = {
-    pending: 'bg-yellow-500/10 text-yellow-700 dark:text-yellow-400',
-    paid: 'bg-green-500/10 text-green-700 dark:text-green-400',
-    processing: 'bg-blue-500/10 text-blue-700 dark:text-blue-400',
-    shipped: 'bg-purple-500/10 text-purple-700 dark:text-purple-400',
-    delivered: 'bg-green-500/10 text-green-700 dark:text-green-400',
-    cancelled: 'bg-red-500/10 text-red-700 dark:text-red-400',
+    pending: 'bg-warning/10 text-warning',
+    paid: 'bg-success/10 text-success',
+    processing: 'bg-primary/10 text-primary',
+    shipped: 'bg-accent/10 text-accent-foreground',
+    delivered: 'bg-success/10 text-success',
+    cancelled: 'bg-destructive/10 text-destructive',
   }
 
   return (
@@ -152,7 +146,7 @@ export function OrderTimelineArtifact({
           </Badge>
         </CardTitle>
         <p className="text-sm text-muted-foreground">
-          Total: {formatPrice(total, currency)}
+          Total: {formatPrice(total / 100, locale, currency)}
         </p>
       </CardHeader>
 
@@ -217,7 +211,7 @@ export function OrderTimelineArtifact({
           <>
             <Separator />
             <div>
-              <h4 className="text-sm font-medium mb-1">Tracking Number</h4>
+              <h4 className="text-sm font-medium mb-1">{t('trackingNumber')}</h4>
               <p className="text-sm text-muted-foreground font-mono">{trackingNumber}</p>
             </div>
           </>
@@ -228,7 +222,7 @@ export function OrderTimelineArtifact({
           <>
             <Separator />
             <div>
-              <h4 className="text-sm font-medium mb-1">Estimated Delivery</h4>
+              <h4 className="text-sm font-medium mb-1">{t('estimatedDelivery')}</h4>
               <p className="text-sm text-muted-foreground">
                 {formatDate(estimatedDelivery)}
               </p>
@@ -243,7 +237,7 @@ export function OrderTimelineArtifact({
           className="w-full sm:w-auto"
           onClick={() => router.push(`/${locale}/orders/${orderId}`)}
         >
-          View Order Details
+          {t('viewOrderDetails')}
         </Button>
         {trackingNumber && (
           <Button
@@ -254,7 +248,7 @@ export function OrderTimelineArtifact({
               window.open(`https://www.google.com/search?q=track+${trackingNumber}`, '_blank')
             }}
           >
-            Track Package
+            {t('trackPackage')}
           </Button>
         )}
       </CardFooter>

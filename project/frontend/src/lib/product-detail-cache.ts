@@ -2,16 +2,29 @@ import { supabaseAdmin } from '@/lib/supabase-admin'
 
 // Fetch product by ID from Supabase
 export async function getProduct(id: string) {
-  const { data: product, error } = await supabaseAdmin
-    .from('products')
-    .select('*')
-    .eq('id', id)
-    .eq('status', 'active')
-    .single()
+  const [productResult, variantsResult] = await Promise.all([
+    supabaseAdmin
+      .from('products')
+      .select('*')
+      .eq('id', id)
+      .eq('status', 'active')
+      .single(),
+    supabaseAdmin
+      .from('product_variants')
+      .select('size, color, price_cents, is_enabled, is_available')
+      .eq('product_id', id)
+      .eq('is_enabled', true)
+      .eq('is_available', true),
+  ])
 
+  const { data: product, error } = productResult
   if (error || !product) {
     return null
   }
+
+  const variants = variantsResult.data || []
+  const sizes = [...new Set(variants.map((v) => v.size).filter(Boolean))] as string[]
+  const colors = [...new Set(variants.map((v) => v.color).filter(Boolean))] as string[]
 
   return {
     id: product.id,
@@ -28,6 +41,10 @@ export async function getProduct(id: string) {
     inStock: true,
     printifyId: product.printify_id,
     createdAt: product.created_at,
+    variants: {
+      ...(sizes.length > 0 ? { sizes } : {}),
+      ...(colors.length > 0 ? { colors } : {}),
+    },
   }
 }
 

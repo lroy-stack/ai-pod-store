@@ -23,10 +23,13 @@ import { DefaultChatTransport, isToolUIPart, getToolName } from 'ai'
 import ReactMarkdown from 'react-markdown'
 import { getArtifact } from '@/components/artifacts/registry'
 import { useStorefront } from './StorefrontContext'
+import { useCart } from '@/hooks/useCart'
+import { toast } from 'sonner'
 
 export function ChatArea() {
   const t = useTranslations('storefront')
   const { setSelectedProduct, pendingChatMessage, setPendingChatMessage, addArtifact } = useStorefront()
+  const { addToCart } = useCart()
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [inputValue, setInputValue] = useState('')
@@ -117,6 +120,25 @@ export function ChatArea() {
 
   const handlePromptClick = (prompt: string) => {
     sendMessage({ text: prompt })
+  }
+
+  const handleAddToCart = async (productId: string, title?: string, price?: number) => {
+    await addToCart(productId, 1, undefined, title, price)
+  }
+
+  const handleAddToWishlist = async (productId: string) => {
+    try {
+      const response = await fetch('/api/wishlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productId }),
+      })
+      if (response.ok) {
+        toast.success(t('add'))
+      }
+    } catch (error) {
+      console.error('Failed to add to wishlist:', error)
+    }
   }
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -450,6 +472,8 @@ export function ChatArea() {
                             <artifact.Component
                               {...output}
                               onSelectProduct={handleSelectProduct}
+                              onAddToCart={(id: string) => handleAddToCart(id)}
+                              onAddToWishlist={handleAddToWishlist}
                               variant="inline"
                             />
                           </div>
@@ -457,7 +481,7 @@ export function ChatArea() {
                       }
 
                       if (part.state === 'output-error') {
-                        return <div key={index} className="p-4 text-sm text-destructive">Error loading results</div>
+                        return <div key={index} className="p-4 text-sm text-destructive">{t('errorLoadingResults')}</div>
                       }
 
                       return null

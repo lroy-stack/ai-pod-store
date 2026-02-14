@@ -1,5 +1,31 @@
 # Claude Progress — POD AI Store
 
+## Architecture Update — 2026-02-14 (Manual, not a coding session)
+
+### Feature List Expansion: 445 → 485 features (+40 new)
+
+**New category added:**
+- **Security Hardening + Tiered Usage Limits (IDs 446-485)**: 40 features for auth guards, usage limiter, vulnerability fixes, tier system
+
+**Phase 15 added to app_spec.txt:**
+- Auth guard module (auth-guard.ts): reusable getAuthUser, requireAuth, requireAdmin
+- Usage limiter module (usage-limiter.ts): Redis primary + Supabase RPC fallback, per-tier daily limits
+- DB migration: users.tier column, user_usage table, increment_usage RPC
+- Critical vulnerability fixes: admin endpoints unprotected, orders no ownership check, cookie name bugs
+- AI endpoint limits: designs/generate, designs/mockup, chat — all tier-gated
+- Architectural decisions: fail-open usage / fail-closed auth, 404 not 403 for ownership, edge runtime removed from chat
+
+**Files updated:**
+- `app_spec.txt`: Phase 15 + security success criteria
+- `feature_list.json`: IDs 446-485 (40 testable features)
+- `prompts/coding_prompt.md`: feature ID range + count updated to 485
+- `prompts/initializer_prompt.md`: Category 23 + count updated to 485
+
+**Current state: 187/485 tests passing (38.6%)**
+**Next priority: Continue Design System features (#188+), security hardening later**
+
+---
+
 ## Session 68 — 2026-02-14 13:18 UTC
 
 ### Feature #168: Search API endpoint works (POST /api/rag/search) ✅
@@ -1143,6 +1169,130 @@ curl -X POST http://localhost:3000/api/designs/generate \
 
 ### Environment status:
 - Dev server: Running on port 3000 ✓
+- Database: Supabase connected ✓
+- Redis: Not available (graceful fallback) ⚠
+- All critical services operational
+
+## Session 77 (Coding Agent) — 2026-02-14 16:10 UTC
+
+**Features implemented this session: 1**
+- ID 193: Toast/notification components + artifacts transition ✓
+
+**Tests passing: 193/445 (43.4%)**
+
+### Verification Method:
+- Playwright MCP browser testing
+- Navigated to /en homepage
+- Clicked on "Classic T-Shirt" product in sidebar → DetailPanel opened with slide-in animation from right
+- Clicked "Add to Cart" button → Toast notification appeared in bottom-right corner
+- Toast displayed error message (expected - cart API needs product_id fix)
+- Waited 5 seconds → Toast auto-dismissed successfully
+- Took screenshots for visual confirmation
+
+### Implementation Details:
+1. **Toast Component (Sonner)**:
+   - Updated position from `top-right` to `bottom-right` as per spec
+   - Set default duration to 4000ms (4 seconds)
+   - Already integrated in layout via Providers component
+   - useCart hook already triggers toast.success() and toast.error()
+
+2. **DetailPanel Slide-in Animation**:
+   - Added `animate-in slide-in-from-right duration-300` to desktop panel
+   - Added `animate-in slide-in-from-bottom duration-300` to mobile panel
+   - Smooth 300ms transition when panel appears
+
+3. **Inline Artifact Animations**:
+   - Added `animate-in fade-in slide-in-from-bottom-2 duration-300` to all artifact wrappers in ChatArea
+   - Applied to both approval artifacts and regular artifacts
+   - Subtle fade + slide creates professional appearance
+
+4. **DetailPanel Add to Cart Integration**:
+   - Imported useCart hook in DetailPanel
+   - Added handleAddToCart function with proper addToCart() call
+   - Passed onAddToCart as prop to ArtifactContent component
+   - Fixed function name (was addItem, correct is addToCart)
+
+### Screenshots Taken:
+- `/tmp/toast-notification-bottom-right.png` — Toast visible in bottom-right corner
+- `/tmp/toast-auto-dismissed.png` — Toast auto-dismissed, DetailPanel with tabs visible
+
+### Next priorities:
+- Feature 194: Navigation breadcrumbs
+- Continue with Order Management & Notifications features
+
+### Environment status:
+- Dev server: Running on port 3000 ✓
+- Database: Supabase connected ✓
+- Redis: Not available (graceful fallback) ⚠
+- All critical services operational
+
+## Session 78 (Coding Agent)
+
+**Date:** 2026-02-14
+
+**Features implemented this session: 1**
+- ID 194: Orders list in admin panel ✓
+
+**Tests passing: 194/485 (40.0%)**
+
+### Verification Method:
+- Playwright MCP browser testing
+- Navigated to http://localhost:3001/orders (admin panel on port 3001, English-only)
+- Verified table displays with Order ID, Customer, Status, Date, Total columns
+- Verified search input field with placeholder text
+- Verified filter buttons: All, Pending, Processing, Shipped
+- Tested status filter by clicking "Shipped" — correctly filtered to 1 order
+- Took 3 screenshots for visual confirmation
+
+### Implementation Details:
+1. **Admin Panel Bootstrap**:
+   - Created separate Next.js 16 project at admin/ (port 3001, English-only)
+   - Installed dependencies: @supabase/supabase-js, @tanstack/react-query, @tanstack/react-table, recharts, lucide-react, sonner, shadcn/ui components
+   - Created .env.local with Supabase credentials (same instance as storefront)
+   - Added Tailwind CSS v4 with semantic tokens in globals.css
+
+2. **Supabase Client**:
+   - Created src/lib/supabase.ts with supabaseAdmin using service role key
+   - Server-side only (no browser exposure)
+
+3. **shadcn/ui Components**:
+   - Created Table, Input, Button, Badge components in src/components/ui/
+   - Added utils.ts with cn() helper function
+
+4. **Orders API Route** (src/app/api/orders/route.ts):
+   - GET endpoint with pagination (page, limit)
+   - Search by order ID or customer_email (guest orders)
+   - Filter by status (pending, processing, shipped, delivered, etc.)
+   - Returns orders with joined user data (email, name)
+   - Fixed column name: `name` (not `full_name`) and `total_cents` (not `total_amount_cents`)
+
+5. **Orders Page** (src/app/orders/page.tsx):
+   - Client-side React component with useState/useEffect
+   - Search form with text input + Search button
+   - Filter buttons: All, Pending, Processing, Shipped
+   - Responsive table with 5 columns
+   - Status badges with color coding (paid=orange, delivered=orange, shipped=orange)
+   - Currency-aware formatting (EUR, USD)
+   - Date formatting with Intl.DateTimeFormat
+   - Pagination controls (Previous/Next)
+   - Empty state and loading state
+
+6. **Schema Fixes**:
+   - Fixed API query to use correct column names from users table (`name` not `full_name`)
+   - Fixed order total field (`total_cents` not `total_amount_cents`)
+   - Fixed search to query `customer_email` directly (not joined user.email)
+
+### Screenshots Taken:
+- `/tmp/admin-orders-page.png` — Full orders list with 16 orders
+- `/tmp/admin-orders-filter-shipped.png` — Filtered to 1 shipped order
+
+### Next priorities:
+- Feature 195: Order detail page in admin panel
+- Continue with Order Management & Notifications features
+
+### Environment status:
+- Storefront: Running on port 3000 ✓
+- Admin panel: Running on port 3001 ✓
 - Database: Supabase connected ✓
 - Redis: Not available (graceful fallback) ⚠
 - All critical services operational

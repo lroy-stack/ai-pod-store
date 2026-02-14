@@ -89,13 +89,7 @@ export function DetailPanel({ productId, onClose, onAskAbout }: DetailPanelProps
 
   const handleAddToCart = async () => {
     if (!product) return
-    await addToCart({
-      id: product.id,
-      name: product.title,
-      price: product.price,
-      image: product.image || undefined,
-      quantity: 1,
-    })
+    await addToCart(product.id, 1, undefined, product.title, product.price)
   }
 
   const handleAskAbout = () => {
@@ -204,8 +198,6 @@ export function DetailPanel({ productId, onClose, onAskAbout }: DetailPanelProps
 
   // If we have a product (backward compatibility), render it
   if (!hasArtifacts && product) {
-    const image = product.image || (product.images && product.images.length > 0 ? product.images[0] : null)
-
     return (
       <div className="flex flex-col h-full w-full bg-card">
         {/* Header with close button */}
@@ -222,100 +214,134 @@ export function DetailPanel({ productId, onClose, onAskAbout }: DetailPanelProps
           </Button>
         </div>
 
-        {/* Scrollable content */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          {/* Product Image */}
-          <div className="aspect-square w-full rounded-lg bg-muted overflow-hidden">
-            {image ? (
-              <img src={image} alt={product.title} className="w-full h-full object-cover" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                No image
-              </div>
-            )}
-          </div>
-
-          {/* Title & Price */}
-          <div>
-            <h3 className="text-xl font-bold text-foreground mb-1">{product.title}</h3>
-            <div className="flex items-center gap-2">
-              <span className="text-2xl font-bold text-foreground">
-                {formatPrice(product.price, locale, product.currency)}
-              </span>
-              <Badge variant="secondary" className="ml-auto">
-                <Star className="h-3 w-3 fill-current mr-1" />
-                {product.rating || 0}
-              </Badge>
-            </div>
-            <p className="text-sm text-muted-foreground mt-1">
-              {product.reviewCount || 0} {t('reviews')}
-            </p>
-          </div>
-
-          <Separator />
-
-          {/* Description */}
-          <div>
-            <h4 className="font-medium text-foreground mb-2">{t('description')}</h4>
-            <p className="text-sm text-muted-foreground">{product.description}</p>
-          </div>
-
-          <Separator />
-
-          {/* Variant Selectors (placeholder) */}
-          <div className="space-y-3">
-            <div>
-              <label className="text-sm font-medium text-foreground mb-2 block">{t('size')}</label>
-              <div className="flex gap-2">
-                {['S', 'M', 'L', 'XL'].map((size) => (
-                  <Button
-                    key={size}
-                    variant={size === 'M' ? 'default' : 'outline'}
-                    size="sm"
-                    className="flex-1"
-                  >
-                    {size}
-                  </Button>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <label className="text-sm font-medium text-foreground mb-2 block">{t('color')}</label>
-              <div className="flex gap-2">
-                {['Black', 'White', 'Navy'].map((color) => (
-                  <Button
-                    key={color}
-                    variant={color === 'Black' ? 'default' : 'outline'}
-                    size="sm"
-                    className="flex-1"
-                  >
-                    {color}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Footer Actions */}
-        <div className="p-4 border-t border-border space-y-2">
-          <Button className="w-full" size="lg" onClick={handleAddToCart}>
-            <ShoppingCart className="h-5 w-5 mr-2" />
-            {t('addToCart')}
-          </Button>
-
-          <Button variant="outline" className="w-full" size="lg" onClick={handleAskAbout}>
-            <MessageCircle className="h-5 w-5 mr-2" />
-            {t('askAboutProduct')}
-          </Button>
-        </div>
+        <ProductView
+          product={product}
+          locale={locale}
+          onAddToCart={handleAddToCart}
+          onAskAbout={() => handleAskAbout()}
+        />
       </div>
     )
   }
 
   // Fallback - should not reach here
   return null
+}
+
+/**
+ * ProductView - Shared product detail template used by both
+ * backward-compatible productId path and artifact system
+ */
+function ProductView({
+  product,
+  locale,
+  onAddToCart,
+  onAskAbout,
+}: {
+  product: { title: string; description?: string; price: number; currency: string; image?: string | null; images?: string[]; rating?: number; reviewCount?: number }
+  locale: string
+  onAddToCart?: () => void
+  onAskAbout?: () => void
+}) {
+  const t = useTranslations('storefront')
+  const image = product.image || (product.images && product.images.length > 0 ? product.images[0] : null)
+
+  return (
+    <>
+      {/* Scrollable content */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        {/* Product Image */}
+        <div className="aspect-square w-full rounded-lg bg-muted overflow-hidden">
+          {image ? (
+            <img src={image} alt={product.title} className="w-full h-full object-cover" />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+              {t('noImage')}
+            </div>
+          )}
+        </div>
+
+        {/* Title & Price */}
+        <div>
+          <h3 className="text-xl font-bold text-foreground mb-1">{product.title}</h3>
+          <div className="flex items-center gap-2">
+            <span className="text-2xl font-bold text-foreground">
+              {formatPrice(product.price, locale, product.currency)}
+            </span>
+            <Badge variant="secondary" className="ml-auto">
+              <Star className="h-3 w-3 fill-current mr-1" />
+              {product.rating || 0}
+            </Badge>
+          </div>
+          <p className="text-sm text-muted-foreground mt-1">
+            {product.reviewCount || 0} {t('reviews')}
+          </p>
+        </div>
+
+        <Separator />
+
+        {/* Description */}
+        {product.description && (
+          <div>
+            <h4 className="font-medium text-foreground mb-2">{t('description')}</h4>
+            <p className="text-sm text-muted-foreground">{product.description}</p>
+          </div>
+        )}
+
+        <Separator />
+
+        {/* Variant Selectors (placeholder) */}
+        <div className="space-y-3">
+          <div>
+            <label className="text-sm font-medium text-foreground mb-2 block">{t('size')}</label>
+            <div className="flex gap-2">
+              {['S', 'M', 'L', 'XL'].map((size) => (
+                <Button
+                  key={size}
+                  variant={size === 'M' ? 'default' : 'outline'}
+                  size="sm"
+                  className="flex-1"
+                >
+                  {size}
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium text-foreground mb-2 block">{t('color')}</label>
+            <div className="flex gap-2">
+              {['Black', 'White', 'Navy'].map((color) => (
+                <Button
+                  key={color}
+                  variant={color === 'Black' ? 'default' : 'outline'}
+                  size="sm"
+                  className="flex-1"
+                >
+                  {color}
+                </Button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Footer Actions */}
+      <div className="p-4 border-t border-border space-y-2">
+        <Button className="w-full" size="lg" onClick={onAddToCart}>
+          <ShoppingCart className="h-5 w-5 mr-2" />
+          {t('addToCart')}
+        </Button>
+
+        {onAskAbout && (
+          <Button variant="outline" className="w-full" size="lg" onClick={onAskAbout}>
+            <MessageCircle className="h-5 w-5 mr-2" />
+            {t('askAboutProduct')}
+          </Button>
+        )}
+      </div>
+    </>
+  )
 }
 
 /**
@@ -330,111 +356,18 @@ function ArtifactContent({
   onAskAbout?: (question: string) => void
   onAddToCart?: () => void
 }) {
-  const t = useTranslations('storefront')
   const params = useParams()
   const locale = (params.locale as string) || 'en'
 
   // For product artifacts, render the product detail view
   if (artifact.type === 'product' && artifact.data) {
-    const product = artifact.data
-    const image = product.image || (product.images && product.images.length > 0 ? product.images[0] : null)
-
     return (
-      <>
-        {/* Scrollable content */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          {/* Product Image */}
-          <div className="aspect-square w-full rounded-lg bg-muted overflow-hidden">
-            {image ? (
-              <img src={image} alt={product.title} className="w-full h-full object-cover" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                No image
-              </div>
-            )}
-          </div>
-
-          {/* Title & Price */}
-          <div>
-            <h3 className="text-xl font-bold text-foreground mb-1">{product.title}</h3>
-            <div className="flex items-center gap-2">
-              <span className="text-2xl font-bold text-foreground">
-                {formatPrice(product.price, locale, product.currency)}
-              </span>
-              <Badge variant="secondary" className="ml-auto">
-                <Star className="h-3 w-3 fill-current mr-1" />
-                {product.rating || 0}
-              </Badge>
-            </div>
-            <p className="text-sm text-muted-foreground mt-1">
-              {product.reviewCount || 0} {t('reviews')}
-            </p>
-          </div>
-
-          <Separator />
-
-          {/* Description */}
-          <div>
-            <h4 className="font-medium text-foreground mb-2">{t('description')}</h4>
-            <p className="text-sm text-muted-foreground">{product.description}</p>
-          </div>
-
-          <Separator />
-
-          {/* Variant Selectors (placeholder) */}
-          <div className="space-y-3">
-            <div>
-              <label className="text-sm font-medium text-foreground mb-2 block">{t('size')}</label>
-              <div className="flex gap-2">
-                {['S', 'M', 'L', 'XL'].map((size) => (
-                  <Button
-                    key={size}
-                    variant={size === 'M' ? 'default' : 'outline'}
-                    size="sm"
-                    className="flex-1"
-                  >
-                    {size}
-                  </Button>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <label className="text-sm font-medium text-foreground mb-2 block">{t('color')}</label>
-              <div className="flex gap-2">
-                {['Black', 'White', 'Navy'].map((color) => (
-                  <Button
-                    key={color}
-                    variant={color === 'Black' ? 'default' : 'outline'}
-                    size="sm"
-                    className="flex-1"
-                  >
-                    {color}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Footer Actions */}
-        <div className="p-4 border-t border-border space-y-2">
-          <Button className="w-full" size="lg" onClick={onAddToCart}>
-            <ShoppingCart className="h-5 w-5 mr-2" />
-            {t('addToCart')}
-          </Button>
-
-          <Button
-            variant="outline"
-            className="w-full"
-            size="lg"
-            onClick={() => onAskAbout?.(`Tell me more about ${product.title}`)}
-          >
-            <MessageCircle className="h-5 w-5 mr-2" />
-            {t('askAboutProduct')}
-          </Button>
-        </div>
-      </>
+      <ProductView
+        product={artifact.data}
+        locale={locale}
+        onAddToCart={onAddToCart}
+        onAskAbout={onAskAbout ? () => onAskAbout(`Tell me more about ${artifact.data.title}`) : undefined}
+      />
     )
   }
 

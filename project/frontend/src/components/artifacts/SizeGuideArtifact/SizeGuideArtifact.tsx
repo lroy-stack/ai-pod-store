@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * SizeGuideArtifact - Display sizing information for product types
  *
@@ -7,6 +9,7 @@
 import { Shirt, Ruler } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { useTranslations } from 'next-intl'
 
 export interface SizeGuide {
   productType: string
@@ -25,6 +28,7 @@ interface SizeGuideArtifactProps {
 }
 
 export function SizeGuideArtifact({ guide }: SizeGuideArtifactProps) {
+  const t = useTranslations('storefront')
   const { productType, unit, sizes } = guide
 
   // Determine which columns to show based on available data
@@ -38,7 +42,7 @@ export function SizeGuideArtifact({ guide }: SizeGuideArtifactProps) {
       <CardHeader className="space-y-2">
         <div className="flex items-center gap-2">
           <Shirt className="h-5 w-5 text-primary" />
-          <CardTitle className="text-lg">Size Guide</CardTitle>
+          <CardTitle className="text-lg">{t('sizeGuide')}</CardTitle>
         </div>
         <div className="flex items-center gap-2">
           <Badge variant="secondary" className="text-xs">
@@ -46,7 +50,7 @@ export function SizeGuideArtifact({ guide }: SizeGuideArtifactProps) {
           </Badge>
           <Badge variant="outline" className="text-xs">
             <Ruler className="mr-1 h-3 w-3" />
-            {unit === 'inches' ? 'Inches' : 'Centimeters'}
+            {unit === 'inches' ? t('inches') : t('centimeters')}
           </Badge>
         </div>
       </CardHeader>
@@ -56,26 +60,26 @@ export function SizeGuideArtifact({ guide }: SizeGuideArtifactProps) {
             <thead>
               <tr className="border-b border-border">
                 <th className="p-3 text-left text-sm font-semibold text-foreground">
-                  Size
+                  {t('size')}
                 </th>
                 {hasChest && (
                   <th className="p-3 text-right text-sm font-semibold text-foreground">
-                    Chest
+                    {t('chest')}
                   </th>
                 )}
                 {hasLength && (
                   <th className="p-3 text-right text-sm font-semibold text-foreground">
-                    Length
+                    {t('length')}
                   </th>
                 )}
                 {hasWidth && (
                   <th className="p-3 text-right text-sm font-semibold text-foreground">
-                    Width
+                    {t('width')}
                   </th>
                 )}
                 {hasSleeve && (
                   <th className="p-3 text-right text-sm font-semibold text-foreground">
-                    Sleeve
+                    {t('sleeve')}
                   </th>
                 )}
               </tr>
@@ -115,8 +119,7 @@ export function SizeGuideArtifact({ guide }: SizeGuideArtifactProps) {
           </table>
         </div>
         <p className="mt-4 text-xs text-muted-foreground">
-          💡 Measurements are approximate and may vary slightly. For best fit, compare to a
-          similar garment you own.
+          {t('sizeTip')}
         </p>
       </CardContent>
     </Card>

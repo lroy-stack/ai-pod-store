@@ -59,7 +59,7 @@ export function ProductMockupArtifact({
             </div>
             <div>
               <CardTitle className="text-lg">
-                {t('productMockupTitle') || 'Product Preview'}
+                {t('productMockupTitle')}
               </CardTitle>
               <p className="text-sm text-muted-foreground mt-0.5">
                 {displayName}
@@ -102,7 +102,7 @@ export function ProductMockupArtifact({
             </div>
           ) : (
             <div className="flex h-full items-center justify-center">
-              <p className="text-sm text-muted-foreground">No mockup available</p>
+              <p className="text-sm text-muted-foreground">{t('noMockupAvailable')}</p>
             </div>
           )}
         </div>
@@ -110,7 +110,7 @@ export function ProductMockupArtifact({
         {/* Product Info */}
         <div className="space-y-1.5">
           <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-            Product Type
+            {t('productType')}
           </p>
           <p className="text-sm text-foreground capitalize">
             {productType.replace('-', ' ')}
@@ -126,7 +126,7 @@ export function ProductMockupArtifact({
           disabled={!mockupUrl}
         >
           <Download className="h-4 w-4 mr-2" />
-          {t('mockupDownload') || 'Download Mockup'}
+          {t('mockupDownload')}
         </Button>
         <Button
           onClick={onAddToCart}
@@ -134,7 +134,7 @@ export function ProductMockupArtifact({
           disabled={!mockupUrl || !onAddToCart}
         >
           <ShoppingCart className="h-4 w-4 mr-2" />
-          {t('mockupAddToCart') || 'Add to Cart'}
+          {t('mockupAddToCart')}
         </Button>
       </CardFooter>
     </Card>

@@ -55,7 +55,7 @@ export function ProductGridArtifact({
   if (!products || products.length === 0) {
     return (
       <div className="text-center py-8 text-muted-foreground">
-        <p>No products found</p>
+        <p>{t('noProductsFound')}</p>
       </div>
     )
   }
@@ -81,7 +81,7 @@ export function ProductGridArtifact({
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                  No image
+                  {t('noImage')}
                 </div>
               )}
               {/* Category Badge */}
@@ -116,7 +116,7 @@ export function ProductGridArtifact({
                   className="flex-1"
                   onClick={() => onSelectProduct(product.id)}
                 >
-                  View Details
+                  {t('viewDetails')}
                 </Button>
                 <Button
                   size="sm"
@@ -127,7 +127,7 @@ export function ProductGridArtifact({
                   }}
                 >
                   <ShoppingCart className="h-4 w-4 mr-1" />
-                  Add
+                  {t('add')}
                 </Button>
               </div>
             </div>

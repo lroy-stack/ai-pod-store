@@ -56,7 +56,7 @@ export function ComparisonTableArtifact({
   return (
     <Card className={cn('overflow-hidden', variant === 'inline' && 'max-w-4xl')}>
       <CardHeader>
-        <CardTitle className="text-xl">Product Comparison</CardTitle>
+        <CardTitle className="text-xl">{t('productComparison')}</CardTitle>
       </CardHeader>
       <CardContent className="p-0">
         <div className="overflow-x-auto">
@@ -64,7 +64,7 @@ export function ComparisonTableArtifact({
             <thead>
               <tr className="border-b bg-muted/50">
                 <th className="sticky left-0 z-10 bg-muted/50 p-4 text-left text-sm font-semibold">
-                  Feature
+                  &nbsp;
                 </th>
                 {products.map((product) => (
                   <th key={product.id} className="min-w-[200px] p-4 text-center">
@@ -93,7 +93,7 @@ export function ComparisonTableArtifact({
               {/* Price row */}
               <tr className="border-b hover:bg-muted/50">
                 <td className="sticky left-0 z-10 bg-card p-4 text-sm font-medium">
-                  Price
+                  {t('price')}
                 </td>
                 {products.map((product) => (
                   <td key={product.id} className="p-4 text-center">
@@ -107,7 +107,7 @@ export function ComparisonTableArtifact({
               {/* Rating row */}
               <tr className="border-b hover:bg-muted/50">
                 <td className="sticky left-0 z-10 bg-card p-4 text-sm font-medium">
-                  Rating
+                  {t('rating')}
                 </td>
                 {products.map((product) => (
                   <td key={product.id} className="p-4 text-center">
@@ -120,7 +120,7 @@ export function ComparisonTableArtifact({
                         </span>
                       </div>
                     ) : (
-                      <span className="text-sm text-muted-foreground">No reviews</span>
+                      <span className="text-sm text-muted-foreground">{t('noReviews')}</span>
                     )}
                   </td>
                 ))}
@@ -129,19 +129,19 @@ export function ComparisonTableArtifact({
               {/* Availability row */}
               <tr className="border-b hover:bg-muted/50">
                 <td className="sticky left-0 z-10 bg-card p-4 text-sm font-medium">
-                  Availability
+                  {t('availability')}
                 </td>
                 {products.map((product) => (
                   <td key={product.id} className="p-4 text-center">
                     {product.available ? (
                       <Badge variant="default" className="gap-1">
                         <Check className="h-3 w-3" />
-                        In Stock
+                        {t('inStock')}
                       </Badge>
                     ) : (
                       <Badge variant="secondary" className="gap-1">
                         <X className="h-3 w-3" />
-                        Out of Stock
+                        {t('outOfStock')}
                       </Badge>
                     )}
                   </td>
@@ -158,7 +158,7 @@ export function ComparisonTableArtifact({
                     {products.map((product) => (
                       <td key={product.id} className="p-4 text-center">
                         {product.features?.includes(feature) ? (
-                          <Check className="mx-auto h-5 w-5 text-green-600" />
+                          <Check className="mx-auto h-5 w-5 text-success" />
                         ) : (
                           <X className="mx-auto h-5 w-5 text-muted-foreground" />
                         )}
@@ -170,7 +170,7 @@ export function ComparisonTableArtifact({
               {/* Action row */}
               <tr className="bg-muted/50">
                 <td className="sticky left-0 z-10 bg-muted/50 p-4 text-sm font-medium">
-                  Action
+                  {t('action')}
                 </td>
                 {products.map((product) => (
                   <td key={product.id} className="p-4 text-center">
@@ -180,7 +180,7 @@ export function ComparisonTableArtifact({
                       className="w-full"
                     >
                       <ShoppingCart className="mr-2 h-4 w-4" />
-                      Add to Cart
+                      {t('addToCart')}
                     </Button>
                   </td>
                 ))}

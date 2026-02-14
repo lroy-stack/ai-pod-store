@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -211,7 +212,12 @@ export default function OrdersPage() {
                   {orders.map((order) => (
                     <TableRow key={order.id}>
                       <TableCell className="font-mono text-sm">
-                        {order.id.substring(0, 8)}...
+                        <Link
+                          href={`/orders/${order.id}`}
+                          className="text-primary hover:underline"
+                        >
+                          {order.id.substring(0, 8)}...
+                        </Link>
                       </TableCell>
                       <TableCell>
                         {order.user?.email || order.customer_email || 'Guest'}

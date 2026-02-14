@@ -654,3 +654,95 @@ RETURNS TABLE (id, content, metadata, source_type, source_id, locale, similarity
 ### Next priorities:
 - Feature #166 [RAG Pipeline] — Documents indexed from product catalog
 - Feature #167 [RAG Pipeline] — Chat uses RAG for product questions
+
+## Session 74 (Coding Agent)
+Date: 2026-02-14T14:35-14:50 UTC
+Features implemented: 1 (ID 183)
+Total passing: 183/389 (47.0%)
+
+### Feature #183: Dark/light mode toggle works ✅
+
+**Implementation:**
+1. Created `ThemeToggle.tsx` component with dropdown menu for Light/Dark/System options
+2. Added `ThemeProvider` from `next-themes` to `providers.tsx` with:
+   - `attribute="class"` for class-based theme switching
+   - `defaultTheme="system"` to respect OS preference
+   - `enableSystem` to support system theme detection
+   - `disableTransitionOnChange` for instant switching
+3. Updated `globals.css` with proper Tailwind v4 syntax:
+   - Used `@theme` block for default (light) colors with hex format
+   - Used `.dark` class selector for dark mode overrides
+   - Key insight: Tailwind v4 expects hex colors in `@theme`, not RGB space-separated values
+4. Added theme translation keys to all 3 locale files (en, es, de):
+   - `theme.toggle`, `theme.light`, `theme.dark`, `theme.system`
+5. Integrated `ThemeToggle` into `StorefrontHeader.tsx` next to locale switcher
+
+**Verification:**
+- ✅ Theme toggle button renders in header
+- ✅ Dropdown menu shows Light/Dark/System options
+- ✅ Clicking Light switches to light mode (#FAFAFA background)
+- ✅ Clicking Dark switches to dark mode (#0A0A0B background)
+- ✅ All semantic color tokens update correctly (bg, text, border, card, etc.)
+- ✅ Theme preference persists across page refreshes (localStorage)
+- ✅ Verified with Playwright MCP screenshots
+
+**Technical Notes:**
+- Tailwind v4 requires hex colors in `@theme` directive (not space-separated RGB)
+- Dark mode colors are overridden via `.dark` class selector (not `@theme dark` syntax)
+- `next-themes` v0.4.6 handles class toggling and localStorage persistence
+- Theme changes apply instantly without page reload
+- The sun/moon icons in the toggle button rotate smoothly via CSS transitions
+
+### Tests Passing
+- Total: 183/389 (47.0%)
+- Newly passing this session: #183
+
+### Next Priority
+- **Feature #184**: Design generation UI works
+
+### Environment Status
+- ✅ Dev server running (localhost:3000)
+- ✅ Database connected (Supabase remote)
+- ⚠️  Redis disconnected (expected — not installed)
+- ✅ All API keys configured
+
+### Commit
+- Hash: d00f093
+- Message: "feat: add dark/light mode toggle with next-themes — test #183 passing"
+- Files changed: 12 (ThemeToggle.tsx, providers.tsx, StorefrontHeader.tsx, globals.css, 3 i18n files)
+
+**Session 76 Update — Features 186-188 Complete**
+
+**Total features implemented this session: 3**
+- ID 186: Design preview renders in artifacts panel ✓
+- ID 187: AI-generated design on product mockup ✓
+- ID 188: Design gallery page renders ✓
+
+**Tests passing: 188/445 (42.2%)**
+
+### Files Created/Modified:
+1. Feature 186:
+   - Verified existing DesignPreviewArtifact component renders
+
+2. Feature 187:
+   - lib/mockup-generator.ts (new)
+   - app/api/designs/mockup/route.ts (new)
+   - components/artifacts/ProductMockupArtifact/ (new component + skeleton)
+   - Enhanced DesignPreviewArtifact with View on Product button
+
+3. Feature 188:
+   - app/[locale]/designs/page.tsx (new)
+   - app/[locale]/designs/DesignsGallery.tsx (new)
+   - app/api/designs/route.ts (new GET endpoint)
+
+### Commits:
+- 5d3b21c: feat: verify design preview artifact rendering
+- 992bd81: feat: implement product mockup generation with design overlay
+- be397eb: feat: implement designs gallery page
+
+### Performance:
+- 3 features in ~30 minutes
+- All verified via Playwright MCP browser testing
+- Zero regressions detected
+
+**Next target: Feature 189 (Order Management & Notifications)**

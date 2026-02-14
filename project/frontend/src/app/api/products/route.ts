@@ -191,7 +191,7 @@ async function getVectorSearchResults(
     )
 
     return (products || [])
-      .map((p) => ({ ...p, similarity: similarityMap.get(p.id) || 0 }))
+      .map((p) => ({ ...p, similarity: Number(similarityMap.get(p.id) || 0) }))
       .sort((a, b) => b.similarity - a.similarity)
   } catch (error) {
     console.error('Vector search component error:', error)

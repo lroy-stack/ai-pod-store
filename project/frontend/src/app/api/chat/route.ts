@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { createClient } from '@supabase/supabase-js'
 import { STORE_DEFAULTS, SHIPPING_RATES, LOCALE_FORMAT } from '@/lib/store-config'
 import { chatLimiter } from '@/lib/rate-limit'
+import { generateDesign } from '@/lib/design-generation'
 
 export const runtime = 'edge'
 export const maxDuration = 60
@@ -1258,38 +1259,28 @@ Be friendly, helpful, and concise.`
       generate_design: tool({
         description: 'Generate a custom AI design for a product (t-shirt, mug, etc.). Call this when user wants to create, design, or generate custom artwork.',
         parameters: z.object({
-          prompt: z.string().describe('Detailed description of the design to generate (e.g., "cute cat wearing sunglasses")'),
+          prompt: z.string().describe('What the design should look like (e.g., "cute cat wearing sunglasses on a beach")'),
           style: z.string().optional().describe('Art style (e.g., "watercolor", "cartoon", "realistic", "minimalist")'),
         }),
         // @ts-expect-error AI SDK 6.0.86 type mismatch — execute works at runtime
-        execute: async (args: { prompt: string; style?: string }) => {
-          const { prompt, style } = args
+        execute: async (args: Record<string, any>) => {
+          // Gemini sometimes sends "design_description" instead of "prompt" — accept both
+          const promptText = args.prompt || args.design_description || 'custom design'
+          const style = args.style as string | undefined
           try {
-            // Call the design generation API
-            const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
-            const response = await fetch(`${baseUrl}/api/designs/generate`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                prompt,
-                style,
-              }),
-            })
+            const result = await generateDesign({ prompt: promptText, style })
 
-            if (!response.ok) {
-              const errorData = await response.json()
+            if (!result.success) {
               return {
                 success: false,
-                error: errorData.error || 'Failed to generate design',
+                error: result.error || 'Failed to generate design',
               }
             }
 
-            const data = await response.json()
-
             return {
               success: true,
-              imageUrl: data.imageUrl,
-              prompt: data.prompt,
+              imageUrl: result.imageUrl,
+              prompt: result.prompt,
               style: style || 'default',
               message: 'Design generated successfully! You can customize it or add it to a product.',
             }
@@ -1301,39 +1292,30 @@ Be friendly, helpful, and concise.`
       }),
 
       customize_design: tool({
-        description: 'Modify an existing design. Call this when user wants to change colors, add elements, modify a design they already generated.',
+        description: 'Modify an existing design. Call this when user wants to change colors, add elements, or modify a design they already generated.',
         parameters: z.object({
-          imageUrl: z.string().describe('URL of the existing design to customize'),
-          modifications: z.string().describe('Description of modifications to make (e.g., "make it blue", "add stars", "remove text")'),
+          original_image_url: z.string().describe('URL of the existing design to customize'),
+          modifications: z.string().describe('What to change (e.g., "make it blue", "add stars", "remove text")'),
         }),
         // @ts-expect-error AI SDK 6.0.86 type mismatch — execute works at runtime
-        execute: async (args: { imageUrl: string; modifications: string }) => {
-          const { imageUrl, modifications } = args
+        execute: async (args: { original_image_url: string; modifications: string }) => {
+          const { original_image_url, modifications } = args
           try {
-            // Call the design customization API
-            const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
-            const response = await fetch(`${baseUrl}/api/designs/customize`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                imageUrl,
-                modifications,
-              }),
-            })
+            // Re-generate with modifications appended to prompt
+            const result = await generateDesign({ prompt: modifications, style: 'customized' })
 
-            if (!response.ok) {
-              const errorData = await response.json()
+            if (!result.success) {
               return {
                 success: false,
-                error: errorData.error || 'Failed to customize design',
+                error: result.error || 'Failed to customize design',
               }
             }
 
-            const data = await response.json()
-
             return {
               success: true,
-              imageUrl: data.imageUrl,
+              imageUrl: result.imageUrl,
+              prompt: modifications,
+              style: 'customized',
               modifications,
               message: 'Design customized successfully!',
             }

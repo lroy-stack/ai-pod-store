@@ -79,6 +79,10 @@ export const artifactRegistry: Record<string, ArtifactRegistryEntry> = {
     Component: DesignPreviewArtifact,
     Skeleton: DesignPreviewSkeleton,
   },
+  customize_design: {
+    Component: DesignPreviewArtifact,
+    Skeleton: DesignPreviewSkeleton,
+  },
 }
 
 /**

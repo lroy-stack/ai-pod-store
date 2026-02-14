@@ -104,7 +104,7 @@ export function ProductDetailArtifact({
             <div>
               <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold">
                 <Info className="h-4 w-4" />
-                Description
+                {t('description')}
               </h3>
               <p className="text-sm text-muted-foreground">{product.description}</p>
             </div>
@@ -139,7 +139,7 @@ export function ProductDetailArtifact({
             {product.materials && (
               <>
                 <div>
-                  <h3 className="mb-2 text-sm font-semibold">Materials</h3>
+                  <h3 className="mb-2 text-sm font-semibold">{t('materials')}</h3>
                   <p className="text-sm text-muted-foreground">{product.materials}</p>
                 </div>
                 <Separator />
@@ -151,7 +151,7 @@ export function ProductDetailArtifact({
               <div>
                 <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold">
                   <Package className="h-4 w-4" />
-                  Shipping
+                  {t('shipping')}
                 </h3>
                 <p className="text-sm text-muted-foreground">{product.shippingInfo}</p>
               </div>
@@ -165,7 +165,7 @@ export function ProductDetailArtifact({
               disabled={!product.available}
             >
               <ShoppingCart className="mr-2 h-4 w-4" />
-              {product.available ? 'Add to Cart' : 'Out of Stock'}
+              {product.available ? t('addToCart') : t('outOfStock')}
             </Button>
             <Button
               variant="outline"

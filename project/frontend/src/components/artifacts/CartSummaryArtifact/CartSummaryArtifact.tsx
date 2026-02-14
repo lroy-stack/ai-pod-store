@@ -55,12 +55,12 @@ export function CartSummaryArtifact({
       <Card>
         <CardContent className="flex flex-col items-center justify-center py-12">
           <ShoppingCart className="h-16 w-16 text-muted-foreground mb-4" />
-          <p className="text-lg font-semibold text-foreground mb-2">Your cart is empty</p>
+          <p className="text-lg font-semibold text-foreground mb-2">{t('emptyCartTitle')}</p>
           <p className="text-sm text-muted-foreground mb-4">
-            Add some products to get started!
+            {t('emptyCartDescription')}
           </p>
           <Button onClick={() => router.push(`/${locale}/shop`)}>
-            Browse Products
+            {t('browseProducts')}
           </Button>
         </CardContent>
       </Card>
@@ -72,7 +72,7 @@ export function CartSummaryArtifact({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <ShoppingCart className="h-5 w-5" />
-          Shopping Cart ({itemCount} {itemCount === 1 ? 'item' : 'items'})
+          {t('shoppingCart')} ({itemCount} {itemCount === 1 ? t('item') : t('items')})
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -102,7 +102,7 @@ export function CartSummaryArtifact({
       <CardFooter className="flex-col gap-4 pt-6">
         {/* Subtotal */}
         <div className="w-full flex items-center justify-between">
-          <span className="text-base font-medium text-foreground">Subtotal</span>
+          <span className="text-base font-medium text-foreground">{t('subtotal')}</span>
           <span className="text-xl font-bold text-foreground">
             {formatPrice(subtotal, locale, currency)}
           </span>
@@ -115,18 +115,18 @@ export function CartSummaryArtifact({
             className="flex-1"
             onClick={() => router.push(`/${locale}/cart`)}
           >
-            View Full Cart
+            {t('viewFullCart')}
           </Button>
           <Button
             className="flex-1"
             onClick={() => router.push(`/${locale}/checkout`)}
           >
-            Proceed to Checkout
+            {t('proceedToCheckout')}
           </Button>
         </div>
 
         <p className="text-xs text-muted-foreground text-center">
-          Shipping and taxes calculated at checkout
+          {t('shippingTaxNote')}
         </p>
       </CardFooter>
     </Card>

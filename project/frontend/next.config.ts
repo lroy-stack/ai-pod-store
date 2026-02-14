@@ -42,6 +42,10 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'fal.media',
       },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
     ],
   },
   async headers() {
@@ -54,7 +58,7 @@ const nextConfig: NextConfig = {
       { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
       {
         key: 'Content-Security-Policy',
-        value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://images.printify.com https://*.supabase.co https://via.placeholder.com https://placehold.co https://*.fal.ai https://fal.media; connect-src 'self' https://*.supabase.co https://generativelanguage.googleapis.com https://*.fal.ai; font-src 'self'; frame-ancestors 'none'",
+        value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://images.printify.com https://*.supabase.co https://via.placeholder.com https://placehold.co https://*.fal.ai https://fal.media https://images.unsplash.com; connect-src 'self' https://*.supabase.co https://generativelanguage.googleapis.com https://*.fal.ai; font-src 'self'; frame-ancestors 'none'",
       },
     ]
     return [

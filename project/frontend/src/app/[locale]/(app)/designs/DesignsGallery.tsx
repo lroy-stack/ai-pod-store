@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Sparkles, Download, Shirt, Loader2 } from 'lucide-react'
 import Link from 'next/link'
+import { useLocale } from 'next-intl'
 
 interface Design {
   id: string
@@ -26,6 +27,7 @@ interface Design {
 
 export function DesignsGallery() {
   const t = useTranslations('designs')
+  const locale = useLocale()
   const [designs, setDesigns] = useState<Design[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -108,7 +110,7 @@ export function DesignsGallery() {
             <p className="text-sm text-muted-foreground mb-6">
               {t('emptyDescription') || 'Start creating AI-generated designs in the chat'}
             </p>
-            <Link href="/en">
+            <Link href={`/${locale}`}>
               <Button className="bg-primary hover:bg-primary/90">
                 <Sparkles className="h-4 w-4 mr-2" />
                 {t('createDesign') || 'Create Your First Design'}

@@ -81,10 +81,10 @@ export function DesignPreviewArtifact({
             </div>
             <div>
               <CardTitle className="text-lg">
-                {t('designPreviewTitle') || 'Your Custom Design'}
+                {t('designPreviewTitle')}
               </CardTitle>
               <p className="text-sm text-muted-foreground mt-0.5">
-                {t('designPreviewSubtitle') || 'AI-generated artwork'}
+                {t('designPreviewSubtitle')}
               </p>
             </div>
           </div>
@@ -109,7 +109,7 @@ export function DesignPreviewArtifact({
             />
           ) : (
             <div className="flex h-full items-center justify-center">
-              <p className="text-sm text-muted-foreground">No image available</p>
+              <p className="text-sm text-muted-foreground">{t('noImageAvailable')}</p>
             </div>
           )}
         </div>
@@ -118,7 +118,7 @@ export function DesignPreviewArtifact({
         {prompt && (
           <div className="space-y-1.5">
             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-              Prompt
+              {t('prompt')}
             </p>
             <p className="text-sm text-foreground leading-relaxed">{prompt}</p>
           </div>
@@ -134,7 +134,7 @@ export function DesignPreviewArtifact({
             disabled={!imageUrl}
           >
             <Download className="h-4 w-4 mr-2" />
-            {t('designPreviewDownload') || 'Download'}
+            {t('designPreviewDownload')}
           </Button>
           <Button
             onClick={handleViewMockup}
@@ -143,7 +143,7 @@ export function DesignPreviewArtifact({
             disabled={!imageUrl || !onViewMockup || generatingMockup}
           >
             <Shirt className="h-4 w-4 mr-2" />
-            {generatingMockup ? 'Generating...' : (t('designPreviewViewMockup') || 'View on Product')}
+            {generatingMockup ? t('generating') : t('designPreviewViewMockup')}
           </Button>
         </div>
         <Button
@@ -152,7 +152,7 @@ export function DesignPreviewArtifact({
           disabled={!imageUrl || !onAddToProduct}
         >
           <ShoppingCart className="h-4 w-4 mr-2" />
-          {t('designPreviewAddToProduct') || 'Add to Product'}
+          {t('designPreviewAddToProduct')}
         </Button>
       </CardFooter>
     </Card>

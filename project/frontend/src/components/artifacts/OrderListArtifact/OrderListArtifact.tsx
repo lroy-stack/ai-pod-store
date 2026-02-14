@@ -14,13 +14,14 @@
  * - Responsive: stacks on mobile
  */
 
-import { Package, Calendar, DollarSign } from 'lucide-react'
+import { Package, Calendar, Banknote } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { useTranslations, useLocale } from 'next-intl'
 import { useRouter } from 'next/navigation'
+import { formatPrice } from '@/lib/currency'
 import { cn } from '@/lib/utils'
 
 export interface OrderItem {
@@ -55,20 +56,13 @@ export function OrderListArtifact({
     })
   }
 
-  const formatPrice = (cents: number, curr: string) => {
-    return new Intl.NumberFormat(locale, {
-      style: 'currency',
-      currency: curr.toUpperCase(),
-    }).format(cents / 100)
-  }
-
   const statusColors: Record<string, string> = {
-    pending: 'bg-yellow-500/10 text-yellow-700 dark:text-yellow-400',
-    paid: 'bg-green-500/10 text-green-700 dark:text-green-400',
-    processing: 'bg-blue-500/10 text-blue-700 dark:text-blue-400',
-    shipped: 'bg-purple-500/10 text-purple-700 dark:text-purple-400',
-    delivered: 'bg-green-500/10 text-green-700 dark:text-green-400',
-    cancelled: 'bg-red-500/10 text-red-700 dark:text-red-400',
+    pending: 'bg-warning/10 text-warning',
+    paid: 'bg-success/10 text-success',
+    processing: 'bg-primary/10 text-primary',
+    shipped: 'bg-accent/10 text-accent-foreground',
+    delivered: 'bg-success/10 text-success',
+    cancelled: 'bg-destructive/10 text-destructive',
   }
 
   if (!orders || orders.length === 0) {
@@ -76,12 +70,12 @@ export function OrderListArtifact({
       <Card>
         <CardContent className="flex flex-col items-center justify-center py-12">
           <Package className="h-16 w-16 text-muted-foreground mb-4" />
-          <p className="text-lg font-semibold text-foreground mb-2">No orders yet</p>
+          <p className="text-lg font-semibold text-foreground mb-2">{t('noOrdersTitle')}</p>
           <p className="text-sm text-muted-foreground mb-4 text-center">
-            You haven't placed any orders yet. Start shopping to see your order history!
+            {t('noOrdersDescription')}
           </p>
           <Button onClick={() => router.push(`/${locale}/shop`)}>
-            Browse Products
+            {t('browseProducts')}
           </Button>
         </CardContent>
       </Card>
@@ -93,7 +87,7 @@ export function OrderListArtifact({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Package className="h-5 w-5" />
-          Order History ({orders.length} {orders.length === 1 ? 'order' : 'orders'})
+          {t('orderHistory')} ({orders.length} {orders.length === 1 ? t('order') : t('orders')})
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -116,9 +110,9 @@ export function OrderListArtifact({
                     <span>{formatDate(order.createdAt)}</span>
                   </div>
                   <div className="flex items-center gap-1">
-                    <DollarSign className="h-4 w-4" />
+                    <Banknote className="h-4 w-4" />
                     <span className="font-medium text-foreground">
-                      {formatPrice(order.totalCents, order.currency)}
+                      {formatPrice(order.totalCents / 100, locale, order.currency)}
                     </span>
                   </div>
                 </div>
@@ -131,19 +125,17 @@ export function OrderListArtifact({
                   size="sm"
                   onClick={() => router.push(`/${locale}/orders/${order.id}`)}
                 >
-                  View Details
+                  {t('viewDetails')}
                 </Button>
                 {order.status !== 'cancelled' && (
                   <Button
                     variant="default"
                     size="sm"
                     onClick={() => {
-                      // Trigger track_order in chat (would need chat context)
-                      // For now, navigate to order details
                       router.push(`/${locale}/orders/${order.id}`)
                     }}
                   >
-                    Track Order
+                    {t('trackOrder')}
                   </Button>
                 )}
               </div>

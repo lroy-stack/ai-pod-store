@@ -48,9 +48,9 @@ export function ApprovalCardArtifact({
             <CreditCard className="h-5 w-5 text-primary" />
           </div>
           <div className="flex-1">
-            <CardTitle className="text-lg">{t('approvalTitle') || 'Confirm Checkout'}</CardTitle>
+            <CardTitle className="text-lg">{t('approvalTitle')}</CardTitle>
             <p className="text-sm text-muted-foreground mt-1">
-              {t('approvalSubtitle') || 'Review your order before proceeding to payment'}
+              {t('approvalSubtitle')}
             </p>
           </div>
         </div>
@@ -62,7 +62,7 @@ export function ApprovalCardArtifact({
           <div className="flex items-center gap-2 text-sm font-medium">
             <ShoppingCart className="h-4 w-4 text-muted-foreground" />
             <span>
-              {itemCount} {itemCount === 1 ? 'item' : 'items'} in cart
+              {t('itemsInCartCount', { count: itemCount })}
             </span>
           </div>
 
@@ -74,7 +74,7 @@ export function ApprovalCardArtifact({
                   <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
                 </div>
                 <p className="font-medium text-foreground">
-                  {formatPrice(item.productPrice * item.quantity, locale)}
+                  {formatPrice(item.productPrice * item.quantity, locale, 'EUR')}
                 </p>
               </div>
             ))}
@@ -83,15 +83,14 @@ export function ApprovalCardArtifact({
           <Separator />
 
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium">Subtotal</span>
-            <span className="text-lg font-bold text-foreground">{formatPrice(subtotal, locale)}</span>
+            <span className="text-sm font-medium">{t('subtotal')}</span>
+            <span className="text-lg font-bold text-foreground">{formatPrice(subtotal, locale, 'EUR')}</span>
           </div>
 
           <div className="flex items-start gap-2 rounded-lg bg-muted/50 p-3">
             <AlertCircle className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
             <p className="text-xs text-muted-foreground">
-              {t('approvalNote') ||
-                'You will be redirected to Stripe to complete your payment. Tax and shipping will be calculated at checkout.'}
+              {t('approvalNote')}
             </p>
           </div>
         </div>
@@ -104,14 +103,14 @@ export function ApprovalCardArtifact({
           className="flex-1"
           disabled={!onDeny}
         >
-          {t('approvalDeny') || 'Cancel'}
+          {t('approvalDeny')}
         </Button>
         <Button
           onClick={onApprove}
           className="flex-1 bg-primary hover:bg-primary/90"
           disabled={!onApprove}
         >
-          {t('approvalApprove') || 'Proceed to Payment'}
+          {t('approvalApprove')}
         </Button>
       </CardFooter>
     </Card>

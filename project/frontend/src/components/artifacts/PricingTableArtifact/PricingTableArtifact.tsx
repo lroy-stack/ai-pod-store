@@ -3,8 +3,7 @@
 import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { useTranslations } from 'next-intl'
-import { useParams } from 'next/navigation'
+import { useTranslations, useLocale } from 'next-intl'
 import { cn } from '@/lib/utils'
 import { Check } from 'lucide-react'
 import { formatPrice } from '@/lib/currency'
@@ -30,8 +29,7 @@ export function PricingTableArtifact({
   message,
 }: PricingTableArtifactProps) {
   const t = useTranslations('Cart')
-  const params = useParams()
-  const locale = (params?.locale as string) || 'en'
+  const locale = useLocale()
 
   if (options.length === 0) {
     return (
@@ -91,10 +89,10 @@ export function PricingTableArtifact({
       {freeShippingThreshold && (
         <CardFooter className="flex-col items-start gap-2 border-t border-border pt-4">
           <div className="flex items-center gap-2 text-sm">
-            <Check className="h-4 w-4 text-green-600" />
+            <Check className="h-4 w-4 text-success" />
             <span className="text-muted-foreground">
               {t('freeShippingOver', { fallback: 'Free shipping on orders over' })}{' '}
-              <span className="font-semibold text-foreground">€{freeShippingThreshold}</span>
+              <span className="font-semibold text-foreground">{formatPrice(freeShippingThreshold, locale, 'EUR')}</span>
             </span>
           </div>
         </CardFooter>

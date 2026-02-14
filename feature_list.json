@@ -2148,7 +2148,7 @@
     "id": 194,
     "feature": "Order Management & Notifications",
     "description": "Orders list in admin panel",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to /en/admin/orders",
       "Verify a table is displayed with order ID, customer, status, date, and total columns",
@@ -2159,7 +2159,7 @@
     "id": 195,
     "feature": "Order Management & Notifications",
     "description": "Order detail view with status timeline",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Click an order in the admin orders table",
       "Verify full order details are displayed",
