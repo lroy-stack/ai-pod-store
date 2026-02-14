@@ -1500,7 +1500,7 @@
     "id": 136,
     "feature": "Conversational Storefront / Chat",
     "description": "Conversation history displays correctly",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Send multiple messages in a conversation",
       "Verify user messages are right-aligned",
