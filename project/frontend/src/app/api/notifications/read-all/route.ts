@@ -4,10 +4,9 @@ import { supabaseAdmin } from '@/lib/supabase-admin'
 export const dynamic = 'force-dynamic'
 
 /**
- * PATCH /api/notifications/read-all
- * Marks all notifications as read for the authenticated user
+ * Shared handler for marking all notifications as read
  */
-export async function PATCH(request: NextRequest) {
+async function markAllAsRead(request: NextRequest) {
   try {
     // Get user from session token
     const token = request.cookies.get('sb-access-token')?.value
@@ -43,7 +42,23 @@ export async function PATCH(request: NextRequest) {
       count: data?.length || 0
     })
   } catch (error) {
-    console.error('Unexpected error in PATCH /api/notifications/read-all:', error)
+    console.error('Unexpected error in marking all notifications as read:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
+}
+
+/**
+ * PATCH /api/notifications/read-all
+ * Marks all notifications as read for the authenticated user
+ */
+export async function PATCH(request: NextRequest) {
+  return markAllAsRead(request)
+}
+
+/**
+ * PUT /api/notifications/read-all
+ * Marks all notifications as read (alias for PATCH)
+ */
+export async function PUT(request: NextRequest) {
+  return markAllAsRead(request)
 }

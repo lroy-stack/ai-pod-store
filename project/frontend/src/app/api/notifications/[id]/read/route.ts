@@ -4,10 +4,9 @@ import { supabaseAdmin } from '@/lib/supabase-admin'
 export const dynamic = 'force-dynamic'
 
 /**
- * PATCH /api/notifications/[id]/read
- * Marks a notification as read
+ * Shared handler for marking a notification as read
  */
-export async function PATCH(
+async function markAsRead(
   request: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
@@ -50,7 +49,29 @@ export async function PATCH(
 
     return NextResponse.json({ notification: data })
   } catch (error) {
-    console.error('Unexpected error in PATCH /api/notifications/[id]/read:', error)
+    console.error('Unexpected error in marking notification as read:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
+}
+
+/**
+ * PATCH /api/notifications/[id]/read
+ * Marks a notification as read
+ */
+export async function PATCH(
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
+  return markAsRead(request, context)
+}
+
+/**
+ * PUT /api/notifications/[id]/read
+ * Marks a notification as read (alias for PATCH)
+ */
+export async function PUT(
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
+  return markAsRead(request, context)
 }
