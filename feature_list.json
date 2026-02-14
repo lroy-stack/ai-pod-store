@@ -1879,7 +1879,7 @@
     "id": 169,
     "feature": "RAG Pipeline",
     "description": "Document indexing endpoint works (POST /api/rag/index)",
-    "passes": false,
+    "passes": true,
     "steps": [
       "POST a new document to /api/rag/index",
       "Verify the document is stored in the documents table",
