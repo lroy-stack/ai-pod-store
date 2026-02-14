@@ -84,6 +84,7 @@ TOOLS AVAILABLE:
 - add_to_wishlist: Add a product to the user's wishlist (requires login)
 - get_store_policies: Get store policies (shipping, returns, privacy, terms)
 - switch_language: Switch UI language (en, es, de)
+- analyze_image: Analyze an uploaded image (only call when user uploads an image)
 
 WHEN TO USE EACH TOOL:
 1. User asks to "browse", "search", "show me", "find" products → call product_search
@@ -101,6 +102,7 @@ WHEN TO USE EACH TOOL:
 13. User says "add to wishlist", "save for later", "wishlist this" → call add_to_wishlist with product ID
 14. User asks "what's your shipping policy", "return policy", "refund policy", "privacy policy" → call get_store_policies
 15. User says "switch to Spanish", "habla español", "change to German" → call switch_language with locale
+16. User uploads an image → call analyze_image with description of what you see
 
 EXAMPLES:
 - "show me cat t-shirts" → product_search(query="cat t-shirt")
@@ -120,8 +122,12 @@ EXAMPLES:
 - "add to wishlist" (after showing a product) → add_to_wishlist(product_id="<id from context>")
 - "what's your return policy?" → get_store_policies()
 - "switch to Spanish" → switch_language(locale="es")
+- [user uploads image of a cat] → analyze_image(description="A cute orange cat sitting on a windowsill")
 
-IMPORTANT: get_product_detail works with product names directly - you don't need to search first!
+IMPORTANT:
+- get_product_detail works with product names directly - you don't need to search first!
+- You have VISION capabilities - when user uploads an image, you can see it directly
+- Call analyze_image tool ONLY when user has uploaded an image to provide structured analysis
 
 Be friendly, helpful, and concise.`
 
@@ -1277,6 +1283,30 @@ Be friendly, helpful, and concise.`
             message: `Language switched to ${locale === 'en' ? 'English' : locale === 'es' ? 'Spanish' : 'German'}`,
             action: 'redirect',
             redirectUrl: `/${locale}`,
+          }
+        },
+      }),
+
+      analyze_image: tool({
+        description: 'Analyze an uploaded image to identify products, colors, themes, or design ideas. Call this ONLY when the user has uploaded an image. Use the analysis to suggest matching products or design ideas.',
+        parameters: z.object({
+          description: z.string().describe('Brief description of what you see in the image based on your vision capabilities'),
+        }),
+        // @ts-expect-error AI SDK 6.0.86 type mismatch — execute works at runtime
+        execute: async (args: { description: string }) => {
+          const { description } = args
+
+          // The AI already has vision capabilities and can see the image
+          // This tool just provides a structured way to return the analysis
+          return {
+            success: true,
+            analysis: description,
+            message: 'Image analyzed successfully',
+            suggestions: [
+              'I can help you find similar products in our catalog',
+              'I can create a custom design inspired by this image',
+              'I can suggest products that match the colors or theme',
+            ],
           }
         },
       }),
