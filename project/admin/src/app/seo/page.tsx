@@ -19,17 +19,17 @@ interface MetaTags {
 
 const defaultMetaTags: MetaTags = {
   en: {
-    title: 'Insomnialz - Custom Print on Demand',
+    title: 'POD AI - Custom Print on Demand',
     description: 'Create custom designs and order high-quality print-on-demand products.',
     keywords: 'print on demand, custom designs, t-shirts, AI designs',
   },
   es: {
-    title: 'Insomnialz - Impresión bajo demanda personalizada',
+    title: 'POD AI - Impresión bajo demanda personalizada',
     description: 'Crea diseños personalizados y ordena productos de impresión bajo demanda de alta calidad.',
     keywords: 'impresión bajo demanda, diseños personalizados, camisetas, diseños AI',
   },
   de: {
-    title: 'Insomnialz - Benutzerdefinierter Print-on-Demand',
+    title: 'POD AI - Benutzerdefinierter Print-on-Demand',
     description: 'Erstellen Sie individuelle Designs und bestellen Sie hochwertige Print-on-Demand-Produkte.',
     keywords: 'Print-on-Demand, individuelle Designs, T-Shirts, KI-Designs',
   },
@@ -92,10 +92,18 @@ export default function SEOPage() {
   const handleGenerateSitemap = async () => {
     setGenerating(true)
     try {
-      // Simulate sitemap generation
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-      toast.success('Sitemap generated successfully')
+      const response = await fetch('/api/admin/sitemap', {
+        method: 'POST',
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to generate sitemap')
+      }
+
+      const data = await response.json()
+      toast.success(`Sitemap generated successfully (${data.productCount} products)`)
     } catch (err) {
+      console.error('Error generating sitemap:', err)
       toast.error('Failed to generate sitemap')
     } finally {
       setGenerating(false)
@@ -292,10 +300,10 @@ export default function SEOPage() {
             <div className="rounded-lg bg-muted/50 p-4">
               <p className="text-sm font-medium mb-2">Example Implementation:</p>
               <pre className="text-xs overflow-x-auto">
-{`<link rel="alternate" hreflang="en" href="https://insomnialz.com/en/products" />
-<link rel="alternate" hreflang="es" href="https://insomnialz.com/es/products" />
-<link rel="alternate" hreflang="de" href="https://insomnialz.com/de/products" />
-<link rel="alternate" hreflang="x-default" href="https://insomnialz.com/en/products" />`}
+{`<link rel="alternate" hreflang="en" href="https://podai.com/en/products" />
+<link rel="alternate" hreflang="es" href="https://podai.com/es/products" />
+<link rel="alternate" hreflang="de" href="https://podai.com/de/products" />
+<link rel="alternate" hreflang="x-default" href="https://podai.com/en/products" />`}
               </pre>
             </div>
           </div>
@@ -332,15 +340,15 @@ export default function SEOPage() {
                   <Badge variant="outline">Main</Badge>
                 </div>
                 <div className="flex items-center justify-between rounded-lg bg-muted/50 p-3">
-                  <code className="text-xs">/en/sitemap.xml</code>
+                  <code className="text-xs">/sitemap-en.xml</code>
                   <Badge variant="outline">EN</Badge>
                 </div>
                 <div className="flex items-center justify-between rounded-lg bg-muted/50 p-3">
-                  <code className="text-xs">/es/sitemap.xml</code>
+                  <code className="text-xs">/sitemap-es.xml</code>
                   <Badge variant="outline">ES</Badge>
                 </div>
                 <div className="flex items-center justify-between rounded-lg bg-muted/50 p-3">
-                  <code className="text-xs">/de/sitemap.xml</code>
+                  <code className="text-xs">/sitemap-de.xml</code>
                   <Badge variant="outline">DE</Badge>
                 </div>
               </div>

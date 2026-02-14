@@ -2665,7 +2665,7 @@
     "id": 241,
     "feature": "Admin",
     "description": "Sitemap generation works per locale",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Trigger sitemap generation in admin",
       "Verify /sitemap-en.xml exists with correct /en/ URLs",
@@ -5372,6 +5372,422 @@
       "Send POST to /api/designs/generate with a cookie",
       "Verify request is rejected (401 or 500, not allowed through)",
       "Verify the error message does not leak internal details"
+    ]
+  },
+  {
+    "id": 486,
+    "feature": "Guest Wishlist \u2014 localStorage Storage",
+    "description": "Anonymous users can add items to wishlist stored in localStorage key 'pod-guest-wishlist'",
+    "passes": false,
+    "steps": [
+      "Open store without logging in",
+      "Click heart icon on a product",
+      "Verify item appears in localStorage under 'pod-guest-wishlist'",
+      "Reload page and verify wishlist persists"
+    ]
+  },
+  {
+    "id": 487,
+    "feature": "Guest Wishlist \u2014 Max 50 Items",
+    "description": "Guest wishlist is capped at 50 items to prevent localStorage abuse",
+    "passes": false,
+    "steps": [
+      "As guest, add 50 items to wishlist",
+      "Try adding 51st item",
+      "Verify error toast is shown",
+      "Verify localStorage still has exactly 50 items"
+    ]
+  },
+  {
+    "id": 488,
+    "feature": "Guest Wishlist \u2014 Sync on Login",
+    "description": "Guest wishlist items merge to server wishlist when user logs in",
+    "passes": false,
+    "steps": [
+      "As guest, add 3 items to wishlist",
+      "Log in with existing account",
+      "Verify all 3 items appear in server wishlist",
+      "Verify localStorage 'pod-guest-wishlist' is cleared"
+    ]
+  },
+  {
+    "id": 489,
+    "feature": "Guest Wishlist \u2014 POST /api/wishlist/sync",
+    "description": "API endpoint merges guest wishlist items to authenticated user's server wishlist",
+    "passes": false,
+    "steps": [
+      "POST /api/wishlist/sync with items array",
+      "Verify items are upserted (no duplicates)",
+      "Verify response includes merged wishlist",
+      "Verify requires authentication (401 without token)"
+    ]
+  },
+  {
+    "id": 490,
+    "feature": "Guest Wishlist \u2014 Guest Hint UI",
+    "description": "Sidebar shows 'Sign in to save favorites' hint for guests with wishlist items",
+    "passes": false,
+    "steps": [
+      "As guest with wishlist items, check sidebar",
+      "Verify hint text is visible",
+      "Click hint and verify navigation to register page"
+    ]
+  },
+  {
+    "id": 491,
+    "feature": "Engagement \u2014 AuthWallModal",
+    "description": "Modal prompts anonymous users to sign up when hitting chat limit or trying design generation",
+    "passes": false,
+    "steps": [
+      "As anonymous, send 10 chat messages",
+      "Send 11th message",
+      "Verify AuthWallModal appears with signup benefits",
+      "Verify 'Continue as guest' closes modal"
+    ]
+  },
+  {
+    "id": 492,
+    "feature": "Engagement \u2014 UpgradeModal",
+    "description": "Modal prompts free users to upgrade when hitting design/chat daily limit",
+    "passes": false,
+    "steps": [
+      "As free user, generate 3 designs",
+      "Try 4th design generation",
+      "Verify UpgradeModal appears with tier comparison",
+      "Verify 'Upgrade Now' redirects to Stripe checkout"
+    ]
+  },
+  {
+    "id": 493,
+    "feature": "Engagement \u2014 UsageMeter",
+    "description": "Sidebar widget showing today's usage bars for chats and designs",
+    "passes": false,
+    "steps": [
+      "Log in as registered user",
+      "Verify UsageMeter appears in sidebar",
+      "Send a chat message and verify counter updates",
+      "Verify progress bar color changes at 80% usage"
+    ]
+  },
+  {
+    "id": 494,
+    "feature": "Engagement \u2014 SignupBanner",
+    "description": "Subtle banner in chat area for guests who used 50%+ of daily limit",
+    "passes": false,
+    "steps": [
+      "As anonymous, send 5 chat messages (50% of 10)",
+      "Verify SignupBanner appears above input",
+      "Verify banner shows correct usage count",
+      "Click 'Create Account' and verify navigation"
+    ]
+  },
+  {
+    "id": 495,
+    "feature": "Engagement \u2014 GET /api/usage/status",
+    "description": "API returns current tier, usage counters, credit balance, and subscription info",
+    "passes": false,
+    "steps": [
+      "GET /api/usage/status as anonymous",
+      "Verify response includes tier='anonymous' and usage counters",
+      "GET /api/usage/status as authenticated user",
+      "Verify response includes credits and subscription info"
+    ]
+  },
+  {
+    "id": 496,
+    "feature": "Engagement \u2014 useEngagement Hook",
+    "description": "Hook provides checkAction() that gates actions and shows appropriate modals",
+    "passes": false,
+    "steps": [
+      "Call checkAction('design:generate') as anonymous",
+      "Verify it returns false and shows AuthWallModal",
+      "Call checkAction('chat') as free user at limit",
+      "Verify it returns false and shows UpgradeModal"
+    ]
+  },
+  {
+    "id": 497,
+    "feature": "Engagement \u2014 Chat Rate Limit Per Tier",
+    "description": "Chat endpoint enforces daily limits: 10 anonymous, 50 free, 500 premium",
+    "passes": false,
+    "steps": [
+      "Send 10 messages as anonymous",
+      "Verify 11th returns 429 with LIMIT_REACHED code",
+      "Log in as free user and verify 50 message limit",
+      "Verify response includes X-RateLimit-* headers"
+    ]
+  },
+  {
+    "id": 498,
+    "feature": "Engagement \u2014 Design Auth Required",
+    "description": "Design generation endpoint requires authentication and enforces daily limits",
+    "passes": false,
+    "steps": [
+      "POST /api/designs/generate without auth token",
+      "Verify 401 response",
+      "POST as free user and verify usage tracking",
+      "Verify 4th design returns 429 with usage info"
+    ]
+  },
+  {
+    "id": 499,
+    "feature": "Web Push \u2014 Service Worker",
+    "description": "Service worker at /sw.js handles push events and notification clicks",
+    "passes": false,
+    "steps": [
+      "Navigate to /sw.js and verify it loads",
+      "Verify push event handler shows notification",
+      "Verify notificationclick handler opens URL"
+    ]
+  },
+  {
+    "id": 500,
+    "feature": "Web Push \u2014 POST /api/push/subscribe",
+    "description": "API stores Web Push subscription for authenticated user",
+    "passes": false,
+    "steps": [
+      "POST /api/push/subscribe with endpoint and keys",
+      "Verify subscription stored in push_subscriptions table",
+      "Verify upsert on duplicate endpoint",
+      "Verify 401 without authentication"
+    ]
+  },
+  {
+    "id": 501,
+    "feature": "Web Push \u2014 POST /api/push/send",
+    "description": "Admin API sends push notification to specific user",
+    "passes": false,
+    "steps": [
+      "POST /api/push/send with user_id, title, body",
+      "Verify notification sent via web-push",
+      "Verify expired subscriptions are cleaned up",
+      "Verify 403 without admin role"
+    ]
+  },
+  {
+    "id": 502,
+    "feature": "Web Push \u2014 usePushNotifications Hook",
+    "description": "Hook manages permission request and subscription state",
+    "passes": false,
+    "steps": [
+      "Call requestPermission() and verify browser prompt",
+      "On grant, verify service worker registered",
+      "Verify subscription sent to /api/push/subscribe",
+      "Verify subscribed state updated"
+    ]
+  },
+  {
+    "id": 503,
+    "feature": "Web Push \u2014 PushPermissionPrompt",
+    "description": "Dialog prompts user to enable notifications after login or purchase",
+    "passes": false,
+    "steps": [
+      "Log in for first time",
+      "Verify PushPermissionPrompt dialog appears",
+      "Click 'Enable Notifications'",
+      "Verify 'Not now' dismisses dialog"
+    ]
+  },
+  {
+    "id": 504,
+    "feature": "Web Push \u2014 VAPID Configuration",
+    "description": "VAPID keys configured in environment variables for push authentication",
+    "passes": false,
+    "steps": [
+      "Verify NEXT_PUBLIC_VAPID_PUBLIC_KEY is set",
+      "Verify VAPID_PRIVATE_KEY is set",
+      "Verify VAPID_SUBJECT is set",
+      "Verify web-push uses these keys"
+    ]
+  },
+  {
+    "id": 505,
+    "feature": "Web Push \u2014 push_subscriptions Table",
+    "description": "Database table stores push subscriptions with user_id and VAPID keys",
+    "passes": false,
+    "steps": [
+      "Run migration 20260214180000_user_usage_tracking.sql",
+      "Verify push_subscriptions table created",
+      "Verify unique constraint on endpoint",
+      "Verify index on user_id"
+    ]
+  },
+  {
+    "id": 506,
+    "feature": "Monetization \u2014 POST /api/subscription/create",
+    "description": "Creates Stripe Checkout session for premium subscription at \u20ac9.99/mo",
+    "passes": false,
+    "steps": [
+      "POST /api/subscription/create as authenticated user",
+      "Verify Stripe Checkout session created in subscription mode",
+      "Verify checkout URL returned",
+      "Verify 401 without authentication"
+    ]
+  },
+  {
+    "id": 507,
+    "feature": "Monetization \u2014 POST /api/credits/purchase",
+    "description": "Creates Stripe Checkout session for credit pack purchase",
+    "passes": false,
+    "steps": [
+      "POST /api/credits/purchase with pack='small'",
+      "Verify Stripe session created for \u20ac4.99",
+      "POST with pack='medium' and verify \u20ac14.99",
+      "POST with pack='large' and verify \u20ac39.99"
+    ]
+  },
+  {
+    "id": 508,
+    "feature": "Monetization \u2014 Subscription Webhook Handler",
+    "description": "Stripe webhook handles subscription created/updated/deleted events",
+    "passes": false,
+    "steps": [
+      "Simulate customer.subscription.created webhook",
+      "Verify user tier updated to 'premium'",
+      "Verify 10 bonus credits added",
+      "Simulate customer.subscription.deleted and verify tier='free'"
+    ]
+  },
+  {
+    "id": 509,
+    "feature": "Monetization \u2014 Credit Pack Webhook Handler",
+    "description": "Stripe webhook handles credit pack purchase completion",
+    "passes": false,
+    "steps": [
+      "Simulate checkout.session.completed with credit_pack metadata",
+      "Verify credit_balance increased by pack amount",
+      "Verify credit_transactions log entry created",
+      "Verify balance_after is correct"
+    ]
+  },
+  {
+    "id": 510,
+    "feature": "Monetization \u2014 Credit Consumption",
+    "description": "Premium users can use credits after daily limit exceeded",
+    "passes": false,
+    "steps": [
+      "As premium user, exhaust daily design limit",
+      "Try another design with credits available",
+      "Verify design succeeds using credit",
+      "Verify credit_balance decremented by 1"
+    ]
+  },
+  {
+    "id": 511,
+    "feature": "Monetization \u2014 Pricing Page",
+    "description": "Pricing page at /[locale]/pricing shows tier comparison and credit packs",
+    "passes": false,
+    "steps": [
+      "Navigate to /en/pricing",
+      "Verify Free and Premium tiers displayed",
+      "Verify credit pack options displayed",
+      "Verify upgrade button links to Stripe checkout"
+    ]
+  },
+  {
+    "id": 512,
+    "feature": "Monetization \u2014 Users Table Columns",
+    "description": "Users table has tier, credit_balance, stripe_customer_id, subscription columns",
+    "passes": false,
+    "steps": [
+      "Run migration",
+      "Verify tier column with CHECK constraint",
+      "Verify credit_balance defaults to 0",
+      "Verify stripe_customer_id and subscription_status columns"
+    ]
+  },
+  {
+    "id": 513,
+    "feature": "Monetization \u2014 user_usage Table",
+    "description": "Usage tracking table with atomic increment function",
+    "passes": false,
+    "steps": [
+      "Run migration",
+      "Verify user_usage table with UNIQUE constraint",
+      "Call increment_usage RPC",
+      "Verify atomic increment and rollback on over-limit"
+    ]
+  },
+  {
+    "id": 514,
+    "feature": "Monetization \u2014 credit_transactions Table",
+    "description": "Credit transaction log tracks all additions and deductions",
+    "passes": false,
+    "steps": [
+      "Run migration",
+      "Verify credit_transactions table created",
+      "Insert purchase transaction",
+      "Verify balance_after reflects correct balance"
+    ]
+  },
+  {
+    "id": 515,
+    "feature": "Monetization \u2014 Stripe Customer Management",
+    "description": "Subscription and credit endpoints create/reuse Stripe customer",
+    "passes": false,
+    "steps": [
+      "Create subscription for user without stripe_customer_id",
+      "Verify Stripe customer created and ID stored",
+      "Create another checkout for same user",
+      "Verify existing customer ID reused"
+    ]
+  },
+  {
+    "id": 516,
+    "feature": "Integration \u2014 Auth Guard Module",
+    "description": "Centralized auth-guard.ts used across all protected endpoints",
+    "passes": false,
+    "steps": [
+      "Verify auth-guard.ts exports getAuthUser, requireAuth, requireAdmin",
+      "Verify orders endpoint uses requireAuth",
+      "Verify admin endpoints use requireAdmin",
+      "Verify AuthError class with status and code"
+    ]
+  },
+  {
+    "id": 517,
+    "feature": "Integration \u2014 Usage Limiter Module",
+    "description": "Centralized usage-limiter.ts with Redis primary and Supabase fallback",
+    "passes": false,
+    "steps": [
+      "Verify USAGE_TIERS constant with all tiers",
+      "Verify Redis primary storage with EXPIRE",
+      "Verify Supabase RPC fallback",
+      "Verify fail-open when both stores unavailable"
+    ]
+  },
+  {
+    "id": 518,
+    "feature": "Integration \u2014 Guest Cart Unblocked",
+    "description": "Cart and checkout remain fully functional for anonymous users",
+    "passes": false,
+    "steps": [
+      "As anonymous, add product to cart",
+      "Proceed to checkout",
+      "Verify Stripe session created",
+      "Verify no auth required for cart operations"
+    ]
+  },
+  {
+    "id": 519,
+    "feature": "Integration \u2014 Harness Phase 16 Spec",
+    "description": "app_spec.txt includes Phase 16 with all engagement features specified",
+    "passes": false,
+    "steps": [
+      "Read app_spec.txt",
+      "Verify phase_16 section exists",
+      "Verify guest wishlist, engagement UI, web push, monetization specified"
+    ]
+  },
+  {
+    "id": 520,
+    "feature": "Integration \u2014 Feature List Updated",
+    "description": "feature_list.json includes IDs 486-520 for Phase 16 features",
+    "passes": false,
+    "steps": [
+      "Read feature_list.json",
+      "Verify features 486-520 exist",
+      "Verify all features have steps and descriptions"
     ]
   }
 ]
