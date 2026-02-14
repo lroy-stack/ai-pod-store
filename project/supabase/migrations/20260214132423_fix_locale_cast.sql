@@ -1,5 +1,7 @@
--- Create vector similarity search function for documents
-CREATE OR REPLACE FUNCTION search_documents(
+-- Fix locale column cast in search_documents function
+DROP FUNCTION IF EXISTS search_documents(vector(768), int, text);
+
+CREATE FUNCTION search_documents(
   query_embedding vector(768),
   match_count int DEFAULT 10,
   filter_locale text DEFAULT NULL
@@ -8,9 +10,9 @@ RETURNS TABLE (
   id uuid,
   content text,
   metadata jsonb,
-  source_type text,
-  source_id uuid,
-  locale text,
+  source_type varchar(50),
+  source_id varchar(255),
+  locale char(5),
   similarity float
 )
 LANGUAGE plpgsql
@@ -21,9 +23,9 @@ BEGIN
     d.id,
     d.content,
     d.metadata,
-    d.source_type::text,
+    d.source_type,
     d.source_id,
-    d.locale::text,
+    d.locale::char(5),
     (1 - (d.embedding <=> query_embedding))::float AS similarity
   FROM documents d
   WHERE

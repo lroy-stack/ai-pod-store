@@ -1,4 +1,4 @@
--- Create vector similarity search function for documents
+-- Fix search_documents function return types to match actual column types
 CREATE OR REPLACE FUNCTION search_documents(
   query_embedding vector(768),
   match_count int DEFAULT 10,

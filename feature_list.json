@@ -1868,7 +1868,7 @@
     "id": 168,
     "feature": "RAG Pipeline",
     "description": "Search API endpoint works (POST /api/rag/search)",
-    "passes": false,
+    "passes": true,
     "steps": [
       "POST a search query to /api/rag/search",
       "Verify the response contains a results array",
