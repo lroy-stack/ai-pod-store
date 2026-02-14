@@ -107,6 +107,27 @@ export default function WishlistPage() {
     }
   };
 
+  const addAllToCart = async (wishlistItems: WishlistItem[]) => {
+    try {
+      // Add each item to cart sequentially
+      for (const item of wishlistItems) {
+        await fetch('/api/cart', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            product_id: item.products.id,
+            variant_id: item.variant_id,
+            quantity: 1,
+          }),
+        });
+      }
+      // Optionally show success toast
+      console.log(`Added ${wishlistItems.length} items to cart`);
+    } catch (error) {
+      console.error('Error adding all items to cart:', error);
+    }
+  };
+
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -178,7 +199,12 @@ export default function WishlistPage() {
                       <Share2 className="h-4 w-4 mr-2" />
                       {t('wishlist.share', { default: 'Share' })}
                     </Button>
-                    <Button variant="outline" size="sm">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => addAllToCart(wishlist.wishlist_items)}
+                      disabled={wishlist.wishlist_items.length === 0}
+                    >
                       <ShoppingCart className="h-4 w-4 mr-2" />
                       {t('wishlist.addAllToCart', { default: 'Add All to Cart' })}
                     </Button>
