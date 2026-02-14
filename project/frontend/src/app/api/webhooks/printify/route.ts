@@ -177,22 +177,36 @@ async function handleOrderShipped(resource: Record<string, unknown>) {
     }
   }
 
-  // Send email notification
-  if (order.customer_email) {
-    const emailResult = await sendOrderShippedEmail({
-      to: order.customer_email,
-      orderId: orderDisplayId,
-      trackingNumber: shipment?.number,
-      trackingUrl: shipment?.url,
-      carrier: shipment?.carrier,
-      locale: order.locale || 'en',
-    })
+  // Send email notification (check user preferences first)
+  if (order.customer_email && order.user_id) {
+    // Fetch user's notification preferences
+    const { data: userData } = await supabase
+      .from('users')
+      .select('notification_preferences')
+      .eq('id', order.user_id)
+      .single()
 
-    if (emailResult.success) {
-      console.log('Order shipped email sent to:', order.customer_email)
+    const preferences = userData?.notification_preferences || { email: true }
+    const emailEnabled = preferences.email !== false
+
+    if (emailEnabled) {
+      const emailResult = await sendOrderShippedEmail({
+        to: order.customer_email,
+        orderId: orderDisplayId,
+        trackingNumber: shipment?.number,
+        trackingUrl: shipment?.url,
+        carrier: shipment?.carrier,
+        locale: order.locale || 'en',
+      })
+
+      if (emailResult.success) {
+        console.log('Order shipped email sent to:', order.customer_email)
+      } else {
+        console.error('Failed to send order shipped email:', emailResult.error)
+        // Don't throw — email is not critical
+      }
     } else {
-      console.error('Failed to send order shipped email:', emailResult.error)
-      // Don't throw — email is not critical
+      console.log('Email notification skipped (user preference disabled):', order.customer_email)
     }
   }
 
