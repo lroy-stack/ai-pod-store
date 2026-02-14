@@ -9,8 +9,8 @@ Daily Cycle (UTC):
   06:00 — RESEARCHER       → Finds trends & opportunities
   07:00 — DESIGNER         → Generates designs based on trends
   08:00 — CATALOGER #1     → Creates products with new designs
-  09:00 — MARKETING (AM)   → Promotes new products
-  10:00 — NEWSLETTER (AM)  → Email campaigns
+  07:00 — MARKETING (AM)   → Promotes new products
+  09:00 — NEWSLETTER (AM)  → Email campaigns
   12:00 — CUSTOMER MANAGER #1
   14:00 — CATALOGER #2     → Sync & update existing products
   15:00 — MARKETING (PM)   → Afternoon social push
@@ -42,8 +42,8 @@ DEFAULT_SCHEDULE = {
     "researcher": {"schedule": "0 6 * * *", "description": "Daily trend research", "model": "haiku", "enabled": True},
     "designer": {"schedule": "0 7 * * *", "description": "Generate designs based on trends", "model": "sonnet", "enabled": True},
     "cataloger": {"schedule": "0 8,14,18 * * *", "description": "Create and update products (3x daily)", "model": "sonnet", "enabled": True},
-    "marketing": {"schedule": "0 9,15 * * *", "description": "Social media campaigns (2x daily)", "model": "sonnet", "enabled": True},
-    "newsletter": {"schedule": "0 10,17 * * *", "description": "Email campaigns (2x daily)", "model": "sonnet", "enabled": True},
+    "marketing": {"schedule": "0 7,15 * * *", "description": "Social media campaigns (2x daily)", "model": "sonnet", "enabled": True},
+    "newsletter": {"schedule": "0 9,17 * * *", "description": "Email campaigns (2x daily)", "model": "sonnet", "enabled": True},
     "customer_manager": {"schedule": "0 12,22 * * *", "description": "Customer support (2x daily)", "model": "sonnet", "enabled": True},
     "seo_manager": {"schedule": "0 16 * * 0", "description": "SEO optimization (weekly, Sunday)", "model": "haiku", "enabled": True},
     "finance": {"schedule": "0 23 * * *", "description": "Daily financial reconciliation", "model": "sonnet", "enabled": True},

@@ -18,13 +18,13 @@
     "enabled": true
   },
   "marketing": {
-    "schedule": "0 9,15 * * *",
+    "schedule": "0 7,15 * * *",
     "description": "Social media campaigns (2x daily)",
     "model": "sonnet",
     "enabled": true
   },
   "newsletter": {
-    "schedule": "0 10,17 * * *",
+    "schedule": "0 9,17 * * *",
     "description": "Email campaigns (2x daily)",
     "model": "sonnet",
     "enabled": true

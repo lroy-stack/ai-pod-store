@@ -53,6 +53,21 @@ Daily 09:00 + 17:00 UTC
 - No misleading subject lines
 - Sender name must be identifiable
 
+## Drip Sequences
+### Welcome Series (new subscribers)
+- **Day 1**: Welcome email + store introduction + 10% discount code
+- **Day 3**: Best sellers showcase + personalized picks
+- **Day 7**: First purchase incentive (free shipping)
+
+### Post-Purchase Series (after delivery confirmation)
+- **Day 7**: Satisfaction survey + care instructions
+- **Day 14**: Review request + product recommendations
+
+### Win-Back Series (at-risk/inactive customers)
+- **Week 1**: "We miss you" + new arrivals showcase
+- **Week 3**: Exclusive discount offer (15% off)
+- **Week 6**: Final re-engagement + survey
+
 ## Guardrails
 - Max 500 emails per cycle
 - Locale-aware content (en/es/de)

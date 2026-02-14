@@ -2907,7 +2907,7 @@
     "id": 263,
     "feature": "PodClaw Agent",
     "description": "Agent API: sessions list + events",
-    "passes": false,
+    "passes": true,
     "steps": [
       "GET /api/agent/sessions and verify paginated list returned",
       "GET /api/agent/sessions/:id/events and verify event array returned"

@@ -11,21 +11,19 @@ export async function GET(request: NextRequest) {
     const agent = searchParams.get('agent')
     const limit = parseInt(searchParams.get('limit') || '20')
 
-    if (!agent) {
-      return NextResponse.json(
-        { error: 'Missing agent parameter' },
-        { status: 400 }
-      )
-    }
-
-    // Note: The agent_sessions table currently uses session_type for agent type
-    // We'll query by session_type matching the agent name
-    const { data: sessions, error } = await supabase
+    // Build query conditionally based on agent parameter
+    let query = supabase
       .from('agent_sessions')
       .select('*')
-      .eq('session_type', agent)
       .order('started_at', { ascending: false })
       .limit(limit)
+
+    // Only filter by agent if parameter is provided
+    if (agent) {
+      query = query.eq('session_type', agent)
+    }
+
+    const { data: sessions, error } = await query
 
     if (error) {
       console.error('Supabase error fetching sessions:', error)

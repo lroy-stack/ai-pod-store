@@ -121,6 +121,41 @@ WHATSAPP_ACCESS_TOKEN = os.environ.get("WHATSAPP_ACCESS_TOKEN", "")
 WHATSAPP_PHONE_NUMBER_ID = os.environ.get("WHATSAPP_PHONE_NUMBER_ID", "")
 
 # ---------------------------------------------------------------------------
+# Drip Sequences (Feature 377, 386)
+# ---------------------------------------------------------------------------
+DRIP_SEQUENCES: dict[str, list[dict]] = {
+    "welcome": [
+        {"step": 1, "delay_days": 1, "subject": "Welcome to POD AI!"},
+        {"step": 2, "delay_days": 3, "subject": "Our best sellers just for you"},
+        {"step": 3, "delay_days": 7, "subject": "Your first purchase awaits"},
+    ],
+    "post_purchase": [
+        {"step": 1, "delay_days": 7, "subject": "How are you enjoying your order?"},
+        {"step": 2, "delay_days": 14, "subject": "Share your experience"},
+    ],
+    "win_back": [
+        {"step": 1, "delay_days": 7, "subject": "We miss you!"},
+        {"step": 2, "delay_days": 21, "subject": "Exclusive offer inside"},
+        {"step": 3, "delay_days": 42, "subject": "One last thing..."},
+    ],
+}
+
+# ---------------------------------------------------------------------------
+# CAN-SPAM Compliance (Feature 388)
+# ---------------------------------------------------------------------------
+STORE_PHYSICAL_ADDRESS = os.environ.get(
+    "STORE_PHYSICAL_ADDRESS",
+    "POD AI Store, Friedrichstraße 123, 10117 Berlin, Germany"
+)
+STORE_SENDER_NAME = os.environ.get("STORE_SENDER_NAME", "POD AI Store")
+
+# ---------------------------------------------------------------------------
+# Gemini Embeddings (Feature 384)
+# ---------------------------------------------------------------------------
+GEMINI_EMBEDDING_MODEL = "text-embedding-004"
+GEMINI_EMBEDDING_DIMENSIONS = 768
+
+# ---------------------------------------------------------------------------
 # Tool-to-Agent Mapping
 # ---------------------------------------------------------------------------
 AGENT_TOOLS: dict[str, list[str]] = {
