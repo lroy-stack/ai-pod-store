@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { forgotPasswordLimiter } from '@/lib/rate-limit'
 
 // Supabase client with service role key for admin operations
 const supabaseAdmin = createClient(
@@ -15,15 +16,26 @@ const supabaseAdmin = createClient(
 
 export async function POST(request: NextRequest) {
   try {
+    const ip = request.headers.get('x-forwarded-for') || 'unknown'
+    const { success } = forgotPasswordLimiter.check(ip)
+    if (!success) {
+      return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+    }
+
     const { email } = await request.json()
 
     if (!email) {
       return NextResponse.json({ error: 'Email is required' }, { status: 400 })
     }
 
+    // Extract locale from referer header
+    const referer = request.headers.get('referer') || ''
+    const localeMatch = referer.match(/\/(en|es|de)\//)
+    const locale = localeMatch?.[1] || 'en'
+
     // Send password reset email using Supabase Auth
     const { error } = await supabaseAdmin.auth.resetPasswordForEmail(email, {
-      redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/en/auth/reset-password`,
+      redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/${locale}/auth/reset-password`,
     })
 
     if (error) {

@@ -16,8 +16,7 @@ import { toast } from 'sonner'
 import { formatPrice } from '@/lib/currency'
 import { STORE_DEFAULTS, LOCALE_COUNTRY } from '@/lib/store-config'
 
-// Maximum quantity allowed per cart item
-const MAX_CART_QUANTITY = 99
+const MAX_CART_QUANTITY = STORE_DEFAULTS.maxCartQuantity
 
 export default function CartView({ locale }: { locale: string }) {
   const t = useTranslations('Cart')

@@ -1803,7 +1803,7 @@
     "id": 162,
     "feature": "RAG Pipeline",
     "description": "Documents table has vector column (768 dims) with locale",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Query the documents table schema in the database",
       "Verify the embedding column is of type vector(768)",
@@ -1814,7 +1814,7 @@
     "id": 163,
     "feature": "RAG Pipeline",
     "description": "Gemini embedding endpoint reachable",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Call the Gemini embedding endpoint with a test text string",
       "Verify a 768-dimension vector is returned in the response"
@@ -1824,7 +1824,7 @@
     "id": 164,
     "feature": "RAG Pipeline",
     "description": "Vector similarity search returns relevant results",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Embed the text 'cat t-shirt' using the embedding endpoint",
       "Search the documents table using the resulting vector",

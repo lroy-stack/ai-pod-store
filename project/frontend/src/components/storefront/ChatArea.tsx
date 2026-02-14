@@ -160,7 +160,7 @@ export function ChatArea() {
   return (
     <div className="flex flex-col flex-1 min-h-0">
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-4 md:p-6">
+      <div className="flex-1 overflow-y-auto px-3 py-4 sm:px-4 md:px-6 md:py-6">
         {messages.length === 0 ? (
           /* Welcome Screen */
           <div className="max-w-2xl mx-auto">
@@ -203,7 +203,7 @@ export function ChatArea() {
                             <div key={order.id} className="text-xs text-left">
                               <div className="flex justify-between">
                                 <span className="text-muted-foreground">#{order.id.slice(0, 8)}</span>
-                                <span className="font-medium">${order.total.toFixed(2)}</span>
+                                <span className="font-medium">€{order.total.toFixed(2)}</span>
                               </div>
                               <Badge variant="secondary" className="text-xs mt-1">
                                 {order.status}
@@ -227,7 +227,7 @@ export function ChatArea() {
                             <div key={item.id} className="text-xs text-left">
                               <div className="flex justify-between">
                                 <span className="text-foreground truncate">{item.name}</span>
-                                <span className="font-medium">${item.price.toFixed(2)}</span>
+                                <span className="font-medium">€{item.price.toFixed(2)}</span>
                               </div>
                             </div>
                           ))}
@@ -265,7 +265,7 @@ export function ChatArea() {
           </div>
         ) : (
           /* Message History */
-          <div className="max-w-3xl mx-auto space-y-4">
+          <div className="max-w-2xl mx-auto space-y-4">
             {messages.map((message) => (
               <div
                 key={message.id}
@@ -519,8 +519,8 @@ export function ChatArea() {
       </div>
 
       {/* Input Area */}
-      <div className="border-t border-border bg-card p-4">
-        <div className="max-w-3xl mx-auto">
+      <div className="border-t border-border bg-card px-3 py-3 sm:p-4">
+        <div className="max-w-2xl mx-auto">
           {/* Image Preview */}
           {selectedImage && (
             <div className="mb-3 relative inline-block">
@@ -543,7 +543,7 @@ export function ChatArea() {
           )}
 
           <form onSubmit={handleSubmit} className="flex items-end gap-2">
-            <Button type="button" variant="ghost" size="icon" className="flex-shrink-0">
+            <Button type="button" variant="ghost" size="icon" className="flex-shrink-0 hidden sm:flex">
               <Mic className="h-5 w-5" />
               <span className="sr-only">Voice input</span>
             </Button>

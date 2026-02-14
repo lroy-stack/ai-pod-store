@@ -5,6 +5,7 @@ export const STORE_DEFAULTS = {
   measurementUnit: 'cm',
   freeShippingThreshold: 50,
   stripeCurrency: 'eur',
+  maxCartQuantity: 99,
 } as const
 
 /** Locale → default country (used when user has no saved address) */

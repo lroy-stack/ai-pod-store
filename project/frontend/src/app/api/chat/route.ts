@@ -3,6 +3,7 @@ import { createGoogleGenerativeAI } from '@ai-sdk/google'
 import { z } from 'zod'
 import { createClient } from '@supabase/supabase-js'
 import { STORE_DEFAULTS, SHIPPING_RATES, LOCALE_FORMAT } from '@/lib/store-config'
+import { chatLimiter } from '@/lib/rate-limit'
 
 export const runtime = 'edge'
 export const maxDuration = 60
@@ -31,6 +32,12 @@ const supabase = createClient(
  */
 export async function POST(req: Request) {
   try {
+    const ip = req.headers.get('x-forwarded-for') || 'unknown'
+    const { success } = chatLimiter.check(ip)
+    if (!success) {
+      return Response.json({ error: 'Too many requests' }, { status: 429 })
+    }
+
     // Parse cookies from request headers (Edge runtime compatible)
     const cookieHeader = req.headers.get('cookie') || ''
     const cookieMap = Object.fromEntries(
@@ -593,7 +600,7 @@ Be friendly, helpful, and concise.`
             if (existingItems && existingItems.length > 0) {
               // Update existing item quantity (capped at 99)
               const existing = existingItems[0]
-              const newQty = Math.min(existing.quantity + quantity, 99)
+              const newQty = Math.min(existing.quantity + quantity, STORE_DEFAULTS.maxCartQuantity)
               await supabase
                 .from('cart_items')
                 .update({ quantity: newQty, updated_at: new Date().toISOString() })

@@ -4,9 +4,10 @@ import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useTranslations, useLocale } from 'next-intl'
-import { Star, Heart, X, Eye } from 'lucide-react'
+import { Star, Heart, X, Eye, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { formatPrice, getLocalizedPrice } from '@/lib/currency'
+import { useCart } from '@/hooks/useCart'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -53,6 +54,8 @@ export function QuickViewModal({ product, open, onOpenChange }: QuickViewModalPr
   const [selectedColor, setSelectedColor] = useState<string>('')
   const [quantity, setQuantity] = useState(1)
   const [isWishlisted, setIsWishlisted] = useState(false)
+  const [isAddingToCart, setIsAddingToCart] = useState(false)
+  const { addToCart } = useCart()
 
   // Convert price to locale's currency and format it
   const localizedPrice = getLocalizedPrice(product.price, product.currency, locale)
@@ -76,9 +79,22 @@ export function QuickViewModal({ product, open, onOpenChange }: QuickViewModalPr
     )
   }
 
-  const handleAddToCart = () => {
-    // TODO: Implement add to cart functionality
-    console.log('Add to cart:', { product, selectedSize, selectedColor, quantity })
+  const handleAddToCart = async () => {
+    setIsAddingToCart(true)
+    try {
+      await addToCart(
+        product.id,
+        quantity,
+        { size: selectedSize || undefined, color: selectedColor || undefined },
+        product.title,
+        product.price
+      )
+      onOpenChange(false)
+    } catch {
+      // Error toast is handled by useCart hook
+    } finally {
+      setIsAddingToCart(false)
+    }
   }
 
   const toggleWishlist = () => {
@@ -217,10 +233,12 @@ export function QuickViewModal({ product, open, onOpenChange }: QuickViewModalPr
                 className="flex-1"
                 onClick={handleAddToCart}
                 disabled={
+                  isAddingToCart ||
                   (product.variants?.sizes && !selectedSize) ||
                   (product.variants?.colors && !selectedColor)
                 }
               >
+                {isAddingToCart ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                 {t('addToCart')}
               </Button>
               <Button

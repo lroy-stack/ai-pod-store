@@ -1,4 +1,5 @@
 import { Metadata } from 'next'
+import { notFound } from 'next/navigation'
 import { ProductDetailClient } from '@/components/products/ProductDetailClient'
 import { getProduct, getProductReviews, getRelatedProducts } from '@/lib/product-detail-cache'
 
@@ -61,6 +62,11 @@ export default async function ProductDetailPage({
 }) {
   const { id, locale } = await params
   const product = await getProduct(id)
+
+  if (!product) {
+    notFound()
+  }
+
   const relatedProducts = await getRelatedProducts(id)
   const reviews = await getProductReviews(id)
 

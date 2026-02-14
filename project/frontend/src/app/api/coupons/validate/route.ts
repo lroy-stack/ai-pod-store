@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
+import { couponLimiter } from '@/lib/rate-limit'
 
 export async function POST(request: NextRequest) {
   try {
+    const ip = request.headers.get('x-forwarded-for') || 'unknown'
+    const { success } = couponLimiter.check(ip)
+    if (!success) {
+      return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+    }
+
     const body = await request.json()
     const { code, cartTotal } = body
 
@@ -69,7 +76,7 @@ export async function POST(request: NextRequest) {
     if (coupon.min_purchase_amount && cartTotal < coupon.min_purchase_amount) {
       return NextResponse.json(
         {
-          error: `Minimum purchase amount is $${coupon.min_purchase_amount.toFixed(2)}`,
+          error: `Minimum purchase amount is €${coupon.min_purchase_amount.toFixed(2)}`,
           valid: false,
         },
         { status: 400 }

@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { supabaseAdmin } from '@/lib/supabase-admin'
+import { STORE_DEFAULTS } from '@/lib/store-config'
 
-// Maximum quantity allowed per cart item
-const MAX_CART_QUANTITY = 99
+const MAX_CART_QUANTITY = STORE_DEFAULTS.maxCartQuantity
 
 // GET /api/cart - Fetch cart items
 export async function GET(request: NextRequest) {

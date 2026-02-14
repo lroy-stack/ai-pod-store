@@ -20,6 +20,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { useTranslations, useLocale } from 'next-intl'
 import { formatPrice } from '@/lib/currency'
+import { useCart } from '@/hooks/useCart'
 
 export interface Product {
   id: string

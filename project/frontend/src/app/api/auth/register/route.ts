@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
+import { registerLimiter } from '@/lib/rate-limit'
 
 export async function POST(request: NextRequest) {
   try {
+    const ip = request.headers.get('x-forwarded-for') || 'unknown'
+    const { success } = registerLimiter.check(ip)
+    if (!success) {
+      return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+    }
+
     const body = await request.json()
     const { name, email, password } = body
 
@@ -39,7 +46,12 @@ export async function POST(request: NextRequest) {
         data: {
           name,
         },
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/en/auth/verify-email`,
+        emailRedirectTo: (() => {
+          const referer = request.headers.get('referer') || ''
+          const localeMatch = referer.match(/\/(en|es|de)\//)
+          const locale = localeMatch?.[1] || 'en'
+          return `${process.env.NEXT_PUBLIC_APP_URL}/${locale}/auth/verify-email`
+        })(),
       },
     })
 
