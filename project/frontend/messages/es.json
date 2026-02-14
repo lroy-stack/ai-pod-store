@@ -382,6 +382,8 @@
   "Orders": {
     "title": "Historial de Pedidos",
     "description": "Ver tus pedidos anteriores",
+    "orderDetailTitle": "Detalles del Pedido",
+    "orderDetailDescription": "Ver detalles del pedido y solicitar devoluciones",
     "subtitle": "Ver y rastrear todos tus pedidos",
     "noOrders": "Aún No Hay Pedidos",
     "noOrdersDescription": "Aún no has realizado ningún pedido. Comienza a comprar para ver tus pedidos aquí.",
@@ -393,11 +395,35 @@
     "unauthorizedDescription": "No tienes permiso para ver esta página.",
     "error": "Error al Cargar Pedidos",
     "errorDescription": "No pudimos cargar tus pedidos. Por favor, inténtalo de nuevo.",
+    "orderNotFound": "Pedido No Encontrado",
+    "orderNotFoundDescription": "El pedido que buscas no existe o no tienes permiso para verlo.",
     "retry": "Reintentar",
+    "backToOrders": "Volver a Pedidos",
     "orderNumber": "Pedido #{number}",
     "total": "Total",
     "tracking": "Seguimiento",
+    "trackingNumber": "Número de Seguimiento",
+    "carrier": "Transportista",
+    "trackPackage": "Rastrear Paquete",
     "viewDetails": "Ver Detalles",
+    "orderItems": "Artículos del Pedido",
+    "quantity": "Cantidad",
+    "shippingAddress": "Dirección de Envío",
+    "requestReturn": "Solicitar Devolución",
+    "requestReturnTitle": "Solicitar una Devolución",
+    "requestReturnDescription": "Por favor, proporciona un motivo para tu solicitud de devolución. Nuestro equipo lo revisará y te responderá.",
+    "returnReason": "Motivo de la Devolución",
+    "returnReasonPlaceholder": "Por favor, describe por qué deseas devolver este pedido...",
+    "returnReasonMinLength": "Se requieren al menos 10 caracteres",
+    "returnReasonTooShort": "El motivo de devolución debe tener al menos 10 caracteres",
+    "submitReturn": "Enviar Solicitud de Devolución",
+    "submitting": "Enviando...",
+    "cancel": "Cancelar",
+    "returnRequestSuccess": "Solicitud de devolución enviada exitosamente",
+    "returnRequestFailed": "No se pudo enviar la solicitud de devolución. Por favor, inténtalo de nuevo.",
+    "returnRequests": "Solicitudes de Devolución",
+    "reason": "Motivo",
+    "refundAmount": "Monto del Reembolso",
     "status": {
       "pending": "Pendiente",
       "paid": "Pagado",
@@ -407,6 +433,13 @@
       "delivered": "Entregado",
       "cancelled": "Cancelado",
       "refunded": "Reembolsado"
+    },
+    "returnStatus": {
+      "pending": "Pendiente de Revisión",
+      "approved": "Aprobado",
+      "rejected": "Rechazado",
+      "processing": "Procesando Reembolso",
+      "completed": "Reembolso Completado"
     }
   }
 }

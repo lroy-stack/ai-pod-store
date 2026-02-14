@@ -1403,7 +1403,7 @@
     "id": 128,
     "feature": "Checkout & Payments",
     "description": "Return/refund flow works",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to an order detail page",
       "Click the Request Return button",

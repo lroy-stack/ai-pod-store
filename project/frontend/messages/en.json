@@ -382,6 +382,8 @@
   "Orders": {
     "title": "Order History",
     "description": "View your past orders",
+    "orderDetailTitle": "Order Details",
+    "orderDetailDescription": "View order details and request returns",
     "subtitle": "View and track all your orders",
     "noOrders": "No Orders Yet",
     "noOrdersDescription": "You haven't placed any orders yet. Start shopping to see your orders here.",
@@ -393,11 +395,35 @@
     "unauthorizedDescription": "You don't have permission to view this page.",
     "error": "Error Loading Orders",
     "errorDescription": "We couldn't load your orders. Please try again.",
+    "orderNotFound": "Order Not Found",
+    "orderNotFoundDescription": "The order you're looking for doesn't exist or you don't have permission to view it.",
     "retry": "Retry",
+    "backToOrders": "Back to Orders",
     "orderNumber": "Order #{number}",
     "total": "Total",
     "tracking": "Tracking",
+    "trackingNumber": "Tracking Number",
+    "carrier": "Carrier",
+    "trackPackage": "Track Package",
     "viewDetails": "View Details",
+    "orderItems": "Order Items",
+    "quantity": "Quantity",
+    "shippingAddress": "Shipping Address",
+    "requestReturn": "Request Return",
+    "requestReturnTitle": "Request a Return",
+    "requestReturnDescription": "Please provide a reason for your return request. Our team will review it and get back to you.",
+    "returnReason": "Reason for Return",
+    "returnReasonPlaceholder": "Please describe why you would like to return this order...",
+    "returnReasonMinLength": "Minimum 10 characters required",
+    "returnReasonTooShort": "Return reason must be at least 10 characters",
+    "submitReturn": "Submit Return Request",
+    "submitting": "Submitting...",
+    "cancel": "Cancel",
+    "returnRequestSuccess": "Return request submitted successfully",
+    "returnRequestFailed": "Failed to submit return request. Please try again.",
+    "returnRequests": "Return Requests",
+    "reason": "Reason",
+    "refundAmount": "Refund Amount",
     "status": {
       "pending": "Pending",
       "paid": "Paid",
@@ -407,6 +433,13 @@
       "delivered": "Delivered",
       "cancelled": "Cancelled",
       "refunded": "Refunded"
+    },
+    "returnStatus": {
+      "pending": "Pending Review",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "processing": "Processing Refund",
+      "completed": "Refund Completed"
     }
   }
 }

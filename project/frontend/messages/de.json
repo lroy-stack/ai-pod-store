@@ -382,6 +382,8 @@
   "Orders": {
     "title": "Bestellverlauf",
     "description": "Sehen Sie Ihre früheren Bestellungen",
+    "orderDetailTitle": "Bestelldetails",
+    "orderDetailDescription": "Bestelldetails anzeigen und Rücksendungen anfordern",
     "subtitle": "Alle Ihre Bestellungen anzeigen und verfolgen",
     "noOrders": "Noch Keine Bestellungen",
     "noOrdersDescription": "Sie haben noch keine Bestellungen aufgegeben. Beginnen Sie mit dem Einkaufen, um Ihre Bestellungen hier zu sehen.",
@@ -393,11 +395,35 @@
     "unauthorizedDescription": "Sie haben keine Berechtigung, diese Seite anzuzeigen.",
     "error": "Fehler beim Laden der Bestellungen",
     "errorDescription": "Wir konnten Ihre Bestellungen nicht laden. Bitte versuchen Sie es erneut.",
+    "orderNotFound": "Bestellung Nicht Gefunden",
+    "orderNotFoundDescription": "Die gesuchte Bestellung existiert nicht oder Sie haben keine Berechtigung, sie anzuzeigen.",
     "retry": "Erneut Versuchen",
+    "backToOrders": "Zurück zu Bestellungen",
     "orderNumber": "Bestellung #{number}",
     "total": "Gesamt",
     "tracking": "Sendungsverfolgung",
+    "trackingNumber": "Sendungsnummer",
+    "carrier": "Versanddienstleister",
+    "trackPackage": "Paket Verfolgen",
     "viewDetails": "Details Anzeigen",
+    "orderItems": "Bestellte Artikel",
+    "quantity": "Menge",
+    "shippingAddress": "Versandadresse",
+    "requestReturn": "Rücksendung Anfordern",
+    "requestReturnTitle": "Eine Rücksendung Anfordern",
+    "requestReturnDescription": "Bitte geben Sie einen Grund für Ihre Rücksendeanforderung an. Unser Team wird sie prüfen und sich bei Ihnen melden.",
+    "returnReason": "Grund für die Rücksendung",
+    "returnReasonPlaceholder": "Bitte beschreiben Sie, warum Sie diese Bestellung zurücksenden möchten...",
+    "returnReasonMinLength": "Mindestens 10 Zeichen erforderlich",
+    "returnReasonTooShort": "Der Rücksendegrund muss mindestens 10 Zeichen lang sein",
+    "submitReturn": "Rücksendeanfrage Senden",
+    "submitting": "Wird Gesendet...",
+    "cancel": "Abbrechen",
+    "returnRequestSuccess": "Rücksendeanfrage erfolgreich gesendet",
+    "returnRequestFailed": "Rücksendeanfrage konnte nicht gesendet werden. Bitte versuchen Sie es erneut.",
+    "returnRequests": "Rücksendeanfragen",
+    "reason": "Grund",
+    "refundAmount": "Erstattungsbetrag",
     "status": {
       "pending": "Ausstehend",
       "paid": "Bezahlt",
@@ -407,6 +433,13 @@
       "delivered": "Zugestellt",
       "cancelled": "Storniert",
       "refunded": "Erstattet"
+    },
+    "returnStatus": {
+      "pending": "Wird Geprüft",
+      "approved": "Genehmigt",
+      "rejected": "Abgelehnt",
+      "processing": "Erstattung Wird Bearbeitet",
+      "completed": "Erstattung Abgeschlossen"
     }
   }
 }
