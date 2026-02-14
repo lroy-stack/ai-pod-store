@@ -13,11 +13,12 @@
 
 import { useRef, useEffect, useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { Search, Bell, ShoppingCart, User, Send, Mic, Paperclip } from 'lucide-react'
+import { Search, Bell, ShoppingCart, User, Send, Mic, Paperclip, Package, Heart } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Card, CardContent } from '@/components/ui/card'
 import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport } from 'ai'
 import ReactMarkdown from 'react-markdown'
@@ -30,6 +31,11 @@ export function ChatArea({ onSelectProduct }: ChatAreaProps) {
   const t = useTranslations('storefront')
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const [inputValue, setInputValue] = useState('')
+  const [userData, setUserData] = useState<{
+    user: { name: string } | null
+    activeOrders: Array<{ id: string; status: string; total: number }> | null
+    recentFavorites: Array<{ id: string; name: string; price: number }> | null
+  }>({ user: null, activeOrders: null, recentFavorites: null })
 
   // AI SDK 6 useChat hook with DefaultChatTransport
   const { messages, sendMessage, status } = useChat({
@@ -37,6 +43,32 @@ export function ChatArea({ onSelectProduct }: ChatAreaProps) {
   })
 
   const isLoading = status === 'submitted' || status === 'streaming'
+
+  // Fetch user data on mount
+  useEffect(() => {
+    async function fetchUserData() {
+      try {
+        const [sessionRes, ordersRes, favoritesRes] = await Promise.all([
+          fetch('/api/auth/session'),
+          fetch('/api/orders?limit=3&status=processing,pending'),
+          fetch('/api/wishlist/items?limit=3'),
+        ])
+
+        const session = await sessionRes.json()
+        const orders = ordersRes.ok ? await ordersRes.json() : null
+        const favorites = favoritesRes.ok ? await favoritesRes.json() : null
+
+        setUserData({
+          user: session.user || null,
+          activeOrders: orders?.orders || null,
+          recentFavorites: favorites?.items || null,
+        })
+      } catch (error) {
+        console.error('Failed to fetch user data:', error)
+      }
+    }
+    fetchUserData()
+  }, [])
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
@@ -58,7 +90,8 @@ export function ChatArea({ onSelectProduct }: ChatAreaProps) {
   }
 
   const handlePromptClick = (prompt: string) => {
-    setInputValue(prompt)
+    // Send the message directly instead of just filling the input
+    sendMessage({ text: prompt })
   }
 
   return (
@@ -122,12 +155,74 @@ export function ChatArea({ onSelectProduct }: ChatAreaProps) {
 
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
-                  {t('welcomeTitle')}
+                  {userData.user ? (
+                    <>
+                      {t('welcomeBackTitle', { name: userData.user.name.split(' ')[0] })}
+                      <span className="inline-block ml-2 animate-pulse">✨</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="sparkle-text">{t('welcomeTitle')}</span>
+                      <span className="inline-block ml-2 animate-pulse">✨</span>
+                    </>
+                  )}
                 </h1>
                 <p className="text-muted-foreground">
-                  {t('welcomeSubtitle')}
+                  {userData.user ? t('welcomeBackSubtitle') : t('welcomeSubtitle')}
                 </p>
               </div>
+
+              {/* Active Orders and Favorites for returning users */}
+              {userData.user && (userData.activeOrders || userData.recentFavorites) && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                  {/* Active Orders */}
+                  {userData.activeOrders && userData.activeOrders.length > 0 && (
+                    <Card>
+                      <CardContent className="p-4">
+                        <div className="flex items-center gap-2 mb-3">
+                          <Package className="h-4 w-4 text-primary" />
+                          <h3 className="text-sm font-semibold">{t('activeOrders')}</h3>
+                        </div>
+                        <div className="space-y-2">
+                          {userData.activeOrders.map((order) => (
+                            <div key={order.id} className="text-xs text-left">
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">#{order.id.slice(0, 8)}</span>
+                                <span className="font-medium">${order.total.toFixed(2)}</span>
+                              </div>
+                              <Badge variant="secondary" className="text-xs mt-1">
+                                {order.status}
+                              </Badge>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* Recent Favorites */}
+                  {userData.recentFavorites && userData.recentFavorites.length > 0 && (
+                    <Card>
+                      <CardContent className="p-4">
+                        <div className="flex items-center gap-2 mb-3">
+                          <Heart className="h-4 w-4 text-primary" />
+                          <h3 className="text-sm font-semibold">{t('recentFavorites')}</h3>
+                        </div>
+                        <div className="space-y-2">
+                          {userData.recentFavorites.map((item) => (
+                            <div key={item.id} className="text-xs text-left">
+                              <div className="flex justify-between">
+                                <span className="text-foreground truncate">{item.name}</span>
+                                <span className="font-medium">${item.price.toFixed(2)}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+              )}
 
               {/* Suggested Prompts */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-w-xl mx-auto mt-8">
