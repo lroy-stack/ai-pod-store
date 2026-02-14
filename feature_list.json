@@ -1546,7 +1546,7 @@
     "id": 140,
     "feature": "Conversational Storefront / Chat",
     "description": "Welcome screen with suggested prompts for new visitors",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to /en/ as a new user",
       "Verify a greeting with sparkle-text animation is displayed",
@@ -1560,7 +1560,7 @@
     "id": 141,
     "feature": "Conversational Storefront / Chat",
     "description": "Mobile storefront collapses sidebar and stacks detail panel",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Resize browser to 375px width",
       "Verify the left sidebar is hidden",
