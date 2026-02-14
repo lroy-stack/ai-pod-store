@@ -894,3 +894,62 @@ Response:
 - Feature #126: Confirmation email sent after order
 - Feature #127: Order status updates in real-time
 - Feature #128: Printify webhook handler for status updates
+
+---
+
+### Feature #126: Webhook idempotency handled ✅
+
+**Implementation:**
+- Added idempotency check to prevent duplicate order creation
+- Queries orders table for existing order by stripe_session_id before inserting
+- If order exists, logs and returns early (no-op)
+- If order doesn't exist, proceeds with normal order creation flow
+
+**Why This Matters:**
+Stripe may send webhooks multiple times for reliability. Without idempotency,
+we'd create duplicate orders. This ensures each Stripe session creates exactly
+one order in our system.
+
+**Verification:**
+- Created test that simulates duplicate webhook delivery
+- First insert: creates order successfully  
+- Second attempt: finds existing order and skips (idempotent)
+- Verified only 1 order exists in database after both attempts
+
+**Modified Files:**
+- src/app/api/webhooks/stripe/route.ts — Added idempotency check (10 lines)
+
+---
+
+### Feature #127: Stripe webhook signature verification ✅
+
+**Already Implemented** (verified existing code):
+- Webhook handler checks for stripe-signature header
+- Uses stripe.webhooks.constructEvent() to cryptographically verify signature
+- Returns 400 if signature missing or invalid
+- Only processes validly signed webhook events
+
+**Verification:**
+- Test 1: POST without signature → 400 "Missing stripe-signature header"
+- Test 2: POST with invalid signature → 400 "Webhook signature verification failed"
+- Both tests pass — security working as expected
+
+**Security:**
+Prevents malicious actors from forging webhook events. Only Stripe-signed
+events are processed, protecting against unauthorized order creation.
+
+---
+
+**Session 41 Summary:**
+- Features this session: +3 (125, 126, 127)
+- Total passing: 127/389 (32.6%)
+- New features implemented: 2 (Printify integration, idempotency)
+- Existing features verified: 1 (signature verification)
+- Tool calls: ~95
+- Commits: 3
+- Database migrations: 2
+
+**Next Session Priorities:**
+- Feature #128: Return/refund flow (requires UI + API + database)
+- Feature #129: Order history page renders
+- Feature #130: Order tracking works
