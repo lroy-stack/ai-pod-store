@@ -176,7 +176,7 @@
     "namePlaceholder": "Enter your full name",
     "email": "Email address",
     "emailPlaceholder": "user@example.com",
-    "phone": "Phone number",
+    "phone": "Phone",
     "phonePlaceholder": "+1 (555) 123-4567",
     "language": "Language",
     "currency": "Currency",
@@ -225,8 +225,6 @@
     "postalCodePlaceholder": "10001",
     "countryCode": "Country Code",
     "countryCodePlaceholder": "US",
-    "phone": "Phone",
-    "phonePlaceholder": "+1 (555) 123-4567",
     "setAsDefault": "Set as default address",
     "addressAdded": "Address added successfully",
     "addressUpdated": "Address updated successfully",
@@ -345,6 +343,9 @@
     "successTitle": "Payment Successful",
     "successDescription": "Your order has been placed successfully",
     "cancelTitle": "Payment Cancelled",
-    "cancelDescription": "Your payment was cancelled"
+    "cancelDescription": "Your payment was cancelled",
+    "email": "Email Address",
+    "guestCheckoutDescription": "Enter your email to continue as a guest. You can create an account after checkout.",
+    "guestCheckoutNote": "Shipping address will be collected on the next step."
   }
 }

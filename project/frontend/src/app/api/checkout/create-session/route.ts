@@ -11,7 +11,7 @@ import { stripe } from '@/lib/stripe';
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { cartItems, shippingAddress, locale = 'en', currency = 'usd' } = body;
+    const { cartItems, shippingAddress, locale = 'en', currency = 'usd', customerEmail } = body;
 
     // Validate required fields
     if (!cartItems || !Array.isArray(cartItems) || cartItems.length === 0) {
@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
     const cancelUrl = `${baseUrl}/${locale}/checkout/cancel`;
 
     // Create Stripe Checkout session
-    const session = await stripe.checkout.sessions.create({
+    const sessionConfig: any = {
       mode: 'payment',
       line_items: lineItems,
       success_url: successUrl,
@@ -101,7 +101,14 @@ export async function POST(req: NextRequest) {
           quantity: item.quantity,
         }))),
       },
-    });
+    };
+
+    // Add customer email for guest checkout
+    if (customerEmail && typeof customerEmail === 'string') {
+      sessionConfig.customer_email = customerEmail;
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionConfig);
 
     return NextResponse.json({
       success: true,

@@ -176,7 +176,7 @@
     "namePlaceholder": "Geben Sie Ihren vollständigen Namen ein",
     "email": "E-Mail-Adresse",
     "emailPlaceholder": "benutzer@beispiel.de",
-    "phone": "Telefonnummer",
+    "phone": "Telefon",
     "phonePlaceholder": "+49 30 12345678",
     "language": "Sprache",
     "currency": "Währung",
@@ -225,8 +225,6 @@
     "postalCodePlaceholder": "10115",
     "countryCode": "Ländercode",
     "countryCodePlaceholder": "DE",
-    "phone": "Telefon",
-    "phonePlaceholder": "+49 30 12345678",
     "setAsDefault": "Als Standardadresse festlegen",
     "addressAdded": "Adresse erfolgreich hinzugefügt",
     "addressUpdated": "Adresse erfolgreich aktualisiert",
@@ -345,6 +343,9 @@
     "successTitle": "Zahlung Erfolgreich",
     "successDescription": "Ihre Bestellung wurde erfolgreich aufgegeben",
     "cancelTitle": "Zahlung Abgebrochen",
-    "cancelDescription": "Ihre Zahlung wurde storniert"
+    "cancelDescription": "Ihre Zahlung wurde storniert",
+    "email": "E-Mail-Adresse",
+    "guestCheckoutDescription": "Geben Sie Ihre E-Mail-Adresse ein, um als Gast fortzufahren. Sie können nach dem Checkout ein Konto erstellen.",
+    "guestCheckoutNote": "Die Lieferadresse wird im nächsten Schritt erfasst."
   }
 }

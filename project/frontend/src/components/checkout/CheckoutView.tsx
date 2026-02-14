@@ -10,6 +10,8 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { formatPrice } from '@/lib/currency'
 import { useState, useEffect } from 'react'
 
@@ -39,6 +41,8 @@ export default function CheckoutView({ locale }: { locale: string }) {
   const [calculatedTax, setCalculatedTax] = useState<number | null>(null)
   const [calculatingTax, setCalculatingTax] = useState(false)
   const [creatingSession, setCreatingSession] = useState(false)
+  const [guestEmail, setGuestEmail] = useState('')
+  const [guestEmailError, setGuestEmailError] = useState('')
 
   // Get user's preferred currency, fallback to locale default
   const userCurrency = user?.currency || (locale === 'es' || locale === 'de' ? 'EUR' : 'USD')
@@ -132,20 +136,46 @@ export default function CheckoutView({ locale }: { locale: string }) {
     calculateTaxForAddress()
   }, [selectedAddressId, addresses, cartItems, userCurrency])
 
+  // Validate guest email
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    return emailRegex.test(email)
+  }
+
   // Handle proceeding to Stripe Checkout
   const handleProceedToPayment = async () => {
+    // Validate guest email if not authenticated
+    if (!authenticated) {
+      if (!guestEmail.trim()) {
+        setGuestEmailError('Email is required for guest checkout')
+        return
+      }
+      if (!validateEmail(guestEmail)) {
+        setGuestEmailError('Please enter a valid email address')
+        return
+      }
+      setGuestEmailError('')
+    }
+
     setCreatingSession(true)
     try {
+      const body: any = {
+        cartItems,
+        locale,
+        currency: userCurrency.toLowerCase(),
+      }
+
+      // Add guest email if not authenticated
+      if (!authenticated && guestEmail) {
+        body.customerEmail = guestEmail
+      }
+
       const response = await fetch('/api/checkout/create-session', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          cartItems,
-          locale,
-          currency: userCurrency.toLowerCase(),
-        }),
+        body: JSON.stringify(body),
       })
 
       if (response.ok) {
@@ -353,10 +383,30 @@ export default function CheckoutView({ locale }: { locale: string }) {
                   )}
                 </div>
               ) : (
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground mb-4">
-                    Guest checkout - shipping form will be shown here
+                <div className="space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    {t('guestCheckoutDescription')}
                   </p>
+                  <div className="space-y-2">
+                    <Label htmlFor="guest-email">{t('email')}</Label>
+                    <Input
+                      id="guest-email"
+                      type="email"
+                      placeholder="your@email.com"
+                      value={guestEmail}
+                      onChange={(e) => {
+                        setGuestEmail(e.target.value)
+                        setGuestEmailError('')
+                      }}
+                      className={guestEmailError ? 'border-destructive' : ''}
+                    />
+                    {guestEmailError && (
+                      <p className="text-sm text-destructive">{guestEmailError}</p>
+                    )}
+                    <p className="text-xs text-muted-foreground mt-2">
+                      {t('guestCheckoutNote')}
+                    </p>
+                  </div>
                 </div>
               )}
             </CardContent>

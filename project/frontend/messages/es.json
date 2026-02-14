@@ -176,8 +176,8 @@
     "namePlaceholder": "Ingresa tu nombre completo",
     "email": "Correo electrónico",
     "emailPlaceholder": "usuario@ejemplo.com",
-    "phone": "Número de teléfono",
-    "phonePlaceholder": "+34 612 345 678",
+    "phone": "Teléfono",
+    "phonePlaceholder": "+34 912 345 678",
     "language": "Idioma",
     "currency": "Moneda",
     "uploadAvatar": "Cambiar avatar",
@@ -225,8 +225,6 @@
     "postalCodePlaceholder": "28001",
     "countryCode": "Código de País",
     "countryCodePlaceholder": "ES",
-    "phone": "Teléfono",
-    "phonePlaceholder": "+34 912 345 678",
     "setAsDefault": "Establecer como dirección predeterminada",
     "addressAdded": "Dirección agregada exitosamente",
     "addressUpdated": "Dirección actualizada exitosamente",
@@ -345,6 +343,9 @@
     "successTitle": "Pago Exitoso",
     "successDescription": "Tu pedido se ha realizado con éxito",
     "cancelTitle": "Pago Cancelado",
-    "cancelDescription": "Tu pago fue cancelado"
+    "cancelDescription": "Tu pago fue cancelado",
+    "email": "Correo Electrónico",
+    "guestCheckoutDescription": "Ingresa tu correo electrónico para continuar como invitado. Puedes crear una cuenta después de finalizar la compra.",
+    "guestCheckoutNote": "La dirección de envío se recopilará en el siguiente paso."
   }
 }

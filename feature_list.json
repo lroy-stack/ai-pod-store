@@ -1312,7 +1312,7 @@
     "id": 120,
     "feature": "Checkout & Payments",
     "description": "Guest checkout creates order without account",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Proceed to checkout as a guest without an account",
       "Enter email and shipping address, complete payment",
