@@ -1092,7 +1092,7 @@
     "id": 100,
     "feature": "Shopping Cart + Wishlists",
     "description": "Invalid coupon shows error",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Enter an invalid coupon code in the coupon input field",
       "Click the Apply button",
