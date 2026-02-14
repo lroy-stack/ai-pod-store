@@ -2734,7 +2734,7 @@
     "id": 247,
     "feature": "Internationalization End-to-End",
     "description": "Date, number, and currency formatting follows locale",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify /en/ shows MM/DD/YYYY date format and $X.XX currency format",
       "Verify /de/ shows DD.MM.YYYY date format and X.XX \u20ac currency format",
