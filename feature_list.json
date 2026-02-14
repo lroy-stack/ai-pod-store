@@ -2555,7 +2555,7 @@
     "id": 231,
     "feature": "Admin Dashboard & Agent Monitor",
     "description": "Agent schedule editor reads real schedule from bridge /schedule endpoint. Shows 14 jobs with cron expressions and next_run times. Allows modifying schedule.",
-    "passes": false,
+    "passes": true,
     "steps": [
       "View the agent schedule page",
       "Verify schedule fetches from /api/agent/schedule (bridge proxy)",
