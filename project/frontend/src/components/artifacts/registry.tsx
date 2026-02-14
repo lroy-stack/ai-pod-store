@@ -10,6 +10,8 @@
  */
 
 import { ProductGridArtifact, ProductGridSkeleton } from './ProductGridArtifact'
+import { ProductDetailArtifact, ProductDetailSkeleton } from './ProductDetailArtifact'
+import { ComparisonTableArtifact, ComparisonTableSkeleton } from './ComparisonTableArtifact'
 
 export interface ArtifactRegistryEntry {
   Component: React.ComponentType<any>
@@ -28,6 +30,14 @@ export const artifactRegistry: Record<string, ArtifactRegistryEntry> = {
   get_recommendations: {
     Component: ProductGridArtifact,
     Skeleton: ProductGridSkeleton,
+  },
+  get_product_detail: {
+    Component: ProductDetailArtifact,
+    Skeleton: ProductDetailSkeleton,
+  },
+  compare_products: {
+    Component: ComparisonTableArtifact,
+    Skeleton: ComparisonTableSkeleton,
   },
 }
 

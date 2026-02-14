@@ -41,65 +41,59 @@ export async function POST(req: Request) {
     }
 
     // System prompt for PodClaw conversational assistant
-    const systemPrompt = `You are PodClaw, an AI assistant for a print-on-demand store. You help customers:
-- Find and recommend products (t-shirts, hoodies, mugs, posters, phone cases)
-- Answer questions about products, shipping, and returns
-- Guide them through the shopping experience
-- Provide design suggestions and customization options
+    const systemPrompt = `You are PodClaw, an AI assistant for a print-on-demand store. You help customers find and buy products.
 
-IMPORTANT: When the customer asks to see, browse, find, or search for products, you MUST use the appropriate tool:
-- Use product_search for keyword searches: "show me cat t-shirts", "find vintage designs"
-- Use browse_catalog for category browsing: "browse hoodies", "show me all mugs", "what apparel do you have?"
+TOOLS AVAILABLE:
+- product_search: Search/browse products (returns product list with IDs)
+- get_product_detail: Get full details for ONE specific product (needs product ID)
+- compare_products: Compare 2-4 products side-by-side (needs array of product IDs)
 
-Examples:
-- "show me cat t-shirts" → product_search with query="cat t-shirts"
-- "browse hoodies" → browse_catalog with category="hoodies"
-- "what do you have?" → browse_catalog with no category (shows all)
+WORKFLOW:
+1. When user asks to browse/search → call product_search
+2. When user asks for DETAILS, MATERIALS, SHIPPING, or FULL INFO about a product → FIRST call product_search to find the ID, THEN immediately call get_product_detail with that ID
+3. When user asks to COMPARE products → FIRST search to get IDs if needed, THEN call compare_products
 
-Be friendly, helpful, and concise. Always respond in the user's language.
-If you don't know something, be honest and offer to help in other ways.`
+EXAMPLES:
+- "show me cat t-shirts" → product_search(query="cat t-shirt")
+- "details about Classic Cat T-Shirt" or "materials and shipping for Classic Cat T-Shirt" → product_search(query="classic cat t-shirt"), THEN get_product_detail(productId)
+- "compare cat t-shirt and phone case" → compare_products(productIds from recent search)
+
+CRITICAL: When user mentions "details", "materials", "shipping", "full information", you MUST call get_product_detail!
+
+Be friendly, helpful, and concise.`
 
     // Define tools
     // WORKAROUND: Gemini tool calling has schema bugs in AI SDK 6
     // Using Zod with the simplest possible schema
     const tools = {
       product_search: tool({
-        description: 'Search for products in the catalog. Call this when user asks to see/find/browse products.',
+        description: 'Search for products in the catalog. Use this for ANY product request: searching, browsing, finding products.',
         parameters: z.object({
-          query: z.string().describe('Search keywords (e.g. "cat t-shirts", "vintage hoodies")'),
+          query: z.string().describe('Search keywords. Use 1-2 simple words. Empty string returns all products.'),
         }),
         // @ts-expect-error AI SDK 6.0.86 type mismatch — execute works at runtime
         execute: async (args: { query: string }) => {
           const { query } = args
-          const limit = 6
-          console.log('[product_search] Tool executing with query:', query)
+          const limit = 8
           try {
-            // Build query
             let dbQuery = supabase
               .from('products')
               .select('id, title, description, category, base_price_cents, images, avg_rating, review_count')
               .eq('status', 'active')
-              .limit(Math.min(limit, 12))
+              .limit(limit)
 
-            // No filters in simplified version
-
-            // Full-text search using PostgreSQL websearch (handles stemming/plurals)
+            // Full-text search across title, description, and category
             if (query) {
-              dbQuery = dbQuery.or(`title.wfts.${query},description.wfts.${query}`)
+              dbQuery = dbQuery.or(`title.wfts.${query},description.wfts.${query},category.wfts.${query}`)
             }
 
             const { data: products, error } = await dbQuery
 
             if (error) {
               console.error('Product search error:', error)
-              return {
-                success: false,
-                error: error.message,
-                products: [],
-              }
+              return { success: false, error: error.message, products: [] }
             }
 
-            // Format products for display
             const formattedProducts = (products || []).map((p) => ({
               id: p.id,
               title: p.title,
@@ -128,69 +122,86 @@ If you don't know something, be honest and offer to help in other ways.`
           }
         },
       }),
-      browse_catalog: tool({
-        description: 'Browse products by category. Call this when user wants to browse a specific category (e.g. "browse hoodies", "show me mugs").',
+      get_product_detail: tool({
+        description: 'Get detailed information about a specific product. Call this when user asks to see details, learn more, or get info about a product.',
         parameters: z.object({
-          category: z.string().optional().describe('Product category (e.g. "apparel", "home", "accessories")'),
-          limit: z.number().optional().describe('Number of products to return (default 6, max 12)'),
+          productId: z.string().describe('Product ID to get details for'),
         }),
         // @ts-expect-error AI SDK 6.0.86 type mismatch — execute works at runtime
-        execute: async (args: { category?: string; limit?: number }) => {
-          const { category, limit = 6 } = args
-          console.log('[browse_catalog] Tool executing with category:', category, 'limit:', limit)
+        execute: async (args: { productId: string }) => {
+          const { productId } = args
           try {
-            // Build query
-            let dbQuery = supabase
+            const { data: product, error } = await supabase
               .from('products')
-              .select('id, title, description, category, base_price_cents, images, avg_rating, review_count')
+              .select('*')
+              .eq('id', productId)
               .eq('status', 'active')
-              .limit(Math.min(limit, 12))
+              .single()
 
-            // Filter by category if specified
-            if (category) {
-              dbQuery = dbQuery.ilike('category', `%${category}%`)
+            if (error || !product) {
+              return { success: false, error: 'Product not found' }
             }
-
-            // Sort by popularity (review count)
-            dbQuery = dbQuery.order('review_count', { ascending: false })
-
-            const { data: products, error } = await dbQuery
-
-            if (error) {
-              console.error('Browse catalog error:', error)
-              return {
-                success: false,
-                error: error.message,
-                products: [],
-              }
-            }
-
-            // Format products for display
-            const formattedProducts = (products || []).map((p) => ({
-              id: p.id,
-              title: p.title,
-              description: p.description?.substring(0, 150) + (p.description?.length > 150 ? '...' : ''),
-              category: p.category,
-              price: p.base_price_cents / 100,
-              currency: 'USD',
-              image: Array.isArray(p.images) && p.images.length > 0 ? p.images[0].src : null,
-              rating: p.avg_rating || 0,
-              reviewCount: p.review_count || 0,
-            }))
 
             return {
               success: true,
-              products: formattedProducts,
-              count: formattedProducts.length,
-              category: category || 'all',
+              product: {
+                id: product.id,
+                title: product.title,
+                description: product.description || 'No description available',
+                category: product.category,
+                price: product.base_price_cents / 100,
+                currency: 'USD',
+                images: Array.isArray(product.images) ? product.images : [],
+                rating: product.avg_rating || 0,
+                reviewCount: product.review_count || 0,
+                variants: product.variants || [],
+                materials: product.materials || null,
+                shippingInfo: 'Free shipping on orders over $50',
+                available: product.stock_quantity > 0,
+              },
             }
           } catch (error) {
-            console.error('Browse catalog execution error:', error)
-            return {
-              success: false,
-              error: error instanceof Error ? error.message : 'Unknown error',
-              products: [],
+            return { success: false, error: 'Failed to fetch product details' }
+          }
+        },
+      }),
+      compare_products: tool({
+        description: 'Compare multiple products side by side. Call this when user asks to compare products.',
+        parameters: z.object({
+          productIds: z.array(z.string()).describe('Array of product IDs to compare (2-4 products)'),
+        }),
+        // @ts-expect-error AI SDK 6.0.86 type mismatch — execute works at runtime
+        execute: async (args: { productIds: string[] }) => {
+          const { productIds } = args
+          try {
+            const ids = productIds.slice(0, 4)
+            const { data: products, error } = await supabase
+              .from('products')
+              .select('*')
+              .in('id', ids)
+              .eq('status', 'active')
+
+            if (error) {
+              return { success: false, error: error.message, products: [] }
             }
+
+            return {
+              success: true,
+              products: (products || []).map((p) => ({
+                id: p.id,
+                title: p.title,
+                category: p.category,
+                price: p.base_price_cents / 100,
+                currency: 'USD',
+                image: Array.isArray(p.images) && p.images.length > 0 ? p.images[0].src : null,
+                rating: p.avg_rating || 0,
+                reviewCount: p.review_count || 0,
+                available: p.stock_quantity > 0,
+                features: p.features || [],
+              })),
+            }
+          } catch (error) {
+            return { success: false, error: 'Failed to compare products', products: [] }
           }
         },
       }),
@@ -204,7 +215,7 @@ If you don't know something, be honest and offer to help in other ways.`
       system: systemPrompt,
       messages: await convertToModelMessages(messages),
       tools,
-      stopWhen: stepCountIs(3),
+      maxSteps: 5,
     })
 
     // Return streaming SSE response
