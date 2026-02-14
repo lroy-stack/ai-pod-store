@@ -98,7 +98,7 @@ export function ComparisonTableArtifact({
                     <div className="text-lg font-bold">
                       {new Intl.NumberFormat('en-US', {
                         style: 'currency',
-                        currency: product.currency || 'USD',
+                        currency: product.currency || 'EUR',
                       }).format(product.price)}
                     </div>
                   </td>
