@@ -1512,7 +1512,7 @@
     "id": 137,
     "feature": "Conversational Storefront / Chat",
     "description": "Chat scroll and loading indicator",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Send a message in the chat",
       "Verify the chat area auto-scrolls to the bottom",
