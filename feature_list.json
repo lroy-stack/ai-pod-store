@@ -2896,7 +2896,7 @@
     "id": 262,
     "feature": "PodClaw Agent",
     "description": "Agent API: start, stop, status work",
-    "passes": false,
+    "passes": true,
     "steps": [
       "POST /api/agent/start and verify 200 response",
       "GET /api/agent/status and verify status is 'running'",
