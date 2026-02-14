@@ -11,6 +11,8 @@ interface CartItem {
   quantity: number
   product_title: string
   product_price: number
+  product_image?: string
+  product_currency?: string
   variant_details?: {
     size?: string
     color?: string

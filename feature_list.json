@@ -1633,7 +1633,7 @@
     "id": 147,
     "feature": "Conversational Storefront / Chat",
     "description": "Cart tools: coupon + shipping estimate",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Say 'apply code SAVE10' in the chat",
       "Verify the apply_coupon tool is called",

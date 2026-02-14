@@ -543,3 +543,42 @@ The AI SDK streaming stops after the tool is executed, before generating the fin
 
 ### Next priorities:
 - Feature #147 [Conversational Storefront / Chat] — Next feature in queue
+
+
+## Session 56 (Coding Agent)
+- Implemented: Feature #147 — Cart tools: coupon + shipping estimate
+- Verification: Playwright MCP browser testing + screenshots
+- Tests passing: 147/389 (37.8%)
+- Tests newly passing this session: #147
+- Issues encountered: None - smooth implementation
+- Database status: Connected, coupons table working with test data
+- Environment: Dev server running, all APIs functional
+
+### Implementation Details
+
+**Created Components:**
+1. PricingTableArtifact (Card layout with shipping options table)
+2. PricingTableSkeleton (Loading state with shimmer placeholders)
+3. Registered in artifact registry for estimate_shipping tool
+
+**Chat API Tools:**
+1. apply_coupon: Validates coupon code from coupons table (checks active, date range, usage limit)
+2. estimate_shipping: Returns mock shipping rates based on country (Standard/Express/Overnight)
+
+**Translation Updates:**
+- Added 5 new keys to all 3 locale files (en/es/de):
+  - shippingOptions, shippingTo, noShippingOptions, recommended, freeShippingOver
+
+**Verification Results:**
+✅ apply_coupon tool: "apply code WELCOME10" → AI responds with "10% off, $25 minimum"
+✅ Invalid coupon: "apply code SAVE10" → AI responds "invalid or has expired" (code doesn't exist)
+✅ estimate_shipping tool: "how much is shipping?" → PricingTableArtifact renders
+✅ Pricing table displays: 3 shipping options (Standard $4.99, Express $14.99, Overnight $24.99)
+✅ Recommended badge on Standard option
+✅ Free shipping threshold message ($50) in card footer
+✅ Component uses semantic tokens (bg-card, text-foreground, border-border, etc.)
+✅ Responsive layout with Card, CardHeader, CardContent, CardFooter
+✅ Translations working correctly in all components
+
+### Next priorities:
+- Feature #148 [Conversational Storefront / Chat] — Next feature in queue

@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
     // Fetch products with their base info
     const { data: products, error: productsError } = await supabase
       .from('products')
-      .select('id, title, base_price_cents, currency')
+      .select('id, title, base_price_cents, currency, images')
       .in('id', productIds)
 
     if (productsError) {
@@ -83,13 +83,20 @@ export async function GET(request: NextRequest) {
 
     // Create a map of product details
     const productMap = new Map(
-      (products || []).map((p: any) => [
-        p.id,
-        {
-          title: p.title || 'Unknown Product',
-          price: p.base_price_cents ? p.base_price_cents / 100 : 0, // Convert cents to dollars
-        },
-      ])
+      (products || []).map((p: any) => {
+        const img = Array.isArray(p.images) && p.images.length > 0
+          ? (p.images[0].src || p.images[0].url || '')
+          : ''
+        return [
+          p.id,
+          {
+            title: p.title || 'Unknown Product',
+            price: p.base_price_cents ? p.base_price_cents / 100 : 0,
+            image: img,
+            currency: p.currency?.toUpperCase() || 'EUR',
+          },
+        ]
+      })
     )
 
     // Transform cart items to include product details
@@ -97,6 +104,8 @@ export async function GET(request: NextRequest) {
       const productDetails = productMap.get(item.product_id) || {
         title: 'Unknown Product',
         price: 0,
+        image: '',
+        currency: 'EUR',
       }
 
       return {
@@ -106,7 +115,9 @@ export async function GET(request: NextRequest) {
         quantity: item.quantity,
         product_title: productDetails.title,
         product_price: productDetails.price,
-        variant_details: {}, // TODO: Fetch from product_variants if needed
+        product_image: productDetails.image || '',
+        product_currency: productDetails.currency || 'EUR',
+        variant_details: {},
       }
     })
 

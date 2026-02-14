@@ -71,6 +71,7 @@ TOOLS AVAILABLE:
 - get_cart: Get current shopping cart contents (shows items, quantities, prices)
 - apply_coupon: Apply a discount coupon code to the cart
 - estimate_shipping: Calculate shipping cost estimates for different delivery options
+- create_checkout: Create Stripe checkout session to proceed to payment (requires user approval)
 
 WHEN TO USE EACH TOOL:
 1. User asks to "browse", "search", "show me", "find" products → call product_search
@@ -82,6 +83,7 @@ WHEN TO USE EACH TOOL:
 7. User asks "show my cart", "what's in my cart", "view cart" → call get_cart
 8. User says "apply code SAVE10", "use coupon", "discount code" → call apply_coupon
 9. User asks "shipping cost", "delivery options", "how much to ship" → call estimate_shipping
+10. User says "checkout", "proceed to payment", "buy now" → call create_checkout (requires approval)
 
 EXAMPLES:
 - "show me cat t-shirts" → product_search(query="cat t-shirt")
@@ -94,6 +96,7 @@ EXAMPLES:
 - "show my cart" → get_cart()
 - "apply code SAVE10" → apply_coupon(code="SAVE10")
 - "how much is shipping?" → estimate_shipping()
+- "checkout" → create_checkout() (will request user approval first)
 
 IMPORTANT: get_product_detail works with product names directly - you don't need to search first!
 
@@ -389,9 +392,8 @@ Be friendly, helpful, and concise.`
         execute: async (args: { productId: string; quantity?: number }) => {
           const { productId, quantity = 1 } = args
           try {
-            // Note: Since this runs in Edge runtime without cookies, we create a guest cart
-            // that the user can claim later when they visit the cart page
-            const sessionId = crypto.randomUUID()
+            // Use the browser's cart session (shared with /cart page)
+            const sessionId = cartSessionId || crypto.randomUUID()
 
             // Check if product exists
             const { data: product, error: productError } = await supabase
@@ -405,19 +407,43 @@ Be friendly, helpful, and concise.`
               return { success: false, error: 'Product not found' }
             }
 
-            // Insert cart item (guest cart with session_id)
-            const { error: insertError } = await supabase
+            // Check if item already exists in this cart (merge quantities)
+            const existingQuery = supabase
               .from('cart_items')
-              .insert({
-                product_id: productId,
-                quantity,
-                session_id: sessionId,
-                user_id: null,
-              })
+              .select('id, quantity')
+              .eq('product_id', productId)
 
-            if (insertError) {
-              console.error('Cart insert error:', insertError)
-              return { success: false, error: 'Failed to add to cart' }
+            if (chatUserId) {
+              existingQuery.eq('user_id', chatUserId)
+            } else {
+              existingQuery.eq('session_id', sessionId)
+            }
+
+            const { data: existingItems } = await existingQuery
+
+            if (existingItems && existingItems.length > 0) {
+              // Update existing item quantity (capped at 99)
+              const existing = existingItems[0]
+              const newQty = Math.min(existing.quantity + quantity, 99)
+              await supabase
+                .from('cart_items')
+                .update({ quantity: newQty, updated_at: new Date().toISOString() })
+                .eq('id', existing.id)
+            } else {
+              // Insert new cart item linked to user's session
+              const { error: insertError } = await supabase
+                .from('cart_items')
+                .insert({
+                  product_id: productId,
+                  quantity,
+                  session_id: chatUserId ? null : sessionId,
+                  user_id: chatUserId,
+                })
+
+              if (insertError) {
+                console.error('Cart insert error:', insertError)
+                return { success: false, error: 'Failed to add to cart' }
+              }
             }
 
             return {
@@ -438,17 +464,24 @@ Be friendly, helpful, and concise.`
         // @ts-expect-error AI SDK 6.0.86 type mismatch — execute works at runtime
         execute: async () => {
           try {
-            // Note: Since this runs in Edge runtime without cookies, we get ALL recent cart items
-            // from the last 24 hours as a demo. In production, this would use user session.
-            const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+            // Filter by user's session (same cart as /cart page)
+            if (!chatUserId && !cartSessionId) {
+              return { success: true, items: [], itemCount: 0, subtotal: 0 }
+            }
 
-            // Fetch recent cart items
-            const { data: cartItems, error: cartError } = await supabase
+            // Fetch cart items for this user/session
+            const query = supabase
               .from('cart_items')
               .select('id, product_id, quantity, created_at')
-              .gte('created_at', oneDayAgo)
               .order('created_at', { ascending: false })
-              .limit(10)
+
+            if (chatUserId) {
+              query.eq('user_id', chatUserId)
+            } else {
+              query.eq('session_id', cartSessionId!)
+            }
+
+            const { data: cartItems, error: cartError } = await query
 
             if (cartError) {
               console.error('Cart fetch error:', cartError)
@@ -634,6 +667,96 @@ Be friendly, helpful, and concise.`
           } catch (error) {
             console.error('estimate_shipping error:', error)
             return { success: false, error: 'Failed to estimate shipping', options: [] }
+          }
+        },
+      }),
+      create_checkout: tool({
+        description: 'Create a Stripe checkout session to proceed to payment. Call this when user wants to checkout or complete purchase.',
+        parameters: z.object({
+          customerEmail: z.string().optional().describe('Customer email address (optional for guest checkout)'),
+        }),
+        needsApproval: true, // Requires user approval before creating checkout session
+        // @ts-expect-error AI SDK 6.0.86 type mismatch — execute works at runtime
+        execute: async (args: { customerEmail?: string }) => {
+          const { customerEmail } = args
+          try {
+            // Get cart items from the last 24 hours (demo - in production would use session)
+            const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+
+            const { data: cartItems, error: cartError } = await supabase
+              .from('cart_items')
+              .select('id, product_id, quantity, created_at')
+              .gte('created_at', oneDayAgo)
+              .order('created_at', { ascending: false })
+              .limit(10)
+
+            if (cartError || !cartItems || cartItems.length === 0) {
+              return {
+                success: false,
+                error: 'Your cart is empty. Add some items before checking out.',
+              }
+            }
+
+            // Fetch product details for cart items
+            const productIds = cartItems.map((item: any) => item.product_id)
+            const { data: products, error: productsError } = await supabase
+              .from('products')
+              .select('id, title, base_price_cents, currency, images')
+              .in('id', productIds)
+
+            if (productsError || !products) {
+              return {
+                success: false,
+                error: 'Failed to fetch product details',
+              }
+            }
+
+            // Build cart items for Stripe
+            const productMap = new Map(products.map((p: any) => [p.id, p]))
+            const stripeCartItems = cartItems.map((item: any) => {
+              const product = productMap.get(item.product_id)
+              return {
+                product_id: item.product_id,
+                product_name: product?.title || 'Unknown Product',
+                product_price: (product?.base_price_cents || 0) / 100,
+                product_image: Array.isArray(product?.images) && product.images.length > 0
+                  ? (product.images[0].src || product.images[0].url)
+                  : null,
+                quantity: item.quantity,
+              }
+            })
+
+            // Call the checkout API to create a Stripe session
+            const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+            const response = await fetch(`${baseUrl}/api/checkout/create-session`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                cartItems: stripeCartItems,
+                locale: 'en',
+                currency: 'usd',
+                customerEmail,
+              }),
+            })
+
+            if (!response.ok) {
+              return {
+                success: false,
+                error: 'Failed to create checkout session',
+              }
+            }
+
+            const data = await response.json()
+
+            return {
+              success: true,
+              checkoutUrl: data.url,
+              sessionId: data.sessionId,
+              message: 'Checkout session created! Redirecting to payment...',
+            }
+          } catch (error) {
+            console.error('create_checkout error:', error)
+            return { success: false, error: 'Failed to create checkout session' }
           }
         },
       }),

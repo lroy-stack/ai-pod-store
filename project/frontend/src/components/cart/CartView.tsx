@@ -23,8 +23,8 @@ export default function CartView({ locale }: { locale: string }) {
   const { authenticated, loading: authLoading, user } = useAuth()
   const { items: cartItems, loading: cartLoading, refreshCart } = useCart()
 
-  // Get user's preferred currency, fallback to locale default
-  const userCurrency = user?.currency || (locale === 'es' || locale === 'de' ? 'EUR' : 'USD')
+  // Get user's preferred currency from cart items or locale default
+  const userCurrency = user?.currency || (cartItems[0]?.product_currency) || (locale === 'en' ? 'USD' : 'EUR')
   const [updatingItems, setUpdatingItems] = useState<Set<string>>(new Set())
   const [couponCode, setCouponCode] = useState('')
   const [appliedCoupon, setAppliedCoupon] = useState<{
@@ -207,12 +207,18 @@ export default function CartView({ locale }: { locale: string }) {
                     <div className="flex gap-4">
                       {/* Product Image */}
                       <div className="relative size-24 md:size-32 rounded-lg overflow-hidden bg-muted shrink-0">
-                        <Image
-                          src={`https://via.placeholder.com/150`}
-                          alt={item.product_title}
-                          fill
-                          className="object-cover"
-                        />
+                        {item.product_image ? (
+                          <Image
+                            src={item.product_image}
+                            alt={item.product_title}
+                            fill
+                            className="object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center text-muted-foreground text-xs text-center p-2">
+                            {item.product_title}
+                          </div>
+                        )}
                       </div>
 
                       {/* Product Details */}
