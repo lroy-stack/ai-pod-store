@@ -2712,7 +2712,7 @@
     "id": 245,
     "feature": "Internationalization End-to-End",
     "description": "Switching locale updates URL and UI strings",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to /en/ page",
       "Switch locale to ES using the locale switcher",
