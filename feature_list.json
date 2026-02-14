@@ -1523,7 +1523,7 @@
     "id": 138,
     "feature": "Conversational Storefront / Chat",
     "description": "Chat session maintains context within a single visit and clears on new visit",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Send a message in the chat and verify the AI responds with context",
       "Send a follow-up message and verify the AI remembers the previous context",
@@ -1535,7 +1535,7 @@
     "id": 139,
     "feature": "Conversational Storefront / Chat",
     "description": "Chat supports markdown in responses",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Get a response that contains bold text, lists, and code blocks",
       "Verify markdown is rendered correctly as formatted HTML",

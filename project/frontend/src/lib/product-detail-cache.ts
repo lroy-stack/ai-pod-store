@@ -1,7 +1,5 @@
-'use cache'
-
-// Cached product detail data fetching functions
-// These functions use React's "use cache" directive for automatic caching
+// Product detail data fetching functions
+// TODO: Re-enable 'use cache' directive when cacheComponents is enabled in next.config.ts
 
 // Mock product data - will be replaced with Supabase queries
 const mockProducts: Record<string, any> = {

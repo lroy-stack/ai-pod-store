@@ -20,6 +20,7 @@ import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport } from 'ai'
+import ReactMarkdown from 'react-markdown'
 
 interface ChatAreaProps {
   onSelectProduct: (productId: string) => void
@@ -179,6 +180,14 @@ export function ChatArea({ onSelectProduct }: ChatAreaProps) {
                 >
                   {message.parts.map((part, index) => {
                     if (part.type === 'text') {
+                      // Render assistant messages with markdown, user messages as plain text
+                      if (message.role === 'assistant') {
+                        return (
+                          <div key={index} className="prose prose-sm max-w-none dark:prose-invert prose-p:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-0">
+                            <ReactMarkdown>{part.text}</ReactMarkdown>
+                          </div>
+                        )
+                      }
                       return (
                         <p key={index} className="text-sm whitespace-pre-wrap">
                           {part.text}
