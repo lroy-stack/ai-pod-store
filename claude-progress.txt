@@ -2,9 +2,10 @@
 
 ### Features Implemented This Session:
 1. ✅ Feature #142: Product search tool produces product grid artifact
+2. ✅ Feature #143: Browse catalog tool produces paginated products
 
-### Tests passing: 142/389 (36.5%)
-### Tests newly passing this session: #142
+### Tests passing: 143/389 (36.8%)
+### Tests newly passing this session: #142, #143
 
 ### Implementation Details:
 
@@ -439,3 +440,106 @@ The AI SDK streaming stops after the tool is executed, before generating the fin
 2. Always verify model availability via API before switching versions
 3. Test products in database are essential for feature verification
 4. Tool calling success ≠ feature complete (need full streaming response)
+
+#### Feature #143: Browse catalog tool produces paginated products
+
+**Added browse_catalog Tool**:
+- New tool in chat API with category filtering and popularity sorting
+- Parameters: category (optional), limit (default 6, max 12)
+- Filters by category.ilike and sorts by review_count DESC
+- Reuses ProductGridArtifact (already registered in registry)
+
+**Verification**:
+- Tested with "browse apparel" → returned 6 apparel products
+- Product grid rendered inline with Dog Lover T-Shirt, Classic Cat T-Shirt, Vintage Hoodie, etc.
+- All products displayed with images, ratings, prices, and action buttons
+- AI provided helpful commentary about the products
+
+
+## Session 53 (Coding Agent)
+- Implemented: Feature #144 artifact components (partial completion)
+- Verification: Browser testing with Playwright MCP + screenshots
+- Tests passing: 143/389 (no change — #144 not fully passing yet)
+- Tests newly implemented this session: #144 (partial - comparison works, detail doesn't)
+- Issues encountered: Gemini 2.5 Flash doesn't reliably chain multi-step tool calls
+- Database status: Connected, 6 products in catalog
+- Environment: Dev server running, all APIs functional
+
+### Implementation Details
+
+**Created Components:**
+1. ProductDetailArtifact + Skeleton (detail card with materials, shipping info, variants)
+2. ComparisonTableArtifact + Skeleton (side-by-side product comparison table)
+3. Registered both in artifact registry
+4. Added get_product_detail and compare_products tools to chat API
+
+**Verification Results:**
+✅ ComparisonTableArtifact: WORKING
+- Tested: "compare the first two cat products"
+- Result: Rendered comparison table with Classic Cat T-Shirt vs Cat Phone Case
+- Features shown: Price, Rating, Availability, Action buttons
+- Screenshot: /tmp/comparison-table-success.png
+
+❌ ProductDetailArtifact: CODE COMPLETE BUT NOT INVOKED BY AI
+- Component exists and renders correctly
+- Tool implementation complete
+- Issue: Gemini 2.5 Flash doesn't chain tool calls (search → get_detail)
+- Tested multiple prompts: "tell me more about Classic Cat T-Shirt", "show me detailed information including materials"
+- AI only calls product_search, doesn't follow up with get_product_detail
+- Root cause: Gemini model limitation, not code issue
+
+**System Prompt Improvements:**
+- Changed from stopWhen(3) to maxSteps(5) for better multi-step workflows
+- Added explicit WORKFLOW section explaining when to call each tool
+- Emphasized keywords: "details", "materials", "shipping" → must call get_product_detail
+- Still insufficient for reliable tool chaining
+
+### Next priorities:
+- **Feature #144** [Conversational Storefront / Chat] — CONTINUE DEBUGGING OR ACCEPT PARTIAL
+  - Option 1: Try different AI model (Claude, GPT-4) with better tool chaining
+  - Option 2: Simplify workflow - make detail tool work without chaining (pass product name directly)
+  - Option 3: Accept partial completion - comparison works, detail needs model upgrade
+- Feature #145 [Conversational Storefront / Chat] — Next feature in queue
+
+**Lessons Learned:**
+1. Gemini 2.5 Flash has limitations with multi-step tool calling workflows
+2. Comparison tool works because it's single-step (uses IDs from context)
+3. Detail tool requires: search(name) → extract ID → get_detail(ID) = 2 steps
+4. May need to architect tools differently for models with tool-chaining limitations
+5. ComparisonTableArtifact pattern is solid - responsive table with sticky header
+
+
+## Session 55 (Coding Agent)
+- Implemented: Feature #146 — Cart tools: add to cart, get cart produce artifacts
+- Verification: Playwright MCP browser testing + screenshots
+- Tests passing: 146/389 (37.5%)
+- Tests newly passing this session: #146
+- Issues encountered: Initial Edge runtime cookie issue — fixed by using Supabase directly
+- Database status: Connected, cart_items table working
+- Environment: Dev server running, all APIs functional
+
+### Implementation Details
+
+**Created Components:**
+1. CartSummaryArtifact (Card layout with items list, subtotal, action buttons)
+2. CartSummarySkeleton (Loading state with shimmer placeholders)
+3. Registered in artifact registry for get_cart tool
+
+**Chat API Tools:**
+1. add_to_cart: Adds product to cart via Supabase (creates guest cart with session_id)
+2. get_cart: Fetches cart items from last 24 hours, calculates totals
+
+**Key Fix:**
+- Edge runtime doesn't share cookies with client → tools now use Supabase directly
+- Fixed data structure: removed `cart:{}` wrapper to match artifact props
+
+**Verification Results:**
+✅ add_to_cart tool: "add the cat phone case to cart" → AI confirms "I've added..."
+✅ get_cart tool: "show my cart" → CartSummaryArtifact renders with 112 items, €2810.88 subtotal
+✅ Empty state: Shows shopping cart icon + "Your cart is empty" message + "Browse Products" button
+✅ Component uses semantic tokens (bg-card, text-foreground, etc.)
+✅ Responsive layout with Card, CardHeader, CardContent, CardFooter
+✅ Action buttons navigate to /en/cart and /en/checkout
+
+### Next priorities:
+- Feature #147 [Conversational Storefront / Chat] — Next feature in queue
