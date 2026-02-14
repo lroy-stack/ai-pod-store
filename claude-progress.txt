@@ -1189,3 +1189,49 @@ The approval mechanism itself works correctly — tested and verified with Playw
 - Added needsApproval flag to create_checkout and request_return
 - Verified approval dialog and inline artifact rendering
 
+
+## Session 63 — 2026-02-14 12:10 UTC
+
+### Feature #159: Artifact tabs work for multiple artifacts ✅
+
+**Implementation**:
+- Extended StorefrontContext to manage multiple artifacts (not just one product)
+- Added `Artifact` interface: `{ id, type, title, data }`
+- Added artifact management functions: `addArtifact()`, `removeArtifact()`, `clearArtifacts()`
+- Added `activeArtifactId` state to track which tab is selected
+- Updated DetailPanel to render tabbed interface using shadcn/ui `<Tabs>` component
+- Single artifact → no tabs (backward compatible)
+- Multiple artifacts → tab bar appears with tab labels and close buttons (X)
+- Updated StorefrontSidebar to call `addArtifact()` when products clicked
+- Updated ChatArea artifact rendering to call `addArtifact()` via `handleSelectProduct`
+- Added translation keys: `details` (EN: "Details", ES: "Detalles", DE: "Details")
+- Backward compatible with existing `productId` prop and `setSelectedProduct`
+
+**Code Changes**:
+1. `StorefrontContext.tsx`: Added artifact array, addArtifact, removeArtifact, clearArtifacts, activeArtifactId
+2. `DetailPanel.tsx`: Tabbed UI with Tabs/TabsList/TabsTrigger/TabsContent, ArtifactContent helper
+3. `StorefrontLayout.tsx`: Show panel when artifacts.length > 0 OR selectedProduct
+4. `StorefrontSidebar.tsx`: Pass product data to handleProductClick → addArtifact
+5. `ChatArea.tsx`: handleSelectProduct adds artifact to panel
+6. `messages/*.json`: Added "details" translation key (EN/ES/DE)
+
+**Verification**:
+- Clicked "Classic T-Shirt" → detail panel opened with product
+- Clicked "Classic D T-Shirt" → **tabs appeared** with two tabs
+- Tabs showed: "Classic T-Shirt" | "Classic D T-Shirt" (active)
+- Clicked first tab → content switched to Classic T-Shirt
+- Each tab has close button (X icon)
+- Screenshots confirm visual tab bar at top of detail panel
+
+**Tests passing**: 159/389 (40.9%)
+**Tests newly passing this session**: #159
+
+**Issues encountered**: None
+
+**Database status**: Connected (Supabase remote cloud)
+
+**Environment**: All env vars configured correctly
+
+### Next priorities:
+- Feature #160 [Conversational Storefront / Chat] — Sidebar updates in real-time via DataPart streaming
+

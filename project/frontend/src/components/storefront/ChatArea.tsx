@@ -38,7 +38,7 @@ export function ChatArea() {
   }>({ user: null, activeOrders: null, recentFavorites: null })
 
   // AI SDK 6 useChat hook with DefaultChatTransport
-  const { messages, sendMessage, status, addToolApprovalResponse } = useChat({
+  const { messages, sendMessage, status, addToolApprovalResponse, error } = useChat({
     transport: new DefaultChatTransport({ api: '/api/chat' }),
   })
 
@@ -490,6 +490,25 @@ export function ChatArea() {
                     <div className="w-2 h-2 rounded-full bg-muted-foreground animate-bounce [animation-delay:-0.15s]" />
                     <div className="w-2 h-2 rounded-full bg-muted-foreground animate-bounce" />
                   </div>
+                </div>
+              </div>
+            )}
+
+            {/* Error Display */}
+            {error && (
+              <div className="flex gap-3 justify-start">
+                <Avatar className="h-8 w-8 flex-shrink-0">
+                  <AvatarFallback className="bg-destructive text-destructive-foreground text-sm">
+                    !
+                  </AvatarFallback>
+                </Avatar>
+                <div className="rounded-lg px-4 py-3 bg-destructive/10 border border-destructive/20">
+                  <p className="text-sm text-destructive font-medium">
+                    {t('chatError')}
+                  </p>
+                  <p className="text-xs text-destructive/80 mt-1">
+                    {error.message || t('chatErrorGeneric')}
+                  </p>
                 </div>
               </div>
             )}

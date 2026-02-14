@@ -1781,7 +1781,7 @@
     "id": 160,
     "feature": "Conversational Storefront / Chat",
     "description": "Chat error state displays",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Simulate an API failure (e.g., stop server or return error from /api/chat)",
       "Send a message in the chat",

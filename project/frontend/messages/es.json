@@ -498,6 +498,8 @@
     "designPreviewTitle": "Tu Diseño Personalizado",
     "designPreviewSubtitle": "Obra de arte generada por IA",
     "designPreviewDownload": "Descargar",
-    "designPreviewAddToProduct": "Añadir al Producto"
+    "designPreviewAddToProduct": "Añadir al Producto",
+    "chatError": "Algo salió mal",
+    "chatErrorGeneric": "No se pudo conectar al servicio de chat. Por favor, inténtalo de nuevo."
   }
 }

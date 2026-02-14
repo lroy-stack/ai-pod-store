@@ -498,6 +498,8 @@
     "designPreviewTitle": "Ihr Individuelles Design",
     "designPreviewSubtitle": "KI-generierte Kunstwerke",
     "designPreviewDownload": "Herunterladen",
-    "designPreviewAddToProduct": "Zum Produkt Hinzufügen"
+    "designPreviewAddToProduct": "Zum Produkt Hinzufügen",
+    "chatError": "Etwas ist schief gelaufen",
+    "chatErrorGeneric": "Verbindung zum Chat-Service konnte nicht hergestellt werden. Bitte versuchen Sie es erneut."
   }
 }
