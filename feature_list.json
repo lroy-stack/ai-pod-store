@@ -960,7 +960,7 @@
     "id": 88,
     "feature": "Shopping Cart + Wishlists",
     "description": "Add to cart works from product page",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to a product detail page and select a variant",
       "Click the Add to Cart button",
