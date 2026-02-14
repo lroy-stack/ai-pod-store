@@ -1463,7 +1463,7 @@
     "id": 133,
     "feature": "Conversational Storefront / Chat",
     "description": "Left sidebar shows store navigation and AI-curated product recommendations",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to /en/",
       "Verify sidebar has navigation items: Discover, Trends, New Arrivals, Favorites, Orders",
