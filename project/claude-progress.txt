@@ -455,3 +455,53 @@ Screenshot evidence:
 - Session duration: ~8 minutes
 - Next: Feature #124 — Notification + audit log entry after order
 
+
+---
+
+### Feature #124: Notification + audit log entry after order ✅
+
+**Implementation:**
+Modified `/api/webhooks/stripe/route.ts` to add:
+1. Notification creation for authenticated users after order
+2. Audit log entry creation with actor_type='webhook'
+
+**Code Changes:**
+- Webhook handler now looks up user by email
+- If user exists: creates notification in `notifications` table
+  * type: 'order_confirmation'
+  * title: "Order Confirmed - [order_id]"
+  * body: Shows total amount
+  * data: order_id, session_id, total_cents, currency
+  * is_read: false
+- Always creates audit_log entry:
+  * actor_type: 'webhook'
+  * actor_id: 'stripe_webhook'
+  * action: 'order_created'
+  * resource_type: 'order'
+  * resource_id: links to order
+  * changes: status, total_cents, currency
+  * metadata: session_id, customer_email, locale
+
+**Verification:**
+1. Created test user: notif-test@example.com (ID: ff48195f-c2e9-4b17-9102-47ec5edafd45)
+2. Simulated webhook for authenticated user order
+3. Verified notification created:
+   - user_id: ff48195f-c2e9-4b17-9102-47ec5edafd45
+   - type: order_confirmation
+   - Contains order details in data JSONB
+4. Verified audit_log entries created (2 total):
+   - Both have actor_type='webhook' ✅
+   - Both have action='order_created'
+   - Both contain order metadata
+
+**Technical Notes:**
+- Guest checkout (no matching user): creates audit log only, skips notification
+- Authenticated user: creates both notification and audit log
+- Test endpoints created for verification, then removed
+- Webhook handler gracefully handles missing users
+
+**Updated Stats:**
+- Features this session: +2 (123, 124)
+- Total passing: 124/389 (31.9%)
+- Session duration: ~20 minutes
+
