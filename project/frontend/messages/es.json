@@ -319,5 +319,20 @@
     "namePlaceholder": "ej., Regalos, Favoritos, Colección de Verano",
     "cancel": "Cancelar",
     "create": "Crear"
+  },
+  "Checkout": {
+    "title": "Finalizar Compra",
+    "description": "Completa tu pedido",
+    "orderSummary": "Resumen del Pedido",
+    "items": "{count, plural, =0 {Sin artículos} one {1 artículo} other {{count} artículos}}",
+    "subtotal": "Subtotal",
+    "discount": "Descuento",
+    "shipping": "Envío",
+    "tax": "Impuestos",
+    "total": "Total",
+    "calculatedAtNextStep": "Calculado en el siguiente paso",
+    "continueShopping": "Continuar Comprando",
+    "emptyCart": "Tu carrito está vacío",
+    "emptyCartDescription": "Agrega algunos artículos a tu carrito antes de finalizar la compra"
   }
 }

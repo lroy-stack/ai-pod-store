@@ -319,5 +319,20 @@
     "namePlaceholder": "e.g., Gifts, Favorites, Summer Collection",
     "cancel": "Cancel",
     "create": "Create"
+  },
+  "Checkout": {
+    "title": "Checkout",
+    "description": "Complete your order",
+    "orderSummary": "Order Summary",
+    "items": "{count, plural, =0 {No items} one {1 item} other {{count} items}}",
+    "subtotal": "Subtotal",
+    "discount": "Discount",
+    "shipping": "Shipping",
+    "tax": "Tax",
+    "total": "Total",
+    "calculatedAtNextStep": "Calculated at next step",
+    "continueShopping": "Continue Shopping",
+    "emptyCart": "Your cart is empty",
+    "emptyCartDescription": "Add some items to your cart before checking out"
   }
 }

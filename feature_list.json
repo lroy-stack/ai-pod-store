@@ -1202,7 +1202,7 @@
     "id": 110,
     "feature": "Checkout & Payments",
     "description": "Checkout page renders with order summary",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Add items to the cart",
       "Click the Checkout button",

@@ -319,5 +319,20 @@
     "namePlaceholder": "z.B., Geschenke, Favoriten, Sommerkollektion",
     "cancel": "Abbrechen",
     "create": "Erstellen"
+  },
+  "Checkout": {
+    "title": "Zur Kasse",
+    "description": "Schließe deine Bestellung ab",
+    "orderSummary": "Bestellübersicht",
+    "items": "{count, plural, =0 {Keine Artikel} one {1 Artikel} other {{count} Artikel}}",
+    "subtotal": "Zwischensumme",
+    "discount": "Rabatt",
+    "shipping": "Versand",
+    "tax": "Steuern",
+    "total": "Gesamt",
+    "calculatedAtNextStep": "Im nächsten Schritt berechnet",
+    "continueShopping": "Weiter Einkaufen",
+    "emptyCart": "Dein Warenkorb ist leer",
+    "emptyCartDescription": "Füge einige Artikel zu deinem Warenkorb hinzu, bevor du zur Kasse gehst"
   }
 }
