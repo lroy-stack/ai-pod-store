@@ -72,6 +72,41 @@ export default function WishlistPage() {
     }
   };
 
+  const removeFromWishlist = async (itemId: string) => {
+    try {
+      const response = await fetch(`/api/wishlist/items?item_id=${itemId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        await fetchWishlists();
+      }
+    } catch (error) {
+      console.error('Error removing item from wishlist:', error);
+    }
+  };
+
+  const addToCart = async (productId: string, variantId: string | null) => {
+    try {
+      const response = await fetch('/api/cart', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          product_id: productId,
+          variant_id: variantId,
+          quantity: 1,
+        }),
+      });
+
+      if (response.ok) {
+        // Optionally show success toast
+        console.log('Added to cart');
+      }
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+    }
+  };
+
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -189,9 +224,7 @@ export default function WishlistPage() {
                           <Button
                             size="sm"
                             className="flex-1"
-                            onClick={() => {
-                              /* Add to cart */
-                            }}
+                            onClick={() => addToCart(item.products.id, item.variant_id)}
                           >
                             <ShoppingCart className="h-3 w-3 mr-1" />
                             {t('wishlist.addToCart', { default: 'Add to Cart' })}
@@ -199,9 +232,7 @@ export default function WishlistPage() {
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => {
-                              /* Remove from wishlist */
-                            }}
+                            onClick={() => removeFromWishlist(item.id)}
                           >
                             <Trash2 className="h-3 w-3" />
                           </Button>

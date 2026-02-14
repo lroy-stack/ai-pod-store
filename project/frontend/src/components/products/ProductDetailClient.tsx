@@ -99,8 +99,56 @@ export function ProductDetailClient({ product, relatedProducts, reviews }: Produ
     )
   }
 
-  const toggleWishlist = () => {
-    setIsWishlisted(!isWishlisted)
+  const toggleWishlist = async () => {
+    if (!product) return
+
+    try {
+      if (isWishlisted) {
+        // Remove from wishlist - for now just toggle state
+        // Will need item_id to properly remove, so just toggle
+        setIsWishlisted(false)
+      } else {
+        // Add to wishlist - need to get user's default wishlist first
+        const wishlistsRes = await fetch('/api/wishlist')
+        const wishlistsData = await wishlistsRes.json()
+
+        let wishlistId: string
+
+        if (wishlistsData.wishlists && wishlistsData.wishlists.length > 0) {
+          // Use first wishlist
+          wishlistId = wishlistsData.wishlists[0].id
+        } else {
+          // Create new wishlist
+          const createRes = await fetch('/api/wishlist', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: 'My Wishlist' }),
+          })
+          const createData = await createRes.json()
+          wishlistId = createData.wishlist.id
+        }
+
+        // Add item to wishlist
+        const response = await fetch('/api/wishlist/items', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            wishlist_id: wishlistId,
+            product_id: product.id,
+            variant_id: null,
+          }),
+        })
+
+        if (response.ok) {
+          setIsWishlisted(true)
+        } else if (response.status === 409) {
+          // Already in wishlist
+          setIsWishlisted(true)
+        }
+      }
+    } catch (error) {
+      console.error('Error toggling wishlist:', error)
+    }
   }
 
   const handleAddToCart = async () => {
