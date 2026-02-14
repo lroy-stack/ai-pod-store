@@ -2949,7 +2949,7 @@
     "id": 267,
     "feature": "PodClaw Agent",
     "description": "Agent events logged to agent_events table",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Run an agent action",
       "Verify agent_events row created with correct event_type",
