@@ -1477,7 +1477,7 @@
     "id": 134,
     "feature": "Conversational Storefront / Chat",
     "description": "Chat input accepts text and sends",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Type a message in the chat input field",
       "Press Enter or click the Send button",

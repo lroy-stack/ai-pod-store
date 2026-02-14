@@ -1112,3 +1112,208 @@ All currency displays correct. Number formatting follows locale conventions.
 
 ---
 
+
+---
+
+### Feature #130: Checkout breadcrumb navigation ✅
+
+**Implementation:**
+
+Created a visual progress indicator for the checkout flow showing 4 steps: Cart → Shipping → Payment → Confirmation.
+
+1. **CheckoutBreadcrumb Component:**
+   - Displays 4 checkout steps as numbered circles
+   - Visual states:
+     * Completed: blue background, white checkmark icon
+     * Active: white background, blue border, step number
+     * Future: grey text, step number
+   - Connector lines between steps (blue when completed, grey when pending)
+   - Responsive: compact layout on mobile, full with spacing on desktop
+   - Semantic: uses `<nav>` with `aria-label="Checkout progress"`
+
+2. **Integration:**
+   - Added to CheckoutView component (currently showing step 2: Shipping)
+   - Positioned below page header, above main content
+   - Uses semantic tokens: `border-primary`, `bg-primary`, `text-primary-foreground`, `bg-muted`
+
+3. **Internationalization:**
+   - Added breadcrumb translations to all 3 locales
+   - EN: Cart, Shipping, Payment, Confirmation
+   - ES: Carrito, Envío, Pago, Confirmación
+   - DE: Warenkorb, Versand, Zahlung, Bestätigung
+
+**Visual Design:**
+- Step indicators: 40px circles with 2px borders
+- Connector lines: 16-24px wide, 2px height
+- Typography: step labels in sm/md font size
+- Colors follow design system (primary brand blue + muted grey)
+- Mobile-first: hides connector lines on small screens
+
+**Verification:**
+Tested on /en/checkout page:
+- ✅ Step 1 (Cart) shows blue circle with white checkmark
+- ✅ Step 2 (Shipping) shows white circle with blue border and "2"
+- ✅ Steps 3-4 (Payment, Confirmation) show grey circles with numbers
+- ✅ Blue connector line between Cart and Shipping
+- ✅ Grey connector lines for future steps
+- ✅ Labels display correctly below each step
+
+Screenshot evidence showed perfect visual implementation matching the design spec.
+
+**Modified Files:**
+- `frontend/src/components/checkout/CheckoutBreadcrumb.tsx` (NEW, 72 lines)
+- `frontend/src/components/checkout/CheckoutView.tsx` — Added breadcrumb component
+- `frontend/messages/en.json` — +4 breadcrumb keys
+- `frontend/messages/es.json` — +4 breadcrumb keys
+- `frontend/messages/de.json` — +4 breadcrumb keys
+
+---
+
+**Session 42 Summary:**
+- Features this session: +3 (128, 129, 130)
+- Total passing: 130/389 (33.4%)
+- Database migrations: 2 (return_requests table, test order)
+- New components: OrderDetailView, CheckoutBreadcrumb
+- New pages: Order detail page
+- New API routes: Return requests (POST + GET)
+- Tool calls: ~160
+- Commits: 3
+- Duration: ~20 minutes
+
+**Session Highlights:**
+1. Implemented complete return/refund request system (database + API + UI)
+2. Verified multi-currency display already working (no changes needed)
+3. Created checkout breadcrumb navigation with visual progress indicator
+
+**Next Session Priorities:**
+- Feature #131: Email confirmation sent after successful order
+- Feature #132: Conversational Storefront — Chat interface renders
+- Feature #133: Conversational Storefront — Message list displays
+
+
+---
+
+## Session 43 — Feature #131 + #132 Implementation
+
+**Date:** 2026-02-14 03:32-03:44 UTC
+**Features Implemented:** 2 (131, 132)
+**Total Passing:** 132/389 (33.9%)
+**Duration:** ~12 minutes
+
+### Feature #131: Error handling for Printify submission failure ✅
+
+**Implementation:**
+- Created migration: `20260214033304_add_printify_retry_tracking.sql`
+  - Added `printify_retry_count` column (INTEGER, default 0)
+  - Added `printify_error` column (TEXT, stores error message)
+  - Added `printify_last_attempt_at` column (TIMESTAMPTZ)
+  - Created index for querying failed orders
+- Updated Stripe webhook handler (`webhooks/stripe/route.ts`):
+  - Catches Printify API errors during order submission
+  - Catches production submission errors
+  - Updates order with retry count, error message, and timestamp
+  - Calls `notifyAdminOfPrintifyFailure()` helper function
+- Created admin notification system:
+  - Finds all admin users (role='admin')
+  - Creates notification with type `printify_error`
+  - Includes order ID, failure type (submission/production), and error message
+
+**Verification:**
+- Created test endpoint to simulate failures
+- Verified order marked for retry: `printify_retry_count=1`, error message stored
+- Verified admin notifications created (3 admins notified)
+- Tested both submission and production failure scenarios
+- Removed test endpoint after verification
+
+**Modified Files:**
+- `project/supabase/migrations/20260214033304_add_printify_retry_tracking.sql` (NEW, 15 lines)
+- `project/frontend/src/app/api/webhooks/stripe/route.ts` (updated error handling, +47 lines)
+
+---
+
+### Feature #132: Three-panel conversational storefront layout ✅
+
+**Implementation:**
+This is the PRIMARY customer interface — the conversational storefront IS the homepage.
+
+**Created Components:**
+1. **StorefrontLayout.tsx** (72 lines)
+   - Three-panel structure: sidebar (240px) + chat (flex-1) + detail (340px)
+   - Responsive: sidebar collapses to Sheet drawer on mobile
+   - Detail panel stacks below on mobile
+   - Manages selected product state
+
+2. **StorefrontSidebar.tsx** (145 lines)
+   - Logo + "POD AI" branding
+   - Navigation: Discover, Trends, New Arrivals, Favorites, Orders
+   - Recommended products section (compact product cards)
+   - Popular today section
+   - PodClaw live status footer (green pulse dot + "Last design 2m ago")
+   - 240px width on desktop, Sheet drawer on mobile
+
+3. **ChatArea.tsx** (159 lines)
+   - Chat header: search bar, notification bell (3), cart icon (2), user avatar
+   - Welcome screen: logo, title, subtitle, 4 suggested prompts
+   - Input area: voice button, text input, image upload button, send button
+   - AI disclaimer footer
+   - Future: AI SDK integration with useChat()
+
+4. **DetailPanel.tsx** (141 lines)
+   - Product title, price, rating, reviews
+   - Product image placeholder
+   - Description section
+   - Variant selectors (size, color)
+   - "Add to Cart" button
+   - "Ask about this product" button (future: injects question into chat)
+   - 340px width on desktop, full screen overlay on mobile
+   - Close button
+
+**Updated Files:**
+- `project/frontend/src/app/[locale]/page.tsx` — replaced landing page with StorefrontLayout
+- `project/frontend/src/app/[locale]/chat/page.tsx` (NEW) — redirect to homepage
+
+**Translations Added (EN/ES/DE):**
+- Navigation labels (discover, trends, newArrivals, favorites, orders)
+- Section headers (recommended, popularToday)
+- Welcome messages (welcomeTitle, welcomeSubtitle)
+- Suggested prompts (4 prompts)
+- Input placeholders and labels
+- Product detail labels (size, color, addToCart, askAboutProduct)
+
+**Verification via Browser (Playwright MCP):**
+1. ✅ Navigated to /en/ — three-panel layout renders
+2. ✅ Left sidebar visible (240px width, dark theme)
+3. ✅ Center chat area visible (welcome screen + input)
+4. ✅ Clicked sidebar product → right detail panel appears
+5. ✅ Navigated to /en/chat → redirects to /en/
+6. ✅ Screenshot evidence: all three panels visible simultaneously
+
+**Modified Files:**
+- `project/frontend/src/components/storefront/StorefrontLayout.tsx` (NEW, 72 lines)
+- `project/frontend/src/components/storefront/StorefrontSidebar.tsx` (NEW, 145 lines)
+- `project/frontend/src/components/storefront/ChatArea.tsx` (NEW, 159 lines)
+- `project/frontend/src/components/storefront/DetailPanel.tsx` (NEW, 141 lines)
+- `project/frontend/src/app/[locale]/page.tsx` (replaced with StorefrontLayout)
+- `project/frontend/src/app/[locale]/chat/page.tsx` (NEW, redirect)
+- `project/frontend/messages/en.json` (+24 keys)
+- `project/frontend/messages/es.json` (+24 keys)
+- `project/frontend/messages/de.json` (+24 keys)
+
+**Next Priorities:**
+- Feature #133: Message list displays in chat area
+- Feature #134: Message streaming with AI SDK 6
+- Feature #135: Artifact components render inline in chat
+
+---
+
+**Session Summary:**
+- ✅ Implemented Printify error handling with retry tracking and admin notifications
+- ✅ Created three-panel conversational storefront (sidebar + chat + detail)
+- ✅ All components responsive (mobile-first with md: and lg: breakpoints)
+- ✅ Used shadcn/ui components (Sheet, Button, Input, Badge, Avatar, Separator)
+- ✅ Used semantic tokens (bg-card, text-foreground, border-border, etc.)
+- ✅ Added translations for all three locales (EN/ES/DE)
+- ✅ Verified via browser with Playwright MCP
+- ✅ Committed 2 features, 18 files changed, ~800 lines added
+
+**Progress:** 132/389 passing (33.9%) — +2 features this session

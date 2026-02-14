@@ -1,9 +1,9 @@
 {
-  "total_sessions": 41,
-  "total_tokens": 166683,
-  "total_cost_usd": 0.5003000000000001,
+  "total_sessions": 43,
+  "total_tokens": 175106,
+  "total_cost_usd": 0.5256000000000001,
   "tokens_by_model": {
-    "claude-sonnet-4-5-20250929": 166683
+    "claude-sonnet-4-5-20250929": 175106
   },
   "sessions": [
     {
@@ -1407,6 +1407,75 @@
       "mcp_calls": {
         "mcp__playwright__browser_navigate": 1,
         "mcp__playwright__browser_take_screenshot": 1
+      }
+    },
+    {
+      "id": 42,
+      "type": "CODING",
+      "model": "claude-sonnet-4-5-20250929",
+      "started_at": "2026-02-14T03:16:29.237091+00:00",
+      "ended_at": "2026-02-14T03:31:03.782103+00:00",
+      "duration_seconds": 874.54,
+      "tokens_used": 4064,
+      "cost_usd": 0.0122,
+      "features_passed": 3,
+      "total_passing": 130,
+      "total_features": 389,
+      "tool_calls": 135,
+      "tool_errors": 2,
+      "tool_breakdown": {
+        "Bash": 68,
+        "Read": 18,
+        "mcp__playwright__browser_navigate": 7,
+        "mcp__playwright__browser_click": 4,
+        "TodoWrite": 10,
+        "Write": 6,
+        "error": 2,
+        "Edit": 11,
+        "mcp__playwright__browser_wait_for": 5,
+        "mcp__playwright__browser_type": 2,
+        "mcp__playwright__browser_take_screenshot": 2
+      },
+      "sub_agents_used": [],
+      "mcp_calls": {
+        "mcp__playwright__browser_navigate": 7,
+        "mcp__playwright__browser_click": 4,
+        "mcp__playwright__browser_wait_for": 5,
+        "mcp__playwright__browser_type": 2,
+        "mcp__playwright__browser_take_screenshot": 2
+      }
+    },
+    {
+      "id": 43,
+      "type": "CODING",
+      "model": "claude-sonnet-4-5-20250929",
+      "started_at": "2026-02-14T03:31:09.804377+00:00",
+      "ended_at": "2026-02-14T03:42:41.322804+00:00",
+      "duration_seconds": 691.52,
+      "tokens_used": 4359,
+      "cost_usd": 0.0131,
+      "features_passed": 2,
+      "total_passing": 132,
+      "total_features": 389,
+      "tool_calls": 96,
+      "tool_errors": 3,
+      "tool_breakdown": {
+        "Bash": 53,
+        "Read": 11,
+        "mcp__playwright__browser_navigate": 3,
+        "mcp__playwright__browser_take_screenshot": 3,
+        "Grep": 1,
+        "Write": 7,
+        "error": 3,
+        "Edit": 6,
+        "TodoWrite": 8,
+        "mcp__playwright__browser_click": 1
+      },
+      "sub_agents_used": [],
+      "mcp_calls": {
+        "mcp__playwright__browser_navigate": 3,
+        "mcp__playwright__browser_take_screenshot": 3,
+        "mcp__playwright__browser_click": 1
       }
     }
   ]
