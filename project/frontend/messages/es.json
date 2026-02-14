@@ -501,5 +501,19 @@
     "designPreviewAddToProduct": "Añadir al Producto",
     "chatError": "Algo salió mal",
     "chatErrorGeneric": "No se pudo conectar al servicio de chat. Por favor, inténtalo de nuevo."
+  },
+  "commandPalette": {
+    "searchPlaceholder": "Buscar páginas, productos o acciones...",
+    "home": "Inicio",
+    "shop": "Tienda",
+    "favorites": "Favoritos",
+    "orders": "Pedidos",
+    "cart": "Carrito",
+    "profile": "Perfil",
+    "design": "Diseñar un producto personalizado",
+    "action": "Acción",
+    "noResults": "No se encontraron resultados",
+    "navigate": "Navegar",
+    "select": "Seleccionar"
   }
 }

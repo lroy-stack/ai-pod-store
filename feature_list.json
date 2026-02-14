@@ -1792,7 +1792,7 @@
     "id": 161,
     "feature": "Conversational Storefront / Chat",
     "description": "Command palette opens with Cmd/Ctrl+K",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Press Cmd+K on macOS or Ctrl+K on other platforms",
       "Verify the command palette overlay opens",

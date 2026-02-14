@@ -4,6 +4,7 @@ import { getMessages } from 'next-intl/server'
 import { notFound } from 'next/navigation'
 import { Toaster } from '@/components/ui/toaster'
 import { CartProvider } from '@/hooks/useCart'
+import { CommandPalette } from '@/components/CommandPalette'
 
 const locales = ['en', 'es', 'de']
 
@@ -28,6 +29,7 @@ async function ProvidersContent({
       <CartProvider>
         {children}
         <Toaster />
+        <CommandPalette />
       </CartProvider>
     </NextIntlClientProvider>
   )

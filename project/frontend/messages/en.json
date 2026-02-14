@@ -501,5 +501,19 @@
     "designPreviewAddToProduct": "Add to Product",
     "chatError": "Something went wrong",
     "chatErrorGeneric": "Unable to connect to the chat service. Please try again."
+  },
+  "commandPalette": {
+    "searchPlaceholder": "Search for pages, products, or actions...",
+    "home": "Home",
+    "shop": "Shop",
+    "favorites": "Favorites",
+    "orders": "Orders",
+    "cart": "Cart",
+    "profile": "Profile",
+    "design": "Design a custom product",
+    "action": "Action",
+    "noResults": "No results found",
+    "navigate": "Navigate",
+    "select": "Select"
   }
 }

@@ -501,5 +501,19 @@
     "designPreviewAddToProduct": "Zum Produkt Hinzufügen",
     "chatError": "Etwas ist schief gelaufen",
     "chatErrorGeneric": "Verbindung zum Chat-Service konnte nicht hergestellt werden. Bitte versuchen Sie es erneut."
+  },
+  "commandPalette": {
+    "searchPlaceholder": "Seiten, Produkte oder Aktionen suchen...",
+    "home": "Startseite",
+    "shop": "Shop",
+    "favorites": "Favoriten",
+    "orders": "Bestellungen",
+    "cart": "Warenkorb",
+    "profile": "Profil",
+    "design": "Individuelles Produkt entwerfen",
+    "action": "Aktion",
+    "noResults": "Keine Ergebnisse gefunden",
+    "navigate": "Navigieren",
+    "select": "Auswählen"
   }
 }
