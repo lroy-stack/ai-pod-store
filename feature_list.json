@@ -2885,7 +2885,7 @@
     "id": 261,
     "feature": "Internationalization End-to-End",
     "description": "Locale-specific sitemap exists",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify /sitemap-en.xml contains /en/ URLs",
       "Verify /sitemap-es.xml contains /es/ URLs",
