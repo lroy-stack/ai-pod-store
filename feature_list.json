@@ -1733,7 +1733,7 @@
     "id": 156,
     "feature": "Conversational Storefront / Chat",
     "description": "create_checkout and request_return have needsApproval",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Inspect the tool definitions for create_checkout",
       "Verify needsApproval is set to true for create_checkout",
