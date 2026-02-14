@@ -91,3 +91,69 @@
 
 ---
 
+
+---
+
+## Session 29 (Coding Agent) - 2026-02-14 00:55 UTC - CONTINUED
+
+### Additional Work Completed:
+
+**Feature #94 COMPLETED**: Cart empty state verified
+- Removed item from cart via "Remove" button
+- Empty state displayed with "Your cart is empty" message
+- "Continue Shopping" link present (navigates to /shop)
+- Cart badge updated to show no count
+- Toast notification appeared: "Item removed from cart"
+
+**Feature #95 COMPLETED**: Adding same product twice increases quantity
+- Added Classic T-Shirt (Size M, Color Black) to cart — cart badge showed "1"
+- Added the exact same product/variant again — cart badge updated to "2"
+- Verified cart page shows only 1 row with quantity 2 (not 2 duplicate rows)
+- Item total correctly calculated: $49.98 (2 × $24.99)
+- This behavior works via existing cart API logic (lines 176-204) that checks for duplicates
+
+### Verification Steps Taken:
+
+**Feature #94:**
+1. ✅ Clicked "Remove" button on cart item
+2. ✅ Empty state message appeared: "Your cart is empty"
+3. ✅ "Continue Shopping" link present
+4. ✅ Cart badge cleared (no number)
+5. ✅ Toast notification: "Item removed from cart"
+
+**Feature #95:**
+1. ✅ Selected Size M and Color Black
+2. ✅ Clicked "Add to cart" — badge showed "1", toast appeared
+3. ✅ Clicked "Add to cart" again with same variants — badge updated to "2"
+4. ✅ Navigated to /cart
+5. ✅ Verified only 1 cart row displayed (no duplicates)
+6. ✅ Verified quantity shows "2"
+7. ✅ Verified totals: Item total $49.98, Subtotal $49.98, Total $49.98
+
+### Final Status:
+
+- **Tests passing**: 95/389 (24.4%) — +3 features this session (IDs 93, 94, 95)
+- **Feature ID 93** [Shopping Cart + Wishlists] - Cart persists across page navigation: ✅ **PASSING**
+- **Feature ID 94** [Shopping Cart + Wishlists] - Cart empty state shows: ✅ **PASSING**
+- **Feature ID 95** [Shopping Cart + Wishlists] - Adding same product twice increases quantity: ✅ **PASSING**
+
+### Session Summary:
+
+This session focused on cart functionality and verification:
+1. Fixed cart API endpoint mismatch in useCart hook (PATCH operations)
+2. Verified cart persistence across page navigation
+3. Verified empty cart state with proper UI messaging
+4. Verified duplicate product handling (quantity increment vs duplicate rows)
+
+All features verified through comprehensive browser testing with Playwright MCP.
+
+---
+
+## Next Session Priorities:
+
+1. Feature #96: Cart updates without full page reload
+2. Continue Shopping Cart + Wishlists features (IDs 97-109)
+3. Then move to Checkout & Payments (IDs 110-131)
+
+---
+
