@@ -276,6 +276,18 @@
     "couponExpired": "Dieser Gutschein ist abgelaufen",
     "couponNotYetValid": "Dieser Gutschein ist noch nicht gültig",
     "couponUsageLimitExceeded": "Dieser Gutschein hat sein Nutzungslimit erreicht",
-    "couponMinimumNotMet": "Mindestbestellwert nicht erreicht"
+    "couponMinimumNotMet": "Mindestbestellwert nicht erreicht",
+    "shippingEstimate": "Versandkostenschätzung",
+    "zipCodePlaceholder": "Postleitzahl eingeben",
+    "zipCodeRequired": "Postleitzahl erforderlich",
+    "calculate": "Berechnen",
+    "calculating": "Wird berechnet...",
+    "shippingCost": "Versand",
+    "freeShipping": "Kostenloser Versand",
+    "free": "KOSTENLOS",
+    "estimatedDelivery": "{min}-{max} Werktage",
+    "freeShippingThreshold": "Fügen Sie ${amount} mehr für kostenlosen Versand hinzu!",
+    "shippingCalculated": "Versandkostenschätzung aktualisiert",
+    "shippingCalculationFailed": "Versandberechnung fehlgeschlagen"
   }
 }

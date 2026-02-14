@@ -276,6 +276,18 @@
     "couponExpired": "Este cupón ha expirado",
     "couponNotYetValid": "Este cupón aún no es válido",
     "couponUsageLimitExceeded": "Este cupón ha alcanzado su límite de uso",
-    "couponMinimumNotMet": "No se alcanza el monto mínimo de compra"
+    "couponMinimumNotMet": "No se alcanza el monto mínimo de compra",
+    "shippingEstimate": "Estimación de Envío",
+    "zipCodePlaceholder": "Ingresa código postal",
+    "zipCodeRequired": "El código postal es obligatorio",
+    "calculate": "Calcular",
+    "calculating": "Calculando...",
+    "shippingCost": "Envío",
+    "freeShipping": "Envío Gratis",
+    "free": "GRATIS",
+    "estimatedDelivery": "{min}-{max} días hábiles",
+    "freeShippingThreshold": "¡Añade ${amount} más para envío gratis!",
+    "shippingCalculated": "Estimación de envío actualizada",
+    "shippingCalculationFailed": "Error al calcular el envío"
   }
 }

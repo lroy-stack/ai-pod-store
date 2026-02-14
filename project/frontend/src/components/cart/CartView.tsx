@@ -29,10 +29,22 @@ export default function CartView({ locale }: { locale: string }) {
     new_total: number
   } | null>(null)
   const [applyingCoupon, setApplyingCoupon] = useState(false)
+  const [zipCode, setZipCode] = useState('')
+  const [shippingEstimate, setShippingEstimate] = useState<{
+    cost: number
+    isFree: boolean
+    freeShippingThreshold?: number
+    estimatedDaysMin: number
+    estimatedDaysMax: number
+  } | null>(null)
+  const [calculatingShipping, setCalculatingShipping] = useState(false)
 
   const loading = authLoading || cartLoading
   const cartTotal = cartItems.reduce((total, item) => total + (item.product_price * item.quantity), 0)
-  const finalTotal = appliedCoupon ? appliedCoupon.new_total : cartTotal
+  const itemCount = cartItems.reduce((count, item) => count + item.quantity, 0)
+  const discountedTotal = appliedCoupon ? appliedCoupon.new_total : cartTotal
+  const shippingCost = shippingEstimate?.cost || 0
+  const finalTotal = discountedTotal + shippingCost
 
   const updateQuantity = async (itemId: string, newQuantity: number) => {
     // Enforce maximum quantity on client side
@@ -114,6 +126,43 @@ export default function CartView({ locale }: { locale: string }) {
     setAppliedCoupon(null)
     setCouponCode('')
     toast.success(t('itemRemoved'))
+  }
+
+  const calculateShipping = async () => {
+    if (!zipCode.trim()) {
+      toast.error(t('zipCodeRequired'))
+      return
+    }
+
+    setCalculatingShipping(true)
+
+    try {
+      const response = await fetch('/api/cart/shipping-estimate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          zipCode: zipCode.trim(),
+          countryCode: 'US',
+          cartTotal: discountedTotal,
+          itemCount,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok || !data.success) {
+        toast.error(data.error || t('shippingCalculationFailed'))
+        return
+      }
+
+      setShippingEstimate(data.shipping)
+      toast.success(t('shippingCalculated'))
+    } catch (error) {
+      console.error('Shipping calculation error:', error)
+      toast.error(t('shippingCalculationFailed'))
+    } finally {
+      setCalculatingShipping(false)
+    }
   }
 
   if (loading) {
@@ -294,6 +343,57 @@ export default function CartView({ locale }: { locale: string }) {
                   </div>
                 )}
 
+                {/* Shipping Estimate */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">
+                    {t('shippingEstimate')}
+                  </label>
+                  <div className="flex gap-2">
+                    <Input
+                      type="text"
+                      placeholder={t('zipCodePlaceholder')}
+                      value={zipCode}
+                      onChange={(e) => setZipCode(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && calculateShipping()}
+                      disabled={calculatingShipping}
+                      className="flex-1"
+                      maxLength={10}
+                    />
+                    <Button
+                      onClick={calculateShipping}
+                      disabled={calculatingShipping || !zipCode.trim()}
+                      size="default"
+                    >
+                      {calculatingShipping ? t('calculating') : t('calculate')}
+                    </Button>
+                  </div>
+                  {shippingEstimate && (
+                    <div className="p-3 bg-muted rounded-lg border border-border">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-sm font-medium text-foreground">
+                          {shippingEstimate.isFree ? t('freeShipping') : t('shippingCost')}
+                        </span>
+                        <span className="text-sm font-semibold text-foreground">
+                          {shippingEstimate.isFree ? t('free') : `$${shippingEstimate.cost.toFixed(2)}`}
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {t('estimatedDelivery', {
+                          min: shippingEstimate.estimatedDaysMin,
+                          max: shippingEstimate.estimatedDaysMax,
+                        })}
+                      </p>
+                      {!shippingEstimate.isFree && shippingEstimate.freeShippingThreshold && discountedTotal < shippingEstimate.freeShippingThreshold && (
+                        <p className="text-xs text-primary mt-1">
+                          {t('freeShippingThreshold', {
+                            amount: shippingEstimate.freeShippingThreshold.toFixed(2),
+                          })}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+
                 <Separator />
                 <div className="space-y-2">
                   <div className="flex justify-between">
@@ -308,7 +408,13 @@ export default function CartView({ locale }: { locale: string }) {
                   )}
                   <div className="flex justify-between">
                     <span className="text-foreground">{t('shipping')}</span>
-                    <span className="text-foreground font-medium">{t('calculated')}</span>
+                    <span className="text-foreground font-medium">
+                      {shippingEstimate
+                        ? shippingEstimate.isFree
+                          ? t('free')
+                          : `$${shippingEstimate.cost.toFixed(2)}`
+                        : t('calculated')}
+                    </span>
                   </div>
                 </div>
                 <Separator />
