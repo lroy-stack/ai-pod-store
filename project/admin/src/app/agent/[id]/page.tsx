@@ -5,142 +5,146 @@ import { useParams, useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react'
+import { ArrowLeft, Clock, CheckCircle, XCircle, AlertCircle, Play, Pause, WifiOff } from 'lucide-react'
 import { formatDistanceToNow, format } from 'date-fns'
 
-interface AgentSession {
-  id: string
-  session_number: number
-  session_type: string
-  status: 'running' | 'completed' | 'error'
-  started_at: string
-  ended_at: string | null
-  features_before: number
-  features_after: number
-  tool_calls: number
-  tool_errors: number
+interface BridgeAgent {
+  agent: string
+  running: boolean
+  session_id: string | null
+  model: string | null
+  tools: string[]
 }
 
 interface AgentEvent {
-  id: number
-  session_id: string
+  id: string
+  agent_name: string
   event_type: string
-  data: Record<string, any>
+  payload: Record<string, any>
+  session_id: string | null
   created_at: string
 }
 
-const statusIcons = {
-  running: Clock,
-  completed: CheckCircle,
-  error: XCircle,
-}
-
-const statusColors = {
-  running: 'bg-blue-500/10 text-blue-700 dark:text-blue-400',
-  completed: 'bg-success/10 text-success',
-  error: 'bg-destructive/10 text-destructive',
+interface AgentSession {
+  id: string
+  session_number: number | null
+  session_type: string
+  status: string
+  started_at: string
+  ended_at: string | null
+  features_before: number | null
+  features_after: number | null
+  tool_calls: number
+  tool_errors: number
+  memory_snapshot: string | null
+  error_log: string | null
 }
 
 const eventTypeColors: Record<string, string> = {
-  session_start: 'bg-blue-500/10 text-blue-700 dark:text-blue-400',
+  session_start: 'bg-primary/10 text-primary',
   session_end: 'bg-success/10 text-success',
-  tool_call: 'bg-purple-500/10 text-purple-700 dark:text-purple-400',
-  tool_result: 'bg-indigo-500/10 text-indigo-700 dark:text-indigo-400',
+  tool_use: 'bg-accent text-accent-foreground',
   error: 'bg-destructive/10 text-destructive',
-  feature_pass: 'bg-success/10 text-success',
-  feature_fail: 'bg-destructive/10 text-destructive',
-  commit: 'bg-green-500/10 text-green-700 dark:text-green-400',
+  rate_limit_exceeded: 'bg-warning/10 text-warning',
 }
 
-export default function SessionDetailPage() {
+export default function AgentDetailPage() {
   const params = useParams()
   const router = useRouter()
-  const sessionId = params.id as string
+  const agentName = params.id as string
 
-  const [session, setSession] = useState<AgentSession | null>(null)
+  const [agent, setAgent] = useState<BridgeAgent | null>(null)
   const [events, setEvents] = useState<AgentEvent[]>([])
+  const [sessions, setSessions] = useState<AgentSession[]>([])
+  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [offline, setOffline] = useState(false)
+  const [replayingSession, setReplayingSession] = useState<string | null>(null)
 
   useEffect(() => {
-    fetchSessionAndEvents()
-  }, [sessionId])
+    fetchAgentDetail()
+  }, [agentName])
 
-  async function fetchSessionAndEvents() {
+  async function fetchAgentDetail() {
     setLoading(true)
+    setOffline(false)
     try {
-      // For now, mock the session data
-      // In production, this would fetch from /api/agent/sessions/[id]
-      const mockSession: AgentSession = {
-        id: sessionId,
-        session_number: 90,
-        session_type: 'coding',
-        status: 'completed',
-        started_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-        ended_at: new Date(Date.now() - 1.5 * 60 * 60 * 1000).toISOString(),
-        features_before: 223,
-        features_after: 224,
-        tool_calls: 178,
-        tool_errors: 17,
-      }
-      setSession(mockSession)
+      const [agentRes, eventsRes, sessionsRes] = await Promise.all([
+        fetch(`/api/agent/agents/${agentName}`),
+        fetch(`/api/agent/events?agent=${agentName}&limit=50`),
+        fetch(`/api/agent/sessions?agent=${agentName}&limit=10`),
+      ])
 
-      // Fetch events from API
-      const res = await fetch(`/api/agent/sessions/${sessionId}/events`)
-      if (res.ok) {
-        const eventsData = await res.json()
-        setEvents(eventsData)
-      } else {
-        // If no events in DB, show mock events
-        const mockEvents: AgentEvent[] = [
-          {
-            id: 1,
-            session_id: sessionId,
-            event_type: 'session_start',
-            data: { session_number: 90, type: 'coding' },
-            created_at: mockSession.started_at,
-          },
-          {
-            id: 2,
-            session_id: sessionId,
-            event_type: 'tool_call',
-            data: { tool: 'Read', description: 'Read feature_list.json' },
-            created_at: new Date(Date.now() - 1.9 * 60 * 60 * 1000).toISOString(),
-          },
-          {
-            id: 3,
-            session_id: sessionId,
-            event_type: 'tool_result',
-            data: { tool: 'Read', success: true },
-            created_at: new Date(Date.now() - 1.88 * 60 * 60 * 1000).toISOString(),
-          },
-          {
-            id: 4,
-            session_id: sessionId,
-            event_type: 'feature_pass',
-            data: { feature_id: 228, description: 'Agent status display + session history' },
-            created_at: new Date(Date.now() - 1.7 * 60 * 60 * 1000).toISOString(),
-          },
-          {
-            id: 5,
-            session_id: sessionId,
-            event_type: 'commit',
-            data: { message: 'feat: implement agent status display — test #228 passing' },
-            created_at: new Date(Date.now() - 1.6 * 60 * 60 * 1000).toISOString(),
-          },
-          {
-            id: 6,
-            session_id: sessionId,
-            event_type: 'session_end',
-            data: { features_implemented: 1, tool_calls: 178, errors: 17 },
-            created_at: mockSession.ended_at!,
-          },
-        ]
-        setEvents(mockEvents)
+      // Sessions are from Supabase, not bridge - always fetch them
+      if (sessionsRes.ok) {
+        const data = await sessionsRes.json()
+        setSessions(data.sessions ?? [])
       }
-    } catch (err) {
-      console.error('Failed to fetch session details:', err)
+
+      // Agent and events are from bridge - set offline if bridge is down
+      if (agentRes.status === 503) {
+        setOffline(true)
+        return
+      }
+
+      if (agentRes.ok) {
+        setAgent(await agentRes.json())
+      }
+
+      if (eventsRes.ok) {
+        const data = await eventsRes.json()
+        setEvents(data.events ?? [])
+      }
+    } catch {
+      setOffline(true)
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function handleReplaySession(sessionId: string) {
+    setReplayingSession(sessionId)
+    setSelectedSessionId(sessionId)
+    try {
+      const res = await fetch(`/api/agent/sessions/${sessionId}/events`)
+      if (res.ok) {
+        const data = await res.json()
+        setEvents(data.events ?? [])
+      }
+    } catch (error) {
+      console.error('Failed to replay session:', error)
+    } finally {
+      setReplayingSession(null)
+    }
+  }
+
+  function handleClearReplay() {
+    setSelectedSessionId(null)
+    fetchAgentDetail() // Reload all recent events
+  }
+
+  async function handleRun() {
+    try {
+      await fetch(`/api/agent/agents/${agentName}/run`, { method: 'POST' })
+      await fetchAgentDetail()
+    } catch {
+      console.error('Failed to run agent')
+    }
+  }
+
+  async function handlePause() {
+    try {
+      await fetch(`/api/agent/agents/${agentName}/pause`, { method: 'POST' })
+    } catch {
+      console.error('Failed to pause agent')
+    }
+  }
+
+  async function handleResume() {
+    try {
+      await fetch(`/api/agent/agents/${agentName}/resume`, { method: 'POST' })
+    } catch {
+      console.error('Failed to resume agent')
     }
   }
 
@@ -152,11 +156,215 @@ export default function SessionDetailPage() {
     )
   }
 
-  if (!session) {
+  if (offline) {
+    return (
+      <div className="space-y-6">
+        <Button onClick={() => router.push('/agent')} variant="outline" size="sm">
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Agent Monitor
+        </Button>
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+            <WifiOff className="h-12 w-12 text-muted-foreground mb-4" />
+            <Badge variant="outline" className="bg-destructive/10 text-destructive mb-4">
+              PodClaw Offline
+            </Badge>
+            <p className="text-lg font-medium">Cannot reach PodClaw bridge</p>
+            <p className="text-sm text-muted-foreground mt-2">
+              Session history is still available below
+            </p>
+            <Button onClick={fetchAgentDetail} variant="outline" className="mt-4">
+              Retry
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Session History - still available when bridge is offline */}
+        {sessions.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Session History</CardTitle>
+              <CardDescription>
+                {sessions.length} past session{sessions.length !== 1 ? 's' : ''} for {agentName}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {sessions.map((session) => (
+                  <div
+                    key={session.id}
+                    className={`rounded-lg border p-4 transition-colors ${
+                      selectedSessionId === session.id
+                        ? 'border-primary bg-primary/5'
+                        : 'border-border hover:border-muted-foreground'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 space-y-2">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Badge
+                            variant="outline"
+                            className={
+                              session.status === 'completed'
+                                ? 'bg-success/10 text-success'
+                                : session.status === 'error'
+                                ? 'bg-destructive/10 text-destructive'
+                                : 'bg-primary/10 text-primary'
+                            }
+                          >
+                            {session.status}
+                          </Badge>
+                          {session.session_number && (
+                            <span className="text-xs text-muted-foreground">
+                              Session #{session.session_number}
+                            </span>
+                          )}
+                          <span className="text-xs text-muted-foreground">
+                            {format(new Date(session.started_at), 'MMM dd, yyyy HH:mm')}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                          <div>
+                            <span className="text-muted-foreground">Tool calls:</span>{' '}
+                            <span className="font-medium">{session.tool_calls}</span>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground">Errors:</span>{' '}
+                            <span className="font-medium">{session.tool_errors}</span>
+                          </div>
+                          {session.features_before !== null && session.features_after !== null && (
+                            <div>
+                              <span className="text-muted-foreground">Features:</span>{' '}
+                              <span className="font-medium">
+                                {session.features_before} → {session.features_after}
+                              </span>
+                            </div>
+                          )}
+                          {session.ended_at && (
+                            <div>
+                              <span className="text-muted-foreground">Duration:</span>{' '}
+                              <span className="font-medium">
+                                {Math.round(
+                                  (new Date(session.ended_at).getTime() -
+                                    new Date(session.started_at).getTime()) /
+                                    1000 /
+                                    60
+                                )}{' '}
+                                min
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant={selectedSessionId === session.id ? 'outline' : 'default'}
+                        disabled={replayingSession === session.id}
+                        onClick={() =>
+                          selectedSessionId === session.id
+                            ? handleClearReplay()
+                            : handleReplaySession(session.id)
+                        }
+                      >
+                        {replayingSession === session.id ? (
+                          <>
+                            <div className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent mr-2" />
+                            Loading...
+                          </>
+                        ) : selectedSessionId === session.id ? (
+                          'Clear'
+                        ) : (
+                          'Replay'
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Events from replayed session */}
+        {selectedSessionId && events.length > 0 && (
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Event Timeline</CardTitle>
+                  <CardDescription>
+                    Replaying session ({events.length} events in chronological order)
+                  </CardDescription>
+                </div>
+                <Button size="sm" variant="outline" onClick={handleClearReplay}>
+                  Clear Replay
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="relative space-y-4">
+                {/* Timeline line */}
+                <div className="absolute left-[19px] top-2 bottom-2 w-px bg-border" />
+
+                {events.map((event) => {
+                  const eventColor = eventTypeColors[event.event_type] || 'bg-muted'
+
+                  return (
+                    <div key={event.id} className="relative flex gap-4">
+                      {/* Timeline dot */}
+                      <div
+                        className={`relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-4 border-background ${eventColor}`}
+                      >
+                        <div className="h-2 w-2 rounded-full bg-current" />
+                      </div>
+
+                      {/* Event content */}
+                      <div className="flex-1 pb-8">
+                        <div className="rounded-lg border border-border p-4">
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex-1 space-y-1">
+                              <div className="flex items-center gap-2">
+                                <Badge variant="outline" className={eventColor}>
+                                  {event.event_type}
+                                </Badge>
+                                <span className="text-xs text-muted-foreground">
+                                  {format(new Date(event.created_at), 'HH:mm:ss')}
+                                </span>
+                              </div>
+
+                              {Object.keys(event.data || {}).length > 0 && (
+                                <div className="mt-2 rounded-md bg-muted/50 p-3">
+                                  <pre className="text-xs text-muted-foreground whitespace-pre-wrap">
+                                    {JSON.stringify(event.data, null, 2)}
+                                  </pre>
+                                </div>
+                              )}
+                            </div>
+
+                            <span className="text-xs text-muted-foreground shrink-0">
+                              {formatDistanceToNow(new Date(event.created_at), {
+                                addSuffix: true,
+                              })}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    )
+  }
+
+  if (!agent) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] text-center">
         <AlertCircle className="h-12 w-12 text-muted-foreground mb-4" />
-        <p className="text-lg font-medium">Session not found</p>
+        <p className="text-lg font-medium">Agent &quot;{agentName}&quot; not found</p>
         <Button onClick={() => router.push('/agent')} className="mt-4">
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Agent Monitor
@@ -164,9 +372,6 @@ export default function SessionDetailPage() {
       </div>
     )
   }
-
-  const Icon = statusIcons[session.status]
-  const colorClass = statusColors[session.status]
 
   return (
     <div className="space-y-6">
@@ -181,94 +386,203 @@ export default function SessionDetailPage() {
           Agent Monitor
         </button>
         <span>&gt;</span>
-        <span>Session #{session.session_number}</span>
+        <span>{agent.agent}</span>
       </div>
 
       {/* Back Button */}
-      <Button
-        onClick={() => router.push('/agent')}
-        variant="outline"
-        size="sm"
-      >
+      <Button onClick={() => router.push('/agent')} variant="outline" size="sm">
         <ArrowLeft className="mr-2 h-4 w-4" />
         Back to Agent Monitor
       </Button>
 
-      {/* Session Header */}
+      {/* Agent Header */}
       <Card>
         <CardHeader>
           <div className="flex items-start justify-between">
             <div>
               <div className="flex items-center gap-2">
-                <CardTitle>Session #{session.session_number}</CardTitle>
-                <Badge variant="outline" className={colorClass}>
-                  {session.status}
+                <CardTitle className="text-2xl">{agent.agent}</CardTitle>
+                <Badge
+                  variant="outline"
+                  className={agent.running ? 'bg-success/10 text-success' : 'bg-muted'}
+                >
+                  {agent.running ? 'Running' : 'Idle'}
                 </Badge>
-                <Badge variant="outline">{session.session_type}</Badge>
               </div>
               <CardDescription className="mt-2">
-                Started {formatDistanceToNow(new Date(session.started_at), { addSuffix: true })}
-                {session.ended_at && (
-                  <> • Ended {formatDistanceToNow(new Date(session.ended_at), { addSuffix: true })}</>
-                )}
+                Model: {agent.model ?? 'unknown'} | Session: {agent.session_id ?? 'none'}
               </CardDescription>
-            </div>
-            <div className={`flex h-12 w-12 items-center justify-center rounded-full ${colorClass}`}>
-              <Icon className="h-6 w-6" />
             </div>
           </div>
         </CardHeader>
-        <CardContent>
-          {/* Metrics */}
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-            <div className="rounded-lg bg-muted/50 p-3">
-              <p className="text-xs text-muted-foreground">Features</p>
-              <p className="text-lg font-medium">
-                {session.features_before} → {session.features_after}
-                <span className="ml-1 text-sm text-success">
-                  (+{session.features_after - session.features_before})
-                </span>
-              </p>
-            </div>
-            <div className="rounded-lg bg-muted/50 p-3">
-              <p className="text-xs text-muted-foreground">Tool Calls</p>
-              <p className="text-lg font-medium">{session.tool_calls}</p>
-            </div>
-            <div className="rounded-lg bg-muted/50 p-3">
-              <p className="text-xs text-muted-foreground">Errors</p>
-              <p className="text-lg font-medium">{session.tool_errors}</p>
-            </div>
-            <div className="rounded-lg bg-muted/50 p-3">
-              <p className="text-xs text-muted-foreground">Duration</p>
-              <p className="text-lg font-medium">
-                {session.ended_at
-                  ? Math.round(
-                      (new Date(session.ended_at).getTime() -
-                        new Date(session.started_at).getTime()) /
-                        60000
-                    ) + 'm'
-                  : 'Running...'}
-              </p>
+        <CardContent className="space-y-4">
+          {/* Tools */}
+          <div>
+            <p className="text-sm font-medium mb-2">Tools ({agent.tools.length})</p>
+            <div className="flex flex-wrap gap-2">
+              {agent.tools.map((tool) => (
+                <Badge key={tool} variant="secondary">{tool}</Badge>
+              ))}
             </div>
           </div>
+
+          {/* Actions */}
+          <div className="flex gap-2 pt-2">
+            <Button size="sm" disabled={agent.running} onClick={handleRun}>
+              <Play className="mr-2 h-4 w-4" />
+              Run Now
+            </Button>
+            <Button size="sm" variant="outline" onClick={handlePause}>
+              <Pause className="mr-2 h-4 w-4" />
+              Pause
+            </Button>
+            <Button size="sm" variant="outline" onClick={handleResume}>
+              Resume
+            </Button>
+            <Button size="sm" variant="ghost" onClick={fetchAgentDetail}>
+              Refresh
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Session History */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Session History</CardTitle>
+          <CardDescription>
+            {sessions.length} past session{sessions.length !== 1 ? 's' : ''} for this agent
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {sessions.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <Clock className="h-8 w-8 text-muted-foreground mb-3" />
+              <p className="text-sm text-muted-foreground">No sessions recorded yet</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {sessions.map((session) => (
+                <div
+                  key={session.id}
+                  className={`rounded-lg border p-4 transition-colors ${
+                    selectedSessionId === session.id
+                      ? 'border-primary bg-primary/5'
+                      : 'border-border hover:border-muted-foreground'
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 space-y-2">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Badge
+                          variant="outline"
+                          className={
+                            session.status === 'completed'
+                              ? 'bg-success/10 text-success'
+                              : session.status === 'error'
+                              ? 'bg-destructive/10 text-destructive'
+                              : 'bg-primary/10 text-primary'
+                          }
+                        >
+                          {session.status}
+                        </Badge>
+                        {session.session_number && (
+                          <span className="text-xs text-muted-foreground">
+                            Session #{session.session_number}
+                          </span>
+                        )}
+                        <span className="text-xs text-muted-foreground">
+                          {format(new Date(session.started_at), 'MMM dd, yyyy HH:mm')}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                        <div>
+                          <span className="text-muted-foreground">Tool calls:</span>{' '}
+                          <span className="font-medium">{session.tool_calls}</span>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Errors:</span>{' '}
+                          <span className="font-medium">{session.tool_errors}</span>
+                        </div>
+                        {session.features_before !== null && session.features_after !== null && (
+                          <div>
+                            <span className="text-muted-foreground">Features:</span>{' '}
+                            <span className="font-medium">
+                              {session.features_before} → {session.features_after}
+                            </span>
+                          </div>
+                        )}
+                        {session.ended_at && (
+                          <div>
+                            <span className="text-muted-foreground">Duration:</span>{' '}
+                            <span className="font-medium">
+                              {Math.round(
+                                (new Date(session.ended_at).getTime() -
+                                  new Date(session.started_at).getTime()) /
+                                  1000 /
+                                  60
+                              )}{' '}
+                              min
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant={selectedSessionId === session.id ? 'outline' : 'default'}
+                      disabled={replayingSession === session.id}
+                      onClick={() =>
+                        selectedSessionId === session.id
+                          ? handleClearReplay()
+                          : handleReplaySession(session.id)
+                      }
+                    >
+                      {replayingSession === session.id ? (
+                        <>
+                          <div className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent mr-2" />
+                          Loading...
+                        </>
+                      ) : selectedSessionId === session.id ? (
+                        'Show All Events'
+                      ) : (
+                        'Replay'
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 
       {/* Event Timeline */}
       <Card>
         <CardHeader>
-          <CardTitle>Event Timeline</CardTitle>
-          <CardDescription>
-            {events.length} event{events.length !== 1 ? 's' : ''} recorded during this session
-          </CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Event Timeline</CardTitle>
+              <CardDescription>
+                {selectedSessionId
+                  ? `Replaying session (${events.length} events in chronological order)`
+                  : `${events.length} recent event${events.length !== 1 ? 's' : ''} from bridge /events`}
+              </CardDescription>
+            </div>
+            {selectedSessionId && (
+              <Button size="sm" variant="outline" onClick={handleClearReplay}>
+                Clear Replay
+              </Button>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           {events.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <Clock className="h-12 w-12 text-muted-foreground mb-4" />
-              <p className="text-lg font-medium">No events recorded</p>
+              <p className="text-lg font-medium">No events yet</p>
               <p className="text-sm text-muted-foreground mt-1">
-                Events will appear here as the session progresses
+                Events will appear after the agent runs
               </p>
             </div>
           ) : (
@@ -276,7 +590,7 @@ export default function SessionDetailPage() {
               {/* Timeline line */}
               <div className="absolute left-[19px] top-2 bottom-2 w-px bg-border" />
 
-              {events.map((event, index) => {
+              {events.map((event) => {
                 const eventColor = eventTypeColors[event.event_type] || 'bg-muted'
 
                 return (
@@ -302,11 +616,10 @@ export default function SessionDetailPage() {
                               </span>
                             </div>
 
-                            {/* Event data */}
-                            {Object.keys(event.data).length > 0 && (
+                            {Object.keys(event.payload).length > 0 && (
                               <div className="mt-2 rounded-md bg-muted/50 p-3">
                                 <pre className="text-xs text-muted-foreground whitespace-pre-wrap">
-                                  {JSON.stringify(event.data, null, 2)}
+                                  {JSON.stringify(event.payload, null, 2)}
                                 </pre>
                               </div>
                             )}
