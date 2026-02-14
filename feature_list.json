@@ -2689,7 +2689,7 @@
     "id": 243,
     "feature": "Admin",
     "description": "Admin finance reports render",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to http://localhost:3001/finance",
       "Verify P&L report renders with data",
@@ -2701,7 +2701,7 @@
     "id": 244,
     "feature": "Internationalization End-to-End",
     "description": "Locale switcher in header works",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Find locale switcher dropdown in the header",
       "Click the locale switcher",
@@ -5788,6 +5788,169 @@
       "Read feature_list.json",
       "Verify features 486-520 exist",
       "Verify all features have steps and descriptions"
+    ]
+  },
+  {
+    "id": 521,
+    "feature": "PodClaw Hardening \u2014 Async Event Store",
+    "description": "EventStore wraps all Supabase calls in asyncio.to_thread() to avoid blocking the event loop",
+    "passes": true,
+    "steps": [
+      "Read podclaw/event_store.py",
+      "Verify _write_to_supabase uses asyncio.to_thread()",
+      "Verify query() and get_session_events() use asyncio.to_thread()"
+    ]
+  },
+  {
+    "id": 522,
+    "feature": "PodClaw Hardening \u2014 Async Cost Guard",
+    "description": "cost_guard_hook uses asyncio.to_thread() for all Supabase reads and writes",
+    "passes": true,
+    "steps": [
+      "Read podclaw/hooks/cost_guard_hook.py",
+      "Verify _get_agent_cost_sync and _add_cost_sync exist as sync helpers",
+      "Verify cost_guard_hook calls them via asyncio.to_thread()"
+    ]
+  },
+  {
+    "id": 523,
+    "feature": "PodClaw Hardening \u2014 Async Rate Limit",
+    "description": "rate_limit_hook audit log write uses asyncio.to_thread()",
+    "passes": true,
+    "steps": [
+      "Read podclaw/hooks/rate_limit_hook.py",
+      "Verify Supabase insert for rate_limit_exceeded events uses asyncio.to_thread()"
+    ]
+  },
+  {
+    "id": 524,
+    "feature": "PodClaw Hardening \u2014 Security Hook Self-Sufficient",
+    "description": "security_hook fetches current price from DB for price-change validation (no external context needed)",
+    "passes": true,
+    "steps": [
+      "Read podclaw/hooks/security_hook.py",
+      "Verify init_security(supabase_client) function exists",
+      "Verify _fetch_current_price queries products table directly",
+      "Verify price change detection compares new vs current price"
+    ]
+  },
+  {
+    "id": 525,
+    "feature": "PodClaw Hardening \u2014 Metrics Pre+Post Hook Pair",
+    "description": "metrics_hook has PreToolUse (timer start) + PostToolUse (latency calculation) pair",
+    "passes": true,
+    "steps": [
+      "Read podclaw/hooks/metrics_hook.py",
+      "Verify metrics_pre_hook stores time.monotonic() keyed by tool_use_id",
+      "Verify metrics_hook (PostToolUse) calculates latency delta from _pending_timers"
+    ]
+  },
+  {
+    "id": 526,
+    "feature": "PodClaw Hardening \u2014 Metrics Pre Hook Registered",
+    "description": "main.py registers metrics_pre_hook in the PreToolUse hook chain",
+    "passes": true,
+    "steps": [
+      "Read podclaw/main.py",
+      "Verify metrics_pre_hook is imported from podclaw.hooks.metrics_hook",
+      "Verify pre_tool_use list includes metrics_pre_hook"
+    ]
+  },
+  {
+    "id": 527,
+    "feature": "PodClaw Hardening \u2014 Security Init in Main",
+    "description": "main.py calls init_security(supabase_client) during startup",
+    "passes": true,
+    "steps": [
+      "Read podclaw/main.py",
+      "Verify init_security is imported from podclaw.hooks.security_hook",
+      "Verify init_security(supabase_client) is called alongside init_cost_guard and init_rate_limit"
+    ]
+  },
+  {
+    "id": 528,
+    "feature": "PodClaw Hardening \u2014 Supabase Connector Table Validation",
+    "description": "supabase_connector validates table names with regex to prevent path traversal",
+    "passes": true,
+    "steps": [
+      "Read podclaw/mcp/supabase_connector.py",
+      "Verify _TABLE_RE regex exists for alphanumeric+underscore validation",
+      "Verify _validate_table() is called before all table operations"
+    ]
+  },
+  {
+    "id": 529,
+    "feature": "PodClaw Hardening \u2014 Supabase Connector URL Encoding",
+    "description": "supabase_connector uses urllib.parse.quote() for all URL parameters",
+    "passes": true,
+    "steps": [
+      "Read podclaw/mcp/supabase_connector.py",
+      "Verify urllib.parse is imported",
+      "Verify quote() is used for filter values in URL construction"
+    ]
+  },
+  {
+    "id": 530,
+    "feature": "PodClaw Hardening \u2014 Supabase Connector Timeouts",
+    "description": "supabase_connector sets timeout=30 on all httpx requests",
+    "passes": true,
+    "steps": [
+      "Read podclaw/mcp/supabase_connector.py",
+      "Verify all httpx.get/post/patch/delete calls include timeout=30"
+    ]
+  },
+  {
+    "id": 531,
+    "feature": "PodClaw Hardening \u2014 Memory Consolidation Improvement",
+    "description": "Weekly memory consolidation extracts only action lines instead of verbatim daily copy",
+    "passes": true,
+    "steps": [
+      "Read podclaw/memory_manager.py",
+      "Verify consolidate_daily_to_weekly extracts lines starting with '- ' under agent headers"
+    ]
+  },
+  {
+    "id": 532,
+    "feature": "PodClaw Hardening \u2014 Memory Hook Messaging Tools",
+    "description": "memory_hook significant_tools includes telegram and whatsapp tools",
+    "passes": true,
+    "steps": [
+      "Read podclaw/hooks/memory_hook.py",
+      "Verify significant_tools set includes telegram_send, telegram_broadcast, whatsapp_send, whatsapp_send_template"
+    ]
+  },
+  {
+    "id": 533,
+    "feature": "PodClaw Hardening \u2014 EventStore Schema Alignment",
+    "description": "EventStore uses 'data' column name (not 'payload') matching agent_events DB schema",
+    "passes": true,
+    "steps": [
+      "Read podclaw/event_store.py",
+      "Verify db_event dict uses key 'data' for the payload column",
+      "Verify local log event keeps 'payload' key for structured logging"
+    ]
+  },
+  {
+    "id": 534,
+    "feature": "PodClaw Hardening \u2014 agent_daily_costs Migration",
+    "description": "Migration creates agent_daily_costs table and adapts agent_events for PodClaw",
+    "passes": true,
+    "steps": [
+      "Read supabase/migrations/20260214220000_podclaw_tables.sql",
+      "Verify agent_daily_costs table with agent_name + date unique constraint",
+      "Verify agent_events gets agent_name column and nullable session_id",
+      "Verify agent_sessions type constraint includes all 8 PodClaw agent names"
+    ]
+  },
+  {
+    "id": 535,
+    "feature": "PodClaw Hardening \u2014 Phase 17 Documented",
+    "description": "app_spec.txt includes Phase 17 documenting all PodClaw production hardening changes",
+    "passes": true,
+    "steps": [
+      "Read app_spec.txt",
+      "Verify phase_17 section exists with name 'PodClaw Production Hardening'",
+      "Verify it documents async I/O, metrics, security, supabase connector, and memory improvements"
     ]
   }
 ]
