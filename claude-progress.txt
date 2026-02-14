@@ -1846,3 +1846,55 @@ The "Verified Purchase" badges are already displaying on product reviews. No add
 - No regressions introduced
 - Server running healthy at http://localhost:3000
 
+
+## Session 25 (Coding Agent) — 2026-02-14 00:02 UTC
+
+### Regression Tests:
+- ✅ Feature 86 (Quick-view modal) — Still passing, modal opens correctly with product details
+- ✅ Feature 87 (Product search API) — Still passing, returns Baseball Cap when searching for "cap"
+
+### Feature 88: Add to cart works from product page
+
+**Status:** ✅ PASSING
+
+**Implementation:**
+- Cart infrastructure was already in place from previous sessions:
+  * `cart_items` table exists in Supabase (24 tables total)
+  * `/api/cart` route handles GET, POST, PATCH, DELETE
+  * `useCart()` hook provides cart state management
+  * `CartProvider` wraps the app in `[locale]/layout.tsx`
+- Created migration file for cart_items table (already existed in remote DB)
+- Product detail page (`ProductDetailClient.tsx`) validates variant selection before allowing add to cart
+- Size and color are required for apparel products
+
+**Verification:**
+- Navigated to http://localhost:3000/en/shop/1 (Classic T-Shirt)
+- Selected variant: Size M, Color Black
+- Clicked "Add to cart" button
+- ✅ Toast notification appeared: "Added to cart - Classic T-Shirt has been added to your cart"
+- ✅ POST /api/cart returned 200 OK (verified via network requests)
+- ✅ GET /api/cart called after to refresh cart
+- Cart properly stores items with session_id for guest users, user_id for authenticated users
+
+**Files Modified:**
+- project/supabase/migrations/20260214000344_create_cart_items_table.sql (new migration)
+- project/frontend/src/contexts/CartContext.tsx (created, though not used — hook in useCart.tsx is used instead)
+- feature_list.json (marked #88 as passing)
+
+### Commits:
+- `25917b6` — feat: add to cart works from product page — test #88 passing
+
+### Progress:
+- **Features passing: 88/353 (24.9%)**
+- **Features this session: +1 (ID 88)**
+- **Next target: ID 89 [Shopping Cart + Wishlists] — Cart icon shows item count badge**
+
+### Session Summary:
+- Duration: ~6 minutes
+- Regression checks performed and passed
+- Add to cart functionality fully tested through browser
+- Clean commit with comprehensive description
+- No regressions introduced
+- Server running healthy at http://localhost:3000
+- Test artifacts cleaned up
+

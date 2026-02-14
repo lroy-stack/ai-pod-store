@@ -971,7 +971,7 @@
     "id": 89,
     "feature": "Shopping Cart + Wishlists",
     "description": "Cart icon shows item count in navbar",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Add an item to the cart",
       "Look at the cart icon in the navbar",

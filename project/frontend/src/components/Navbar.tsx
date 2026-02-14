@@ -100,26 +100,33 @@ export default function Navbar() {
 
           {/* Right: Desktop auth area */}
           <div className="hidden md:flex items-center gap-2">
+            {/* Cart icon - always visible */}
+            <Button variant="ghost" size="icon" asChild>
+              <Link href={`/${locale}/cart`} className="relative">
+                <ShoppingCart className="size-5" />
+                {itemCount > 0 && (
+                  <Badge
+                    variant="destructive"
+                    className="absolute -top-1 -right-1 size-5 flex items-center justify-center p-0 text-xs"
+                  >
+                    {itemCount}
+                  </Badge>
+                )}
+                <span className="sr-only">{t('cart')}</span>
+              </Link>
+            </Button>
+
             {loading ? (
               <span className="text-sm text-muted-foreground">Loading...</span>
             ) : authenticated && user ? (
               <>
-                {authLinks.map((link) => (
-                  <Button key={link.href} variant="ghost" size="sm" asChild>
-                    <Link href={link.href} className="relative">
-                      <link.icon className="size-4" />
-                      {link.label}
-                      {link.icon === ShoppingCart && itemCount > 0 && (
-                        <Badge
-                          variant="destructive"
-                          className="absolute -top-1 -right-1 size-5 flex items-center justify-center p-0 text-xs"
-                        >
-                          {itemCount}
-                        </Badge>
-                      )}
-                    </Link>
-                  </Button>
-                ))}
+                {/* Orders link for authenticated users */}
+                <Button variant="ghost" size="sm" asChild>
+                  <Link href={`/${locale}/orders`}>
+                    <Package className="size-4" />
+                    {t('orders')}
+                  </Link>
+                </Button>
 
                 <Separator orientation="vertical" className="h-6 mx-1" />
 
@@ -175,8 +182,24 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Mobile: Hamburger menu */}
-          <div className="flex md:hidden">
+          {/* Mobile: Cart icon + Hamburger menu */}
+          <div className="flex md:hidden items-center gap-2">
+            {/* Cart icon for mobile - always visible */}
+            <Button variant="ghost" size="icon" asChild>
+              <Link href={`/${locale}/cart`} className="relative">
+                <ShoppingCart className="size-5" />
+                {itemCount > 0 && (
+                  <Badge
+                    variant="destructive"
+                    className="absolute -top-1 -right-1 size-5 flex items-center justify-center p-0 text-xs"
+                  >
+                    {itemCount}
+                  </Badge>
+                )}
+                <span className="sr-only">{t('cart')}</span>
+              </Link>
+            </Button>
+
             <Sheet>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon">
@@ -210,27 +233,17 @@ export default function Navbar() {
                   {authenticated && user && (
                     <>
                       <Separator className="my-2" />
-                      {authLinks.map((link) => (
-                        <Button
-                          key={link.href}
-                          variant="ghost"
-                          className="justify-start gap-3 h-11"
-                          asChild
-                        >
-                          <Link href={link.href} className="relative">
-                            <link.icon className="size-4" />
-                            {link.label}
-                            {link.icon === ShoppingCart && itemCount > 0 && (
-                              <Badge
-                                variant="destructive"
-                                className="ml-auto size-5 flex items-center justify-center p-0 text-xs"
-                              >
-                                {itemCount}
-                              </Badge>
-                            )}
-                          </Link>
-                        </Button>
-                      ))}
+                      {/* Orders link for authenticated users */}
+                      <Button
+                        variant="ghost"
+                        className="justify-start gap-3 h-11"
+                        asChild
+                      >
+                        <Link href={`/${locale}/orders`}>
+                          <Package className="size-4" />
+                          {t('orders')}
+                        </Link>
+                      </Button>
                     </>
                   )}
                 </div>
