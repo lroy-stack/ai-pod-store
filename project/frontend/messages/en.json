@@ -8,6 +8,7 @@
   },
   "navigation": {
     "home": "Home",
+    "chat": "Chat",
     "shop": "Shop",
     "cart": "Cart",
     "orders": "Orders",

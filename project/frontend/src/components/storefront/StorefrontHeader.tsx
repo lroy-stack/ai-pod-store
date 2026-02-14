@@ -1,9 +1,9 @@
 'use client'
 
 import Link from 'next/link'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams, useRouter, usePathname } from 'next/navigation'
 import { useTranslations } from 'next-intl'
-import { Search, Bell, ShoppingCart, User, LogOut, Menu } from 'lucide-react'
+import { Search, Bell, ShoppingCart, User, LogOut, Menu, Globe } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -18,9 +18,22 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { useAuth } from '@/hooks/useAuth'
 import { useCart } from '@/hooks/useCart'
+import { cn } from '@/lib/utils'
 
 interface StorefrontHeaderProps {
   onToggleSidebar?: () => void
+}
+
+const localeNames: Record<string, string> = {
+  en: 'English',
+  es: 'Español',
+  de: 'Deutsch',
+}
+
+const localeFlags: Record<string, string> = {
+  en: '🇺🇸',
+  es: '🇪🇸',
+  de: '🇩🇪',
 }
 
 export function StorefrontHeader({ onToggleSidebar }: StorefrontHeaderProps) {
@@ -30,11 +43,18 @@ export function StorefrontHeader({ onToggleSidebar }: StorefrontHeaderProps) {
   const { itemCount } = useCart()
   const params = useParams()
   const router = useRouter()
+  const pathname = usePathname()
   const locale = params.locale as string
 
   const handleLogout = async () => {
     await logout()
     router.push(`/${locale}/auth/login`)
+  }
+
+  const handleLocaleChange = (newLocale: string) => {
+    // Replace the locale in the current pathname
+    const newPathname = pathname.replace(`/${locale}`, `/${newLocale}`)
+    router.push(newPathname)
   }
 
   const userInitial = user?.name
@@ -43,23 +63,63 @@ export function StorefrontHeader({ onToggleSidebar }: StorefrontHeaderProps) {
       ? user.email[0].toUpperCase()
       : '?'
 
+  const isShopPage = pathname.includes('/shop')
+  const isChatPage = pathname === `/${locale}` || pathname === `/${locale}/`
+
   return (
     <header className="flex items-center justify-between gap-4 px-4 py-3 border-b border-border bg-card">
-      {/* Mobile sidebar toggle */}
-      {onToggleSidebar && (
-        <Button
-          variant="ghost"
-          size="icon"
-          className="lg:hidden flex-shrink-0"
-          onClick={onToggleSidebar}
-        >
-          <Menu className="h-5 w-5" />
-          <span className="sr-only">Toggle sidebar</span>
-        </Button>
-      )}
+      {/* Left: Mobile toggle + Logo + Nav links */}
+      <div className="flex items-center gap-4 flex-shrink-0">
+        {/* Mobile sidebar toggle */}
+        {onToggleSidebar && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="lg:hidden"
+            onClick={onToggleSidebar}
+          >
+            <Menu className="h-5 w-5" />
+            <span className="sr-only">Toggle sidebar</span>
+          </Button>
+        )}
 
-      {/* Search */}
-      <div className="flex-1 max-w-md">
+        {/* Logo */}
+        <Link href={`/${locale}`} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+          <div className="size-8 rounded-md bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center">
+            <span className="text-primary-foreground font-bold text-sm">P</span>
+          </div>
+          <span className="font-semibold text-foreground hidden sm:inline">POD AI</span>
+        </Link>
+
+        {/* Navigation Links */}
+        <nav className="hidden md:flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            asChild
+            className={cn(
+              'text-muted-foreground hover:text-foreground',
+              isChatPage && 'text-foreground bg-muted'
+            )}
+          >
+            <Link href={`/${locale}`}>{tNav('chat') || 'Chat'}</Link>
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            asChild
+            className={cn(
+              'text-muted-foreground hover:text-foreground',
+              isShopPage && 'text-foreground bg-muted'
+            )}
+          >
+            <Link href={`/${locale}/shop`}>{tNav('shop') || 'Shop'}</Link>
+          </Button>
+        </nav>
+      </div>
+
+      {/* Center: Search */}
+      <div className="flex-1 max-w-md hidden lg:block">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -70,10 +130,10 @@ export function StorefrontHeader({ onToggleSidebar }: StorefrontHeaderProps) {
         </div>
       </div>
 
-      {/* Actions */}
-      <div className="flex items-center gap-2">
+      {/* Right: Actions */}
+      <div className="flex items-center gap-2 flex-shrink-0">
         {/* Notifications */}
-        <Button variant="ghost" size="icon" className="relative">
+        <Button variant="ghost" size="icon" className="relative hidden sm:inline-flex">
           <Bell className="h-5 w-5" />
           <span className="sr-only">Notifications</span>
         </Button>
@@ -93,6 +153,30 @@ export function StorefrontHeader({ onToggleSidebar }: StorefrontHeaderProps) {
             <span className="sr-only">{tNav('cart')}</span>
           </Link>
         </Button>
+
+        {/* Locale Switcher */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="hidden sm:inline-flex">
+              <Globe className="h-5 w-5" />
+              <span className="sr-only">Change language</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>Language</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            {Object.entries(localeNames).map(([code, name]) => (
+              <DropdownMenuItem
+                key={code}
+                onClick={() => handleLocaleChange(code)}
+                className={cn(locale === code && 'bg-muted')}
+              >
+                <span className="mr-2">{localeFlags[code]}</span>
+                {name}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         {/* User Avatar / Auth */}
         {loading ? (

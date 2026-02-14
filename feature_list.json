@@ -2009,7 +2009,7 @@
     "id": 181,
     "feature": "Design System & AI Designs",
     "description": "Navigation bar matches spec layout",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Inspect the navigation header",
       "Verify it contains the logo, Shop and Chat links, cart icon with item count, locale switcher, and user menu"

@@ -8,6 +8,7 @@
   },
   "navigation": {
     "home": "Startseite",
+    "chat": "Chat",
     "shop": "Shop",
     "cart": "Warenkorb",
     "orders": "Bestellungen",
