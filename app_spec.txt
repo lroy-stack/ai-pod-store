@@ -1826,6 +1826,41 @@
       - Engagement modals use shadcn Dialog component with semantic tokens
       - Push notification cleanup: expired/invalid subscriptions auto-removed on 410/404
     </phase_16>
+
+    <phase_17 name="PodClaw Production Hardening">
+      <!-- Async I/O: all Supabase SDK calls wrapped in asyncio.to_thread() -->
+      - event_store.py: all writes and queries use asyncio.to_thread() to avoid blocking the event loop
+      - cost_guard_hook.py: _get_agent_cost and _add_cost are async, Supabase calls in thread pool
+      - rate_limit_hook.py: audit log writes to Supabase use asyncio.to_thread()
+      - security_hook.py: price change validation fetches current price from DB autonomously via asyncio.to_thread()
+
+      <!-- Metrics: real latency tracking with PreToolUse + PostToolUse pair -->
+      - metrics_pre_hook: records start time (time.monotonic) keyed by tool_use_id
+      - metrics_hook (PostToolUse): calculates real latency delta, tracks tool_calls, tool_errors, total_latency_ms
+      - Both hooks registered in main.py _build_hooks()
+
+      <!-- Security: self-sufficient price/delete validation -->
+      - security_hook.init_security(supabase_client): called in main.py on startup
+      - Price change check: fetches current price from products table via _fetch_current_price()
+      - Bulk delete check: detects batch from "ids" list in tool_input, not just _batch_count
+      - READONLY_TOOLS expanded: includes all Printify get/list tools, Stripe reporting tools
+
+      <!-- Supabase connector hardening -->
+      - _validate_table(): regex check (^[a-zA-Z_][a-zA-Z0-9_]*$) prevents path traversal
+      - URL parameters use urllib.parse.quote() for safe encoding
+      - Bug fix: _update filter concatenation uses &-separated query string (was using ? for each)
+      - All httpx calls include explicit timeout=30
+
+      <!-- DB infrastructure -->
+      - Migration: 20260214220000_podclaw_tables.sql
+      - agent_events: added agent_name column, session_id nullable, FK dropped
+      - agent_daily_costs: new table (agent_name + date unique, total_cost numeric)
+      - event_store.py: uses "data" column (not "payload") matching DB schema
+
+      <!-- Memory consolidation improvement -->
+      - Weekly consolidation extracts action lines only (lines starting with "- ") instead of copying daily verbatim
+      - memory_hook: significant_tools expanded to include telegram_send, telegram_broadcast, whatsapp_send, whatsapp_send_template, printify_publish, resend_send_batch
+    </phase_17>
   </implementation_phases>
 
   <success_criteria>

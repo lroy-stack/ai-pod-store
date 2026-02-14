@@ -1,9 +1,9 @@
 {
-  "total_sessions": 97,
-  "total_tokens": 404102,
-  "total_cost_usd": 1.2128999999999996,
+  "total_sessions": 99,
+  "total_tokens": 413448,
+  "total_cost_usd": 1.2408999999999997,
   "tokens_by_model": {
-    "claude-sonnet-4-5-20250929": 404102
+    "claude-sonnet-4-5-20250929": 413448
   },
   "sessions": [
     {
@@ -3451,6 +3451,79 @@
         "mcp__playwright__browser_take_screenshot": 5,
         "mcp__playwright__browser_wait_for": 5,
         "mcp__playwright__browser_click": 2,
+        "mcp__playwright__browser_console_messages": 1
+      }
+    },
+    {
+      "id": 98,
+      "type": "CODING",
+      "model": "claude-sonnet-4-5-20250929",
+      "started_at": "2026-02-14T21:54:51.771549+00:00",
+      "ended_at": "2026-02-14T22:03:59.349855+00:00",
+      "duration_seconds": 547.58,
+      "tokens_used": 3104,
+      "cost_usd": 0.0093,
+      "features_passed": 1,
+      "total_passing": 242,
+      "total_features": 520,
+      "tool_calls": 69,
+      "tool_errors": 2,
+      "tool_breakdown": {
+        "Bash": 41,
+        "Read": 8,
+        "Edit": 8,
+        "error": 2,
+        "Write": 1,
+        "mcp__playwright__browser_navigate": 2,
+        "mcp__playwright__browser_take_screenshot": 2,
+        "mcp__playwright__browser_click": 2,
+        "mcp__playwright__browser_type": 1,
+        "mcp__playwright__browser_snapshot": 1,
+        "mcp__playwright__browser_close": 1
+      },
+      "sub_agents_used": [],
+      "mcp_calls": {
+        "mcp__playwright__browser_navigate": 2,
+        "mcp__playwright__browser_take_screenshot": 2,
+        "mcp__playwright__browser_click": 2,
+        "mcp__playwright__browser_type": 1,
+        "mcp__playwright__browser_snapshot": 1,
+        "mcp__playwright__browser_close": 1
+      }
+    },
+    {
+      "id": 99,
+      "type": "CODING",
+      "model": "claude-sonnet-4-5-20250929",
+      "started_at": "2026-02-14T22:15:00.065508+00:00",
+      "ended_at": "2026-02-14T22:29:27.386309+00:00",
+      "duration_seconds": 867.32,
+      "tokens_used": 6242,
+      "cost_usd": 0.0187,
+      "features_passed": 2,
+      "total_passing": 262,
+      "total_features": 535,
+      "tool_calls": 100,
+      "tool_errors": 5,
+      "tool_breakdown": {
+        "Bash": 46,
+        "mcp__playwright__browser_navigate": 12,
+        "mcp__playwright__browser_take_screenshot": 10,
+        "mcp__playwright__browser_click": 3,
+        "mcp__playwright__browser_snapshot": 1,
+        "error": 4,
+        "Write": 1,
+        "Read": 7,
+        "Edit": 14,
+        "blocked": 1,
+        "mcp__playwright__browser_console_messages": 1
+      },
+      "sub_agents_used": [],
+      "mcp_calls": {
+        "mcp__playwright__browser_navigate": 12,
+        "mcp__playwright__browser_take_screenshot": 10,
+        "mcp__playwright__browser_click": 3,
+        "mcp__playwright__browser_snapshot": 1,
         "mcp__playwright__browser_console_messages": 1
       }
     }

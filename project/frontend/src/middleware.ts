@@ -13,9 +13,58 @@ const protectedRoutes = [
 // Create the i18n middleware
 const intlMiddleware = createMiddleware(routing)
 
+// Simple string hash for deterministic A/B variant assignment
+function simpleHash(str: string): number {
+  let hash = 0
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i)
+    hash = ((hash << 5) - hash) + char
+    hash |= 0 // Convert to 32-bit integer
+  }
+  return hash
+}
+
 export default function middleware(request: NextRequest) {
   // First, run the i18n middleware
   const response = intlMiddleware(request)
+
+  // --- A/B Testing: Variant Assignment ---
+  // Get or create visitor ID for deterministic variant assignment
+  let visitorId = request.cookies.get('pod-visitor-id')?.value
+  if (!visitorId) {
+    visitorId = crypto.randomUUID()
+    response.cookies.set('pod-visitor-id', visitorId, {
+      maxAge: 365 * 24 * 60 * 60,
+      path: '/',
+      sameSite: 'lax',
+    })
+  }
+
+  // Read A/B config from cookie (set by admin when experiments are started)
+  const abConfigRaw = request.cookies.get('__ab_config')?.value
+  if (abConfigRaw) {
+    try {
+      const experiments: Array<{ id: string; variants: string[] }> = JSON.parse(abConfigRaw)
+      for (const exp of experiments) {
+        const cookieName = `ab-variant-${exp.id}`
+        // Check if variant already assigned
+        if (!request.cookies.get(cookieName)?.value && exp.variants.length > 0) {
+          // Deterministic hash: simple string hash of visitorId + experimentId
+          const hash = simpleHash(visitorId + exp.id)
+          const variantIndex = Math.abs(hash) % exp.variants.length
+          const variant = exp.variants[variantIndex]
+          response.cookies.set(cookieName, variant, {
+            maxAge: 30 * 24 * 60 * 60,
+            path: '/',
+            sameSite: 'lax',
+          })
+        }
+      }
+    } catch {
+      // Invalid config cookie, ignore
+    }
+  }
+  // --- End A/B Testing ---
 
   // Get the pathname from the request
   const pathname = request.nextUrl.pathname

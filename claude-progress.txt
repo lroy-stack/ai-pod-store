@@ -3007,3 +3007,328 @@ All 2 test steps passing:
 - 47fbc62: feat: Margin analysis per category — test #239 passing
 - e4be165: feat: SEO meta tag updates per locale — test #240 passing
 
+
+---
+
+## Session 98 — 2026-02-14 22:02 UTC
+
+### Feature #242: Agent schedule modification persists via bridge endpoint ✅
+
+**Requirement**: Admin can modify PodClaw agent schedules, and changes persist to the PodClaw scheduler (not just in-memory admin state).
+
+**Implementation**:
+
+**1. Enhanced PodClaw Scheduler (scheduler.py):**
+- Added DEFAULT_SCHEDULE dict with all 8 agents' cron expressions
+- Implemented schedule persistence to `podclaw_schedule.json` in workspace root
+- `_load_schedule()` — Load from file or defaults on startup
+- `_save_schedule()` — Persist changes to disk
+- `_parse_cron()` — Convert "0 6 * * *" format to CronTrigger
+- `get_full_schedule()` — Return API-friendly format with next run times
+- `update_schedule(new_schedule)` — Rebuild all jobs with new config + persist
+- `reset_to_defaults()` — Restore default schedule + persist
+- Fixed APScheduler 4.x compatibility (next_run_time attribute missing)
+
+**2. Enhanced Bridge API (bridge/api.py):**
+- `GET /schedule` — Returns full schedule config (not just job list)
+- `PUT /schedule` — Update schedules via body: {schedule: [...]}
+- `POST /schedule` — Reset via body: {action: "reset"}
+- All mutations persist to `podclaw_schedule.json`
+
+**3. Updated main.py:**
+- Pass `workspace_root` param to `PodClawScheduler` for file location
+
+**Verification via Playwright MCP:**
+```bash
+# 1. Initial state
+curl http://localhost:8000/schedule
+→ researcher: "0 6 * * *" (6:00 AM)
+
+# 2. Modify via admin panel
+- Navigate to http://localhost:3001/agent/schedule
+- Change researcher cron from "0 6 * * *" to "0 7 * * *"
+- Click "Save Changes"
+→ Response: nextRun updated to 7:00 AM
+
+# 3. Verify persistence
+- Reload page
+→ Still shows "0 7 * * *" ✅
+- Check disk: podclaw_schedule.json contains "0 7 * * *" ✅
+- curl http://localhost:8000/schedule
+→ researcher still 07:00 ✅
+
+# 4. Test reset
+curl -X POST http://localhost:8000/schedule -d '{"action": "reset"}'
+→ researcher back to "0 6 * * *" ✅
+```
+
+**Key Implementation Details:**
+- Schedule file: `workspace_root/podclaw_schedule.json` (JSON dict by agent name)
+- APScheduler 4.x compatibility: `getattr(job, 'next_run_time', None)` fallback
+- Job IDs: `{agent_name}_scheduled` (e.g., "researcher_scheduled")
+- Memory consolidation job always at 23:30 (not configurable)
+
+**Screenshots:**
+- Before: researcher "0 6 * * *" → Next run 6:00:00
+- After edit: researcher "0 7 * * *" → Next run 7:00:00
+- After reload: Still "0 7 * * *" (persisted from fresh bridge fetch)
+
+**Tests passing**: 242/520 (46.5%)
+
+**Next target**: ID 243 [Admin] — Agent skills list fetched from PodClaw bridge, not hardcoded mock data.
+
+
+---
+
+## Session 99 — 2026-02-14 22:09 UTC
+
+### Feature #243: Admin finance reports render ✅
+
+**Requirement**: Finance page at `/finance` displays P&L report, cash flow statement, and revenue chart with real data.
+
+**Implementation**:
+
+**1. Created `/finance/page.tsx`:**
+- Dedicated finance reports page (separate from /analytics)
+- Fetches data from `/api/admin/finance/report` endpoint
+- Three main sections: P&L Statement, Cash Flow Statement, Revenue Trends
+
+**2. Profit & Loss Statement:**
+- Summary metrics cards: Total Revenue, Gross Profit, Total Costs, Avg Order Value
+- Detailed P&L table with:
+  - Revenue: €8,086.93
+  - Cost breakdown: Printify (€3,639.12), Stripe fees (€242.61), Operational (€1,374.78)
+  - Gross Profit: €2,830.43 (35% margin)
+- Color-coded: green for revenue/profit, red for costs
+
+**3. Cash Flow Statement:**
+- Simplified cash flow table showing:
+  - Operating Cash Flow: €2,830.43 (based on gross profit)
+  - Investing Cash Flow: €0.00 (not tracked yet)
+  - Financing Cash Flow: €0.00 (not tracked yet)
+  - Net Cash Flow: €2,830.43
+- Note: Simplified version, full accounting (receivables, payables) to be added later
+
+**4. Revenue Trends Chart:**
+- Monthly revenue bars (last 12 months)
+- Shows revenue amount and order count per month
+- Empty months display "No data" placeholder
+- Responsive bar widths based on max revenue
+
+**5. Added Separator UI Component:**
+- Copied from frontend to admin/src/components/ui/separator.tsx
+- Used for visual separation in P&L sections
+- Based on @radix-ui/react-separator
+
+**Verification via Playwright MCP:**
+```bash
+# Navigate to finance page
+http://localhost:3001/finance
+→ Page loads successfully ✅
+
+# Verify P&L section
+→ Revenue: €8,086.93 ✅
+→ Costs: €5,256.50 (65% of revenue) ✅
+→ Gross Profit: €2,830.43 (35% margin) ✅
+→ Breakdown: Printify, Stripe, Operational costs visible ✅
+
+# Verify Cash Flow section
+→ Operating Cash Flow: €2,830.43 ✅
+→ Investing: €0.00 ✅
+→ Financing: €0.00 ✅
+→ Net Cash Flow: €2,830.43 ✅
+
+# Verify Revenue Chart
+→ 12 monthly bars rendered ✅
+→ "No data" for months without orders ✅
+→ Order count displayed per month ✅
+```
+
+**Screenshots:**
+- finance-page-verification.png: Top section with P&L statement
+- finance-page-complete-view.png: Cash flow statement and revenue trends
+
+**All 4 test steps passing:**
+✅ Navigate to http://localhost:3001/finance
+✅ Verify P&L report renders with data
+✅ Verify cash flow statement renders with data
+✅ Verify revenue chart renders with data
+
+### Progress
+- Features this session: +1 (ID 243)
+- Total passing: 243/520 (46.7%)
+- Next target: ID 244+
+
+### Technical Notes
+- Finance page is separate from Analytics page (different focus)
+- Cash flow is simplified — based on gross profit only
+- Full cash flow accounting (receivables, payables, inventory) will be phase 2
+- Revenue chart uses CSS-based horizontal bars (no chart library needed)
+- All data from real Supabase queries via finance API endpoint
+- Separator component now available in admin UI components library
+
+### Commits
+- e9c0c31: feat: Admin finance reports render — test #243 passing
+
+
+
+### Feature #244: Locale switcher in header works ✅
+
+**Requirement**: Locale switcher dropdown in header displays EN, ES, and DE options.
+
+**Verification via Playwright MCP:**
+```bash
+# Navigate to storefront
+http://localhost:3000/en
+→ Page loads successfully ✅
+
+# Locate locale switcher
+→ Globe icon button in header (top-right) ✅
+→ Label: "Change language" ✅
+
+# Click locale switcher
+→ Dropdown menu opens ✅
+
+# Verify language options
+→ 🇺🇸 English ✅
+→ 🇪🇸 Español ✅
+→ 🇩🇪 Deutsch ✅
+```
+
+**All 3 test steps passing:**
+✅ Find locale switcher dropdown in the header
+✅ Click the locale switcher
+✅ Verify EN, ES, and DE options are shown
+
+**Technical Notes:**
+- Feature was already implemented, just needed verification
+- Locale switcher is part of the header navigation
+- Uses shadcn/ui DropdownMenu component
+- Flag emojis for visual language identification
+- Switching locale navigates to /[new-locale]/ route
+
+### Progress Update
+- Features this session: +2 (IDs 243, 244)
+- Total passing: 244/520 (46.9%)
+- Next target: ID 245+
+
+### Commits
+- c21f0b6: feat: Locale switcher in header works — test #244 passing
+
+
+
+### Feature #245: Switching locale updates URL and UI strings ✅
+
+**Requirement**: Clicking a different locale in the switcher changes the URL and displays all text in that language.
+
+**Verification via Playwright MCP:**
+```bash
+# Start on English page
+http://localhost:3000/en
+→ Page loads in English ✅
+
+# Open locale switcher
+→ Click "Change language" button ✅
+
+# Switch to Spanish
+→ Click "🇪🇸 Español" option ✅
+
+# Verify URL updated
+→ URL changed to http://localhost:3000/es ✅
+
+# Verify UI strings in Spanish
+→ "Bienvenido a POD AI" (Welcome to POD AI) ✅
+→ "Tienda" (Shop) ✅
+→ "Descubrir" (Discover) ✅
+→ "Nuevos Productos" (New Arrivals) ✅
+→ "Favoritos" (Favorites) ✅
+→ "Pedidos" (Orders) ✅
+→ "Carrito" (Cart) ✅
+→ "Iniciar sesión" (Log in) ✅
+→ "Buscar productos..." (Search products...) ✅
+→ "Pregúntame lo que quieras..." (Ask me anything...) ✅
+→ All prompt cards in Spanish ✅
+→ All sidebar navigation in Spanish ✅
+```
+
+**All 4 test steps passing:**
+✅ Navigate to /en/ page
+✅ Switch locale to ES using the locale switcher
+✅ Verify URL changes to /es/
+✅ Verify all visible text is displayed in Spanish
+
+**Technical Notes:**
+- Feature was already implemented via next-intl
+- Locale switching triggers Next.js navigation to new locale route
+- All UI components use `useTranslations()` hook for i18n
+- Translation files: messages/en.json, messages/es.json, messages/de.json
+- Price formatting also updates (19,99 € vs €19.99)
+
+### Session Summary (Session 99)
+- Features implemented: +3 (IDs 243, 244, 245)
+- Total passing: 245/520 (47.1%)
+- Duration: ~20 minutes
+- Features breakdown:
+  - ID 243: Created new /finance page with P&L, cash flow, revenue chart
+  - ID 244: Verified locale switcher displays EN/ES/DE options
+  - ID 245: Verified locale switching updates URL and UI strings
+
+### Commits
+- e9c0c31: feat: Admin finance reports render — test #243 passing
+- c21f0b6: feat: Locale switcher in header works — test #244 passing
+- 82e67e3: feat: Switching locale updates URL and UI strings — test #245 passing
+
+
+## Session 99 (Coding Agent - 2026-02-14)
+- Features implemented: +2 (IDs 246, 247)
+- Total passing: 262/535 (49.0%)
+- Duration: ~60 minutes
+
+### Completed Features:
+- **ID 246**: All UI strings translated in Spanish and German
+  - Verified /es and /de pages show no English fallback text
+  - All navigation, buttons, forms, error messages translated
+  - Screenshots confirmed proper translations across shop, cart, homepage
+
+- **ID 247**: Date, number, and currency formatting follows locale
+  - EN: €2,294.08 (period decimal, comma thousands)
+  - ES/DE: 2294,08 € (comma decimal, Euro symbol after)
+  - Currency formatting working correctly via Intl.NumberFormat
+
+### In Progress:
+- **ID 248**: Product titles and descriptions in selected language
+  - Added `translations` JSONB column to products table
+  - Migration created with Spanish/German translations for 6 products:
+    * Classic T-Shirt → Camiseta Clásica / Klassisches T-Shirt
+    * Vintage Hoodie → Sudadera Vintage / Vintage Hoodie  
+    * Funny Cat Mug → Taza de Gato Divertida / Lustige Katzen-Tasse
+    * Dog Lover T-Shirt → Camiseta Dog Lover / Hundeliebhaber T-Shirt
+    * Minimalist Cat Poster → Póster Minimalista de Gato / Minimalistisches Katzen-Poster
+    * Tote Bag → Bolsa Tote / Tragetasche
+  - API routes updated to:
+    * Select translations column from database
+    * Apply locale-specific translations via `applyTranslations()` helper
+    * Pass locale parameter from client components
+  - Database confirmed translations exist correctly
+  - **Issue**: API not returning translated titles yet - needs debugging
+  - Supabase query includes translations column but mapping may need adjustment
+
+### Technical Notes:
+- Supabase CLI v2.62.10 used for migrations (newer v2.75.0 available)
+- Fixed RLS policy syntax error in user_usage_tracking migration (CREATE POLICY IF NOT EXISTS not supported)
+- Updated ShopPage client component to use useParams() for locale
+- Added locale parameter to all /api/products calls
+- Translation structure: `{es: {title, description}, de: {title, description}}`
+
+### Next Session:
+- Debug why API translations not being applied (possible JSONB parsing issue)
+- Verify applyTranslations function receives translations field
+- Test with browser to confirm "Camiseta Clásica" shows in /es/shop
+- Once working, mark feature #248 as passing
+- Continue with remaining i18n features
+
+### Commits:
+- 451a656: feat: All UI strings translated in Spanish and German — test #246 passing
+- 31a3f65: feat: Date, number, and currency formatting follows locale — test #247 passing
+- d52bf00: feat: Add product translations support (es/de) — test #248 WIP
+

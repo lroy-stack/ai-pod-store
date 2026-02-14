@@ -321,7 +321,7 @@ async function fallbackTextSearch(
 ) {
   let query = supabaseAdmin
     .from('products')
-    .select('id, title, description, category, tags, base_price_cents, currency, images, status, avg_rating, review_count, created_at', { count: 'exact' })
+    .select('id, title, description, category, tags, base_price_cents, currency, images, status, avg_rating, review_count, created_at, translations', { count: 'exact' })
     .eq('status', 'active')
 
   if (category && category !== 'all') {
@@ -417,7 +417,7 @@ export async function GET(request: NextRequest) {
     // Otherwise, use traditional database query
     let query = supabaseAdmin
       .from('products')
-      .select('id, title, description, category, tags, base_price_cents, currency, images, status, avg_rating, review_count, created_at', { count: 'exact' })
+      .select('id, title, description, category, tags, base_price_cents, currency, images, status, avg_rating, review_count, created_at, translations', { count: 'exact' })
       .eq('status', 'active')
 
     // Filter by category (case-insensitive — DB has mixed casing)

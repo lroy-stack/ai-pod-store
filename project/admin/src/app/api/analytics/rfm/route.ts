@@ -1,33 +1,37 @@
 import { NextResponse } from 'next/server'
+import { execFile } from 'child_process'
+import { promisify } from 'util'
+import path from 'path'
 
-// NOTE: This endpoint returns mock RFM data for now
-// In production, this will read from analytics_results table
-// populated by Python RFM segmentation script (pandas)
-// running daily at 2 AM UTC via APScheduler/cron
+const execFileAsync = promisify(execFile)
+
+let cache: { data: unknown; timestamp: number } | null = null
+const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
 
 export async function GET() {
   try {
-    // Mock RFM segments for demonstration
-    // Real implementation will query from Supabase analytics_results table
-    const rfmData = {
-      segments: {
-        champions: 3,      // High R, F, M
-        loyal: 5,          // High F, M
-        potential: 8,      // High R, low F
-        atRisk: 2,         // Low R, high F, M
-        hibernating: 4,    // Low R, F, M
-        lost: 1            // Very low R
-      },
-      totalCustomers: 23,
-      calculatedAt: new Date().toISOString(),
-      source: 'mock'
+    // Return cached data if fresh
+    if (cache && Date.now() - cache.timestamp < CACHE_TTL) {
+      return NextResponse.json(cache.data)
     }
 
-    return NextResponse.json(rfmData)
+    const scriptPath = path.resolve(process.cwd(), '..', 'scripts', 'analytics', 'rfm.py')
+    const { stdout, stderr } = await execFileAsync('python3', [scriptPath], {
+      timeout: 30000,
+      env: { ...process.env, PYTHONPATH: path.resolve(process.cwd(), '..', 'scripts') },
+    })
+
+    if (stderr) {
+      console.warn('RFM analytics stderr:', stderr)
+    }
+
+    const data = JSON.parse(stdout)
+    cache = { data, timestamp: Date.now() }
+    return NextResponse.json(data)
   } catch (error) {
-    console.error('Error fetching RFM data:', error)
+    console.error('Error running RFM analytics:', error)
     return NextResponse.json(
-      { error: 'Failed to fetch RFM data' },
+      { error: 'Failed to run RFM analytics' },
       { status: 500 }
     )
   }

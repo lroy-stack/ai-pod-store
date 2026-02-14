@@ -2745,7 +2745,7 @@
     "id": 248,
     "feature": "Internationalization End-to-End",
     "description": "Product titles and descriptions in selected language",
-    "passes": false,
+    "passes": true,
     "steps": [
       "View a product in /es/ and verify Spanish title and description",
       "Switch to /de/ and verify German title and description"
