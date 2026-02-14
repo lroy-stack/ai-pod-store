@@ -2269,7 +2269,7 @@
     "id": 205,
     "feature": "Order Management & Notifications",
     "description": "Email notification sent (Resend)",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Trigger an order event that should send an email",
       "Verify the Resend API is called with the correct email template",
