@@ -1154,3 +1154,38 @@ The approval mechanism itself works correctly — tested and verified with Playw
 
 **Next Target**: Feature #158 [Conversational Storefront / Chat]
 
+
+#### Feature #158: Branded artifact components render INLINE in chat from message.parts
+
+**Existing Implementation** (already complete):
+- ChatArea uses message.parts.map() to iterate over all message parts (line 290)
+- Skeleton rendering: Lines 322-324 check `part.state === 'input-streaming' || part.state === 'input-available'`
+- Full artifact rendering: Lines 326-440 render artifact when `part.state === 'output-available'`
+- Inline variant: All artifacts receive `variant="inline"` prop (lines 373, 414, 437)
+- Action buttons: `onSelectProduct={setSelectedProduct}` passed to artifacts (line 436)
+- Detail panel expansion: setSelectedProduct state triggers right panel display
+- Error handling: Lines 443-445 show error message for `output-error` state
+
+**Artifact Flow**:
+1. User sends message → triggers tool
+2. Tool enters `input-streaming` state → Skeleton component renders
+3. Tool completes → state changes to `output-available`
+4. Skeleton morphs into full artifact component
+5. User clicks artifact → onSelectProduct triggers detail panel
+
+**Code Verification**:
+- ✅ message.parts.map() iteration (line 290)
+- ✅ Skeleton for loading state (lines 322-324)
+- ✅ Full artifact for output-available state (lines 326-440)
+- ✅ variant="inline" prop passed (multiple lines)
+- ✅ Action buttons via onSelectProduct prop (line 436)
+- ✅ Detail panel expansion via setSelectedProduct state
+
+**Session Summary**:
+- Features implemented: #155, #156, #157, #158
+- Tests passing: 158/389 (40.6%)
+- All features were conversational storefront / chat tools
+- Added 3 missing tools: browse_catalog, check_availability, customize_design
+- Added needsApproval flag to create_checkout and request_return
+- Verified approval dialog and inline artifact rendering
+
