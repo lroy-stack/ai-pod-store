@@ -7,10 +7,11 @@
  * - Logo + store name
  * - Navigation items as real Links with active state
  * - Cart link with badge
- * - Recommended products section
+ * - Recommended products section (fetched from Supabase via API)
  * - PodClaw live status footer
  */
 
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useParams, usePathname } from 'next/navigation'
 import { useTranslations } from 'next-intl'
@@ -19,6 +20,15 @@ import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { useCart } from '@/hooks/useCart'
 import { useStorefront } from './StorefrontContext'
+
+interface SidebarProduct {
+  id: string
+  title: string
+  price: number
+  currency: string
+  rating: number
+  image: string | null
+}
 
 interface StorefrontSidebarProps {
   onNavigate?: () => void
@@ -31,6 +41,34 @@ export function StorefrontSidebar({ onNavigate }: StorefrontSidebarProps) {
   const params = useParams()
   const pathname = usePathname()
   const locale = params.locale as string
+  const [recommended, setRecommended] = useState<SidebarProduct[]>([])
+  const [popular, setPopular] = useState<SidebarProduct[]>([])
+
+  useEffect(() => {
+    async function fetchSidebarProducts() {
+      try {
+        // Fetch top-rated for recommended
+        const recRes = await fetch('/api/products?limit=3&sort=topRated')
+        const recData = await recRes.json()
+        if (recData.success && recData.items) {
+          const recItems = recData.items.slice(0, 2)
+          setRecommended(recItems)
+
+          // Fetch popular, excluding recommended IDs to avoid duplicates
+          const excludeIds = new Set(recItems.map((p: SidebarProduct) => p.id))
+          const popRes = await fetch('/api/products?limit=3&sort=popular')
+          const popData = await popRes.json()
+          if (popData.success && popData.items) {
+            const filtered = popData.items.filter((p: SidebarProduct) => !excludeIds.has(p.id))
+            setPopular(filtered.slice(0, 1))
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching sidebar products:', error)
+      }
+    }
+    fetchSidebarProducts()
+  }, [])
 
   const navigationItems = [
     { icon: Home, label: t('discover'), href: `/${locale}` },
@@ -119,18 +157,16 @@ export function StorefrontSidebar({ onNavigate }: StorefrontSidebarProps) {
             {t('recommended')}
           </h3>
           <div className="space-y-2">
-            <ProductCard
-              title="Classic T-Shirt"
-              price="$24.99"
-              rating={4.5}
-              onClick={() => handleProductClick('mock-product-1')}
-            />
-            <ProductCard
-              title="Vintage Hoodie"
-              price="$49.99"
-              rating={4.8}
-              onClick={() => handleProductClick('mock-product-2')}
-            />
+            {recommended.map((product) => (
+              <ProductCard
+                key={product.id}
+                title={product.title}
+                price={`${product.currency === 'USD' ? '$' : '€'}${product.price.toFixed(2)}`}
+                rating={product.rating}
+                image={product.image}
+                onClick={() => handleProductClick(product.id)}
+              />
+            ))}
           </div>
         </div>
 
@@ -139,12 +175,16 @@ export function StorefrontSidebar({ onNavigate }: StorefrontSidebarProps) {
             {t('popularToday')}
           </h3>
           <div className="space-y-2">
-            <ProductCard
-              title="Minimalist Poster"
-              price="$19.99"
-              rating={4.7}
-              onClick={() => handleProductClick('mock-product-3')}
-            />
+            {popular.map((product) => (
+              <ProductCard
+                key={product.id}
+                title={product.title}
+                price={`${product.currency === 'USD' ? '$' : '€'}${product.price.toFixed(2)}`}
+                rating={product.rating}
+                image={product.image}
+                onClick={() => handleProductClick(product.id)}
+              />
+            ))}
           </div>
         </div>
       </div>
@@ -164,11 +204,13 @@ function ProductCard({
   title,
   price,
   rating,
+  image,
   onClick,
 }: {
   title: string
   price: string
   rating: number
+  image?: string | null
   onClick: () => void
 }) {
   return (
@@ -176,7 +218,11 @@ function ProductCard({
       onClick={onClick}
       className="flex items-center gap-3 w-full p-2 rounded-lg hover:bg-muted transition-colors text-left"
     >
-      <div className="w-11 h-11 rounded-md bg-muted flex-shrink-0" />
+      {image ? (
+        <img src={image} alt={title} className="w-11 h-11 rounded-md object-cover flex-shrink-0" />
+      ) : (
+        <div className="w-11 h-11 rounded-md bg-muted flex-shrink-0" />
+      )}
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-foreground truncate">{title}</p>
         <div className="flex items-center gap-2 mt-0.5">

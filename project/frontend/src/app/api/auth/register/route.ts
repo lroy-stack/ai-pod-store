@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
         email: authData.user.email,
         name,
         locale: 'en', // Default locale, can be updated later
-        currency: 'USD', // Default currency, can be updated later
+        currency: 'EUR', // Default currency for European store
         email_verified: false, // Will be set to true after email verification
         notification_preferences: {
           email: true,

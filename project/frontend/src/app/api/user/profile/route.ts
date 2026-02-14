@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
           email: user.email,
           name: user.user_metadata?.full_name || user.email?.split('@')[0] || '',
           locale: 'en',
-          currency: 'USD',
+          currency: 'EUR',
           email_verified: !!user.email_confirmed_at,
           notification_preferences: { email: true, push: true, sms: false },
         })

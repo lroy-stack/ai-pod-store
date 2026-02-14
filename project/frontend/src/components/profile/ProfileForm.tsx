@@ -107,7 +107,7 @@ export function ProfileForm({ locale }: ProfileFormProps) {
     name: '',
     phone: '',
     locale: locale || 'en',
-    currency: 'USD',
+    currency: 'EUR',
     notification_preferences: {
       email: true,
       push: true,
@@ -138,7 +138,7 @@ export function ProfileForm({ locale }: ProfileFormProps) {
           name: data.profile.name || '',
           phone: data.profile.phone || '',
           locale: data.profile.locale || locale,
-          currency: data.profile.currency || 'USD',
+          currency: data.profile.currency || 'EUR',
           notification_preferences: data.profile.notification_preferences || {
             email: true,
             push: true,

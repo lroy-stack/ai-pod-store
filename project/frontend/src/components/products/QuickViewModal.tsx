@@ -95,14 +95,20 @@ export function QuickViewModal({ product, open, onOpenChange }: QuickViewModalPr
         <div className="grid gap-6 md:grid-cols-2">
           {/* Product Image */}
           <div className="relative aspect-square bg-muted rounded-lg overflow-hidden">
-            <Image
-              src={product.image}
-              alt={product.title}
-              fill
-              className="object-cover"
-              sizes="(max-width: 768px) 100vw, 50vw"
-              priority
-            />
+            {product.image ? (
+              <Image
+                src={product.image}
+                alt={product.title}
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, 50vw"
+                priority
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                {product.title}
+              </div>
+            )}
           </div>
 
           {/* Product Details */}

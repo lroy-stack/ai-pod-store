@@ -76,13 +76,19 @@ export function ProductCard({ product }: ProductCardProps) {
         className="group block rounded-lg border border-border bg-card overflow-hidden hover:shadow-lg transition-shadow"
       >
         <div className="relative aspect-square bg-muted">
-          <Image
-            src={product.image}
-            alt={product.title}
-            fill
-            className="object-cover group-hover:scale-105 transition-transform duration-300"
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-          />
+          {product.image ? (
+            <Image
+              src={product.image}
+              alt={product.title}
+              fill
+              className="object-cover group-hover:scale-105 transition-transform duration-300"
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-muted-foreground text-sm">
+              {product.title}
+            </div>
+          )}
           <Button
             variant="ghost"
             size="icon"

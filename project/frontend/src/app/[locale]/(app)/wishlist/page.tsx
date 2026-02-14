@@ -51,8 +51,8 @@ export default function WishlistPage() {
   const [wishlists, setWishlists] = useState<Wishlist[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Get user's preferred currency, fallback to USD
-  const userCurrency = user?.currency || 'USD';
+  // Get user's preferred currency, fallback to EUR
+  const userCurrency = user?.currency || 'EUR';
   const userLocale = user?.locale || 'en';
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [shareUrl, setShareUrl] = useState('');

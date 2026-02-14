@@ -286,7 +286,12 @@
     "estimatedDelivery": "{min}-{max} Werktage",
     "freeShippingThreshold": "Fügen Sie ${amount} mehr für kostenlosen Versand hinzu!",
     "shippingCalculated": "Versandkostenschätzung aktualisiert",
-    "shippingCalculationFailed": "Versandberechnung fehlgeschlagen"
+    "shippingCalculationFailed": "Versandberechnung fehlgeschlagen",
+    "shippingOptions": "Versandoptionen",
+    "shippingTo": "Versand nach",
+    "noShippingOptions": "Keine Versandoptionen verfügbar",
+    "recommended": "Empfohlen",
+    "freeShippingOver": "Kostenloser Versand bei Bestellungen über"
   },
   "wishlist": {
     "title": "Meine Wunschlisten",

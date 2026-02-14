@@ -35,10 +35,12 @@ interface Product {
   title: string
   description: string
   category: string
-  base_price_cents: number
-  images: Array<{ src: string }>
-  avg_rating: number
-  review_count: number
+  price: number
+  currency: string
+  image: string | null
+  images: string[]
+  rating: number
+  reviewCount: number
 }
 
 export function DetailPanel({ productId, onClose, onAskAbout }: DetailPanelProps) {
@@ -54,7 +56,7 @@ export function DetailPanel({ productId, onClose, onAskAbout }: DetailPanelProps
         const response = await fetch(`/api/products/${productId}`)
         if (response.ok) {
           const data = await response.json()
-          setProduct(data)
+          setProduct(data.product || data)
         } else {
           console.error('Failed to fetch product:', response.statusText)
         }
@@ -105,8 +107,9 @@ export function DetailPanel({ productId, onClose, onAskAbout }: DetailPanelProps
     )
   }
 
-  const price = (product.base_price_cents / 100).toFixed(2)
-  const image = product.images && product.images.length > 0 ? product.images[0].src : null
+  const price = product.price?.toFixed(2) ?? '0.00'
+  const currencySymbol = product.currency === 'USD' ? '$' : '€'
+  const image = product.image || (product.images && product.images.length > 0 ? product.images[0] : null)
 
   return (
     <div className="flex flex-col h-full w-full bg-card">
@@ -144,15 +147,15 @@ export function DetailPanel({ productId, onClose, onAskAbout }: DetailPanelProps
           </h3>
           <div className="flex items-center gap-2">
             <span className="text-2xl font-bold text-foreground">
-              ${price}
+              {currencySymbol}{price}
             </span>
             <Badge variant="secondary" className="ml-auto">
               <Star className="h-3 w-3 fill-current mr-1" />
-              {product.avg_rating || 0}
+              {product.rating || 0}
             </Badge>
           </div>
           <p className="text-sm text-muted-foreground mt-1">
-            {product.review_count || 0} {t('reviews')}
+            {product.reviewCount || 0} {t('reviews')}
           </p>
         </div>
 

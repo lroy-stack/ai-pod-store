@@ -13,18 +13,20 @@
  * - Responsive: stacks on mobile
  */
 
-import { ShoppingCart, Trash2 } from 'lucide-react'
+import { ShoppingCart } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
 import { useRouter } from 'next/navigation'
+import { formatPrice } from '@/lib/currency'
 
 export interface CartItem {
   id: string
   productId: string
   title: string
   price: number
+  currency?: string
   quantity: number
   subtotal: number
 }
@@ -33,6 +35,7 @@ interface CartSummaryArtifactProps {
   items: CartItem[]
   itemCount: number
   subtotal: number
+  currency?: string
   variant?: 'inline' | 'full'
 }
 
@@ -40,9 +43,11 @@ export function CartSummaryArtifact({
   items,
   itemCount,
   subtotal,
+  currency,
   variant = 'inline',
 }: CartSummaryArtifactProps) {
   const t = useTranslations('storefront')
+  const locale = useLocale()
   const router = useRouter()
 
   if (!items || items.length === 0) {
@@ -54,7 +59,7 @@ export function CartSummaryArtifact({
           <p className="text-sm text-muted-foreground mb-4">
             Add some products to get started!
           </p>
-          <Button onClick={() => router.push('/en/shop')}>
+          <Button onClick={() => router.push(`/${locale}/shop`)}>
             Browse Products
           </Button>
         </CardContent>
@@ -80,12 +85,12 @@ export function CartSummaryArtifact({
                   {item.title}
                 </h4>
                 <p className="text-xs text-muted-foreground mt-1">
-                  €{item.price.toFixed(2)} × {item.quantity}
+                  {formatPrice(item.price, locale, item.currency || currency)} × {item.quantity}
                 </p>
               </div>
               <div className="flex items-center gap-3">
                 <p className="font-semibold text-foreground whitespace-nowrap">
-                  €{item.subtotal.toFixed(2)}
+                  {formatPrice(item.subtotal, locale, item.currency || currency)}
                 </p>
               </div>
             </div>
@@ -99,7 +104,7 @@ export function CartSummaryArtifact({
         <div className="w-full flex items-center justify-between">
           <span className="text-base font-medium text-foreground">Subtotal</span>
           <span className="text-xl font-bold text-foreground">
-            €{subtotal.toFixed(2)}
+            {formatPrice(subtotal, locale, currency)}
           </span>
         </div>
 
@@ -108,13 +113,13 @@ export function CartSummaryArtifact({
           <Button
             variant="outline"
             className="flex-1"
-            onClick={() => router.push('/en/cart')}
+            onClick={() => router.push(`/${locale}/cart`)}
           >
             View Full Cart
           </Button>
           <Button
             className="flex-1"
-            onClick={() => router.push('/en/checkout')}
+            onClick={() => router.push(`/${locale}/checkout`)}
           >
             Proceed to Checkout
           </Button>

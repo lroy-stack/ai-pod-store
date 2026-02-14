@@ -30,6 +30,24 @@ const supabase = createClient(
  */
 export async function POST(req: Request) {
   try {
+    // Parse cookies from request headers (Edge runtime compatible)
+    const cookieHeader = req.headers.get('cookie') || ''
+    const cookieMap = Object.fromEntries(
+      cookieHeader.split(';').map((c) => {
+        const [key, ...val] = c.trim().split('=')
+        return [key, val.join('=')]
+      })
+    )
+    const cartSessionId = cookieMap['cart-session-id'] || null
+    const sbAccessToken = cookieMap['sb-access-token'] || null
+
+    // Resolve user ID from Supabase auth token (if logged in)
+    let chatUserId: string | null = null
+    if (sbAccessToken) {
+      const { data: { user } } = await supabase.auth.getUser(sbAccessToken)
+      chatUserId = user?.id || null
+    }
+
     const body = await req.json()
     const { messages } = body
 
@@ -51,6 +69,8 @@ TOOLS AVAILABLE:
 - get_size_guide: Get sizing chart for product types (t-shirts, hoodies, etc.)
 - add_to_cart: Add a product to the shopping cart (needs product ID and quantity)
 - get_cart: Get current shopping cart contents (shows items, quantities, prices)
+- apply_coupon: Apply a discount coupon code to the cart
+- estimate_shipping: Calculate shipping cost estimates for different delivery options
 
 WHEN TO USE EACH TOOL:
 1. User asks to "browse", "search", "show me", "find" products → call product_search
@@ -60,6 +80,8 @@ WHEN TO USE EACH TOOL:
 5. User asks about "sizing", "size guide", "measurements", "fit" → call get_size_guide
 6. User says "add to cart", "add this", "buy this" → call add_to_cart with product ID from context
 7. User asks "show my cart", "what's in my cart", "view cart" → call get_cart
+8. User says "apply code SAVE10", "use coupon", "discount code" → call apply_coupon
+9. User asks "shipping cost", "delivery options", "how much to ship" → call estimate_shipping
 
 EXAMPLES:
 - "show me cat t-shirts" → product_search(query="cat t-shirt")
@@ -70,6 +92,8 @@ EXAMPLES:
 - "what are the t-shirt sizes?" → get_size_guide(productType="t-shirt")
 - "add this to cart" (after showing a product) → add_to_cart(productId="<id from context>", quantity=1)
 - "show my cart" → get_cart()
+- "apply code SAVE10" → apply_coupon(code="SAVE10")
+- "how much is shipping?" → estimate_shipping()
 
 IMPORTANT: get_product_detail works with product names directly - you don't need to search first!
 
@@ -493,6 +517,123 @@ Be friendly, helpful, and concise.`
           } catch (error) {
             console.error('get_cart error:', error)
             return { success: false, error: 'Failed to get cart', cart: { items: [], itemCount: 0, subtotal: 0 } }
+          }
+        },
+      }),
+      apply_coupon: tool({
+        description: 'Apply a discount coupon code to the cart. Call this when user wants to apply a discount code.',
+        parameters: z.object({
+          code: z.string().describe('Coupon code to apply (e.g., "SAVE10", "WELCOME10")'),
+        }),
+        // @ts-expect-error AI SDK 6.0.86 type mismatch — execute works at runtime
+        execute: async (args: { code: string }) => {
+          const { code } = args
+          try {
+            // Validate coupon exists and is active
+            const { data: coupon, error: couponError } = await supabase
+              .from('coupons')
+              .select('*')
+              .eq('code', code.toUpperCase())
+              .eq('active', true)
+              .single()
+
+            if (couponError || !coupon) {
+              return {
+                success: false,
+                error: `Coupon code "${code}" is invalid or has expired.`,
+                discount: 0,
+              }
+            }
+
+            // Check if coupon is within valid date range
+            const now = new Date()
+            if (coupon.valid_from && new Date(coupon.valid_from) > now) {
+              return {
+                success: false,
+                error: `Coupon code "${code}" is not yet valid.`,
+                discount: 0,
+              }
+            }
+            if (coupon.valid_until && new Date(coupon.valid_until) < now) {
+              return {
+                success: false,
+                error: `Coupon code "${code}" has expired.`,
+                discount: 0,
+              }
+            }
+
+            // Check usage limit
+            if (coupon.usage_limit && coupon.times_used >= coupon.usage_limit) {
+              return {
+                success: false,
+                error: `Coupon code "${code}" has reached its usage limit.`,
+                discount: 0,
+              }
+            }
+
+            return {
+              success: true,
+              applied: true,
+              code: coupon.code,
+              discountType: coupon.discount_type,
+              discountValue: coupon.discount_value,
+              minPurchase: coupon.min_purchase_amount,
+              maxDiscount: coupon.max_discount_amount,
+              message: `Coupon "${coupon.code}" applied! ${
+                coupon.discount_type === 'percentage'
+                  ? `${coupon.discount_value}% off`
+                  : `$${coupon.discount_value} off`
+              }`,
+            }
+          } catch (error) {
+            console.error('apply_coupon error:', error)
+            return { success: false, error: 'Failed to apply coupon', discount: 0 }
+          }
+        },
+      }),
+      estimate_shipping: tool({
+        description: 'Calculate shipping cost estimates for different delivery options. Call this when user asks about shipping costs.',
+        parameters: z.object({
+          country: z.string().optional().describe('Destination country code (default: "US")'),
+        }),
+        // @ts-expect-error AI SDK 6.0.86 type mismatch — execute works at runtime
+        execute: async (args: { country?: string }) => {
+          const { country = 'US' } = args
+          try {
+            // Mock shipping estimates based on destination
+            // In production, this would call Printify API or shipping provider
+            const baseRates = {
+              US: [
+                { method: 'Standard', price: 4.99, days: '5-7 business days', currency: 'USD' },
+                { method: 'Express', price: 14.99, days: '2-3 business days', currency: 'USD' },
+                { method: 'Overnight', price: 24.99, days: '1 business day', currency: 'USD' },
+              ],
+              CA: [
+                { method: 'Standard', price: 9.99, days: '7-10 business days', currency: 'USD' },
+                { method: 'Express', price: 19.99, days: '3-5 business days', currency: 'USD' },
+              ],
+              GB: [
+                { method: 'Standard', price: 12.99, days: '10-14 business days', currency: 'USD' },
+                { method: 'Express', price: 24.99, days: '5-7 business days', currency: 'USD' },
+              ],
+              EU: [
+                { method: 'Standard', price: 14.99, days: '10-14 business days', currency: 'USD' },
+                { method: 'Express', price: 29.99, days: '5-7 business days', currency: 'USD' },
+              ],
+            }
+
+            const rates = baseRates[country as keyof typeof baseRates] || baseRates.US
+
+            return {
+              success: true,
+              country,
+              options: rates,
+              freeShippingThreshold: 50,
+              message: `Free shipping on orders over $50!`,
+            }
+          } catch (error) {
+            console.error('estimate_shipping error:', error)
+            return { success: false, error: 'Failed to estimate shipping', options: [] }
           }
         },
       }),

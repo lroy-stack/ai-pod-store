@@ -20,7 +20,7 @@ const LOCALE_FORMAT_MAP: Record<string, string> = {
  * Get the default currency for a given locale
  */
 export function getCurrencyForLocale(locale: string): string {
-  return LOCALE_CURRENCY_MAP[locale] || 'USD'
+  return LOCALE_CURRENCY_MAP[locale] || 'EUR'
 }
 
 /**

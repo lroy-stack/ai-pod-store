@@ -18,7 +18,8 @@ import { Star, ShoppingCart } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
+import { formatPrice } from '@/lib/currency'
 
 export interface Product {
   id: string
@@ -44,6 +45,7 @@ export function ProductGridArtifact({
   variant = 'inline',
 }: ProductGridArtifactProps) {
   const t = useTranslations('storefront')
+  const locale = useLocale()
 
   // Limit to 6 items for inline compact variant
   const displayProducts = variant === 'inline' ? products.slice(0, 6) : products
@@ -101,7 +103,7 @@ export function ProductGridArtifact({
 
               {/* Price */}
               <p className="text-lg font-bold text-foreground">
-                {new Intl.NumberFormat('de-DE', { style: 'currency', currency: product.currency || 'EUR' }).format(product.price)}
+                {formatPrice(product.price, locale, product.currency)}
               </p>
 
               {/* Action Buttons */}

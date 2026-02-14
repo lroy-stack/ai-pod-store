@@ -45,8 +45,8 @@ export default function SharedWishlistPage() {
 
   const [wishlist, setWishlist] = useState<Wishlist | null>(null);
 
-  // Get user's preferred currency, fallback to USD
-  const userCurrency = user?.currency || 'USD';
+  // Get user's preferred currency, fallback to EUR
+  const userCurrency = user?.currency || 'EUR';
   const userLocale = user?.locale || 'en';
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

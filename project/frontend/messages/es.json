@@ -286,7 +286,12 @@
     "estimatedDelivery": "{min}-{max} días hábiles",
     "freeShippingThreshold": "¡Añade ${amount} más para envío gratis!",
     "shippingCalculated": "Estimación de envío actualizada",
-    "shippingCalculationFailed": "Error al calcular el envío"
+    "shippingCalculationFailed": "Error al calcular el envío",
+    "shippingOptions": "Opciones de Envío",
+    "shippingTo": "Envío a",
+    "noShippingOptions": "No hay opciones de envío disponibles",
+    "recommended": "Recomendado",
+    "freeShippingOver": "Envío gratis en pedidos superiores a"
   },
   "wishlist": {
     "title": "Mis Listas de Deseos",

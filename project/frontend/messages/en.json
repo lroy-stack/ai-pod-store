@@ -286,7 +286,12 @@
     "estimatedDelivery": "{min}-{max} business days",
     "freeShippingThreshold": "Add ${amount} more for free shipping!",
     "shippingCalculated": "Shipping estimate updated",
-    "shippingCalculationFailed": "Failed to calculate shipping"
+    "shippingCalculationFailed": "Failed to calculate shipping",
+    "shippingOptions": "Shipping Options",
+    "shippingTo": "Shipping to",
+    "noShippingOptions": "No shipping options available",
+    "recommended": "Recommended",
+    "freeShippingOver": "Free shipping on orders over"
   },
   "wishlist": {
     "title": "My Wishlists",

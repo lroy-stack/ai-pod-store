@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
               email: refreshedUser.email,
               name: refreshedUser.user_metadata?.name,
               locale: profile?.locale || 'en',
-              currency: profile?.currency || 'USD',
+              currency: profile?.currency || 'EUR',
             },
           },
           { status: 200 }
@@ -125,7 +125,7 @@ export async function GET(request: NextRequest) {
           email: user.email,
           name: user.user_metadata?.name,
           locale: profile?.locale || 'en',
-          currency: profile?.currency || 'USD',
+          currency: profile?.currency || 'EUR',
         },
       },
       { status: 200 }

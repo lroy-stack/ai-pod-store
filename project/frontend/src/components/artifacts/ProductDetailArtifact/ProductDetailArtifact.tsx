@@ -18,7 +18,8 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
+import { formatPrice } from '@/lib/currency'
 import { cn } from '@/lib/utils'
 
 export interface ProductDetail {
@@ -51,6 +52,7 @@ export function ProductDetailArtifact({
   variant = 'inline',
 }: ProductDetailArtifactProps) {
   const t = useTranslations('storefront')
+  const locale = useLocale()
 
   return (
     <Card className={cn('overflow-hidden', variant === 'inline' && 'max-w-2xl')}>
@@ -84,10 +86,7 @@ export function ProductDetailArtifact({
               </div>
               <div className="text-right">
                 <div className="text-3xl font-bold">
-                  {new Intl.NumberFormat('de-DE', {
-                    style: 'currency',
-                    currency: product.currency || 'EUR',
-                  }).format(product.price)}
+                  {formatPrice(product.price, locale, product.currency)}
                 </div>
                 {product.rating > 0 && (
                   <div className="mt-2 flex items-center gap-1 text-sm text-muted-foreground">

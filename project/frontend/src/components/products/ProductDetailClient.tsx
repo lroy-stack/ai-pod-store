@@ -217,20 +217,26 @@ export function ProductDetailClient({ product, relatedProducts, reviews }: Produ
         {/* Image Gallery */}
         <div className="space-y-4">
           <div className="relative aspect-square bg-muted rounded-lg overflow-hidden">
-            <Image
-              src={product.images[selectedImage]}
-              alt={product.title}
-              fill
-              className="object-cover"
-              sizes="(max-width: 1024px) 100vw, 50vw"
-              priority
-            />
+            {product.images[selectedImage] ? (
+              <Image
+                src={product.images[selectedImage]}
+                alt={product.title}
+                fill
+                className="object-cover"
+                sizes="(max-width: 1024px) 100vw, 50vw"
+                priority
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                {product.title}
+              </div>
+            )}
           </div>
 
           {/* Thumbnail Gallery */}
-          {product.images.length > 1 && (
+          {product.images.filter(Boolean).length > 1 && (
             <div className="grid grid-cols-4 gap-4">
-              {product.images.map((image: string, index: number) => (
+              {product.images.filter(Boolean).map((image: string, index: number) => (
                 <button
                   key={index}
                   onClick={() => setSelectedImage(index)}

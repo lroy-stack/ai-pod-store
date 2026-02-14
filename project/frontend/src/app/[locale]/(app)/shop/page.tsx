@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useTranslations } from 'next-intl'
 import { Search, X, ChevronLeft, ChevronRight } from 'lucide-react'
 import { ProductGrid } from '@/components/products/ProductGrid'
@@ -10,203 +10,32 @@ import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
 
-// Mock products for now - will be replaced with API call
-const mockProducts = [
-  {
-    id: '1',
-    title: 'Classic T-Shirt',
-    description: 'Comfortable cotton t-shirt',
-    price: 24.99,
-    currency: 'USD',
-    image: 'https://via.placeholder.com/400x400/3b82f6/ffffff?text=T-Shirt',
-    rating: 4.5,
-    reviewCount: 128,
-    category: 'apparel',
-    createdAt: '2024-01-15T10:00:00Z',
-    variants: {
-      sizes: ['S', 'M', 'L', 'XL', 'XXL'],
-      colors: ['Black', 'White', 'Navy', 'Gray'],
-    },
-    stock: 150,
-  },
-  {
-    id: '2',
-    title: 'Hoodie',
-    description: 'Cozy fleece hoodie',
-    price: 49.99,
-    currency: 'USD',
-    image: 'https://via.placeholder.com/400x400/8b5cf6/ffffff?text=Hoodie',
-    rating: 4.8,
-    reviewCount: 94,
-    category: 'apparel',
-    createdAt: '2024-02-20T10:00:00Z',
-    variants: {
-      sizes: ['S', 'M', 'L', 'XL'],
-      colors: ['Black', 'Gray', 'Navy'],
-    },
-    stock: 85,
-  },
-  {
-    id: '3',
-    title: 'Mug',
-    description: 'Ceramic coffee mug',
-    price: 14.99,
-    currency: 'USD',
-    image: 'https://via.placeholder.com/400x400/10b981/ffffff?text=Mug',
-    rating: 4.3,
-    reviewCount: 256,
-    category: 'home',
-    createdAt: '2024-01-10T10:00:00Z',
-  },
-  {
-    id: '4',
-    title: 'Poster',
-    description: 'High-quality art poster',
-    price: 19.99,
-    currency: 'USD',
-    image: 'https://via.placeholder.com/400x400/f59e0b/ffffff?text=Poster',
-    rating: 4.6,
-    reviewCount: 87,
-    category: 'home',
-    createdAt: '2024-03-05T10:00:00Z',
-  },
-  {
-    id: '5',
-    title: 'Phone Case',
-    description: 'Protective phone case',
-    price: 16.99,
-    currency: 'USD',
-    image: 'https://via.placeholder.com/400x400/ef4444/ffffff?text=Case',
-    rating: 4.4,
-    reviewCount: 312,
-    category: 'accessories',
-    createdAt: '2024-01-25T10:00:00Z',
-  },
-  {
-    id: '6',
-    title: 'Tote Bag',
-    description: 'Eco-friendly tote bag',
-    price: 18.99,
-    currency: 'USD',
-    image: 'https://via.placeholder.com/400x400/06b6d4/ffffff?text=Bag',
-    rating: 4.7,
-    reviewCount: 143,
-    category: 'accessories',
-    createdAt: '2024-02-10T10:00:00Z',
-  },
-  {
-    id: '7',
-    title: 'Cat Lover Mug',
-    description: 'Perfect mug for cat enthusiasts',
-    price: 12.99,
-    currency: 'USD',
-    image: 'https://via.placeholder.com/400x400/ec4899/ffffff?text=Cat+Mug',
-    rating: 4.9,
-    reviewCount: 189,
-    category: 'home',
-    createdAt: '2024-03-15T10:00:00Z',
-  },
-  {
-    id: '8',
-    title: 'Canvas Print',
-    description: 'Beautiful canvas wall art',
-    price: 39.99,
-    currency: 'USD',
-    image: 'https://via.placeholder.com/400x400/6366f1/ffffff?text=Canvas',
-    rating: 4.6,
-    reviewCount: 76,
-    category: 'home',
-    createdAt: '2024-02-15T10:00:00Z',
-  },
-  {
-    id: '9',
-    title: 'Baseball Cap',
-    description: 'Adjustable cotton baseball cap',
-    price: 19.99,
-    currency: 'USD',
-    image: 'https://via.placeholder.com/400x400/14b8a6/ffffff?text=Cap',
-    rating: 4.4,
-    reviewCount: 203,
-    category: 'accessories',
-    createdAt: '2024-01-20T10:00:00Z',
-  },
-  {
-    id: '10',
-    title: 'Laptop Sleeve',
-    description: 'Padded laptop protection',
-    price: 24.99,
-    currency: 'USD',
-    image: 'https://via.placeholder.com/400x400/f97316/ffffff?text=Sleeve',
-    rating: 4.7,
-    reviewCount: 154,
-    category: 'accessories',
-    createdAt: '2024-02-28T10:00:00Z',
-  },
-  {
-    id: '11',
-    title: 'Water Bottle',
-    description: 'Insulated stainless steel bottle',
-    price: 22.99,
-    currency: 'USD',
-    image: 'https://via.placeholder.com/400x400/0ea5e9/ffffff?text=Bottle',
-    rating: 4.8,
-    reviewCount: 287,
-    category: 'accessories',
-    createdAt: '2024-03-10T10:00:00Z',
-  },
-  {
-    id: '12',
-    title: 'Yoga Mat',
-    description: 'Non-slip exercise mat',
-    price: 29.99,
-    currency: 'USD',
-    image: 'https://via.placeholder.com/400x400/a855f7/ffffff?text=Yoga+Mat',
-    rating: 4.5,
-    reviewCount: 198,
-    category: 'accessories',
-    createdAt: '2024-01-30T10:00:00Z',
-  },
-  {
-    id: '13',
-    title: 'Sweatpants',
-    description: 'Comfortable cotton blend sweatpants',
-    price: 34.99,
-    currency: 'USD',
-    image: 'https://via.placeholder.com/400x400/84cc16/ffffff?text=Sweatpants',
-    rating: 4.3,
-    reviewCount: 112,
-    category: 'apparel',
-    createdAt: '2024-02-05T10:00:00Z',
-  },
-  {
-    id: '14',
-    title: 'Coasters Set',
-    description: 'Set of 4 absorbent coasters',
-    price: 15.99,
-    currency: 'USD',
-    image: 'https://via.placeholder.com/400x400/eab308/ffffff?text=Coasters',
-    rating: 4.6,
-    reviewCount: 221,
-    category: 'home',
-    createdAt: '2024-03-01T10:00:00Z',
-  },
-  {
-    id: '15',
-    title: 'Tank Top',
-    description: 'Breathable athletic tank top',
-    price: 18.99,
-    currency: 'USD',
-    image: 'https://via.placeholder.com/400x400/f43f5e/ffffff?text=Tank',
-    rating: 4.4,
-    reviewCount: 167,
-    category: 'apparel',
-    createdAt: '2024-01-18T10:00:00Z',
-  },
-]
-
 type SortOption = 'featured' | 'priceLowToHigh' | 'priceHighToLow' | 'newest' | 'topRated'
 
+interface Product {
+  id: string
+  title: string
+  description: string
+  price: number
+  currency: string
+  image: string
+  rating: number
+  reviewCount: number
+  category: string
+  inStock: boolean
+  createdAt: string
+}
+
 const PRODUCTS_PER_PAGE = 8
+
+// Map frontend sort keys to API sort params
+const sortMap: Record<SortOption, string | undefined> = {
+  featured: undefined,
+  priceLowToHigh: 'priceLowToHigh',
+  priceHighToLow: 'priceHighToLow',
+  newest: 'newest',
+  topRated: 'topRated',
+}
 
 export default function ShopPage() {
   const t = useTranslations('shop')
@@ -215,82 +44,85 @@ export default function ShopPage() {
   const [sortBy, setSortBy] = useState<SortOption>('featured')
   const [currentPage, setCurrentPage] = useState(1)
   const [isLoading, setIsLoading] = useState(true)
+  const [products, setProducts] = useState<Product[]>([])
+  const [totalProducts, setTotalProducts] = useState(0)
+  const [categories, setCategories] = useState<string[]>(['all'])
 
-  // Simulate initial loading
-  useEffect(() => {
-    const timer = setTimeout(() => {
+  const fetchProducts = useCallback(async () => {
+    setIsLoading(true)
+    try {
+      const params = new URLSearchParams()
+      params.set('page', currentPage.toString())
+      params.set('limit', PRODUCTS_PER_PAGE.toString())
+      if (selectedCategory !== 'all') params.set('category', selectedCategory)
+      if (searchQuery.trim()) params.set('q', searchQuery.trim())
+      const sortParam = sortMap[sortBy]
+      if (sortParam) params.set('sort', sortParam)
+
+      const res = await fetch(`/api/products?${params.toString()}`)
+      const data = await res.json()
+
+      if (data.success) {
+        setProducts(data.items || [])
+        setTotalProducts(data.total || 0)
+      }
+    } catch (error) {
+      console.error('Error fetching products:', error)
+    } finally {
       setIsLoading(false)
-    }, 800) // Show skeleton for 800ms on initial load
-    return () => clearTimeout(timer)
+    }
+  }, [currentPage, selectedCategory, searchQuery, sortBy])
+
+  // Fetch all products once to extract categories
+  useEffect(() => {
+    async function fetchCategories() {
+      try {
+        const res = await fetch('/api/products?limit=100')
+        const data = await res.json()
+        if (data.success && data.items) {
+          const cats = Array.from(new Set(data.items.map((p: Product) => p.category))) as string[]
+          setCategories(['all', ...cats])
+        }
+      } catch (error) {
+        console.error('Error fetching categories:', error)
+      }
+    }
+    fetchCategories()
   }, [])
 
-  // Get unique categories from products
-  const categories = ['all', ...Array.from(new Set(mockProducts.map((p) => p.category)))]
+  // Fetch products when filters change
+  useEffect(() => {
+    fetchProducts()
+  }, [fetchProducts])
 
-  // Get product count per category
+  const totalPages = Math.ceil(totalProducts / PRODUCTS_PER_PAGE)
+
+  // Get product count per category (from all fetched products — approximate)
   const getCategoryCount = (category: string) => {
-    if (category === 'all') {
-      return mockProducts.length
-    }
-    return mockProducts.filter((p) => p.category === category).length
+    if (category === 'all') return totalProducts
+    // For category counts we show the total when that category is selected
+    return category === selectedCategory ? totalProducts : '...'
   }
-
-  // Filter products based on search query and category
-  const filteredProducts = mockProducts.filter((product) => {
-    // Category filter
-    const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory
-
-    // Search filter
-    const matchesSearch =
-      !searchQuery.trim() ||
-      product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.category.toLowerCase().includes(searchQuery.toLowerCase())
-
-    return matchesCategory && matchesSearch
-  })
-
-  // Sort products
-  const sortedProducts = [...filteredProducts].sort((a, b) => {
-    switch (sortBy) {
-      case 'priceLowToHigh':
-        return a.price - b.price
-      case 'priceHighToLow':
-        return b.price - a.price
-      case 'newest':
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      case 'topRated':
-        return b.rating - a.rating
-      case 'featured':
-      default:
-        return 0 // Keep original order
-    }
-  })
-
-  // Pagination
-  const totalPages = Math.ceil(sortedProducts.length / PRODUCTS_PER_PAGE)
-  const startIndex = (currentPage - 1) * PRODUCTS_PER_PAGE
-  const endIndex = startIndex + PRODUCTS_PER_PAGE
-  const paginatedProducts = sortedProducts.slice(startIndex, endIndex)
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    // Search filtering happens automatically via filteredProducts
+    setCurrentPage(1)
+    fetchProducts()
   }
 
   const clearSearch = () => {
     setSearchQuery('')
-    setCurrentPage(1) // Reset to page 1 when clearing search
+    setCurrentPage(1)
   }
 
   const handleCategoryChange = (category: string) => {
     setSelectedCategory(category)
-    setCurrentPage(1) // Reset to page 1 when changing category
+    setCurrentPage(1)
   }
 
   const handleSortChange = (value: SortOption) => {
     setSortBy(value)
-    setCurrentPage(1) // Reset to page 1 when changing sort
+    setCurrentPage(1)
   }
 
   const goToPage = (page: number) => {
@@ -304,7 +136,7 @@ export default function ShopPage() {
         <h1 className="text-4xl font-bold mb-2">{t('title')}</h1>
         <p className="text-lg text-muted-foreground">{t('subtitle')}</p>
         <p className="text-sm text-muted-foreground mt-2">
-          {t('totalProducts', { count: mockProducts.length })}
+          {t('totalProducts', { count: totalProducts })}
         </p>
       </div>
 
@@ -378,14 +210,14 @@ export default function ShopPage() {
         <div className="mb-4">
           <p className="text-sm text-muted-foreground">
             {searchQuery
-              ? t('searchResults', { count: sortedProducts.length, query: searchQuery })
-              : t('categoryResults', { count: sortedProducts.length })}
+              ? t('searchResults', { count: totalProducts, query: searchQuery })
+              : t('categoryResults', { count: totalProducts })}
           </p>
         </div>
       )}
 
       <ProductGrid
-        products={paginatedProducts}
+        products={products}
         isLoading={isLoading}
         emptyMessage={
           searchQuery
