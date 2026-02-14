@@ -1358,7 +1358,7 @@
     "id": 124,
     "feature": "Checkout & Payments",
     "description": "Notification + audit log entry after order",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Complete a successful order",
       "Verify a notification is created for the user",

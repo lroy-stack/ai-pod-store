@@ -406,3 +406,52 @@ Screenshot evidence:
 - Duration: ~8 minutes
 - Commits: 3
 
+
+---
+
+## Session 40 — 2026-02-14
+
+### Feature #123: Stripe test cards work (4242...) ✅
+
+**Implementation:**
+- Already implemented in previous sessions
+- Stripe Checkout integration via `/api/checkout/create-session`
+- Test mode enabled (Sandbox badge visible)
+
+**Verification (Browser Testing with Playwright MCP):**
+
+1. **Successful Payment Test (card 4242424242424242):**
+   - Filled guest email: test@example.com
+   - Clicked "Proceed to Payment" → Redirected to Stripe Checkout
+   - Filled shipping address: Test User, 123 Test St, San Francisco, CA 94102
+   - Entered card: 4242424242424242, exp 12/28, CVC 123
+   - Clicked "Pay" button
+   - ✅ **Result**: Successfully redirected to `/en/checkout/success?session_id=cs_test_...`
+   - Page shows: "Payment Successful!", order details, payment status: paid
+   - Screenshot: stripe-success-4242.png
+
+2. **Failed Payment Test (card 4000000000000341):**
+   - Filled guest email: test2@example.com
+   - Proceeded to Stripe Checkout
+   - Filled shipping address: Test User 2, 456 Test Ave, New York, NY 10001
+   - Entered card: 4000000000000341, exp 12/28, CVC 123
+   - Clicked "Pay" button
+   - ✅ **Result**: Error displayed inline
+   - Alert message: "Your credit card was declined. Try paying with a debit card instead."
+   - Card field highlighted in red with error indicator
+   - Form remains active for retry (not disabled)
+   - Screenshot: stripe-failure-0341.png
+
+**Technical Details:**
+- Stripe Checkout handles both success and failure flows
+- Success redirects to `success_url` with session_id parameter
+- Failure shows inline error without redirect
+- Test mode verified (Sandbox indicator present)
+- Both flows work as expected per Stripe test card documentation
+
+**Updated Stats:**
+- Features this session: +1 (123)
+- Total passing: 123/389 (31.6%)
+- Session duration: ~8 minutes
+- Next: Feature #124 — Notification + audit log entry after order
+

@@ -169,6 +169,75 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
       }
     }
 
+    // Create notification for the user (if user_id is found)
+    // For guest checkouts, we'll create a notification linked to the email
+    // Note: In a real system, you'd look up user by email first
+    const notificationData = {
+      type: 'order_confirmation',
+      title: `Order Confirmed - ${order.id}`,
+      body: `Your order has been confirmed. Total: ${(order.total_cents / 100).toFixed(2)} ${order.currency.toUpperCase()}`,
+      data: {
+        order_id: order.id,
+        session_id: session.id,
+        total_cents: order.total_cents,
+        currency: order.currency,
+      },
+      is_read: false,
+    }
+
+    // Try to find user by email to link notification
+    const { data: user } = await supabase
+      .from('users')
+      .select('id')
+      .eq('email', customerEmail)
+      .single()
+
+    if (user) {
+      // Create notification for authenticated user
+      const { error: notifError } = await supabase
+        .from('notifications')
+        .insert({
+          user_id: user.id,
+          ...notificationData,
+        })
+
+      if (notifError) {
+        console.error('Failed to create notification:', notifError)
+      } else {
+        console.log('Created notification for user:', user.id)
+      }
+    } else {
+      console.log('No user found for email - skipping notification (guest checkout)')
+    }
+
+    // Create audit log entry
+    const { error: auditError } = await supabase
+      .from('audit_log')
+      .insert({
+        actor_type: 'webhook',
+        actor_id: 'stripe_webhook',
+        action: 'order_created',
+        resource_type: 'order',
+        resource_id: order.id,
+        changes: {
+          status: 'paid',
+          total_cents: order.total_cents,
+          currency: order.currency,
+        },
+        metadata: {
+          stripe_session_id: session.id,
+          stripe_payment_intent_id: paymentIntentId,
+          customer_email: customerEmail,
+          locale,
+        },
+      })
+
+    if (auditError) {
+      console.error('Failed to create audit log entry:', auditError)
+    } else {
+      console.log('Created audit log entry for order:', order.id)
+    }
+
     // TODO: Send confirmation email (future feature)
     // TODO: Submit order to Printify (future feature)
 
