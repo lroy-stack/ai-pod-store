@@ -2566,7 +2566,7 @@
     "id": 232,
     "feature": "Admin Dashboard & Agent Monitor",
     "description": "8 sub-agent status cards from bridge /agents endpoint. Each card shows real model, tools, running status. Manual trigger button calls POST /agents/{name}/run via proxy.",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify 8 status cards are displayed from /api/agent/agents (bridge proxy)",
       "Verify each card shows model (haiku/sonnet), tools list, running/idle status",
