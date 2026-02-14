@@ -2875,7 +2875,7 @@
     "id": 260,
     "feature": "Internationalization End-to-End",
     "description": "Chat suggested prompts change with locale",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Open a new chat in /es/ and verify suggested prompts are in Spanish",
       "Switch to /de/ and verify suggested prompts are in German"
