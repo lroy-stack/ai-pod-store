@@ -8,6 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createHmac } from 'crypto'
 import { createClient } from '@supabase/supabase-js'
+import { sendOrderShippedEmail } from '@/lib/resend'
 
 const supabase = createClient(
   process.env.SUPABASE_URL!,
@@ -129,10 +130,10 @@ async function handleOrderShipped(resource: Record<string, unknown>) {
     updateData.carrier = shipment.carrier
   }
 
-  // Get the order to find the user_id
+  // Get the order to find the user_id and email
   const { data: order, error: fetchError } = await supabase
     .from('orders')
-    .select('id, user_id')
+    .select('id, user_id, customer_email, locale')
     .eq('printify_order_id', printifyOrderId)
     .single()
 
@@ -154,9 +155,10 @@ async function handleOrderShipped(resource: Record<string, unknown>) {
 
   console.log('Order marked as shipped:', printifyOrderId)
 
+  const orderDisplayId = order.id.slice(0, 8) // Use first 8 chars of UUID as display ID
+
   // Create notification for user
   if (order.user_id) {
-    const orderDisplayId = order.id.slice(0, 8) // Use first 8 chars of UUID as display ID
     const { error: notificationError } = await supabase.from('notifications').insert({
       user_id: order.user_id,
       type: 'order_shipped',
@@ -172,6 +174,25 @@ async function handleOrderShipped(resource: Record<string, unknown>) {
       // Don't throw — notification is not critical
     } else {
       console.log('Created order_shipped notification for user:', order.user_id)
+    }
+  }
+
+  // Send email notification
+  if (order.customer_email) {
+    const emailResult = await sendOrderShippedEmail({
+      to: order.customer_email,
+      orderId: orderDisplayId,
+      trackingNumber: shipment?.number,
+      trackingUrl: shipment?.url,
+      carrier: shipment?.carrier,
+      locale: order.locale || 'en',
+    })
+
+    if (emailResult.success) {
+      console.log('Order shipped email sent to:', order.customer_email)
+    } else {
+      console.error('Failed to send order shipped email:', emailResult.error)
+      // Don't throw — email is not critical
     }
   }
 
