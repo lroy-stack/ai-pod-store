@@ -377,6 +377,12 @@
       "stateRequired": "State/Province is required",
       "postalCodeRequired": "Postal code is required",
       "countryRequired": "Country code is required"
+    },
+    "breadcrumb": {
+      "cart": "Cart",
+      "shipping": "Shipping",
+      "payment": "Payment",
+      "confirmation": "Confirmation"
     }
   },
   "Orders": {

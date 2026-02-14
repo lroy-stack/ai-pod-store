@@ -377,6 +377,12 @@
       "stateRequired": "Bundesland ist erforderlich",
       "postalCodeRequired": "Postleitzahl ist erforderlich",
       "countryRequired": "Ländercode ist erforderlich"
+    },
+    "breadcrumb": {
+      "cart": "Warenkorb",
+      "shipping": "Versand",
+      "payment": "Zahlung",
+      "confirmation": "Bestätigung"
     }
   },
   "Orders": {

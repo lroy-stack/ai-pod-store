@@ -1428,7 +1428,7 @@
     "id": 130,
     "feature": "Checkout & Payments",
     "description": "Checkout breadcrumb navigation",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to checkout flow",
       "Verify breadcrumb shows Cart > Shipping > Payment > Confirmation",

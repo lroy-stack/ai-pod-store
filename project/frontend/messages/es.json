@@ -377,6 +377,12 @@
       "stateRequired": "La provincia/estado es obligatoria",
       "postalCodeRequired": "El código postal es obligatorio",
       "countryRequired": "El código de país es obligatorio"
+    },
+    "breadcrumb": {
+      "cart": "Carrito",
+      "shipping": "Envío",
+      "payment": "Pago",
+      "confirmation": "Confirmación"
     }
   },
   "Orders": {

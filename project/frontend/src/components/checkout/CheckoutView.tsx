@@ -15,6 +15,7 @@ import { Label } from '@/components/ui/label'
 import { formatPrice } from '@/lib/currency'
 import { useState, useEffect } from 'react'
 import AddressForm, { AddressFormData } from './AddressForm'
+import CheckoutBreadcrumb from './CheckoutBreadcrumb'
 
 interface ShippingAddress {
   id: string
@@ -306,6 +307,9 @@ export default function CheckoutView({ locale }: { locale: string }) {
           {t('title')}
         </h1>
       </div>
+
+      {/* Checkout Breadcrumb */}
+      <CheckoutBreadcrumb currentStep="shipping" />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
         {/* Main Content - Left Side */}
