@@ -1508,15 +1508,73 @@ Be friendly, helpful, and concise.`
       }),
     }
 
+    // RAG Pipeline Integration
+    // Extract the latest user message for semantic search
+    let ragContext = ''
+    try {
+      // Get the last user message
+      const lastUserMessage = messages.filter((m: any) => m.role === 'user').pop()
+
+      if (lastUserMessage) {
+        // Extract text from the message parts
+        let userQuery = ''
+        if (Array.isArray(lastUserMessage.parts)) {
+          const textParts = lastUserMessage.parts.filter((p: any) => p.type === 'text')
+          userQuery = textParts.map((p: any) => p.text).join(' ')
+        } else if (lastUserMessage.content) {
+          userQuery = lastUserMessage.content
+        }
+
+        if (userQuery && userQuery.trim().length > 0) {
+          // Call RAG search to get relevant documents
+          const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+          const ragResponse = await fetch(
+            `${baseUrl}/api/rag/search`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                query: userQuery,
+                locale: chatLocale,
+                limit: 3,
+              }),
+            }
+          )
+
+          if (ragResponse.ok) {
+            const ragData = await ragResponse.json()
+
+            if (ragData.results && ragData.results.length > 0) {
+              // Build context string from top results
+              ragContext = '\n\nRELEVANT CONTEXT FROM KNOWLEDGE BASE:\n'
+              ragData.results.forEach((doc: any, idx: number) => {
+                ragContext += `\n[${idx + 1}] ${doc.content}`
+                if (doc.metadata?.source_type === 'product') {
+                  ragContext += ` (Product: ${doc.metadata.title || 'Unknown'})`
+                }
+              })
+              ragContext += '\n\nUse the above context to provide accurate, specific answers about our products and policies.\n'
+            }
+          }
+        }
+      }
+    } catch (ragError) {
+      console.error('RAG retrieval error (non-critical):', ragError)
+      // Continue without RAG context if it fails
+    }
+
     // Stream response with tools
     // Using gemini-2.5-flash (latest stable as of June 2025)
     // Convert UIMessage format (with parts array) to CoreMessage format (with content string)
     // This is needed because useChat sends UIMessage but streamText expects CoreMessage
-    const convertedMessages = convertToModelMessages(messages)
+    const convertedMessages = await convertToModelMessages(messages)
+
+    // Inject RAG context into system prompt
+    const enhancedSystemPrompt = systemPrompt + ragContext
 
     const result = streamText({
       model: google('gemini-2.5-flash'),
-      system: systemPrompt,
+      system: enhancedSystemPrompt,
       messages: convertedMessages,
       tools,
       stopWhen: stepCountIs(5),

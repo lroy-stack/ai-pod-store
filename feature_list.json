@@ -1488,7 +1488,7 @@
     "id": 135,
     "feature": "Conversational Storefront / Chat",
     "description": "Bot responds with streaming SSE",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Send a message in the chat",
       "Verify the response streams in word-by-word using SSE",
@@ -1846,7 +1846,7 @@
     "id": 166,
     "feature": "RAG Pipeline",
     "description": "RAG context injected into chat responses",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Ask a product-specific question in the chat",
       "Verify the response references actual product data retrieved from the RAG pipeline"
