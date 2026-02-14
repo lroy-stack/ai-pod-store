@@ -2370,7 +2370,7 @@
     "id": 214,
     "feature": "Admin Dashboard & Agent Monitor",
     "description": "Admin route protection",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to http://localhost:3001 without having an admin role",
       "Verify the user is redirected to /login"
@@ -2380,7 +2380,7 @@
     "id": 215,
     "feature": "Admin Dashboard & Agent Monitor",
     "description": "Admin dashboard renders with summary cards",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to admin panel at http://localhost:3001 as an admin user",
       "Verify summary cards are displayed for revenue, orders count, products count, and conversion rate"
@@ -2390,7 +2390,7 @@
     "id": 216,
     "feature": "Admin Dashboard & Agent Monitor",
     "description": "Recent orders table renders",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to the admin dashboard",
       "Verify a recent orders table is displayed with key columns such as order ID, status, and total"
@@ -2400,7 +2400,7 @@
     "id": 217,
     "feature": "Admin Dashboard & Agent Monitor",
     "description": "Admin navigation sidebar works",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify the admin sidebar contains links to Products, Orders, Customers, Analytics, Finance, Agents, Translations, Audit Log, SEO, Reviews, Returns, Messaging, and Settings"
     ]
@@ -2409,7 +2409,7 @@
     "id": 218,
     "feature": "Admin Dashboard & Agent Monitor",
     "description": "Product management CRUD",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Create a new product in the admin panel and verify it appears in the product list",
       "Edit the product title and verify the update is reflected",
@@ -2421,7 +2421,7 @@
     "id": 219,
     "feature": "Admin Dashboard & Agent Monitor",
     "description": "Order management table with filters",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to http://localhost:3001/orders",
       "Filter orders by status 'shipped'",
@@ -2432,7 +2432,7 @@
     "id": 220,
     "feature": "Admin Dashboard & Agent Monitor",
     "description": "Customer list with order history",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to http://localhost:3001/customers",
       "Verify the list displays customer name, email, order count, and total spent",
