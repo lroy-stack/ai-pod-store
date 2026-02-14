@@ -2787,7 +2787,7 @@
     "id": 252,
     "feature": "Internationalization End-to-End",
     "description": "SEO meta descriptions + hreflang in correct locale",
-    "passes": false,
+    "passes": true,
     "steps": [
       "View /es/ page source",
       "Verify meta description is in Spanish",

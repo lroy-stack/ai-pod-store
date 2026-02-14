@@ -1,24 +1,76 @@
 import { Inter } from 'next/font/google'
 import { Providers } from './providers'
 import '../globals.css'
+import type { Metadata } from 'next'
 
 const inter = Inter({ subsets: ['latin'] })
 
-const locales = ['en', 'es', 'de']
+const locales = ['en', 'es', 'de'] as const
 
 export function generateStaticParams() {
   return locales.map((locale) => ({ locale }))
 }
 
-export default function LocaleLayout({
+// Locale-aware metadata
+const metadataByLocale = {
+  en: {
+    title: 'POD AI — AI-Powered Print on Demand Store',
+    description: 'Create custom designs with AI and get them printed on premium products. Your AI-powered print-on-demand marketplace.',
+  },
+  es: {
+    title: 'POD AI — Tienda de Impresión bajo Demanda con IA',
+    description: 'Crea diseños personalizados con IA e imprímelos en productos premium. Tu tienda de impresión bajo demanda impulsada por IA.',
+  },
+  de: {
+    title: 'POD AI — KI-gestützter Print-on-Demand-Shop',
+    description: 'Erstelle individuelle Designs mit KI und lass sie auf Premium-Produkte drucken. Dein KI-gesteuerter Print-on-Demand-Marktplatz.',
+  },
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}): Promise<Metadata> {
+  const { locale } = await params
+  const localeKey = locale as keyof typeof metadataByLocale
+  const metadata = metadataByLocale[localeKey] || metadataByLocale.en
+
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://podai.com'
+
+  return {
+    title: metadata.title,
+    description: metadata.description,
+    alternates: {
+      languages: {
+        en: `${baseUrl}/en`,
+        es: `${baseUrl}/es`,
+        de: `${baseUrl}/de`,
+        'x-default': `${baseUrl}/en`,
+      },
+    },
+    openGraph: {
+      title: metadata.title,
+      description: metadata.description,
+      url: `${baseUrl}/${locale}`,
+      siteName: 'POD AI',
+      locale: locale === 'es' ? 'es_ES' : locale === 'de' ? 'de_DE' : 'en_US',
+      type: 'website',
+    },
+  }
+}
+
+export default async function LocaleLayout({
   children,
   params,
 }: {
   children: React.ReactNode
   params: Promise<{ locale: string }>
 }) {
+  const { locale } = await params
+
   return (
-    <html suppressHydrationWarning>
+    <html lang={locale} suppressHydrationWarning>
       <head>
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#09090b" />
