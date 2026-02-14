@@ -195,7 +195,7 @@ export function ChatArea() {
                 <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground mb-2">
                   {userData.user ? (
                     <>
-                      {t('welcomeBackTitle', { name: userData.user.name.split(' ')[0] })}
+                      {t('welcomeBackTitle', { name: userData.user.name?.split(' ')[0] || 'there' })}
                       <span className="inline-block ml-2 animate-pulse">&#10024;</span>
                     </>
                   ) : (

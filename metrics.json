@@ -1,9 +1,9 @@
 {
-  "total_sessions": 79,
-  "total_tokens": 335145,
-  "total_cost_usd": 1.0061,
+  "total_sessions": 81,
+  "total_tokens": 344162,
+  "total_cost_usd": 1.0332,
   "tokens_by_model": {
-    "claude-sonnet-4-5-20250929": 335145
+    "claude-sonnet-4-5-20250929": 344162
   },
   "sessions": [
     {
@@ -2811,6 +2811,72 @@
         "mcp__playwright__browser_wait_for": 2,
         "mcp__playwright__browser_click": 1,
         "mcp__playwright__browser_hover": 1
+      }
+    },
+    {
+      "id": 80,
+      "type": "CODING",
+      "model": "claude-sonnet-4-5-20250929",
+      "started_at": "2026-02-14T16:42:37.586845+00:00",
+      "ended_at": "2026-02-14T16:57:12.961386+00:00",
+      "duration_seconds": 875.37,
+      "tokens_used": 4731,
+      "cost_usd": 0.0142,
+      "features_passed": 3,
+      "total_passing": 200,
+      "total_features": 485,
+      "tool_calls": 116,
+      "tool_errors": 12,
+      "tool_breakdown": {
+        "Bash": 80,
+        "Read": 11,
+        "Write": 5,
+        "Edit": 4,
+        "mcp__playwright__browser_navigate": 2,
+        "mcp__playwright__browser_take_screenshot": 1,
+        "error": 12,
+        "mcp__playwright__browser_close": 1
+      },
+      "sub_agents_used": [],
+      "mcp_calls": {
+        "mcp__playwright__browser_navigate": 2,
+        "mcp__playwright__browser_take_screenshot": 1,
+        "mcp__playwright__browser_close": 1
+      }
+    },
+    {
+      "id": 81,
+      "type": "CODING",
+      "model": "claude-sonnet-4-5-20250929",
+      "started_at": "2026-02-14T16:57:19.062307+00:00",
+      "ended_at": "2026-02-14T17:09:45.803090+00:00",
+      "duration_seconds": 746.74,
+      "tokens_used": 4286,
+      "cost_usd": 0.0129,
+      "features_passed": 2,
+      "total_passing": 202,
+      "total_features": 485,
+      "tool_calls": 94,
+      "tool_errors": 7,
+      "tool_breakdown": {
+        "Bash": 50,
+        "Read": 9,
+        "mcp__playwright__browser_navigate": 5,
+        "mcp__playwright__browser_take_screenshot": 3,
+        "error": 7,
+        "Write": 7,
+        "Edit": 8,
+        "mcp__playwright__browser_click": 3,
+        "mcp__playwright__browser_snapshot": 1,
+        "mcp__playwright__browser_console_messages": 1
+      },
+      "sub_agents_used": [],
+      "mcp_calls": {
+        "mcp__playwright__browser_navigate": 5,
+        "mcp__playwright__browser_take_screenshot": 3,
+        "mcp__playwright__browser_click": 3,
+        "mcp__playwright__browser_snapshot": 1,
+        "mcp__playwright__browser_console_messages": 1
       }
     }
   ]

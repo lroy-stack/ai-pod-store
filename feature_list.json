@@ -2247,7 +2247,7 @@
     "id": 203,
     "feature": "Order Management & Notifications",
     "description": "Mark notification as read + mark all",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Click an unread notification",
       "Verify it is marked as read",

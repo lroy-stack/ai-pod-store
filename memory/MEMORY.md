@@ -136,3 +136,7 @@
 - [2026-02-14T16:32:27.208177+00:00] Session 78: 2 features implemented. Total 195/485. Next target: ID 196 [Order Management & Notifications] — Printify order creation + webhook updates
 
 - [2026-02-14T16:42:31.552783+00:00] Session 79: 2 features implemented. Total 197/485. Next target: ID 198 [Order Management & Notifications] — Return request + refund flow
+
+- [2026-02-14T16:57:12.960596+00:00] Session 80: 3 features implemented. Total 200/485. Next target: ID 201 [Order Management & Notifications] — Notification bell icon shows unread count
+
+- [2026-02-14T17:09:45.802683+00:00] Session 81: 2 features implemented. Total 202/485. Next target: ID 203 [Order Management & Notifications] — Mark notification as read + mark all
