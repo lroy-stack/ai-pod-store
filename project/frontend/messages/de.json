@@ -340,6 +340,11 @@
     "useThisAddress": "Diese Adresse Verwenden",
     "default": "Standard",
     "noSavedAddresses": "Keine gespeicherten Adressen",
-    "loadingAddresses": "Adressen werden geladen..."
+    "loadingAddresses": "Adressen werden geladen...",
+    "proceedToPayment": "Zur Zahlung",
+    "successTitle": "Zahlung Erfolgreich",
+    "successDescription": "Ihre Bestellung wurde erfolgreich aufgegeben",
+    "cancelTitle": "Zahlung Abgebrochen",
+    "cancelDescription": "Ihre Zahlung wurde storniert"
   }
 }

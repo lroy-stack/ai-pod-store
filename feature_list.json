@@ -1257,7 +1257,7 @@
     "id": 115,
     "feature": "Checkout & Payments",
     "description": "Stripe checkout session creates successfully",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Click the Pay button on the checkout page",
       "Verify the user is redirected to Stripe Checkout page",

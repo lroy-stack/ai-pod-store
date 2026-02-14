@@ -38,6 +38,7 @@ export default function CheckoutView({ locale }: { locale: string }) {
   const [showNewAddressForm, setShowNewAddressForm] = useState(false)
   const [calculatedTax, setCalculatedTax] = useState<number | null>(null)
   const [calculatingTax, setCalculatingTax] = useState(false)
+  const [creatingSession, setCreatingSession] = useState(false)
 
   // Get user's preferred currency, fallback to locale default
   const userCurrency = user?.currency || (locale === 'es' || locale === 'de' ? 'EUR' : 'USD')
@@ -130,6 +131,40 @@ export default function CheckoutView({ locale }: { locale: string }) {
 
     calculateTaxForAddress()
   }, [selectedAddressId, addresses, cartItems, userCurrency])
+
+  // Handle proceeding to Stripe Checkout
+  const handleProceedToPayment = async () => {
+    setCreatingSession(true)
+    try {
+      const response = await fetch('/api/checkout/create-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          cartItems,
+          locale,
+          currency: userCurrency.toLowerCase(),
+        }),
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        // Redirect to Stripe Checkout
+        if (data.url) {
+          window.location.href = data.url
+        }
+      } else {
+        console.error('Failed to create checkout session')
+        alert('Failed to proceed to payment. Please try again.')
+      }
+    } catch (error) {
+      console.error('Error creating checkout session:', error)
+      alert('Failed to proceed to payment. Please try again.')
+    } finally {
+      setCreatingSession(false)
+    }
+  }
 
   if (loading) {
     return (
@@ -434,6 +469,18 @@ export default function CheckoutView({ locale }: { locale: string }) {
                   )}
                 </span>
               </div>
+
+              <Separator />
+
+              {/* Proceed to Payment Button */}
+              <Button
+                onClick={handleProceedToPayment}
+                disabled={creatingSession || cartItems.length === 0}
+                className="w-full"
+                size="lg"
+              >
+                {creatingSession ? 'Processing...' : t('proceedToPayment')}
+              </Button>
             </CardContent>
           </Card>
         </div>

@@ -340,6 +340,11 @@
     "useThisAddress": "Use This Address",
     "default": "Default",
     "noSavedAddresses": "No saved addresses",
-    "loadingAddresses": "Loading addresses..."
+    "loadingAddresses": "Loading addresses...",
+    "proceedToPayment": "Proceed to Payment",
+    "successTitle": "Payment Successful",
+    "successDescription": "Your order has been placed successfully",
+    "cancelTitle": "Payment Cancelled",
+    "cancelDescription": "Your payment was cancelled"
   }
 }
