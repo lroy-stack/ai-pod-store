@@ -1369,7 +1369,7 @@
     "id": 125,
     "feature": "Checkout & Payments",
     "description": "Printify order submitted after payment",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Complete a payment via Stripe webhook",
       "Verify the Printify API is called to create the order",

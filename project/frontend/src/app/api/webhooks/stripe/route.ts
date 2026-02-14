@@ -8,6 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { headers } from 'next/headers'
 import { stripe } from '@/lib/stripe'
+import { printify, buildPrintifyAddress } from '@/lib/printify'
 import { createClient } from '@supabase/supabase-js'
 import Stripe from 'stripe'
 
@@ -238,8 +239,94 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
       console.log('Created audit log entry for order:', order.id)
     }
 
+    // Submit order to Printify
+    if (validOrderItems.length > 0 && shippingAddress && customerEmail) {
+      try {
+        console.log('Submitting order to Printify...')
+
+        // Fetch product and variant Printify IDs
+        const productIds = validOrderItems.map(item => item.product_id)
+        const variantIds = validOrderItems.map(item => item.variant_id).filter(Boolean)
+
+        const { data: products } = await supabase
+          .from('products')
+          .select('id, printify_id')
+          .in('id', productIds)
+
+        const { data: variants } = await supabase
+          .from('product_variants')
+          .select('id, printify_variant_id')
+          .in('id', variantIds)
+
+        // Create lookup maps
+        const productMap = new Map(products?.map(p => [p.id, p.printify_id]) || [])
+        const variantMap = new Map(variants?.map(v => [v.id, v.printify_variant_id]) || [])
+
+        // Build Printify line items
+        const printifyLineItems = validOrderItems
+          .filter(item => {
+            const printifyProductId = productMap.get(item.product_id)
+            const printifyVariantId = item.variant_id ? variantMap.get(item.variant_id) : null
+            // Only include items where we have Printify IDs
+            return printifyProductId && (printifyVariantId || !item.variant_id)
+          })
+          .map(item => ({
+            product_id: productMap.get(item.product_id)!,
+            variant_id: item.variant_id ? parseInt(variantMap.get(item.variant_id)!, 10) : 0,
+            quantity: item.quantity,
+          }))
+
+        if (printifyLineItems.length === 0) {
+          console.log('No valid Printify line items - skipping Printify submission')
+        } else {
+          // Create Printify order
+          const printifyAddress = buildPrintifyAddress(shippingAddress, customerEmail)
+
+          const printifyOrder = await printify.createOrder({
+            external_id: order.id, // Link to our order ID
+            label: `Order ${order.id.slice(0, 8)}`,
+            line_items: printifyLineItems,
+            shipping_method: 1, // Standard shipping (most common default)
+            send_shipping_notification: true,
+            address_to: printifyAddress,
+          })
+
+          console.log('Created Printify order:', printifyOrder.id)
+
+          // Update order with Printify order ID
+          const { error: updateError } = await supabase
+            .from('orders')
+            .update({
+              printify_order_id: printifyOrder.id,
+              status: 'submitted', // Update status to submitted
+            })
+            .eq('id', order.id)
+
+          if (updateError) {
+            console.error('Failed to update order with Printify ID:', updateError)
+          } else {
+            console.log('Updated order with Printify order ID')
+          }
+
+          // Submit order for production
+          try {
+            await printify.submitOrderForProduction(printifyOrder.id)
+            console.log('Submitted Printify order for production')
+          } catch (productionError) {
+            console.error('Failed to submit Printify order for production:', productionError)
+            // Don't throw - order is created, just not in production yet
+          }
+        }
+      } catch (printifyError) {
+        console.error('Error submitting order to Printify:', printifyError)
+        // Don't throw - we don't want to fail the entire webhook
+        // The order is still created in our system
+      }
+    } else {
+      console.log('Missing shipping address or items - skipping Printify submission')
+    }
+
     // TODO: Send confirmation email (future feature)
-    // TODO: Submit order to Printify (future feature)
 
     console.log('Successfully processed checkout session:', session.id)
   } catch (error) {
