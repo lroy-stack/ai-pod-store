@@ -44,21 +44,23 @@ export async function POST(req: Request) {
     const systemPrompt = `You are PodClaw, an AI assistant for a print-on-demand store. You help customers find and buy products.
 
 TOOLS AVAILABLE:
-- product_search: Search/browse products (returns product list with IDs)
-- get_product_detail: Get full details for ONE specific product (needs product ID)
-- compare_products: Compare 2-4 products side-by-side (needs array of product IDs)
+- product_search: Search/browse products (returns product list)
+- get_product_detail: Get FULL details for ONE product including materials, shipping, variants (accepts product name OR ID)
+- compare_products: Compare 2-4 products side-by-side (needs product IDs from search results)
 
-WORKFLOW:
-1. When user asks to browse/search → call product_search
-2. When user asks for DETAILS, MATERIALS, SHIPPING, or FULL INFO about a product → FIRST call product_search to find the ID, THEN immediately call get_product_detail with that ID
-3. When user asks to COMPARE products → FIRST search to get IDs if needed, THEN call compare_products
+WHEN TO USE EACH TOOL:
+1. User asks to "browse", "search", "show me", "find" products → call product_search
+2. User asks for "details", "more info", "materials", "shipping", "tell me about" a SPECIFIC product → call get_product_detail with the product name
+3. User asks to "compare" products → call compare_products with IDs from recent search
 
 EXAMPLES:
 - "show me cat t-shirts" → product_search(query="cat t-shirt")
-- "details about Classic Cat T-Shirt" or "materials and shipping for Classic Cat T-Shirt" → product_search(query="classic cat t-shirt"), THEN get_product_detail(productId)
-- "compare cat t-shirt and phone case" → compare_products(productIds from recent search)
+- "tell me more about the Classic Cat T-Shirt" → get_product_detail(productIdentifier="Classic Cat T-Shirt")
+- "what materials is the hoodie made of?" → get_product_detail(productIdentifier="hoodie")
+- "shipping info for Dog Lover T-Shirt" → get_product_detail(productIdentifier="Dog Lover T-Shirt")
+- "compare the first two products" → compare_products(productIds=[id1, id2])
 
-CRITICAL: When user mentions "details", "materials", "shipping", "full information", you MUST call get_product_detail!
+IMPORTANT: get_product_detail works with product names directly - you don't need to search first!
 
 Be friendly, helpful, and concise.`
 
@@ -78,7 +80,7 @@ Be friendly, helpful, and concise.`
           try {
             let dbQuery = supabase
               .from('products')
-              .select('id, title, description, category, base_price_cents, images, avg_rating, review_count')
+              .select('id, title, description, category, base_price_cents, currency, images, avg_rating, review_count')
               .eq('status', 'active')
               .limit(limit)
 
@@ -100,8 +102,8 @@ Be friendly, helpful, and concise.`
               description: p.description?.substring(0, 150) + (p.description?.length > 150 ? '...' : ''),
               category: p.category,
               price: p.base_price_cents / 100,
-              currency: 'USD',
-              image: Array.isArray(p.images) && p.images.length > 0 ? p.images[0].src : null,
+              currency: p.currency?.toUpperCase() || 'EUR',
+              image: Array.isArray(p.images) && p.images.length > 0 ? (p.images[0].src || p.images[0].url) : null,
               rating: p.avg_rating || 0,
               reviewCount: p.review_count || 0,
             }))
@@ -123,23 +125,45 @@ Be friendly, helpful, and concise.`
         },
       }),
       get_product_detail: tool({
-        description: 'Get detailed information about a specific product. Call this when user asks to see details, learn more, or get info about a product.',
+        description: 'Get detailed information about a specific product including materials, shipping, and variants. Call this when user asks to see details, learn more, materials, shipping info, or full information about a product.',
         parameters: z.object({
-          productId: z.string().describe('Product ID to get details for'),
+          productIdentifier: z.string().describe('Product ID (UUID) or product name/title to get details for'),
         }),
         // @ts-expect-error AI SDK 6.0.86 type mismatch — execute works at runtime
-        execute: async (args: { productId: string }) => {
-          const { productId } = args
+        execute: async (args: { productIdentifier: string }) => {
+          const { productIdentifier } = args
           try {
-            const { data: product, error } = await supabase
-              .from('products')
-              .select('*')
-              .eq('id', productId)
-              .eq('status', 'active')
-              .single()
+            // Check if it's a UUID (product ID) or a product name
+            const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(productIdentifier)
 
-            if (error || !product) {
-              return { success: false, error: 'Product not found' }
+            let product
+            if (isUUID) {
+              // Direct ID lookup
+              const { data, error } = await supabase
+                .from('products')
+                .select('*')
+                .eq('id', productIdentifier)
+                .eq('status', 'active')
+                .single()
+
+              if (error || !data) {
+                return { success: false, error: 'Product not found' }
+              }
+              product = data
+            } else {
+              // Search by name/title
+              const { data, error } = await supabase
+                .from('products')
+                .select('*')
+                .eq('status', 'active')
+                .or(`title.ilike.%${productIdentifier}%,description.ilike.%${productIdentifier}%`)
+                .limit(1)
+                .single()
+
+              if (error || !data) {
+                return { success: false, error: `Product "${productIdentifier}" not found. Try browsing products first.` }
+              }
+              product = data
             }
 
             return {
@@ -150,7 +174,7 @@ Be friendly, helpful, and concise.`
                 description: product.description || 'No description available',
                 category: product.category,
                 price: product.base_price_cents / 100,
-                currency: 'USD',
+                currency: product.currency?.toUpperCase() || 'EUR',
                 images: Array.isArray(product.images) ? product.images : [],
                 rating: product.avg_rating || 0,
                 reviewCount: product.review_count || 0,
@@ -192,8 +216,8 @@ Be friendly, helpful, and concise.`
                 title: p.title,
                 category: p.category,
                 price: p.base_price_cents / 100,
-                currency: 'USD',
-                image: Array.isArray(p.images) && p.images.length > 0 ? p.images[0].src : null,
+                currency: p.currency?.toUpperCase() || 'EUR',
+                image: Array.isArray(p.images) && p.images.length > 0 ? (p.images[0].src || p.images[0].url) : null,
                 rating: p.avg_rating || 0,
                 reviewCount: p.review_count || 0,
                 available: p.stock_quantity > 0,
