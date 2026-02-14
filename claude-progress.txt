@@ -110,3 +110,93 @@
 ### Git Commits This Session:
 1. `0315191` - feat: Welcome screen enhancements with sparkle animation and personalized greetings
 2. `acb2a43` - test: Verify mobile responsive layout
+
+## Session 49 (Coding Agent)
+- **Feature target**: ID 142 [Conversational Storefront / Chat] — Product search tool produces product grid artifact
+- **Implementation status**: Partially complete (blocked by Google Gemini schema validation)
+- **Tests passing**: 141/389 (36.2% - no change from session start)
+
+### Work completed:
+1. ✅ Implemented `product_search` tool in `/api/chat` route with:
+   - Supabase database query for products
+   - Category, price range, and text search filters
+   - Returns formatted product data (id, title, price, image, rating)
+   
+2. ✅ Created ProductGridArtifact component system:
+   - `ProductGridArtifact.tsx` - Main component with product cards
+   - `Skeleton.tsx` - Loading state with shimmer animation
+   - `index.ts` - Clean exports
+   - Responsive grid (1/2/3 columns on mobile/tablet/desktop)
+   - Action buttons: "View Details", "Add to Cart"
+   
+3. ✅ Created artifact registry (`registry.tsx`):
+   - Maps tool names to Component + Skeleton pairs
+   - Registered product_search → ProductGridArtifact
+   
+4. ✅ Updated ChatArea to render tool-result parts inline:
+   - Imports artifact registry
+   - Iterates over `message.parts` to find tool-result types
+   - Renders Component with tool output props
+   - Passes `onSelectProduct` callback
+   
+5. ✅ Enhanced DetailPanel:
+   - Fetches real product data from `/api/products/{id}`
+   - Displays product image, title, price, rating
+   - "Ask about this" button wired up
+   
+6. ✅ Wired StorefrontLayout for "Ask about this" flow:
+   - Adds `externalInputValue` state
+   - Passes callback to DetailPanel
+   - DetailPanel click → sets chat input value
+
+### Issues encountered:
+**BLOCKER**: Google Gemini API rejects tool schema with error:
+```
+Unable to submit request because `product_search` functionDeclaration 
+parameters schema should be of type OBJECT
+```
+
+Tried multiple schema formats:
+- ❌ `z.object()` from Zod (direct)
+- ❌ `jsonSchema({ type: 'object', properties: {...} })`
+- ❌ `zodSchema(z.object({...}))`
+
+All produce same error. Google Gemini has strict schema requirements that the AI SDK may not be converting correctly.
+
+**Root cause hypothesis**: Google Vertex AI / Gemini API expects Function Calling schema in a specific format that differs from OpenAI's. The AI SDK `tool()` helper may not be translating the schema correctly for Google's provider.
+
+**Workaround options**:
+1. Switch to OpenAI model temporarily to verify artifact rendering works
+2. Manually construct Google-compatible schema (bypassing AI SDK helpers)
+3. Simplify tool to have no parameters (just search all products)
+
+### Verification:
+- ✅ Dev server running on port 3000
+- ✅ Homepage loads with chat interface
+- ✅ Chat input accepts text and sends messages
+- ✅ `/api/chat` endpoint returns 200 OK
+- ❌ Tool execution fails with schema validation error
+- ⏸️  Product grid artifact NOT verified (blocked by tool error)
+- ⏸️  Detail panel interaction NOT verified
+
+### Files modified:
+- `src/app/api/chat/route.ts` - Added product_search tool with ToolLoopAgent
+- `src/components/storefront/ChatArea.tsx` - Added tool-result rendering
+- `src/components/storefront/DetailPanel.tsx` - Real data fetch + Ask callback
+- `src/components/storefront/StorefrontLayout.tsx` - External input wiring
+- `src/components/artifacts/ProductGridArtifact/*` - New artifact component
+- `src/components/artifacts/registry.tsx` - New registry
+
+### Next session priorities:
+1. **FIX BLOCKER**: Resolve Google Gemini tool schema issue
+   - Option A: Try manual schema construction for Google
+   - Option B: Switch to OpenAI temporarily
+   - Option C: Remove parameters, make tool parameter-less
+2. Verify product grid renders inline in chat
+3. Verify clicking product opens detail panel
+4. Verify "Ask about this" button injects question
+5. ONLY THEN mark feature #142 as passing
+
+### Database status: Connected (Supabase remote cloud)
+### Environment: All vars configured, Redis fallback working
+
