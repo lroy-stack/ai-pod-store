@@ -5,8 +5,9 @@ import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Bot, Play, Square, Clock, CheckCircle, XCircle, AlertCircle, ChevronRight } from 'lucide-react'
+import { Bot, Play, Square, Clock, CheckCircle, XCircle, AlertCircle, ChevronRight, Zap, Brain, Eye } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 
 interface AgentSession {
   id: string
@@ -19,6 +20,14 @@ interface AgentSession {
   features_after: number
   tool_calls: number
   tool_errors: number
+}
+
+interface Skill {
+  id: string
+  name: string
+  description: string
+  status: 'active' | 'inactive'
+  usage_count: number
 }
 
 const statusIcons = {
@@ -37,11 +46,15 @@ export default function AgentsPage() {
   const router = useRouter()
   const [agentStatus, setAgentStatus] = useState<'running' | 'stopped'>('stopped')
   const [sessions, setSessions] = useState<AgentSession[]>([])
+  const [skills, setSkills] = useState<Skill[]>([])
+  const [memory, setMemory] = useState<string>('')
   const [loading, setLoading] = useState(true)
+  const [showMemoryDialog, setShowMemoryDialog] = useState(false)
 
   useEffect(() => {
     fetchAgentStatus()
     fetchSessions()
+    fetchSkills()
   }, [])
 
   async function fetchAgentStatus() {
@@ -89,6 +102,31 @@ export default function AgentsPage() {
       setSessions(mockSessions)
     } catch (err) {
       console.error('Failed to fetch sessions:', err)
+    }
+  }
+
+  async function fetchSkills() {
+    try {
+      const res = await fetch('/api/agent/skills')
+      if (res.ok) {
+        const data = await res.json()
+        setSkills(data)
+      }
+    } catch (err) {
+      console.error('Failed to fetch skills:', err)
+    }
+  }
+
+  async function fetchMemory() {
+    try {
+      const res = await fetch('/api/agent/memory')
+      if (res.ok) {
+        const data = await res.json()
+        setMemory(data.content)
+        setShowMemoryDialog(true)
+      }
+    } catch (err) {
+      console.error('Failed to fetch memory:', err)
     }
   }
 
@@ -322,6 +360,97 @@ export default function AgentsPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Skills */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Zap className="h-5 w-5" />
+            Agent Skills
+          </CardTitle>
+          <CardDescription>
+            {skills.length} skill{skills.length !== 1 ? 's' : ''} available to PodClaw
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {skills.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <Zap className="h-12 w-12 text-muted-foreground mb-4" />
+              <p className="text-lg font-medium">No skills loaded</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                Skills will appear here once the agent is configured
+              </p>
+            </div>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {skills.map((skill) => (
+                <div
+                  key={skill.id}
+                  className="rounded-lg border border-border p-4 space-y-2"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <p className="font-medium">{skill.name}</p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {skill.description}
+                      </p>
+                    </div>
+                    <Badge
+                      variant="outline"
+                      className={
+                        skill.status === 'active'
+                          ? 'bg-success/10 text-success'
+                          : 'bg-muted'
+                      }
+                    >
+                      {skill.status}
+                    </Badge>
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    {skill.usage_count.toLocaleString()} uses
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Memory */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Brain className="h-5 w-5" />
+            Agent Memory
+          </CardTitle>
+          <CardDescription>
+            View PodClaw's long-term memory and context
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button onClick={fetchMemory} variant="outline" size="sm">
+            <Eye className="mr-2 h-4 w-4" />
+            View MEMORY.md
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Memory Dialog */}
+      <Dialog open={showMemoryDialog} onOpenChange={setShowMemoryDialog}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Agent Memory (MEMORY.md)</DialogTitle>
+            <DialogDescription>
+              PodClaw's consolidated long-term memory and context
+            </DialogDescription>
+          </DialogHeader>
+          <div className="rounded-lg bg-muted/50 p-4 mt-4">
+            <pre className="text-sm whitespace-pre-wrap font-mono">
+              {memory || 'Loading...'}
+            </pre>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
