@@ -1268,7 +1268,7 @@
     "id": 116,
     "feature": "Checkout & Payments",
     "description": "Successful payment redirects to confirmation",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Complete a Stripe test payment using card number 4242424242424242",
       "Verify the user is redirected to /en/checkout/success",
