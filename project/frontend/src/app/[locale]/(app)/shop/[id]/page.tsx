@@ -18,7 +18,7 @@ export async function generateMetadata({
     }
   }
 
-  const title = `${product.title} - $${product.price} | POD AI Store`
+  const title = `${product.title} - €${product.price} | POD AI Store`
   const description = product.description || `Buy ${product.title} at POD AI Store`
   const images = product.images && product.images.length > 0 ? [product.images[0]] : []
 

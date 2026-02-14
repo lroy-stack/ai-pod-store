@@ -1712,7 +1712,7 @@
     "id": 154,
     "feature": "Conversational Storefront / Chat",
     "description": "analyze_image tool processes uploaded images",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Upload an image in the chat",
       "Verify the analyze_image tool is called",

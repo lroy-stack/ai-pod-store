@@ -2,10 +2,12 @@
 
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
+import { useParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { X } from 'lucide-react'
+import { LOCALE_COUNTRY, STORE_DEFAULTS } from '@/lib/store-config'
 
 interface AddressFormProps {
   onSubmit: (address: AddressFormData) => Promise<void>
@@ -37,6 +39,8 @@ interface FormErrors {
 
 export default function AddressForm({ onSubmit, onCancel }: AddressFormProps) {
   const t = useTranslations('Checkout')
+  const params = useParams()
+  const locale = (params?.locale as string) || 'en'
 
   const [formData, setFormData] = useState<AddressFormData>({
     label: '',
@@ -46,7 +50,7 @@ export default function AddressForm({ onSubmit, onCancel }: AddressFormProps) {
     city: '',
     state: '',
     postal_code: '',
-    country_code: 'US',
+    country_code: LOCALE_COUNTRY[locale] || STORE_DEFAULTS.country,
     phone: '',
     is_default: false,
   })

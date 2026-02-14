@@ -20,6 +20,7 @@ import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { useCart } from '@/hooks/useCart'
 import { useStorefront } from './StorefrontContext'
+import { formatPrice } from '@/lib/currency'
 
 interface SidebarProduct {
   id: string
@@ -161,7 +162,7 @@ export function StorefrontSidebar({ onNavigate }: StorefrontSidebarProps) {
               <ProductCard
                 key={product.id}
                 title={product.title}
-                price={`${product.currency === 'USD' ? '$' : '€'}${product.price.toFixed(2)}`}
+                price={formatPrice(product.price, locale, product.currency)}
                 rating={product.rating}
                 image={product.image}
                 onClick={() => handleProductClick(product.id)}
@@ -179,7 +180,7 @@ export function StorefrontSidebar({ onNavigate }: StorefrontSidebarProps) {
               <ProductCard
                 key={product.id}
                 title={product.title}
-                price={`${product.currency === 'USD' ? '$' : '€'}${product.price.toFixed(2)}`}
+                price={formatPrice(product.price, locale, product.currency)}
                 rating={product.rating}
                 image={product.image}
                 onClick={() => handleProductClick(product.id)}

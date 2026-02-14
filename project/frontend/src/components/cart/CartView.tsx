@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { formatPrice } from '@/lib/currency'
+import { STORE_DEFAULTS, LOCALE_COUNTRY } from '@/lib/store-config'
 
 // Maximum quantity allowed per cart item
 const MAX_CART_QUANTITY = 99
@@ -24,7 +25,7 @@ export default function CartView({ locale }: { locale: string }) {
   const { items: cartItems, loading: cartLoading, refreshCart } = useCart()
 
   // Get user's preferred currency from cart items or locale default
-  const userCurrency = user?.currency || (cartItems[0]?.product_currency) || (locale === 'en' ? 'USD' : 'EUR')
+  const userCurrency = user?.currency || (cartItems[0]?.product_currency) || STORE_DEFAULTS.currency
   const [updatingItems, setUpdatingItems] = useState<Set<string>>(new Set())
   const [couponCode, setCouponCode] = useState('')
   const [appliedCoupon, setAppliedCoupon] = useState<{
@@ -146,7 +147,7 @@ export default function CartView({ locale }: { locale: string }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           zipCode: zipCode.trim(),
-          countryCode: 'US',
+          countryCode: LOCALE_COUNTRY[locale] || STORE_DEFAULTS.country,
           cartTotal: discountedTotal,
           itemCount,
         }),

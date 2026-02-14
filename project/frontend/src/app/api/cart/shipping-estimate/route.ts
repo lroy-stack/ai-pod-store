@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { STORE_DEFAULTS } from '@/lib/store-config';
 
 const supabase = createClient(
   process.env.SUPABASE_URL!,
@@ -21,7 +22,7 @@ interface ShippingZone {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { zipCode, countryCode = 'US', cartTotal, itemCount = 1 } = body;
+    const { zipCode, countryCode = STORE_DEFAULTS.country, cartTotal, itemCount = 1 } = body;
 
     if (!zipCode || !countryCode) {
       return NextResponse.json(

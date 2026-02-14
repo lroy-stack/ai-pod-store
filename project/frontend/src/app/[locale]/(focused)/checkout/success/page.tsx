@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { CheckCircle, Package } from 'lucide-react'
 import { getCheckoutSession } from '@/lib/stripe-checkout'
+import { LOCALE_FORMAT } from '@/lib/store-config'
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
@@ -34,7 +35,7 @@ export default async function CheckoutSuccessPage({
 
   // Format currency
   const formatCurrency = (amount: number, currency: string) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat(LOCALE_FORMAT[locale] || 'en-IE', {
       style: 'currency',
       currency: currency.toUpperCase(),
     }).format(amount / 100)

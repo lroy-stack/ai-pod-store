@@ -50,7 +50,7 @@ export async function getCheckoutSession(
       payment_status: session.payment_status || 'unknown',
       customer_email: session.customer_details?.email || null,
       amount_total: session.amount_total || 0,
-      currency: session.currency || 'usd',
+      currency: session.currency || 'eur',
       line_items: lineItems,
       metadata: session.metadata || {},
     }

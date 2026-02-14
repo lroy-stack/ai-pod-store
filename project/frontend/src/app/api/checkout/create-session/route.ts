@@ -7,11 +7,12 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
+import { STORE_DEFAULTS, ALLOWED_SHIPPING_COUNTRIES } from '@/lib/store-config';
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { cartItems, shippingAddress, locale = 'en', currency = 'usd', customerEmail } = body;
+    const { cartItems, shippingAddress, locale = 'en', currency = STORE_DEFAULTS.stripeCurrency, customerEmail } = body;
 
     // Validate required fields
     if (!cartItems || !Array.isArray(cartItems) || cartItems.length === 0) {
@@ -66,7 +67,7 @@ export async function POST(req: NextRequest) {
       shipping_address_collection: shippingAddress
         ? undefined
         : {
-            allowed_countries: ['US', 'CA', 'MX', 'GB', 'DE', 'FR', 'ES', 'IT'],
+            allowed_countries: ALLOWED_SHIPPING_COUNTRIES as unknown as string[],
           },
       // Pre-fill shipping address if provided
       ...(shippingAddress && {

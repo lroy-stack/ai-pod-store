@@ -12,7 +12,7 @@
 
 import { useRef, useEffect, useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { User, Send, Mic, Paperclip, Package, Heart } from 'lucide-react'
+import { User, Send, Mic, Paperclip, Package, Heart, X } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -28,7 +28,9 @@ export function ChatArea() {
   const t = useTranslations('storefront')
   const { setSelectedProduct, pendingChatMessage, setPendingChatMessage } = useStorefront()
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [inputValue, setInputValue] = useState('')
+  const [selectedImage, setSelectedImage] = useState<string | null>(null)
   const [userData, setUserData] = useState<{
     user: { name: string } | null
     activeOrders: Array<{ id: string; status: string; total: number }> | null
@@ -90,13 +92,69 @@ export function ChatArea() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!inputValue.trim()) return
-    sendMessage({ text: inputValue })
+    if (!inputValue.trim() && !selectedImage) return
+
+    // For AI SDK 6, we send files as FileUIPart array
+    if (selectedImage) {
+      sendMessage({
+        text: inputValue.trim() || 'Analyze this image',
+        files: [
+          {
+            type: 'file',
+            filename: 'uploaded-image.png',
+            mediaType: 'image/png',
+            url: selectedImage,
+          },
+        ],
+      })
+    } else {
+      sendMessage({ text: inputValue })
+    }
+
     setInputValue('')
+    setSelectedImage(null)
   }
 
   const handlePromptClick = (prompt: string) => {
     sendMessage({ text: prompt })
+  }
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file')
+      return
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Image must be smaller than 5MB')
+      return
+    }
+
+    // Convert to base64 data URL
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      const result = event.target?.result
+      if (typeof result === 'string') {
+        setSelectedImage(result)
+      }
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const handleAttachClick = () => {
+    fileInputRef.current?.click()
+  }
+
+  const handleRemoveImage = () => {
+    setSelectedImage(null)
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
   }
 
   return (
@@ -242,6 +300,17 @@ export function ChatArea() {
                         <p key={index} className="text-sm whitespace-pre-wrap">
                           {part.text}
                         </p>
+                      )
+                    }
+
+                    if (part.type === 'file' && message.role === 'user') {
+                      return (
+                        <img
+                          key={index}
+                          src={part.url}
+                          alt="Uploaded image"
+                          className="max-w-xs rounded-lg border border-border mt-2"
+                        />
                       )
                     }
 
@@ -417,6 +486,27 @@ export function ChatArea() {
       {/* Input Area */}
       <div className="border-t border-border bg-card p-4">
         <div className="max-w-3xl mx-auto">
+          {/* Image Preview */}
+          {selectedImage && (
+            <div className="mb-3 relative inline-block">
+              <img
+                src={selectedImage}
+                alt="Selected image"
+                className="h-20 w-20 object-cover rounded-lg border border-border"
+              />
+              <Button
+                type="button"
+                variant="destructive"
+                size="icon"
+                onClick={handleRemoveImage}
+                className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
+              >
+                <X className="h-3 w-3" />
+                <span className="sr-only">Remove image</span>
+              </Button>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="flex items-end gap-2">
             <Button type="button" variant="ghost" size="icon" className="flex-shrink-0">
               <Mic className="h-5 w-5" />
@@ -432,10 +522,18 @@ export function ChatArea() {
                 className="pr-20 min-h-[44px] resize-none"
                 disabled={isLoading}
               />
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleImageSelect}
+                className="hidden"
+              />
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
+                onClick={handleAttachClick}
                 className="absolute right-10 top-1/2 -translate-y-1/2"
               >
                 <Paperclip className="h-4 w-4" />
@@ -447,7 +545,7 @@ export function ChatArea() {
               type="submit"
               size="icon"
               className="flex-shrink-0"
-              disabled={isLoading || !inputValue.trim()}
+              disabled={isLoading || (!inputValue.trim() && !selectedImage)}
             >
               <Send className="h-5 w-5" />
               <span className="sr-only">Send message</span>

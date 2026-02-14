@@ -7,11 +7,12 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { calculateTax } from '@/lib/stripe';
+import { STORE_DEFAULTS } from '@/lib/store-config';
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { cartItems, shippingAddress, currency = 'usd', shipping } = body;
+    const { cartItems, shippingAddress, currency = STORE_DEFAULTS.stripeCurrency, shipping } = body;
 
     // Validate required fields
     if (!cartItems || !Array.isArray(cartItems) || cartItems.length === 0) {

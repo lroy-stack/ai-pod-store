@@ -140,7 +140,7 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
         stripe_payment_intent_id: paymentIntentId,
         status: 'paid',
         total_cents: session.amount_total || 0,
-        currency: session.currency || 'usd',
+        currency: session.currency || 'eur',
         shipping_address: shippingAddress,
         customer_email: customerEmail,
         locale,

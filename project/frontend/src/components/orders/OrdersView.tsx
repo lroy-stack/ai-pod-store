@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { formatPrice } from '@/lib/currency'
+import { STORE_DEFAULTS } from '@/lib/store-config'
 import { Package, ShoppingBag, AlertCircle } from 'lucide-react'
 import { useState, useEffect } from 'react'
 
@@ -31,7 +32,7 @@ export default function OrdersView({ locale }: { locale: string }) {
   const [error, setError] = useState<string | null>(null)
 
   // Get user's preferred currency, fallback to locale default
-  const userCurrency = user?.currency || (locale === 'es' || locale === 'de' ? 'EUR' : 'USD')
+  const userCurrency = user?.currency || STORE_DEFAULTS.currency
 
   useEffect(() => {
     if (!authLoading && authenticated) {

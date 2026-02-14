@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { formatPrice } from '@/lib/currency'
+import { STORE_DEFAULTS } from '@/lib/store-config'
 import { useState, useEffect } from 'react'
 import AddressForm, { AddressFormData } from './AddressForm'
 import CheckoutBreadcrumb from './CheckoutBreadcrumb'
@@ -46,7 +47,7 @@ export default function CheckoutView({ locale }: { locale: string }) {
   const [guestEmailError, setGuestEmailError] = useState('')
 
   // Get user's preferred currency, fallback to locale default
-  const userCurrency = user?.currency || (locale === 'es' || locale === 'de' ? 'EUR' : 'USD')
+  const userCurrency = user?.currency || STORE_DEFAULTS.currency
 
   const cartTotal = cartItems.reduce((total, item) => total + (item.product_price * item.quantity), 0)
   const itemCount = cartItems.reduce((count, item) => count + item.quantity, 0)

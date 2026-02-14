@@ -20,12 +20,13 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { STORE_DEFAULTS } from '@/lib/store-config'
 
 interface SizeGuideProps {
   productType: string
 }
 
-// Size guide data for different product types
+// Size guide data for different product types (measurements in cm)
 const sizeGuideData: Record<string, {
   headers: string[]
   rows: Array<{ size: string; measurements: string[] }>
@@ -34,43 +35,43 @@ const sizeGuideData: Record<string, {
   tshirt: {
     headers: ['Size', 'Chest', 'Length', 'Shoulder'],
     rows: [
-      { size: 'S', measurements: ['34-36"', '27"', '16"'] },
-      { size: 'M', measurements: ['38-40"', '28"', '17"'] },
-      { size: 'L', measurements: ['42-44"', '29"', '18"'] },
-      { size: 'XL', measurements: ['46-48"', '30"', '19"'] },
-      { size: 'XXL', measurements: ['50-52"', '31"', '20"'] },
+      { size: 'S', measurements: ['86-91 cm', '69 cm', '41 cm'] },
+      { size: 'M', measurements: ['97-102 cm', '71 cm', '43 cm'] },
+      { size: 'L', measurements: ['107-112 cm', '74 cm', '46 cm'] },
+      { size: 'XL', measurements: ['117-122 cm', '76 cm', '48 cm'] },
+      { size: 'XXL', measurements: ['127-132 cm', '79 cm', '51 cm'] },
     ],
-    unit: 'inches',
+    unit: STORE_DEFAULTS.measurementUnit,
   },
   hoodie: {
     headers: ['Size', 'Chest', 'Length', 'Shoulder', 'Sleeve'],
     rows: [
-      { size: 'S', measurements: ['36-38"', '26"', '17"', '33"'] },
-      { size: 'M', measurements: ['40-42"', '27"', '18"', '34"'] },
-      { size: 'L', measurements: ['44-46"', '28"', '19"', '35"'] },
-      { size: 'XL', measurements: ['48-50"', '29"', '20"', '36"'] },
+      { size: 'S', measurements: ['91-97 cm', '66 cm', '43 cm', '84 cm'] },
+      { size: 'M', measurements: ['102-107 cm', '69 cm', '46 cm', '86 cm'] },
+      { size: 'L', measurements: ['112-117 cm', '71 cm', '48 cm', '89 cm'] },
+      { size: 'XL', measurements: ['122-127 cm', '74 cm', '51 cm', '91 cm'] },
     ],
-    unit: 'inches',
+    unit: STORE_DEFAULTS.measurementUnit,
   },
   sweatpants: {
     headers: ['Size', 'Waist', 'Hip', 'Inseam'],
     rows: [
-      { size: 'S', measurements: ['28-30"', '36-38"', '29"'] },
-      { size: 'M', measurements: ['32-34"', '40-42"', '30"'] },
-      { size: 'L', measurements: ['36-38"', '44-46"', '31"'] },
-      { size: 'XL', measurements: ['40-42"', '48-50"', '32"'] },
+      { size: 'S', measurements: ['71-76 cm', '91-97 cm', '74 cm'] },
+      { size: 'M', measurements: ['81-86 cm', '102-107 cm', '76 cm'] },
+      { size: 'L', measurements: ['91-97 cm', '112-117 cm', '79 cm'] },
+      { size: 'XL', measurements: ['102-107 cm', '122-127 cm', '81 cm'] },
     ],
-    unit: 'inches',
+    unit: STORE_DEFAULTS.measurementUnit,
   },
   tank: {
     headers: ['Size', 'Chest', 'Length', 'Shoulder'],
     rows: [
-      { size: 'S', measurements: ['34-36"', '26"', '14"'] },
-      { size: 'M', measurements: ['38-40"', '27"', '15"'] },
-      { size: 'L', measurements: ['42-44"', '28"', '16"'] },
-      { size: 'XL', measurements: ['46-48"', '29"', '17"'] },
+      { size: 'S', measurements: ['86-91 cm', '66 cm', '36 cm'] },
+      { size: 'M', measurements: ['97-102 cm', '69 cm', '38 cm'] },
+      { size: 'L', measurements: ['107-112 cm', '71 cm', '41 cm'] },
+      { size: 'XL', measurements: ['117-122 cm', '74 cm', '43 cm'] },
     ],
-    unit: 'inches',
+    unit: STORE_DEFAULTS.measurementUnit,
   },
 }
 

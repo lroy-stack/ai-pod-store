@@ -18,11 +18,13 @@
  */
 
 import { useTranslations } from 'next-intl'
+import { useParams } from 'next/navigation'
 import { X, Star, ShoppingCart, MessageCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { useEffect, useState } from 'react'
+import { formatPrice } from '@/lib/currency'
 
 interface DetailPanelProps {
   productId: string
@@ -45,6 +47,8 @@ interface Product {
 
 export function DetailPanel({ productId, onClose, onAskAbout }: DetailPanelProps) {
   const t = useTranslations('storefront')
+  const params = useParams()
+  const locale = (params.locale as string) || 'en'
   const [product, setProduct] = useState<Product | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -107,8 +111,6 @@ export function DetailPanel({ productId, onClose, onAskAbout }: DetailPanelProps
     )
   }
 
-  const price = product.price?.toFixed(2) ?? '0.00'
-  const currencySymbol = product.currency === 'USD' ? '$' : '€'
   const image = product.image || (product.images && product.images.length > 0 ? product.images[0] : null)
 
   return (
@@ -147,7 +149,7 @@ export function DetailPanel({ productId, onClose, onAskAbout }: DetailPanelProps
           </h3>
           <div className="flex items-center gap-2">
             <span className="text-2xl font-bold text-foreground">
-              {currencySymbol}{price}
+              {formatPrice(product.price, locale, product.currency)}
             </span>
             <Badge variant="secondary" className="ml-auto">
               <Star className="h-3 w-3 fill-current mr-1" />

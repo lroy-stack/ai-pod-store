@@ -3,6 +3,8 @@
  * Documentation: https://developers.printify.com/
  */
 
+import { STORE_DEFAULTS } from './store-config'
+
 const PRINTIFY_API_URL = 'https://api.printify.com/v1'
 
 interface PrintifyLineItem {
@@ -187,7 +189,7 @@ export function buildPrintifyAddress(
     first_name: firstName,
     last_name: lastName,
     email,
-    country: stripeAddress.country || 'US',
+    country: stripeAddress.country || STORE_DEFAULTS.country,
     region: stripeAddress.state || '',
     address1: stripeAddress.line1 || '',
     address2: stripeAddress.line2 || undefined,
