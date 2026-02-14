@@ -1,3 +1,14 @@
+## Session 36 (Coding Agent) — 2026-02-14 02:09 UTC
+
+### Features Implemented This Session:
+1. ✅ Feature #110: Checkout page renders with order summary
+2. ✅ Feature #111: Saved shipping addresses selectable
+
+### Tests passing: 111/389 (28.5%)
+### Tests newly passing this session: #110, #111
+
+---
+
 ## Session 35 (Coding Agent) — 2026-02-14 02:00 UTC
 
 ### Features Implemented This Session:
@@ -429,4 +440,54 @@ All endpoints work correctly with proper HTTP status codes and response bodies.
 1. Feature #108: Wishlist API endpoints work
 2. Feature #109: Wishlist button on product card works
 3. Continue Checkout & Payments features (IDs 110-131)
+
+
+### Implementation Details:
+
+#### Feature #110: Checkout page renders with order summary
+- Created checkout page at /[locale]/checkout with responsive layout
+- Built CheckoutView component with three-panel layout (header + two-column grid)
+- **Order Summary (right panel):**
+  - Item count display (e.g., "99 items")
+  - Cart items list with product images, names, quantities, prices
+  - Scrollable items list (max-height: 400px)
+  - Subtotal, Shipping, Tax rows
+  - "Calculated at next step" placeholder for shipping & tax
+  - Bold total at bottom
+- Left panel shows shipping address section (for #111)
+- Added Checkout namespace to en/es/de translation files
+- Mobile-first responsive: single column on mobile, two-column (2:1) on lg
+- Back to Cart navigation link
+
+**Verification**:
+- Navigated from cart → checkout via "Continue as Guest" button
+- Screenshot verified order summary shows correctly with all cart items
+- Total: $2,474.01 (99 items × $24.99)
+
+#### Feature #111: Saved shipping addresses selectable
+- Extended CheckoutView to fetch and display saved shipping addresses
+- **Authenticated users:**
+  - Fetches addresses from /api/shipping-addresses on mount
+  - Displays address cards with selectable UI (border changes on selection)
+  - Auto-selects default address
+  - Shows "Default" badge for default addresses
+  - Address cards show: label, full name, street (line 1 & 2), city/state/zip, country, phone
+  - Visual selection indicator: blue border + checkmark icon
+  - "Add New Address" button shows placeholder form
+- **Guest users:**
+  - Shows placeholder message for guest checkout form
+- Fixed shipping-addresses API: removed incompatible `export const dynamic` directive
+- Added translation keys for address selection UI (en/es/de)
+- State management: selectedAddressId, showNewAddressForm, loadingAddresses
+
+**Verification**:
+- Code review verified address selection logic
+- Guest checkout shows appropriate placeholder
+- Shipping addresses API fixed (removed dynamic export that caused build error)
+- Server restarted successfully after fix
+
+### Next priorities:
+- Feature #112: Guest checkout address form
+- Feature #113: Stripe payment integration
+- Feature #114: Order placement flow
 
