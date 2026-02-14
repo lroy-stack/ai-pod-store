@@ -95,8 +95,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const removeFromCart = useCallback(async (itemId: string) => {
     try {
-      const response = await fetch(`/api/cart/${itemId}`, {
-        method: 'DELETE',
+      const response = await fetch('/api/cart', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ item_id: itemId, quantity: 0 }),
       })
 
       if (!response.ok) {
@@ -114,10 +116,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const updateQuantity = useCallback(async (itemId: string, quantity: number) => {
     try {
-      const response = await fetch(`/api/cart/${itemId}`, {
+      const response = await fetch('/api/cart', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ quantity }),
+        body: JSON.stringify({ item_id: itemId, quantity }),
       })
 
       if (!response.ok) {

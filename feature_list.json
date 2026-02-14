@@ -1015,7 +1015,7 @@
     "id": 93,
     "feature": "Shopping Cart + Wishlists",
     "description": "Cart persists across page navigation",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Add an item to the cart",
       "Navigate away to /en/shop and then back to /en/cart",
