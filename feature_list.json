@@ -2116,7 +2116,7 @@
     "id": 191,
     "feature": "Design System & AI Designs",
     "description": "Color palette accessible (WCAG contrast)",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Check the primary text color against the background color",
       "Verify the contrast ratio meets the WCAG 4.5:1 minimum requirement"
