@@ -50,6 +50,8 @@ export default function WishlistPage() {
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [shareUrl, setShareUrl] = useState('');
   const [copied, setCopied] = useState(false);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [newWishlistName, setNewWishlistName] = useState('');
 
   useEffect(() => {
     fetchWishlists();
@@ -67,15 +69,26 @@ export default function WishlistPage() {
     }
   };
 
+  const openCreateDialog = () => {
+    setNewWishlistName('');
+    setCreateDialogOpen(true);
+  };
+
   const createWishlist = async () => {
+    if (!newWishlistName.trim()) {
+      return;
+    }
+
     try {
       const response = await fetch('/api/wishlist', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: 'My Wishlist' }),
+        body: JSON.stringify({ name: newWishlistName.trim() }),
       });
 
       if (response.ok) {
+        setCreateDialogOpen(false);
+        setNewWishlistName('');
         await fetchWishlists();
       }
     } catch (error) {
@@ -198,7 +211,7 @@ export default function WishlistPage() {
         <h1 className="text-3xl font-bold text-foreground">
           {t('wishlist.title', { default: 'My Wishlists' })}
         </h1>
-        <Button onClick={createWishlist} className="w-full sm:w-auto">
+        <Button onClick={openCreateDialog} className="w-full sm:w-auto">
           <Heart className="h-4 w-4 mr-2" />
           {t('wishlist.createNew', { default: 'Create New Wishlist' })}
         </Button>
@@ -216,7 +229,7 @@ export default function WishlistPage() {
                 default: 'Create a wishlist to save your favorite products',
               })}
             </p>
-            <Button onClick={createWishlist}>
+            <Button onClick={openCreateDialog}>
               <Heart className="h-4 w-4 mr-2" />
               {t('wishlist.createFirst', { default: 'Create Your First Wishlist' })}
             </Button>
@@ -318,6 +331,52 @@ export default function WishlistPage() {
           ))}
         </div>
       )}
+
+      <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {t('wishlist.createTitle', { default: 'Create New Wishlist' })}
+            </DialogTitle>
+            <DialogDescription>
+              {t('wishlist.createDescription', {
+                default: 'Give your wishlist a name to organize your favorite products',
+              })}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 mt-4">
+            <div>
+              <Input
+                value={newWishlistName}
+                onChange={(e) => setNewWishlistName(e.target.value)}
+                placeholder={t('wishlist.namePlaceholder', {
+                  default: 'e.g., Gifts, Favorites, Summer Collection',
+                })}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    createWishlist();
+                  }
+                }}
+                autoFocus
+              />
+            </div>
+            <div className="flex gap-2 justify-end">
+              <Button
+                variant="outline"
+                onClick={() => setCreateDialogOpen(false)}
+              >
+                {t('wishlist.cancel', { default: 'Cancel' })}
+              </Button>
+              <Button
+                onClick={createWishlist}
+                disabled={!newWishlistName.trim()}
+              >
+                {t('wishlist.create', { default: 'Create' })}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={shareDialogOpen} onOpenChange={setShareDialogOpen}>
         <DialogContent>

@@ -1169,7 +1169,7 @@
     "id": 107,
     "feature": "Shopping Cart + Wishlists",
     "description": "Multiple wishlists supported",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Create a 'Gifts' wishlist and a 'Favorites' wishlist",
       "Add different products to each wishlist",

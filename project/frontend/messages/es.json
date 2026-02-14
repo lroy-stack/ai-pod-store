@@ -313,6 +313,11 @@
     "sharedNotFound": "Lista No Encontrada",
     "sharedNotFoundDescription": "Esta lista puede haber sido eliminada o ya no es pública.",
     "browseProducts": "Ver Productos",
-    "itemCount": "{count, plural, =0 {Sin artículos} one {1 artículo} other {{count} artículos}}"
+    "itemCount": "{count, plural, =0 {Sin artículos} one {1 artículo} other {{count} artículos}}",
+    "createTitle": "Crear Nueva Lista",
+    "createDescription": "Dale un nombre a tu lista para organizar tus productos favoritos",
+    "namePlaceholder": "ej., Regalos, Favoritos, Colección de Verano",
+    "cancel": "Cancelar",
+    "create": "Crear"
   }
 }
