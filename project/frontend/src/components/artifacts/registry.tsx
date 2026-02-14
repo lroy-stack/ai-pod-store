@@ -17,6 +17,7 @@ import { CartSummaryArtifact, CartSummarySkeleton } from './CartSummaryArtifact'
 import { PricingTableArtifact, PricingTableSkeleton } from './PricingTableArtifact'
 import { ApprovalCardArtifact, ApprovalCardSkeleton } from './ApprovalCardArtifact'
 import { OrderTimelineArtifact, OrderTimelineSkeleton } from './OrderTimelineArtifact'
+import { OrderListArtifact, OrderListSkeleton } from './OrderListArtifact'
 
 export interface ArtifactRegistryEntry {
   Component: React.ComponentType<any>
@@ -63,6 +64,10 @@ export const artifactRegistry: Record<string, ArtifactRegistryEntry> = {
   track_order: {
     Component: OrderTimelineArtifact,
     Skeleton: OrderTimelineSkeleton,
+  },
+  get_order_history: {
+    Component: OrderListArtifact,
+    Skeleton: OrderListSkeleton,
   },
 }
 

@@ -80,6 +80,7 @@ TOOLS AVAILABLE:
 - create_checkout: Show checkout confirmation (displays cart summary and asks for approval)
 - confirm_checkout: Complete checkout after user approves (creates Stripe session)
 - track_order: Track an order by ID or show most recent order status (displays timeline artifact)
+- get_order_history: Get user's order history list (displays order list artifact)
 
 WHEN TO USE EACH TOOL:
 1. User asks to "browse", "search", "show me", "find" products → call product_search
@@ -93,6 +94,7 @@ WHEN TO USE EACH TOOL:
 9. User asks "shipping cost", "delivery options", "how much to ship" → call estimate_shipping
 10. User says "checkout", "proceed to payment", "buy now" → call create_checkout (shows approval dialog)
 11. User asks "track my order", "where's my order", "order status" → call track_order
+12. User asks "show my orders", "order history", "past purchases" → call get_order_history
 
 EXAMPLES:
 - "show me cat t-shirts" → product_search(query="cat t-shirt")
@@ -108,6 +110,7 @@ EXAMPLES:
 - "checkout" → create_checkout() (will show approval dialog with cart summary)
 - "track my order" → track_order() (shows most recent order timeline)
 - "track order abc123" → track_order(orderId="abc123")
+- "show my orders" → get_order_history() (shows order history list)
 
 IMPORTANT: get_product_detail works with product names directly - you don't need to search first!
 
@@ -925,6 +928,67 @@ Be friendly, helpful, and concise.`
           } catch (error) {
             console.error('track_order error:', error)
             return { success: false, error: 'Failed to fetch order details' }
+          }
+        },
+      }),
+      get_order_history: tool({
+        description: 'Get the user\'s order history (list of all orders). Call this when user asks to see their orders, order list, or purchase history.',
+        parameters: z.object({
+          limit: z.number().optional().describe('Maximum number of orders to return (default 10)'),
+        }),
+        // @ts-expect-error AI SDK 6.0.86 type mismatch — execute works at runtime
+        execute: async (args: { limit?: number }) => {
+          const { limit = 10 } = args
+          try {
+            // User must be authenticated
+            if (!chatUserId) {
+              return {
+                success: false,
+                error: 'Please log in to view your order history.',
+              }
+            }
+
+            // Fetch orders for this user
+            const { data: orders, error: ordersError } = await supabase
+              .from('orders')
+              .select('id, status, total_cents, currency, created_at, paid_at, shipped_at')
+              .eq('user_id', chatUserId)
+              .order('created_at', { ascending: false })
+              .limit(limit)
+
+            if (ordersError) {
+              console.error('get_order_history error:', ordersError)
+              return {
+                success: false,
+                error: 'Failed to fetch order history.',
+              }
+            }
+
+            if (!orders || orders.length === 0) {
+              return {
+                success: false,
+                error: 'No orders found. Place your first order to see your history!',
+              }
+            }
+
+            // Format orders for the artifact
+            const formattedOrders = orders.map((order) => ({
+              id: order.id,
+              status: order.status,
+              totalCents: order.total_cents,
+              currency: order.currency || 'EUR',
+              createdAt: order.created_at,
+              paidAt: order.paid_at,
+              shippedAt: order.shipped_at,
+            }))
+
+            return {
+              success: true,
+              orders: formattedOrders,
+            }
+          } catch (error) {
+            console.error('get_order_history error:', error)
+            return { success: false, error: 'Failed to fetch order history' }
           }
         },
       }),
