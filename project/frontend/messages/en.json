@@ -347,5 +347,35 @@
     "email": "Email Address",
     "guestCheckoutDescription": "Enter your email to continue as a guest. You can create an account after checkout.",
     "guestCheckoutNote": "Shipping address will be collected on the next step."
+  },
+  "Orders": {
+    "title": "Order History",
+    "description": "View your past orders",
+    "subtitle": "View and track all your orders",
+    "noOrders": "No Orders Yet",
+    "noOrdersDescription": "You haven't placed any orders yet. Start shopping to see your orders here.",
+    "startShopping": "Start Shopping",
+    "loginRequired": "Login Required",
+    "loginRequiredDescription": "Please log in to view your order history.",
+    "loginButton": "Log In",
+    "unauthorized": "Unauthorized",
+    "unauthorizedDescription": "You don't have permission to view this page.",
+    "error": "Error Loading Orders",
+    "errorDescription": "We couldn't load your orders. Please try again.",
+    "retry": "Retry",
+    "orderNumber": "Order #{number}",
+    "total": "Total",
+    "tracking": "Tracking",
+    "viewDetails": "View Details",
+    "status": {
+      "pending": "Pending",
+      "paid": "Paid",
+      "submitted": "Submitted",
+      "in_production": "In Production",
+      "shipped": "Shipped",
+      "delivered": "Delivered",
+      "cancelled": "Cancelled",
+      "refunded": "Refunded"
+    }
   }
 }

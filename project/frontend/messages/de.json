@@ -347,5 +347,35 @@
     "email": "E-Mail-Adresse",
     "guestCheckoutDescription": "Geben Sie Ihre E-Mail-Adresse ein, um als Gast fortzufahren. Sie können nach dem Checkout ein Konto erstellen.",
     "guestCheckoutNote": "Die Lieferadresse wird im nächsten Schritt erfasst."
+  },
+  "Orders": {
+    "title": "Bestellverlauf",
+    "description": "Sehen Sie Ihre früheren Bestellungen",
+    "subtitle": "Alle Ihre Bestellungen anzeigen und verfolgen",
+    "noOrders": "Noch Keine Bestellungen",
+    "noOrdersDescription": "Sie haben noch keine Bestellungen aufgegeben. Beginnen Sie mit dem Einkaufen, um Ihre Bestellungen hier zu sehen.",
+    "startShopping": "Jetzt Einkaufen",
+    "loginRequired": "Anmeldung Erforderlich",
+    "loginRequiredDescription": "Bitte melden Sie sich an, um Ihren Bestellverlauf anzuzeigen.",
+    "loginButton": "Anmelden",
+    "unauthorized": "Nicht Autorisiert",
+    "unauthorizedDescription": "Sie haben keine Berechtigung, diese Seite anzuzeigen.",
+    "error": "Fehler beim Laden der Bestellungen",
+    "errorDescription": "Wir konnten Ihre Bestellungen nicht laden. Bitte versuchen Sie es erneut.",
+    "retry": "Erneut Versuchen",
+    "orderNumber": "Bestellung #{number}",
+    "total": "Gesamt",
+    "tracking": "Sendungsverfolgung",
+    "viewDetails": "Details Anzeigen",
+    "status": {
+      "pending": "Ausstehend",
+      "paid": "Bezahlt",
+      "submitted": "Übermittelt",
+      "in_production": "In Produktion",
+      "shipped": "Versendet",
+      "delivered": "Zugestellt",
+      "cancelled": "Storniert",
+      "refunded": "Erstattet"
+    }
   }
 }

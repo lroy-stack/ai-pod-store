@@ -1323,7 +1323,7 @@
     "id": 121,
     "feature": "Checkout & Payments",
     "description": "Order history shows in user profile",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to /en/orders",
       "Verify list of past orders is displayed",

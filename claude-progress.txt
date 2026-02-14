@@ -1,3 +1,78 @@
+## Session 39 (Coding Agent) — 2026-02-14 02:44 UTC
+
+### Features Implemented This Session:
+1. ✅ Feature #120: Guest checkout creates order without account
+
+### Tests passing: 120/389 (30.8%)
+### Tests newly passing this session: #120
+
+### Implementation Details:
+
+#### Feature #120: Guest checkout creates order without account
+
+**Frontend Changes (CheckoutView.tsx)**:
+- Added guest email state management (`guestEmail`, `guestEmailError`)
+- Implemented email validation function (regex pattern)
+- Created guest checkout form for unauthenticated users with:
+  - Email input field (shadcn/ui Input component)
+  - Clear description: "Enter your email to continue as a guest..."
+  - Note: "Shipping address will be collected on the next step"
+- Email validation before proceeding to payment
+- Email passed to create-session API endpoint
+
+**API Changes (create-session/route.ts)**:
+- Accept `customerEmail` parameter from request body
+- Pass `customer_email` to Stripe Checkout session config
+- Stripe collects shipping address when no saved address provided
+
+**Webhook Handler (already implemented)**:
+- Webhook already extracts `customer_email` from Stripe session
+- Creates order with `customer_email` field populated
+- Supports guest orders with `user_id` = NULL
+
+**Database Schema (already supports)**:
+- `orders.user_id` is nullable (allows guest orders)
+- `orders.customer_email` field exists for guest email storage
+- No migration needed — schema already supports guest checkout
+
+**Translation Keys Added** (EN/ES/DE):
+- `Checkout.email`: "Email Address" / "Correo Electrónico" / "E-Mail-Adresse"
+- `Checkout.guestCheckoutDescription`: Instructions for guest checkout
+- `Checkout.guestCheckoutNote`: "Shipping address will be collected on the next step"
+
+**Verification via Playwright MCP**:
+1. Navigated to `/en/checkout` as unauthenticated user
+2. Verified guest email form renders with all elements
+3. Filled email: "guest@test.com"
+4. Clicked "Proceed to Payment" button
+5. Redirected to Stripe Checkout session
+6. Verified email is pre-filled in Stripe form: "guest@test.com"
+7. Verified Stripe collects full shipping address
+8. Confirmed API creates session successfully with guest email
+
+**Screenshots Captured**:
+- `checkout-guest-form.png`: Guest email input form
+- `stripe-checkout-guest.png`: Stripe page with pre-filled email
+
+### Issues encountered:
+- None — implementation was straightforward
+
+### Database status:
+- Supabase (remote cloud) connected: ✅
+- Orders table supports guest checkout (nullable user_id, customer_email field): ✅
+- No migration needed: ✅
+
+### Environment:
+- Dev server running on port 3000: ✅
+- .env.local configured correctly: ✅
+- Stripe API integration working: ✅
+
+### Next priorities:
+- Feature #121: Order confirmation email sent after payment
+- Continue with Checkout & Payments features
+
+---
+
 ## Session 36 (Coding Agent) — 2026-02-14 02:09 UTC
 
 ### Features Implemented This Session:

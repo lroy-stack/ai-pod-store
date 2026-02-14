@@ -347,5 +347,35 @@
     "email": "Correo Electrónico",
     "guestCheckoutDescription": "Ingresa tu correo electrónico para continuar como invitado. Puedes crear una cuenta después de finalizar la compra.",
     "guestCheckoutNote": "La dirección de envío se recopilará en el siguiente paso."
+  },
+  "Orders": {
+    "title": "Historial de Pedidos",
+    "description": "Ver tus pedidos anteriores",
+    "subtitle": "Ver y rastrear todos tus pedidos",
+    "noOrders": "Aún No Hay Pedidos",
+    "noOrdersDescription": "Aún no has realizado ningún pedido. Comienza a comprar para ver tus pedidos aquí.",
+    "startShopping": "Comenzar a Comprar",
+    "loginRequired": "Inicio de Sesión Requerido",
+    "loginRequiredDescription": "Por favor, inicia sesión para ver tu historial de pedidos.",
+    "loginButton": "Iniciar Sesión",
+    "unauthorized": "No Autorizado",
+    "unauthorizedDescription": "No tienes permiso para ver esta página.",
+    "error": "Error al Cargar Pedidos",
+    "errorDescription": "No pudimos cargar tus pedidos. Por favor, inténtalo de nuevo.",
+    "retry": "Reintentar",
+    "orderNumber": "Pedido #{number}",
+    "total": "Total",
+    "tracking": "Seguimiento",
+    "viewDetails": "Ver Detalles",
+    "status": {
+      "pending": "Pendiente",
+      "paid": "Pagado",
+      "submitted": "Enviado",
+      "in_production": "En Producción",
+      "shipped": "Enviado",
+      "delivered": "Entregado",
+      "cancelled": "Cancelado",
+      "refunded": "Reembolsado"
+    }
   }
 }
