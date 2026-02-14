@@ -1346,7 +1346,7 @@
     "id": 123,
     "feature": "Checkout & Payments",
     "description": "Stripe test cards work (4242...)",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Use card number 4242424242424242 in Stripe checkout",
       "Verify successful payment is processed",
