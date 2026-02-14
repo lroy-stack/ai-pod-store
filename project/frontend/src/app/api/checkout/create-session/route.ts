@@ -97,6 +97,7 @@ export async function POST(req: NextRequest) {
         locale,
         cart_items: JSON.stringify(cartItems.map((item: any) => ({
           product_id: item.product_id,
+          variant_id: item.variant_id || null,
           quantity: item.quantity,
         }))),
       },

@@ -1279,7 +1279,7 @@
     "id": 117,
     "feature": "Checkout & Payments",
     "description": "Order created in database after payment",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Complete a successful payment through Stripe",
       "Query the orders table in the database",
