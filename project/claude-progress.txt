@@ -226,3 +226,25 @@ Screenshot evidence:
 - No regressions introduced
 - All test artifacts cleaned up
 
+
+#### Feature #87: Product API supports text search and category filter
+**Status: PASSING ✅**
+
+**Implementation:**
+- Updated `/api/products` route to support both `q` and `search` query parameters
+- Text search filters products by title and description (case-insensitive)
+- Category filter works independently or in combination with text search
+- Proper pagination support maintained with filtered results
+- Returns proper response structure with total count and filtered items
+
+**Verification:**
+- ✅ Tested via curl: `?q=shirt&category=apparel` → returns Classic T-Shirt
+- ✅ Search alone: `?q=hoodie` → returns 2 products (Hoodie, Zip Hoodie)
+- ✅ Category alone: `?category=home` → returns 5 home products
+- ✅ Combined: `?q=mug&category=home` → returns 2 mugs from home category
+- ✅ Empty results: `?q=nonexistent` → returns empty array with success: true
+- ✅ All returned products match both search term and category filter
+
+**Files Modified:**
+- frontend/src/app/api/products/route.ts (added q parameter support)
+
