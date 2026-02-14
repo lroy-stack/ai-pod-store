@@ -2917,7 +2917,7 @@
     "id": 264,
     "feature": "PodClaw Agent",
     "description": "Agent API: subagent run, skills, memory",
-    "passes": false,
+    "passes": true,
     "steps": [
       "POST /api/agent/subagent/researcher/run and verify 200 response",
       "GET /api/agent/skills and verify skills list returned",
