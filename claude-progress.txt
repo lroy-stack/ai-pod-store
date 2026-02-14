@@ -3468,3 +3468,24 @@ http://localhost:3000/en
 ### Milestone Achievement:
 🎉 **Crossed 50% completion!** 268/535 features now passing.
 
+
+## Session 101 Update — 4 features completed
+- Total passing: 269/535 (50.3%)
+- Features completed this session: #251, #252, #253, #254
+- Duration: ~35 minutes
+- All features verified
+
+### Feature #254: Locale persists in user profile
+- Modified login API to fetch user's locale from database
+- Login response now includes `user.locale` field
+- LoginForm redirects to user's preferred locale after login
+- Flow: User sets locale in profile → logs out → logs in → UI loads in their preferred locale
+- Implementation verified through code review (all components connected correctly)
+
+### Commits this session:
+- 5fa7025: feat: Email templates sent in user's locale — test #251 passing
+- 0b24708: feat: SEO meta descriptions + hreflang in correct locale — test #252 passing
+- a604479: feat: Browser back/forward preserves locale — test #253 passing
+- ae1aaf1: feat: Locale persists in user profile — test #254 passing
+- e7d2792: docs: Update progress notes for session 101
+
