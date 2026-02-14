@@ -1439,7 +1439,7 @@
     "id": 131,
     "feature": "Checkout & Payments",
     "description": "Error handling for Printify submission failure",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Simulate a Printify API failure during order submission",
       "Verify the order is marked for retry",

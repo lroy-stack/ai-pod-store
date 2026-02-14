@@ -312,6 +312,7 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
             .update({
               printify_order_id: printifyOrder.id,
               status: 'submitted', // Update status to submitted
+              printify_last_attempt_at: new Date().toISOString(),
             })
             .eq('id', order.id)
 
@@ -327,13 +328,47 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
             console.log('Submitted Printify order for production')
           } catch (productionError) {
             console.error('Failed to submit Printify order for production:', productionError)
-            // Don't throw - order is created, just not in production yet
+
+            // Mark order for retry
+            const errorMessage = productionError instanceof Error
+              ? productionError.message
+              : 'Failed to submit order for production'
+
+            await supabase
+              .from('orders')
+              .update({
+                printify_error: errorMessage,
+                printify_retry_count: 1,
+                printify_last_attempt_at: new Date().toISOString(),
+              })
+              .eq('id', order.id)
+
+            // Notify admin of production failure
+            await notifyAdminOfPrintifyFailure(order.id, 'production', errorMessage)
           }
         }
       } catch (printifyError) {
         console.error('Error submitting order to Printify:', printifyError)
+
+        // Mark order for retry with error details
+        const errorMessage = printifyError instanceof Error
+          ? printifyError.message
+          : 'Unknown Printify error'
+
+        await supabase
+          .from('orders')
+          .update({
+            printify_error: errorMessage,
+            printify_retry_count: 1,
+            printify_last_attempt_at: new Date().toISOString(),
+          })
+          .eq('id', order.id)
+
+        // Notify admin of the failure
+        await notifyAdminOfPrintifyFailure(order.id, 'submission', errorMessage)
+
         // Don't throw - we don't want to fail the entire webhook
-        // The order is still created in our system
+        // The order is still created in our system and marked for retry
       }
     } else {
       console.log('Missing shipping address or items - skipping Printify submission')
@@ -345,5 +380,54 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
   } catch (error) {
     console.error('Error handling checkout session:', error)
     // Don't throw - we don't want to cause Stripe to retry indefinitely
+  }
+}
+
+/**
+ * Notify admin of Printify submission failure
+ * Creates a notification for all admin users
+ */
+async function notifyAdminOfPrintifyFailure(
+  orderId: string,
+  failureType: 'submission' | 'production',
+  errorMessage: string
+) {
+  try {
+    // Find all admin users
+    const { data: admins } = await supabase
+      .from('users')
+      .select('id')
+      .eq('role', 'admin')
+
+    if (!admins || admins.length === 0) {
+      console.warn('No admin users found - cannot send Printify failure notification')
+      return
+    }
+
+    // Create notification for each admin
+    const notifications = admins.map(admin => ({
+      user_id: admin.id,
+      type: 'printify_error',
+      title: `Printify ${failureType} failed`,
+      body: `Order ${orderId.slice(0, 8)} failed to submit to Printify: ${errorMessage}`,
+      data: {
+        order_id: orderId,
+        failure_type: failureType,
+        error: errorMessage,
+      },
+      is_read: false,
+    }))
+
+    const { error } = await supabase
+      .from('notifications')
+      .insert(notifications)
+
+    if (error) {
+      console.error('Failed to create admin notifications:', error)
+    } else {
+      console.log(`Created ${notifications.length} admin notifications for Printify failure`)
+    }
+  } catch (error) {
+    console.error('Error notifying admin of Printify failure:', error)
   }
 }
