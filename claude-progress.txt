@@ -1658,3 +1658,79 @@ Browser → http://localhost:3000/en/profile/notifications
 
 ### Next priorities:
 - Continue Order Management & Notifications (203+)
+
+## Session 82 (Coding Agent) - 2026-02-14 17:11 UTC
+
+### Work Summary
+Implemented and verified feature 203: "Mark notification as read + mark all"
+
+### Critical Regression Fixed
+**Issue**: ChatArea component crashed on login with `TypeError: Cannot read properties of undefined (reading 'split')`
+- **Root cause**: Line 198 tried to call `userData.user.name.split(' ')[0]` but `name` was undefined
+- **Fix**: Added null-safe navigation: `userData.user.name?.split(' ')[0] || 'there'`
+- **Impact**: Homepage now loads correctly for logged-in users
+
+### Feature 203 Implementation
+
+**Test Infrastructure**:
+- Created `scripts/create-test-user-and-notifications.mjs`:
+  * Uses Supabase Admin Auth API to create test user
+  * Email: testuser@example.com / Password: testpass123456
+  * Creates 5 unread notifications for testing
+  * Handles both auth.users and public.users tables
+- Created migration `20260214171328_add_multiple_test_notifications.sql`
+- All test data successfully seeded to remote Supabase instance
+
+**Verification (via Playwright MCP)**:
+```bash
+# Step 1: Click unread notification
+- Before: "5 unread notifications" with blue badge
+- Clicked "Order #12345 Shipped" notification
+- After: "4 unread notifications", clicked notification now shows:
+  * Gray/muted icon background (was blue)
+  * No blue dot indicator (was present)
+  * Muted text color
+  * No blue highlight background
+✅ PASS: Individual notification mark-as-read works
+
+# Step 2: Click "Mark all as read" button
+- Before: 4 unread notifications, button visible
+- Clicked "Mark all as read"
+- After: "All notifications are read"
+  * Button hidden (only shows when unread exist)
+  * All 4 remaining notifications now muted/gray
+  * No blue indicators on any notification
+✅ PASS: Bulk mark-as-read works
+
+# Step 3: Navbar badge update
+- Before: Badge showed "5"
+- After: Badge completely hidden (no unread notifications)
+✅ PASS: Dynamic badge update works
+```
+
+**API Endpoints Tested**:
+- `PATCH /api/notifications/[id]/read` - single notification
+- `PATCH /api/notifications/read-all` - bulk operation
+- Both endpoints working correctly with proper auth checks
+
+**UI/UX Verified**:
+- Unread state: `bg-primary/5`, `border-primary/20`, blue icon, blue dot badge
+- Read state: `bg-card`, muted icon, no badge, muted text
+- Smooth state transitions without page reload
+- "Mark all as read" button conditional rendering
+- Responsive layout (mobile-first, max-w-4xl container)
+
+**Tests passing**: 202/485 → 203/485 (41.9%)
+
+---
+
+### Session Summary:
+- Features implemented: 1 (203)
+- Regressions fixed: 1 (ChatArea crash)
+- Critical fix: Null-safe navigation for user.name field
+- Test infrastructure: Supabase test user + notifications script
+- Verification: Full E2E test via Playwright MCP (3 test steps)
+- All notification features now complete and working
+
+### Next priorities:
+- Continue Order Management & Notifications (204+)
