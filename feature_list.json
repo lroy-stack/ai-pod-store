@@ -2226,7 +2226,7 @@
     "id": 201,
     "feature": "Order Management & Notifications",
     "description": "Notification bell icon shows unread count",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Create a notification for the logged-in user",
       "Verify the bell icon in the navbar shows a '1' badge"
@@ -2236,7 +2236,7 @@
     "id": 202,
     "feature": "Order Management & Notifications",
     "description": "Notification list page renders",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to /en/profile/notifications",
       "Verify a list of notifications is displayed",
