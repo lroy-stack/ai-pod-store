@@ -493,6 +493,10 @@
     "returnRequestSubtitle": "Confirm your return request",
     "returnRequestNote": "Your return request will be reviewed by our team. You will receive a confirmation email once approved. Refunds typically process within 5-7 business days.",
     "returnRequestApprove": "Submit Return Request",
-    "returnRequestDeny": "Cancel"
+    "returnRequestDeny": "Cancel",
+    "designPreviewTitle": "Your Custom Design",
+    "designPreviewSubtitle": "AI-generated artwork",
+    "designPreviewDownload": "Download",
+    "designPreviewAddToProduct": "Add to Product"
   }
 }

@@ -493,6 +493,10 @@
     "returnRequestSubtitle": "Bestätigen Sie Ihre Rückgabeanfrage",
     "returnRequestNote": "Ihre Rückgabeanfrage wird von unserem Team geprüft. Sie erhalten eine Bestätigungs-E-Mail nach Genehmigung. Rückerstattungen werden in der Regel innerhalb von 5-7 Werktagen bearbeitet.",
     "returnRequestApprove": "Rückgabeanfrage Einreichen",
-    "returnRequestDeny": "Abbrechen"
+    "returnRequestDeny": "Abbrechen",
+    "designPreviewTitle": "Ihr Individuelles Design",
+    "designPreviewSubtitle": "KI-generierte Kunstwerke",
+    "designPreviewDownload": "Herunterladen",
+    "designPreviewAddToProduct": "Zum Produkt Hinzufügen"
   }
 }

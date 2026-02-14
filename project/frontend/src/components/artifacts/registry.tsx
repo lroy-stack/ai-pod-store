@@ -19,6 +19,7 @@ import { ApprovalCardArtifact, ApprovalCardSkeleton } from './ApprovalCardArtifa
 import { OrderTimelineArtifact, OrderTimelineSkeleton } from './OrderTimelineArtifact'
 import { OrderListArtifact, OrderListSkeleton } from './OrderListArtifact'
 import { ReturnRequestArtifact, ReturnRequestSkeleton } from './ReturnRequestArtifact'
+import { DesignPreviewArtifact, DesignPreviewSkeleton } from './DesignPreviewArtifact'
 
 export interface ArtifactRegistryEntry {
   Component: React.ComponentType<any>
@@ -73,6 +74,10 @@ export const artifactRegistry: Record<string, ArtifactRegistryEntry> = {
   request_return: {
     Component: ReturnRequestArtifact,
     Skeleton: ReturnRequestSkeleton,
+  },
+  generate_design: {
+    Component: DesignPreviewArtifact,
+    Skeleton: DesignPreviewSkeleton,
   },
 }
 

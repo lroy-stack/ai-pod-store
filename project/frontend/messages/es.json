@@ -493,6 +493,10 @@
     "returnRequestSubtitle": "Confirma tu solicitud de devolución",
     "returnRequestNote": "Tu solicitud de devolución será revisada por nuestro equipo. Recibirás un correo de confirmación una vez aprobada. Los reembolsos suelen procesarse en 5-7 días hábiles.",
     "returnRequestApprove": "Enviar Solicitud de Devolución",
-    "returnRequestDeny": "Cancelar"
+    "returnRequestDeny": "Cancelar",
+    "designPreviewTitle": "Tu Diseño Personalizado",
+    "designPreviewSubtitle": "Obra de arte generada por IA",
+    "designPreviewDownload": "Descargar",
+    "designPreviewAddToProduct": "Añadir al Producto"
   }
 }

@@ -1091,6 +1091,50 @@ Be friendly, helpful, and concise.`
           }
         },
       }),
+      generate_design: tool({
+        description: 'Generate a custom AI design for a product (t-shirt, mug, etc.). Call this when user wants to create, design, or generate custom artwork.',
+        parameters: z.object({
+          prompt: z.string().describe('Detailed description of the design to generate (e.g., "cute cat wearing sunglasses")'),
+          style: z.string().optional().describe('Art style (e.g., "watercolor", "cartoon", "realistic", "minimalist")'),
+        }),
+        // @ts-expect-error AI SDK 6.0.86 type mismatch — execute works at runtime
+        execute: async (args: { prompt: string; style?: string }) => {
+          const { prompt, style } = args
+          try {
+            // Call the design generation API
+            const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+            const response = await fetch(`${baseUrl}/api/designs/generate`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                prompt,
+                style,
+              }),
+            })
+
+            if (!response.ok) {
+              const errorData = await response.json()
+              return {
+                success: false,
+                error: errorData.error || 'Failed to generate design',
+              }
+            }
+
+            const data = await response.json()
+
+            return {
+              success: true,
+              imageUrl: data.imageUrl,
+              prompt: data.prompt,
+              style: style || 'default',
+              message: 'Design generated successfully! You can customize it or add it to a product.',
+            }
+          } catch (error) {
+            console.error('generate_design error:', error)
+            return { success: false, error: 'Failed to generate design' }
+          }
+        },
+      }),
     }
 
     // Stream response with tools
