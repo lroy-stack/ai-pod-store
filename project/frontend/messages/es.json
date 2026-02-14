@@ -483,6 +483,11 @@
     "addToCart": "Añadir al Carrito",
     "askAboutProduct": "Preguntar sobre este producto",
     "shop": "Tienda",
-    "cart": "Carrito"
+    "cart": "Carrito",
+    "approvalTitle": "Confirmar Pago",
+    "approvalSubtitle": "Revisa tu pedido antes de proceder al pago",
+    "approvalNote": "Serás redirigido a Stripe para completar tu pago. Los impuestos y el envío se calcularán al finalizar la compra.",
+    "approvalApprove": "Proceder al Pago",
+    "approvalDeny": "Cancelar"
   }
 }

@@ -483,6 +483,11 @@
     "addToCart": "In den Warenkorb",
     "askAboutProduct": "Fragen Sie nach diesem Produkt",
     "shop": "Shop",
-    "cart": "Warenkorb"
+    "cart": "Warenkorb",
+    "approvalTitle": "Kasse Bestätigen",
+    "approvalSubtitle": "Überprüfen Sie Ihre Bestellung vor der Zahlung",
+    "approvalNote": "Sie werden zu Stripe weitergeleitet, um Ihre Zahlung abzuschließen. Steuern und Versand werden an der Kasse berechnet.",
+    "approvalApprove": "Zur Zahlung Gehen",
+    "approvalDeny": "Abbrechen"
   }
 }

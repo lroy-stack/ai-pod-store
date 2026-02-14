@@ -505,3 +505,56 @@ Modified `/api/webhooks/stripe/route.ts` to add:
 - Total passing: 124/389 (31.9%)
 - Session duration: ~20 minutes
 
+
+## Session 54 (Coding Agent)
+- Implemented: Feature #144 (get detail + compare artifacts) and Feature #145 (recommendations + size guide artifacts)
+- Verification: Browser testing with Playwright MCP + screenshots
+- Tests passing: 145/389 (37.3%)
+- Tests newly passing this session: #144, #145
+- Issues encountered: Gemini 2.5 Flash multi-step tool calling limitation (resolved by accepting product names directly)
+- Database status: Connected, 14 products in catalog
+- Environment: Dev server running, all APIs functional
+
+### Implementation Details
+
+**Feature #144 - Product Detail + Comparison Artifacts:**
+- Modified `get_product_detail` tool to accept product name OR UUID
+- Eliminates need for multi-step calling (search → extract ID → detail)
+- Tool now does internal search if name provided: `productIdentifier` param
+- ProductDetailArtifact renders inline with:
+  * Product image + category badge
+  * Price and rating
+  * Description section
+  * Shipping information
+  * Action buttons
+- ComparisonTableArtifact renders side-by-side comparison table:
+  * Product images and names in header
+  * Price, Rating, Availability rows
+  * Add to Cart action buttons
+- Both verified with "tell me more about Classic Cat T-Shirt" and "compare cat and dog t-shirts"
+
+**Feature #145 - Recommendations + Size Guide Artifacts:**
+- Created SizeGuideArtifact component:
+  * Uses shadcn/ui Card + table elements
+  * Displays size measurements in table format
+  * Product type and unit badges
+  * Conditional columns based on available data
+  * Helpful tip footer
+- Created `get_recommendations` tool:
+  * Returns top 6 products sorted by avg_rating DESC
+  * Optional category and maxPrice filters
+  * Uses ProductGridArtifact (already registered)
+- Created `get_size_guide` tool:
+  * Returns standard size charts per product type
+  * Supports: t-shirt, hoodie, generic
+  * Data includes: size, chest, length, width, sleeve
+- Verified with "recommend some products" and "show me size guide for t-shirts"
+
+**Lessons Learned:**
+1. Accepting flexible input types (name OR ID) simplifies tool calling for limited models
+2. Gemini 2.5 Flash works well for single-step tool calls, struggles with chaining
+3. Size guide data can be hardcoded for standard products (no DB query needed)
+4. ProductGridArtifact is reusable across multiple tools (search, browse, recommend)
+
+### Next priorities:
+- Feature #146 [Conversational Storefront / Chat] — Next feature in queue

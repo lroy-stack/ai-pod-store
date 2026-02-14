@@ -71,7 +71,8 @@ TOOLS AVAILABLE:
 - get_cart: Get current shopping cart contents (shows items, quantities, prices)
 - apply_coupon: Apply a discount coupon code to the cart
 - estimate_shipping: Calculate shipping cost estimates for different delivery options
-- create_checkout: Create Stripe checkout session to proceed to payment (requires user approval)
+- create_checkout: Show checkout confirmation (displays cart summary and asks for approval)
+- confirm_checkout: Complete checkout after user approves (creates Stripe session)
 
 WHEN TO USE EACH TOOL:
 1. User asks to "browse", "search", "show me", "find" products → call product_search
@@ -83,7 +84,7 @@ WHEN TO USE EACH TOOL:
 7. User asks "show my cart", "what's in my cart", "view cart" → call get_cart
 8. User says "apply code SAVE10", "use coupon", "discount code" → call apply_coupon
 9. User asks "shipping cost", "delivery options", "how much to ship" → call estimate_shipping
-10. User says "checkout", "proceed to payment", "buy now" → call create_checkout (requires approval)
+10. User says "checkout", "proceed to payment", "buy now" → call create_checkout (shows approval dialog)
 
 EXAMPLES:
 - "show me cat t-shirts" → product_search(query="cat t-shirt")
@@ -96,7 +97,7 @@ EXAMPLES:
 - "show my cart" → get_cart()
 - "apply code SAVE10" → apply_coupon(code="SAVE10")
 - "how much is shipping?" → estimate_shipping()
-- "checkout" → create_checkout() (will request user approval first)
+- "checkout" → create_checkout() (will show approval dialog with cart summary)
 
 IMPORTANT: get_product_detail works with product names directly - you don't need to search first!
 
@@ -675,7 +676,6 @@ Be friendly, helpful, and concise.`
         parameters: z.object({
           customerEmail: z.string().optional().describe('Customer email address (optional for guest checkout)'),
         }),
-        needsApproval: true, // Requires user approval before creating checkout session
         // @ts-expect-error AI SDK 6.0.86 type mismatch — execute works at runtime
         execute: async (args: { customerEmail?: string }) => {
           const { customerEmail } = args
@@ -698,6 +698,83 @@ Be friendly, helpful, and concise.`
             }
 
             // Fetch product details for cart items
+            const productIds = cartItems.map((item: any) => item.product_id)
+            const { data: products, error: productsError } = await supabase
+              .from('products')
+              .select('id, title, base_price_cents, currency, images')
+              .in('id', productIds)
+
+            if (productsError || !products) {
+              return {
+                success: false,
+                error: 'Failed to fetch product details',
+              }
+            }
+
+            // Build cart items for display
+            const productMap = new Map(products.map((p: any) => [p.id, p]))
+            const displayCartItems = cartItems.map((item: any) => {
+              const product = productMap.get(item.product_id)
+              return {
+                productId: item.product_id,
+                productName: product?.title || 'Unknown Product',
+                productPrice: (product?.base_price_cents || 0) / 100,
+                quantity: item.quantity,
+              }
+            })
+
+            const subtotal = displayCartItems.reduce(
+              (sum, item) => sum + item.productPrice * item.quantity,
+              0
+            )
+
+            // Return approval request instead of creating session immediately
+            return {
+              success: true,
+              needsApproval: true,
+              cartItems: displayCartItems,
+              subtotal,
+              message: 'Please confirm your order to proceed to checkout.',
+            }
+          } catch (error) {
+            console.error('create_checkout error:', error)
+            return { success: false, error: 'Failed to prepare checkout' }
+          }
+        },
+      }),
+      confirm_checkout: tool({
+        description: 'Confirm checkout and create Stripe session. ONLY call this after user explicitly approves checkout.',
+        parameters: z.object({
+          confirmed: z.boolean().describe('User confirmation (must be true)'),
+        }),
+        // @ts-expect-error AI SDK 6.0.86 type mismatch — execute works at runtime
+        execute: async (args: { confirmed: boolean }) => {
+          if (!args.confirmed) {
+            return {
+              success: false,
+              error: 'Checkout was not confirmed',
+            }
+          }
+
+          try {
+            // Get cart items again (same logic as create_checkout)
+            const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+
+            const { data: cartItems, error: cartError } = await supabase
+              .from('cart_items')
+              .select('id, product_id, quantity, created_at')
+              .gte('created_at', oneDayAgo)
+              .order('created_at', { ascending: false })
+              .limit(10)
+
+            if (cartError || !cartItems || cartItems.length === 0) {
+              return {
+                success: false,
+                error: 'Your cart is empty.',
+              }
+            }
+
+            // Fetch product details
             const productIds = cartItems.map((item: any) => item.product_id)
             const { data: products, error: productsError } = await supabase
               .from('products')
@@ -735,7 +812,6 @@ Be friendly, helpful, and concise.`
                 cartItems: stripeCartItems,
                 locale: 'en',
                 currency: 'usd',
-                customerEmail,
               }),
             })
 
@@ -755,7 +831,7 @@ Be friendly, helpful, and concise.`
               message: 'Checkout session created! Redirecting to payment...',
             }
           } catch (error) {
-            console.error('create_checkout error:', error)
+            console.error('confirm_checkout error:', error)
             return { success: false, error: 'Failed to create checkout session' }
           }
         },

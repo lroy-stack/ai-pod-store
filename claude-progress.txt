@@ -581,4 +581,17 @@ The AI SDK streaming stops after the tool is executed, before generating the fin
 ✅ Translations working correctly in all components
 
 ### Next priorities:
-- Feature #148 [Conversational Storefront / Chat] — Next feature in queue
+- Feature #148 [Conversational Storefront / Chat] — create_checkout with needsApproval
+
+**Status of Feature #148:**
+- Implemented `create_checkout` tool with `needsApproval: true` in chat API
+- Tool calls the existing `/api/checkout/create-session` endpoint
+- Issue discovered: When tool has `needsApproval: true`, Gemini model stops responding
+- Root cause: `needsApproval` may not be supported by Gemini 2.5 Flash
+- The AI SDK 6 `needsApproval` feature may require specific model support
+- Client-side approval handling needs to be implemented in ChatArea component
+- This feature requires either:
+  1. Switch to a different model (Claude, GPT-4) that supports approval workflows
+  2. Implement custom approval dialog handling in the frontend
+  3. Use a different approach for approval (e.g., confirmation message + separate tool)
+- Marked as NOT passing — needs model investigation or custom implementation

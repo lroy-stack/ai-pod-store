@@ -483,6 +483,11 @@
     "addToCart": "Add to Cart",
     "askAboutProduct": "Ask about this product",
     "shop": "Shop",
-    "cart": "Cart"
+    "cart": "Cart",
+    "approvalTitle": "Confirm Checkout",
+    "approvalSubtitle": "Review your order before proceeding to payment",
+    "approvalNote": "You will be redirected to Stripe to complete your payment. Tax and shipping will be calculated at checkout.",
+    "approvalApprove": "Proceed to Payment",
+    "approvalDeny": "Cancel"
   }
 }

@@ -15,6 +15,7 @@ import { ComparisonTableArtifact, ComparisonTableSkeleton } from './ComparisonTa
 import { SizeGuideArtifact, SizeGuideSkeleton } from './SizeGuideArtifact'
 import { CartSummaryArtifact, CartSummarySkeleton } from './CartSummaryArtifact'
 import { PricingTableArtifact, PricingTableSkeleton } from './PricingTableArtifact'
+import { ApprovalCardArtifact, ApprovalCardSkeleton } from './ApprovalCardArtifact'
 
 export interface ArtifactRegistryEntry {
   Component: React.ComponentType<any>
@@ -53,6 +54,10 @@ export const artifactRegistry: Record<string, ArtifactRegistryEntry> = {
   estimate_shipping: {
     Component: PricingTableArtifact,
     Skeleton: PricingTableSkeleton,
+  },
+  create_checkout: {
+    Component: ApprovalCardArtifact,
+    Skeleton: ApprovalCardSkeleton,
   },
 }
 

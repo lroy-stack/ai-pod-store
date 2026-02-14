@@ -1645,7 +1645,7 @@
     "id": 148,
     "feature": "Conversational Storefront / Chat",
     "description": "Checkout tool: create_checkout with needsApproval",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Say 'checkout' in the chat",
       "Verify an approval dialog appears for create_checkout",

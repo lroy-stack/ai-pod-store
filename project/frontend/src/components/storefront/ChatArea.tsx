@@ -36,7 +36,7 @@ export function ChatArea() {
   }>({ user: null, activeOrders: null, recentFavorites: null })
 
   // AI SDK 6 useChat hook with DefaultChatTransport
-  const { messages, sendMessage, status } = useChat({
+  const { messages, sendMessage, status, addToolApprovalResponse } = useChat({
     transport: new DefaultChatTransport({ api: '/api/chat' }),
   })
 
@@ -255,10 +255,69 @@ export function ChatArea() {
                       }
 
                       if (part.state === 'output-available' && part.output) {
+                        const output = part.output as any
+
+                        // Handle approval workflow (tool returned needsApproval: true)
+                        if (output.needsApproval && toolName === 'create_checkout') {
+                          const handleApprove = async () => {
+                            try {
+                              // Call the checkout API directly
+                              const response = await fetch('/api/checkout/create-session', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                  cartItems: output.cartItems?.map((item: any) => ({
+                                    product_id: item.productId,
+                                    product_name: item.productName,
+                                    product_price: item.productPrice,
+                                    product_image: null,
+                                    quantity: item.quantity,
+                                  })),
+                                  locale: 'en',
+                                  currency: 'usd',
+                                }),
+                              })
+
+                              if (response.ok) {
+                                const data = await response.json()
+                                if (data.url) {
+                                  window.location.href = data.url
+                                }
+                              } else {
+                                sendMessage({ text: 'There was an error creating the checkout session. Please try again.' })
+                              }
+                            } catch (error) {
+                              console.error('Checkout error:', error)
+                              sendMessage({ text: 'There was an error creating the checkout session. Please try again.' })
+                            }
+                          }
+                          const handleDeny = () => {
+                            sendMessage({ text: 'Checkout cancelled.' })
+                          }
+
+                          return (
+                            <div key={index} className="p-4">
+                              <artifact.Component
+                                {...output}
+                                onApprove={handleApprove}
+                                onDeny={handleDeny}
+                                variant="inline"
+                              />
+                            </div>
+                          )
+                        }
+
+                        // Handle successful checkout redirect (not needed anymore since we redirect directly)
+                        if (output.checkoutUrl && toolName === 'confirm_checkout') {
+                          // Redirect to Stripe checkout
+                          window.location.href = output.checkoutUrl
+                          return null
+                        }
+
                         return (
                           <div key={index} className="p-4">
                             <artifact.Component
-                              {...(part.output as any)}
+                              {...output}
                               onSelectProduct={setSelectedProduct}
                               variant="inline"
                             />
