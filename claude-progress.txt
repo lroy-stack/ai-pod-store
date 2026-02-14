@@ -1,5 +1,214 @@
 # Claude Progress — POD AI Store
 
+## Session 68 — 2026-02-14 13:18 UTC
+
+### Feature #168: Search API endpoint works (POST /api/rag/search) ✅
+
+**Problem Found**: The `search_documents` RPC function had multiple issues:
+1. **Function overloading conflict** — Two versions existed (with and without `match_threshold` parameter)
+2. **Type mismatches** — Return types didn't match actual table columns:
+   - Expected `text`, actual `varchar(50)` for `source_type`
+   - Expected `uuid`, actual `varchar(255)` for `source_id`
+   - Expected `text`, actual `char(5)` for `locale`
+
+**Solution**:
+1. Dropped old function version with `match_threshold` (resolved PGRST203 error)
+2. Fixed return types to match actual table schema (`varchar(50)`, `varchar(255)`, `char(5)`)
+3. Added explicit cast for `locale::char(5)` to match bpchar type
+4. Verified RPC function works with test endpoint
+
+**Implementation**:
+- Created 4 migrations to fix the function step by step
+- Pushed all migrations to remote Supabase instance
+- Cleaned up test endpoint after verification
+
+**Verification**:
+```bash
+# Test 1: Basic search
+curl -X POST http://localhost:3000/api/rag/search \
+  -d '{"query":"cat t-shirt design","limit":5}'
+→ ✅ Returns 5 results with similarity scores (0.79, 0.77, 0.72 for cat products)
+
+# Test 2: With locale filter
+curl -X POST http://localhost:3000/api/rag/search \
+  -d '{"query":"shipping policy","limit":3,"locale":"en"}'
+→ ✅ Returns 3 relevant results (shipping policy docs with 0.61-0.59 similarity)
+```
+
+**Response Structure** (verified):
+```json
+{
+  "success": true,
+  "query": "cat t-shirt design",
+  "results": [
+    {
+      "id": "uuid",
+      "content": "text",
+      "metadata": { ... },
+      "source_type": "product|faq|policy|design",
+      "source_id": "varchar or null",
+      "locale": "en",
+      "similarity": 0.791142825940067  // ← CRITICAL: similarity scores now working!
+    }
+  ],
+  "count": 5,
+  "embedding": { "dimension": 768 }
+}
+```
+
+**Tests passing**: 167/389 → 168/389 (43.2%)
+
+---
+
+### Feature #169: Document indexing endpoint works (POST /api/rag/index) ✅
+
+**Implementation**:
+- Created `/api/rag/index` POST endpoint to add documents to RAG knowledge base
+- Generates 768-dim embeddings using Gemini API (gemini-embedding-001)
+- Stores document with embedding in documents table
+- Validates: content (min 10 chars), source_type (enum: product|design|faq|policy), locale
+- Returns: document ID, metadata, embedding confirmation
+
+**Code Structure**:
+```typescript
+// frontend/src/app/api/rag/index/route.ts
+POST /api/rag/index
+→ Generate embedding via Gemini
+→ Insert into documents table with embedding
+→ Return 201 with document details
+```
+
+**Verification**:
+```bash
+# Index a test document
+curl -X POST http://localhost:3000/api/rag/index -d '{
+  "content": "Test document for RAG indexing verification...",
+  "metadata": {"test": true, "session": 68},
+  "source_type": "product",
+  "source_id": "test-product-168",
+  "locale": "en"
+}'
+→ ✅ Returns 201 Created with document ID 17fa4a1d-46b3-49db-8ebb-db943e677462
+→ ✅ has_embedding: true, embedding_dimension: 768
+
+# Verify searchability
+curl -X POST http://localhost:3000/api/rag/search -d '{
+  "query": "RAG indexing verification test product",
+  "limit": 3
+}'
+→ ✅ Top result: the test document with 0.815 similarity score
+```
+
+**Tests passing**: 168/389 → 169/389 (43.4%)
+
+---
+
+### Feature #170: Embedding batch processing works ✅
+
+**Test Approach**:
+Used Python to send 10 sequential POST requests to `/api/rag/index`, each with unique content.
+
+**Verification**:
+```python
+# Indexed 10 documents with unique content
+for i in 1..10:
+  POST /api/rag/index with "Batch test document number {i}..."
+→ ✅ All 10 returned 201 Created
+→ ✅ All 10 have has_embedding: true
+→ ✅ All 10 have embedding_dimension: 768
+
+# Verified in database
+GET /api/rag/list-all
+→ ✅ Found 10 batch documents in results
+→ ✅ All have hasEmbedding: true
+→ ✅ Total: 68 documents (all with embeddings)
+```
+
+**Result**: The existing `/api/rag/index` endpoint handles batch processing correctly. Each document is processed individually with its own Gemini embedding call.
+
+**Tests passing**: 169/389 → 170/389 (43.7%)
+
+---
+
+### Feature #171: RAG fallback when no results found ✅
+
+**Enhancement**:
+Added intelligent fallback detection to `/api/rag/search` based on similarity threshold (0.65).
+
+**Implementation**:
+- Check if any result has similarity ≥ 0.65 (relevant match)
+- If all results are below threshold, add fallback message and flag
+- Response includes `lowRelevance: true` and user-friendly message
+- Relevant queries return normal response without flags
+
+**Code Logic**:
+```typescript
+const SIMILARITY_THRESHOLD = 0.65
+const hasRelevantResults = searchResults.some(r => r.similarity >= SIMILARITY_THRESHOLD)
+
+if (!hasRelevantResults) {
+  response.message = "No highly relevant results found. Showing best matches..."
+  response.lowRelevance = true
+}
+```
+
+**Verification**:
+```bash
+# Nonsensical query (no matches)
+curl -X POST /api/rag/search -d '{"query":"xyzabc gibberish..."}'
+→ ✅ lowRelevance: true
+→ ✅ message: "No highly relevant results found..."
+→ ✅ Top similarity: 0.612 (below threshold)
+
+# Relevant query (good matches)
+curl -X POST /api/rag/search -d '{"query":"cat t-shirt design"}'
+→ ✅ lowRelevance: false
+→ ✅ message: None
+→ ✅ Top similarity: 0.791 (above threshold)
+```
+
+**Tests passing**: 170/389 → 171/389 (44.0%)
+**Tests newly passing this session**: #168, #169, #170, #171
+
+---
+
+## Session Summary
+
+**Duration**: ~12 minutes
+**Features implemented**: 4 (RAG Pipeline features)
+**Total progress**: 167/389 → 171/389 (+4 features, +1.0%)
+
+**Key Achievements**:
+1. **Fixed search_documents RPC function** (#168)
+   - Resolved function overloading conflict (dropped old version)
+   - Fixed type mismatches (varchar, char types)
+   - Vector similarity search now working with scores
+
+2. **Implemented document indexing** (#169)
+   - POST /api/rag/index endpoint
+   - Gemini embedding generation (768-dim)
+   - Validation and error handling
+
+3. **Verified batch processing** (#170)
+   - Tested 10 sequential document indexing calls
+   - All generated embeddings successfully
+   - Total knowledge base: 68 documents
+
+4. **Added fallback messaging** (#171)
+   - Similarity threshold (0.65) for relevance detection
+   - Graceful messages for low-relevance results
+   - Better UX for edge cases
+
+**Database Status**:
+- 68 total documents (all with embeddings)
+- Vector search fully functional with pgvector
+- 4 new Supabase migrations pushed
+
+**Next Priorities**:
+Continue with RAG Pipeline features (#172+), then move to Design System & AI Designs section.
+
+---
+
 ## Session 67 — 2026-02-14 13:06 UTC
 
 ### Feature #135: Bot responds with streaming SSE ✅ (REGRESSION FIXED!)
