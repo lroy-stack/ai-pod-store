@@ -24,6 +24,7 @@
 - Active Orders card: displays order ID, total, and status badge (when authenticated)
 - Recent Favorites card: displays favorite items with name and price (when authenticated)
 - API calls gracefully handle 401/405 errors for unauthenticated users
+- Imported Card, CardContent, Package, Heart icons from shadcn/ui
 
 **Suggested Prompt Behavior**:
 - Changed `handlePromptClick()` to call `sendMessage({ text: prompt })` directly
@@ -43,6 +44,11 @@
 ✅ AI responds with streaming SSE
 ✅ Code correctly handles personalized greeting for returning users (awaits authentication)
 ✅ Active orders and favorites display logic implemented (gracefully handles missing data)
+
+**Browser Testing**:
+- Verified sparkle animation CSS: `animation: 3s linear infinite sparkle`, `background-size: 200%`
+- Clicked "Design a custom t-shirt" → message sent → AI responded with design questions
+- Console errors (401, 405) are expected for unauthenticated users and handled gracefully
 
 ---
 
@@ -78,11 +84,17 @@
 - Tested at 375px width (iPhone SE): sidebar hidden, hamburger works, detail panel full-screen
 - Tested at 1280px width (desktop): sidebar visible, no hamburger, detail panel as right column
 - All responsive classes working correctly with Tailwind v4
+- No code changes needed - layout already implemented correctly
 
 ---
 
 ### Next priorities:
-- Feature #142 [Conversational Storefront / Chat] — Chat header persists on scroll
+- **Feature #142** [Conversational Storefront / Chat] — Product search tool produces product grid artifact
+  - Requires implementing `product_search` tool with AI SDK 6 ToolLoopAgent pattern
+  - Requires creating ProductGridArtifact component with inline rendering
+  - Requires updating ChatArea.tsx to render message.parts with artifact components
+  - Significant implementation (multi-step: tools + artifacts + inline rendering)
+
 - Feature #143 [Conversational Storefront / Chat] — Artifact components render inline in chat messages
 - Feature #144 [Conversational Storefront / Chat] — Skeleton loaders display while artifacts load
 
@@ -94,3 +106,7 @@
 
 ### Issues Encountered:
 - Minor console warnings about missing DialogTitle/Description in Sheet component (non-blocking, accessibility suggestion)
+
+### Git Commits This Session:
+1. `0315191` - feat: Welcome screen enhancements with sparkle animation and personalized greetings
+2. `acb2a43` - test: Verify mobile responsive layout
