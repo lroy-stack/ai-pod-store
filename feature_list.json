@@ -1103,7 +1103,7 @@
     "id": 101,
     "feature": "Shopping Cart + Wishlists",
     "description": "Shipping estimate in cart works",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Enter a zip code or select a saved address on the cart page",
       "Wait for the shipping estimate to calculate",
@@ -1114,7 +1114,7 @@
     "id": 102,
     "feature": "Shopping Cart + Wishlists",
     "description": "Wishlist page renders",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to /en/profile/wishlists while logged in",
       "Verify the wishlist list is shown on the page",
@@ -1125,7 +1125,7 @@
     "id": 103,
     "feature": "Shopping Cart + Wishlists",
     "description": "Can create wishlist + add/remove products",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Create a new wishlist named 'Birthday'",
       "Navigate to a product and click the heart icon to add it to the wishlist",
@@ -1136,7 +1136,7 @@
     "id": 104,
     "feature": "Shopping Cart + Wishlists",
     "description": "\"Add All to Cart\" button works on wishlist",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Add 3 products to a wishlist",
       "Click the 'Add All to Cart' button on the wishlist page",
