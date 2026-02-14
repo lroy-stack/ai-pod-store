@@ -1004,7 +1004,7 @@
     "id": 92,
     "feature": "Shopping Cart + Wishlists",
     "description": "Cart total updates correctly",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Add 2 different items to the cart",
       "Verify the subtotal equals the sum of both items' prices",
