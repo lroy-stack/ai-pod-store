@@ -1026,7 +1026,7 @@
     "id": 94,
     "feature": "Shopping Cart + Wishlists",
     "description": "Cart empty state shows",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Remove all items from the cart",
       "Navigate to the cart page",

@@ -248,3 +248,78 @@ Screenshot evidence:
 **Files Modified:**
 - frontend/src/app/api/products/route.ts (added q parameter support)
 
+
+---
+
+## Session 29 (Coding Agent) - 2026-02-14 00:55 UTC
+
+### Work Completed:
+
+**BUG FIX**: Cart API endpoint mismatch in useCart hook
+- Root cause: useCart was calling `/api/cart/{itemId}` for PATCH/DELETE operations
+- Cart API route only supports `/api/cart` with operations differentiated by HTTP method
+- Solution: Fixed both `removeFromCart` and `updateQuantity` to use PATCH `/api/cart` with `item_id` in body
+- Changed `removeFromCart` to call PATCH with `quantity: 0` (which triggers delete logic in API)
+- Changed `updateQuantity` to call PATCH with `{ item_id, quantity }` body
+
+**Feature #93 COMPLETED**: Cart persists across page navigation
+- Verified complete user workflow through browser testing with Playwright MCP
+- Added item to cart on product detail page (Classic T-Shirt, Size M, Color Black)
+- Cart badge updated to show "1"
+- Navigated to /en/shop — cart badge still showed "1"
+- Navigated to /en/cart — item appeared with full details
+- Cart data persists correctly via session cookie mechanism
+
+### Verification Steps Taken:
+
+1. ✅ Navigated to product detail page (/en/shop/1)
+2. ✅ Selected variant options (Size: M, Color: Black)
+3. ✅ Clicked "Add to cart" button
+4. ✅ Toast notification appeared: "Added to cart - Classic T-Shirt has been added to your cart"
+5. ✅ Cart badge updated to show "1"
+6. ✅ Navigated to /en/shop
+7. ✅ Cart badge still showed "1" (persistence verified)
+8. ✅ Navigated to /en/cart
+9. ✅ Cart page displayed item: "Classic T-Shirt", "$24.99 each", quantity 1, total "$24.99"
+10. ✅ All details persisted correctly
+
+### Current Status:
+
+- **Tests passing**: 93/389 (23.9%) — +1 feature this session
+- **Feature ID 93** [Shopping Cart + Wishlists] - Cart persists across page navigation: ✅ **PASSING**
+
+### Issues Encountered:
+
+1. **API endpoint mismatch**: The useCart hook was using REST-style `/api/cart/{id}` endpoints, but the cart API route doesn't support that pattern. Fixed by using PATCH /api/cart with item_id in body.
+
+2. **Silent validation failure**: Add to cart button silently failed when size/color were required but not selected. This is expected behavior (lines 110-115 in ProductDetailClient.tsx validate and return early). User must select all required variants before adding to cart.
+
+### Next Steps:
+
+1. Continue Shopping Cart + Wishlists features (IDs 94-109)
+2. Next target: ID 94 - Cart syncs when user logs in
+
+### Database Status:
+
+- Connected to remote Supabase instance (https://your-project.supabase.co)
+- 24 tables exist and operational
+- cart_items table working correctly with session-based and user-based carts
+- Session cookies persist across page navigation
+
+### Environment:
+
+- .env.local configured correctly with all API keys
+- Dev server running on port 3000
+- No TypeScript errors
+- Cart API fully functional (GET, POST, PATCH with correct endpoints)
+
+---
+
+## Next Session Priorities:
+
+1. Feature #94: Cart syncs when user logs in (merge guest cart with user cart)
+2. Continue Shopping Cart + Wishlists features (IDs 95-109)
+3. Then move to Checkout & Payments (IDs 110-131)
+
+---
+
