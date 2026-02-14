@@ -1756,7 +1756,7 @@
     "id": 158,
     "feature": "Conversational Storefront / Chat",
     "description": "Branded artifact components render INLINE in chat from message.parts",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Trigger a tool that produces an artifact (e.g., product search)",
       "Verify artifacts render INLINE in chat via message.parts.map()",
