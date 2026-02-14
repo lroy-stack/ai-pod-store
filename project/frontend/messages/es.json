@@ -333,6 +333,13 @@
     "calculatedAtNextStep": "Calculado en el siguiente paso",
     "continueShopping": "Continuar Comprando",
     "emptyCart": "Tu carrito está vacío",
-    "emptyCartDescription": "Agrega algunos artículos a tu carrito antes de finalizar la compra"
+    "emptyCartDescription": "Agrega algunos artículos a tu carrito antes de finalizar la compra",
+    "shippingAddress": "Dirección de Envío",
+    "selectAddress": "Selecciona una dirección guardada",
+    "addNewAddress": "Agregar Nueva Dirección",
+    "useThisAddress": "Usar Esta Dirección",
+    "default": "Predeterminado",
+    "noSavedAddresses": "No hay direcciones guardadas",
+    "loadingAddresses": "Cargando direcciones..."
   }
 }

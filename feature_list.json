@@ -1213,7 +1213,7 @@
     "id": 111,
     "feature": "Checkout & Payments",
     "description": "Saved shipping addresses selectable",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to the checkout page with saved addresses",
       "Verify saved addresses appear in a dropdown or list",

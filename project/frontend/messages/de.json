@@ -333,6 +333,13 @@
     "calculatedAtNextStep": "Im nächsten Schritt berechnet",
     "continueShopping": "Weiter Einkaufen",
     "emptyCart": "Dein Warenkorb ist leer",
-    "emptyCartDescription": "Füge einige Artikel zu deinem Warenkorb hinzu, bevor du zur Kasse gehst"
+    "emptyCartDescription": "Füge einige Artikel zu deinem Warenkorb hinzu, bevor du zur Kasse gehst",
+    "shippingAddress": "Lieferadresse",
+    "selectAddress": "Wähle eine gespeicherte Adresse",
+    "addNewAddress": "Neue Adresse Hinzufügen",
+    "useThisAddress": "Diese Adresse Verwenden",
+    "default": "Standard",
+    "noSavedAddresses": "Keine gespeicherten Adressen",
+    "loadingAddresses": "Adressen werden geladen..."
   }
 }

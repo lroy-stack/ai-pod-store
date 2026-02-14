@@ -3,25 +3,72 @@
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import Image from 'next/image'
-import { ShoppingCart, ArrowLeft } from 'lucide-react'
+import { ShoppingCart, ArrowLeft, MapPin, Check } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { useCart } from '@/hooks/useCart'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
+import { Badge } from '@/components/ui/badge'
 import { formatPrice } from '@/lib/currency'
+import { useState, useEffect } from 'react'
+
+interface ShippingAddress {
+  id: string
+  label: string
+  full_name: string
+  street_address: string
+  street_address_2?: string
+  city: string
+  state: string
+  postal_code: string
+  country_code: string
+  phone?: string
+  is_default: boolean
+}
 
 export default function CheckoutView({ locale }: { locale: string }) {
   const t = useTranslations('Checkout')
   const tCart = useTranslations('Cart')
-  const { user } = useAuth()
+  const { user, authenticated } = useAuth()
   const { items: cartItems, loading } = useCart()
+  const [addresses, setAddresses] = useState<ShippingAddress[]>([])
+  const [loadingAddresses, setLoadingAddresses] = useState(false)
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null)
+  const [showNewAddressForm, setShowNewAddressForm] = useState(false)
 
   // Get user's preferred currency, fallback to locale default
   const userCurrency = user?.currency || (locale === 'es' || locale === 'de' ? 'EUR' : 'USD')
 
   const cartTotal = cartItems.reduce((total, item) => total + (item.product_price * item.quantity), 0)
   const itemCount = cartItems.reduce((count, item) => count + item.quantity, 0)
+
+  // Fetch saved addresses for authenticated users
+  useEffect(() => {
+    if (authenticated && user) {
+      fetchAddresses()
+    }
+  }, [authenticated, user])
+
+  const fetchAddresses = async () => {
+    setLoadingAddresses(true)
+    try {
+      const response = await fetch('/api/shipping-addresses')
+      if (response.ok) {
+        const data = await response.json()
+        setAddresses(data)
+        // Auto-select default address
+        const defaultAddress = data.find((addr: ShippingAddress) => addr.is_default)
+        if (defaultAddress) {
+          setSelectedAddressId(defaultAddress.id)
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching addresses:', error)
+    } finally {
+      setLoadingAddresses(false)
+    }
+  }
 
   if (loading) {
     return (
@@ -97,15 +144,136 @@ export default function CheckoutView({ locale }: { locale: string }) {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-        {/* Main Content - Left Side (will be checkout form in future) */}
-        <div className="lg:col-span-2">
+        {/* Main Content - Left Side */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Shipping Address Section */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-foreground">Checkout Form Coming Soon</CardTitle>
+              <CardTitle className="text-foreground flex items-center gap-2">
+                <MapPin className="size-5" />
+                {t('shippingAddress')}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {authenticated ? (
+                <div className="space-y-4">
+                  {loadingAddresses ? (
+                    <div className="space-y-3">
+                      {[1, 2].map((i) => (
+                        <div key={i} className="h-24 bg-muted animate-pulse rounded" />
+                      ))}
+                    </div>
+                  ) : addresses.length > 0 ? (
+                    <>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        {t('selectAddress')}
+                      </p>
+                      <div className="space-y-3">
+                        {addresses.map((address) => (
+                          <div
+                            key={address.id}
+                            className={`p-4 border-2 rounded-lg cursor-pointer transition-colors ${
+                              selectedAddressId === address.id
+                                ? 'border-primary bg-primary/5'
+                                : 'border-border hover:border-primary/50'
+                            }`}
+                            onClick={() => {
+                              setSelectedAddressId(address.id)
+                              setShowNewAddressForm(false)
+                            }}
+                          >
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className="font-medium text-foreground">
+                                    {address.label}
+                                  </span>
+                                  {address.is_default && (
+                                    <Badge variant="secondary" className="text-xs">
+                                      {t('default')}
+                                    </Badge>
+                                  )}
+                                </div>
+                                <p className="text-sm text-foreground">{address.full_name}</p>
+                                <p className="text-sm text-muted-foreground">
+                                  {address.street_address}
+                                  {address.street_address_2 && `, ${address.street_address_2}`}
+                                </p>
+                                <p className="text-sm text-muted-foreground">
+                                  {address.city}, {address.state} {address.postal_code}
+                                </p>
+                                <p className="text-sm text-muted-foreground">
+                                  {address.country_code}
+                                </p>
+                                {address.phone && (
+                                  <p className="text-sm text-muted-foreground mt-1">
+                                    {address.phone}
+                                  </p>
+                                )}
+                              </div>
+                              {selectedAddressId === address.id && (
+                                <div className="size-6 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
+                                  <Check className="size-4 text-primary-foreground" />
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setShowNewAddressForm(true)
+                          setSelectedAddressId(null)
+                        }}
+                        className="w-full mt-4"
+                      >
+                        {t('addNewAddress')}
+                      </Button>
+                      {showNewAddressForm && (
+                        <div className="mt-4 p-4 border-2 border-primary rounded-lg bg-primary/5">
+                          <p className="text-sm text-foreground">
+                            New address form will be implemented here.
+                          </p>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-muted-foreground mb-4">{t('noSavedAddresses')}</p>
+                      <Button
+                        onClick={() => setShowNewAddressForm(true)}
+                      >
+                        {t('addNewAddress')}
+                      </Button>
+                      {showNewAddressForm && (
+                        <div className="mt-4 p-4 border-2 border-primary rounded-lg bg-primary/5 text-left">
+                          <p className="text-sm text-foreground">
+                            New address form will be implemented here.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground mb-4">
+                    Guest checkout - shipping form will be shown here
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Payment Section (placeholder) */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-foreground">Payment Information</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">
-                Payment and shipping information form will be implemented here.
+                Payment form (Stripe integration) will be implemented here.
               </p>
             </CardContent>
           </Card>

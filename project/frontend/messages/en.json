@@ -333,6 +333,13 @@
     "calculatedAtNextStep": "Calculated at next step",
     "continueShopping": "Continue Shopping",
     "emptyCart": "Your cart is empty",
-    "emptyCartDescription": "Add some items to your cart before checking out"
+    "emptyCartDescription": "Add some items to your cart before checking out",
+    "shippingAddress": "Shipping Address",
+    "selectAddress": "Select a saved address",
+    "addNewAddress": "Add New Address",
+    "useThisAddress": "Use This Address",
+    "default": "Default",
+    "noSavedAddresses": "No saved addresses",
+    "loadingAddresses": "Loading addresses..."
   }
 }

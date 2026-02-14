@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 
-export const dynamic = 'force-dynamic';
-
 // GET /api/shipping-addresses - Get all shipping addresses for the current user
 export async function GET(request: NextRequest) {
   try {
