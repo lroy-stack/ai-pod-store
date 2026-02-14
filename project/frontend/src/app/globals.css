@@ -12,6 +12,10 @@
   --color-card: #ffffff;
   --color-card-foreground: #1d1d1f;
 
+  /* Popovers & Dropdowns */
+  --color-popover: #ffffff;
+  --color-popover-foreground: #1d1d1f;
+
   /* Primary — brand, links, CTA buttons */
   --color-primary: #0071e3;
   --color-primary-foreground: #ffffff;
@@ -22,11 +26,11 @@
 
   /* Muted — toned-down backgrounds & secondary text */
   --color-muted: #f5f5f7;
-  --color-muted-foreground: #86868b;
+  --color-muted-foreground: #737378;
 
-  /* Accent — alias for primary (shadcn compat) */
-  --color-accent: #0071e3;
-  --color-accent-foreground: #ffffff;
+  /* Accent — subtle hover for menus & interactive lists */
+  --color-accent: #f0f0f2;
+  --color-accent-foreground: #1d1d1f;
 
   /* Destructive — errors, danger actions */
   --color-destructive: #ff3b30;
@@ -66,7 +70,10 @@
   --color-card: #1c1c1e;
   --color-card-foreground: #f5f5f7;
 
-  --color-primary: #0a84ff;
+  --color-popover: #1c1c1e;
+  --color-popover-foreground: #f5f5f7;
+
+  --color-primary: #0071e3;
   --color-primary-foreground: #ffffff;
 
   --color-secondary: #1c1c1e;
@@ -75,8 +82,8 @@
   --color-muted: #2c2c2e;
   --color-muted-foreground: #98989d;
 
-  --color-accent: #0a84ff;
-  --color-accent-foreground: #ffffff;
+  --color-accent: #2c2c2e;
+  --color-accent-foreground: #f5f5f7;
 
   --color-destructive: #ff453a;
   --color-destructive-foreground: #ffffff;
