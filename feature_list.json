@@ -1301,7 +1301,7 @@
     "id": 119,
     "feature": "Checkout & Payments",
     "description": "Failed payment shows error message",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Use Stripe test card for decline (4000000000000002) during checkout",
       "Verify an error message is shown indicating the payment failed",
