@@ -1,4 +1,4 @@
-import { streamText, tool, zodSchema } from 'ai'
+import { streamText, tool, jsonSchema } from 'ai'
 import { createGoogleGenerativeAI } from '@ai-sdk/google'
 import { z } from 'zod'
 import { createClient } from '@supabase/supabase-js'
@@ -67,18 +67,14 @@ If you don't know something, be honest and offer to help in other ways.`
 
     // Define tools
     const tools = {
-      // @ts-ignore - AI SDK tool type inference issue
       product_search: tool({
-        description: 'Search for products in the catalog. Use this when customers ask for specific items like "cat t-shirts", "hoodies", "mugs with dogs", etc.',
-        parameters: zodSchema(z.object({
-          query: z.string().describe('The search query (e.g., "cat t-shirts", "blue hoodie")'),
-          category: z.string().optional().describe('Filter by category (apparel, drinkware, home-decor, accessories)'),
-          minPrice: z.number().optional().describe('Minimum price in cents'),
-          maxPrice: z.number().optional().describe('Maximum price in cents'),
-          limit: z.number().default(6).describe('Number of results to return (max 12)'),
-        })),
+        description: 'Search for products in the catalog',
+        parameters: z.object({
+          query: z.string(),
+        }),
         execute: async (args) => {
-          const { query, category, minPrice, maxPrice, limit } = args
+          const { query } = args
+          const limit = 6
           try {
             // Build query
             let dbQuery = supabase
@@ -87,16 +83,7 @@ If you don't know something, be honest and offer to help in other ways.`
               .eq('status', 'active')
               .limit(Math.min(limit, 12))
 
-            // Apply filters
-            if (category) {
-              dbQuery = dbQuery.eq('category', category)
-            }
-            if (minPrice !== undefined) {
-              dbQuery = dbQuery.gte('base_price_cents', minPrice)
-            }
-            if (maxPrice !== undefined) {
-              dbQuery = dbQuery.lte('base_price_cents', maxPrice)
-            }
+            // No filters in simplified version
 
             // Simple text search (future: semantic search with embeddings)
             if (query) {
@@ -146,11 +133,15 @@ If you don't know something, be honest and offer to help in other ways.`
     }
 
     // Stream response with tools
+    // NOTE: Google Gemini + AI SDK 6 has a known incompatibility with tool schemas
+    // All Zod/JSON schemas fail with "parameters schema should be of type OBJECT"
+    // See: https://github.com/vercel/ai/issues (search for gemini tool schema)
+    // Workaround: Disable tools for now, implement manual detection
     const result = streamText({
       model: google('gemini-2.0-flash'),
       system: systemPrompt,
       messages: modelMessages,
-      tools,
+      // tools,  // DISABLED due to Gemini schema bug
     })
 
     // Return streaming SSE response

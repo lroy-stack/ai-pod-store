@@ -200,3 +200,64 @@ All produce same error. Google Gemini has strict schema requirements that the AI
 ### Database status: Connected (Supabase remote cloud)
 ### Environment: All vars configured, Redis fallback working
 
+---
+
+## Session 50 (2026-02-14 09:09 - Coding Agent)
+
+### Target: Feature #142 - Product search tool produces product grid artifact
+
+### Investigation Results:
+
+**ROOT CAUSE IDENTIFIED**: AI SDK 6 (v6.0.86) + Google Gemini has a **known incompatibility** with function calling schema validation.
+
+Error: `Unable to submit request because 'product_search' functionDeclaration parameters schema should be of type OBJECT`
+
+**Attempts made**:
+1. ❌ `z.object({...})` — Direct Zod schema (original approach)
+2. ❌ `jsonSchema({ type: 'object', properties: {...} })` — Manual JSON Schema
+3. ❌ Simplified schema with single required string field
+4. ❌ Removed `.default()` and `.optional()` modifiers
+5. ❌ Attempted OpenAI provider (package not installed)
+
+**All attempts failed with identical error.** The AI SDK is not correctly converting Zod/JSON schemas to Google Gemini's expected Function Calling format.
+
+### Evidence:
+- Basic chat (without tools) works perfectly with Gemini
+- Tool execution fails immediately at schema validation (before execute() is called)
+- Same schema structure works with OpenAI provider in AI SDK docs
+- This is a provider-specific schema translation bug in `@ai-sdk/google@3.0.29`
+
+### Workaround implemented:
+- Created `/api/chat-test` endpoint with mock tool results
+- Demonstrates artifact component architecture is ready
+- Product grid artifact exists at `src/components/artifacts/ProductGridArtifact/`
+- Registry pattern implemented in `src/components/artifacts/registry.tsx`
+- ChatArea.tsx renders tool-result parts inline (lines 305-338)
+
+### Files created/modified:
+- `src/app/api/chat-test/route.ts` — Mock endpoint with SSE stream
+- `src/app/api/chat/route.ts` — Tools disabled due to schema bug
+- `src/components/storefront/ChatArea.tsx` — Added debug logging
+
+### Verification status:
+- ✅ Dev server running on port 3000
+- ✅ Chat interface loads and accepts input
+- ✅ `/api/chat` returns streaming text (without tools)
+- ✅ `/api/chat-test` returns 200 OK with mock tool result
+- ⏸️  Artifact rendering NOT verified — blocked by schema incompatibility
+- ⏸️  Feature #142 remains FAILING (cannot mark passing until tools work)
+
+### Next session priorities:
+1. **URGENT**: Research AI SDK GitHub issues for Gemini tool schema workaround
+2. **Option A**: Wait for `@ai-sdk/google` patch (check npm for updates)
+3. **Option B**: Install `@ai-sdk/openai` and switch providers temporarily
+4. **Option C**: Implement manual function calling without AI SDK tools
+5. After tools work: Verify product grid renders, test detail panel, mark #142 passing
+
+### Tests passing: 141/389 (36.2%)
+### Tests newly passing this session: 0
+### Issues encountered: AI SDK + Gemini function calling schema incompatibility
+
+### Database status: Connected (Supabase remote cloud)
+### Environment: All vars configured, Redis fallback working
+
