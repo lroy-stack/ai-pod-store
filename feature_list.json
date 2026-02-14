@@ -2325,7 +2325,7 @@
     "id": 210,
     "feature": "Order Management & Notifications",
     "description": "Printify webhook signature validation",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Send a Printify webhook without a valid HMAC signature",
       "Verify the request is rejected",
