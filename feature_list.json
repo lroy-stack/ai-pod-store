@@ -2599,7 +2599,7 @@
     "id": 235,
     "feature": "Admin Dashboard & Agent Monitor",
     "description": "Admin settings page",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to http://localhost:3001/settings",
       "Verify a store configuration form is displayed",
