@@ -39,10 +39,18 @@ export async function GET(
       .from('order_items')
       .select(`
         *,
-        products:product_id (
+        product:products!order_items_product_id_fkey (
           id,
-          name,
-          price_cents
+          title,
+          base_price_cents,
+          currency,
+          images
+        ),
+        variant:product_variants!order_items_variant_id_fkey (
+          id,
+          size,
+          color,
+          sku
         )
       `)
       .eq('order_id', id)

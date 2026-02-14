@@ -2215,7 +2215,7 @@
     "id": 200,
     "feature": "Order Management & Notifications",
     "description": "Multiple items in single order display",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Create an order with 3 different items",
       "Navigate to the order detail page",
