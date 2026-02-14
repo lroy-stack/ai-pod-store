@@ -26,7 +26,8 @@ const google = createGoogleGenerativeAI({
  */
 export async function POST(req: Request) {
   try {
-    const { messages } = await req.json()
+    const body = await req.json()
+    const { messages } = body
 
     if (!messages || !Array.isArray(messages)) {
       return Response.json(
@@ -45,14 +46,26 @@ export async function POST(req: Request) {
 Be friendly, helpful, and concise. Always respond in the user's language.
 If you don't know something, be honest and offer to help in other ways.`
 
+    // Convert UI messages (with parts array) to model messages
+    // UI messages have { role, parts: [{ type: 'text', text: '...' }], id }
+    // Model messages need { role, content: '...' }
+    const modelMessages = messages.map((msg: any) => {
+      // Extract text from parts array
+      const textParts = msg.parts.filter((p: any) => p.type === 'text')
+      const content = textParts.map((p: any) => p.text).join('\n')
+
+      return {
+        role: msg.role,
+        content,
+      }
+    })
+
     // Stream response using Google Gemini
-    // Messages from useChat are already in the correct format
     const result = await streamText({
       model: google('gemini-2.0-flash'),
       system: systemPrompt,
-      messages,
-      maxTokens: 1000,
-      temperature: 0.7,
+      messages: modelMessages,
+      maxSteps: 1, // Single-turn response (no tools yet)
     })
 
     // Return streaming SSE response

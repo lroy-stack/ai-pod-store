@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { useChat } from '@ai-sdk/react'
+import { DefaultChatTransport } from 'ai'
 
 interface ChatAreaProps {
   onSelectProduct: (productId: string) => void
@@ -29,10 +30,12 @@ export function ChatArea({ onSelectProduct }: ChatAreaProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const [inputValue, setInputValue] = useState('')
 
-  // AI SDK 6 useChat hook with streaming
-  const { messages, sendMessage, status } = useChat()
+  // AI SDK 6 useChat hook with DefaultChatTransport
+  const { messages, sendMessage, status } = useChat({
+    transport: new DefaultChatTransport({ api: '/api/chat' }),
+  })
 
-  const isLoading = status === 'streaming' || status === 'awaiting-message'
+  const isLoading = status === 'submitted' || status === 'streaming'
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
@@ -49,7 +52,7 @@ export function ChatArea({ onSelectProduct }: ChatAreaProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!inputValue.trim()) return
-    sendMessage(inputValue)
+    sendMessage({ text: inputValue })
     setInputValue('')
   }
 
@@ -174,7 +177,16 @@ export function ChatArea({ onSelectProduct }: ChatAreaProps) {
                       : 'bg-muted text-foreground'
                   }`}
                 >
-                  <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                  {message.parts.map((part, index) => {
+                    if (part.type === 'text') {
+                      return (
+                        <p key={index} className="text-sm whitespace-pre-wrap">
+                          {part.text}
+                        </p>
+                      )
+                    }
+                    return null
+                  })}
                 </div>
                 {message.role === 'user' && (
                   <Avatar className="h-8 w-8 flex-shrink-0">

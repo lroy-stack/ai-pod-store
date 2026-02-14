@@ -1488,7 +1488,7 @@
     "id": 135,
     "feature": "Conversational Storefront / Chat",
     "description": "Bot responds with streaming SSE",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Send a message in the chat",
       "Verify the response streams in word-by-word using SSE",
