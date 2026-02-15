@@ -2981,7 +2981,7 @@
     "id": 270,
     "feature": "PodClaw Agent",
     "description": "Agent memory consolidation works",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Run memory consolidation process",
       "Verify daily log entries are summarized into weekly summary",
@@ -5951,6 +5951,272 @@
       "Read app_spec.txt",
       "Verify phase_17 section exists with name 'PodClaw Production Hardening'",
       "Verify it documents async I/O, metrics, security, supabase connector, and memory improvements"
+    ]
+  },
+  {
+    "id": 536,
+    "feature": "PodClaw Heartbeat \u2014 Config Constants",
+    "description": "config.py includes heartbeat, consolidation, soul evolution, and admin notification constants",
+    "passes": true,
+    "steps": [
+      "Read podclaw/config.py",
+      "Verify HEARTBEAT_INTERVAL_MINUTES, HEARTBEAT_MODEL, HEARTBEAT_ENABLED exist",
+      "Verify CONSOLIDATION_MODEL, CONSOLIDATION_MAX_TOKENS exist",
+      "Verify SOUL_EVOLUTION_ENABLED, SOUL_MAX_LINES, SOUL_AUTO_APPROVE exist",
+      "Verify ADMIN_TELEGRAM_CHAT_ID exists"
+    ]
+  },
+  {
+    "id": 537,
+    "feature": "PodClaw Heartbeat \u2014 Event Queue Module",
+    "description": "event_queue.py implements bounded async SystemEventQueue with push/drain/peek",
+    "passes": true,
+    "steps": [
+      "Read podclaw/event_queue.py",
+      "Verify SystemEvent dataclass with source, event_type, payload, wake_mode, target_agent",
+      "Verify SystemEventQueue with MAX_SIZE=20 and deque(maxlen)",
+      "Verify async push(), drain(), peek(), has_urgent(), size property"
+    ]
+  },
+  {
+    "id": 538,
+    "feature": "PodClaw Heartbeat \u2014 SQL Migration",
+    "description": "Migration creates heartbeat_events and soul_change_log tables",
+    "passes": true,
+    "steps": [
+      "Read supabase/migrations/20260215120000_heartbeat_tables.sql",
+      "Verify heartbeat_events table with event_type, priority, fingerprint columns",
+      "Verify soul_change_log table with proposal_id, section, diff, status columns",
+      "Verify agent_sessions constraint updated to include heartbeat and consolidation"
+    ]
+  },
+  {
+    "id": 539,
+    "feature": "PodClaw Heartbeat \u2014 Memory Manager HEARTBEAT.md Methods",
+    "description": "MemoryManager has heartbeat_path, read_heartbeat, update_heartbeat methods",
+    "passes": true,
+    "steps": [
+      "Read podclaw/memory_manager.py",
+      "Verify heartbeat_path property returns memory_dir / HEARTBEAT.md",
+      "Verify read_heartbeat() reads the file",
+      "Verify update_heartbeat(content) writes the file",
+      "Verify read_daily_tail(lines) method exists"
+    ]
+  },
+  {
+    "id": 540,
+    "feature": "PodClaw Heartbeat \u2014 Agentic Daily Consolidation",
+    "description": "consolidate_daily_to_weekly uses LLM (Sonnet) with mechanical fallback",
+    "passes": true,
+    "steps": [
+      "Read podclaw/memory_manager.py",
+      "Verify consolidate_daily_to_weekly calls _llm_summarize_daily first",
+      "Verify _llm_summarize_daily uses CONSOLIDATION_MODEL via anthropic.AsyncAnthropic",
+      "Verify try/except falls back to _mechanical_extract on failure",
+      "Verify _mechanical_extract preserves original line-extraction logic"
+    ]
+  },
+  {
+    "id": 541,
+    "feature": "PodClaw Heartbeat \u2014 Agentic Weekly Consolidation",
+    "description": "consolidate_weekly_to_memory uses LLM to extract durable learnings",
+    "passes": true,
+    "steps": [
+      "Read podclaw/memory_manager.py",
+      "Verify consolidate_weekly_to_memory calls _llm_extract_learnings",
+      "Verify _llm_extract_learnings compares against existing MEMORY.md",
+      "Verify system prompt asks for [Pattern], [Learning], [Opinion], [Fact] categories",
+      "Verify fallback writes simple week marker on LLM failure"
+    ]
+  },
+  {
+    "id": 542,
+    "feature": "PodClaw Heartbeat \u2014 Soul Evolution Module",
+    "description": "soul_evolution.py implements SoulEvolution with propose/apply/reject",
+    "passes": true,
+    "steps": [
+      "Read podclaw/soul_evolution.py",
+      "Verify IMMUTABLE_SECTIONS includes Constraints and Escalation Rules",
+      "Verify REVIEW_TRIGGERS includes destructive keywords (remove, delete, weaken, etc.)",
+      "Verify propose_change rejects immutable sections",
+      "Verify propose_change checks SOUL_MAX_LINES limit",
+      "Verify apply_proposal writes to SOUL.md and updates Evolution Log"
+    ]
+  },
+  {
+    "id": 543,
+    "feature": "PodClaw Heartbeat \u2014 Soul Change Logging",
+    "description": "Soul proposals generate unified diffs logged to soul_change_log table",
+    "passes": true,
+    "steps": [
+      "Read podclaw/soul_evolution.py",
+      "Verify _generate_diff creates unified diff output",
+      "Verify _log_to_db writes to soul_change_log table",
+      "Verify _update_db_status updates status and resolved_at"
+    ]
+  },
+  {
+    "id": 544,
+    "feature": "PodClaw Heartbeat \u2014 HeartbeatRunner Class",
+    "description": "heartbeat.py implements HeartbeatRunner with asyncio loop and Haiku LLM calls",
+    "passes": true,
+    "steps": [
+      "Read podclaw/heartbeat.py",
+      "Verify HeartbeatRunner.__init__ accepts orchestrator, event_store, memory_manager, event_queue",
+      "Verify start() creates asyncio.Task, stop() cancels it",
+      "Verify pause() and resume() toggle _paused flag",
+      "Verify _loop sleeps for interval_minutes then calls run_once"
+    ]
+  },
+  {
+    "id": 545,
+    "feature": "PodClaw Heartbeat \u2014 run_once Cycle",
+    "description": "Heartbeat run_once reads inputs, calls LLM, processes actions",
+    "passes": true,
+    "steps": [
+      "Read podclaw/heartbeat.py",
+      "Verify run_once checks _is_active_hours before proceeding",
+      "Verify run_once reads heartbeat_md, daily_tail, and drains event_queue",
+      "Verify run_once skips if all inputs are empty",
+      "Verify run_once calls _call_llm and processes HEARTBEAT_OK/ALERT/DISPATCH actions",
+      "Verify dedup via _is_duplicate with SHA256 fingerprint"
+    ]
+  },
+  {
+    "id": 546,
+    "feature": "PodClaw Heartbeat \u2014 LLM Call",
+    "description": "Heartbeat uses Haiku via direct Anthropic API for analysis",
+    "passes": true,
+    "steps": [
+      "Read podclaw/heartbeat.py",
+      "Verify _call_llm uses anthropic.AsyncAnthropic with HEARTBEAT_MODEL",
+      "Verify HEARTBEAT_SYSTEM_PROMPT instructs JSON array response",
+      "Verify JSON parsing handles markdown-wrapped code blocks",
+      "Verify fallback returns HEARTBEAT_OK on parse failure"
+    ]
+  },
+  {
+    "id": 547,
+    "feature": "PodClaw Heartbeat \u2014 Admin Telegram Notifications",
+    "description": "Heartbeat alerts notify admin via Telegram when configured",
+    "passes": true,
+    "steps": [
+      "Read podclaw/heartbeat.py",
+      "Verify _notify_admin sends to ADMIN_TELEGRAM_CHAT_ID via Telegram bot API",
+      "Verify priority-based emoji mapping (0=info, 1=warning, 2=alert, 3=critical)",
+      "Verify graceful skip when ADMIN_TELEGRAM_CHAT_ID is empty"
+    ]
+  },
+  {
+    "id": 548,
+    "feature": "PodClaw Heartbeat \u2014 Core Soul Review",
+    "description": "Orchestrator run_consolidation includes weekly soul review on Sundays",
+    "passes": true,
+    "steps": [
+      "Read podclaw/core.py",
+      "Verify run_consolidation accepts optional soul_evolution parameter",
+      "Verify _review_soul calls Sonnet to compare SOUL.md + MEMORY.md",
+      "Verify _review_soul calls soul_evolution.propose_change on PROPOSE result",
+      "Verify ALL_SESSION_TYPES includes heartbeat and consolidation"
+    ]
+  },
+  {
+    "id": 549,
+    "feature": "PodClaw Heartbeat \u2014 Scheduler Soul Integration",
+    "description": "Scheduler passes soul_evolution to consolidation job",
+    "passes": true,
+    "steps": [
+      "Read podclaw/scheduler.py",
+      "Verify set_soul_evolution method stores reference",
+      "Verify _run_consolidation_with_soul passes soul_evolution to orchestrator.run_consolidation",
+      "Verify memory_consolidation job calls _run_consolidation_with_soul"
+    ]
+  },
+  {
+    "id": 550,
+    "feature": "PodClaw Heartbeat \u2014 Memory Hook Event Queue",
+    "description": "Memory hook pushes high-priority actions to event queue",
+    "passes": true,
+    "steps": [
+      "Read podclaw/hooks/memory_hook.py",
+      "Verify memory_hook factory accepts event_queue parameter",
+      "Verify HIGH_PRIORITY_TOOLS includes stripe_create_refund and printify_delete_product",
+      "Verify push creates SystemEvent with wake_mode=next-heartbeat"
+    ]
+  },
+  {
+    "id": 551,
+    "feature": "PodClaw Heartbeat \u2014 Bridge Heartbeat Endpoints",
+    "description": "Bridge API has heartbeat status, trigger, pause, resume, alerts endpoints",
+    "passes": true,
+    "steps": [
+      "Read podclaw/bridge/api.py",
+      "Verify GET /heartbeat/status returns runner status",
+      "Verify POST /heartbeat/trigger calls run_once",
+      "Verify POST /heartbeat/pause and /heartbeat/resume toggle state",
+      "Verify GET /heartbeat/alerts queries heartbeat_events table"
+    ]
+  },
+  {
+    "id": 552,
+    "feature": "PodClaw Heartbeat \u2014 Bridge Queue Endpoints",
+    "description": "Bridge API has queue peek and push endpoints",
+    "passes": true,
+    "steps": [
+      "Read podclaw/bridge/api.py",
+      "Verify GET /queue peeks at event_queue without draining",
+      "Verify POST /queue/push creates SystemEvent from request body",
+      "Verify events serialized via to_dict()"
+    ]
+  },
+  {
+    "id": 553,
+    "feature": "PodClaw Heartbeat \u2014 Bridge Soul Endpoints",
+    "description": "Bridge API has soul read and proposals management endpoints",
+    "passes": true,
+    "steps": [
+      "Read podclaw/bridge/api.py",
+      "Verify GET /soul returns full SOUL.md content",
+      "Verify GET /soul/proposals lists pending proposals",
+      "Verify POST /soul/proposals/{id}/approve calls apply_proposal",
+      "Verify POST /soul/proposals/{id}/reject calls reject_proposal with reason"
+    ]
+  },
+  {
+    "id": 554,
+    "feature": "PodClaw Heartbeat \u2014 Main.py Wiring",
+    "description": "main.py initializes and wires event_queue, soul_evolution, heartbeat_runner",
+    "passes": true,
+    "steps": [
+      "Read podclaw/main.py",
+      "Verify SystemEventQueue created and passed to _build_hooks",
+      "Verify SoulEvolution created and set on scheduler",
+      "Verify HeartbeatRunner created with all dependencies",
+      "Verify heartbeat.start() called when HEARTBEAT_ENABLED",
+      "Verify create_app receives heartbeat, event_queue, soul_evolution",
+      "Verify _shutdown stops heartbeat"
+    ]
+  },
+  {
+    "id": 555,
+    "feature": "PodClaw Heartbeat \u2014 HEARTBEAT.md + SOUL.md Templates",
+    "description": "HEARTBEAT.md template exists and SOUL.md has Evolution Log section",
+    "passes": true,
+    "steps": [
+      "Verify memory/HEARTBEAT.md exists with Store Health, Customer Alerts sections",
+      "Verify podclaw/SOUL.md has ## Evolution Log section at the end",
+      "Verify health endpoint includes heartbeat status and queue_size"
+    ]
+  },
+  {
+    "id": 556,
+    "feature": "PodClaw Heartbeat \u2014 Phase 18 Documented",
+    "description": "app_spec.txt includes Phase 18 documenting the Heartbeat + Learning System",
+    "passes": true,
+    "steps": [
+      "Read app_spec.txt",
+      "Verify phase_18 section exists with name PodClaw Heartbeat + Learning System",
+      "Verify it documents heartbeat runner, event queue, agentic consolidation, and soul evolution"
     ]
   }
 ]
