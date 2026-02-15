@@ -4251,7 +4251,7 @@
     "id": 387,
     "feature": "Newsletter Agent",
     "description": "Newsletter agent cost tracking stays within daily budget",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify cost_guard_hook tracks newsletter agent costs",
       "Verify daily budget is $0.80 for newsletter",
