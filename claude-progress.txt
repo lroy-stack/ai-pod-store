@@ -5378,3 +5378,80 @@ $ curl http://localhost:3000/api/analytics/rfm
 **Current progress**: 503/578 (87.0%)
 **Remaining**: 75 features (12 blocked by OAuth, others implementable)
 
+
+## Session 128 (Coding Agent)
+**Date**: 2026-02-15 13:17 UTC
+**Model**: claude-sonnet-4.5
+
+### Features Implemented: +6
+- ID 436: messaging_channels table exists with correct schema ✅
+- ID 437: user_messaging_links table exists ✅
+- ID 438: messaging_conversations table exists ✅
+- ID 439: RLS on messaging tables blocks non-service-role ✅
+- ID 440: Admin toast notification for live SSE events ✅
+- ID 443: Messaging config CRUD from admin panel ✅
+
+### Tests Passing: 510/578 (88.2%)
+**Features newly passing this session**: 436-440, 443 (6 total)
+
+### Verification Method:
+**Table structure (436-438)**:
+- Created test API route to query messaging_channels, user_messaging_links, messaging_conversations
+- Verified all required columns present (id, platform, config, is_active, created_at, updated_at)
+- Tested CHECK constraint blocks invalid platform values
+- Confirmed valid insert + auto cleanup works
+
+**RLS policies (439)**:
+- Created test route with both anon and service-role clients
+- Verified anon client blocked (RLS returns empty results)
+- Verified service-role client has full access
+- Cleaned up test data
+
+**SSE toast notifications (440)**:
+- Implemented SSEProvider component with EventSource
+- Added event listeners for: new_order, agent_cycle, error_alert, alert
+- Integrated Toaster (sonner) in admin layout
+- Created in-memory event emitter (sse-emitter.ts) for single-instance broadcasting
+- Updated /api/events/stream to subscribe to emitter
+- Created /api/test-sse endpoint to trigger events
+- Browser verification: Navigated to admin panel, triggered test events via API
+- Screenshots confirmed toasts appeared with correct styling (green for success, red for errors)
+
+**Messaging config CRUD (443)**:
+- Created /api/messaging/config route (GET + POST)
+- GET fetches current telegram + whatsapp configs from messaging_channels
+- POST upserts config with platform-specific validation
+- Fixed admin env var (SUPABASE_URL instead of NEXT_PUBLIC_SUPABASE_URL)
+- Updated messaging page to load existing config on mount
+- Browser verification: Enabled Telegram, filled bot token, saved
+- API verification: curl confirmed data persisted to database
+- Toast confirmed successful save
+
+### Implementation Details:
+**SSE Architecture**:
+- SSEProvider (client): Establishes EventSource connection, maps events to toast notifications
+- sse-emitter (server): In-memory event emitter for single-instance deployments
+- /api/events/stream: SSE endpoint with heartbeat + event subscription
+- /api/test-sse: Test endpoint to trigger events (POST {"eventType":"new_order","data":{...}})
+
+**Messaging CRUD**:
+- Supports both Telegram and WhatsApp configs
+- Stores config as JSONB in messaging_channels.config column
+- Platform identified by messaging_channels.platform (telegram | whatsapp)
+- is_active controls whether channel is enabled
+- Admin auth via session cookie check
+
+**Note**: Features 441-442 skipped (require PodClaw runtime + Telegram integration)
+
+### Issues Encountered:
+1. Admin .env uses SUPABASE_URL (not NEXT_PUBLIC_SUPABASE_URL) — fixed API route
+2. SSE connection briefly errored on page navigation — harmless, reconnects automatically
+
+### Next Session Priorities:
+- Skip features 441-442, 444 (require PodClaw runtime)
+- Skip features 445 (CORS config for PodClaw bridge)
+- Look for other implementable features in remaining 68
+- Focus on non-OAuth, non-PodClaw-runtime features
+
+**Commits this session**: 1
+- `feat: messaging infrastructure + SSE toast notifications — tests #436-440, #443 passing`
