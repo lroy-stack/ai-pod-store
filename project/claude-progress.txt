@@ -1093,3 +1093,52 @@ All 4 test steps passing:
 - ID 288 [Performance & Quality] — Global error boundary works
 - ID 289 [Performance & Quality] — Console logs clean (no errors/warnings in production)
 - ID 290 [Performance & Quality] — TypeScript strict mode enabled
+
+### 3. Feature #405: Telegram webhook endpoint exists on storefront ✅
+
+**Implementation**:
+- Created `/api/webhooks/telegram` route on storefront (frontend project)
+- Receives and processes Telegram Bot API updates
+- Stores all messages in `telegram_messages` table:
+  * update_id, message_id, user_id, username
+  * first_name, last_name, chat_id, text
+  * created_at (converted from Unix timestamp)
+- Command processing:
+  * `/start` - Welcome message with intro
+  * `/help` - List of available commands
+  * Unknown commands - Helpful error message
+  * Non-command messages - Acknowledgment (pending AI processing)
+- Helper function `sendTelegramMessage()`:
+  * Sends messages via Telegram Bot API
+  * Uses TELEGRAM_BOT_TOKEN from env
+  * Handles errors gracefully
+- Always returns `{"ok": true}` to prevent Telegram retries
+
+**Verification**:
+```bash
+curl -X POST http://localhost:3000/api/webhooks/telegram \
+  -H "Content-Type: application/json" \
+  -d '{"update_id": 123456789, "message": {...}}'
+→ {"ok":true}  ✅
+```
+
+---
+
+### Session Summary:
+
+**Duration**: ~1 hour
+**Tests passing**: 504/578 (87.2%)
+**Tests newly passing**: 3 features (#403, #404, #405)
+**Commits**: 4
+
+**Key achievements**:
+- Admin messaging configuration page complete
+- Order Printify retry system implemented
+- Telegram webhook foundation established
+- Database migrations pushed to Supabase
+
+**Next priorities**:
+- Continue Telegram Integration features (#406-419)
+- WhatsApp Integration (#422-435)
+- Messaging Infrastructure (#436-445)
+
