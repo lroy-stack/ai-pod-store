@@ -4065,7 +4065,7 @@
     "id": 370,
     "feature": "Marketing Agent",
     "description": "Marketing agent can be paused and resumed via bridge API",
-    "passes": false,
+    "passes": true,
     "steps": [
       "POST /agents/marketing/pause",
       "Verify scheduler jobs for marketing are paused",
@@ -4077,7 +4077,7 @@
     "id": 371,
     "feature": "Marketing Agent",
     "description": "Marketing agent appears in bridge /agents endpoint",
-    "passes": false,
+    "passes": true,
     "steps": [
       "GET /agents from bridge API",
       "Verify marketing agent is listed with correct tools",
