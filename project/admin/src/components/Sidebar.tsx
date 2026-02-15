@@ -17,6 +17,7 @@ import {
   RotateCcw,
   MessageSquare,
   Settings,
+  Palette,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -25,6 +26,7 @@ const navigation = [
   { name: 'Products', href: '/products', icon: Package },
   { name: 'Orders', href: '/orders', icon: ShoppingCart },
   { name: 'Customers', href: '/customers', icon: Users },
+  { name: 'Designs', href: '/designs', icon: Palette },
   { name: 'Analytics', href: '/analytics', icon: TrendingUp },
   { name: 'Finance', href: '/finance', icon: DollarSign },
   { name: 'Agent Monitor', href: '/agent', icon: Bot },
