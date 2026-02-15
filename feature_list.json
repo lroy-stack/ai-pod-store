@@ -4120,7 +4120,7 @@
     "id": 375,
     "feature": "Newsletter Agent",
     "description": "Newsletter agent creates RFM-personalized email content",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Trigger newsletter agent with customer_segments data",
       "Verify different content for Champions vs At-Risk segments",
@@ -4131,7 +4131,7 @@
     "id": 376,
     "feature": "Newsletter Agent",
     "description": "Newsletter agent sets up A/B test variants",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Trigger newsletter campaign creation",
       "Verify at least 2 subject line variants are created",
@@ -4142,7 +4142,7 @@
     "id": 377,
     "feature": "Newsletter Agent",
     "description": "Newsletter agent manages drip sequences (welcome, post-purchase, win-back)",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify welcome series: 3 emails (Day 1, Day 3, Day 7)",
       "Verify post-purchase series: 2 emails (Day 7, Day 14)",
