@@ -4218,7 +4218,7 @@
     "id": 384,
     "feature": "Newsletter Agent",
     "description": "Newsletter agent uses gemini embeddings for content personalization",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Trigger newsletter with personalization enabled",
       "Verify gemini_embed_text is called for content matching",
