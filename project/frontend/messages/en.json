@@ -170,7 +170,10 @@
     "verificationFailed": "Verification failed",
     "verificationFailedDescription": "We couldn't verify your email address. The link may be invalid or expired.",
     "tryRegisterAgain": "Try registering again",
-    "invalidVerificationLink": "Invalid verification link"
+    "invalidVerificationLink": "Invalid verification link",
+    "emailRequired": "Email address is required",
+    "emailInvalid": "Please enter a valid email address",
+    "passwordRequired": "Password is required"
   },
   "Profile": {
     "title": "My Profile",

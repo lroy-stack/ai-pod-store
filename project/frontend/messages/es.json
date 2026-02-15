@@ -170,7 +170,10 @@
     "verificationFailed": "Verificación fallida",
     "verificationFailedDescription": "No pudimos verificar tu dirección de correo electrónico. El enlace puede ser inválido o haber expirado.",
     "tryRegisterAgain": "Intenta registrarte de nuevo",
-    "invalidVerificationLink": "Enlace de verificación inválido"
+    "invalidVerificationLink": "Enlace de verificación inválido",
+    "emailRequired": "El correo electrónico es obligatorio",
+    "emailInvalid": "Por favor, introduce un correo electrónico válido",
+    "passwordRequired": "La contraseña es obligatoria"
   },
   "Profile": {
     "title": "Mi Perfil",

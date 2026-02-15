@@ -22,12 +22,42 @@ export default function LoginForm({ locale }: { locale: string }) {
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [fieldErrors, setFieldErrors] = useState<{
+    email?: string
+    password?: string
+  }>({})
 
   const justRegistered = searchParams.get('registered') === 'true'
+
+  const validateForm = () => {
+    const errors: { email?: string; password?: string } = {}
+
+    // Validate email
+    if (!formData.email) {
+      errors.email = t('emailRequired')
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      errors.email = t('emailInvalid')
+    }
+
+    // Validate password
+    if (!formData.password) {
+      errors.password = t('passwordRequired')
+    }
+
+    setFieldErrors(errors)
+    return Object.keys(errors).length === 0
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    setFieldErrors({})
+
+    // Validate form
+    if (!validateForm()) {
+      return
+    }
+
     setLoading(true)
 
     try {
@@ -116,14 +146,27 @@ export default function LoginForm({ locale }: { locale: string }) {
           <Label htmlFor="email">{t('emailLabel')}</Label>
           <Input
             id="email"
-            type="email"
+            type="text"
             autoComplete="email"
-            required
             value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            onChange={(e) => {
+              setFormData({ ...formData, email: e.target.value })
+              // Clear field error when user types
+              if (fieldErrors.email) {
+                setFieldErrors({ ...fieldErrors, email: undefined })
+              }
+            }}
             disabled={loading}
             placeholder={t('emailPlaceholder')}
+            className={fieldErrors.email ? 'border-destructive' : ''}
+            aria-invalid={!!fieldErrors.email}
+            aria-describedby={fieldErrors.email ? 'email-error' : undefined}
           />
+          {fieldErrors.email && (
+            <p id="email-error" className="text-sm text-destructive">
+              {fieldErrors.email}
+            </p>
+          )}
         </div>
 
         <div className="space-y-2">
@@ -132,12 +175,25 @@ export default function LoginForm({ locale }: { locale: string }) {
             id="password"
             type="password"
             autoComplete="current-password"
-            required
             value={formData.password}
-            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+            onChange={(e) => {
+              setFormData({ ...formData, password: e.target.value })
+              // Clear field error when user types
+              if (fieldErrors.password) {
+                setFieldErrors({ ...fieldErrors, password: undefined })
+              }
+            }}
             disabled={loading}
             placeholder={t('passwordPlaceholder')}
+            className={fieldErrors.password ? 'border-destructive' : ''}
+            aria-invalid={!!fieldErrors.password}
+            aria-describedby={fieldErrors.password ? 'password-error' : undefined}
           />
+          {fieldErrors.password && (
+            <p id="password-error" className="text-sm text-destructive">
+              {fieldErrors.password}
+            </p>
+          )}
         </div>
 
         <div className="flex items-center justify-between">

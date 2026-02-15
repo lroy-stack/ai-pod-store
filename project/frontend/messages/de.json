@@ -170,7 +170,10 @@
     "verificationFailed": "Verifizierung fehlgeschlagen",
     "verificationFailedDescription": "Wir konnten Ihre E-Mail-Adresse nicht verifizieren. Der Link ist möglicherweise ungültig oder abgelaufen.",
     "tryRegisterAgain": "Versuchen Sie erneut zu registrieren",
-    "invalidVerificationLink": "Ungültiger Bestätigungslink"
+    "invalidVerificationLink": "Ungültiger Bestätigungslink",
+    "emailRequired": "E-Mail-Adresse ist erforderlich",
+    "emailInvalid": "Bitte geben Sie eine gültige E-Mail-Adresse ein",
+    "passwordRequired": "Passwort ist erforderlich"
   },
   "Profile": {
     "title": "Mein Profil",
