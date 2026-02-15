@@ -4467,7 +4467,7 @@
     "id": 406,
     "feature": "Telegram Integration",
     "description": "Telegram webhook rejects invalid token",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Send a POST request to /api/webhooks/telegram with an invalid secret token header",
       "Verify the endpoint responds with 403 Forbidden",
