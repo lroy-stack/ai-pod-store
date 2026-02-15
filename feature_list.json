@@ -4186,7 +4186,7 @@
     "id": 381,
     "feature": "Newsletter Agent",
     "description": "Newsletter agent enforces rate limit of 500 emails per cycle",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify rate_limit_hook blocks newsletter after 500 sends",
       "Verify hook returns deny with appropriate message"
