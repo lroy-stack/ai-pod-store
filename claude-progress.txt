@@ -4077,3 +4077,33 @@ This is **expected and acceptable** for an AI endpoint with proper auth, rate-li
 
 ---
 
+
+---
+
+## Feature #284 Status: Bundle Size (Not Yet Passing)
+
+**Investigation findings**:
+- Production build completed successfully
+- Bundle analysis shows largest chunks:
+  * 612KB - `6f7364577c0eddf6.js` ❌ (exceeds 500KB limit by 112KB)
+  * 219KB - `1ab10822ef590b8b.js` ✓
+  * 110KB - `a6dad97d9634a72d.js` ✓
+  * 108KB - `4bc7be0e981733d4.js` ✓
+  * All other chunks < 100KB ✓
+
+**Root cause**: The 612KB chunk likely contains:
+- AI SDK dependencies (google-generative-ai)
+- Supabase client libraries
+- Base64 encoding utilities (visible in chunk header)
+- Other core dependencies bundled together
+
+**Next steps to fix**:
+1. Install `@next/bundle-analyzer` to identify exact dependencies
+2. Investigate code splitting opportunities
+3. Consider dynamic imports for heavy libraries
+4. Evaluate if AI SDK can be loaded on-demand
+
+**Current status**: Feature marked as **failing** until bundle optimization is completed.
+
+---
+
