@@ -3047,7 +3047,7 @@
     "id": 276,
     "feature": "PodClaw Agent",
     "description": "Agent MCP connectors initialized",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify agent config has supabase connector defined",
       "Verify agent config has redis, stripe, printify connectors defined",
