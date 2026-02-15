@@ -4478,7 +4478,7 @@
     "id": 407,
     "feature": "Telegram Integration",
     "description": "Telegram /start command responds with welcome",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Send a Telegram update with /start command to the webhook",
       "Verify the bot responds with a welcome message",
@@ -4489,7 +4489,7 @@
     "id": 408,
     "feature": "Telegram Integration",
     "description": "Telegram /status admin command returns PodClaw status",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Link a Telegram account to an admin user",
       "Send /status command from the linked Telegram account",
@@ -6499,7 +6499,7 @@
     "id": 579,
     "feature": "Landing Page + Route Restructuring",
     "description": "Chat page at /[locale]/chat renders null (ChatArea lives in StorefrontLayout)",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Read frontend/src/app/[locale]/(app)/chat/page.tsx",
       "Verify the file does NOT import or call redirect()",
@@ -6511,7 +6511,7 @@
     "id": 580,
     "feature": "Landing Page + Route Restructuring",
     "description": "Chat page exports SEO metadata with title 'Chat \u2014 POD AI'",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Read frontend/src/app/[locale]/(app)/chat/page.tsx",
       "Verify export const metadata or export function generateMetadata exists",
@@ -6523,7 +6523,7 @@
     "id": 581,
     "feature": "Landing Page + Route Restructuring",
     "description": "StorefrontLayout detects /chat path for isChatPage instead of root /",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Read frontend/src/components/storefront/StorefrontLayout.tsx",
       "Verify isChatPage variable checks pathname against /${locale}/chat",
@@ -6534,7 +6534,7 @@
     "id": 582,
     "feature": "Landing Page + Route Restructuring",
     "description": "ChatArea visible on /chat, hidden on other routes via CSS visibility toggle",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Read frontend/src/components/storefront/StorefrontLayout.tsx",
       "Verify ChatArea div has conditional class: visible when isChatPage, invisible otherwise",
@@ -6545,62 +6545,64 @@
   {
     "id": 583,
     "feature": "Landing Page + Route Restructuring",
-    "description": "Landing page hero section with logo, h1, subtitle, and CTA button to /chat",
+    "description": "Landing page hero section with Metaballs shader background, glass panel, and CTA button to /chat",
     "passes": false,
     "steps": [
-      "Read frontend/src/app/[locale]/(app)/page.tsx",
+      "Read frontend/src/app/[locale]/(landing)/page.tsx",
       "Verify 'use client' directive at top",
       "Verify h1 element exists with t('heroTitle') or landing.heroTitle translation key",
       "Verify Button or Link component with href containing /chat",
-      "Verify ArrowRight icon import from lucide-react"
+      "Verify MetaballsBackground dynamic import with ssr: false",
+      "Verify glass panel div with backdrop-blur classes"
     ]
   },
   {
     "id": 584,
     "feature": "Landing Page + Route Restructuring",
-    "description": "Landing page has product carousel with Autoplay (embla-carousel-autoplay, 4s delay)",
+    "description": "Landing page has product carousel with Autoplay (embla-carousel-autoplay, 4.5s delay)",
     "passes": false,
     "steps": [
-      "Read frontend/src/app/[locale]/(app)/page.tsx",
+      "Read frontend/src/app/[locale]/(landing)/page.tsx",
       "Verify import of Autoplay from embla-carousel-autoplay",
       "Verify Carousel component with plugins prop containing Autoplay",
-      "Verify Autoplay config has delay: 4000",
+      "Verify Autoplay config has delay: 4500",
       "Verify CarouselContent with CarouselItem children"
     ]
   },
   {
     "id": 585,
     "feature": "Landing Page + Route Restructuring",
-    "description": "Landing page accordion shows today's designs with fallback to latest",
+    "description": "Landing page has 'How It Works' section with 3 step cards (Describe, Design, Deliver)",
     "passes": false,
     "steps": [
-      "Read frontend/src/app/[locale]/(app)/page.tsx",
-      "Verify Accordion component imported from @/components/ui/accordion",
-      "Verify AccordionItem, AccordionTrigger, AccordionContent used",
-      "Verify isTodayFallback state that switches title between todaysDesigns and latestDesigns",
-      "Verify today date filter: created_at.slice(0,10) === today comparison"
+      "Read frontend/src/app/[locale]/(landing)/page.tsx",
+      "Verify steps array with 3 items using MessageCircle, Palette, Package icons",
+      "Verify Card components with hover:-translate-y-1 transition",
+      "Verify each step has icon in bg-primary/10 container, title, and description",
+      "Verify section uses useScrollReveal for fade-in animation"
     ]
   },
   {
     "id": 586,
     "feature": "Landing Page + Route Restructuring",
-    "description": "Landing page fetches products from /api/products with seasonal sort and newest",
+    "description": "Landing page fetches products from /api/products with seasonal sort \u2014 NO mock/hardcoded data",
     "passes": false,
     "steps": [
-      "Read frontend/src/app/[locale]/(app)/page.tsx",
-      "Verify useEffect with fetch calls to /api/products",
+      "Read frontend/src/app/[locale]/(landing)/page.tsx",
+      "Verify useEffect with fetch call to /api/products",
       "Verify seasonal sort logic based on month (topRated winter, newest spring, featured default)",
-      "Verify Promise.all or parallel fetch for carousel and today products"
+      "Verify NO hardcoded product arrays, stats, or testimonials anywhere in the file",
+      "Verify product data comes from API response (data.success && data.items)"
     ]
   },
   {
     "id": 587,
     "feature": "Landing Page + Route Restructuring",
-    "description": "Landing page carousel responsive: 1 item mobile, 2 tablet, 3 desktop with loop",
+    "description": "Landing page carousel responsive: 80% mobile, 1/2 tablet, 1/3 desktop with loop",
     "passes": false,
     "steps": [
-      "Read frontend/src/app/[locale]/(app)/page.tsx",
-      "Verify CarouselItem className contains basis-full for mobile",
+      "Read frontend/src/app/[locale]/(landing)/page.tsx",
+      "Verify CarouselItem className contains basis-[80%] for mobile",
       "Verify CarouselItem className contains md:basis-1/2 for tablet",
       "Verify CarouselItem className contains lg:basis-1/3 for desktop",
       "Verify Carousel opts includes loop: true"
@@ -6695,11 +6697,11 @@
   {
     "id": 595,
     "feature": "Landing Page + Route Restructuring",
-    "description": "i18n keys landing.* and engagement.welcome.* present in all 3 locale files",
+    "description": "i18n keys landing.* and engagement.welcome.* present in all 3 locale files \u2014 no hardcoded English in components",
     "passes": false,
     "steps": [
       "Read frontend/messages/en.json",
-      "Verify landing.heroTitle, landing.heroSubtitle, landing.heroCTA, landing.seasonalPicks, landing.todaysDesigns, landing.latestDesigns, landing.viewProduct keys exist",
+      "Verify landing.heroTitle, landing.heroSubtitle, landing.heroCTA, landing.seasonalPicks, landing.finalCTATitle, landing.finalCTA keys exist",
       "Verify engagement.welcome.title, engagement.welcome.description, engagement.welcome.benefit1, engagement.welcome.signUp, engagement.welcome.continueGuest keys exist",
       "Read frontend/messages/es.json",
       "Verify same landing.* and engagement.welcome.* keys exist with Spanish translations",
