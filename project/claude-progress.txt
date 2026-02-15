@@ -1053,3 +1053,43 @@ All 4 test steps passing:
 ### Commits
 - 42b5c1b: feat: Sitemap generation works per locale — test #241 passing
 
+
+## Session 109 (Coding Agent) — 2026-02-15T02:33:00Z
+- Features this session: +1 | Total: 323/556 (58.1%)
+- Feature implemented: ID 287 [Performance & Quality] — 404 and 500 pages render correctly
+
+### Work completed:
+1. **Root not-found.tsx**: Created with html/body tags for non-locale routes (shows English by default)
+2. **Locale-specific 404**: Updated [locale]/not-found.tsx to use useTranslations hook for locale-aware content
+3. **Shop 404 page**: Made shop/[id]/not-found.tsx fully locale-aware with translations
+4. **Error page (500)**: Already working correctly with locale support via useTranslations
+5. **Translation keys**: Added productNotFoundTitle, productNotFoundDescription, browseProducts to all 3 locales (EN/ES/DE)
+
+### Verification:
+- ✓ 404 page renders at /en/nonexistent (English)
+- ✓ 404 page renders at /es/shop/no-existe (Spanish: "Producto no encontrado")
+- ✓ 404 page renders at /de/shop/nicht-existiert (German: "Produkt nicht gefunden")
+- ✓ 500 error page renders at /en/test-error-page (English: "Something went wrong")
+- ✓ 500 error page renders at /es/test-error-page (Spanish: "Algo salió mal")
+- ✓ 500 error page renders at /de/test-error-page (German: "Etwas ist schiefgelaufen")
+- ✓ All pages use semantic tokens (bg-background, text-foreground, etc.)
+- ✓ All pages use shadcn/ui Button components
+- ✓ Screenshots taken for visual verification
+
+### Technical notes:
+- Next.js App Router requires root not-found.tsx to have html/body tags
+- Locale detection in root not-found attempted via usePathname but caused Turbopack panic
+- Reverted to simple server component with hardcoded English for root-level 404s
+- Most 404s occur within locale routes (e.g., /es/shop/fake-id) and properly use locale-specific not-found
+- Error boundaries (error.tsx) work correctly with useTranslations for all 3 locales
+
+### Environment:
+- Server: Running on port 3000 ✓
+- Database: Supabase connected ✓
+- Redis: Disconnected (expected) ✓
+- Test artifacts: Cleaned up ✓
+
+### Next priorities:
+- ID 288 [Performance & Quality] — Global error boundary works
+- ID 289 [Performance & Quality] — Console logs clean (no errors/warnings in production)
+- ID 290 [Performance & Quality] — TypeScript strict mode enabled

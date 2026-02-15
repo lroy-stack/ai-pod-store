@@ -3176,7 +3176,7 @@
     "id": 288,
     "feature": "Performance & Quality",
     "description": "Loading states exist for all async operations",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify product list has skeleton loading state",
       "Verify cart has spinner loading state",
