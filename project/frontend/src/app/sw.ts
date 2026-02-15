@@ -1,6 +1,6 @@
 import { defaultCache } from '@serwist/next/worker'
 import type { PrecacheEntry, SerwistGlobalConfig } from 'serwist'
-import { Serwist } from 'serwist'
+import { Serwist, CacheFirst, NetworkFirst } from 'serwist'
 
 declare global {
   interface WorkerGlobalScope extends SerwistGlobalConfig {
@@ -15,7 +15,97 @@ const serwist = new Serwist({
   skipWaiting: true,
   clientsClaim: true,
   navigationPreload: true,
-  runtimeCaching: defaultCache,
+  runtimeCaching: [
+    ...defaultCache,
+    // Product images from Printify CDN
+    {
+      urlPattern: /^https:\/\/.*\.printify\.me\/.*/i,
+      handler: new CacheFirst({
+        cacheName: 'printify-images',
+        plugins: [
+          {
+            cacheWillUpdate: async ({ response }) => {
+              if (response && response.status === 200) {
+                return response
+              }
+              return null
+            },
+          },
+          {
+            cacheDidUpdate: async () => {
+              // Limit cache size to 200 entries
+              const cache = await caches.open('printify-images')
+              const keys = await cache.keys()
+              if (keys.length > 200) {
+                await cache.delete(keys[0])
+              }
+            },
+          },
+        ],
+      }),
+    },
+    // Product images from placeholder service (via.placeholder.com)
+    {
+      urlPattern: /^https:\/\/via\.placeholder\.com\/.*/i,
+      handler: new CacheFirst({
+        cacheName: 'placeholder-images',
+        plugins: [
+          {
+            cacheWillUpdate: async ({ response }) => {
+              if (response && response.status === 200) {
+                return response
+              }
+              return null
+            },
+          },
+        ],
+      }),
+    },
+    // Supabase storage images
+    {
+      urlPattern: /^https:\/\/.*\.supabase\.co\/storage\/.*/i,
+      handler: new CacheFirst({
+        cacheName: 'supabase-images',
+        plugins: [
+          {
+            cacheWillUpdate: async ({ response }) => {
+              if (response && response.status === 200) {
+                return response
+              }
+              return null
+            },
+          },
+        ],
+      }),
+    },
+    // fal.ai generated design images
+    {
+      urlPattern: /^https:\/\/fal\.media\/.*/i,
+      handler: new CacheFirst({
+        cacheName: 'fal-images',
+        plugins: [
+          {
+            cacheWillUpdate: async ({ response }) => {
+              if (response && response.status === 200) {
+                return response
+              }
+              return null
+            },
+          },
+          {
+            cacheDidUpdate: async () => {
+              // Limit cache to 100 entries (design images can be large)
+              const cache = await caches.open('fal-images')
+              const keys = await cache.keys()
+              if (keys.length > 100) {
+                await cache.delete(keys[0])
+              }
+            },
+          },
+        ],
+      }),
+    },
+  ],
   fallbacks: {
     entries: [
       {

@@ -3707,7 +3707,7 @@
     "id": 337,
     "feature": "PWA Support + Offline Mode",
     "description": "Product images cached by service worker",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Load products page with images",
       "Go offline",
