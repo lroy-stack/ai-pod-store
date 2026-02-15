@@ -2058,10 +2058,63 @@
       - All admin endpoints require requireAdmin check (no TODO auth stubs)
       - All order endpoints enforce ownership (user can only see own orders, 404 on mismatch)
       - AI generation endpoints (designs, mockup) require authentication + tier-based usage limits
-      - Chat endpoint enforces per-tier daily limits (anonymous 10, free 50, premium 500)
-      - Usage limiter uses Redis primary with Supabase RPC fallback (fail-open on total outage)
+      - Chat endpoint enforces per-tier daily limits (anonymous 5, free 50, premium 500)
+      - Chat endpoint enforces per-tier daily message limits (anonymous 20, free 200, premium unlimited)
+      - Usage limiter uses Redis primary with Supabase RPC fallback (fail-open on total outage with admin alert)
       - Cookie name consistently uses sb-access-token across all API routes
       - No SQL migration endpoint accessible without admin auth or in production
+      - Content safety filter blocks trademark/NSFW/hate prompts before design generation
+      - FingerprintJS provides device-based identifier for anonymous rate limiting
+      - hCaptcha progressive challenge after 3 anonymous chats
+      - Anomaly monitoring detects high-usage patterns and potential bots
+      - Anonymous mockups watermarked at 512px resolution
+      - Email drip sequence (3 emails) triggered on registration
+      - Stripe invoice.payment_failed webhook handler with user notification
+      - Cost estimation endpoint returns credit cost before generation
+      - Referral system awards 3 credits to both parties
     </technical_quality>
   </success_criteria>
+
+  <!-- Phase 20: Abuse Prevention + Engagement Hardening (Feb 2026) -->
+  <phase id="20" name="Abuse Prevention + Engagement Hardening">
+    <description>
+      Hardens the existing tier/rate-limit system against abuse, adds content safety,
+      fingerprinting, progressive CAPTCHA, anomaly monitoring, and conversion features
+      (watermark, email drip, referrals, payment failure handling).
+    </description>
+    <features>
+      <!-- Sprint 1: Critical Fixes -->
+      <feature id="S1-mockup-auth">POST /api/designs/mockup requires auth check + usage limits (was open)</feature>
+      <feature id="S1-moderate-auth">POST /api/admin/designs/moderate requires requireAdmin (was TODO)</feature>
+      <feature id="S1-tier-numbers">Anonymous chat limit 10→5, anonymous mockup 0→3, burst 30→20/min</feature>
+      <feature id="S1-chat-messages">New chat:messages action limits total messages/day (20 anon, 200 free)</feature>
+
+      <!-- Sprint 2: Security Hardening -->
+      <feature id="S2-fingerprint">FingerprintJS client-side + X-Fp-Id header for anonymous identification</feature>
+      <feature id="S2-fail-open-alert">Admin alert (Telegram + notification) when both Redis and Supabase fail</feature>
+      <feature id="S2-anomaly">Anomaly monitor: high usage >80% in first hour, bot detection (>3 429s in 5min)</feature>
+      <feature id="S2-ip-validation">getClientIP rejects localhost/loopback in production</feature>
+
+      <!-- Sprint 3: Content Safety -->
+      <feature id="S3-prompt-filter">checkPromptSafety blocks trademark/NSFW/hate/illegal prompts</feature>
+      <feature id="S3-fal-safety">fal.ai enable_safety_checker + NSFW rejection logging</feature>
+      <feature id="S3-captcha">hCaptcha progressive: challenge after 3 anonymous chats, cookie-based verification</feature>
+      <feature id="S3-cost-estimate">GET /api/designs/estimate returns credits + cost before generation</feature>
+
+      <!-- Sprint 4: Conversion -->
+      <feature id="S4-watermark">Anonymous mockups: 512px + watermark param, registered users get 1024px</feature>
+      <feature id="S4-email-drip">3-email welcome drip (1h, 72h, 168h) via drip_queue + /api/cron/drip</feature>
+      <feature id="S4-payment-failure">invoice.payment_failed webhook: past_due status + email + admin alert</feature>
+      <feature id="S4-referrals">Referral system: 3 credits each for referrer + referred, referrals table</feature>
+    </features>
+    <feature_ids>566-578</feature_ids>
+    <new_files>
+      content-safety.ts, fingerprint.ts, anomaly-monitor.ts, email-drip.ts,
+      FingerprintProvider.tsx, CaptchaChallenge.tsx,
+      api/admin/alert/route.ts, api/captcha/verify/route.ts,
+      api/designs/estimate/route.ts, api/cron/drip/route.ts, api/referral/route.ts,
+      migrations/20260215150000_drip_queue.sql, migrations/20260215150001_referrals.sql
+    </new_files>
+    <npm_dependencies>@fingerprintjs/fingerprintjs, @hcaptcha/react-hcaptcha</npm_dependencies>
+  </phase>
 </project_specification>

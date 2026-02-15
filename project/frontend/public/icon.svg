@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <rect width="512" height="512" fill="#0066FF"/>
+  <path d="M128 160 C128 138 146 120 168 120 L344 120 C366 120 384 138 384 160 L384 352 C384 374 366 392 344 392 L168 392 C146 392 128 374 128 352 Z" fill="#FFFFFF"/>
+  <circle cx="256" cy="256" r="64" fill="#0066FF"/>
+  <text x="256" y="440" font-family="Arial, sans-serif" font-size="72" font-weight="bold" fill="#FFFFFF" text-anchor="middle">POD AI</text>
+</svg>

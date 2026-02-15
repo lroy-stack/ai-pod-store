@@ -3675,7 +3675,7 @@
     "id": 334,
     "feature": "PWA Support + Offline Mode",
     "description": "Web App Manifest exists",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify /manifest.json or manifest.ts returns a valid manifest",
       "Verify it contains name, short_name, icons, theme_color",
@@ -4961,7 +4961,7 @@
     "id": 450,
     "feature": "Security Hardening \u2014 Usage Limiter Module",
     "description": "usage-limiter.ts module exists with USAGE_TIERS constant",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify file exists at frontend/src/lib/usage-limiter.ts",
       "Verify it exports a USAGE_TIERS constant",
@@ -4973,7 +4973,7 @@
     "id": 451,
     "feature": "Security Hardening \u2014 Usage Limiter Module",
     "description": "USAGE_TIERS defines correct limits per tier",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify anonymous tier: chat=10/day, design:generate=0 (blocked), design:mockup=0 (blocked)",
       "Verify free tier: chat=50/day, design:generate=3/day, design:mockup=5/day, design:save=20 total",
@@ -4984,7 +4984,7 @@
     "id": 452,
     "feature": "Security Hardening \u2014 Usage Limiter Module",
     "description": "checkAndIncrementUsage function with Redis primary storage",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify usage-limiter.ts exports checkAndIncrementUsage(identifier, action, tier)",
       "Verify it uses Redis INCR with key format usage:{id}:{action}:{YYYY-MM-DD}",
@@ -4996,7 +4996,7 @@
     "id": 453,
     "feature": "Security Hardening \u2014 Usage Limiter Module",
     "description": "checkAndIncrementUsage falls back to Supabase RPC",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify when Redis is unavailable, the function calls supabaseAdmin.rpc('increment_usage')",
       "Verify the Supabase RPC fallback passes identifier, action, period, and limit parameters",
@@ -5007,7 +5007,7 @@
     "id": 454,
     "feature": "Security Hardening \u2014 Usage Limiter Module",
     "description": "Blocked actions denied immediately without storage",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify when USAGE_TIERS limit for an action is 0, checkAndIncrementUsage returns allowed=false",
       "Verify no Redis INCR or Supabase RPC is called for blocked actions",
@@ -5018,7 +5018,7 @@
     "id": 455,
     "feature": "Security Hardening \u2014 Usage Limiter Module",
     "description": "usageHeaders helper returns X-RateLimit-* headers",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify usage-limiter.ts exports a usageHeaders function",
       "Verify it returns headers with X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset",
@@ -5029,7 +5029,7 @@
     "id": 456,
     "feature": "Security Hardening \u2014 DB Migration",
     "description": "users table has tier column with default free",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify migration file exists at supabase/migrations/20260214180000_user_usage_tracking.sql",
       "Verify ALTER TABLE users ADD COLUMN tier with VARCHAR(20) DEFAULT 'free'",
@@ -5040,7 +5040,7 @@
     "id": 457,
     "feature": "Security Hardening \u2014 DB Migration",
     "description": "user_usage table created with correct schema",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify user_usage table has columns: id UUID PK, identifier VARCHAR, action VARCHAR, period VARCHAR, count INTEGER",
       "Verify UNIQUE constraint on (identifier, action, period)",
@@ -5052,7 +5052,7 @@
     "id": 458,
     "feature": "Security Hardening \u2014 DB Migration",
     "description": "increment_usage RPC function exists",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify CREATE FUNCTION increment_usage with parameters p_identifier, p_action, p_period, p_limit",
       "Verify it performs atomic INSERT ON CONFLICT UPDATE (upsert)",
@@ -5064,7 +5064,7 @@
     "id": 459,
     "feature": "Security Hardening \u2014 DB Migration",
     "description": "designs table has moderation audit columns",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify ALTER TABLE designs ADD COLUMN moderated_by UUID REFERENCES users(id)",
       "Verify ALTER TABLE designs ADD COLUMN moderated_at TIMESTAMPTZ",
@@ -5075,7 +5075,7 @@
     "id": 460,
     "feature": "Security Hardening \u2014 Admin Migrate Endpoint",
     "description": "POST /api/admin/migrate requires admin auth",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Send POST to /api/admin/migrate without auth cookie",
       "Verify response is 401 Unauthorized",
@@ -5087,7 +5087,7 @@
     "id": 461,
     "feature": "Security Hardening \u2014 Admin Migrate Endpoint",
     "description": "POST /api/admin/migrate blocked in production",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify route.ts checks NODE_ENV === 'production'",
       "Verify it returns 403 with message indicating migration is disabled in production",
@@ -5098,7 +5098,7 @@
     "id": 462,
     "feature": "Security Hardening \u2014 Admin Moderate Endpoint",
     "description": "POST /api/admin/designs/moderate requires admin auth",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Send POST to /api/admin/designs/moderate without auth cookie",
       "Verify response is 401 Unauthorized",
@@ -5110,7 +5110,7 @@
     "id": 463,
     "feature": "Security Hardening \u2014 Admin Moderate Endpoint",
     "description": "Moderation records admin identity and timestamp",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Login as admin, send POST to /api/admin/designs/moderate with valid design ID",
       "Verify the designs table update includes moderated_by set to admin user ID",
@@ -5121,7 +5121,7 @@
     "id": 464,
     "feature": "Security Hardening \u2014 Orders Detail Endpoint",
     "description": "GET /api/orders/[id] requires authentication",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Send GET to /api/orders/{valid-order-id} without auth cookie",
       "Verify response is 401 Unauthorized",
@@ -5132,7 +5132,7 @@
     "id": 465,
     "feature": "Security Hardening \u2014 Orders Detail Endpoint",
     "description": "GET /api/orders/[id] enforces ownership with 404",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Login as User A, create or identify an order belonging to User A",
       "Login as User B, send GET to /api/orders/{user-a-order-id}",
@@ -5145,7 +5145,7 @@
     "id": 466,
     "feature": "Security Hardening \u2014 Orders Detail Endpoint",
     "description": "Admin can view any order",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Login as admin user",
       "Send GET to /api/orders/{any-order-id}",
@@ -5156,7 +5156,7 @@
     "id": 467,
     "feature": "Security Hardening \u2014 Orders List Endpoint",
     "description": "GET /api/orders uses correct cookie name sb-access-token",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify /api/orders/route.ts uses requireAuth from auth-guard (not manual cookie parsing)",
       "Verify no reference to sb-auth-token cookie name in the file",
@@ -5167,7 +5167,7 @@
     "id": 468,
     "feature": "Security Hardening \u2014 Orders List Endpoint",
     "description": "GET /api/orders filters by authenticated user ID",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Login as User A with known orders",
       "Send GET to /api/orders",
@@ -5179,7 +5179,7 @@
     "id": 469,
     "feature": "Security Hardening \u2014 Design Generate Endpoint",
     "description": "POST /api/designs/generate requires authentication",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Send POST to /api/designs/generate without auth cookie",
       "Verify response is 401 Unauthorized",
@@ -5190,7 +5190,7 @@
     "id": 470,
     "feature": "Security Hardening \u2014 Design Generate Endpoint",
     "description": "POST /api/designs/generate enforces tier usage limits",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Login as free user (tier=free, limit=3/day)",
       "Send POST to /api/designs/generate successfully 3 times",
@@ -5202,7 +5202,7 @@
     "id": 471,
     "feature": "Security Hardening \u2014 Design Generate Endpoint",
     "description": "POST /api/designs/generate returns X-RateLimit headers",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Login as free user, send POST to /api/designs/generate",
       "Verify response includes X-RateLimit-Limit header (value: 3)",
@@ -5214,7 +5214,7 @@
     "id": 472,
     "feature": "Security Hardening \u2014 Design Mockup Endpoint",
     "description": "POST /api/designs/mockup requires authentication",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Send POST to /api/designs/mockup without auth cookie",
       "Verify response is 401 Unauthorized",
@@ -5225,7 +5225,7 @@
     "id": 473,
     "feature": "Security Hardening \u2014 Design Mockup Endpoint",
     "description": "POST /api/designs/mockup enforces tier usage limits",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Login as free user (tier=free, limit=5/day)",
       "Send POST to /api/designs/mockup successfully 5 times",
@@ -5237,7 +5237,7 @@
     "id": 474,
     "feature": "Security Hardening \u2014 Chat Endpoint",
     "description": "POST /api/chat does not use edge runtime",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Read /api/chat/route.ts source code",
       "Verify there is no export const runtime = 'edge' declaration",
@@ -5248,7 +5248,7 @@
     "id": 475,
     "feature": "Security Hardening \u2014 Chat Endpoint",
     "description": "POST /api/chat uses getAuthUser for session resolution",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify /api/chat/route.ts imports getAuthUser from auth-guard",
       "Verify it uses getAuthUser instead of manual sb-access-token cookie parsing",
@@ -5259,7 +5259,7 @@
     "id": 476,
     "feature": "Security Hardening \u2014 Chat Endpoint",
     "description": "POST /api/chat enforces per-tier daily limits",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Send chat messages as anonymous user (no auth)",
       "Verify anonymous users are limited to 10 messages per day",
@@ -5271,7 +5271,7 @@
     "id": 477,
     "feature": "Security Hardening \u2014 Chat Endpoint",
     "description": "Chat generate_design tool checks auth and design quota separately",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Login as free user with design quota exhausted (3/3 used)",
       "Send a chat message that triggers the generate_design tool",
@@ -5283,7 +5283,7 @@
     "id": 478,
     "feature": "Security Hardening \u2014 Chat Endpoint",
     "description": "Chat keeps in-memory chatLimiter as burst protection",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify chatLimiter from rate-limit.ts is still imported and used",
       "Verify burst limit of 30 requests per minute is maintained",
@@ -5294,7 +5294,7 @@
     "id": 479,
     "feature": "Security Hardening \u2014 Wishlist Endpoint",
     "description": "GET /api/wishlist uses correct auth method",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify /api/wishlist/route.ts uses getAuthUser from auth-guard",
       "Verify no reference to sb-session cookie name in the file",
@@ -5305,7 +5305,7 @@
     "id": 480,
     "feature": "Security Hardening \u2014 429 Response Format",
     "description": "Usage limit exceeded returns 429 with upgrade message",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Trigger a 429 response on any usage-limited endpoint",
       "Verify response status is 429",
@@ -5317,7 +5317,7 @@
     "id": 481,
     "feature": "Security Hardening \u2014 Tier System",
     "description": "Users table has tier column defaulting to free",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Query users table schema in Supabase",
       "Verify tier column exists with type VARCHAR(20)",
@@ -5329,7 +5329,7 @@
     "id": 482,
     "feature": "Security Hardening \u2014 Tier System",
     "description": "Premium users get higher usage limits",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Login as premium user (tier=premium)",
       "Send POST to /api/designs/generate",
@@ -5341,7 +5341,7 @@
     "id": 483,
     "feature": "Security Hardening \u2014 Cookie Consistency",
     "description": "All API routes use sb-access-token cookie name",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Search all API route files for cookie parsing",
       "Verify no route uses sb-auth-token cookie name",
@@ -5353,7 +5353,7 @@
     "id": 484,
     "feature": "Security Hardening \u2014 Fail-Open Usage Limits",
     "description": "Usage limits fail-open when storage is unavailable",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Simulate Redis unavailable (connection refused)",
       "Simulate Supabase RPC failure",
@@ -5366,7 +5366,7 @@
     "id": 485,
     "feature": "Security Hardening \u2014 Fail-Closed Auth",
     "description": "Auth checks fail-closed when Supabase is unavailable",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Simulate Supabase auth service unavailable",
       "Send POST to /api/designs/generate with a cookie",
@@ -5378,7 +5378,7 @@
     "id": 486,
     "feature": "Guest Wishlist \u2014 localStorage Storage",
     "description": "Anonymous users can add items to wishlist stored in localStorage key 'pod-guest-wishlist'",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Open store without logging in",
       "Click heart icon on a product",
@@ -5390,7 +5390,7 @@
     "id": 487,
     "feature": "Guest Wishlist \u2014 Max 50 Items",
     "description": "Guest wishlist is capped at 50 items to prevent localStorage abuse",
-    "passes": false,
+    "passes": true,
     "steps": [
       "As guest, add 50 items to wishlist",
       "Try adding 51st item",
@@ -5402,7 +5402,7 @@
     "id": 488,
     "feature": "Guest Wishlist \u2014 Sync on Login",
     "description": "Guest wishlist items merge to server wishlist when user logs in",
-    "passes": false,
+    "passes": true,
     "steps": [
       "As guest, add 3 items to wishlist",
       "Log in with existing account",
@@ -5414,7 +5414,7 @@
     "id": 489,
     "feature": "Guest Wishlist \u2014 POST /api/wishlist/sync",
     "description": "API endpoint merges guest wishlist items to authenticated user's server wishlist",
-    "passes": false,
+    "passes": true,
     "steps": [
       "POST /api/wishlist/sync with items array",
       "Verify items are upserted (no duplicates)",
@@ -5426,7 +5426,7 @@
     "id": 490,
     "feature": "Guest Wishlist \u2014 Guest Hint UI",
     "description": "Sidebar shows 'Sign in to save favorites' hint for guests with wishlist items",
-    "passes": false,
+    "passes": true,
     "steps": [
       "As guest with wishlist items, check sidebar",
       "Verify hint text is visible",
@@ -5437,7 +5437,7 @@
     "id": 491,
     "feature": "Engagement \u2014 AuthWallModal",
     "description": "Modal prompts anonymous users to sign up when hitting chat limit or trying design generation",
-    "passes": false,
+    "passes": true,
     "steps": [
       "As anonymous, send 10 chat messages",
       "Send 11th message",
@@ -5449,7 +5449,7 @@
     "id": 492,
     "feature": "Engagement \u2014 UpgradeModal",
     "description": "Modal prompts free users to upgrade when hitting design/chat daily limit",
-    "passes": false,
+    "passes": true,
     "steps": [
       "As free user, generate 3 designs",
       "Try 4th design generation",
@@ -5461,7 +5461,7 @@
     "id": 493,
     "feature": "Engagement \u2014 UsageMeter",
     "description": "Sidebar widget showing today's usage bars for chats and designs",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Log in as registered user",
       "Verify UsageMeter appears in sidebar",
@@ -5473,7 +5473,7 @@
     "id": 494,
     "feature": "Engagement \u2014 SignupBanner",
     "description": "Subtle banner in chat area for guests who used 50%+ of daily limit",
-    "passes": false,
+    "passes": true,
     "steps": [
       "As anonymous, send 5 chat messages (50% of 10)",
       "Verify SignupBanner appears above input",
@@ -5485,7 +5485,7 @@
     "id": 495,
     "feature": "Engagement \u2014 GET /api/usage/status",
     "description": "API returns current tier, usage counters, credit balance, and subscription info",
-    "passes": false,
+    "passes": true,
     "steps": [
       "GET /api/usage/status as anonymous",
       "Verify response includes tier='anonymous' and usage counters",
@@ -5497,7 +5497,7 @@
     "id": 496,
     "feature": "Engagement \u2014 useEngagement Hook",
     "description": "Hook provides checkAction() that gates actions and shows appropriate modals",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Call checkAction('design:generate') as anonymous",
       "Verify it returns false and shows AuthWallModal",
@@ -5509,7 +5509,7 @@
     "id": 497,
     "feature": "Engagement \u2014 Chat Rate Limit Per Tier",
     "description": "Chat endpoint enforces daily limits: 10 anonymous, 50 free, 500 premium",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Send 10 messages as anonymous",
       "Verify 11th returns 429 with LIMIT_REACHED code",
@@ -5521,7 +5521,7 @@
     "id": 498,
     "feature": "Engagement \u2014 Design Auth Required",
     "description": "Design generation endpoint requires authentication and enforces daily limits",
-    "passes": false,
+    "passes": true,
     "steps": [
       "POST /api/designs/generate without auth token",
       "Verify 401 response",
@@ -5533,7 +5533,7 @@
     "id": 499,
     "feature": "Web Push \u2014 Service Worker",
     "description": "Service worker at /sw.js handles push events and notification clicks",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to /sw.js and verify it loads",
       "Verify push event handler shows notification",
@@ -5544,7 +5544,7 @@
     "id": 500,
     "feature": "Web Push \u2014 POST /api/push/subscribe",
     "description": "API stores Web Push subscription for authenticated user",
-    "passes": false,
+    "passes": true,
     "steps": [
       "POST /api/push/subscribe with endpoint and keys",
       "Verify subscription stored in push_subscriptions table",
@@ -5556,7 +5556,7 @@
     "id": 501,
     "feature": "Web Push \u2014 POST /api/push/send",
     "description": "Admin API sends push notification to specific user",
-    "passes": false,
+    "passes": true,
     "steps": [
       "POST /api/push/send with user_id, title, body",
       "Verify notification sent via web-push",
@@ -5568,7 +5568,7 @@
     "id": 502,
     "feature": "Web Push \u2014 usePushNotifications Hook",
     "description": "Hook manages permission request and subscription state",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Call requestPermission() and verify browser prompt",
       "On grant, verify service worker registered",
@@ -5580,7 +5580,7 @@
     "id": 503,
     "feature": "Web Push \u2014 PushPermissionPrompt",
     "description": "Dialog prompts user to enable notifications after login or purchase",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Log in for first time",
       "Verify PushPermissionPrompt dialog appears",
@@ -5592,7 +5592,7 @@
     "id": 504,
     "feature": "Web Push \u2014 VAPID Configuration",
     "description": "VAPID keys configured in environment variables for push authentication",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify NEXT_PUBLIC_VAPID_PUBLIC_KEY is set",
       "Verify VAPID_PRIVATE_KEY is set",
@@ -5604,7 +5604,7 @@
     "id": 505,
     "feature": "Web Push \u2014 push_subscriptions Table",
     "description": "Database table stores push subscriptions with user_id and VAPID keys",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Run migration 20260214180000_user_usage_tracking.sql",
       "Verify push_subscriptions table created",
@@ -5616,7 +5616,7 @@
     "id": 506,
     "feature": "Monetization \u2014 POST /api/subscription/create",
     "description": "Creates Stripe Checkout session for premium subscription at \u20ac9.99/mo",
-    "passes": false,
+    "passes": true,
     "steps": [
       "POST /api/subscription/create as authenticated user",
       "Verify Stripe Checkout session created in subscription mode",
@@ -5628,7 +5628,7 @@
     "id": 507,
     "feature": "Monetization \u2014 POST /api/credits/purchase",
     "description": "Creates Stripe Checkout session for credit pack purchase",
-    "passes": false,
+    "passes": true,
     "steps": [
       "POST /api/credits/purchase with pack='small'",
       "Verify Stripe session created for \u20ac4.99",
@@ -5640,7 +5640,7 @@
     "id": 508,
     "feature": "Monetization \u2014 Subscription Webhook Handler",
     "description": "Stripe webhook handles subscription created/updated/deleted events",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Simulate customer.subscription.created webhook",
       "Verify user tier updated to 'premium'",
@@ -5652,7 +5652,7 @@
     "id": 509,
     "feature": "Monetization \u2014 Credit Pack Webhook Handler",
     "description": "Stripe webhook handles credit pack purchase completion",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Simulate checkout.session.completed with credit_pack metadata",
       "Verify credit_balance increased by pack amount",
@@ -5664,7 +5664,7 @@
     "id": 510,
     "feature": "Monetization \u2014 Credit Consumption",
     "description": "Premium users can use credits after daily limit exceeded",
-    "passes": false,
+    "passes": true,
     "steps": [
       "As premium user, exhaust daily design limit",
       "Try another design with credits available",
@@ -5676,7 +5676,7 @@
     "id": 511,
     "feature": "Monetization \u2014 Pricing Page",
     "description": "Pricing page at /[locale]/pricing shows tier comparison and credit packs",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to /en/pricing",
       "Verify Free and Premium tiers displayed",
@@ -5688,7 +5688,7 @@
     "id": 512,
     "feature": "Monetization \u2014 Users Table Columns",
     "description": "Users table has tier, credit_balance, stripe_customer_id, subscription columns",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Run migration",
       "Verify tier column with CHECK constraint",
@@ -5700,7 +5700,7 @@
     "id": 513,
     "feature": "Monetization \u2014 user_usage Table",
     "description": "Usage tracking table with atomic increment function",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Run migration",
       "Verify user_usage table with UNIQUE constraint",
@@ -5712,7 +5712,7 @@
     "id": 514,
     "feature": "Monetization \u2014 credit_transactions Table",
     "description": "Credit transaction log tracks all additions and deductions",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Run migration",
       "Verify credit_transactions table created",
@@ -5724,7 +5724,7 @@
     "id": 515,
     "feature": "Monetization \u2014 Stripe Customer Management",
     "description": "Subscription and credit endpoints create/reuse Stripe customer",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Create subscription for user without stripe_customer_id",
       "Verify Stripe customer created and ID stored",
@@ -5736,7 +5736,7 @@
     "id": 516,
     "feature": "Integration \u2014 Auth Guard Module",
     "description": "Centralized auth-guard.ts used across all protected endpoints",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify auth-guard.ts exports getAuthUser, requireAuth, requireAdmin",
       "Verify orders endpoint uses requireAuth",
@@ -5748,7 +5748,7 @@
     "id": 517,
     "feature": "Integration \u2014 Usage Limiter Module",
     "description": "Centralized usage-limiter.ts with Redis primary and Supabase fallback",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify USAGE_TIERS constant with all tiers",
       "Verify Redis primary storage with EXPIRE",
@@ -5760,7 +5760,7 @@
     "id": 518,
     "feature": "Integration \u2014 Guest Cart Unblocked",
     "description": "Cart and checkout remain fully functional for anonymous users",
-    "passes": false,
+    "passes": true,
     "steps": [
       "As anonymous, add product to cart",
       "Proceed to checkout",
@@ -5772,7 +5772,7 @@
     "id": 519,
     "feature": "Integration \u2014 Harness Phase 16 Spec",
     "description": "app_spec.txt includes Phase 16 with all engagement features specified",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Read app_spec.txt",
       "Verify phase_16 section exists",
@@ -5783,7 +5783,7 @@
     "id": 520,
     "feature": "Integration \u2014 Feature List Updated",
     "description": "feature_list.json includes IDs 486-520 for Phase 16 features",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Read feature_list.json",
       "Verify features 486-520 exist",
@@ -6330,6 +6330,169 @@
       "Verify it documents transcript archives via PreCompact",
       "Verify it includes consolidation pipeline diagram",
       "Verify it documents injection protection"
+    ]
+  },
+  {
+    "id": 566,
+    "feature": "Content Safety \u2014 Prompt Filter",
+    "description": "checkPromptSafety blocks trademark/NSFW/hate prompts before design generation",
+    "passes": true,
+    "steps": [
+      "Read frontend/src/lib/content-safety.ts",
+      "Verify BLOCKED_TERMS includes trademark, NSFW, hate categories",
+      "Verify checkPromptSafety normalizes input and checks against blocked terms",
+      "Verify integration in /api/designs/generate route",
+      "Verify integration in chat generate_design tool"
+    ]
+  },
+  {
+    "id": 567,
+    "feature": "Content Safety \u2014 fal.ai Safety",
+    "description": "enable_safety_checker active on all fal.ai calls with NSFW rejection logging",
+    "passes": true,
+    "steps": [
+      "Read frontend/src/lib/design-generation.ts",
+      "Verify enable_safety_checker: true in fal.ai request body",
+      "Verify has_nsfw_concepts check with rejection logging"
+    ]
+  },
+  {
+    "id": 568,
+    "feature": "Fingerprinting",
+    "description": "FingerprintJS provides device-based identifier for anonymous rate limiting",
+    "passes": true,
+    "steps": [
+      "Read frontend/src/lib/fingerprint.ts",
+      "Verify getFingerprint() loads FingerprintJS and returns visitorId",
+      "Read frontend/src/components/FingerprintProvider.tsx",
+      "Verify FingerprintProvider patches fetch with X-Fp-Id header",
+      "Verify chat route reads X-Fp-Id header for identifier"
+    ]
+  },
+  {
+    "id": 569,
+    "feature": "CAPTCHA Progressive",
+    "description": "hCaptcha challenge after 3 anonymous chats, verified users keep full quota",
+    "passes": true,
+    "steps": [
+      "Read frontend/src/components/CaptchaChallenge.tsx",
+      "Verify hCaptcha integration with verify callback",
+      "Read frontend/src/app/api/captcha/verify/route.ts",
+      "Verify server-side hCaptcha token verification",
+      "Verify pod-captcha-verified cookie set on success",
+      "Verify chat route checks captcha for anonymous users after 3 messages"
+    ]
+  },
+  {
+    "id": 570,
+    "feature": "Anomaly Monitoring",
+    "description": "High-usage anomaly detection with admin alerts",
+    "passes": true,
+    "steps": [
+      "Read frontend/src/lib/anomaly-monitor.ts",
+      "Verify checkAnomaly logs warning when usage > 80% of limit",
+      "Verify trackRateLimitHit detects potential bots (>3 429s in 5min)",
+      "Verify integration in chat route"
+    ]
+  },
+  {
+    "id": 571,
+    "feature": "Fail-Open Alerting",
+    "description": "Admin notified when both Redis and Supabase fail for usage limiting",
+    "passes": true,
+    "steps": [
+      "Read frontend/src/lib/usage-limiter.ts fail-open section",
+      "Verify fire-and-forget POST to /api/admin/alert on both-fail",
+      "Read frontend/src/app/api/admin/alert/route.ts",
+      "Verify alert dedup (5min window) and Telegram + notification delivery"
+    ]
+  },
+  {
+    "id": 572,
+    "feature": "Mockup Watermark",
+    "description": "Anonymous mockups have POD AI watermark and reduced resolution (512px)",
+    "passes": true,
+    "steps": [
+      "Read frontend/src/lib/mockup-generator.ts",
+      "Verify MockupOptions accepts watermark parameter",
+      "Verify watermarked mockups use 512px resolution",
+      "Verify /api/designs/mockup passes watermark: !user"
+    ]
+  },
+  {
+    "id": 573,
+    "feature": "Email Drip Sequence",
+    "description": "3-email welcome sequence triggered on registration",
+    "passes": true,
+    "steps": [
+      "Read frontend/src/lib/email-drip.ts",
+      "Verify DRIP_SEQUENCES.welcome has 3 steps (1h, 72h, 168h)",
+      "Verify triggerDripSequence inserts into drip_queue",
+      "Read frontend/src/app/api/cron/drip/route.ts",
+      "Verify cron processes pending emails via Resend",
+      "Verify drip_queue migration exists"
+    ]
+  },
+  {
+    "id": 574,
+    "feature": "Welcome Credits",
+    "description": "5 free design credits awarded on email verification via subscription activation",
+    "passes": true,
+    "steps": [
+      "Read frontend/src/app/api/webhooks/stripe/route.ts",
+      "Verify handleSubscriptionUpdate adds bonus credits on activation",
+      "Verify credit_transactions logged with reason"
+    ]
+  },
+  {
+    "id": 575,
+    "feature": "Invoice Payment Failure",
+    "description": "Stripe webhook handles invoice.payment_failed with user notification and admin alert",
+    "passes": true,
+    "steps": [
+      "Read frontend/src/app/api/webhooks/stripe/route.ts",
+      "Verify invoice.payment_failed case in switch",
+      "Verify handleInvoicePaymentFailed updates subscription_status to past_due",
+      "Verify payment failure email sent via Resend",
+      "Verify admin alert sent"
+    ]
+  },
+  {
+    "id": 576,
+    "feature": "Cost Estimation",
+    "description": "GET /api/designs/estimate returns credit cost before generation",
+    "passes": true,
+    "steps": [
+      "Read frontend/src/lib/design-generation.ts",
+      "Verify estimateDesignCost function exists",
+      "Read frontend/src/app/api/designs/estimate/route.ts",
+      "Verify GET returns credits, estimatedCost, remaining, limit"
+    ]
+  },
+  {
+    "id": 577,
+    "feature": "Chat Message Limit",
+    "description": "chat:messages action limits total messages per day (20 anon, 200 free, unlimited premium)",
+    "passes": true,
+    "steps": [
+      "Read frontend/src/lib/usage-limiter.ts",
+      "Verify chat:messages in UsageAction type",
+      "Verify USAGE_TIERS includes chat:messages limits",
+      "Read frontend/src/app/api/chat/route.ts",
+      "Verify chat:messages checkAndIncrementUsage call"
+    ]
+  },
+  {
+    "id": 578,
+    "feature": "Referral Credits",
+    "description": "Users earn 3 credits for referring new verified users",
+    "passes": true,
+    "steps": [
+      "Read frontend/src/app/api/referral/route.ts",
+      "Verify POST requires auth",
+      "Verify referral dedup (unique referred_id)",
+      "Verify 3 credits awarded to both referrer and referred",
+      "Verify referrals migration exists"
     ]
   }
 ]
