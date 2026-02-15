@@ -655,5 +655,12 @@
   "profile": {
     "notifications": "Notificaciones",
     "notificationsDescription": "Gestiona tus preferencias de notificación"
+  },
+  "Offline": {
+    "title": "Estás Sin Conexión",
+    "description": "Parece que has perdido tu conexión a internet. Algunas funciones pueden no estar disponibles hasta que vuelvas a estar en línea.",
+    "tryAgain": "Intentar de Nuevo",
+    "cachedProducts": "Productos Vistos Anteriormente",
+    "banner": "Estás sin conexión. Algunas funciones pueden no estar disponibles."
   }
 }

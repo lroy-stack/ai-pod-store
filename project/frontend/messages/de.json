@@ -655,5 +655,12 @@
   "profile": {
     "notifications": "Benachrichtigungen",
     "notificationsDescription": "Benachrichtigungseinstellungen verwalten"
+  },
+  "Offline": {
+    "title": "Sie Sind Offline",
+    "description": "Es sieht so aus, als hätten Sie Ihre Internetverbindung verloren. Einige Funktionen sind möglicherweise nicht verfügbar, bis Sie wieder online sind.",
+    "tryAgain": "Erneut Versuchen",
+    "cachedProducts": "Zuvor Angesehene Produkte",
+    "banner": "Sie sind offline. Einige Funktionen sind möglicherweise nicht verfügbar."
   }
 }

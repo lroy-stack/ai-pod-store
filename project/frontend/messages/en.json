@@ -655,5 +655,12 @@
   "profile": {
     "notifications": "Notifications",
     "notificationsDescription": "Manage your notification preferences"
+  },
+  "Offline": {
+    "title": "You're Offline",
+    "description": "It looks like you've lost your internet connection. Some features may be unavailable until you're back online.",
+    "tryAgain": "Try Again",
+    "cachedProducts": "Previously Viewed Products",
+    "banner": "You are offline. Some features may be unavailable."
   }
 }

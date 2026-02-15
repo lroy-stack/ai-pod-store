@@ -24,6 +24,7 @@ import { Footer } from '@/components/Footer'
 import { Sheet, SheetContent } from '@/components/ui/sheet'
 import { useSidebarCollapsed } from '@/hooks/useSidebarCollapsed'
 import { cn } from '@/lib/utils'
+import { OfflineBanner } from '@/components/OfflineBanner'
 
 function StorefrontShell({ children }: { children: React.ReactNode }) {
   const { selectedProduct, setSelectedProduct, setPendingChatMessage, artifacts, clearArtifacts } =
@@ -79,6 +80,7 @@ function StorefrontShell({ children }: { children: React.ReactNode }) {
           isSidebarCollapsed={isCollapsed}
           onToggleDesktopSidebar={toggleDesktopSidebar}
         />
+        <OfflineBanner />
         <div className="flex flex-1 flex-col min-h-0 overflow-y-auto">
           {children}
           {!isChatPage && <Footer />}
