@@ -3014,7 +3014,7 @@
     "id": 273,
     "feature": "PodClaw Agent",
     "description": "Agent start/stop reflected in admin",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Start agent via API",
       "Navigate to http://localhost:3001/agent and verify status shows 'Running'",
