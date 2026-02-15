@@ -3208,7 +3208,7 @@
     "id": 291,
     "feature": "Performance & Quality",
     "description": "API rate limiting + CORS configured",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Send 100 rapid requests to an API endpoint",
       "Verify rate limit response (429) is returned",

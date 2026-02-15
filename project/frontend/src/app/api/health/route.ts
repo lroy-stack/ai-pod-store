@@ -1,7 +1,13 @@
 import { NextResponse } from 'next/server'
 import { getRedisStatus } from '@/lib/redis'
+import { getCorsHeaders, handleCorsPrelight } from '@/lib/cors'
 
-export async function GET() {
+export async function OPTIONS(req: Request) {
+  const preflightResponse = handleCorsPrelight(req)
+  return preflightResponse || new Response(null, { status: 405 })
+}
+
+export async function GET(req: Request) {
   const health: Record<string, unknown> = {
     status: 'ok',
     timestamp: new Date().toISOString(),
@@ -54,5 +60,10 @@ export async function GET() {
   }
 
   const statusCode = health.db === 'error' ? 503 : 200
-  return NextResponse.json(health, { status: statusCode })
+  const origin = req.headers.get('origin')
+
+  return NextResponse.json(health, {
+    status: statusCode,
+    headers: getCorsHeaders(origin),
+  })
 }
