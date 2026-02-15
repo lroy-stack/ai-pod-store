@@ -304,8 +304,21 @@ export async function checkAndIncrementUsage(
     }
   }
 
-  // Both failed — fail open with warning
+  // Both failed — fail open with warning + alert
   console.warn(`[UsageLimiter] Both Redis and Supabase failed for ${identifier}:${action}. Allowing request (fail-open).`)
+
+  // Fire-and-forget alert to admin
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+  fetch(`${baseUrl}/api/admin/alert`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      type: 'usage_limiter_failure',
+      message: `Both Redis and Supabase failed for ${action} (identifier: ${identifier})`,
+      severity: 'high',
+    }),
+  }).catch(() => {}) // Never block on alert failure
+
   return { allowed: true, current: 0, limit, remaining: limit, resetAt, source: 'daily' }
 }
 
@@ -314,9 +327,9 @@ export async function checkAndIncrementUsage(
  */
 export async function getCurrentUsage(
   identifier: string,
-  action: UsageAction
+  action: UsageAction,
+  tier: UserTier = 'free'
 ): Promise<{ used: number; limit: number; remaining: number }> {
-  const tier: UserTier = 'free' // Caller should provide tier context
   const limit = USAGE_TIERS[tier]?.[action] ?? 0
   const period = todayPeriod()
 

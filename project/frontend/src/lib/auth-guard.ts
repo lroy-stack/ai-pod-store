@@ -103,14 +103,24 @@ export async function requireAdmin(req: NextRequest): Promise<AuthUser> {
 
 /**
  * Get client IP address from request headers.
+ * Priority: CF-Connecting-IP > X-Real-IP > first X-Forwarded-For entry
+ * Rejects obviously invalid IPs in production (localhost, private ranges).
  */
 export function getClientIP(req: NextRequest): string {
-  return (
+  const raw =
     req.headers.get('cf-connecting-ip') ||
     req.headers.get('x-real-ip') ||
     req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
     'unknown'
-  )
+
+  // In production, reject localhost/loopback as client IP (likely spoofed)
+  if (process.env.NODE_ENV === 'production') {
+    if (raw === '127.0.0.1' || raw === '::1' || raw === 'localhost') {
+      return 'unknown'
+    }
+  }
+
+  return raw
 }
 
 /**

@@ -5,7 +5,9 @@ import { createClient } from '@supabase/supabase-js'
 import { STORE_DEFAULTS, SHIPPING_RATES, LOCALE_FORMAT } from '@/lib/store-config'
 import { chatLimiter } from '@/lib/rate-limit'
 import { generateDesign } from '@/lib/design-generation'
-import { checkAndIncrementUsage, usageHeaders, UserTier } from '@/lib/usage-limiter'
+import { checkAndIncrementUsage, usageHeaders, UserTier, USAGE_TIERS } from '@/lib/usage-limiter'
+import { checkAnomaly, trackRateLimitHit } from '@/lib/anomaly-monitor'
+import { checkPromptSafety } from '@/lib/content-safety'
 
 export const maxDuration = 60
 
@@ -74,8 +76,31 @@ export async function POST(req: Request) {
       }
     }
 
-    // Per-tier daily usage check
-    const chatIdentifier = chatUserId || ip
+    // Build identifier: prefer fingerprint for anonymous users, then IP
+    const fingerprint = req.headers.get('x-fp-id')
+    const chatIdentifier = chatUserId || (fingerprint ? `fp:${fingerprint}` : `ip:${ip}`)
+
+    // CAPTCHA gate for anonymous users: after 3 chats, require verification
+    if (chatUserTier === 'anonymous') {
+      const captchaVerified = cookieMap['pod-captcha-verified'] === '1'
+      if (!captchaVerified) {
+        // Check current chat:messages count without incrementing
+        const { getCurrentUsage } = await import('@/lib/usage-limiter')
+        const currentMsgUsage = await getCurrentUsage(chatIdentifier, 'chat:messages', 'anonymous')
+        if (currentMsgUsage.used >= 3) {
+          return Response.json(
+            {
+              requireCaptcha: true,
+              error: 'Please complete verification to continue chatting.',
+              code: 'CAPTCHA_REQUIRED',
+            },
+            { status: 403 }
+          )
+        }
+      }
+    }
+
+    // Per-tier daily usage check (conversations)
     const usageResult = await checkAndIncrementUsage(chatIdentifier, 'chat', chatUserTier, chatUserId || undefined)
     if (!usageResult.allowed) {
       return Response.json(
@@ -88,6 +113,28 @@ export async function POST(req: Request) {
         },
         { status: 429, headers: usageHeaders(usageResult) }
       )
+    }
+
+    // Per-tier daily message limit (total messages across all conversations)
+    const msgUsage = await checkAndIncrementUsage(chatIdentifier, 'chat:messages', chatUserTier, chatUserId || undefined)
+    if (!msgUsage.allowed) {
+      trackRateLimitHit(chatIdentifier)
+      return Response.json(
+        {
+          error: chatUserId
+            ? 'Daily message limit reached. Upgrade for more.'
+            : 'Daily message limit reached. Sign up for more.',
+          usage: msgUsage,
+          code: 'LIMIT_REACHED',
+        },
+        { status: 429, headers: usageHeaders(msgUsage) }
+      )
+    }
+
+    // Anomaly detection: check if user is consuming too fast
+    const chatLimit = USAGE_TIERS[chatUserTier]?.['chat:messages'] ?? 0
+    if (chatLimit > 0) {
+      checkAnomaly(chatIdentifier, 'chat:messages', msgUsage.current, chatLimit).catch(() => {})
     }
 
     const body = await req.json()
@@ -1349,6 +1396,15 @@ Be friendly, helpful, and concise.`
           const promptText = args.prompt || args.design_description || 'custom design'
           const style = args.style as string | undefined
           try {
+            // Content safety check before generation
+            const safety = checkPromptSafety(promptText)
+            if (!safety.safe) {
+              return {
+                success: false,
+                error: `Content policy violation: ${safety.reason}`,
+              }
+            }
+
             const result = await generateDesign({ prompt: promptText, style })
 
             if (!result.success) {

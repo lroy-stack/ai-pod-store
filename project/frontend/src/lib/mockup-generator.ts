@@ -10,6 +10,7 @@ export interface MockupOptions {
   designUrl: string
   productType: 'tshirt' | 'hoodie' | 'mug' | 'phone-case' | 'tote-bag'
   color?: string
+  watermark?: boolean
 }
 
 export interface MockupResult {
@@ -17,6 +18,8 @@ export interface MockupResult {
   mockupUrl?: string
   error?: string
   placeholder?: boolean
+  watermarked?: boolean
+  resolution?: number
 }
 
 /**
@@ -24,26 +27,15 @@ export interface MockupResult {
  *
  * Phase 1: Uses placeholder mockup images with design overlay via CSS
  * Phase 2: Can integrate Printify's mockup generator API
+ *
+ * @param options.watermark - If true, mockup is 512px with "POD AI" overlay (anonymous users)
  */
 export async function generateMockup(
   options: MockupOptions
 ): Promise<MockupResult> {
-  const { designUrl, productType, color = 'white' } = options
-
-  // For Phase 1, we'll use a simple approach:
-  // Return a data structure that the frontend can render as a mockup
-  // The frontend will overlay the design on a product template
+  const { designUrl, productType, color = 'white', watermark = false } = options
 
   try {
-    // In a full implementation, this would:
-    // 1. Upload designUrl to Printify via their uploads API
-    // 2. Create a temporary product with the design
-    // 3. Get the mockup preview URL from Printify
-    // 4. Return the mockup URL
-
-    // For now, return a placeholder mockup structure
-    // The frontend will handle the visual overlay
-
     const mockupTemplates: Record<typeof productType, string> = {
       'tshirt': 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800&h=800&fit=crop',
       'hoodie': 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=800&h=800&fit=crop',
@@ -52,17 +44,26 @@ export async function generateMockup(
       'tote-bag': 'https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=800&h=800&fit=crop',
     }
 
+    const resolution = watermark ? 512 : 1024
     const templateUrl = mockupTemplates[productType] || mockupTemplates['tshirt']
 
-    // Return a composite URL that the frontend can use
-    // Format: template URL + design URL as query params
-    // The frontend component will layer these visually
-    const mockupUrl = `${templateUrl}&overlay=${encodeURIComponent(designUrl)}`
+    // Build mockup URL with resolution and watermark params
+    const params = new URLSearchParams({
+      overlay: designUrl,
+      res: String(resolution),
+    })
+    if (watermark) {
+      params.set('wm', '1')
+    }
+
+    const mockupUrl = `${templateUrl}&${params.toString()}`
 
     return {
       success: true,
       mockupUrl,
-      placeholder: true, // Indicates this is a simple overlay, not Printify-generated
+      placeholder: true,
+      watermarked: watermark,
+      resolution,
     }
   } catch (error) {
     console.error('Mockup generation error:', error)
@@ -80,11 +81,6 @@ export async function generateMockup(
 export async function generatePrintifyMockup(
   options: MockupOptions
 ): Promise<MockupResult> {
-  // Phase 2: Actual Printify integration
-  // 1. Upload design to Printify
-  // 2. Create product with design
-  // 3. Get mockup preview
-
   return {
     success: false,
     error: 'Printify mockup integration not yet implemented',

@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { generateDesign } from '@/lib/design-generation'
 import { requireAuth, authErrorResponse } from '@/lib/auth-guard'
 import { checkAndIncrementUsage, usageHeaders, UserTier } from '@/lib/usage-limiter'
+import { checkPromptSafety } from '@/lib/content-safety'
 
 const designRequestSchema = z.object({
   prompt: z.string().min(3, 'Prompt must be at least 3 characters'),
@@ -46,6 +47,15 @@ export async function POST(req: NextRequest) {
     }
 
     const { prompt, style, negativePrompt } = validation.data
+
+    // Content safety check
+    const safety = checkPromptSafety(prompt)
+    if (!safety.safe) {
+      return NextResponse.json(
+        { error: `Content policy violation: ${safety.reason}` },
+        { status: 422 }
+      )
+    }
 
     // Generate the design using shared utility
     const result = await generateDesign({ prompt, style, negativePrompt })

@@ -23,6 +23,14 @@ export interface DesignGenerationResult {
 }
 
 /**
+ * Estimate cost of a design generation.
+ */
+export function estimateDesignCost(options?: { style?: string }): { credits: number; estimatedCostEur: number } {
+  // Base: 1 credit per standard generation
+  return { credits: 1, estimatedCostEur: 0.05 }
+}
+
+/**
  * Generate a design using fal.ai FLUX.1
  * Falls back to placeholder image in development if API fails
  */
@@ -108,6 +116,15 @@ export async function generateDesign(
     }
 
     const falData = await falResponse.json()
+
+    // Check if fal.ai safety checker rejected the image
+    if (falData.has_nsfw_concepts?.some?.((v: boolean) => v)) {
+      console.warn('[ContentSafety] fal.ai rejected design for NSFW content:', prompt)
+      return {
+        success: false,
+        error: 'Design rejected by safety checker. Please modify your prompt.',
+      }
+    }
 
     // Extract the generated image URL
     const imageUrl = falData.images?.[0]?.url

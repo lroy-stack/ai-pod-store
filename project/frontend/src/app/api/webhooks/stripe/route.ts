@@ -11,6 +11,7 @@ import { stripe } from '@/lib/stripe'
 import { printify, buildPrintifyAddress } from '@/lib/printify'
 import { sendOrderConfirmationEmail } from '@/lib/resend'
 import { createClient } from '@supabase/supabase-js'
+import { triggerDripSequence } from '@/lib/email-drip'
 import Stripe from 'stripe'
 
 // Initialize Supabase client with service role key for webhook
@@ -69,6 +70,10 @@ export async function POST(req: NextRequest) {
 
     case 'payment_intent.payment_failed':
       console.log('PaymentIntent failed:', event.data.object.id)
+      break
+
+    case 'invoice.payment_failed':
+      await handleInvoicePaymentFailed(event.data.object as Stripe.Invoice)
       break
 
     default:
@@ -486,6 +491,21 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
       console.log(`Added ${bonusCredits} bonus credits for user ${user.id}`)
     }
 
+    // Trigger welcome drip sequence for new subscribers
+    if (isActive) {
+      const { data: userProfile } = await supabase
+        .from('users')
+        .select('email')
+        .eq('id', user.id)
+        .single()
+
+      if (userProfile?.email) {
+        triggerDripSequence(user.id, userProfile.email, 'welcome').catch((err) =>
+          console.error('Failed to trigger drip sequence:', err)
+        )
+      }
+    }
+
     console.log(`Updated subscription for user ${user.id}: tier=${isActive ? 'premium' : 'free'}`)
   } catch (error) {
     console.error('Error handling subscription update:', error)
@@ -557,6 +577,77 @@ async function handleCreditPackPurchase(session: Stripe.Checkout.Session) {
     console.log(`Added ${credits} credits for user ${userId} (new balance: ${newBalance})`)
   } catch (error) {
     console.error('Error handling credit pack purchase:', error)
+  }
+}
+
+/**
+ * Handle invoice.payment_failed event
+ * Updates subscription status and notifies user + admin
+ */
+async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
+  try {
+    const customerId = typeof invoice.customer === 'string'
+      ? invoice.customer
+      : invoice.customer?.id
+
+    if (!customerId) return
+
+    // Find user
+    const { data: user } = await supabase
+      .from('users')
+      .select('id, email')
+      .eq('stripe_customer_id', customerId)
+      .single()
+
+    if (!user) {
+      console.warn('Invoice payment failed: no user found for customer', customerId)
+      return
+    }
+
+    // Update subscription status to past_due
+    await supabase
+      .from('users')
+      .update({ subscription_status: 'past_due' })
+      .eq('id', user.id)
+
+    // Send payment failure email via Resend
+    const resendKey = process.env.RESEND_API_KEY
+    if (resendKey && user.email) {
+      await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${resendKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: process.env.RESEND_FROM_EMAIL || 'POD AI <noreply@podai.com>',
+          to: user.email,
+          subject: 'Payment Failed — Please Update Your Payment Method',
+          html: `
+            <h1>Payment Failed</h1>
+            <p>We were unable to process your subscription payment.</p>
+            <p>Please update your payment method to keep your Premium features active.</p>
+            <p><a href="${process.env.NEXT_PUBLIC_BASE_URL || 'https://podai.com'}/profile">Update Payment Method →</a></p>
+          `,
+        }),
+      }).catch((err) => console.error('Failed to send payment failure email:', err))
+    }
+
+    // Alert admin
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+    fetch(`${baseUrl}/api/admin/alert`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: 'invoice_payment_failed',
+        message: `Payment failed for user ${user.email || user.id}`,
+        severity: 'medium',
+      }),
+    }).catch(() => {})
+
+    console.log(`Invoice payment failed for user ${user.id}, status set to past_due`)
+  } catch (error) {
+    console.error('Error handling invoice payment failed:', error)
   }
 }
 

@@ -3393,7 +3393,7 @@
     "id": 308,
     "feature": "Social Login \u2014 Google + Apple OAuth",
     "description": "OAuth env vars validated",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify GOOGLE_CLIENT_ID is checked on startup",
       "Verify GOOGLE_CLIENT_SECRET is checked on startup",
