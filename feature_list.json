@@ -3091,7 +3091,7 @@
     "id": 280,
     "feature": "Performance & Quality",
     "description": "Lighthouse score > 80",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Run Lighthouse on /en/ page",
       "Verify performance score is >= 80"
