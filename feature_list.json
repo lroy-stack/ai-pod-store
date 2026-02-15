@@ -2992,7 +2992,7 @@
     "id": 271,
     "feature": "PodClaw Agent",
     "description": "Agent context files updated",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify memory/context/best_sellers.md exists with content",
       "Verify memory/context/pricing_history.md exists with content",
