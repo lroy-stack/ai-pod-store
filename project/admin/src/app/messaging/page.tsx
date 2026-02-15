@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -25,6 +25,27 @@ export default function MessagingPage() {
     webhookVerifyToken: '',
     businessAccountId: '',
   })
+
+  // Load existing config on mount
+  useEffect(() => {
+    const loadConfig = async () => {
+      try {
+        const response = await fetch('/api/messaging/config')
+        if (response.ok) {
+          const data = await response.json()
+          if (data.telegram) {
+            setTelegram(data.telegram)
+          }
+          if (data.whatsapp) {
+            setWhatsapp(data.whatsapp)
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load config:', error)
+      }
+    }
+    loadConfig()
+  }, [])
 
   const handleSave = async () => {
     setLoading(true)

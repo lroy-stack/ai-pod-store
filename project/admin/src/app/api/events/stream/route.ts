@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server';
+import { sseEmitter } from '@/lib/sse-emitter';
 
 // Simple SSE stream for admin notifications
 // This endpoint provides real-time updates for:
@@ -44,17 +45,25 @@ export async function GET(req: NextRequest) {
         }
       }, 30000);
 
-      // In a real implementation, this would subscribe to events from:
-      // - Supabase Realtime for database changes
-      // - PodClaw bridge for agent events
-      // - Redis pub/sub for cross-instance notifications
+      // Subscribe to in-memory event emitter
+      const unsubscribe = sseEmitter.subscribe((event, data) => {
+        try {
+          const message = `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
+          controller.enqueue(encoder.encode(message));
+        } catch (err) {
+          console.error('[SSE] Failed to send event:', err);
+        }
+      });
 
-      // For now, we'll just keep the connection open with heartbeats
-      // The actual event publishing will be added when those features are implemented
+      // In production, this would also subscribe to:
+      // - Supabase Realtime for database changes
+      // - Redis pub/sub for cross-instance notifications
+      // - PodClaw bridge for agent events
 
       // Cleanup on connection close
       req.signal.addEventListener('abort', () => {
         clearInterval(heartbeatInterval);
+        unsubscribe();
         controller.close();
       });
     },

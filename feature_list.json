@@ -4798,7 +4798,7 @@
     "id": 436,
     "feature": "Messaging Infrastructure",
     "description": "messaging_channels table exists with correct schema",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Query the messaging_channels table structure",
       "Verify columns: id (UUID), platform (VARCHAR), config (JSONB), is_active (BOOLEAN), created_at, updated_at",
@@ -4809,7 +4809,7 @@
     "id": 437,
     "feature": "Messaging Infrastructure",
     "description": "user_messaging_links table exists",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Query the user_messaging_links table structure",
       "Verify columns: id, user_id (FK to users), platform, platform_user_id, platform_username, is_admin_mode, linked_at",
@@ -4820,7 +4820,7 @@
     "id": 438,
     "feature": "Messaging Infrastructure",
     "description": "messaging_conversations table exists",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Query the messaging_conversations table structure",
       "Verify columns: id, user_messaging_link_id (FK), platform, direction, message_type, content, metadata, created_at",
@@ -4831,7 +4831,7 @@
     "id": 439,
     "feature": "Messaging Infrastructure",
     "description": "RLS on messaging tables blocks non-service-role",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify RLS is enabled on messaging_channels, user_messaging_links, and messaging_conversations",
       "Attempt to query messaging_channels with anon key",
@@ -4843,7 +4843,7 @@
     "id": 440,
     "feature": "Messaging Infrastructure",
     "description": "Admin toast notification for live SSE events",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Log in to admin panel at http://localhost:3001",
       "Trigger an SSE event (e.g., new order)",
@@ -4879,7 +4879,7 @@
     "id": 443,
     "feature": "Messaging Infrastructure",
     "description": "Messaging config CRUD from admin panel",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to http://localhost:3001/messaging",
       "Create a new Telegram channel config",
