@@ -4262,7 +4262,7 @@
     "id": 388,
     "feature": "Newsletter Agent",
     "description": "Newsletter agent CAN-SPAM compliance (physical address in footer)",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Trigger newsletter email send",
       "Verify email footer contains physical mailing address",
