@@ -4207,7 +4207,7 @@
     "id": 383,
     "feature": "Newsletter Agent",
     "description": "Newsletter agent runs on schedule (09:00 + 17:00 UTC)",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify scheduler has newsletter_am job at 09:00",
       "Verify scheduler has newsletter_pm job at 17:00",
