@@ -3891,3 +3891,10 @@ Date: 2026-02-15 01:17 - 01:24 UTC
 - Feature #278: Agent skill files loaded correctly
 - Feature #279: Agent cost tracking per session
 - Continue PodClaw Agent features (IDs 278-279)
+
+2. **Feature #278** — Agent skills loaded from pod_workspace/skills/
+   - Verified all 8 agent skill directories exist in project/podclaw/skills/
+   - Agents: researcher, cataloger, designer, marketing, newsletter, customer_manager, finance, seo_manager
+   - Each directory contains SKILL.md file with agent identity, tools, tasks, and guardrails
+   - Verified client_factory.py loads skills from correct path
+   - Each skill directory also has templates/ subdirectory for structured output

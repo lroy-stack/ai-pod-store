@@ -3069,7 +3069,7 @@
     "id": 278,
     "feature": "PodClaw Agent",
     "description": "Agent skills loaded from pod_workspace/skills/",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify skills directory exists at pod_workspace/skills/",
       "Verify subdirectories researcher/, cataloger/, designer/ exist",
