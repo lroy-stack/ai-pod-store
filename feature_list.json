@@ -4164,7 +4164,7 @@
     "id": 379,
     "feature": "Newsletter Agent",
     "description": "Newsletter agent tracks open rates and click-through rates",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Trigger newsletter send",
       "Verify tracking data is stored in supabase",
