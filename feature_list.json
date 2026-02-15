@@ -3933,7 +3933,7 @@
     "id": 358,
     "feature": "Marketing Agent",
     "description": "Marketing agent creates ad copy for top products",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Trigger marketing agent with best_sellers context",
       "Verify ad copy is generated for Google Ads and Meta Ads formats",
