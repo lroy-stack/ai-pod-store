@@ -3219,7 +3219,7 @@
     "id": 292,
     "feature": "Performance & Quality",
     "description": "Security headers configured (next.config.ts headers)",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Inspect response headers from GET /api/health",
       "Verify X-Content-Type-Options header is present",
@@ -3231,7 +3231,7 @@
     "id": 293,
     "feature": "Performance & Quality",
     "description": "No hardcoded secrets in codebase",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Grep codebase for API keys, passwords, and secret strings",
       "Verify none are found hardcoded",
