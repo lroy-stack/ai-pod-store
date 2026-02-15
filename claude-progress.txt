@@ -4107,3 +4107,112 @@ This is **expected and acceptable** for an AI endpoint with proper auth, rate-li
 
 ---
 
+
+---
+
+## Session 108 (Coding Agent)
+**Date**: 2026-02-15 02:00-02:30 UTC
+**Model**: Claude Sonnet 4.5
+
+### Features Implemented: +3
+- **ID 284**: Frontend bundle size reasonable ✓
+- **ID 285**: Health check endpoint works ✓
+- **ID 286**: Error boundary catches React errors ✓
+
+### Progress: 322/556 (57.9%)
+**This session**: +3 features
+**Recently passing**: IDs 284-286
+
+### Implementation Details
+
+**Feature #284 - Bundle Size Optimization**:
+- Problem: 612KB vendor chunk exceeded 500KB limit (Turbopack default behavior)
+- Solution: Switched production builds to webpack with custom splitChunks config
+- Configuration: maxSize: 450KB enforced across all chunks
+- Result: Largest chunk now 194KB (well under 500KB limit)
+- Side benefit: Better caching granularity with more, smaller chunks
+- Build script updated: `npm run build` now uses `--webpack` flag by default
+- Dev mode still uses Turbopack for fast iteration
+
+**Feature #285 - Health Check**:
+- Endpoint: GET /api/health
+- Returns: `{status: 'ok', db: 'connected', redis: 'disconnected', ...}`
+- Already implemented and working correctly
+
+**Feature #286 - Error Boundary**:
+- Location: src/app/[locale]/error.tsx
+- Fallback UI: AlertCircle icon + error message + retry button + go-home link
+- Graceful degradation: Falls back to English if translations unavailable
+- Follows Next.js 16 error boundary pattern (client component, receives error + reset)
+
+### Technical Changes
+
+1. **next.config.ts**:
+   - Added webpack optimization with splitChunks maxSize: 450KB
+   - Enabled optimizePackageImports for @ai-sdk/react, @supabase/supabase-js, etc.
+   - Bundle analyzer support (ANALYZE=true env var)
+
+2. **package.json**:
+   - Changed default build to webpack: `"build": "next build --webpack"`
+   - Added `"build:turbopack"` for Turbopack builds if needed
+
+3. **Dynamic imports**:
+   - ChatArea component now lazy-loaded on homepage
+   - Reduces initial bundle size for non-chat pages
+
+4. **Code refactoring**:
+   - Moved `sendPushToUser` from route to `src/lib/push-notifications.ts`
+   - Fixes Next.js route export validation error
+
+### Verification Methods
+
+**#284 Bundle Size**:
+```bash
+npm run build
+ls -lh .next/static/chunks/*.js | sort -k5 -h -r | head -5
+# Largest: 194KB ✓ (under 500KB limit)
+find .next/static/chunks -name "*.js" -size +500k
+# Result: 0 chunks over 500KB ✓
+```
+
+**#285 Health Check**:
+```bash
+curl http://localhost:3000/api/health
+# Returns: {"status":"ok","db":"connected",...} ✓
+```
+
+**#286 Error Boundary**:
+- Code review: Verified error.tsx exists with proper Next.js structure ✓
+- Fallback UI: AlertCircle + retry + go-home buttons ✓
+- Translation safety: try/catch around useTranslations() ✓
+
+### Database & Environment Status
+- **Supabase**: Connected (remote cloud instance)
+- **Redis**: Disconnected (graceful fallback in place)
+- **Dev server**: Running on port 3000 (Turbopack mode)
+- **Build**: Production build uses webpack for bundle optimization
+
+### Issues Encountered
+
+1. **Turbopack bundle size**: Default Turbopack build creates large vendor chunks
+   - **Solution**: Use webpack for production builds with custom splitChunks config
+   - **Trade-off**: Slightly slower builds (~15s vs ~8s), but acceptable for production
+
+2. **Route export validation**: sendPushToUser exported from route.ts triggered Next.js error
+   - **Solution**: Moved utility function to separate lib file
+   - **Best practice**: Route files should only export HTTP method handlers
+
+### Next Priorities
+
+Continue with Performance & Quality features (287-297):
+- TypeScript strict mode
+- ESLint no warnings
+- ARIA attributes
+- Mobile responsiveness verification
+- Loading states
+- Empty states
+- And more...
+
+**Next target**: ID 287 [Performance & Quality] — TypeScript compiles with no errors
+
+---
