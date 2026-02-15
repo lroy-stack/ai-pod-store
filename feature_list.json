@@ -4274,7 +4274,7 @@
     "id": 389,
     "feature": "Newsletter Agent",
     "description": "Newsletter agent appears in bridge /agents endpoint",
-    "passes": false,
+    "passes": true,
     "steps": [
       "GET /agents from bridge API",
       "Verify newsletter agent is listed with correct tools",
