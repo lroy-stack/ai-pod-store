@@ -5197,3 +5197,66 @@ $ curl http://localhost:3000/api/analytics/rfm
 3. Skip PodClaw runtime features (require PodClaw running)
 4. Focus on implementable admin/messaging features
 
+
+
+### Session 126 (Coding Agent)
+**Tests passing**: 501/578 (86.7%)
+**Tests newly passing this session**: 3 features (#400-402)
+
+### Features Implemented:
+
+1. **#400**: Designs gallery with approve/reject actions
+   - Created `/designs` page with gallery grid showing all AI-generated designs
+   - Tabs for filtering: All, Pending, Approved, Rejected
+   - Each design card shows: image, status badge, prompt, style, creation date
+   - Approve/Reject buttons for pending designs with real-time status updates
+   - API endpoints: GET /api/designs, PUT /api/designs/[id]/moderate
+   - Verified via browser: approve button successfully updates moderation_status in DB
+
+2. **#401**: Design create-product pipeline from admin
+   - Created `/designs/[id]` detail page with design information panel
+   - "Create Product from Design" button for approved designs
+   - Product creation dialog with pre-filled fields from design (name, description, style)
+   - Category selector, base price input (EUR)
+   - Pipeline preview: Design → Product → Printify Template → Ready to Sell
+   - Updates `designs.product_id` after product creation to maintain relationship
+   - API endpoints: GET /api/designs/[id], PATCH /api/designs/[id], POST /api/products
+   - Verified via browser: product successfully created from design
+
+3. **#402**: Returns management page with refund action
+   - Created `/returns` page with return requests list
+   - Tabs for filtering: All, Pending, Approved, Completed, Rejected
+   - Each request card shows: order link, customer reason, admin notes, refund amount, timestamps
+   - Approve & Refund button opens confirmation dialog with admin notes field
+   - Triggers Stripe refund API call on approval
+   - API endpoints: GET /api/returns, POST /api/returns/[id]/approve, POST /api/returns/[id]/reject
+   - Approval workflow: updates status → creates Stripe refund → updates order status → creates notification → audit log
+   - Verified via browser: UI workflow complete, approval dialog works correctly
+
+### Commits this session: 3
+1. feat: add designs gallery with approve/reject actions — test #400 passing
+2. feat: add design-to-product pipeline with pre-filled form — test #401 passing
+3. feat: add returns management page with Stripe refund workflow — test #402 passing
+
+### Technical Details:
+- Admin panel pages at `/designs`, `/designs/[id]`, `/returns`
+- All pages use shadcn/ui components (Card, Badge, Tabs, Dialog, Button)
+- Responsive grid layouts (1 col mobile → 2 col md → 3-4 col lg)
+- Real-time UI updates after API calls (optimistic updates)
+- Admin auth check via `checkAdminAuth()` in all API routes
+- Stripe integration for refunds (stripe.refunds.create with payment_intent)
+- Supabase queries with proper error handling
+- Navigation links added to Sidebar.tsx and MobileSidebar.tsx
+
+### Verification Methods:
+- Browser testing via Playwright MCP + Puppeteer MCP
+- End-to-end workflows tested (design approval → product creation, return approval → refund)
+- Database queries verified via Supabase API responses
+- Screenshots captured for visual confirmation
+
+### Next Session Priorities:
+1. #403: Messaging config page renders
+2. #404: Order Printify retry button works from admin
+3. Then continue with remaining admin/messaging features
+4. OAuth features still blocked by external configuration
+

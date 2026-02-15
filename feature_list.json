@@ -4396,7 +4396,7 @@
     "id": 400,
     "feature": "Admin Panel Setup",
     "description": "Designs gallery with approve/reject actions",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to http://localhost:3001/designs",
       "Verify a gallery grid of AI-generated designs is displayed",
@@ -4408,7 +4408,7 @@
     "id": 401,
     "feature": "Admin Panel Setup",
     "description": "Design create-product pipeline from admin",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to a design detail page at http://localhost:3001/designs/:id",
       "Verify a 'Create Product' button exists",
@@ -4420,7 +4420,7 @@
     "id": 402,
     "feature": "Admin Panel Setup",
     "description": "Returns management page with refund action",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to http://localhost:3001/returns",
       "Verify a list of return requests is displayed",
