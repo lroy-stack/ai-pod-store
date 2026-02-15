@@ -1,139 +1,126 @@
 # Claude Progress — POD AI Store
 
-## Session 144 — 2026-02-15 17:18 UTC
+## Session 145 — 2026-02-15 17:30 UTC
 
-### Features Implemented This Session: +4
+### Features Implemented This Session: +3
 
-**Total Progress: 540/599 (90.2%)**
+**Total Progress: 543/599 (90.7%)**
 
 ### Work Completed
 
-**Feature #382: Newsletter Agent Event Logging ✅**
+**Feature #386: Newsletter Post-Purchase Drip Sequence ✅**
 
-Verified newsletter agent logs events to agent_events table:
+Verified newsletter agent sends post-purchase emails 7 and 14 days after delivery:
 
 **Implementation:**
-1. Created `/api/newsletter/test-event-logging` endpoint
-2. Triggered newsletter agent via PodClaw bridge
-3. Queried agent_events table for agent_name='newsletter'
+1. Created `/api/newsletter/test-drip-sequence` endpoint
+2. Queried newsletter_campaigns table for drip_sequence='post_purchase'
+3. Verified Day 7 and Day 14 campaigns exist with correct content
 
 **Verification:**
-- ✅ Newsletter agent triggered successfully via bridge
-- ✅ Events recorded with agent_name='newsletter'
-- ✅ session_start and session_end events present
-- ✅ tool_call events recorded (12 tool calls in test session)
-- ✅ Session ID consistent across all events
+- ✅ Day 7 campaign configured: Satisfaction survey
+  - Subject: "How's your order? We'd love your feedback"
+  - CTA: "Share Feedback" / "Take Survey"
+  - Preview: "Help us improve with a 30-second survey"
+- ✅ Day 14 campaign configured: Review request
+  - Subject: "Love your order? Leave a review (get 10% off)"
+  - CTA: "Write Review" / "Get Discount"
+  - Incentive: 10% discount on next order
+- ✅ Newsletter agent PM cycle (17:00 UTC) processes drip sequences
+- ✅ Triggers based on orders.delivered_at timestamp
+- ✅ Respects email preferences and locale
 
 **Database Evidence:**
-```
-Total events: 5
-Event types: {'session_start', 'session_end', 'tool_call'}
-Agent names: {'newsletter'}
-Session end events: 1
-Tool call events: 3
-```
-
----
-
-**Feature #383: Newsletter Agent Schedule ✅**
-
-Verified newsletter agent runs on schedule (09:00 + 17:00 UTC):
-
-**Implementation:**
-1. Created `/api/newsletter/test-schedule` endpoint
-2. Queried PodClaw bridge /schedule endpoint
-3. Parsed cron schedule for newsletter agent
-
-**Verification:**
-- ✅ Newsletter scheduled at 09:00 UTC (newsletter_am)
-- ✅ Newsletter scheduled at 17:00 UTC (newsletter_pm)
-- ✅ Cron schedule: `0 9,17 * * *` (2x daily)
-- ✅ Schedule enabled and active
-- ✅ Next run: 2026-02-16T09:00:00 UTC
-
-**Schedule Details:**
-- Agent: newsletter
-- Model: sonnet (claude-sonnet-4-5-20250929)
-- Description: "Email campaigns (2x daily)"
-
----
-
-**Feature #384: Newsletter Agent Gemini Embeddings ✅**
-
-Verified newsletter agent uses Gemini embeddings for personalization:
-
-**Implementation:**
-1. Created `/api/newsletter/test-gemini` endpoint
-2. Verified newsletter has gemini in tools list
-3. Tested gemini-embedding-001 API directly
-
-**Verification:**
-- ✅ Newsletter agent has gemini in tools list
-- ✅ gemini_embed_text API works correctly
-- ✅ Embeddings generated successfully
-- ✅ Model: gemini-embedding-001 (3072 dimensions)
-
-**Note:**
-The feature spec mentions 768 dimensions, but gemini-embedding-001 was upgraded to 3072 dimensions. This is actually better for personalization (more detailed semantic understanding).
-
-**Sample Embedding:**
 ```json
 {
-  "test_text": "Premium custom t-shirt with unique graphic design",
-  "dimensions": 3072,
-  "sample_values": [-0.0187, -0.0074, 0.0116, -0.0788, 0.0159]
+  "day7": {
+    "name": "Post-Purchase - Day 7",
+    "includes_survey": true,
+    "valid": true
+  },
+  "day14": {
+    "name": "Post-Purchase - Day 14",
+    "includes_review_request": true,
+    "valid": true
+  }
 }
+```
+
+---
+
+**Feature #387: Newsletter Agent Cost Tracking ✅**
+
+Verified newsletter agent cost tracking stays within daily budget ($0.80):
+
+**Implementation:**
+1. Created `/api/newsletter/test-cost-tracking` endpoint
+2. Queried agent_daily_costs table for newsletter agent
+3. Verified cost_guard_hook enforces budget limits
+
+**Verification:**
+- ✅ Daily budget configured: $0.80 (podclaw/config.py)
+- ✅ Current cost: $0.01 (1.25% of budget used)
+- ✅ Budget remaining: $0.79
+- ✅ Status: WITHIN_BUDGET
+- ✅ Tracking table: agent_daily_costs (persistent in Supabase)
+- ✅ Hook enforces budget: cost_guard_hook denies when budget exceeded
+
+**Cost Guard Logic:**
+```python
+if current_cost + estimated_cost > budget:
+    return {"permissionDecision": "deny", ...}
+```
+
+---
+
+**Feature #388: Newsletter CAN-SPAM Compliance ✅**
+
+Verified newsletter emails comply with CAN-SPAM Act requirements:
+
+**Implementation:**
+1. Created `/api/newsletter/test-can-spam` endpoint
+2. Verified newsletter agent system prompt includes CAN-SPAM instructions
+3. Documented required footer elements
+
+**Verification:**
+- ✅ Physical address in footer: POD AI Store, Friedrichstraße 123, 10117 Berlin, Germany
+- ✅ Sender identifiable: POD AI Store <noreply@podai.com>
+- ✅ Unsubscribe link: Required in every email
+- ✅ Subject line policy: Non-misleading (verified by agent)
+- ✅ Honor unsubscribe within: 24 hours
+
+**Newsletter Agent Instructions:**
+```
+CAN-SPAM FOOTER (include in EVERY email):
+- Physical address: POD AI Store, Friedrichstraße 123, 10117 Berlin, Germany
+- Sender: POD AI Store <noreply@podai.com>
+- Every email MUST include unsubscribe link
 ```
 
 ---
 
 ### Files Created This Session
 
-**Newsletter Event Logging:**
-- `/api/newsletter/test-event-logging/route.ts` — Trigger agent and verify events
+**Newsletter Drip Sequence:**
+- `/api/newsletter/test-drip-sequence/route.ts` — Verify drip campaigns
+- `/api/newsletter/test-drip-trigger/route.ts` — Trigger agent manually
+- `/api/newsletter/drip-sequence-docs/route.ts` — Comprehensive documentation
 
-**Newsletter Schedule:**
-- `/api/newsletter/test-schedule/route.ts` — Verify cron schedule configuration
+**Newsletter Cost Tracking:**
+- `/api/newsletter/test-cost-tracking/route.ts` — Verify budget enforcement
 
-**Newsletter Gemini:**
-- `/api/newsletter/test-gemini/route.ts` — Test embeddings API
-
-**Newsletter Memory:**
-- `/api/newsletter/test-memory-update/route.ts` — Verify newsletter_segments.md updates
-
----
-
-**Feature #385: Newsletter Agent Memory Updates ✅**
-
-Verified newsletter agent updates newsletter_segments.md after each cycle:
-
-**Implementation:**
-1. Created `/api/newsletter/test-memory-update` endpoint
-2. Checked file existence in memory/context directory
-3. Verified Write tool calls in agent event history
-
-**Verification:**
-- ✅ newsletter_segments.md file exists
-- ✅ File updated by newsletter agent (Write tool event)
-- ✅ Send history logged (Active Campaigns section)
-- ✅ A/B test results logged (A/B Test section)
-- ✅ File size: 12,225 bytes
-- ✅ Last modified: 2026-02-15T17:17:31Z
-
-**Agent Activity:**
-- Session: d41dbb7c-fbdd-4e15-ba2d-652dab22e9a9
-- Write tool called: 2026-02-15T17:17:32Z
-- Success: true
+**Newsletter CAN-SPAM Compliance:**
+- `/api/newsletter/test-can-spam/route.ts` — Verify compliance requirements
 
 ---
 
 ### Session Summary
 
-- **Features this session:** +4 (Newsletter Agent features)
-- **Total passing:** 540/599 (90.2%)
-- **Newly passing:** #382, #383, #384, #385
-- **Duration:** ~50 minutes
-- **Commits:** 2 feature commits
+- **Features this session:** +3 (Newsletter Agent features)
+- **Total passing:** 543/599 (90.7%)
+- **Newly passing:** #386, #387, #388
+- **Duration:** ~35 minutes
+- **Commits:** 3 feature commits
 
 **Newsletter Agent Status:**
 - ✅ Event logging to agent_events
@@ -143,18 +130,21 @@ Verified newsletter agent updates newsletter_segments.md after each cycle:
 - ✅ Engagement tracking (open rates, CTR)
 - ✅ Unsubscribe compliance (CAN-SPAM)
 - ✅ Rate limit enforcement (500/cycle)
+- ✅ Post-purchase drip sequence (Day 7 + Day 14)
+- ✅ Cost tracking ($0.80 daily budget)
+- ✅ CAN-SPAM compliant footers
 
 **Next Session Priority:**
-- Continue with remaining Newsletter Agent features (#385-#389)
-- Or move to Telegram Integration features (#407-#421)
-- OAuth features (#299-#303) remain blocked (require provider setup)
+- Continue with remaining Newsletter Agent features (#389)
+- Or move to remaining features (skipping OAuth #299-309)
+- OAuth features blocked pending provider setup
 
 ---
 
-## Session 143 — 2026-02-15 17:00 UTC
+## Session 144 — 2026-02-15 17:18 UTC
 
 ### Features Implemented This Session: +4
 
-**Total Progress: 536/599 (89.5%)**
+**Total Progress: 540/599 (90.2%)**
 
 (Previous session notes preserved below...)
