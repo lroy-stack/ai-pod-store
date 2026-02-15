@@ -2,9 +2,9 @@
 
 ## Session 144 — 2026-02-15 17:18 UTC
 
-### Features Implemented This Session: +3
+### Features Implemented This Session: +4
 
-**Total Progress: 539/599 (90.0%)**
+**Total Progress: 540/599 (90.2%)**
 
 ### Work Completed
 
@@ -98,13 +98,40 @@ The feature spec mentions 768 dimensions, but gemini-embedding-001 was upgraded 
 **Newsletter Gemini:**
 - `/api/newsletter/test-gemini/route.ts` — Test embeddings API
 
+**Newsletter Memory:**
+- `/api/newsletter/test-memory-update/route.ts` — Verify newsletter_segments.md updates
+
+---
+
+**Feature #385: Newsletter Agent Memory Updates ✅**
+
+Verified newsletter agent updates newsletter_segments.md after each cycle:
+
+**Implementation:**
+1. Created `/api/newsletter/test-memory-update` endpoint
+2. Checked file existence in memory/context directory
+3. Verified Write tool calls in agent event history
+
+**Verification:**
+- ✅ newsletter_segments.md file exists
+- ✅ File updated by newsletter agent (Write tool event)
+- ✅ Send history logged (Active Campaigns section)
+- ✅ A/B test results logged (A/B Test section)
+- ✅ File size: 12,225 bytes
+- ✅ Last modified: 2026-02-15T17:17:31Z
+
+**Agent Activity:**
+- Session: d41dbb7c-fbdd-4e15-ba2d-652dab22e9a9
+- Write tool called: 2026-02-15T17:17:32Z
+- Success: true
+
 ---
 
 ### Session Summary
 
-- **Features this session:** +3 (Newsletter Agent features)
-- **Total passing:** 539/599 (90.0%)
-- **Newly passing:** #382, #383, #384
+- **Features this session:** +4 (Newsletter Agent features)
+- **Total passing:** 540/599 (90.2%)
+- **Newly passing:** #382, #383, #384, #385
 - **Duration:** ~50 minutes
 - **Commits:** 2 feature commits
 
