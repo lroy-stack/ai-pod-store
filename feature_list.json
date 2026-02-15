@@ -3101,7 +3101,7 @@
     "id": 281,
     "feature": "Performance & Quality",
     "description": "No console errors on any page",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate through /en/, /en/shop, /en/chat, /en/cart",
       "Verify browser console has no errors on any page"
