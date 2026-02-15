@@ -27,6 +27,18 @@ interface TelegramUpdate {
 
 export async function POST(request: NextRequest) {
   try {
+    // Verify secret token (required security measure)
+    const secretToken = request.headers.get('x-telegram-bot-api-secret-token');
+    const expectedToken = process.env.TELEGRAM_WEBHOOK_SECRET || 'default_secret_change_in_production';
+
+    // ALWAYS validate the token (fail-secure)
+    if (secretToken !== expectedToken) {
+      return NextResponse.json(
+        { ok: false, error: 'Forbidden' },
+        { status: 403 }
+      );
+    }
+
     // Parse the Telegram update payload
     const update: TelegramUpdate = await request.json();
 
