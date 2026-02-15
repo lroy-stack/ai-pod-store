@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
+import { getAuthUser } from '@/lib/auth-guard'
 import { z } from 'zod'
 
 const saveDesignSchema = z.object({
@@ -11,18 +12,16 @@ const saveDesignSchema = z.object({
   width: z.number().optional(),
   height: z.number().optional(),
   productId: z.string().uuid().optional(),
-  userId: z.string().uuid().optional(),
 })
 
 /**
  * GET /api/designs
- * Fetch user's generated designs
+ * Authenticated: returns user's own designs
+ * Unauthenticated: returns only publicly approved designs
  */
 export async function GET(req: NextRequest) {
   try {
-    // TODO: Get user ID from session/auth
-    // For now, fetch all designs (will add auth later)
-    const userId = req.headers.get('x-user-id') // Placeholder for auth
+    const user = await getAuthUser(req)
 
     const query = supabaseAdmin
       .from('designs')
@@ -30,9 +29,12 @@ export async function GET(req: NextRequest) {
       .order('created_at', { ascending: false })
       .limit(50)
 
-    // If user ID is provided, filter by user
-    if (userId) {
-      query.eq('user_id', userId)
+    if (user) {
+      // Authenticated: show user's own designs
+      query.eq('user_id', user.id)
+    } else {
+      // Unauthenticated: only show publicly approved designs
+      query.eq('moderation_status', 'approved')
     }
 
     const { data, error } = await query
@@ -65,6 +67,7 @@ export async function GET(req: NextRequest) {
 /**
  * POST /api/designs
  * Save a generated design (automatically sets moderation_status='pending')
+ * User ID is derived from auth token, not from request body
  */
 export async function POST(req: NextRequest) {
   try {
@@ -87,8 +90,10 @@ export async function POST(req: NextRequest) {
       width,
       height,
       productId,
-      userId,
     } = validation.data
+
+    // Get user from auth token (not from request body)
+    const user = await getAuthUser(req)
 
     // Insert design with moderation_status='pending' (default in DB schema)
     const { data, error } = await supabaseAdmin
@@ -102,8 +107,7 @@ export async function POST(req: NextRequest) {
         width: width || null,
         height: height || null,
         product_id: productId || null,
-        user_id: userId || null,
-        // moderation_status defaults to 'pending' in DB schema
+        user_id: user?.id || null,
       })
       .select()
       .single()

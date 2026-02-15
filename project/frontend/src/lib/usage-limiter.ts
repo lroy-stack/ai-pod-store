@@ -2,11 +2,11 @@
  * Usage Limiter Module
  *
  * Tier-based daily usage limits for chat, design generation, and mockups.
- * Uses Redis as primary store with Supabase RPC fallback.
- * Fail-open: if both stores fail, allows the action with a warning.
+ * Uses Supabase as the sole persistent store (no Redis).
+ * Fail-CLOSED: if Supabase fails, DENY the action (no silent pass-through).
  */
 
-import { getRedisClient, isRedisAvailable } from './redis'
+import { createHash } from 'crypto'
 import { createClient } from '@supabase/supabase-js'
 
 const supabase = createClient(
@@ -35,15 +35,26 @@ export interface UsageResult {
 }
 
 /**
- * Get today's date string in YYYY-MM-DD (UTC).
+ * Normalize identifier for consistent counting.
+ * UUIDs (user IDs) and fingerprints pass through unchanged.
+ * IPs are hashed with a daily salt for GDPR compliance.
  */
+function normalizeIdentifier(raw: string): string {
+  // User IDs (UUIDs) pass through
+  if (/^[0-9a-f]{8}-[0-9a-f]{4}-/.test(raw)) return raw
+  // Fingerprints pass through
+  if (raw.startsWith('fp:')) return raw
+  // Strip ip: prefix if present, then hash
+  const ip = raw.startsWith('ip:') ? raw.slice(3) : raw
+  const daySalt = new Date().toISOString().split('T')[0]
+  const hash = createHash('sha256').update(`${ip}:${daySalt}`).digest('hex').substring(0, 16)
+  return `h:${hash}`
+}
+
 function todayPeriod(): string {
   return new Date().toISOString().slice(0, 10)
 }
 
-/**
- * Get midnight UTC reset time for today.
- */
 function getResetAt(): string {
   const tomorrow = new Date()
   tomorrow.setUTCDate(tomorrow.getUTCDate() + 1)
@@ -52,69 +63,7 @@ function getResetAt(): string {
 }
 
 /**
- * Seconds until midnight UTC.
- */
-function secondsUntilMidnight(): number {
-  const now = new Date()
-  const midnight = new Date(now)
-  midnight.setUTCDate(midnight.getUTCDate() + 1)
-  midnight.setUTCHours(0, 0, 0, 0)
-  return Math.ceil((midnight.getTime() - now.getTime()) / 1000)
-}
-
-/**
- * Try Redis increment. Returns current count or null on failure.
- */
-async function redisIncrement(identifier: string, action: string, period: string): Promise<number | null> {
-  const client = getRedisClient()
-  if (!client || !isRedisAvailable()) return null
-
-  try {
-    const key = `usage:${identifier}:${action}:${period}`
-    const count = await client.incr(key)
-    // Set expiry if this is the first increment
-    if (count === 1) {
-      await client.expire(key, secondsUntilMidnight())
-    }
-    return count
-  } catch {
-    return null
-  }
-}
-
-/**
- * Try Redis decrement (rollback).
- */
-async function redisDecrement(identifier: string, action: string, period: string): Promise<void> {
-  const client = getRedisClient()
-  if (!client || !isRedisAvailable()) return
-
-  try {
-    const key = `usage:${identifier}:${action}:${period}`
-    await client.decr(key)
-  } catch {
-    // ignore
-  }
-}
-
-/**
- * Try Redis get current count.
- */
-async function redisGetCount(identifier: string, action: string, period: string): Promise<number | null> {
-  const client = getRedisClient()
-  if (!client || !isRedisAvailable()) return null
-
-  try {
-    const key = `usage:${identifier}:${action}:${period}`
-    const val = await client.get(key)
-    return val ? parseInt(val, 10) : 0
-  } catch {
-    return null
-  }
-}
-
-/**
- * Supabase fallback: call increment_usage RPC.
+ * Supabase increment via RPC (atomic check + increment).
  */
 async function supabaseIncrement(
   identifier: string,
@@ -130,19 +79,20 @@ async function supabaseIncrement(
       p_limit: limit,
     })
     if (error) {
-      console.warn('[UsageLimiter] Supabase RPC error:', error.message)
+      console.error('[UsageLimiter] Supabase RPC error:', error.message)
       return null
     }
     return data as { allowed: boolean; current: number }
-  } catch {
+  } catch (err) {
+    console.error('[UsageLimiter] Supabase RPC exception:', err)
     return null
   }
 }
 
 /**
- * Supabase fallback: get current count.
+ * Supabase: get current count without incrementing.
  */
-async function supabaseGetCount(identifier: string, action: string, period: string): Promise<number | null> {
+async function supabaseGetCount(identifier: string, action: string, period: string): Promise<number> {
   try {
     const { data, error } = await supabase
       .from('user_usage')
@@ -155,16 +105,15 @@ async function supabaseGetCount(identifier: string, action: string, period: stri
     if (error) return 0 // No row = 0 usage
     return data?.count || 0
   } catch {
-    return null
+    return 0
   }
 }
 
 /**
- * Consume a credit from the user's balance.
+ * Consume a credit from the user's balance (premium overflow).
  */
 async function consumeCredit(userId: string, action: string): Promise<{ success: boolean; balance: number }> {
   try {
-    // Atomic decrement + log
     const { data: user, error: fetchError } = await supabase
       .from('users')
       .select('credit_balance')
@@ -184,7 +133,6 @@ async function consumeCredit(userId: string, action: string): Promise<{ success:
 
     if (updateError) return { success: false, balance: user.credit_balance }
 
-    // Log the transaction
     await supabase.from('credit_transactions').insert({
       user_id: userId,
       amount: -1,
@@ -200,11 +148,7 @@ async function consumeCredit(userId: string, action: string): Promise<{ success:
 
 /**
  * Check if an action is allowed and increment usage counter.
- *
- * @param identifier - User ID (registered) or IP address (anonymous)
- * @param action - The action type (chat, design:generate, etc.)
- * @param tier - User's tier (anonymous, free, premium)
- * @param userId - Optional user ID for credit consumption (premium only)
+ * Uses Supabase as sole store. Fail-CLOSED on errors.
  */
 export async function checkAndIncrementUsage(
   identifier: string,
@@ -212,6 +156,7 @@ export async function checkAndIncrementUsage(
   tier: UserTier,
   userId?: string
 ): Promise<UsageResult> {
+  const id = normalizeIdentifier(identifier)
   const limit = USAGE_TIERS[tier]?.[action] ?? 0
   const period = todayPeriod()
   const resetAt = getResetAt()
@@ -226,55 +171,18 @@ export async function checkAndIncrementUsage(
     return { allowed: false, current: 0, limit: 0, remaining: 0, resetAt }
   }
 
-  // Try Redis first
-  const redisCount = await redisIncrement(identifier, action, period)
+  // Supabase atomic increment + check
+  const result = await supabaseIncrement(id, action, period, limit)
 
-  if (redisCount !== null) {
-    if (redisCount > limit) {
-      // Over limit — rollback Redis increment
-      await redisDecrement(identifier, action, period)
-
-      // Premium users: try credits
+  if (result !== null) {
+    if (!result.allowed) {
+      // Premium users: try credits as overflow
       if (tier === 'premium' && userId) {
         const creditResult = await consumeCredit(userId, action)
         if (creditResult.success) {
           return {
             allowed: true,
-            current: redisCount - 1,
-            limit,
-            remaining: 0,
-            resetAt,
-            source: 'credits',
-            creditsRemaining: creditResult.balance,
-          }
-        }
-      }
-
-      return { allowed: false, current: redisCount - 1, limit, remaining: 0, resetAt, source: 'daily' }
-    }
-
-    return {
-      allowed: true,
-      current: redisCount,
-      limit,
-      remaining: limit - redisCount,
-      resetAt,
-      source: 'daily',
-    }
-  }
-
-  // Redis failed — try Supabase
-  const supaResult = await supabaseIncrement(identifier, action, period, limit)
-
-  if (supaResult !== null) {
-    if (!supaResult.allowed) {
-      // Premium users: try credits
-      if (tier === 'premium' && userId) {
-        const creditResult = await consumeCredit(userId, action)
-        if (creditResult.success) {
-          return {
-            allowed: true,
-            current: supaResult.current,
+            current: result.current,
             limit,
             remaining: 0,
             resetAt,
@@ -286,7 +194,7 @@ export async function checkAndIncrementUsage(
 
       return {
         allowed: false,
-        current: supaResult.current,
+        current: result.current,
         limit,
         remaining: 0,
         resetAt,
@@ -296,16 +204,16 @@ export async function checkAndIncrementUsage(
 
     return {
       allowed: true,
-      current: supaResult.current,
+      current: result.current,
       limit,
-      remaining: Math.max(0, limit - supaResult.current),
+      remaining: Math.max(0, limit - result.current),
       resetAt,
       source: 'daily',
     }
   }
 
-  // Both failed — fail open with warning + alert
-  console.warn(`[UsageLimiter] Both Redis and Supabase failed for ${identifier}:${action}. Allowing request (fail-open).`)
+  // Supabase failed — FAIL CLOSED (deny the request)
+  console.error(`[UsageLimiter] Supabase failed for ${id}:${action}. DENYING request (fail-closed).`)
 
   // Fire-and-forget alert to admin
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
@@ -314,12 +222,33 @@ export async function checkAndIncrementUsage(
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       type: 'usage_limiter_failure',
-      message: `Both Redis and Supabase failed for ${action} (identifier: ${identifier})`,
-      severity: 'high',
+      message: `Supabase RPC failed for ${action} — requests are being denied (fail-closed)`,
+      severity: 'critical',
     }),
-  }).catch(() => {}) // Never block on alert failure
+  }).catch(() => {})
 
-  return { allowed: true, current: 0, limit, remaining: limit, resetAt, source: 'daily' }
+  return { allowed: false, current: 0, limit, remaining: 0, resetAt, source: 'daily' }
+}
+
+/**
+ * Decrement usage counter (rollback on failed actions).
+ */
+export async function decrementUsage(
+  identifier: string,
+  action: UsageAction
+): Promise<void> {
+  const id = normalizeIdentifier(identifier)
+  const period = todayPeriod()
+
+  try {
+    await supabase.rpc('decrement_usage', {
+      p_identifier: id,
+      p_action: action,
+      p_period: period,
+    })
+  } catch {
+    // Best-effort rollback
+  }
 }
 
 /**
@@ -330,11 +259,11 @@ export async function getCurrentUsage(
   action: UsageAction,
   tier: UserTier = 'free'
 ): Promise<{ used: number; limit: number; remaining: number }> {
+  const id = normalizeIdentifier(identifier)
   const limit = USAGE_TIERS[tier]?.[action] ?? 0
   const period = todayPeriod()
 
-  const count = (await redisGetCount(identifier, action, period)) ??
-    (await supabaseGetCount(identifier, action, period)) ?? 0
+  const count = await supabaseGetCount(id, action, period)
 
   return {
     used: count,
@@ -344,20 +273,20 @@ export async function getCurrentUsage(
 }
 
 /**
- * Get current usage for a specific tier.
+ * Get current usage for all actions of a tier.
  */
 export async function getUsageForTier(
   identifier: string,
   tier: UserTier
 ): Promise<Record<UsageAction, { used: number; limit: number; remaining: number }>> {
+  const id = normalizeIdentifier(identifier)
   const period = todayPeriod()
   const actions: UsageAction[] = ['chat', 'chat:messages', 'design:generate', 'design:mockup', 'design:save']
   const result = {} as Record<UsageAction, { used: number; limit: number; remaining: number }>
 
   for (const action of actions) {
     const limit = USAGE_TIERS[tier]?.[action] ?? 0
-    const count = (await redisGetCount(identifier, action, period)) ??
-      (await supabaseGetCount(identifier, action, period)) ?? 0
+    const count = await supabaseGetCount(id, action, period)
 
     result[action] = {
       used: count,

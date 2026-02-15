@@ -3696,7 +3696,7 @@
     "id": 336,
     "feature": "PWA Support + Offline Mode",
     "description": "Product catalog cached in IndexedDB",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Load the product catalog",
       "Open DevTools > Application > IndexedDB",

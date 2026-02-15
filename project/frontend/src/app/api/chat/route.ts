@@ -5,7 +5,7 @@ import { createClient } from '@supabase/supabase-js'
 import { STORE_DEFAULTS, SHIPPING_RATES, LOCALE_FORMAT } from '@/lib/store-config'
 import { chatLimiter } from '@/lib/rate-limit'
 import { generateDesign } from '@/lib/design-generation'
-import { checkAndIncrementUsage, usageHeaders, UserTier, USAGE_TIERS } from '@/lib/usage-limiter'
+import { checkAndIncrementUsage, decrementUsage, usageHeaders, UserTier, USAGE_TIERS } from '@/lib/usage-limiter'
 import { checkAnomaly, trackRateLimitHit } from '@/lib/anomaly-monitor'
 import { checkPromptSafety } from '@/lib/content-safety'
 
@@ -145,6 +145,50 @@ export async function POST(req: Request) {
         { error: 'Invalid request: messages array required' },
         { status: 400 }
       )
+    }
+
+    // --- Conversation Persistence ---
+    const conversationId = req.headers.get('x-conversation-id') || crypto.randomUUID()
+    const sessionId = req.headers.get('x-session-id') || cartSessionId || crypto.randomUUID()
+
+    // Upsert conversation record (fire-and-forget, non-blocking)
+    ;(async () => {
+      try {
+        await supabase.from('conversations').upsert({
+          id: conversationId,
+          user_id: chatUserId || null,
+          session_id: sessionId,
+          model: 'gemini-2.5-flash',
+          locale: chatLocale,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'id' })
+      } catch (err) {
+        console.error('Conversation upsert error (non-critical):', err)
+      }
+    })()
+
+    // Save the latest user message (fire-and-forget)
+    const lastUserMessage = messages[messages.length - 1]
+    if (lastUserMessage?.role === 'user') {
+      const userContent = typeof lastUserMessage.content === 'string'
+        ? lastUserMessage.content
+        : Array.isArray(lastUserMessage.parts)
+          ? lastUserMessage.parts.filter((p: any) => p.type === 'text').map((p: any) => p.text).join(' ')
+          : JSON.stringify(lastUserMessage.content)
+
+      ;(async () => {
+        try {
+          await supabase.from('messages').insert({
+            id: crypto.randomUUID(),
+            conversation_id: conversationId,
+            role: 'user',
+            content: userContent,
+            created_at: new Date().toISOString(),
+          })
+        } catch (err) {
+          console.error('User message save error (non-critical):', err)
+        }
+      })()
     }
 
     // Locale-aware greeting and language instruction
@@ -1157,11 +1201,17 @@ Be friendly, helpful, and concise.`
 
             // If order ID is provided, fetch that specific order
             if (orderId) {
-              const { data: order, error: orderError } = await supabase
+              const orderQuery = supabase
                 .from('orders')
                 .select('*')
                 .eq('id', orderId)
-                .single()
+
+              // If user is authenticated, restrict to their own orders
+              if (chatUserId) {
+                orderQuery.eq('user_id', chatUserId)
+              }
+
+              const { data: order, error: orderError } = await orderQuery.single()
 
               if (orderError || !order) {
                 return {
@@ -1405,9 +1455,33 @@ Be friendly, helpful, and concise.`
               }
             }
 
+            // Usage check for design generation (separate from chat usage)
+            const tier = chatUserTier
+            const designUsage = await checkAndIncrementUsage(
+              chatUserId || (fingerprint ? `fp:${fingerprint}` : `ip:${ip}`),
+              'design:generate',
+              tier,
+              chatUserId || undefined
+            )
+            if (!designUsage.allowed) {
+              return {
+                success: false,
+                error: tier === 'anonymous'
+                  ? 'Please sign up to generate designs.'
+                  : 'Daily design limit reached. Upgrade for more.',
+                requiresAuth: tier === 'anonymous',
+                requiresUpgrade: tier === 'free',
+              }
+            }
+
             const result = await generateDesign({ prompt: promptText, style })
 
             if (!result.success) {
+              // Rollback design usage on failure
+              await decrementUsage(
+                chatUserId || (fingerprint ? `fp:${fingerprint}` : `ip:${ip}`),
+                'design:generate'
+              )
               return {
                 success: false,
                 error: result.error || 'Failed to generate design',
@@ -1423,6 +1497,11 @@ Be friendly, helpful, and concise.`
             }
           } catch (error) {
             console.error('generate_design error:', error)
+            // Rollback on unexpected error
+            await decrementUsage(
+              chatUserId || (fingerprint ? `fp:${fingerprint}` : `ip:${ip}`),
+              'design:generate'
+            ).catch(() => {})
             return { success: false, error: 'Failed to generate design' }
           }
         },
@@ -1438,14 +1517,65 @@ Be friendly, helpful, and concise.`
         execute: async (args: { original_image_url: string; modifications: string }) => {
           const { original_image_url, modifications } = args
           try {
-            // Re-generate with modifications appended to prompt
+            // Content safety check
+            const safety = checkPromptSafety(modifications)
+            if (!safety.safe) {
+              return { success: false, error: `Content policy violation: ${safety.reason}` }
+            }
+
+            // Usage check for design generation
+            const tier = chatUserTier
+            const identifier = chatUserId || (fingerprint ? `fp:${fingerprint}` : `ip:${ip}`)
+            const designUsage = await checkAndIncrementUsage(identifier, 'design:generate', tier, chatUserId || undefined)
+            if (!designUsage.allowed) {
+              return {
+                success: false,
+                error: tier === 'anonymous'
+                  ? 'Please sign up to generate designs.'
+                  : 'Daily design limit reached. Upgrade for more.',
+                requiresAuth: tier === 'anonymous',
+                requiresUpgrade: tier === 'free',
+              }
+            }
+
+            // Use fal.ai image-to-image if FAL_KEY available and original image provided
+            const FAL_KEY = process.env.FAL_KEY
+            if (FAL_KEY && original_image_url) {
+              const response = await fetch('https://fal.run/fal-ai/flux/dev/image-to-image', {
+                method: 'POST',
+                headers: { 'Authorization': `Key ${FAL_KEY}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  image_url: original_image_url,
+                  prompt: modifications,
+                  strength: 0.65,
+                  num_inference_steps: 28,
+                  image_size: 'square_hd',
+                  enable_safety_checker: true,
+                }),
+              })
+
+              const data = await response.json()
+              if (response.ok && data.images?.[0]?.url) {
+                return {
+                  success: true,
+                  imageUrl: data.images[0].url,
+                  prompt: modifications,
+                  style: 'customized',
+                  modifications,
+                  message: 'Design customized successfully!',
+                }
+              }
+
+              // img2img failed — fall through to regeneration
+              console.warn('customize_design img2img failed, falling back to regeneration:', data)
+            }
+
+            // Fallback: regenerate with combined prompt
             const result = await generateDesign({ prompt: modifications, style: 'customized' })
 
             if (!result.success) {
-              return {
-                success: false,
-                error: result.error || 'Failed to customize design',
-              }
+              await decrementUsage(identifier, 'design:generate')
+              return { success: false, error: result.error || 'Failed to customize design' }
             }
 
             return {
@@ -1458,6 +1588,8 @@ Be friendly, helpful, and concise.`
             }
           } catch (error) {
             console.error('customize_design error:', error)
+            const identifier = chatUserId || (fingerprint ? `fp:${fingerprint}` : `ip:${ip}`)
+            await decrementUsage(identifier, 'design:generate').catch(() => {})
             return {
               success: false,
               error: 'Failed to customize design. Make sure the design was generated first.',
@@ -1697,10 +1829,39 @@ Be friendly, helpful, and concise.`
       messages: convertedMessages,
       tools,
       stopWhen: stepCountIs(5),
+      onFinish: async ({ text, toolCalls, toolResults, usage }) => {
+        // Persist assistant response
+        try {
+          await supabase.from('messages').insert({
+            id: crypto.randomUUID(),
+            conversation_id: conversationId,
+            role: 'assistant',
+            content: text || '',
+            tool_calls: toolCalls?.length ? toolCalls : null,
+            tool_results: toolResults?.length ? toolResults : null,
+            tokens_used: usage?.totalTokens || null,
+            created_at: new Date().toISOString(),
+          })
+
+          // Set conversation title from first assistant response
+          if (messages.length <= 2 && text) {
+            const title = text.substring(0, 100)
+            await supabase.from('conversations')
+              .update({ title, updated_at: new Date().toISOString() })
+              .eq('id', conversationId)
+          }
+        } catch (err) {
+          console.error('Assistant message save error (non-critical):', err)
+        }
+      },
     })
 
-    // Return streaming SSE response
-    return result.toUIMessageStreamResponse()
+    // Return streaming SSE response with conversation ID header
+    return result.toUIMessageStreamResponse({
+      headers: {
+        'x-conversation-id': conversationId,
+      },
+    })
   } catch (error) {
     console.error('Chat API error:', error)
     console.error('Error details:', error instanceof Error ? error.message : String(error))

@@ -1,5 +1,5 @@
 /**
- * Shared design generation logic
+ * Shared design generation logic with multi-provider fallback
  * Used by both /api/designs/generate and chat tools
  */
 
@@ -20,19 +20,21 @@ export interface DesignGenerationResult {
   placeholder?: boolean
   note?: string
   error?: string
+  provider?: string
 }
 
 /**
  * Estimate cost of a design generation.
  */
 export function estimateDesignCost(options?: { style?: string }): { credits: number; estimatedCostEur: number } {
-  // Base: 1 credit per standard generation
   return { credits: 1, estimatedCostEur: 0.05 }
 }
 
 /**
- * Generate a design using fal.ai FLUX.1
- * Falls back to placeholder image in development if API fails
+ * Generate a design with multi-provider fallback chain:
+ * 1. fal.ai FLUX.1 schnell (fastest, ~2s)
+ * 2. fal.ai FLUX.1 dev (slower but more robust, ~8-15s)
+ * 3. Placeholder in development
  */
 export async function generateDesign(
   params: DesignGenerationParams
@@ -40,31 +42,6 @@ export async function generateDesign(
   const prompt = params.prompt || 'custom design'
   const { style, negativePrompt } = params
 
-  const FAL_KEY = process.env.FAL_KEY
-  if (!FAL_KEY) {
-    console.error('FAL_KEY not configured')
-
-    // Development fallback
-    if (process.env.NODE_ENV === 'development') {
-      const placeholderUrl = `https://placehold.co/1024x1024/667eea/ffffff?text=${encodeURIComponent(prompt.slice(0, 50))}`
-      return {
-        success: true,
-        imageUrl: placeholderUrl,
-        prompt: `${prompt}, high quality, professional design`,
-        seed: Math.floor(Math.random() * 1000000),
-        timings: { inference: 0 },
-        placeholder: true,
-        note: 'Placeholder image - fal.ai credits exhausted',
-      }
-    }
-
-    return {
-      success: false,
-      error: 'Image generation service not configured',
-    }
-  }
-
-  // Build the final prompt with style if provided
   const finalPrompt = style
     ? `${prompt}, ${style} style, high quality, professional design`
     : `${prompt}, high quality, professional design`
@@ -73,111 +50,146 @@ export async function generateDesign(
     negativePrompt ||
     'blurry, low quality, watermark, text, signature, distorted, ugly'
 
+  const FAL_KEY = process.env.FAL_KEY
+
+  if (!FAL_KEY) {
+    console.error('FAL_KEY not configured')
+    return devFallback(prompt, finalPrompt)
+  }
+
+  // Provider 1: fal.ai FLUX.1 schnell (fastest)
+  const schnellResult = await generateWithFalSchnell(FAL_KEY, finalPrompt, finalNegativePrompt)
+  if (schnellResult.success) return schnellResult
+
+  // Provider 2: fal.ai FLUX.1 dev (more robust)
+  const devResult = await generateWithFalDev(FAL_KEY, finalPrompt, finalNegativePrompt)
+  if (devResult.success) return devResult
+
+  // Provider 3: Development placeholder
+  return devFallback(prompt, finalPrompt)
+}
+
+async function generateWithFalSchnell(
+  apiKey: string,
+  prompt: string,
+  negativePrompt: string
+): Promise<DesignGenerationResult> {
   try {
-    // Call fal.ai FLUX.1 schnell model (fastest)
-    const falResponse = await fetch('https://fal.run/fal-ai/flux/schnell', {
+    const response = await fetch('https://fal.run/fal-ai/flux/schnell', {
       method: 'POST',
       headers: {
-        'Authorization': `Key ${FAL_KEY}`,
+        'Authorization': `Key ${apiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        prompt: finalPrompt,
-        negative_prompt: finalNegativePrompt,
-        image_size: 'square_hd', // 1024x1024
-        num_inference_steps: 4, // schnell is optimized for 4 steps
+        prompt,
+        negative_prompt: negativePrompt,
+        image_size: 'square_hd',
+        num_inference_steps: 4,
         num_images: 1,
         enable_safety_checker: true,
       }),
     })
 
-    if (!falResponse.ok) {
-      const errorText = await falResponse.text()
-      console.error('fal.ai API error:', errorText)
-
-      // Development fallback
-      if (process.env.NODE_ENV === 'development') {
-        const placeholderUrl = `https://placehold.co/1024x1024/667eea/ffffff?text=${encodeURIComponent(prompt.slice(0, 50))}`
-        return {
-          success: true,
-          imageUrl: placeholderUrl,
-          prompt: finalPrompt,
-          seed: Math.floor(Math.random() * 1000000),
-          timings: { inference: 0 },
-          placeholder: true,
-          note: 'Placeholder image - fal.ai credits exhausted',
-        }
-      }
-
-      return {
-        success: false,
-        error: 'Failed to generate image',
-      }
+    if (!response.ok) {
+      console.error('fal.ai schnell error:', await response.text())
+      return { success: false, error: 'schnell provider failed' }
     }
 
-    const falData = await falResponse.json()
+    const data = await response.json()
 
-    // Check if fal.ai safety checker rejected the image
-    if (falData.has_nsfw_concepts?.some?.((v: boolean) => v)) {
-      console.warn('[ContentSafety] fal.ai rejected design for NSFW content:', prompt)
-      return {
-        success: false,
-        error: 'Design rejected by safety checker. Please modify your prompt.',
-      }
+    if (data.has_nsfw_concepts?.some?.((v: boolean) => v)) {
+      return { success: false, error: 'Design rejected by safety checker. Please modify your prompt.' }
     }
 
-    // Extract the generated image URL
-    const imageUrl = falData.images?.[0]?.url
+    const imageUrl = data.images?.[0]?.url
     if (!imageUrl) {
-      console.error('No image URL in fal.ai response:', falData)
-
-      // Development fallback
-      if (process.env.NODE_ENV === 'development') {
-        const placeholderUrl = `https://placehold.co/1024x1024/667eea/ffffff?text=${encodeURIComponent(prompt.slice(0, 50))}`
-        return {
-          success: true,
-          imageUrl: placeholderUrl,
-          prompt: finalPrompt,
-          seed: Math.floor(Math.random() * 1000000),
-          timings: { inference: 0 },
-          placeholder: true,
-          note: 'Placeholder image - fal.ai credits exhausted',
-        }
-      }
-
-      return {
-        success: false,
-        error: 'No image generated',
-      }
+      return { success: false, error: 'No image in schnell response' }
     }
 
     return {
       success: true,
       imageUrl,
-      prompt: finalPrompt,
-      seed: falData.seed,
-      timings: falData.timings || { inference: 0 },
+      prompt,
+      seed: data.seed,
+      timings: data.timings || { inference: 0 },
+      provider: 'fal-schnell',
     }
   } catch (error) {
-    console.error('Design generation error:', error)
+    console.error('fal.ai schnell error:', error)
+    return { success: false, error: 'schnell provider error' }
+  }
+}
 
-    // Development fallback
-    if (process.env.NODE_ENV === 'development') {
-      const placeholderUrl = `https://placehold.co/1024x1024/667eea/ffffff?text=${encodeURIComponent(prompt.slice(0, 50))}`
-      return {
-        success: true,
-        imageUrl: placeholderUrl,
-        prompt: finalPrompt,
-        seed: Math.floor(Math.random() * 1000000),
-        timings: { inference: 0 },
-        placeholder: true,
-        note: 'Placeholder image - fal.ai credits exhausted',
-      }
+async function generateWithFalDev(
+  apiKey: string,
+  prompt: string,
+  negativePrompt: string
+): Promise<DesignGenerationResult> {
+  try {
+    const response = await fetch('https://fal.run/fal-ai/flux/dev', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Key ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        prompt,
+        negative_prompt: negativePrompt,
+        image_size: 'square_hd',
+        num_inference_steps: 28,
+        num_images: 1,
+        enable_safety_checker: true,
+      }),
+    })
+
+    if (!response.ok) {
+      console.error('fal.ai dev error:', await response.text())
+      return { success: false, error: 'dev provider failed' }
+    }
+
+    const data = await response.json()
+
+    if (data.has_nsfw_concepts?.some?.((v: boolean) => v)) {
+      return { success: false, error: 'Design rejected by safety checker. Please modify your prompt.' }
+    }
+
+    const imageUrl = data.images?.[0]?.url
+    if (!imageUrl) {
+      return { success: false, error: 'No image in dev response' }
     }
 
     return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      success: true,
+      imageUrl,
+      prompt,
+      seed: data.seed,
+      timings: data.timings || { inference: 0 },
+      provider: 'fal-dev',
     }
+  } catch (error) {
+    console.error('fal.ai dev error:', error)
+    return { success: false, error: 'dev provider error' }
+  }
+}
+
+function devFallback(originalPrompt: string, finalPrompt: string): DesignGenerationResult {
+  if (process.env.NODE_ENV === 'development') {
+    const placeholderUrl = `https://placehold.co/1024x1024/667eea/ffffff?text=${encodeURIComponent(originalPrompt.slice(0, 50))}`
+    return {
+      success: true,
+      imageUrl: placeholderUrl,
+      prompt: finalPrompt,
+      seed: Math.floor(Math.random() * 1000000),
+      timings: { inference: 0 },
+      placeholder: true,
+      note: 'Placeholder image - all providers failed',
+      provider: 'placeholder',
+    }
+  }
+
+  return {
+    success: false,
+    error: 'All design generation providers failed',
   }
 }

@@ -4750,3 +4750,72 @@ Tests newly passing this session: 308 (1 feature)
 ### Recommendation:
 Move to the next feature category. The social login implementation is complete from a development perspective. Once someone with access configures the OAuth providers in Supabase, all blocked features will immediately work without any code changes.
 
+
+### Commits this session:
+1. docs: document OAuth implementation status — test #308 passing
+2. feat: PWA manifest + icons, OAuth status documentation — tests #308, #334 passing
+
+### Summary Update:
+- OAuth investigation complete: All code ready, blocked by Supabase dashboard config
+- PWA manifest created and verified (feature #334 passing)
+- Created placeholder PWA icons (192x192, 512x512)
+- 2 features passing this session: #308 (OAuth env validation), #334 (Web App Manifest)
+
+### Tests passing: 373/565 (66.0%)
+Tests newly passing this session: 308, 334 (2 features)
+
+### Files Modified:
+- feature_list.json (marked #308, #334 as passing)
+- SOCIAL_LOGIN_STATUS.md (OAuth documentation)
+- project/frontend/public/manifest.json (PWA manifest)
+- project/frontend/public/icon-192.png, icon-512.png, icon.svg (PWA icons)
+
+### Next session priorities:
+1. Service worker registration (feature #335) - @serwist/next is installed but not registered
+2. Remaining PWA features (#336-343): IndexedDB cache, offline page, background sync
+3. Or skip to Python Analytics Layer (#344-353) if PWA setup is complex
+4. Return to OAuth features (#299-307) once Supabase providers are configured
+
+
+## Session 121 (Coding Agent)
+- Implemented: Service Worker registration with @serwist/next (feature #335)
+- Verification: Service worker successfully registered at http://localhost:3000/, verified via navigator.serviceWorker.getRegistration()
+- Tests passing: 458/578 (79.2%)
+- Tests newly passing this session: 335
+- Issues encountered:
+  - Build errors: Missing @hcaptcha/react-hcaptcha and @fingerprintjs/fingerprintjs packages → installed
+  - TypeScript error in admin alert route using .catch() on Supabase insert → fixed
+  - Service worker activation delayed by HMR (development mode) but registration confirmed
+- Database status: connected
+- Environment: .env.local configured correctly, all API keys working
+
+### Implementation Details:
+- Created `src/app/sw.ts` with Serwist configuration:
+  - Runtime caching for Printify images (CacheFirst, 7 days, 200 entries)
+  - Runtime caching for fal.ai design images (CacheFirst, 30 days, 100 entries)
+  - Runtime caching for Supabase storage (CacheFirst, 7 days, 100 entries)
+  - NetworkFirst strategy for API responses (5 min TTL, 3s network timeout)
+  - Google Fonts caching (1 year TTL)
+  - Push notification handlers (push, notificationclick events)
+- Created `ServiceWorkerRegistration` component:
+  - Registers /sw.js on mount
+  - Checks for updates periodically
+  - Listens for updatefound events
+  - Integrated into app Providers
+- Fixed admin alert route TypeScript error (removed invalid .catch() on Supabase insert)
+- Installed missing dependencies: @hcaptcha/react-hcaptcha, @fingerprintjs/fingerprintjs
+
+### Verification Evidence:
+```javascript
+// Service worker registration verified:
+{
+  exists: true,
+  scope: "http://localhost:3000/"
+}
+```
+
+### Next priorities:
+- ID 336 [PWA] — Product catalog cached in IndexedDB
+- ID 337 [PWA] — Product images cached by service worker
+- ID 338 [PWA] — Offline page renders
+- OR skip remaining OAuth features (299, 300, 302, 303, 306, 307) as they're blocked by Supabase provider config
