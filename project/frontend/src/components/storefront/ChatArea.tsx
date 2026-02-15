@@ -26,9 +26,13 @@ import { useStorefront } from './StorefrontContext'
 import { useCart } from '@/hooks/useCart'
 import { useWishlist } from '@/hooks/useWishlist'
 import { SignupBanner } from '@/components/engagement/SignupBanner'
+import { useSpeechToText } from '@/hooks/useSpeechToText'
+import { useParams } from 'next/navigation'
 
 export function ChatArea() {
   const t = useTranslations('storefront')
+  const params = useParams()
+  const locale = (params.locale as string) || 'en'
   const { setSelectedProduct, pendingChatMessage, setPendingChatMessage, addArtifact } = useStorefront()
   const { addToCart } = useCart()
   const { toggleWishlist } = useWishlist()
@@ -48,6 +52,28 @@ export function ChatArea() {
   })
 
   const isLoading = status === 'submitted' || status === 'streaming'
+
+  // Voice input with Web Speech API (locale-aware)
+  const {
+    isSupported: isSpeechSupported,
+    isRecording,
+    startRecording,
+    stopRecording,
+  } = useSpeechToText({
+    locale,
+    continuous: false,
+    interimResults: true,
+    onTranscript: (transcript, isFinal) => {
+      if (isFinal) {
+        // Auto-insert final transcript into input
+        setInputValue((prev) => (prev ? `${prev} ${transcript}` : transcript))
+      }
+    },
+    onError: (error) => {
+      console.error('Speech recognition error:', error)
+      // Could show a toast notification here
+    },
+  })
 
   // Fetch user data on mount
   useEffect(() => {
@@ -582,15 +608,30 @@ export function ChatArea() {
                 disabled={isLoading}
               />
 
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="flex-shrink-0 h-9 w-9 rounded-full text-muted-foreground hover:text-foreground"
-              >
-                <Mic className="h-4 w-4" aria-hidden="true" />
-                <span className="sr-only">Voice input</span>
-              </Button>
+              {isSpeechSupported && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => {
+                    if (isRecording) {
+                      stopRecording()
+                    } else {
+                      startRecording()
+                    }
+                  }}
+                  className={`flex-shrink-0 h-9 w-9 rounded-full ${
+                    isRecording
+                      ? 'bg-destructive/10 text-destructive hover:bg-destructive/20 hover:text-destructive'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                  disabled={isLoading}
+                  aria-label={isRecording ? 'Stop recording' : 'Start voice input'}
+                >
+                  <Mic className={`h-4 w-4 ${isRecording ? 'animate-pulse' : ''}`} aria-hidden="true" />
+                  <span className="sr-only">{isRecording ? 'Stop recording' : 'Voice input'}</span>
+                </Button>
+              )}
 
               <Button
                 type="submit"
