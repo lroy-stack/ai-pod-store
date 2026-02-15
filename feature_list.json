@@ -4240,7 +4240,7 @@
     "id": 386,
     "feature": "Newsletter Agent",
     "description": "Newsletter agent post-purchase emails trigger 7 days after delivery",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify post-purchase drip sequence configuration",
       "Verify Day 7 email includes satisfaction survey",

@@ -1,9 +1,9 @@
 {
-  "total_sessions": 143,
-  "total_tokens": 580609,
-  "total_cost_usd": 1.7428000000000001,
+  "total_sessions": 144,
+  "total_tokens": 586236,
+  "total_cost_usd": 1.7597,
   "tokens_by_model": {
-    "claude-sonnet-4-5-20250929": 580609
+    "claude-sonnet-4-5-20250929": 586236
   },
   "sessions": [
     {
@@ -4863,6 +4863,31 @@
         "blocked": 1,
         "Write": 6,
         "error": 2
+      },
+      "sub_agents_used": [],
+      "mcp_calls": {}
+    },
+    {
+      "id": 144,
+      "type": "CODING",
+      "model": "claude-sonnet-4-5-20250929",
+      "started_at": "2026-02-15T17:08:25.151336+00:00",
+      "ended_at": "2026-02-15T17:25:10.921228+00:00",
+      "duration_seconds": 1005.77,
+      "tokens_used": 5627,
+      "cost_usd": 0.0169,
+      "features_passed": 4,
+      "total_passing": 540,
+      "total_features": 599,
+      "tool_calls": 94,
+      "tool_errors": 5,
+      "tool_breakdown": {
+        "Bash": 72,
+        "Read": 8,
+        "blocked": 1,
+        "error": 4,
+        "Write": 5,
+        "Edit": 4
       },
       "sub_agents_used": [],
       "mcp_calls": {}
