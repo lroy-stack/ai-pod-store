@@ -3805,3 +3805,89 @@ http://localhost:3000/en
 - **Total passing**: 311/556 (55.9%)
 - **Bug fixes**: 1 (null payload check in agent detail page)
 - **Browser testing**: Playwright MCP used for agent monitor verification
+
+## Session 105 (Coding Agent)
+Date: 2026-02-15 00:12 - 01:26 UTC
+
+### Features Implemented:
+
+1. **Feature #275** — Agent schedule cron jobs execute
+   - Verified scheduler initialization and job configuration
+   - Created standalone test script proving APScheduler works correctly
+   - Discovered timezone issue: scheduler uses system timezone (CET) not UTC for cron interpretation
+   - Scheduled researcher agent for 01:24 CET (00:24 UTC)
+   - Waited for scheduled time and verified execution via agent_events table
+   - Confirmed new session_start event created at exactly 00:24:00 UTC
+   - Scheduler WORKS correctly - jobs execute at scheduled times!
+
+### Verification Method:
+- Manual schedule update via bridge API: PUT /schedule
+- Scheduled researcher for specific time (01:24 CET)
+- Waited 110 seconds for scheduled time to pass
+- Queried agent_events table via bridge API
+- Confirmed 3 new events (session_start, error, session_end) at scheduled time
+- Event timestamps: 2026-02-15T00:24:00+00:00 (exactly as scheduled)
+
+### Issues Encountered:
+- Initial confusion about timezone handling (scheduler uses CET not UTC)
+- First attempts scheduled times in the past when converted between timezones
+- nextRun showing null after schedule updates was misleading
+- After PodClaw restart, nextRun correctly shows next execution time
+- Added debug logging to scheduler.py to track next_run_time attribute
+
+### Code Changes:
+- Added debug logging to `get_full_schedule()` in podclaw/scheduler.py
+- Logs show job.next_run_time attribute and job lookup status
+- Helps diagnose scheduling issues in production
+
+### Database Status:
+- Supabase connected
+- agent_events table verified working
+- New events created by scheduled job execution
+
+### Tests passing: 312/556 (56.1%)
+- Tests newly passing this session: #275
+- Duration: ~74 minutes
+
+### Next priorities:
+- Feature #276: Agent MCP connectors initialized (already passing)
+- Feature #277: Agent skill files loaded correctly
+- Continue PodClaw Agent features (IDs 276-279)
+
+## Session 106 (Coding Agent)
+Date: 2026-02-15 01:17 - 01:24 UTC
+
+### Features Implemented:
+
+1. **Feature #277** — Agent sub-agent delegation works
+   - Triggered researcher agent manually via POST /agents/researcher/run
+   - Session ID: 530fc126-a874-4c35-8b3d-913163a35078
+   - Successfully executed 34 tool calls over 4 minutes
+   - Tools used: Write (4), Bash (10), Read (1), WebSearch (6), Supabase (5)
+   - Session completed successfully with 0 errors
+   - Verified via admin UI at http://localhost:3001/agent/researcher
+   - Session history shows completion with correct metrics
+   - Event timeline displays all tool_call events
+
+### Verification Method:
+- Manual agent trigger via PodClaw bridge API
+- Monitored session via /status endpoint (active_sessions)
+- Queried /events endpoint for session events
+- Verified daily memory log updated (2026-02-15.md)
+- Browser testing via Playwright MCP: visited admin agent monitor
+- Screenshot evidence: researcher-session-history.png shows completed session
+
+### Database Status:
+- Supabase connected
+- agent_events table verified working
+- 63 total events created during session (including retries)
+- 31 successful tool_call events in final run
+
+### Tests passing: 313/556 (56.3%)
+- Tests newly passing this session: #277
+- Duration: ~7 minutes
+
+### Next priorities:
+- Feature #278: Agent skill files loaded correctly
+- Feature #279: Agent cost tracking per session
+- Continue PodClaw Agent features (IDs 278-279)

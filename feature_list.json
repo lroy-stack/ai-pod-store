@@ -3058,7 +3058,7 @@
     "id": 277,
     "feature": "PodClaw Agent",
     "description": "Agent sub-agent delegation works",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Run the researcher sub-agent",
       "Verify it executes tools and creates events",
