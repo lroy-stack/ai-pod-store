@@ -1,0 +1,195 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
+import { cookies } from 'next/headers'
+import Stripe from 'stripe'
+
+// Admin auth check
+async function checkAdminAuth() {
+  const cookieStore = await cookies()
+  const sessionCookie = cookieStore.get('admin-session')
+
+  if (!sessionCookie) {
+    return null
+  }
+
+  try {
+    const session = JSON.parse(sessionCookie.value)
+    if (session.role !== 'admin') {
+      return null
+    }
+    return session
+  } catch {
+    return null
+  }
+}
+
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  // Check admin authentication
+  const session = await checkAdminAuth()
+  if (!session) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const { id } = await params
+
+  const supabaseUrl = process.env.SUPABASE_URL
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY
+  const stripeSecretKey = process.env.STRIPE_SECRET_KEY
+
+  if (!supabaseUrl || !supabaseServiceKey) {
+    return NextResponse.json(
+      { error: 'Supabase configuration missing' },
+      { status: 500 }
+    )
+  }
+
+  if (!stripeSecretKey) {
+    return NextResponse.json(
+      { error: 'Stripe configuration missing' },
+      { status: 500 }
+    )
+  }
+
+  const supabase = createClient(supabaseUrl, supabaseServiceKey)
+  const stripe = new Stripe(stripeSecretKey, { apiVersion: '2024-12-18.acacia' })
+
+  try {
+    const body = await request.json()
+    const { admin_notes } = body
+
+    // Fetch the return request
+    const { data: returnRequest, error: fetchError } = await supabase
+      .from('return_requests')
+      .select('*')
+      .eq('id', id)
+      .single()
+
+    if (fetchError || !returnRequest) {
+      return NextResponse.json(
+        { error: 'Return request not found' },
+        { status: 404 }
+      )
+    }
+
+    if (returnRequest.status !== 'pending') {
+      return NextResponse.json(
+        { error: 'Return request is not pending' },
+        { status: 400 }
+      )
+    }
+
+    // Fetch the associated order
+    const { data: order, error: orderError } = await supabase
+      .from('orders')
+      .select('*')
+      .eq('id', returnRequest.order_id)
+      .single()
+
+    if (orderError || !order) {
+      return NextResponse.json(
+        { error: 'Order not found' },
+        { status: 404 }
+      )
+    }
+
+    if (!order.stripe_payment_intent_id) {
+      return NextResponse.json(
+        { error: 'No payment intent found for this order' },
+        { status: 400 }
+      )
+    }
+
+    // Create a Stripe refund
+    let stripeRefund
+    try {
+      stripeRefund = await stripe.refunds.create({
+        payment_intent: order.stripe_payment_intent_id,
+        amount: order.total_cents,
+        reason: 'requested_by_customer',
+        metadata: {
+          return_request_id: returnRequest.id,
+          order_id: order.id,
+        }
+      })
+    } catch (stripeError: any) {
+      console.error('Stripe refund error:', stripeError)
+      return NextResponse.json(
+        { error: 'Failed to process refund', details: stripeError.message },
+        { status: 500 }
+      )
+    }
+
+    // Update the return request
+    const { data: updated, error: updateError } = await supabase
+      .from('return_requests')
+      .update({
+        status: 'approved',
+        refund_amount_cents: order.total_cents,
+        refund_currency: order.currency,
+        stripe_refund_id: stripeRefund.id,
+        admin_notes: admin_notes || null,
+        approved_by: session.id,
+        approved_at: new Date().toISOString(),
+      })
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (updateError) {
+      console.error('Update error:', updateError)
+      return NextResponse.json(
+        { error: 'Failed to update return request', details: updateError.message },
+        { status: 500 }
+      )
+    }
+
+    // Update order status to refunded
+    await supabase
+      .from('orders')
+      .update({ status: 'refunded' })
+      .eq('id', returnRequest.order_id)
+
+    // Create audit log entry
+    await supabase
+      .from('audit_logs')
+      .insert({
+        event_type: 'return_approved',
+        actor_id: session.id,
+        resource_type: 'return_request',
+        resource_id: id,
+        metadata: {
+          order_id: returnRequest.order_id,
+          refund_amount_cents: order.total_cents,
+          stripe_refund_id: stripeRefund.id,
+        }
+      })
+
+    // Create notification for the customer
+    if (returnRequest.user_id) {
+      await supabase
+        .from('notifications')
+        .insert({
+          user_id: returnRequest.user_id,
+          type: 'return_approved',
+          title: 'Return Approved',
+          message: `Your return request has been approved. A refund of ${(order.total_cents / 100).toFixed(2)} ${order.currency.toUpperCase()} has been processed.`,
+          data: {
+            return_request_id: id,
+            order_id: returnRequest.order_id,
+            refund_amount: order.total_cents,
+          }
+        })
+    }
+
+    return NextResponse.json({ returnRequest: updated })
+  } catch (error) {
+    console.error('Error approving return:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}
