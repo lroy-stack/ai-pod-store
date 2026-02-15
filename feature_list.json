@@ -3003,7 +3003,7 @@
     "id": 272,
     "feature": "PodClaw Agent",
     "description": "Audit log records agent actions",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Run an agent action",
       "Verify audit_log entry created with actor_type 'ai_agent'",
