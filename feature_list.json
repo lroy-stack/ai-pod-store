@@ -3890,7 +3890,7 @@
     "id": 354,
     "feature": "Marketing Agent",
     "description": "Marketing agent module exists with correct model and schedule config",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify podclaw/agents/marketing.py exists",
       "Verify model is claude-sonnet-4-5-20250929",
@@ -3901,7 +3901,7 @@
     "id": 355,
     "feature": "Marketing Agent",
     "description": "Marketing SKILL.md defines identity, tools, and guardrails",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify podclaw/skills/marketing/SKILL.md exists",
       "Verify it defines tools: supabase, web_search, resend",
@@ -3912,7 +3912,7 @@
     "id": 356,
     "feature": "Marketing Agent",
     "description": "Marketing templates directory contains social_post.md",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify podclaw/skills/marketing/templates/social_post.md exists",
       "Verify template has fields for platform, copy, hashtags, CTA"
