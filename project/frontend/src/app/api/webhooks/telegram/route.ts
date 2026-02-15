@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Process commands
-    if (text.startsWith('/')) {
+    if (text?.startsWith('/')) {
       const command = text.split(' ')[0].toLowerCase();
 
       switch (command) {

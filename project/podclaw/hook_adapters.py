@@ -30,6 +30,20 @@ from claude_agent_sdk import (
 logger = structlog.get_logger(__name__)
 
 
+def _short_name(tool_name: str) -> str:
+    """Extract short tool name from MCP qualified name.
+
+    The SDK passes MCP tools as 'mcp__{server}__{tool}' (e.g.
+    'mcp__supabase__supabase_query'). Hooks compare against short
+    names ('supabase_query'), so we strip the prefix here.
+    """
+    if tool_name.startswith("mcp__"):
+        parts = tool_name.split("__", 2)
+        if len(parts) == 3:
+            return parts[2]
+    return tool_name
+
+
 # ---------------------------------------------------------------------------
 # 1. can_use_tool — PreToolUse deny chain (fail-closed for security)
 # ---------------------------------------------------------------------------
@@ -63,8 +77,9 @@ def make_can_use_tool(
         tool_input: dict[str, Any],
         context: ToolPermissionContext,
     ) -> PermissionResultAllow | PermissionResultDeny:
+        short = _short_name(tool_name)
         input_data = {
-            "tool_name": tool_name,
+            "tool_name": short,
             "tool_input": tool_input,
             "_agent_name": agent_name,
             "_session_id": session_id,
@@ -214,7 +229,7 @@ def make_sdk_hooks(
 
     async def post_tool_hook(hook_input, tool_use_id, context):
         input_data = {
-            "tool_name": hook_input.get("tool_name", ""),
+            "tool_name": _short_name(hook_input.get("tool_name", "")),
             "tool_input": hook_input.get("tool_input", {}),
             "tool_output": hook_input.get("tool_response"),
             "_agent_name": agent_name,
@@ -238,7 +253,7 @@ def make_sdk_hooks(
     if pre_observe_hooks:
         async def pre_observe_hook(hook_input, tool_use_id, context):
             input_data = {
-                "tool_name": hook_input.get("tool_name", ""),
+                "tool_name": _short_name(hook_input.get("tool_name", "")),
                 "tool_input": hook_input.get("tool_input", {}),
                 "_agent_name": agent_name,
                 "_session_id": session_id,

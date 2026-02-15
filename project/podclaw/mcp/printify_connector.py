@@ -11,8 +11,26 @@ from typing import Any
 
 import httpx
 import structlog
+from urllib.parse import urlparse
 
 logger = structlog.get_logger(__name__)
+
+_ALLOWED_IMAGE_HOSTS = frozenset({
+    "images.fal.ai", "fal.media", "v3.fal.media",
+    "cdn.ideogram.ai",
+    "img.recraft.ai",
+    "oaidalleapiprodscus.blob.core.windows.net",
+    "your-project.supabase.co",
+})
+
+
+def _validate_image_url(url: str) -> None:
+    """Validate that the image URL is HTTPS and from an allowed host."""
+    parsed = urlparse(url)
+    if parsed.scheme != "https":
+        raise ValueError(f"Only HTTPS URLs allowed, got: {parsed.scheme}")
+    if parsed.hostname and parsed.hostname not in _ALLOWED_IMAGE_HOSTS:
+        raise ValueError(f"Image host not allowed: {parsed.hostname}")
 
 PRINTIFY_API = "https://api.printify.com/v1"
 
@@ -272,6 +290,7 @@ class PrintifyMCPConnector:
             return {"unpublished": True, "product_id": pid}
 
     async def _upload_image(self, params: dict[str, Any]) -> dict[str, Any]:
+        _validate_image_url(params["url"])
         url = f"{PRINTIFY_API}/uploads/images.json"
         body = {
             "file_name": params["file_name"],

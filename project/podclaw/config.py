@@ -47,11 +47,11 @@ AGENT_DAILY_BUDGETS: dict[str, float] = {
 # ---------------------------------------------------------------------------
 RATE_LIMITS: dict[str, dict[str, int]] = {
     "researcher": {"web_search": 20},
-    "marketing": {"resend_send": 30, "web_search": 10, "telegram_send": 50, "telegram_broadcast": 50, "whatsapp_send": 50},
+    "marketing": {"resend_send": 30, "web_search": 10, "telegram_send": 50, "telegram_send_photo": 20, "telegram_broadcast": 50, "whatsapp_send": 50},
     "designer": {"fal_generate": 30, "printify_upload_image": 30},
     "newsletter": {"resend_send": 500},
     "cataloger": {"printify_create": 50, "printify_publish": 50, "printify_upload_image": 50, "printify_delete_product": 10},
-    "customer_manager": {"resend_send": 100, "stripe_create_refund": 10, "telegram_send": 100, "whatsapp_send": 100},
+    "customer_manager": {"resend_send": 100, "stripe_create_refund": 10, "telegram_send": 100, "telegram_send_photo": 20, "whatsapp_send": 100},
     "seo_manager": {"web_search": 15},
     "finance": {"stripe_create_refund": 5},
 }
@@ -117,7 +117,7 @@ CONSOLIDATION_MAX_TOKENS = int(os.environ.get("PODCLAW_CONSOLIDATION_MAX_TOKENS"
 # ---------------------------------------------------------------------------
 SOUL_EVOLUTION_ENABLED = os.environ.get("PODCLAW_SOUL_EVOLUTION_ENABLED", "true").lower() == "true"
 SOUL_MAX_LINES = int(os.environ.get("PODCLAW_SOUL_MAX_LINES", "200"))
-SOUL_AUTO_APPROVE = os.environ.get("PODCLAW_SOUL_AUTO_APPROVE", "true").lower() == "true"
+SOUL_AUTO_APPROVE = os.environ.get("PODCLAW_SOUL_AUTO_APPROVE", "false").lower() == "true"
 
 # ---------------------------------------------------------------------------
 # Admin Notifications

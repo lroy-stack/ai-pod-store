@@ -16,6 +16,12 @@ logger = structlog.get_logger(__name__)
 
 FAL_API = "https://queue.fal.run"
 
+_MODEL_ENDPOINTS = {
+    "schnell": "fal-ai/flux/schnell",
+    "dev": "fal-ai/flux/dev",
+    "flux-pro": "fal-ai/flux-pro/v1.1",
+}
+
 
 class FalMCPConnector:
     """In-process MCP connector for fal.ai."""
@@ -38,6 +44,12 @@ class FalMCPConnector:
                         "image_size": {"type": "string", "enum": ["square_hd", "landscape_4_3", "portrait_hd"]},
                         "num_images": {"type": "integer", "description": "Number of images (1-4)"},
                         "seed": {"type": "integer", "description": "Random seed for reproducibility"},
+                        "model": {
+                            "type": "string",
+                            "enum": ["schnell", "dev", "flux-pro"],
+                            "description": "FLUX model: schnell (fast draft $0.003), dev (balanced $0.025), flux-pro (best quality $0.05)",
+                            "default": "dev",
+                        },
                     },
                     "required": ["prompt"],
                 },
@@ -49,6 +61,12 @@ class FalMCPConnector:
                     "type": "object",
                     "properties": {
                         "request_id": {"type": "string"},
+                        "model": {
+                            "type": "string",
+                            "enum": ["schnell", "dev", "flux-pro"],
+                            "description": "Model used for the original request (defaults to dev)",
+                            "default": "dev",
+                        },
                     },
                     "required": ["request_id"],
                 },
@@ -57,7 +75,9 @@ class FalMCPConnector:
         }
 
     async def _generate(self, params: dict[str, Any]) -> dict[str, Any]:
-        url = f"{FAL_API}/fal-ai/flux/dev"
+        model = params.get("model", "dev")
+        endpoint = _MODEL_ENDPOINTS.get(model, _MODEL_ENDPOINTS["dev"])
+        url = f"{FAL_API}/{endpoint}"
         body = {
             "prompt": params["prompt"],
             "image_size": params.get("image_size", "square_hd"),
@@ -73,7 +93,9 @@ class FalMCPConnector:
 
     async def _get_status(self, params: dict[str, Any]) -> dict[str, Any]:
         request_id = params["request_id"]
-        url = f"{FAL_API}/fal-ai/flux/dev/requests/{request_id}/status"
+        model = params.get("model", "dev")
+        endpoint = _MODEL_ENDPOINTS.get(model, _MODEL_ENDPOINTS["dev"])
+        url = f"{FAL_API}/{endpoint}/requests/{request_id}/status"
         async with httpx.AsyncClient() as client:
             resp = await client.get(url, headers=self._headers)
             resp.raise_for_status()

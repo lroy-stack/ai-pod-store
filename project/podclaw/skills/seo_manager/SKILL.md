@@ -50,3 +50,26 @@ Weekly (Sunday 16:00 UTC)
 - Max 15 web searches per cycle (enforced by rate limit hook)
 - Cache all SEO translations
 - Never duplicate content across locales
+
+## Data Sources
+- Table: `seo_meta_tags` — fields: id, page_path, title, description, keywords, locale
+  Query: `{"table": "seo_meta_tags", "select": "page_path,title,description,locale", "limit": 50}`
+- Table: `products` — fields: id, title, slug, category, description
+  Query: `{"table": "products", "select": "id,title,slug,category", "filters": {"status": "active"}, "limit": 50}`
+- Table: `translations` — fields: id, key, locale, value
+  Query: `{"table": "translations", "select": "key,locale", "limit": 100}`
+
+## Audit Procedure
+1. **Meta Tag Audit**: `supabase_query` on `seo_meta_tags` → check title ≤ 60 chars, description ≤ 160 chars, keyword present. Flag violations.
+2. **Structured Data Check**: Verify each product has JSON-LD Product schema entry per locale (en/es/de).
+3. **Keyword Research**: `web_search` ×10 for POD long-tail keywords ("custom t-shirt Europe", "personalized hoodie gift", etc.). Record findings.
+4. **Hreflang Verification**: `supabase_query` on `translations` → confirm every product has en/es/de variants. Flag missing.
+5. **Generate Report**: Summarize issues sorted by impact, with action items for Cataloger.
+
+## Output Contract
+| Check | Pages Audited | Issues Found | Critical |
+|-------|--------------|--------------|----------|
+
+## Handoff
+- **Cataloger** receives keyword recommendations → updates product descriptions
+- **Marketing** uses keyword research → incorporates trending terms in content

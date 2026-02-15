@@ -73,6 +73,14 @@ BLOCKED_TOOLS = frozenset({
     "supabase_truncate",
 })
 
+# Tables that agents must never write to
+PROTECTED_TABLES = frozenset({
+    "users", "orders", "order_items", "payments",
+    "user_usage", "credit_transactions", "push_subscriptions",
+    "referrals", "drip_queue",
+    "messaging_channels", "user_messaging_links",
+})
+
 
 def init_security(supabase_client: Any) -> None:
     """Initialize with Supabase client for price lookups."""
@@ -121,10 +129,15 @@ async def security_hook(
 
     # --- Refund checks ---
     if tool_name == "stripe_create_refund":
-        amount = tool_input.get("amount", 0)
+        amount = tool_input.get("amount")
+        if amount is None or amount == 0:
+            return _deny(
+                "Full refunds require human approval. "
+                "Specify an explicit amount in cents, or get admin authorization."
+            )
         if amount > REFUND_APPROVAL_THRESHOLD * 100:  # Stripe uses cents
             return _deny(
-                f"Refund ${amount/100:.2f} exceeds ${REFUND_APPROVAL_THRESHOLD} threshold. "
+                f"Refund ${amount / 100:.2f} exceeds ${REFUND_APPROVAL_THRESHOLD} threshold. "
                 "Requires human approval."
             )
 
@@ -166,6 +179,28 @@ async def security_hook(
             return _deny(f"Invalid RPC function name format: {func_name}")
         if func_name not in ALLOWED_RPC_FUNCTIONS:
             return _deny(f"RPC function not in approved list: {func_name}")
+
+    # --- Table-level access control for write operations ---
+    if tool_name in ("supabase_insert", "supabase_update", "supabase_delete"):
+        table = tool_input.get("table", "")
+        if table in PROTECTED_TABLES:
+            return _deny(f"Table '{table}' is protected from agent writes")
+
+    # --- Audit trail for outbound messaging ---
+    if tool_name in ("resend_send", "resend_send_batch"):
+        recipients = tool_input.get("to", tool_input.get("emails", []))
+        if isinstance(recipients, str):
+            recipients = [recipients]
+        elif isinstance(recipients, list):
+            recipients = [e.get("to", "") if isinstance(e, dict) else str(e) for e in recipients]
+        logger.info("outbound_email", recipients=recipients[:10], tool=tool_name)
+
+    if tool_name in ("telegram_send", "telegram_send_photo", "telegram_broadcast"):
+        chat_ids = tool_input.get("chat_id") or tool_input.get("chat_ids", [])
+        logger.info("outbound_telegram", chat_ids=chat_ids, tool=tool_name)
+
+    if tool_name in ("whatsapp_send", "whatsapp_send_template"):
+        logger.info("outbound_whatsapp", to=tool_input.get("to"), tool=tool_name)
 
     return {}
 

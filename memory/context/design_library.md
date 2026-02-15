@@ -3,6 +3,8 @@
 *Updated by: designer*
 *Last updated: (pending first agent cycle)*
 
+*[INITIAL SEED — will be replaced after first live cycle]*
+
 ## Style Guide
 - **Aesthetic**: Clean, modern, minimalist with pops of color
 - **Typography**: Sans-serif preferred, readable at small sizes
@@ -17,13 +19,20 @@
 - Seasonal / Holiday
 
 ## Recent Designs
-<!-- Populated by designer agent -->
-<!-- Format: [date] design_id: "title" (style, colors, target product) -->
+<!-- Designer: append after each generation cycle -->
+<!-- Run: {"table": "designs", "select": "id,prompt,style,model,moderation_status,created_at", "order": "created_at", "limit": 20} -->
+| Date | ID | Title | Style | Products | Status |
+|------|----|-------|-------|----------|--------|
+
+## Category Coverage
+<!-- Designer: count active designs per category to find gaps -->
+<!-- Run: {"table": "products", "select": "category", "filters": {"status": "active"}, "limit": 200} -->
+<!-- Target: ≥3 active designs per category -->
 
 ## Moderation Log
-<!-- Designs flagged for review -->
+<!-- Designs flagged for review: ID, reason, date -->
 
 ## Notes
 - This file is read by: designer, marketing
-- Designer generates new designs daily at 08:00 UTC
-- All designs pass content moderation before publishing
+- Designer generates new designs daily at 07:00 UTC
+- All designs pass 5-point moderation before publishing

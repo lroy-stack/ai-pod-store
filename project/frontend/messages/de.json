@@ -663,7 +663,40 @@
     "cachedProducts": "Zuvor Angesehene Produkte",
     "banner": "Sie sind offline. Einige Funktionen sind möglicherweise nicht verfügbar."
   },
+  "landing": {
+    "heroTitle": "Entwirf alles. Drucke alles.",
+    "heroSubtitle": "KI-gestützte Produkte — beschreibe deine Vision, wir machen sie Wirklichkeit.",
+    "heroCTA": "Jetzt loslegen",
+    "heroSubCTA": "Kostenlos — kein Konto erforderlich",
+    "howItWorks": "So funktioniert's",
+    "howItWorksSubtitle": "Von der Idee bis zur Haustür in drei einfachen Schritten",
+    "step1Title": "Beschreiben",
+    "step1Desc": "Sag unserer KI genau, was du willst — ein minimalistisches Logo, eine auffällige Grafik, eine Illustration.",
+    "step2Title": "Gestalten",
+    "step2Desc": "KI erstellt dein individuelles Design in Sekunden. Verfeinere es, bis es perfekt ist.",
+    "step3Title": "Erhalten",
+    "step3Desc": "Wir drucken dein Design auf Premium-Produkte und liefern direkt zu dir.",
+    "seasonalPicks": "Im Trend",
+    "showcaseSubtitle": "Designs, die unsere Community gerade liebt",
+    "todaysDesigns": "Heute neu",
+    "latestDesigns": "Neueste Designs",
+    "viewProduct": "Ansehen",
+    "finalCTATitle": "Bereit, etwas Einzigartiges zu schaffen?",
+    "finalCTASubtitle": "Schließe dich Tausenden von Kreativen an, die individuelle Produkte mit KI gestalten.",
+    "finalCTA": "Kostenlos starten"
+  },
   "engagement": {
+    "welcome": {
+      "title": "Willkommen bei POD AI",
+      "description": "Dein KI-gestützter Print-on-Demand-Shop. Beschreibe, was du willst, und wir designen und drucken es für dich.",
+      "benefit1": "Chatte mit KI, um individuelle Designs zu erstellen",
+      "benefit2": "Entdecke einzigartige Print-on-Demand-Produkte",
+      "benefit3": "Wunschlisten speichern, Bestellungen verfolgen, Belohnungen verdienen",
+      "subscriptionTeaser": "Premium: €9,99/Monat — 500 Chats, 30 Designs, Prioritäts-Support",
+      "signUp": "Kostenloses Konto erstellen",
+      "logIn": "Anmelden",
+      "continueGuest": "Als Gast fortfahren"
+    },
     "authWall": {
       "title": "Erstelle dein kostenloses Konto",
       "wallTitle": "Du hast alle {count} kostenlosen Nachrichten heute verbraucht",

@@ -663,7 +663,40 @@
     "cachedProducts": "Productos Vistos Anteriormente",
     "banner": "Estás sin conexión. Algunas funciones pueden no estar disponibles."
   },
+  "landing": {
+    "heroTitle": "Diseña lo que quieras. Imprime lo que imagines.",
+    "heroSubtitle": "Productos personalizados con IA — describe tu visión, nosotros la hacemos realidad.",
+    "heroCTA": "Empieza a crear",
+    "heroSubCTA": "Gratis — sin necesidad de cuenta",
+    "howItWorks": "Cómo funciona",
+    "howItWorksSubtitle": "De la idea a tu puerta en tres simples pasos",
+    "step1Title": "Describe",
+    "step1Desc": "Dile a nuestra IA lo que quieres — un logo minimalista, un gráfico llamativo, una ilustración. Todo vale.",
+    "step2Title": "Diseña",
+    "step2Desc": "La IA genera tu diseño personalizado en segundos. Refínalo hasta que sea perfecto.",
+    "step3Title": "Recibe",
+    "step3Desc": "Imprimimos tu diseño en productos premium y lo enviamos directamente a tu puerta.",
+    "seasonalPicks": "Tendencias",
+    "showcaseSubtitle": "Diseños que nuestra comunidad está amando ahora mismo",
+    "todaysDesigns": "Novedades de hoy",
+    "latestDesigns": "Últimos diseños",
+    "viewProduct": "Ver",
+    "finalCTATitle": "¿Listo para crear algo único?",
+    "finalCTASubtitle": "Únete a miles de creadores diseñando productos personalizados con IA.",
+    "finalCTA": "Empieza gratis"
+  },
   "engagement": {
+    "welcome": {
+      "title": "Bienvenido a POD AI",
+      "description": "Tu tienda print-on-demand con IA. Describe lo que quieres y lo diseñamos e imprimimos para ti.",
+      "benefit1": "Chatea con IA para crear diseños personalizados",
+      "benefit2": "Explora productos únicos de print-on-demand",
+      "benefit3": "Guarda listas de deseos, sigue pedidos, gana recompensas",
+      "subscriptionTeaser": "Premium: €9,99/mes — 500 chats, 30 diseños, soporte prioritario",
+      "signUp": "Crear cuenta gratis",
+      "logIn": "Iniciar sesión",
+      "continueGuest": "Continuar como invitado"
+    },
     "authWall": {
       "title": "Crea tu cuenta gratuita",
       "wallTitle": "Has usado tus {count} mensajes gratuitos de hoy",

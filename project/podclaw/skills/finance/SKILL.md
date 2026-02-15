@@ -59,3 +59,39 @@ Daily 23:00 UTC + monthly
 - Never modify product prices directly — that is the Cataloger's role
 - All reports stored in supabase
 - All amounts reported in EUR
+
+## Data Sources
+- Stripe: `stripe_get_revenue_report` (date range), `stripe_get_balance`, `stripe_list_disputes`, `stripe_list_charges`
+- Table: `orders` — fields: id, total_cents, printify_cost_cents, stripe_fee_cents, status, created_at
+  Query: `{"table": "orders", "select": "total_cents,printify_cost_cents,stripe_fee_cents,status", "order": "created_at", "limit": 200}`
+- Table: `agent_daily_costs` — fields: agent_name, date, total_cost_usd, tokens_used
+  Query: `{"table": "agent_daily_costs", "select": "agent_name,total_cost_usd,date", "order": "date", "limit": 50}`
+
+## Margin Formula
+```
+gross_margin = (selling_price - printify_cost) / selling_price × 100
+net_margin   = gross_margin - stripe_fees(2.9% + €0.30/txn) - daily_agent_costs
+Target: gross ≥ 40%, net ≥ 30%
+```
+
+## Reconciliation Procedure
+1. `stripe_get_revenue_report` for daily total
+2. `supabase_query` on `orders` — sum total_cents for same period
+3. IF abs(stripe_total - db_total) > €5 → flag DISCREPANCY with details
+4. `stripe_list_disputes` → any new dispute = immediate alert
+5. Calculate refund_rate = refunded_orders / total_orders × 100
+6. IF refund_rate > 5% → alert with breakdown by reason
+
+## Anomaly Thresholds
+| Metric | Threshold | Action |
+|--------|-----------|--------|
+| Gross margin drop | > 10% week-over-week | Alert + request Cataloger pricing review |
+| Refund rate | > 5% of orders | Alert + root cause analysis |
+| Stripe vs DB diff | > €5 | Flag DISCREPANCY + investigate |
+| Chargebacks | Any new | Immediate alert + dispute details |
+| Agent costs | > €5/day total | Alert + review agent schedules |
+
+## Handoff
+- **Cataloger** receives pricing alerts → adjusts product prices
+- **Customer Manager** receives refund rate alerts → investigates support patterns
+- **Researcher** receives margin data → factors into trend analysis

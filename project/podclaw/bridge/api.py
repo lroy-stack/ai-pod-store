@@ -112,11 +112,15 @@ def create_app(
             raise HTTPException(404, f"Unknown agent: {name}")
         return orchestrator.get_agent_status(name)
 
+    class AgentRunRequest(BaseModel):
+        task: str | None = None
+
     @app.post("/agents/{name}/run", dependencies=[Depends(require_auth)])
-    async def run_agent(name: str, task: str | None = None):
+    async def run_agent(name: str, body: AgentRunRequest | None = None):
         from podclaw.core import AGENT_NAMES
         if name not in AGENT_NAMES:
             raise HTTPException(404, f"Unknown agent: {name}")
+        task = body.task if body else None
         result = await orchestrator.run_agent(name, task)
         return result
 
@@ -133,10 +137,11 @@ def create_app(
     # ----- Sub-agent alias (tests expect /subagent/{name}/run) -----
 
     @app.post("/subagent/{name}/run", dependencies=[Depends(require_auth)])
-    async def run_subagent(name: str, task: str | None = None):
+    async def run_subagent(name: str, body: AgentRunRequest | None = None):
         from podclaw.core import AGENT_NAMES
         if name not in AGENT_NAMES:
             raise HTTPException(404, f"Unknown agent: {name}")
+        task = body.task if body else None
         result = await orchestrator.run_agent(name, task)
         return result
 

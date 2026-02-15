@@ -663,7 +663,40 @@
     "cachedProducts": "Previously Viewed Products",
     "banner": "You are offline. Some features may be unavailable."
   },
+  "landing": {
+    "heroTitle": "Design anything. Print everything.",
+    "heroSubtitle": "AI-powered custom products — describe your vision, we bring it to life.",
+    "heroCTA": "Start creating",
+    "heroSubCTA": "Free to use — no account required",
+    "howItWorks": "How it works",
+    "howItWorksSubtitle": "From idea to doorstep in three simple steps",
+    "step1Title": "Describe",
+    "step1Desc": "Tell our AI exactly what you want — a minimalist logo, a bold graphic, an illustration. Anything goes.",
+    "step2Title": "Design",
+    "step2Desc": "AI generates your custom artwork in seconds. Refine it until it's perfect.",
+    "step3Title": "Deliver",
+    "step3Desc": "We print your design on premium products and ship directly to your door.",
+    "seasonalPicks": "Trending Now",
+    "showcaseSubtitle": "Designs our community is loving right now",
+    "todaysDesigns": "Fresh Today",
+    "latestDesigns": "Latest Designs",
+    "viewProduct": "View",
+    "finalCTATitle": "Ready to create something unique?",
+    "finalCTASubtitle": "Join thousands of creators designing custom products with AI.",
+    "finalCTA": "Get started — it's free"
+  },
   "engagement": {
+    "welcome": {
+      "title": "Welcome to POD AI",
+      "description": "Your AI-powered print-on-demand store. Describe what you want, and we'll design and print it for you.",
+      "benefit1": "Chat with AI to create custom designs",
+      "benefit2": "Browse unique print-on-demand products",
+      "benefit3": "Save wishlists, track orders, earn rewards",
+      "subscriptionTeaser": "Premium: €9.99/mo — 500 chats, 30 designs, priority support",
+      "signUp": "Create Free Account",
+      "logIn": "Log In",
+      "continueGuest": "Continue as guest"
+    },
     "authWall": {
       "title": "Create your free account",
       "wallTitle": "You've used all {count} free messages today",

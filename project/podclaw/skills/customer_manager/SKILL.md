@@ -83,3 +83,35 @@ Daily 12:00 + 22:00 UTC + continuous (chat)
 - Max 100 WhatsApp messages per cycle
 - Stripe is read-only except for approved refunds
 - Never share customer PII in logs or context files
+
+## Data Sources
+- Table: `return_requests` — fields: id, order_id, customer_id, reason, status, amount_cents, created_at
+  Query (pending): `{"table": "return_requests", "select": "id,order_id,reason,status,amount_cents", "filters": {"status": "pending"}, "limit": 20}`
+- Table: `product_reviews` — fields: id, product_id, customer_id, rating, comment, response, created_at
+  Query (unresponded): `{"table": "product_reviews", "select": "id,product_id,rating,comment", "order": "created_at", "limit": 20}`
+- Table: `orders` — fields: id, customer_id, total_cents, status, created_at
+  Query: `{"table": "orders", "select": "id,customer_id,total_cents,status", "limit": 20}`
+- Table: `customer_segments` — fields: segment_name, customer_count
+  Query: `{"table": "customer_segments", "select": "segment_name,customer_count", "filters": {"segment_name": "at_risk"}}`
+
+## Refund Procedure
+1. `supabase_query` on `return_requests` with `filters: {"status": "pending"}`
+2. For each request, `supabase_query` on `orders` to verify order and total
+3. IF amount_cents ≤ 10000 (€100): `stripe_create_refund` with order's charge_id
+4. IF amount_cents > 10000: `supabase_update` status → "escalated" with admin_notes
+5. `supabase_update` return_request status → "refunded" or "escalated"
+6. `resend_send` confirmation email (localized to customer's locale)
+7. **Never log customer name, email, or payment details** in context files or memory
+
+## Review Response Workflow
+1. `supabase_query` on `product_reviews` where response is null
+2. Classify: ★★★★-★★★★★ = positive, ★★★ = neutral, ★-★★ = negative
+3. Respond with localized template:
+   - **Positive**: Thank, highlight product feature, invite to share
+   - **Neutral**: Acknowledge, ask for feedback, offer help
+   - **Negative**: Apologize, offer solution (replacement/refund), escalate if unresolved
+
+## Handoff
+- **Finance** reviews refund totals at 23:00 → flags if refund rate > 5%
+- **Newsletter** uses at-risk segment data → sends win-back campaigns
+- **Marketing** adjusts messaging based on common support issues

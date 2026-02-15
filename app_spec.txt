@@ -17,9 +17,10 @@
     Traditional pages (/shop, /products/:id) exist as secondary SEO/fallback routes for
     search engine indexing and direct-link access, not as the primary shopping experience.
 
-    The frontend is a Next.js 16 App Router PWA where the landing page (/[locale]/) IS the
-    three-panel conversational storefront. Artifacts render INLINE in chat messages (product
-    grids, design previews with action buttons) and expand to the right detail panel on click.
+    The frontend is a Next.js 16 App Router PWA with a dedicated landing page at /[locale]/
+    (hero, carousel, today's designs) and the conversational storefront at /[locale]/chat.
+    Artifacts render INLINE in chat messages (product grids, design previews with action
+    buttons) and expand to the right detail panel on click.
     The backend uses Next.js 16 API routes (app/api/) for Printify/Stripe webhooks, order
     processing, the RAG retrieval pipeline, A/B testing, and the PodClaw agent API. No separate Express server needed.
     A Python analytics layer runs scheduled cron jobs for RFM segmentation, demand forecasting,
@@ -131,7 +132,8 @@
 
   <core_features>
     <conversational_storefront>
-      The conversational storefront IS the primary customer interface — it IS the homepage at /[locale]/.
+      The conversational storefront IS the primary AI interface at /[locale]/chat.
+      The landing page at /[locale]/ provides a product-focused entry point with CTA to /chat.
 
       Three-panel layout (as defined in demo.html reference):
       - LEFT (240px): Store navigation sidebar
@@ -947,11 +949,11 @@
 
   <ui_layout>
     <pages>
-      - /[locale]/ — Conversational storefront (three-panel: sidebar + chat + detail) — PRIMARY INTERFACE
+      - /[locale]/ — Landing page (hero CTA, product carousel, today's designs accordion)
+      - /[locale]/chat — Conversational storefront (three-panel: sidebar + chat + detail) — PRIMARY AI INTERFACE
       - /[locale]/shop — Product catalog with filters and search
       - /[locale]/shop/:id — Product detail page with reviews
-      - /[locale]/chat — Alias/redirect to /[locale]/ (the storefront IS the homepage)
-      NOTE: /shop and /shop/:id are secondary SEO/fallback routes. The primary experience is the conversational storefront at /.
+      NOTE: /shop and /shop/:id are secondary SEO/fallback routes. The primary AI experience is at /chat. The landing page at / drives traffic to /chat.
       - /[locale]/cart — Shopping cart
       - /[locale]/checkout/success — Order confirmation
       - /[locale]/orders — My orders (authenticated)
@@ -2116,5 +2118,53 @@
       migrations/20260215150000_drip_queue.sql, migrations/20260215150001_referrals.sql
     </new_files>
     <npm_dependencies>@fingerprintjs/fingerprintjs, @hcaptcha/react-hcaptcha</npm_dependencies>
+  </phase>
+
+  <!-- Phase 21: Landing Page + Route Restructuring (Feb 2026) -->
+  <phase id="21" name="Landing Page + Route Restructuring">
+    <description>
+      Separates the landing page from the chat interface. / now shows a dedicated landing page
+      with hero section, dynamic product carousel (seasonal sorting), and today's designs accordion.
+      Chat moves to /chat with a WelcomePopup for first-time unauthenticated visitors.
+      Navigation updated across header, sidebar, command palette, sitemap, and design gallery links.
+    </description>
+    <features>
+      <!-- Route Restructuring -->
+      <feature id="LP-route-chat">Chat page at /[locale]/chat renders null (ChatArea lives in StorefrontLayout)</feature>
+      <feature id="LP-route-chat-meta">Chat page exports SEO metadata (title: "Chat — POD AI")</feature>
+      <feature id="LP-layout-detect">StorefrontLayout detects /chat path for isChatPage (was root /)</feature>
+      <feature id="LP-layout-chat-toggle">ChatArea visible on /chat, hidden on other routes (CSS visibility toggle preserved)</feature>
+
+      <!-- Landing Page -->
+      <feature id="LP-page-hero">Landing page hero section with logo, h1, subtitle, and CTA button to /chat</feature>
+      <feature id="LP-page-carousel">Landing page carousel with Autoplay (4s, embla-carousel-autoplay), seasonal sorting</feature>
+      <feature id="LP-page-accordion">Landing page accordion shows today's designs with fallback to latest</feature>
+      <feature id="LP-page-data">Landing page fetches products from /api/products with seasonal sort + newest</feature>
+      <feature id="LP-page-responsive">Landing page carousel: 1 item mobile, 2 tablet, 3 desktop with loop</feature>
+
+      <!-- WelcomePopup -->
+      <feature id="LP-welcome-popup">WelcomePopup shows on /chat for unauthenticated users (first session visit)</feature>
+      <feature id="LP-welcome-dismiss">WelcomePopup dismissed via sessionStorage (pod-welcome-seen), doesn't reappear in session</feature>
+      <feature id="LP-welcome-auth">WelcomePopup never shows for authenticated users</feature>
+      <feature id="LP-welcome-ui">WelcomePopup has logo, benefits, subscription teaser, sign-up/login/guest buttons</feature>
+
+      <!-- Navigation Updates -->
+      <feature id="LP-nav-header">StorefrontHeader shows Home + Chat + Shop nav links with correct active states</feature>
+      <feature id="LP-nav-sidebar">StorefrontSidebar has Home and Chat items with MessageCircle icon</feature>
+      <feature id="LP-nav-sidebar-active">Sidebar isActive correctly matches /chat exact and / exact</feature>
+
+      <!-- i18n -->
+      <feature id="LP-i18n">landing.* and engagement.welcome.* keys in en.json, es.json, de.json</feature>
+
+      <!-- Minor Links -->
+      <feature id="LP-links-palette">CommandPalette design action href points to /chat?prompt=design</feature>
+      <feature id="LP-links-gallery">DesignsGallery empty state links to /chat (was root /)</feature>
+      <feature id="LP-links-sitemap">sitemap.ts includes /en/chat, /es/chat, /de/chat with priority 0.9</feature>
+    </features>
+    <feature_ids>579-599</feature_ids>
+    <new_files>
+      (none — all modifications to existing files, WelcomePopup.tsx rewritten)
+    </new_files>
+    <npm_dependencies>embla-carousel-autoplay (shadcn carousel + accordion installed via shadcn CLI)</npm_dependencies>
   </phase>
 </project_specification>

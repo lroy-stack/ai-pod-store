@@ -262,16 +262,105 @@ class Orchestrator:
         return result
 
     def _default_task(self, agent_name: str) -> str:
-        """Generate default task prompt based on agent role."""
+        """Generate default task prompt based on agent role.
+
+        IMPORTANT: Tasks use explicit tool-call verbs ("Call supabase_query",
+        "Call web_search") so the LLM invokes MCP tools rather than generating
+        answers from its own knowledge.  Passive verbs like "research" or
+        "review" lead to zero tool usage.
+        """
         tasks = {
-            "researcher": "Analyze current market trends, competitor activity, and identify opportunities for new products. Update best_sellers.md and customer_insights.md.",
-            "marketing": "Review current social media performance, create new content for upcoming campaigns, and schedule posts. Update marketing_calendar.md.",
-            "designer": "Generate new product designs based on trending topics and best sellers. Follow the style guide in design_library.md.",
-            "newsletter": "Review subscriber segments, create personalized email content, and prepare campaigns. Check newsletter_segments.md for targeting.",
-            "cataloger": "Sync products with Printify, update pricing based on demand forecasts, and translate new listings.",
-            "customer_manager": "Review pending tickets, respond to product reviews, and send retention emails to at-risk segments.",
-            "seo_manager": "Audit meta tags, update sitemaps, research keywords, and optimize product descriptions for search.",
-            "finance": "Generate daily revenue report, analyze margins, detect anomalies, and reconcile Stripe with database.",
+            "researcher": (
+                "Run the daily research cycle. You MUST call tools — do NOT answer from memory.\n"
+                "1. Call supabase_query to SELECT top 10 products by review_count DESC.\n"
+                "2. Call supabase_query to SELECT order_items joined with orders for 7-day sales velocity.\n"
+                "3. Call supabase_query to SELECT customer_segments for RFM distribution counts.\n"
+                "4. Call web_search at least 10 times for: POD market trends, competitor pricing, "
+                "seasonal opportunities 2-4 weeks out, trending niches, and emerging design styles.\n"
+                "5. Write best_sellers.md with a top-10 products table and trending categories.\n"
+                "6. Write customer_insights.md with fresh RFM segment counts and purchase patterns."
+            ),
+            "marketing": (
+                "Run the content creation cycle. You MUST call tools — do NOT answer from memory.\n"
+                "1. Call supabase_query to SELECT from products ORDER BY review_count DESC LIMIT 5 "
+                "to find the top products to promote.\n"
+                "2. Call web_search at least 5 times to find current trending hashtags for: "
+                "print-on-demand fashion, custom t-shirts, sustainable apparel, and POD design trends. "
+                "Extract platform-specific hashtags for Instagram, Twitter, and Pinterest.\n"
+                "3. Generate social media content for the top 3 products respecting platform limits "
+                "(Instagram 2200 chars, Twitter 280 chars, Pinterest 500 chars).\n"
+                "4. Call supabase_insert to store EACH content piece in the marketing_content table.\n"
+                "5. Draft promotional email content for the top 3 products.\n"
+                "6. Call telegram_send to schedule campaign messages for any planned flash sales.\n"
+                "7. Write marketing_calendar.md with today's generated content summary."
+            ),
+            "designer": (
+                "Run the daily design generation cycle. You MUST call tools — do NOT answer from memory.\n"
+                "1. Call supabase_query to SELECT products grouped by category with COUNT — identify "
+                "categories with fewer than 3 active designs.\n"
+                "2. Call web_search 3 times for trending POD design styles and color palettes.\n"
+                "3. Call fal_generate for 5-10 new designs targeting trending categories and gaps.\n"
+                "4. Run 5-point moderation on each (copyright, NSFW, spelling, resolution, colors).\n"
+                "5. Call supabase_insert to store all approved designs in the designs table with "
+                "full metadata (prompt, style, image_url, moderation_status).\n"
+                "6. Write design_library.md with new entries."
+            ),
+            "newsletter": (
+                "Run the campaign creation cycle. You MUST call tools — do NOT answer from memory.\n"
+                "1. Call supabase_query to SELECT from customer_segments for fresh RFM data.\n"
+                "2. Create personalized email content for Champions (exclusive preview) and "
+                "Loyal (new arrivals) segments.\n"
+                "3. Set up A/B test with 2 subject line variants.\n"
+                "4. Call resend_send_batch to send emails (max 100/call, 500 total). "
+                "Include CAN-SPAM footer with unsubscribe link and "
+                "POD AI Store, Friedrichstraße 123, 10117 Berlin, Germany.\n"
+                "5. Call supabase_insert to log the campaign in agent_events."
+            ),
+            "cataloger": (
+                "Run the new products cycle. You MUST call tools — do NOT answer from memory.\n"
+                "1. Call supabase_query to SELECT from designs WHERE product_id IS NULL AND "
+                "moderation_status = 'approved'.\n"
+                "2. For each approved design: call printify_get_blueprints to find product types, "
+                "call printify_create_product with EUR pricing (Printify cost × 1.4).\n"
+                "3. Generate descriptions in en/es/de.\n"
+                "4. Call gemini_embed_text to create embeddings for search.\n"
+                "5. Call supabase_insert to store product metadata.\n"
+                "6. Write pricing_history.md with new products and prices. Max 50 creates per cycle."
+            ),
+            "customer_manager": (
+                "Run the support cycle. You MUST call tools — do NOT answer from memory.\n"
+                "1. Call supabase_query to SELECT from return_requests WHERE status = 'pending'.\n"
+                "2. For each pending return: if amount ≤ €100, call stripe_create_refund; "
+                "if > €100, flag for escalation.\n"
+                "3. Call supabase_query to SELECT from product_reviews WHERE response IS NULL.\n"
+                "4. For each unanswered review: generate localized response based on sentiment, "
+                "then call supabase_update to store the response.\n"
+                "5. Call resend_send to send retention emails to at-risk RFM segment.\n"
+                "6. Write customer_insights.md with support issue counts and review sentiment. "
+                "Never log customer PII."
+            ),
+            "seo_manager": (
+                "Run the weekly SEO audit. You MUST call tools — do NOT answer from memory.\n"
+                "1. Call supabase_query to SELECT from seo_meta_tags — check title ≤ 60 chars, "
+                "description ≤ 160 chars, target keyword present.\n"
+                "2. Call supabase_query to verify translations table has hreflang entries for en/es/de.\n"
+                "3. Call web_search at least 10 times for POD long-tail keywords, competitor SEO "
+                "strategies, and trending search terms in the print-on-demand space.\n"
+                "4. Generate audit report with issues sorted by impact and action items.\n"
+                "5. Call supabase_insert to log the audit in agent_events."
+            ),
+            "finance": (
+                "Run the daily financial report. You MUST call tools — do NOT answer from memory.\n"
+                "1. Call stripe_get_revenue_report for today's revenue data.\n"
+                "2. Call supabase_query to SELECT SUM(total) from orders for DB totals — "
+                "flag if difference with Stripe > €5.\n"
+                "3. Call supabase_query to calculate gross margin per category (target ≥ 40%).\n"
+                "4. Call stripe_list_disputes to check for new chargebacks.\n"
+                "5. Call supabase_query to SELECT from return_requests to calculate refund rate — "
+                "alert if > 5%.\n"
+                "6. Call supabase_query to SELECT from agent_daily_costs — alert if > €5/day.\n"
+                "7. Write pricing_history.md with daily margin analysis and reconciliation."
+            ),
         }
         return tasks.get(agent_name, f"Execute standard {agent_name} cycle.")
 

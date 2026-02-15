@@ -15,7 +15,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useParams, usePathname } from 'next/navigation'
 import { useTranslations } from 'next-intl'
-import { Home, Store, Sparkles, Heart, ShoppingBag, ShoppingCart, PanelLeftClose } from 'lucide-react'
+import { Store, Sparkles, Heart, ShoppingBag, ShoppingCart, PanelLeftClose, MessageCircle } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -87,8 +87,10 @@ export function StorefrontSidebar({ onNavigate, onCollapse }: StorefrontSidebarP
     fetchPopular()
   }, [])
 
+  const tNav = useTranslations('navigation')
+
   const navigationItems = [
-    { icon: Home, label: t('discover'), href: `/${locale}` },
+    { icon: MessageCircle, label: tNav('chat') || 'Chat', href: `/${locale}/chat` },
     { icon: Store, label: t('shop') ?? 'Shop', href: `/${locale}/shop` },
     { icon: Sparkles, label: t('newArrivals'), href: `/${locale}/shop?sort=newest&newArrivals=true` },
     { icon: Heart, label: t('favorites'), href: `/${locale}/wishlist` },
@@ -96,8 +98,8 @@ export function StorefrontSidebar({ onNavigate, onCollapse }: StorefrontSidebarP
   ]
 
   const isActive = (href: string) => {
-    // Exact match for home
-    if (href === `/${locale}`) return pathname === `/${locale}` || pathname === `/${locale}/`
+    // Exact match for chat
+    if (href === `/${locale}/chat`) return pathname === `/${locale}/chat` || pathname === `/${locale}/chat/`
     // Strip query params for comparison
     const basePath = href.split('?')[0]
     return pathname.startsWith(basePath)

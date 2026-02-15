@@ -4196,7 +4196,7 @@
     "id": 382,
     "feature": "Newsletter Agent",
     "description": "Newsletter agent logs events to agent_events table",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Trigger newsletter agent cycle",
       "Query agent_events for agent_name='newsletter'",

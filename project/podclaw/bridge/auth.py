@@ -21,6 +21,14 @@ from podclaw.config import (
     BRIDGE_RATE_LIMIT_WINDOW,
 )
 
+if BRIDGE_AUTH_ENABLED and not BRIDGE_AUTH_TOKEN:
+    import warnings
+    warnings.warn(
+        "PODCLAW_BRIDGE_AUTH_ENABLED=true but PODCLAW_BRIDGE_AUTH_TOKEN is empty. "
+        "All authenticated endpoints will return 503.",
+        stacklevel=1,
+    )
+
 LOCALHOST_IPS = frozenset(("127.0.0.1", "::1", "localhost"))
 LOCKOUT_SECONDS = 300  # 5 minutes
 
@@ -79,7 +87,10 @@ async def require_auth(request: Request) -> None:
     if not BRIDGE_AUTH_ENABLED:
         return
     if not BRIDGE_AUTH_TOKEN:
-        return  # No token configured = auth disabled
+        raise HTTPException(
+            503,
+            "Bridge auth enabled but PODCLAW_BRIDGE_AUTH_TOKEN not configured"
+        )
 
     ip = request.client.host if request.client else "unknown"
 

@@ -110,7 +110,7 @@ export function DesignsGallery() {
             <p className="text-sm text-muted-foreground mb-6">
               {t('emptyDescription') || 'Start creating AI-generated designs in the chat'}
             </p>
-            <Link href={`/${locale}`}>
+            <Link href={`/${locale}/chat`}>
               <Button className="bg-primary hover:bg-primary/90">
                 <Sparkles className="h-4 w-4 mr-2" />
                 {t('createDesign') || 'Create Your First Design'}

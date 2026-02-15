@@ -194,6 +194,7 @@ class MemoryManager:
 
     async def append_memory(self, fact: str) -> None:
         """Append a durable fact to long-term memory."""
+        fact = _sanitize_data(fact)
         async with self._write_lock:
             now = datetime.now(timezone.utc).strftime("%Y-%m-%d")
             existing = self.memory_path.read_text() if self.memory_path.exists() else ""
@@ -310,6 +311,7 @@ class MemoryManager:
 
         async with self._write_lock:
             existing = self.memory_path.read_text() if self.memory_path.exists() else ""
+            new_facts = _sanitize_data(new_facts)
             _atomic_write(self.memory_path, existing + f"\n\n## Week Learnings\n{new_facts}\n")
 
         logger.info("weekly_consolidated_to_memory", weekly=str(weekly_path))

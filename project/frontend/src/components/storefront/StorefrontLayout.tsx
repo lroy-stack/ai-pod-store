@@ -28,6 +28,11 @@ import { cn } from '@/lib/utils'
 import { OfflineBanner } from '@/components/OfflineBanner'
 import { InstallPrompt } from '@/components/engagement/InstallPrompt'
 
+const WelcomePopup = dynamic(
+  () => import('@/components/engagement/WelcomePopup').then((mod) => ({ default: mod.WelcomePopup })),
+  { ssr: false }
+)
+
 const ChatArea = dynamic(
   () => import('@/components/storefront/ChatArea').then((mod) => ({ default: mod.ChatArea })),
   {
@@ -48,7 +53,7 @@ function StorefrontShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const params = useParams()
   const locale = params.locale as string
-  const isChatPage = pathname === `/${locale}` || pathname === `/${locale}/`
+  const isChatPage = pathname === `/${locale}/chat` || pathname === `/${locale}/chat/`
 
   const handleAskAbout = (question: string) => {
     setPendingChatMessage(question)
@@ -126,6 +131,9 @@ function StorefrontShell({ children }: { children: React.ReactNode }) {
 
       {/* PWA Install Prompt - appears after 3+ visits */}
       <InstallPrompt />
+
+      {/* Welcome Popup - first visit to /chat without login */}
+      {isChatPage && <WelcomePopup />}
     </div>
   )
 }

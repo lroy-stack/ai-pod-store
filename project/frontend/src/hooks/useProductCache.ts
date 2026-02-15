@@ -25,7 +25,7 @@ export function useProductCache(locale: string) {
         // First, try to load from IndexedDB cache
         const cached = await getCachedProducts()
         if (cached.length > 0) {
-          setCachedProducts(cached as Product[])
+          setCachedProducts(cached as unknown as Product[])
         }
 
         // Then fetch fresh data from API

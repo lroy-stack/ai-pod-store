@@ -1,13 +1,16 @@
-import { redirect } from 'next/navigation'
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Chat — POD AI',
+  description: 'Chat with our AI assistant to design custom print-on-demand products.',
+}
 
 /**
- * /chat Redirect to Homepage
+ * /chat — AI Chat Interface
  *
- * The chat IS the homepage at /[locale]/.
- * This route exists only for backwards compatibility and SEO.
+ * ChatArea lives in StorefrontLayout (always mounted, CSS visibility toggle).
+ * This page renders null — the layout handles showing ChatArea when pathname is /chat.
  */
-
-export default async function ChatPage({ params }: { params: Promise<{ locale: string }> }) {
-  const { locale } = await params
-  redirect(`/${locale}`)
+export default function ChatPage() {
+  return null
 }

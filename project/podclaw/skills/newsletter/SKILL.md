@@ -94,3 +94,23 @@ Daily 09:00 + 17:00 UTC
 - Respect subscriber timezone preferences
 - Unsubscribe rate target: < 0.5% per campaign
 - All prices and discounts in EUR
+
+## Data Sources
+- Table: `newsletter_subscribers` — fields: id, email, segment, locale, subscribed_at, unsubscribed_at
+  Query: `{"table": "newsletter_subscribers", "select": "id,segment,locale", "limit": 500}`
+- Table: `newsletter_campaigns` — fields: id, subject, segment, sent_count, open_rate, click_rate, created_at
+  Query: `{"table": "newsletter_campaigns", "select": "id,subject,segment,open_rate,click_rate", "order": "created_at", "limit": 10}`
+
+## Resend Tool Examples
+Single email (always include CAN-SPAM footer):
+`{"to": "user@example.com", "subject": "New arrivals", "html": "<h1>Fresh Designs</h1>...<hr><p><a href='{{unsubscribe_url}}'>Unsubscribe</a> | POD AI Store, Friedrichstraße 123, 10117 Berlin, Germany</p>"}`
+
+Batch (up to 100 per call):
+`{"emails": [{"to": "a@example.com", "subject": "..."}, ...], "tags": ["weekly-champions"]}`
+
+## CAN-SPAM Footer (required in every email)
+`<a href="{{unsubscribe_url}}">Unsubscribe</a> | POD AI Store, Friedrichstraße 123, 10117 Berlin, Germany`
+
+## Handoff
+- **Marketing** provides content themes and campaign calendar → Newsletter handles delivery
+- **Customer Manager** handles replies and support tickets from email campaigns

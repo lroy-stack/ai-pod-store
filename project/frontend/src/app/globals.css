@@ -233,3 +233,46 @@ p {
     animation-duration: 0.01ms !important;
   }
 }
+
+/* ===== Landing page ===== */
+.landing-gradient-text {
+  color: var(--color-foreground);
+  background: linear-gradient(
+    135deg,
+    var(--color-foreground) 0%,
+    var(--color-primary) 30%,
+    #a855f7 50%,
+    var(--color-primary) 70%,
+    var(--color-foreground) 100%
+  );
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: landing-gradient 8s ease infinite;
+}
+
+@keyframes landing-gradient {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes landing-float-kf {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+.landing-float {
+  animation: landing-float-kf 4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-gradient-text,
+  .landing-float {
+    animation: none;
+  }
+  .landing-gradient-text {
+    -webkit-text-fill-color: unset;
+    background: none;
+  }
+}

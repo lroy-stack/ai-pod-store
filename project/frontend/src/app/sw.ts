@@ -19,7 +19,7 @@ const serwist = new Serwist({
     ...defaultCache,
     // Product images from Printify CDN
     {
-      urlPattern: /^https:\/\/.*\.printify\.me\/.*/i,
+      matcher: /^https:\/\/.*\.printify\.me\/.*/i,
       handler: new CacheFirst({
         cacheName: 'printify-images',
         plugins: [
@@ -46,7 +46,7 @@ const serwist = new Serwist({
     },
     // Product images from placeholder service (via.placeholder.com)
     {
-      urlPattern: /^https:\/\/via\.placeholder\.com\/.*/i,
+      matcher: /^https:\/\/via\.placeholder\.com\/.*/i,
       handler: new CacheFirst({
         cacheName: 'placeholder-images',
         plugins: [
@@ -63,7 +63,7 @@ const serwist = new Serwist({
     },
     // Supabase storage images
     {
-      urlPattern: /^https:\/\/.*\.supabase\.co\/storage\/.*/i,
+      matcher: /^https:\/\/.*\.supabase\.co\/storage\/.*/i,
       handler: new CacheFirst({
         cacheName: 'supabase-images',
         plugins: [
@@ -80,7 +80,7 @@ const serwist = new Serwist({
     },
     // fal.ai generated design images
     {
-      urlPattern: /^https:\/\/fal\.media\/.*/i,
+      matcher: /^https:\/\/fal\.media\/.*/i,
       handler: new CacheFirst({
         cacheName: 'fal-images',
         plugins: [

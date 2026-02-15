@@ -43,11 +43,8 @@ export async function POST(req: NextRequest) {
         query = query.eq('session_id', sessionId)
       }
 
-      const { count } = await query.select('*', { count: 'exact', head: true })
-      // Re-run the actual update
-      await query
-
-      migratedConversations = count || 0
+      const { data } = await query.select()
+      migratedConversations = data?.length || 0
     }
 
     // 2. Migrate usage via RPC

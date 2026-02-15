@@ -72,3 +72,38 @@ Daily 08:00 + 14:00 + 18:00 UTC
 - All descriptions must be in 3 locales (en/es/de)
 - Log every price change to pricing_history.md
 - All prices in EUR
+
+## Data Sources
+- Table: `designs` — fields: id, prompt, style, image_url, moderation_status, product_id
+  Query (ready): `{"table": "designs", "select": "id,prompt,style,image_url", "filters": {"moderation_status": "approved"}, "limit": 20}`
+- Table: `products` — fields: id, title, category, base_price_cents, printify_id, status
+  Query: `{"table": "products", "select": "id,title,category,base_price_cents,status", "filters": {"status": "active"}, "limit": 50}`
+- Table: `demand_forecasts` — fields: product_id, demand_level, forecast_date
+  Query: `{"table": "demand_forecasts", "select": "product_id,demand_level", "order": "forecast_date", "limit": 50}`
+
+## Design-to-Product Flow
+For each approved design without a linked product:
+1. Determine product type(s) from design style (illustration → T-Shirt + Hoodie + Poster)
+2. `printify_get_blueprints` → select blueprint IDs for chosen types
+3. `printify_get_providers` → select EU-based provider (lowest cost, good reviews)
+4. `printify_get_variants` → select standard size/color range
+5. `printify_upload_image` → upload design, get image_id
+6. `printify_create` → create product with title, description, variants, image placement
+7. `supabase_insert` into `products` — base_price_cents = Printify cost × 1.4, status=active
+8. Generate descriptions in en/es/de via LLM
+9. `gemini_embed_text` → 768-dim embedding for semantic search
+10. `supabase_update` on `designs` → set product_id to link design
+11. `printify_publish` → publish to sales channel
+
+## Pricing Procedure (Cycle 2 — 14:00)
+1. `supabase_query` on `demand_forecasts` for current demand levels
+2. Base price = Printify cost × 1.4 (target 40% margin)
+3. High demand → +10%, Low demand → -10%
+4. Clamp all changes to ±20% of current price
+5. `supabase_update` product base_price_cents
+6. Log to pricing_history.md: `[date] product_id: €old → €new (reason)`
+
+## Handoff
+- **Marketing** discovers new products via catalog → promotes in campaigns
+- **Finance** reads pricing_history.md at 23:00 → validates margins
+- **SEO Manager** reads new products → generates meta tags and structured data

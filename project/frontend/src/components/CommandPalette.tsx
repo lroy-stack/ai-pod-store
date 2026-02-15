@@ -96,7 +96,7 @@ export function CommandPalette() {
       id: 'design',
       label: t('design'),
       icon: <Sparkles className="h-4 w-4" />,
-      href: '/en?prompt=design',
+      href: '/en/chat?prompt=design',
       category: 'action',
     },
   ]

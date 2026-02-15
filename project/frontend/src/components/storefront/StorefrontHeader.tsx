@@ -69,7 +69,7 @@ export function StorefrontHeader({ onToggleSidebar, isSidebarCollapsed, onToggle
       : '?'
 
   const isShopPage = pathname.includes('/shop')
-  const isChatPage = pathname === `/${locale}` || pathname === `/${locale}/`
+  const isChatPage = pathname === `/${locale}/chat` || pathname === `/${locale}/chat/`
 
   return (
     <header className="flex items-center justify-between gap-4 px-4 py-3 border-b border-border bg-card">
@@ -112,7 +112,7 @@ export function StorefrontHeader({ onToggleSidebar, isSidebarCollapsed, onToggle
               isChatPage && 'text-foreground bg-muted'
             )}
           >
-            <Link href={`/${locale}`}>{tNav('chat') || 'Chat'}</Link>
+            <Link href={`/${locale}/chat`}>{tNav('chat') || 'Chat'}</Link>
           </Button>
           <Button
             variant="ghost"

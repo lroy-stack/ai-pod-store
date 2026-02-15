@@ -21,15 +21,15 @@ class MarketingAgent(BaseAgent):
 
     def default_task(self) -> str:
         return (
-            "Execute the marketing cycle for the POD store:\n"
-            "1. Review marketing_calendar.md for scheduled campaigns\n"
-            "2. Check best_sellers.md for products to promote\n"
-            "3. Generate social media content (Instagram captions, Twitter threads)\n"
-            "4. Create ad copy for top-performing products\n"
-            "5. Draft promotional emails for upcoming campaigns\n"
-            "6. Research trending hashtags and viral content angles\n"
-            "7. Update marketing_calendar.md with today's activity\n"
-            "8. Log all generated content to supabase marketing_content table\n\n"
+            "Execute the marketing cycle. You MUST call tools — do NOT answer from memory.\n"
+            "1. Call supabase_query to SELECT top 5 products by review_count DESC for promotion\n"
+            "2. Call web_search at least 5 times for trending hashtags: print-on-demand fashion, "
+            "custom t-shirts, sustainable apparel, POD design trends. Extract platform-specific tags\n"
+            "3. Generate social media content for top 3 products (Instagram 2200, Twitter 280, Pinterest 500)\n"
+            "4. Call supabase_insert to store EACH content piece in marketing_content table\n"
+            "5. Draft promotional email content for top 3 products\n"
+            "6. Call telegram_send to schedule campaign messages for flash sales if planned\n"
+            "7. Write marketing_calendar.md with today's content summary\n\n"
             "AM cycle: Content creation + scheduling\n"
             "PM cycle: Performance review + engagement responses"
         )
