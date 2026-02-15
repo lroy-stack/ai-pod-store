@@ -8,15 +8,15 @@ Adapts PodClaw's existing hook functions to the SDK's native interfaces:
    rate_limit) into a single can_use_tool callback that returns
    PermissionResultAllow or PermissionResultDeny.
 
-2. make_sdk_hooks() — Converts PostToolUse observation hooks (event_log, memory,
-   metrics) and the PreToolUse observation hook (metrics_pre) into SDK
-   HookMatcher entries.
+2. make_sdk_hooks() — Converts PostToolUse observation hooks + new SDK hooks
+   (PreCompact, Stop, PostToolUseFailure) into HookMatcher entries.
 
-Zero changes to existing hook implementations.
+Fail-closed for security_hook (index 0), fail-open for cost/rate hooks.
 """
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 
 import structlog
@@ -31,7 +31,7 @@ logger = structlog.get_logger(__name__)
 
 
 # ---------------------------------------------------------------------------
-# 1. can_use_tool — PreToolUse deny chain
+# 1. can_use_tool — PreToolUse deny chain (fail-closed for security)
 # ---------------------------------------------------------------------------
 
 def make_can_use_tool(
@@ -44,6 +44,10 @@ def make_can_use_tool(
 
     The SDK calls this BEFORE executing any tool. If any hook returns
     permissionDecision="deny", the tool call is blocked.
+
+    Security model:
+    - Hook index 0 (security_hook): FAIL-CLOSED — errors deny the tool call
+    - Hook index 1+ (cost_guard, rate_limit): FAIL-OPEN — errors allow the tool call
 
     Args:
         pre_hooks: List of deny hooks [security_hook, cost_guard_hook, rate_limit_hook]
@@ -66,7 +70,7 @@ def make_can_use_tool(
             "_session_id": session_id,
         }
 
-        for hook in pre_hooks:
+        for i, hook in enumerate(pre_hooks):
             try:
                 result = await hook(input_data, tool_use_id=None, context=None)
                 if not result:
@@ -85,12 +89,24 @@ def make_can_use_tool(
                     )
                     return PermissionResultDeny(message=reason)
             except Exception as e:
-                # Fail-open: if a hook errors, allow the tool call
-                logger.warning(
-                    "deny_hook_error",
-                    hook=getattr(hook, "__name__", str(hook)),
-                    error=str(e),
-                )
+                if i == 0:
+                    # security_hook: FAIL-CLOSED — deny on error
+                    logger.error(
+                        "security_hook_error_denying",
+                        tool=tool_name,
+                        agent=agent_name,
+                        error=str(e),
+                    )
+                    return PermissionResultDeny(
+                        message=f"Security hook failed: {e}"
+                    )
+                else:
+                    # cost_guard / rate_limit: FAIL-OPEN — allow on error
+                    logger.warning(
+                        "deny_hook_error",
+                        hook=getattr(hook, "__name__", str(hook)),
+                        error=str(e),
+                    )
 
         return PermissionResultAllow()
 
@@ -98,7 +114,72 @@ def make_can_use_tool(
 
 
 # ---------------------------------------------------------------------------
-# 2. SDK hooks — PostToolUse observation + PreToolUse observation
+# 2. PreCompact hook — transcript archiving before SDK compaction
+# ---------------------------------------------------------------------------
+
+def make_precompact_hook(memory_manager):
+    """Archive transcript before SDK compacts context."""
+
+    async def precompact_hook(input_data, tool_use_id, context):
+        transcript_path = input_data.get("transcript_path")
+        session_id = input_data.get("session_id", "unknown")
+
+        if transcript_path and Path(transcript_path).exists():
+            content = Path(transcript_path).read_text()
+            await memory_manager.archive_transcript(session_id, content)
+            logger.info("transcript_archived", session_id=session_id[:8])
+
+        return {}
+
+    return precompact_hook
+
+
+# ---------------------------------------------------------------------------
+# 3. Stop hook — record agent stop events
+# ---------------------------------------------------------------------------
+
+def make_stop_hook(event_store, agent_name: str, session_id: str):
+    """Log agent stop event to event store."""
+
+    async def stop_hook(input_data, tool_use_id, context):
+        await event_store.record(
+            agent_name=agent_name,
+            event_type="agent_stop",
+            payload={
+                "stop_hook_active": input_data.get("stop_hook_active", False),
+            },
+            session_id=session_id,
+        )
+        return {}
+
+    return stop_hook
+
+
+# ---------------------------------------------------------------------------
+# 4. PostToolUseFailure hook — record tool failures
+# ---------------------------------------------------------------------------
+
+def make_failure_hook(event_store, agent_name: str, session_id: str):
+    """Log tool failures to event store for observability."""
+
+    async def failure_hook(input_data, tool_use_id, context):
+        await event_store.record(
+            agent_name=agent_name,
+            event_type="tool_failure",
+            payload={
+                "tool": input_data.get("tool_name"),
+                "error": input_data.get("error", "unknown"),
+                "is_interrupt": input_data.get("is_interrupt", False),
+            },
+            session_id=session_id,
+        )
+        return {}
+
+    return failure_hook
+
+
+# ---------------------------------------------------------------------------
+# 5. SDK hooks — full hook dict assembly
 # ---------------------------------------------------------------------------
 
 def make_sdk_hooks(
@@ -106,21 +187,26 @@ def make_sdk_hooks(
     pre_observe_hooks: list,
     agent_name: str,
     session_id: str,
+    memory_manager=None,
+    event_store=None,
 ) -> dict:
     """
     Create SDK hook dict from PodClaw observation hooks.
 
-    PostToolUse hooks (event_log, memory, metrics) run after each tool call
-    for logging and metrics — they never block.
-
-    PreToolUse observation hooks (metrics_pre) run before each tool call
-    for timing — they never block either.
+    Includes:
+    - PostToolUse: event_log, memory, metrics (observation, never block)
+    - PreToolUse: metrics_pre (observation, never block)
+    - PreCompact: transcript archiving before SDK context compaction
+    - Stop: record agent stop events
+    - PostToolUseFailure: record tool failures for observability
 
     Args:
         post_hooks: [event_log_hook, memory_hook, metrics_hook]
         pre_observe_hooks: [metrics_pre_hook]
         agent_name: Sub-agent name
         session_id: Current session UUID
+        memory_manager: MemoryManager for PreCompact hook
+        event_store: EventStore for Stop/Failure hooks
 
     Returns:
         Dict suitable for ClaudeAgentOptions.hooks
@@ -169,5 +255,19 @@ def make_sdk_hooks(
             return {}
 
         hooks["PreToolUse"] = [HookMatcher(matcher="*", hooks=[pre_observe_hook])]
+
+    # PreCompact: archive transcript before SDK compaction
+    if memory_manager is not None:
+        precompact_hook = make_precompact_hook(memory_manager)
+        hooks["PreCompact"] = [HookMatcher(hooks=[precompact_hook])]
+
+    # Stop: record agent stop events
+    if event_store is not None:
+        stop_hook = make_stop_hook(event_store, agent_name, session_id)
+        hooks["Stop"] = [HookMatcher(hooks=[stop_hook])]
+
+        # PostToolUseFailure: record tool failures
+        failure_hook = make_failure_hook(event_store, agent_name, session_id)
+        hooks["PostToolUseFailure"] = [HookMatcher(matcher="*", hooks=[failure_hook])]
 
     return hooks

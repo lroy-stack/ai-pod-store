@@ -3,7 +3,8 @@ PodClaw — Client Factory
 ==========================
 
 Creates Claude Agent SDK clients for each sub-agent with appropriate
-model, MCP servers, hooks, and system prompts.
+model, MCP servers, hooks, system prompts, budgets, tool restrictions,
+sandbox settings, and session persistence.
 """
 
 from __future__ import annotations
@@ -13,10 +14,18 @@ from typing import Any
 
 import structlog
 
-from claude_agent_sdk import ClaudeSDKClient, ClaudeAgentOptions, McpSdkServerConfig
+from claude_agent_sdk import (
+    ClaudeSDKClient,
+    ClaudeAgentOptions,
+    McpSdkServerConfig,
+    SandboxSettings,
+)
 
 from podclaw.config import (
+    AGENT_BUDGETS,
+    AGENT_ALLOWED_BUILTINS,
     AGENT_MODELS,
+    AGENT_OUTPUT_SCHEMAS,
     AGENT_TOOLS,
     AGENT_CONTEXT_FILES,
     MAX_TURNS_PER_AGENT,
@@ -58,11 +67,13 @@ class ClientFactory:
         mcp_connectors: dict[str, Any],
         hooks: dict[str, list],
         skills_dir: Path,
+        event_store: Any | None = None,
     ):
         self.memory = memory_manager
         self.connectors = mcp_connectors
         self.hooks = hooks
         self.skills_dir = skills_dir
+        self.event_store = event_store
 
         # Pre-build MCP servers once (reusable across agents)
         self._mcp_servers: dict[str, McpSdkServerConfig] = {}
@@ -88,6 +99,20 @@ class ClientFactory:
             if name in self._mcp_servers
         }
 
+    def _build_allowed_tools(self, agent_name: str, mcp_servers: dict[str, McpSdkServerConfig]) -> list[str]:
+        """Build complete list of allowed tools: builtins + MCP tools."""
+        builtin_tools = AGENT_ALLOWED_BUILTINS.get(agent_name, ["Read", "Grep", "Glob"])
+
+        # MCP tool names follow the pattern: mcp__{server_name}__{tool_name}
+        mcp_tool_names = []
+        for server_name, server in mcp_servers.items():
+            if hasattr(server, "tools"):
+                for tool in server.tools:
+                    tool_name = tool.name if hasattr(tool, "name") else str(tool)
+                    mcp_tool_names.append(f"mcp__{server_name}__{tool_name}")
+
+        return builtin_tools + mcp_tool_names
+
     def _build_system_prompt(self, agent_name: str) -> str:
         """Build complete system prompt with security preamble and data boundaries."""
         context_files = AGENT_CONTEXT_FILES.get(agent_name, [])
@@ -102,13 +127,19 @@ class ClientFactory:
 
         return "\n\n---\n\n".join(parts)
 
-    def create_client(self, agent_name: str, session_id: str = "") -> ClaudeSDKClient:
+    def create_client(
+        self,
+        agent_name: str,
+        session_id: str = "",
+        resume_sdk_session: str | None = None,
+    ) -> ClaudeSDKClient:
         """
         Create a fully configured Claude SDK client for a sub-agent.
 
         Args:
             agent_name: One of the 8 sub-agent names
             session_id: Current session UUID for hook context
+            resume_sdk_session: SDK session ID to resume (for session persistence)
 
         Returns:
             Configured ClaudeSDKClient with MCP servers, hooks, and permissions
@@ -135,17 +166,53 @@ class ClientFactory:
             pre_observe_hooks=observe_pre_hooks,
             agent_name=agent_name,
             session_id=session_id,
+            memory_manager=self.memory,
+            event_store=self.event_store,
+        )
+
+        # Per-agent tool restrictions
+        allowed_tools = self._build_allowed_tools(agent_name, mcp_servers)
+
+        # Per-agent budget (SDK native enforcement)
+        max_budget = AGENT_BUDGETS.get(agent_name, 0.50)
+
+        # Output format for report-generating agents
+        output_schema = AGENT_OUTPUT_SCHEMAS.get(agent_name)
+        output_format = None
+        if output_schema:
+            output_format = {"type": "json_schema", "schema": output_schema}
+
+        # Sandbox: OS-level isolation for agent bash commands
+        sandbox = SandboxSettings(
+            enabled=True,
+            autoAllowBashIfSandboxed=True,
+            excludedCommands=["git"],
+            allowUnsandboxedCommands=False,
+            network={"allowLocalBinding": True},
         )
 
         options = ClaudeAgentOptions(
             model=model,
             system_prompt=system_prompt,
             max_turns=MAX_TURNS_PER_AGENT,
+            max_budget_usd=max_budget,
             permission_mode="acceptEdits",
             mcp_servers=mcp_servers,
             can_use_tool=can_use_tool,
             hooks=sdk_hooks,
+            allowed_tools=allowed_tools,
+            disallowed_tools=["Bash", "Edit"],
+            cwd=str(self.memory.workspace),
+            sandbox=sandbox,
         )
+
+        # Session persistence: resume previous conversation
+        if resume_sdk_session:
+            options.resume = resume_sdk_session
+
+        # Structured output for report agents
+        if output_format:
+            options.output_format = output_format
 
         client = ClaudeSDKClient(options)
 
@@ -154,6 +221,9 @@ class ClientFactory:
             agent=agent_name,
             model=model,
             mcp_servers=list(mcp_servers.keys()),
+            max_budget_usd=max_budget,
+            allowed_tools_count=len(allowed_tools),
+            resume=resume_sdk_session is not None,
         )
 
         return client

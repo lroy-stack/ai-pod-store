@@ -18,6 +18,8 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import logging
+import os
 import signal
 import sys
 from pathlib import Path
@@ -172,6 +174,7 @@ async def _run(args: argparse.Namespace) -> None:
         mcp_connectors=connectors,
         hooks=hooks,
         skills_dir=skills_dir,
+        event_store=event_store,
     )
 
     orchestrator = Orchestrator(
@@ -271,25 +274,58 @@ async def _run(args: argparse.Namespace) -> None:
 
 
 async def _shutdown(scheduler, orchestrator, server, heartbeat=None) -> None:
-    """Graceful shutdown."""
+    """Graceful shutdown — allow active sessions up to 30s to complete."""
     logger.info("shutdown_initiated")
     if heartbeat:
         heartbeat.stop()
     scheduler.stop()
     orchestrator.stop()
+
+    # Wait for active sessions to finish (max 30s)
+    for i in range(30):
+        if not orchestrator._active_sessions:
+            break
+        if i == 0:
+            logger.info(
+                "waiting_for_active_sessions",
+                agents=list(orchestrator._active_sessions.keys()),
+            )
+        await asyncio.sleep(1)
+
     server.should_exit = True
+    logger.info("shutdown_complete")
+
+
+def _configure_structlog(json_output: bool = False) -> None:
+    """Configure structlog with console or JSON output."""
+    import logging
+
+    if json_output:
+        processors = [
+            structlog.processors.TimeStamper(fmt="iso"),
+            structlog.processors.add_log_level,
+            structlog.processors.StackInfoRenderer(),
+            structlog.processors.format_exc_info,
+            structlog.processors.JSONRenderer(),
+        ]
+    else:
+        processors = [
+            structlog.processors.TimeStamper(fmt="iso"),
+            structlog.processors.add_log_level,
+            structlog.dev.ConsoleRenderer(),
+        ]
+
+    structlog.configure(
+        processors=processors,
+        wrapper_class=structlog.make_filtering_bound_logger(logging.INFO),
+    )
 
 
 def main() -> None:
     """Sync entry point."""
     args = _parse_args()
-    structlog.configure(
-        processors=[
-            structlog.processors.TimeStamper(fmt="iso"),
-            structlog.processors.add_log_level,
-            structlog.dev.ConsoleRenderer(),
-        ]
-    )
+    json_logs = os.environ.get("PODCLAW_JSON_LOGS", "false").lower() == "true"
+    _configure_structlog(json_output=json_logs)
     asyncio.run(_run(args))
 
 

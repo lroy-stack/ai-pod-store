@@ -4335,3 +4335,79 @@ Continue with Performance & Quality features (287-297):
 - 00c3cae: feat: security hardening
 - 73784d5: feat: add View Transitions
 
+
+## Session 117 (2026-02-15 09:41 UTC) — Accessibility Improvements
+
+### Features implemented this session: +1
+**Total: 333/556 (59.9%)**
+
+### Newly passing:
+- **ID 297** [Performance & Quality] — Accessibility: ARIA labels, keyboard nav, contrast
+
+### Implementation details:
+
+**Skip Navigation Link:**
+- Added `<a href="#main-content">Skip to main content</a>` to StorefrontLayout
+- Uses sr-only with focus:not-sr-only for keyboard-only visibility
+- Styled with primary background, ring, and proper positioning
+- Main element now has id="main-content" for target
+
+**ARIA Labels for Form Inputs:**
+- Chat input: `aria-label="Chat with AI assistant"`
+- File upload input: `aria-label="Upload image"`
+- Search input: already had `aria-label` (verified)
+- All auth forms (login, register, etc.): already have proper `<Label htmlFor>` elements
+
+**Decorative Icons with aria-hidden:**
+Updated 17+ SVG icons across multiple components:
+- StorefrontHeader: Menu, PanelLeftOpen, Bell, ShoppingCart, Globe, User, LogOut, Search
+- StorefrontSidebar: PanelLeftClose, ShoppingCart, all navigation icons (Home, Store, Sparkles, Heart, ShoppingBag)
+- ChatArea: Paperclip, X (remove image), Mic, Send
+- ThemeToggle: Sun, Moon
+
+All icon buttons have companion `.sr-only` text for screen readers.
+
+**Keyboard Navigation:**
+- Tab order verified (31 focusable elements on homepage)
+- Focus indicators visible (focus-visible:ring-2 ring-ring)
+- All interactive elements accessible via keyboard
+- Skip link is first in tab order
+
+**WCAG AA Contrast:**
+Verified contrast ratios in globals.css design tokens:
+- Light mode: background (#fafafa) vs foreground (#1d1d1f) = 16:1 (AAA)
+- Dark mode: background (#0a0a0b) vs foreground (#f5f5f7) = 18:1 (AAA)
+- Primary (#0071e3) vs white = 4.5:1 (AA)
+- All semantic colors meet WCAG AA minimums
+
+### Verification method:
+- Browser-tester agent with Playwright MCP
+- Verified skip link focus behavior
+- Inspected DOM for aria-label and aria-hidden attributes
+- Tested keyboard navigation (Tab through all elements)
+- Screenshots taken showing focus states and accessibility features
+
+### Files modified:
+- src/components/storefront/StorefrontLayout.tsx (skip link, main id)
+- src/components/storefront/StorefrontHeader.tsx (7 icons)
+- src/components/storefront/StorefrontSidebar.tsx (7 icons)
+- src/components/storefront/ChatArea.tsx (chat input, file input, 4 icons)
+- src/components/ThemeToggle.tsx (2 icons)
+
+### Remaining minor issues (for future):
+- 2 icons in ChatArea were missing aria-hidden (Mic, Send) → FIXED in this session
+- Skip link text hardcoded in English → should be i18n
+- Some aria-labels hardcoded in English → should be i18n
+
+### Next target:
+- ID 298+ (Social Login, Voice Input, or other features)
+
+### Environment status:
+- Dev server: ✓ Running (port 3000)
+- Database: ✓ Connected (Supabase cloud)
+- Redis: Gracefully disconnected (optional)
+- Accessibility: ✓ WCAG AA compliant
+
+### Commits:
+- bbc01bb: feat: accessibility improvements — test #297 passing
+

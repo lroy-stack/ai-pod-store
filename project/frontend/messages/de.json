@@ -110,6 +110,7 @@
     "registerButton": "Konto erstellen",
     "googleLogin": "Google",
     "appleLogin": "Apple",
+    "socialLoginFailed": "Social-Login fehlgeschlagen. Bitte versuchen Sie es erneut.",
     "noAccount": "Haben Sie noch kein Konto?",
     "haveAccount": "Haben Sie bereits ein Konto?",
     "signUpLink": "Registrieren",

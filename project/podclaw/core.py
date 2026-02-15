@@ -54,6 +54,7 @@ class Orchestrator:
         self.events = event_store
         self.memory = memory_manager
         self._active_sessions: dict[str, str] = {}  # agent_name → session_id
+        self._last_sdk_sessions: dict[str, str] = {}  # agent_name → SDK session_id (for resume)
         self._running = False
         self._session_lock = asyncio.Lock()
 
@@ -131,8 +132,14 @@ class Orchestrator:
         }
 
         try:
-            # Pass session_id so hooks get proper context
-            client = self.factory.create_client(agent_name, session_id=session_id)
+            # Resume previous SDK session if available (session persistence)
+            resume_sdk_session = self._last_sdk_sessions.get(agent_name)
+
+            client = self.factory.create_client(
+                agent_name,
+                session_id=session_id,
+                resume_sdk_session=resume_sdk_session,
+            )
 
             await client.connect()
 
@@ -161,6 +168,11 @@ class Orchestrator:
                 result["num_turns"] = getattr(result_message, "num_turns", None)
                 result["total_cost_usd"] = getattr(result_message, "total_cost_usd", None)
                 result["session_id_sdk"] = getattr(result_message, "session_id", None)
+
+                # Persist SDK session ID for resume on next cycle
+                sdk_session = getattr(result_message, "session_id", None)
+                if sdk_session:
+                    self._last_sdk_sessions[agent_name] = sdk_session
 
             result["response"] = response_text[:2000]
             result["tool_calls"] = tool_calls
@@ -223,6 +235,30 @@ class Orchestrator:
                 metadata={"agent": agent_name, "duration_seconds": result.get("duration_seconds")},
             )
 
+        return result
+
+    async def run_agent_with_retry(
+        self, agent_name: str, task: str | None = None, max_retries: int = 2,
+    ) -> dict[str, Any]:
+        """
+        Execute a sub-agent with automatic retry on failure.
+
+        Uses exponential backoff: 5s, 10s between retries.
+        """
+        for attempt in range(max_retries + 1):
+            result = await self.run_agent(agent_name, task)
+            if result.get("status") != "error":
+                return result
+            if attempt < max_retries:
+                wait = 2 ** attempt * 5
+                logger.warning(
+                    "agent_retry",
+                    agent=agent_name,
+                    attempt=attempt + 1,
+                    wait_seconds=wait,
+                    error=result.get("error", "unknown"),
+                )
+                await asyncio.sleep(wait)
         return result
 
     def _default_task(self, agent_name: str) -> str:

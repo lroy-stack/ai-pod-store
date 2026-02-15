@@ -185,6 +185,57 @@ GEMINI_EMBEDDING_MODEL = "text-embedding-004"
 GEMINI_EMBEDDING_DIMENSIONS = 768
 
 # ---------------------------------------------------------------------------
+# Per-Session Budget (USD) — SDK max_budget_usd enforcement
+# ---------------------------------------------------------------------------
+AGENT_BUDGETS: dict[str, float] = {
+    "researcher": 0.30,
+    "marketing": 0.50,
+    "designer": 0.80,
+    "newsletter": 0.40,
+    "cataloger": 0.50,
+    "customer_manager": 0.50,
+    "seo_manager": 0.20,
+    "finance": 0.40,
+}
+
+# ---------------------------------------------------------------------------
+# Allowed Built-in Tools per Agent (SDK allowed_tools)
+# ---------------------------------------------------------------------------
+AGENT_ALLOWED_BUILTINS: dict[str, list[str]] = {
+    "researcher": ["Read", "Grep", "Glob", "WebSearch", "WebFetch"],
+    "marketing": ["Read", "Write", "Grep", "Glob"],
+    "designer": ["Read", "Write", "Glob"],
+    "newsletter": ["Read", "Write", "Grep"],
+    "cataloger": ["Read", "Write", "Grep", "Glob"],
+    "customer_manager": ["Read", "Write", "Grep"],
+    "seo_manager": ["Read", "Grep", "Glob", "WebSearch", "WebFetch"],
+    "finance": ["Read", "Grep", "Glob"],
+}
+
+# ---------------------------------------------------------------------------
+# Output Schemas for Structured Reports (SDK output_format)
+# ---------------------------------------------------------------------------
+AGENT_OUTPUT_SCHEMAS: dict[str, dict] = {
+    "finance": {
+        "type": "object",
+        "properties": {
+            "daily_revenue_eur": {"type": "number"},
+            "orders_count": {"type": "integer"},
+            "anomalies": {"type": "array", "items": {"type": "string"}},
+            "recommendations": {"type": "array", "items": {"type": "string"}},
+        },
+    },
+    "researcher": {
+        "type": "object",
+        "properties": {
+            "trends": {"type": "array", "items": {"type": "string"}},
+            "opportunities": {"type": "array", "items": {"type": "string"}},
+            "threats": {"type": "array", "items": {"type": "string"}},
+        },
+    },
+}
+
+# ---------------------------------------------------------------------------
 # Tool-to-Agent Mapping
 # ---------------------------------------------------------------------------
 AGENT_TOOLS: dict[str, list[str]] = {

@@ -220,6 +220,23 @@ class MemoryManager:
             logger.debug("heartbeat_updated")
 
     # -----------------------------------------------------------------------
+    # Transcript Archiving (PreCompact hook)
+    # -----------------------------------------------------------------------
+
+    async def archive_transcript(self, session_id: str, content: str) -> None:
+        """Archive transcript to conversations/ before SDK compaction."""
+        conversations_dir = self.memory_dir / "conversations"
+        conversations_dir.mkdir(parents=True, exist_ok=True)
+
+        date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        filename = f"{date}-{session_id[:8]}.jsonl"
+        filepath = conversations_dir / filename
+
+        async with self._write_lock:
+            _atomic_write(filepath, content)
+            logger.info("transcript_archived", session_id=session_id[:8], path=str(filepath))
+
+    # -----------------------------------------------------------------------
     # Weekly Consolidation
     # -----------------------------------------------------------------------
 
