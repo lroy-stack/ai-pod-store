@@ -3944,7 +3944,7 @@
     "id": 359,
     "feature": "Marketing Agent",
     "description": "Marketing agent respects brand voice guidelines",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Trigger marketing content generation",
       "Verify no aggressive sales language or fake urgency",
@@ -3965,7 +3965,7 @@
     "id": 361,
     "feature": "Marketing Agent",
     "description": "Marketing agent logs events to agent_events table",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Trigger marketing agent cycle",
       "Query agent_events for agent_name='marketing'",
@@ -3987,7 +3987,7 @@
     "id": 363,
     "feature": "Marketing Agent",
     "description": "Marketing agent updates marketing_calendar.md after each cycle",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Trigger marketing agent cycle",
       "Verify memory/context/marketing_calendar.md is updated",
@@ -3998,7 +3998,7 @@
     "id": 364,
     "feature": "Marketing Agent",
     "description": "Marketing agent reads cross-agent context files",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify marketing agent loads best_sellers.md",
       "Verify marketing agent loads customer_insights.md",
@@ -4010,7 +4010,7 @@
     "id": 365,
     "feature": "Marketing Agent",
     "description": "Marketing agent content passes moderation (no competitor disparagement)",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Generate marketing content",
       "Verify no negative references to competitors",
@@ -4021,7 +4021,7 @@
     "id": 366,
     "feature": "Marketing Agent",
     "description": "Marketing agent cost tracking stays within daily budget",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify cost_guard_hook tracks marketing agent costs",
       "Verify daily budget is $1.00 for marketing",
