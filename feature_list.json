@@ -4088,7 +4088,7 @@
     "id": 372,
     "feature": "Newsletter Agent",
     "description": "Newsletter agent module exists with correct model and schedule config",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify podclaw/agents/newsletter.py exists",
       "Verify model is claude-sonnet-4-5-20250929",
@@ -4099,7 +4099,7 @@
     "id": 373,
     "feature": "Newsletter Agent",
     "description": "Newsletter SKILL.md defines identity, tools, and compliance rules",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify podclaw/skills/newsletter/SKILL.md exists",
       "Verify it defines tools: supabase, resend, gemini",
@@ -4110,7 +4110,7 @@
     "id": 374,
     "feature": "Newsletter Agent",
     "description": "Newsletter templates directory contains email_campaign.md",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify podclaw/skills/newsletter/templates/email_campaign.md exists",
       "Verify template has A/B variant fields for subject and CTA"
@@ -4285,7 +4285,7 @@
     "id": 390,
     "feature": "Admin Panel Setup",
     "description": "Admin project npm install succeeds",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Run npm install in admin/ directory",
       "Verify no errors in the install output",
@@ -4296,7 +4296,7 @@
     "id": 391,
     "feature": "Admin Panel Setup",
     "description": "Admin dev server starts on port 3001",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Run npm run dev in admin/ directory",
       "Verify the dev server starts on port 3001",
@@ -4307,7 +4307,7 @@
     "id": 392,
     "feature": "Admin Panel Setup",
     "description": "Admin login page renders with Supabase auth",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to http://localhost:3001/login",
       "Verify the login page renders with email and password fields",
@@ -4914,7 +4914,7 @@
     "id": 446,
     "feature": "Security Hardening \u2014 Auth Guard Module",
     "description": "auth-guard.ts module exists with getAuthUser export",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify file exists at frontend/src/lib/auth-guard.ts",
       "Verify it exports a getAuthUser function that accepts a Request parameter",
@@ -4926,7 +4926,7 @@
     "id": 447,
     "feature": "Security Hardening \u2014 Auth Guard Module",
     "description": "auth-guard.ts exports requireAuth that throws 401",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify auth-guard.ts exports a requireAuth function",
       "Verify requireAuth calls getAuthUser internally",
@@ -4938,7 +4938,7 @@
     "id": 448,
     "feature": "Security Hardening \u2014 Auth Guard Module",
     "description": "auth-guard.ts exports requireAdmin that throws 403",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify auth-guard.ts exports a requireAdmin function",
       "Verify it calls requireAuth internally first",
@@ -4950,7 +4950,7 @@
     "id": 449,
     "feature": "Security Hardening \u2014 Auth Guard Module",
     "description": "auth-guard.ts exports handleAuthError and getClientIP helpers",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify handleAuthError converts AuthError to NextResponse with correct status code",
       "Verify getClientIP reads cf-connecting-ip, then x-real-ip, then x-forwarded-for headers",
