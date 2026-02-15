@@ -3025,7 +3025,7 @@
     "id": 274,
     "feature": "PodClaw Agent",
     "description": "Agent errors logged and visible",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Trigger an agent error",
       "Verify error_log field populated in agent_sessions",

@@ -616,7 +616,7 @@ export default function AgentDetailPage() {
                               </span>
                             </div>
 
-                            {Object.keys(event.payload).length > 0 && (
+                            {event.payload && Object.keys(event.payload).length > 0 && (
                               <div className="mt-2 rounded-md bg-muted/50 p-3">
                                 <pre className="text-xs text-muted-foreground whitespace-pre-wrap">
                                   {JSON.stringify(event.payload, null, 2)}
