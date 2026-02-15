@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { CheckCircle, XCircle, Clock, Loader2 } from 'lucide-react'
+import { CheckCircle, XCircle, Clock, Loader2, Eye } from 'lucide-react'
+import Link from 'next/link'
 
 interface Design {
   id: string
@@ -209,8 +210,16 @@ export default function DesignsPage() {
                       </div>
                     )}
 
-                    <div className="text-xs text-muted-foreground">
-                      {new Date(design.created_at).toLocaleDateString()}
+                    <div className="flex items-center justify-between">
+                      <div className="text-xs text-muted-foreground">
+                        {new Date(design.created_at).toLocaleDateString()}
+                      </div>
+                      <Button asChild variant="ghost" size="sm">
+                        <Link href={`/designs/${design.id}`}>
+                          <Eye className="h-4 w-4 mr-1" />
+                          View
+                        </Link>
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
