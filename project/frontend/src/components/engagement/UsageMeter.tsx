@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { cn } from '@/lib/utils'
 
@@ -14,7 +14,8 @@ export function UsageMeter() {
   const { user } = useAuth()
   const [data, setData] = useState<UsageData | null>(null)
 
-  const fetchUsage = useCallback(async () => {
+  // React Compiler auto-memoizes this function
+  const fetchUsage = async () => {
     try {
       const res = await fetch('/api/usage/status')
       if (res.ok) {
@@ -23,7 +24,7 @@ export function UsageMeter() {
     } catch {
       // silent fail
     }
-  }, [])
+  }
 
   useEffect(() => {
     if (user) {

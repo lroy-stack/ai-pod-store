@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { Search, X, ChevronLeft, ChevronRight } from 'lucide-react'
@@ -53,7 +53,8 @@ export default function ShopPage() {
   const [categories, setCategories] = useState<string[]>(['all'])
   const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({})
 
-  const fetchProducts = useCallback(async () => {
+  // React Compiler auto-memoizes this function and its dependencies
+  const fetchProducts = async () => {
     setIsLoading(true)
     try {
       const params = new URLSearchParams()
@@ -77,7 +78,7 @@ export default function ShopPage() {
     } finally {
       setIsLoading(false)
     }
-  }, [currentPage, selectedCategory, searchQuery, sortBy, locale])
+  }
 
   // Fetch all products once to extract categories
   useEffect(() => {

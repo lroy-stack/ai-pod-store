@@ -10,7 +10,7 @@
  * - Responsive design with keyboard navigation
  */
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import {
@@ -159,13 +159,11 @@ export function CommandPalette() {
     }
   }, [open])
 
-  const handleSelectCommand = useCallback(
-    (command: CommandAction) => {
-      router.push(command.href)
-      setOpen(false)
-    },
-    [router]
-  )
+  // React Compiler auto-memoizes this function
+  const handleSelectCommand = (command: CommandAction) => {
+    router.push(command.href)
+    setOpen(false)
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

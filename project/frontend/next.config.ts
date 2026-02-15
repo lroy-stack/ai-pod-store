@@ -20,9 +20,8 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: false,
   },
   // React Compiler moved out of experimental in Next.js 16
-  reactCompiler: {
-    compilationMode: 'annotation',
-  },
+  // Auto-compilation enabled (no 'use memo' annotations needed)
+  reactCompiler: true,
   experimental: {
     // Temporarily disable cacheComponents to allow Edge runtime for chat API
     // TODO: Re-enable once chat API is refactored to work with cacheComponents
