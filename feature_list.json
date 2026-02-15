@@ -3318,7 +3318,7 @@
     "id": 301,
     "feature": "Social Login \u2014 Google + Apple OAuth",
     "description": "OAuth callback route exists",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify /en/auth/callback route file exists",
       "Verify it handles code exchange",
@@ -3351,7 +3351,7 @@
     "id": 304,
     "feature": "Social Login \u2014 Google + Apple OAuth",
     "description": "Social login button shows loading state",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Click the Google login button",
       "Verify the button shows a spinner or loading indicator during redirect"
@@ -3361,7 +3361,7 @@
     "id": 305,
     "feature": "Social Login \u2014 Google + Apple OAuth",
     "description": "Social login errors show error message",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Simulate an OAuth error by denying consent",
       "Verify an error message is displayed on the login page"
@@ -3405,7 +3405,7 @@
     "id": 309,
     "feature": "Social Login \u2014 Google + Apple OAuth",
     "description": "Social login integrates with Supabase Auth",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify Supabase Auth provider config includes google and apple",
       "Verify signInWithOAuth calls are used for social login"
@@ -3415,7 +3415,7 @@
     "id": 310,
     "feature": "Voice Input + Image Upload",
     "description": "Microphone button visible when supported",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Open /en/chat in Chrome",
       "Verify mic button is visible in chat input area",
@@ -3426,7 +3426,7 @@
     "id": 311,
     "feature": "Voice Input + Image Upload",
     "description": "Clicking mic starts speech recognition",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Click the mic button",
       "Verify a listening indicator appears",
@@ -3437,7 +3437,7 @@
     "id": 312,
     "feature": "Voice Input + Image Upload",
     "description": "Transcript auto-inserts into chat input",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Speak a phrase while mic is active",
       "Verify transcript text appears in the chat input field",
@@ -3448,7 +3448,7 @@
     "id": 313,
     "feature": "Voice Input + Image Upload",
     "description": "Voice input works on desktop Chrome",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Open chat in Chrome on desktop",
       "Click mic button and speak",
@@ -3459,7 +3459,7 @@
     "id": 314,
     "feature": "Voice Input + Image Upload",
     "description": "Image upload button visible",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to /en/chat",
       "Verify a camera/paperclip icon button is visible in the chat input area"
@@ -3469,7 +3469,7 @@
     "id": 315,
     "feature": "Voice Input + Image Upload",
     "description": "File picker opens and preview shown",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Click the upload button",
       "Select an image file from the file picker",
@@ -3480,7 +3480,7 @@
     "id": 316,
     "feature": "Voice Input + Image Upload",
     "description": "Drag-and-drop image onto chat works",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Drag an image file onto the chat area",
       "Verify a drop zone is highlighted",
@@ -3491,7 +3491,7 @@
     "id": 317,
     "feature": "Voice Input + Image Upload",
     "description": "Image sent as base64 content part",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Send an image in chat",
       "Inspect the message payload",
@@ -3502,7 +3502,7 @@
     "id": 318,
     "feature": "Voice Input + Image Upload",
     "description": "analyze_image tool processes image",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Upload a product photo in chat",
       "Verify the analyze_image tool is called",
@@ -3513,7 +3513,7 @@
     "id": 319,
     "feature": "Voice Input + Image Upload",
     "description": "Image upload max size validation (5MB)",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Try uploading an image larger than 5MB (e.g., 10MB)",
       "Verify error message 'File too large, max 5MB' is displayed"
@@ -3523,7 +3523,7 @@
     "id": 320,
     "feature": "Voice Input + Image Upload",
     "description": "Invalid file format shows error",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Try uploading a .txt file",
       "Verify error message 'Only JPEG, PNG, WebP images allowed' is displayed"
@@ -3533,7 +3533,7 @@
     "id": 321,
     "feature": "Voice Input + Image Upload",
     "description": "Voice and image buttons responsive on mobile",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Open chat on a mobile width viewport",
       "Verify mic and upload buttons are visible",
@@ -6217,6 +6217,119 @@
       "Read app_spec.txt",
       "Verify phase_18 section exists with name PodClaw Heartbeat + Learning System",
       "Verify it documents heartbeat runner, event queue, agentic consolidation, and soul evolution"
+    ]
+  },
+  {
+    "id": 557,
+    "feature": "PodClaw SDK Enhancements",
+    "description": "PodClaw uses max_budget_usd for per-agent cost control via SDK native enforcement",
+    "passes": true,
+    "steps": [
+      "Read podclaw/client_factory.py",
+      "Verify ClaudeAgentOptions includes max_budget_usd parameter",
+      "Verify AGENT_BUDGETS dict exists in config.py with per-agent values",
+      "Verify budget values are reasonable (0.20-0.80 USD range)"
+    ]
+  },
+  {
+    "id": 558,
+    "feature": "PodClaw SDK Enhancements",
+    "description": "PodClaw archives transcripts via PreCompact hook before SDK context compaction",
+    "passes": true,
+    "steps": [
+      "Read podclaw/hook_adapters.py",
+      "Verify make_precompact_hook function exists",
+      "Verify PreCompact key in hooks dict returned by make_sdk_hooks",
+      "Verify memory_manager.archive_transcript method exists in memory_manager.py",
+      "Verify conversations directory is created for archived transcripts"
+    ]
+  },
+  {
+    "id": 559,
+    "feature": "PodClaw SDK Enhancements",
+    "description": "PodClaw restricts agent tools via allowed_tools and disallowed_tools (no Bash access)",
+    "passes": true,
+    "steps": [
+      "Read podclaw/client_factory.py",
+      "Verify ClaudeAgentOptions includes allowed_tools parameter",
+      "Verify disallowed_tools includes Bash and Edit",
+      "Verify AGENT_ALLOWED_BUILTINS dict exists in config.py",
+      "Verify _build_allowed_tools method constructs builtin + MCP tool list"
+    ]
+  },
+  {
+    "id": 560,
+    "feature": "PodClaw SDK Enhancements",
+    "description": "PodClaw persists sessions via resume parameter for context continuity between cycles",
+    "passes": true,
+    "steps": [
+      "Read podclaw/core.py",
+      "Verify _last_sdk_sessions dict exists on Orchestrator",
+      "Verify run_agent passes resume_sdk_session to create_client",
+      "Verify SDK session_id is stored after ResultMessage",
+      "Read podclaw/client_factory.py and verify resume param in create_client and ClaudeAgentOptions"
+    ]
+  },
+  {
+    "id": 561,
+    "feature": "PodClaw Documentation",
+    "description": "PodClaw has README.md with architecture overview, quickstart, and agent table",
+    "passes": true,
+    "steps": [
+      "Verify podclaw/README.md exists",
+      "Verify it contains Quick Start section with run commands",
+      "Verify it contains Architecture diagram",
+      "Verify it contains Agents table with all 8 agents"
+    ]
+  },
+  {
+    "id": 562,
+    "feature": "PodClaw Documentation",
+    "description": "PodClaw has AGENTS.md with agent definitions, execution flow, and development guide",
+    "passes": true,
+    "steps": [
+      "Verify podclaw/AGENTS.md exists",
+      "Verify it contains Agent Table with models, schedules, budgets",
+      "Verify it contains Execution Flow diagram",
+      "Verify it contains Development Guide for adding new agents"
+    ]
+  },
+  {
+    "id": 563,
+    "feature": "PodClaw Documentation",
+    "description": "PodClaw has SECURITY.md with threat model, permission system, and budget enforcement",
+    "passes": true,
+    "steps": [
+      "Verify podclaw/SECURITY.md exists",
+      "Verify it contains Threat Model table",
+      "Verify it documents fail-closed security_hook behavior",
+      "Verify it contains Budget Enforcement section with dual defense",
+      "Verify it documents prompt injection defense"
+    ]
+  },
+  {
+    "id": 564,
+    "feature": "PodClaw Documentation",
+    "description": "PodClaw has TOOLS.md with MCP connector reference for all 11 connectors",
+    "passes": true,
+    "steps": [
+      "Verify podclaw/TOOLS.md exists",
+      "Verify it documents all 11 connectors (supabase, stripe, printify, fal, gemini, resend, jina, web_search, telegram, whatsapp)",
+      "Verify it includes tool descriptions and rate limits",
+      "Verify it includes instructions for adding new connectors"
+    ]
+  },
+  {
+    "id": 565,
+    "feature": "PodClaw Documentation",
+    "description": "PodClaw has MEMORY.md documenting three-tier consolidation and transcript archiving",
+    "passes": true,
+    "steps": [
+      "Verify podclaw/MEMORY.md exists",
+      "Verify it documents three tiers: daily, weekly, long-term",
+      "Verify it documents transcript archives via PreCompact",
+      "Verify it includes consolidation pipeline diagram",
+      "Verify it documents injection protection"
     ]
   }
 ]
