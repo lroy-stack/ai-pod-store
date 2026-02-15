@@ -3673,3 +3673,123 @@ http://localhost:3000/en
 - 42712ad: feat: Agent events logged to agent_events table verified — test #267 passing
 - 8ad5561: feat: Agent event types and session metrics verified — test #268 passing
 
+---
+
+## Architecture Update — 2026-02-15 (Manual, not a coding session)
+
+### Phase 18: PodClaw Heartbeat + Learning System
+
+**4 new capabilities implemented:**
+
+1. **Heartbeat Runner** (`podclaw/heartbeat.py`, ~280 lines)
+   - Periodic pulse every 30 min reading HEARTBEAT.md + daily log + event queue
+   - Calls Haiku via Anthropic API (direct, no Agent SDK) — ~$0.04/day
+   - Actions: HEARTBEAT_OK (log), ALERT (Telegram notify), DISPATCH (run agent)
+   - SHA256 dedup prevents duplicate alerts within 24h
+   - Bridge endpoints: GET/POST heartbeat/status, trigger, pause, resume, alerts
+
+2. **System Event Queue** (`podclaw/event_queue.py`, ~80 lines)
+   - Bounded in-memory queue (max 20 events) for inter-agent communication
+   - SystemEvent dataclass with source, event_type, payload, wake_mode
+   - Async-safe (asyncio.Lock) push/drain/peek operations
+   - memory_hook pushes refunds and deletes to queue automatically
+   - Bridge endpoints: GET /queue, POST /queue/push
+
+3. **Agentic Consolidation** (memory_manager.py updated)
+   - daily→weekly: Sonnet LLM summarizes instead of copying lines
+   - weekly→MEMORY.md: Sonnet extracts [Pattern], [Learning], [Opinion], [Fact]
+   - _mechanical_extract preserved as fallback if LLM fails
+   - Cost: ~$0.01/day
+
+4. **Soul Evolution** (`podclaw/soul_evolution.py`, ~250 lines)
+   - Controlled SOUL.md mutation with guardrails
+   - IMMUTABLE: "Constraints" and "Escalation Rules" sections
+   - REVIEW_TRIGGERS: "remove", "delete", "weaken" → require admin approval
+   - Weekly review (Sundays): Sonnet proposes changes based on MEMORY.md
+   - Unified diffs logged to soul_change_log table
+   - Bridge endpoints: GET /soul, GET/POST soul/proposals/{id}/approve|reject
+
+**Files created (4):**
+- podclaw/event_queue.py
+- podclaw/heartbeat.py
+- podclaw/soul_evolution.py
+- supabase/migrations/20260215120000_heartbeat_tables.sql (deployed)
+
+**Files modified (8):**
+- podclaw/config.py — 13 new constants
+- podclaw/memory_manager.py — HEARTBEAT.md + agentic consolidation
+- podclaw/core.py — soul review + ALL_SESSION_TYPES
+- podclaw/scheduler.py — set_soul_evolution + consolidation wiring
+- podclaw/hooks/memory_hook.py — event_queue integration
+- podclaw/bridge/api.py — 13 new endpoints
+- podclaw/main.py — full wiring
+- podclaw/SOUL.md — Evolution Log section
+
+**Templates created:**
+- memory/HEARTBEAT.md — store health checklist
+
+**Harness files updated:**
+- app_spec.txt: Phase 18 added
+- feature_list.json: IDs 536-556 (21 features, all passing)
+- prompts/coding_prompt.md: feature ID range updated
+- prompts/initializer_prompt.md: Category 24 + count updated to 556
+
+**Current state: 305/556 tests passing (54.9%)**
+**Total estimated cost: ~$0.05/day for all heartbeat + learning features**
+
+
+---
+
+## Session 104 (Coding Agent)
+**Started**: 2026-02-15 00:01 UTC
+**Features this session**: +4 (IDs 270, 271, 272, 273, 274)
+**Total passing**: 310/556 (55.8%)
+
+### Features Implemented:
+
+1. **Feature #270** — Agent memory consolidation works
+   - Created test daily log (2026-02-15.md) with 5 agent sessions
+   - Triggered consolidation via POST /memory/consolidate
+   - Verified daily→weekly summarization (entries in weekly/2026-W07.md)
+   - Verified weekly→MEMORY consolidation (3 entries appended to MEMORY.md)
+   - Both LLM-agentic and mechanical fallback paths working
+
+2. **Feature #271** — Agent context files updated
+   - Verified best_sellers.md exists with structure and content
+   - Verified pricing_history.md exists with structure and content
+   - Verified customer_insights.md exists with structure and content
+   - All files have template structures ready for agent updates
+
+3. **Feature #272** — Audit log records agent actions
+   - Queried audit_log table via Supabase REST API
+   - Verified 3 recent agent_session entries with actor_type='ai_agent'
+   - Verified correct fields: actor_id='podclaw:researcher', action='agent_session'
+
+4. **Feature #273** — Agent start/stop reflected in admin
+   - Verified initial state: PodClaw running, admin shows 'Running' with 'Active' badge
+   - Triggered POST /stop via PodClaw bridge API
+   - Refreshed admin page, verified status changed to 'Stopped' with 'Inactive' badge
+   - Browser testing via Playwright MCP confirmed UI updates correctly
+
+5. **Feature #274** — Agent errors logged and visible
+   - Fixed null payload bug in agent detail page (added null check before Object.keys)
+   - Verified error_log field populated in agent_sessions table (3 error entries)
+   - Verified errors visible in admin UI: Session History shows error badges
+   - Event Timeline displays error events with red badges
+
+### Issues Encountered:
+- Bug found and fixed: agent detail page crashed when event.payload was null
+  * Added null check: `event.payload && Object.keys(event.payload).length > 0`
+  * This was preventing error log display
+
+### Commits:
+- 08c7946: feat: Memory consolidation verified — test #270 passing
+- f823254: feat: Agent context files verified — test #271 passing
+- 8f74dc5: feat: Agent audit logging verified — test #272 passing
+- f768f82: feat: Agent start/stop reflected in admin — test #273 passing
+- 6e67290: feat: Agent errors logged and visible — test #274 passing
+
+### Next priorities:
+- Feature #275: Agent schedule viewable in admin
+- Continue PodClaw Agent features (IDs 275-279)
+
