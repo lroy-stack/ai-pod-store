@@ -4229,7 +4229,7 @@
     "id": 385,
     "feature": "Newsletter Agent",
     "description": "Newsletter agent updates newsletter_segments.md after each cycle",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Trigger newsletter agent cycle",
       "Verify memory/context/newsletter_segments.md is updated",
