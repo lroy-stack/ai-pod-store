@@ -3242,7 +3242,7 @@
     "id": 294,
     "feature": "Performance & Quality",
     "description": "README with setup instructions exists",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify README.md exists in the project root",
       "Verify it contains install instructions",
