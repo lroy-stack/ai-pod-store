@@ -1,5 +1,19 @@
 # POD AI Store — Component & Design Standards
 
+## PodClaw — Autonomous Agent
+
+- **Location**: `podclaw/` (Python, Claude Agent SDK)
+- **Documentation**: See `podclaw/README.md`, `podclaw/AGENTS.md`, `podclaw/SECURITY.md`
+- **Bridge API**: FastAPI on port 8000 (`podclaw/bridge/api.py`)
+- **Configuration**: `podclaw/config.py` (budgets, tools, models, rate limits)
+- **Skills**: `podclaw/skills/<agent>/SKILL.md` (8 agents)
+- **Memory**: `memory/` (daily, weekly, MEMORY.md, context/, conversations/)
+- **Identity**: `podclaw/SOUL.md` (immutable Constraints + Escalation)
+- **SDK patterns**: `max_budget_usd`, `allowed_tools`, `can_use_tool` deny chain, `PreCompact` transcript archiving, `SandboxSettings`, session `resume`
+- **Security**: Fail-closed security hook, no Bash access for agents, `[DATA]` boundaries
+
+---
+
 ## shadcn/ui Component Mapping (MANDATORY)
 
 | Instead of... | Use this |

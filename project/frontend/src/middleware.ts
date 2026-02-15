@@ -41,27 +41,41 @@ export default function middleware(request: NextRequest) {
 
   // Read A/B config from cookie (set by admin when experiments are started)
   const abConfigRaw = request.cookies.get('__ab_config')?.value
+  const activeVariants: Record<string, string> = {}
+
   if (abConfigRaw) {
     try {
       const experiments: Array<{ id: string; variants: string[] }> = JSON.parse(abConfigRaw)
       for (const exp of experiments) {
         const cookieName = `ab-variant-${exp.id}`
         // Check if variant already assigned
-        if (!request.cookies.get(cookieName)?.value && exp.variants.length > 0) {
+        let variant = request.cookies.get(cookieName)?.value
+
+        if (!variant && exp.variants.length > 0) {
           // Deterministic hash: simple string hash of visitorId + experimentId
           const hash = simpleHash(visitorId + exp.id)
           const variantIndex = Math.abs(hash) % exp.variants.length
-          const variant = exp.variants[variantIndex]
+          variant = exp.variants[variantIndex]
           response.cookies.set(cookieName, variant, {
             maxAge: 30 * 24 * 60 * 60,
             path: '/',
             sameSite: 'lax',
           })
         }
+
+        // Track active variants for header
+        if (variant) {
+          activeVariants[exp.id] = variant
+        }
       }
     } catch {
       // Invalid config cookie, ignore
     }
+  }
+
+  // Set x-ab-variant header with active variants
+  if (Object.keys(activeVariants).length > 0) {
+    response.headers.set('x-ab-variant', JSON.stringify(activeVariants))
   }
   // --- End A/B Testing ---
 

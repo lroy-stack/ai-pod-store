@@ -1918,6 +1918,73 @@
       - SOUL.md: Evolution Log section for change tracking
       - Total estimated cost: ~$0.05/day
     </phase_18>
+
+    <phase_19 name="PodClaw SDK Enhancements + Documentation">
+      <!-- Features 557-565 -->
+      <!-- SDK native features applied to PodClaw for production-grade 24/7 operation -->
+
+      <sdk_enhancements>
+        - max_budget_usd: Per-agent session budget via SDK native enforcement (AGENT_BUDGETS config)
+        - allowed_tools / disallowed_tools: Per-agent tool restrictions — NO agent has Bash or Edit access
+        - SandboxSettings: OS-level filesystem and network isolation for agent commands
+        - PreCompact hook: Archives full transcripts to memory/conversations/ before SDK context compaction
+        - Stop hook: Records agent stop events to event store for observability
+        - PostToolUseFailure hook: Records tool failures with error details
+        - output_format: JSON schema validation for report-generating agents (finance, researcher)
+        - resume: Session persistence — agents resume previous SDK sessions for context continuity
+        - cwd: Working directory set to workspace for all agents
+      </sdk_enhancements>
+
+      <security_hardening>
+        - Fail-closed security hook: If security_hook errors, tool call is DENIED (not allowed)
+        - Cost guard remains as second defense layer (daily cumulative limits)
+        - Rate limit hook remains fail-open (bounded by max_turns)
+        - Dual budget defense: SDK max_budget_usd (hard) + cost_guard_hook (daily soft)
+      </security_hardening>
+
+      <operational_improvements>
+        - run_agent_with_retry: Exponential backoff (5s, 10s) on agent failure, max 2 retries
+        - Graceful shutdown: Waits up to 30s for active sessions before terminating
+        - Structured logging: JSON output mode via PODCLAW_JSON_LOGS=true env var
+        - Session persistence: _last_sdk_sessions dict tracks SDK session IDs for resume
+      </operational_improvements>
+
+      <documentation>
+        - README.md: Architecture overview, quickstart, agent table, security summary
+        - AGENTS.md: Agent definitions, execution flow diagram, development guide, multi-agent safety
+        - SECURITY.md: Threat model table, permission system, budget enforcement, prompt injection defense
+        - TOOLS.md: 11 MCP connectors, tool details, rate limits, guide for adding new connectors
+        - MEMORY.md: Three-tier consolidation pipeline, transcript archiving, injection protection
+        - CONTRIBUTING.md: Project structure, guides for adding agents/connectors/hooks, code style
+        - CLAUDE.md updated with PodClaw section (SDK patterns, paths, references)
+        - coding_prompt.md updated with 11 mandatory SDK pattern rules
+      </documentation>
+
+      <config_additions>
+        - AGENT_BUDGETS: Per-session USD budget for each of 8 agents
+        - AGENT_ALLOWED_BUILTINS: Permitted SDK built-in tools per agent
+        - AGENT_OUTPUT_SCHEMAS: JSON schemas for finance and researcher reports
+        - PODCLAW_JSON_LOGS: Enable JSON structured logging (default: false)
+      </config_additions>
+
+      <files_modified>
+        - podclaw/config.py (AGENT_BUDGETS, AGENT_ALLOWED_BUILTINS, AGENT_OUTPUT_SCHEMAS)
+        - podclaw/client_factory.py (max_budget_usd, allowed_tools, sandbox, resume, output_format, cwd)
+        - podclaw/hook_adapters.py (fail-closed, PreCompact, Stop, PostToolUseFailure hooks)
+        - podclaw/core.py (session persistence, run_agent_with_retry)
+        - podclaw/memory_manager.py (archive_transcript method)
+        - podclaw/main.py (graceful shutdown, structlog JSON, event_store to ClientFactory)
+      </files_modified>
+
+      <files_created>
+        - podclaw/README.md
+        - podclaw/AGENTS.md
+        - podclaw/SECURITY.md
+        - podclaw/TOOLS.md
+        - podclaw/MEMORY.md
+        - podclaw/CONTRIBUTING.md
+      </files_created>
+    </phase_19>
   </implementation_phases>
 
   <success_criteria>
@@ -1949,6 +2016,10 @@
       - WhatsApp webhook processes inbound messages and sends templates
       - Messaging conversations stored in messaging_conversations table
       - Marketing agent can broadcast promotions via Telegram and WhatsApp
+      - PodClaw agents restricted via allowed_tools — no Bash access
+      - PodClaw sessions persist via SDK resume for context continuity
+      - PodClaw transcripts archived before context compaction
+      - PodClaw documentation suite (README, AGENTS, SECURITY, TOOLS, MEMORY, CONTRIBUTING)
     </functionality>
 
     <user_experience>

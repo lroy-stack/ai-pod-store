@@ -3544,7 +3544,7 @@
     "id": 322,
     "feature": "A/B Testing Framework",
     "description": "Edge Middleware assigns variant cookie",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Visit the site as a new user",
       "Verify 'ab-variant' cookie is set",
@@ -3555,7 +3555,7 @@
     "id": 323,
     "feature": "A/B Testing Framework",
     "description": "x-ab-variant header set on response",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Make a request to the site",
       "Inspect response headers",
@@ -3566,7 +3566,7 @@
     "id": 324,
     "feature": "A/B Testing Framework",
     "description": "POST /api/ab-test/events records events",
-    "passes": false,
+    "passes": true,
     "steps": [
       "POST an event with experiment_id, variant, and event_type",
       "Verify the event is stored in the ab_events table"
@@ -3576,7 +3576,7 @@
     "id": 325,
     "feature": "A/B Testing Framework",
     "description": "GET /api/ab-test/experiments lists experiments",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Create an experiment",
       "GET /api/ab-test/experiments",
@@ -3597,7 +3597,7 @@
     "id": 327,
     "feature": "A/B Testing Framework",
     "description": "GET /api/ab-test/experiments/:id returns stats",
-    "passes": false,
+    "passes": true,
     "steps": [
       "GET a specific experiment by ID",
       "Verify response includes variant stats",
@@ -3630,7 +3630,7 @@
     "id": 330,
     "feature": "A/B Testing Framework",
     "description": "A/B events stored in ab_events table",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Record 10 A/B test events",
       "Query the ab_events table",
@@ -3652,7 +3652,7 @@
     "id": 332,
     "feature": "A/B Testing Framework",
     "description": "Variant assignment is sticky",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Get assigned a variant",
       "Clear page state but keep the cookie",
