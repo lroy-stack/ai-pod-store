@@ -3133,7 +3133,7 @@
     "id": 284,
     "feature": "Performance & Quality",
     "description": "Frontend bundle size reasonable",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Run next build",
       "Verify bundle sizes are reported",

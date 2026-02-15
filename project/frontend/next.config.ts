@@ -1,8 +1,13 @@
 import type { NextConfig } from 'next'
 import withSerwistInit from '@serwist/next'
 import createNextIntlPlugin from 'next-intl/plugin'
+import withBundleAnalyzer from '@next/bundle-analyzer'
 
 const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts')
+
+const bundleAnalyzer = withBundleAnalyzer({
+  enabled: process.env.ANALYZE === 'true',
+})
 
 const withSerwist = withSerwistInit({
   swSrc: 'src/app/sw.ts',
@@ -22,6 +27,39 @@ const nextConfig: NextConfig = {
     // Temporarily disable cacheComponents to allow Edge runtime for chat API
     // TODO: Re-enable once chat API is refactored to work with cacheComponents
     // cacheComponents: true,
+    optimizePackageImports: [
+      '@ai-sdk/react',
+      '@ai-sdk/google',
+      '@supabase/supabase-js',
+      'lucide-react',
+      'react-markdown',
+    ],
+  },
+  // Webpack-based optimizations (when not using Turbopack)
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      // Split vendor chunks to keep each under 500KB
+      config.optimization = {
+        ...config.optimization,
+        splitChunks: {
+          chunks: 'all',
+          maxSize: 450000, // 450KB limit per chunk (leaves room for compression overhead)
+          cacheGroups: {
+            defaultVendors: {
+              test: /[\\/]node_modules[\\/]/,
+              priority: -10,
+              reuseExistingChunk: true,
+            },
+            default: {
+              minChunks: 2,
+              priority: -20,
+              reuseExistingChunk: true,
+            },
+          },
+        },
+      }
+    }
+    return config
   },
   images: {
     remotePatterns: [
@@ -74,4 +112,4 @@ const nextConfig: NextConfig = {
   },
 }
 
-export default withSerwist(withNextIntl(nextConfig))
+export default bundleAnalyzer(withSerwist(withNextIntl(nextConfig)))

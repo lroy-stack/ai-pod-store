@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build",
+    "build": "next build --webpack",
+    "build:turbopack": "next build",
     "start": "next start",
     "lint": "next lint",
     "type-check": "tsc --noEmit"
@@ -51,17 +52,20 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@next/bundle-analyzer": "^16.1.6",
     "@serwist/build": "^9.0.0",
     "@tailwindcss/postcss": "^4.1.18",
     "@tailwindcss/typography": "^0.5.15",
     "@types/ioredis": "^4.28.10",
     "@types/node": "^22.0.0",
-    "@types/web-push": "^3.6.4",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "@types/web-push": "^3.6.4",
     "babel-plugin-react-compiler": "^1.0.0",
+    "chrome-launcher": "^1.2.1",
     "eslint": "^9.0.0",
     "eslint-config-next": "16.1.6",
+    "lighthouse": "^12.8.2",
     "playwright": "^1.58.2",
     "postcss": "^8.4.49",
     "puppeteer": "^24.37.3",
