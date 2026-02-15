@@ -3285,7 +3285,7 @@
     "id": 298,
     "feature": "Social Login \u2014 Google + Apple OAuth",
     "description": "Social login buttons render on login/register",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to /en/auth/login",
       "Verify 'Continue with Google' button is visible",
