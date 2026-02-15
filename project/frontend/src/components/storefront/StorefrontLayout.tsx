@@ -49,6 +49,14 @@ function StorefrontShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex h-dvh w-full overflow-hidden bg-background">
+      {/* Skip Navigation Link */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-md focus:ring-2 focus:ring-ring"
+      >
+        Skip to main content
+      </a>
+
       {/* Left Sidebar - Desktop */}
       <aside className={cn(
         "hidden lg:flex lg:flex-col border-r border-border transition-all duration-300 ease-in-out",
@@ -65,7 +73,7 @@ function StorefrontShell({ children }: { children: React.ReactNode }) {
       </Sheet>
 
       {/* Center: Header + Content */}
-      <main className="flex flex-1 flex-col min-w-0 overflow-hidden">
+      <main id="main-content" className="flex flex-1 flex-col min-w-0 overflow-hidden">
         <StorefrontHeader
           onToggleSidebar={() => setIsSidebarOpen(true)}
           isSidebarCollapsed={isCollapsed}

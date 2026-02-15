@@ -83,7 +83,7 @@ export function StorefrontHeader({ onToggleSidebar, isSidebarCollapsed, onToggle
             className="lg:hidden"
             onClick={onToggleSidebar}
           >
-            <Menu className="h-5 w-5" />
+            <Menu className="h-5 w-5" aria-hidden="true" />
             <span className="sr-only">Toggle sidebar</span>
           </Button>
         )}
@@ -96,7 +96,7 @@ export function StorefrontHeader({ onToggleSidebar, isSidebarCollapsed, onToggle
             className="hidden lg:inline-flex"
             onClick={onToggleDesktopSidebar}
           >
-            <PanelLeftOpen className="h-5 w-5" />
+            <PanelLeftOpen className="h-5 w-5" aria-hidden="true" />
             <span className="sr-only">Expand sidebar</span>
           </Button>
         )}
@@ -131,11 +131,12 @@ export function StorefrontHeader({ onToggleSidebar, isSidebarCollapsed, onToggle
       {/* Center: Search */}
       <div className="flex-1 max-w-md hidden lg:block">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
           <Input
             type="search"
             placeholder={t('searchPlaceholder')}
             className="pl-9 rounded-full bg-muted border-0"
+            aria-label={t('searchPlaceholder')}
           />
         </div>
       </div>
@@ -144,7 +145,7 @@ export function StorefrontHeader({ onToggleSidebar, isSidebarCollapsed, onToggle
       <div className="flex items-center gap-2 flex-shrink-0">
         {/* Notifications */}
         <Button variant="ghost" size="icon" className="relative hidden sm:inline-flex">
-          <Bell className="h-5 w-5" />
+          <Bell className="h-5 w-5" aria-hidden="true" />
           {unreadCount > 0 && (
             <Badge
               variant="destructive"
@@ -159,7 +160,7 @@ export function StorefrontHeader({ onToggleSidebar, isSidebarCollapsed, onToggle
         {/* Cart */}
         <Button variant="ghost" size="icon" className="relative" asChild>
           <Link href={`/${locale}/cart`}>
-            <ShoppingCart className="h-5 w-5" />
+            <ShoppingCart className="h-5 w-5" aria-hidden="true" />
             {itemCount > 0 && (
               <Badge
                 variant="destructive"
@@ -179,7 +180,7 @@ export function StorefrontHeader({ onToggleSidebar, isSidebarCollapsed, onToggle
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="hidden sm:inline-flex">
-              <Globe className="h-5 w-5" />
+              <Globe className="h-5 w-5" aria-hidden="true" />
               <span className="sr-only">Change language</span>
             </Button>
           </DropdownMenuTrigger>
@@ -223,13 +224,13 @@ export function StorefrontHeader({ onToggleSidebar, isSidebarCollapsed, onToggle
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
                 <Link href={`/${locale}/profile`}>
-                  <User className="size-4" />
+                  <User className="size-4" aria-hidden="true" />
                   {tNav('profile') ?? 'Profile'}
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem variant="destructive" onClick={handleLogout}>
-                <LogOut className="size-4" />
+                <LogOut className="size-4" aria-hidden="true" />
                 {tNav('logout')}
               </DropdownMenuItem>
             </DropdownMenuContent>

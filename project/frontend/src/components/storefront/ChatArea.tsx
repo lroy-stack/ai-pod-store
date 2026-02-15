@@ -546,7 +546,7 @@ export function ChatArea() {
                   onClick={handleRemoveImage}
                   className="absolute -top-2 -right-2 h-5 w-5 rounded-full"
                 >
-                  <X className="h-3 w-3" />
+                  <X className="h-3 w-3" aria-hidden="true" />
                   <span className="sr-only">Remove image</span>
                 </Button>
               </div>
@@ -559,6 +559,7 @@ export function ChatArea() {
                 accept="image/*"
                 onChange={handleImageSelect}
                 className="hidden"
+                aria-label="Upload image"
               />
               <Button
                 type="button"
@@ -567,7 +568,7 @@ export function ChatArea() {
                 onClick={handleAttachClick}
                 className="flex-shrink-0 h-9 w-9 rounded-full text-muted-foreground hover:text-foreground"
               >
-                <Paperclip className="h-4 w-4" />
+                <Paperclip className="h-4 w-4" aria-hidden="true" />
                 <span className="sr-only">Attach image</span>
               </Button>
 
@@ -576,6 +577,7 @@ export function ChatArea() {
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder={t('inputPlaceholder')}
+                aria-label="Chat with AI assistant"
                 className="flex-1 min-h-[40px] border-0 bg-transparent shadow-none focus-visible:ring-0 px-1 text-sm"
                 disabled={isLoading}
               />
@@ -586,7 +588,7 @@ export function ChatArea() {
                 size="icon"
                 className="flex-shrink-0 h-9 w-9 rounded-full text-muted-foreground hover:text-foreground"
               >
-                <Mic className="h-4 w-4" />
+                <Mic className="h-4 w-4" aria-hidden="true" />
                 <span className="sr-only">Voice input</span>
               </Button>
 
@@ -596,7 +598,7 @@ export function ChatArea() {
                 className="flex-shrink-0 h-9 w-9 rounded-full"
                 disabled={isLoading || (!inputValue.trim() && !selectedImage)}
               >
-                <Send className="h-4 w-4" />
+                <Send className="h-4 w-4" aria-hidden="true" />
                 <span className="sr-only">Send message</span>
               </Button>
             </form>

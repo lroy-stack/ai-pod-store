@@ -140,7 +140,7 @@ export function StorefrontSidebar({ onNavigate, onCollapse }: StorefrontSidebarP
         </Link>
         {onCollapse && (
           <Button variant="ghost" size="icon" className="h-7 w-7 hidden lg:inline-flex" onClick={onCollapse}>
-            <PanelLeftClose className="h-4 w-4" />
+            <PanelLeftClose className="h-4 w-4" aria-hidden="true" />
             <span className="sr-only">{t('collapseSidebar') ?? 'Collapse sidebar'}</span>
           </Button>
         )}
@@ -163,7 +163,7 @@ export function StorefrontSidebar({ onNavigate, onCollapse }: StorefrontSidebarP
                   : 'text-muted-foreground hover:bg-muted hover:text-foreground'
               )}
             >
-              <Icon className="h-4 w-4" />
+              <Icon className="h-4 w-4" aria-hidden="true" />
               <span>{item.label}</span>
             </Link>
           )
@@ -180,7 +180,7 @@ export function StorefrontSidebar({ onNavigate, onCollapse }: StorefrontSidebarP
               : 'text-muted-foreground hover:bg-muted hover:text-foreground'
           )}
         >
-          <ShoppingCart className="h-4 w-4" />
+          <ShoppingCart className="h-4 w-4" aria-hidden="true" />
           <span>{t('cart') ?? 'Cart'}</span>
           {itemCount > 0 && (
             <Badge

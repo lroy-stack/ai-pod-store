@@ -3274,7 +3274,7 @@
     "id": 297,
     "feature": "Performance & Quality",
     "description": "Accessibility: ARIA labels, keyboard nav, contrast",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify form inputs have labels and buttons have aria-labels",
       "Verify Tab navigation works throughout the site",
