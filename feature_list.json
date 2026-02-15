@@ -4456,7 +4456,7 @@
     "id": 405,
     "feature": "Telegram Integration",
     "description": "Telegram webhook endpoint exists on storefront",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify /api/webhooks/telegram route exists in the storefront project",
       "Send a POST request to the endpoint with a valid Telegram update payload",
