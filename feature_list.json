@@ -3955,7 +3955,7 @@
     "id": 360,
     "feature": "Marketing Agent",
     "description": "Marketing agent enforces rate limit of 30 posts per cycle",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify rate_limit_hook blocks marketing after 30 content generations",
       "Verify hook returns deny with appropriate message"
