@@ -3784,7 +3784,7 @@
     "id": 344,
     "feature": "Python Analytics Layer",
     "description": "scripts/analytics/ directory exists with Python scripts",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify scripts/analytics/ directory exists",
       "Verify rfm.py, cohort.py, demand.py, pricing.py, basket.py files are present"
@@ -3794,7 +3794,7 @@
     "id": 345,
     "feature": "Python Analytics Layer",
     "description": "scripts/connectors/supabase_client.py works",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify scripts/connectors/supabase_client.py exists",
       "Verify it imports supabase-py",
@@ -3805,7 +3805,7 @@
     "id": 346,
     "feature": "Python Analytics Layer",
     "description": "GET /api/analytics/rfm returns segments",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Call GET /api/analytics/rfm",
       "Verify JSON response with customer segments array",
@@ -3816,7 +3816,7 @@
     "id": 347,
     "feature": "Python Analytics Layer",
     "description": "GET /api/analytics/demand returns forecasts",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Call GET /api/analytics/demand",
       "Verify JSON response with product forecasts",
@@ -3827,7 +3827,7 @@
     "id": 348,
     "feature": "Python Analytics Layer",
     "description": "GET /api/analytics/pricing returns price history",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Call GET /api/analytics/pricing",
       "Verify JSON response with price records",
@@ -3838,7 +3838,7 @@
     "id": 349,
     "feature": "Python Analytics Layer",
     "description": "GET /api/analytics/basket returns association rules",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Call GET /api/analytics/basket",
       "Verify JSON response with rules array",
@@ -3849,7 +3849,7 @@
     "id": 350,
     "feature": "Python Analytics Layer",
     "description": "GET /api/analytics/trends returns trending topics",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Call GET /api/analytics/trends",
       "Verify JSON response with trending keywords/topics array"
@@ -3859,7 +3859,7 @@
     "id": 351,
     "feature": "Python Analytics Layer",
     "description": "GET /api/analytics/cohorts returns retention data",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Call GET /api/analytics/cohorts",
       "Verify JSON response with cohort periods",
@@ -3870,7 +3870,7 @@
     "id": 352,
     "feature": "Python Analytics Layer",
     "description": "Admin analytics dashboard shows RFM chart",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to http://localhost:3001/analytics",
       "Verify RFM segment distribution chart renders with data"
@@ -3880,7 +3880,7 @@
     "id": 353,
     "feature": "Python Analytics Layer",
     "description": "Admin analytics dashboard shows demand forecast",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to http://localhost:3001/analytics",
       "Verify demand forecast line chart renders for products"
