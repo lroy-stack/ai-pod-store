@@ -8,7 +8,7 @@
  */
 
 import { useTranslations } from 'next-intl'
-import { Sparkles, Download, ShoppingCart, Shirt } from 'lucide-react'
+import { Sparkles, Download, ShoppingCart, Shirt, Eraser } from 'lucide-react'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -20,6 +20,8 @@ export interface DesignPreviewArtifactProps {
   imageUrl?: string
   prompt?: string
   style?: string
+  designId?: string | null
+  provider?: string
   onCustomize?: () => void
   onAddToProduct?: () => void
   onViewMockup?: (mockupUrl: string) => void
@@ -27,19 +29,52 @@ export interface DesignPreviewArtifactProps {
 
 export function DesignPreviewArtifact({
   variant = 'inline',
-  imageUrl = '',
+  imageUrl: initialImageUrl = '',
   prompt = '',
   style = 'default',
+  designId,
+  provider,
   onCustomize,
   onAddToProduct,
   onViewMockup,
 }: DesignPreviewArtifactProps) {
   const t = useTranslations('storefront')
   const [generatingMockup, setGeneratingMockup] = useState(false)
+  const [removingBg, setRemovingBg] = useState(false)
+  const [imageUrl, setImageUrl] = useState(initialImageUrl)
+  const [bgRemoved, setBgRemoved] = useState(false)
 
   const handleDownload = () => {
     if (imageUrl) {
       window.open(imageUrl, '_blank')
+    }
+  }
+
+  const handleRemoveBg = async () => {
+    if (!imageUrl || removingBg) return
+
+    setRemovingBg(true)
+    try {
+      const response = await fetch('/api/designs/remove-bg', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          imageUrl,
+          designId: designId || undefined,
+        }),
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        if (data.imageUrl) {
+          setImageUrl(data.imageUrl)
+          setBgRemoved(true)
+        }
+      }
+    } catch (error) {
+      console.error('Failed to remove background:', error)
+    } finally {
+      setRemovingBg(false)
     }
   }
 
@@ -48,13 +83,12 @@ export function DesignPreviewArtifact({
 
     setGeneratingMockup(true)
     try {
-      // Call the mockup API
       const response = await fetch('/api/designs/mockup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           designUrl: imageUrl,
-          productType: 'tshirt', // Default to t-shirt
+          productType: 'tshirt',
         }),
       })
 
@@ -88,17 +122,29 @@ export function DesignPreviewArtifact({
               </p>
             </div>
           </div>
-          {style && style !== 'default' && (
-            <Badge variant="secondary" className="capitalize">
-              {style}
-            </Badge>
-          )}
+          <div className="flex items-center gap-1.5">
+            {bgRemoved && (
+              <Badge variant="outline" className="text-xs">
+                Transparent
+              </Badge>
+            )}
+            {provider && provider !== 'placeholder' && (
+              <Badge variant="secondary" className="text-xs">
+                {provider}
+              </Badge>
+            )}
+            {style && style !== 'default' && (
+              <Badge variant="secondary" className="capitalize">
+                {style}
+              </Badge>
+            )}
+          </div>
         </div>
       </CardHeader>
 
       <CardContent className="space-y-4">
         {/* Design Image */}
-        <div className="relative aspect-square w-full overflow-hidden rounded-lg bg-muted">
+        <div className={`relative aspect-square w-full overflow-hidden rounded-lg ${bgRemoved ? 'bg-[url(/checkerboard.svg)] bg-repeat bg-[length:20px_20px]' : 'bg-muted'}`}>
           {imageUrl ? (
             <Image
               src={imageUrl}
@@ -137,6 +183,17 @@ export function DesignPreviewArtifact({
             {t('designPreviewDownload')}
           </Button>
           <Button
+            onClick={handleRemoveBg}
+            variant="outline"
+            className="w-full sm:flex-1"
+            disabled={!imageUrl || removingBg || bgRemoved}
+          >
+            <Eraser className="h-4 w-4 mr-2" />
+            {removingBg ? t('generating') : bgRemoved ? 'BG Removed' : 'Remove BG'}
+          </Button>
+        </div>
+        <div className="flex flex-col gap-2 sm:flex-row w-full">
+          <Button
             onClick={handleViewMockup}
             variant="outline"
             className="w-full sm:flex-1"
@@ -145,15 +202,15 @@ export function DesignPreviewArtifact({
             <Shirt className="h-4 w-4 mr-2" />
             {generatingMockup ? t('generating') : t('designPreviewViewMockup')}
           </Button>
+          <Button
+            onClick={onAddToProduct}
+            className="w-full sm:flex-1 bg-primary hover:bg-primary/90"
+            disabled={!imageUrl || !onAddToProduct}
+          >
+            <ShoppingCart className="h-4 w-4 mr-2" />
+            {t('designPreviewAddToProduct')}
+          </Button>
         </div>
-        <Button
-          onClick={onAddToProduct}
-          className="w-full bg-primary hover:bg-primary/90"
-          disabled={!imageUrl || !onAddToProduct}
-        >
-          <ShoppingCart className="h-4 w-4 mr-2" />
-          {t('designPreviewAddToProduct')}
-        </Button>
       </CardFooter>
     </Card>
   )

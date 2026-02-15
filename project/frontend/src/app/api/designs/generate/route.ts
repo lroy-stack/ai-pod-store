@@ -9,6 +9,7 @@ const designRequestSchema = z.object({
   prompt: z.string().min(3, 'Prompt must be at least 3 characters'),
   style: z.string().optional(),
   negativePrompt: z.string().optional(),
+  intent: z.enum(['artistic', 'text-heavy', 'photorealistic', 'vector', 'pattern', 'quick-draft', 'general']).optional(),
 })
 
 export async function POST(req: NextRequest) {
@@ -46,7 +47,7 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const { prompt, style, negativePrompt } = validation.data
+    const { prompt, style, negativePrompt, intent } = validation.data
 
     // Content safety check
     const safety = checkPromptSafety(prompt)
@@ -57,8 +58,8 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Generate the design using shared utility
-    const result = await generateDesign({ prompt, style, negativePrompt })
+    // Generate the design using shared utility with intent routing
+    const result = await generateDesign({ prompt, style, negativePrompt, intent })
 
     if (!result.success) {
       return NextResponse.json(

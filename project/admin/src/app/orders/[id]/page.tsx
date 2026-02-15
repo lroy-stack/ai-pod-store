@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Package, Truck, CheckCircle, Clock } from 'lucide-react';
+import { ArrowLeft, Package, Truck, CheckCircle, Clock, RefreshCw } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface OrderDetail {
   id: string;
@@ -21,6 +22,7 @@ interface OrderDetail {
   tracking_url?: string;
   carrier?: string;
   printify_order_id?: string;
+  printify_status?: string;
   stripe_payment_intent_id?: string;
   user?: {
     id: string;
@@ -56,6 +58,7 @@ export default function OrderDetailPage() {
   const [order, setOrder] = useState<OrderDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [retrying, setRetrying] = useState(false);
 
   useEffect(() => {
     fetchOrderDetail();
@@ -108,6 +111,31 @@ export default function OrderDetailPage() {
       delivered: 4,
     };
     return stages[status] || 0;
+  };
+
+  const handleRetryPrintify = async () => {
+    if (!order) return;
+
+    setRetrying(true);
+    try {
+      const response = await fetch(`/api/admin/orders/${order.id}/retry`, {
+        method: 'POST',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to retry Printify submission');
+      }
+
+      const data = await response.json();
+      toast.success('Printify order resubmitted successfully');
+
+      // Refresh order details
+      await fetchOrderDetail();
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to retry Printify submission');
+    } finally {
+      setRetrying(false);
+    }
   };
 
   if (loading) {
@@ -282,7 +310,29 @@ export default function OrderDetailPage() {
 
         {/* Technical Details */}
         <div className="bg-card border rounded-lg p-6">
-          <h2 className="text-xl font-semibold mb-4">Technical Details</h2>
+          <div className="flex items-start justify-between mb-4">
+            <h2 className="text-xl font-semibold">Technical Details</h2>
+            {order.printify_status === 'failed' && (
+              <Button
+                onClick={handleRetryPrintify}
+                disabled={retrying}
+                variant="outline"
+                size="sm"
+              >
+                {retrying ? (
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                    Retrying...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    Retry Printify Submission
+                  </>
+                )}
+              </Button>
+            )}
+          </div>
           <div className="space-y-2 text-sm">
             {order.stripe_payment_intent_id && (
               <div>
@@ -294,6 +344,16 @@ export default function OrderDetailPage() {
               <div>
                 <p className="text-muted-foreground">Printify Order ID</p>
                 <p className="font-mono">{order.printify_order_id}</p>
+              </div>
+            )}
+            {order.printify_status && (
+              <div>
+                <p className="text-muted-foreground">Printify Status</p>
+                <div className="flex items-center gap-2">
+                  <Badge variant={order.printify_status === 'failed' ? 'destructive' : 'default'}>
+                    {order.printify_status}
+                  </Badge>
+                </div>
               </div>
             )}
           </div>

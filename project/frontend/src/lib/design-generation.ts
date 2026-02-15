@@ -1,12 +1,19 @@
 /**
- * Shared design generation logic with multi-provider fallback
- * Used by both /api/designs/generate and chat tools
+ * Shared design generation logic with smart intent-based routing.
+ * Routes each design to the best provider with automatic fallbacks.
  */
+
+import type { GenerationRequest } from './providers/types'
+import { routeDesign, type DesignIntent } from './providers/router'
+import { engineerPrompt, engineerNegativePrompt } from './providers/prompt-engineer'
 
 export interface DesignGenerationParams {
   prompt: string
   style?: string
   negativePrompt?: string
+  intent?: DesignIntent
+  transparentBg?: boolean
+  format?: 'png' | 'svg'
 }
 
 export interface DesignGenerationResult {
@@ -21,170 +28,112 @@ export interface DesignGenerationResult {
   note?: string
   error?: string
   provider?: string
+  costUsd?: number
+  intent?: DesignIntent
 }
 
 /**
- * Estimate cost of a design generation.
+ * Estimate cost of a design generation using the real router.
  */
-export function estimateDesignCost(options?: { style?: string }): { credits: number; estimatedCostEur: number } {
-  return { credits: 1, estimatedCostEur: 0.05 }
+export function estimateDesignCost(options?: {
+  style?: string
+  intent?: DesignIntent
+}): { credits: number; estimatedCostEur: number } {
+  try {
+    const route = routeDesign(options?.intent || 'general')
+    const costUsd = route.primary.estimateCost({ prompt: '', numImages: 1 })
+    // Convert USD to EUR (~0.92 rate, rounded up for margin)
+    const costEur = Math.round(costUsd * 0.95 * 100) / 100
+    return { credits: 1, estimatedCostEur: costEur || 0.05 }
+  } catch {
+    return { credits: 1, estimatedCostEur: 0.05 }
+  }
 }
 
 /**
- * Generate a design with multi-provider fallback chain:
- * 1. fal.ai FLUX.1 schnell (fastest, ~2s)
- * 2. fal.ai FLUX.1 dev (slower but more robust, ~8-15s)
- * 3. Placeholder in development
+ * Generate a design with smart intent-based routing and fallbacks.
  */
 export async function generateDesign(
   params: DesignGenerationParams
 ): Promise<DesignGenerationResult> {
   const prompt = params.prompt || 'custom design'
-  const { style, negativePrompt } = params
+  const { style, negativePrompt, intent, transparentBg, format } = params
 
-  const finalPrompt = style
-    ? `${prompt}, ${style} style, high quality, professional design`
-    : `${prompt}, high quality, professional design`
-
-  const finalNegativePrompt =
-    negativePrompt ||
-    'blurry, low quality, watermark, text, signature, distorted, ugly'
-
-  const FAL_KEY = process.env.FAL_KEY
-
-  if (!FAL_KEY) {
-    console.error('FAL_KEY not configured')
-    return devFallback(prompt, finalPrompt)
-  }
-
-  // Provider 1: fal.ai FLUX.1 schnell (fastest)
-  const schnellResult = await generateWithFalSchnell(FAL_KEY, finalPrompt, finalNegativePrompt)
-  if (schnellResult.success) return schnellResult
-
-  // Provider 2: fal.ai FLUX.1 dev (more robust)
-  const devResult = await generateWithFalDev(FAL_KEY, finalPrompt, finalNegativePrompt)
-  if (devResult.success) return devResult
-
-  // Provider 3: Development placeholder
-  return devFallback(prompt, finalPrompt)
-}
-
-async function generateWithFalSchnell(
-  apiKey: string,
-  prompt: string,
-  negativePrompt: string
-): Promise<DesignGenerationResult> {
+  let route: ReturnType<typeof routeDesign>
   try {
-    const response = await fetch('https://fal.run/fal-ai/flux/schnell', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Key ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        prompt,
-        negative_prompt: negativePrompt,
-        image_size: 'square_hd',
-        num_inference_steps: 4,
-        num_images: 1,
-        enable_safety_checker: true,
-      }),
-    })
-
-    if (!response.ok) {
-      console.error('fal.ai schnell error:', await response.text())
-      return { success: false, error: 'schnell provider failed' }
-    }
-
-    const data = await response.json()
-
-    if (data.has_nsfw_concepts?.some?.((v: boolean) => v)) {
-      return { success: false, error: 'Design rejected by safety checker. Please modify your prompt.' }
-    }
-
-    const imageUrl = data.images?.[0]?.url
-    if (!imageUrl) {
-      return { success: false, error: 'No image in schnell response' }
-    }
-
-    return {
-      success: true,
-      imageUrl,
-      prompt,
-      seed: data.seed,
-      timings: data.timings || { inference: 0 },
-      provider: 'fal-schnell',
-    }
+    route = routeDesign(intent || 'general')
   } catch (error) {
-    console.error('fal.ai schnell error:', error)
-    return { success: false, error: 'schnell provider error' }
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'No providers available',
+    }
   }
+
+  const providers = [route.primary, ...route.fallbacks]
+
+  for (const provider of providers) {
+    const adaptedPrompt = engineerPrompt(provider.name, prompt, style)
+    const adaptedNegative = engineerNegativePrompt(provider.name, negativePrompt)
+
+    // When intent is 'vector' and targeting Recraft, hint SVG format
+    const effectiveFormat = format || (route.intent === 'vector' && provider.name === 'recraft' ? 'svg' : undefined)
+
+    const request: GenerationRequest = {
+      prompt: adaptedPrompt,
+      negativePrompt: adaptedNegative,
+      style,
+      width: 1024,
+      height: 1024,
+      numImages: 1,
+      transparentBg,
+      format: effectiveFormat,
+    }
+
+    console.log(`[design] Trying provider: ${provider.name} (intent: ${route.intent})`)
+
+    const result = await provider.generate(request)
+
+    if (result.success && result.images.length > 0) {
+      return {
+        success: true,
+        imageUrl: result.images[0].url,
+        prompt: adaptedPrompt,
+        seed: result.seed,
+        timings: { inference: result.latencyMs },
+        provider: result.provider,
+        costUsd: result.costUsd,
+        intent: route.intent,
+      }
+    }
+
+    if (result.nsfw) {
+      return {
+        success: false,
+        error: result.error || 'Design rejected by safety checker. Please modify your prompt.',
+      }
+    }
+
+    console.warn(`[design] Provider ${provider.name} failed: ${result.error}`)
+  }
+
+  // All providers failed — dev fallback
+  return devFallback(prompt, route.intent)
 }
 
-async function generateWithFalDev(
-  apiKey: string,
-  prompt: string,
-  negativePrompt: string
-): Promise<DesignGenerationResult> {
-  try {
-    const response = await fetch('https://fal.run/fal-ai/flux/dev', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Key ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        prompt,
-        negative_prompt: negativePrompt,
-        image_size: 'square_hd',
-        num_inference_steps: 28,
-        num_images: 1,
-        enable_safety_checker: true,
-      }),
-    })
-
-    if (!response.ok) {
-      console.error('fal.ai dev error:', await response.text())
-      return { success: false, error: 'dev provider failed' }
-    }
-
-    const data = await response.json()
-
-    if (data.has_nsfw_concepts?.some?.((v: boolean) => v)) {
-      return { success: false, error: 'Design rejected by safety checker. Please modify your prompt.' }
-    }
-
-    const imageUrl = data.images?.[0]?.url
-    if (!imageUrl) {
-      return { success: false, error: 'No image in dev response' }
-    }
-
-    return {
-      success: true,
-      imageUrl,
-      prompt,
-      seed: data.seed,
-      timings: data.timings || { inference: 0 },
-      provider: 'fal-dev',
-    }
-  } catch (error) {
-    console.error('fal.ai dev error:', error)
-    return { success: false, error: 'dev provider error' }
-  }
-}
-
-function devFallback(originalPrompt: string, finalPrompt: string): DesignGenerationResult {
+function devFallback(originalPrompt: string, intent: DesignIntent): DesignGenerationResult {
   if (process.env.NODE_ENV === 'development') {
     const placeholderUrl = `https://placehold.co/1024x1024/667eea/ffffff?text=${encodeURIComponent(originalPrompt.slice(0, 50))}`
     return {
       success: true,
       imageUrl: placeholderUrl,
-      prompt: finalPrompt,
+      prompt: originalPrompt,
       seed: Math.floor(Math.random() * 1000000),
       timings: { inference: 0 },
       placeholder: true,
       note: 'Placeholder image - all providers failed',
       provider: 'placeholder',
+      costUsd: 0,
+      intent,
     }
   }
 

@@ -83,6 +83,10 @@ export const artifactRegistry: Record<string, ArtifactRegistryEntry> = {
     Component: DesignPreviewArtifact,
     Skeleton: DesignPreviewSkeleton,
   },
+  remove_background: {
+    Component: DesignPreviewArtifact,
+    Skeleton: DesignPreviewSkeleton,
+  },
 }
 
 /**

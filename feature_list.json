@@ -4432,7 +4432,7 @@
     "id": 403,
     "feature": "Admin Panel Setup",
     "description": "Messaging config page renders",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to http://localhost:3001/messaging",
       "Verify the page shows Telegram and WhatsApp channel configuration sections",
@@ -4444,7 +4444,7 @@
     "id": 404,
     "feature": "Admin Panel Setup",
     "description": "Order Printify retry button works from admin",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to an order detail page at http://localhost:3001/orders/:id",
       "Verify a retry button exists for orders with failed Printify status",

@@ -5,9 +5,11 @@ import { createClient } from '@supabase/supabase-js'
 import { STORE_DEFAULTS, SHIPPING_RATES, LOCALE_FORMAT } from '@/lib/store-config'
 import { chatLimiter } from '@/lib/rate-limit'
 import { generateDesign } from '@/lib/design-generation'
+import type { DesignIntent } from '@/lib/providers/router'
 import { checkAndIncrementUsage, decrementUsage, usageHeaders, UserTier, USAGE_TIERS } from '@/lib/usage-limiter'
 import { checkAnomaly, trackRateLimitHit } from '@/lib/anomaly-monitor'
 import { checkPromptSafety } from '@/lib/content-safety'
+import { removeBackground } from '@/lib/providers/background-removal'
 
 export const maxDuration = 60
 
@@ -221,8 +223,9 @@ TOOLS AVAILABLE (22 total):
 - track_order: Track an order by ID or show most recent order status (displays timeline artifact)
 - get_order_history: Get user's order history list (displays order list artifact)
 - request_return: Request a return/refund for an order (requires approval)
-- generate_design: Generate a custom AI design for a product
+- generate_design: Generate a custom AI design for a product (include intent classification)
 - customize_design: Modify an existing design (change colors, add elements)
+- remove_background: Remove background from a design image (transparent PNG)
 - add_to_wishlist: Add a product to the user's wishlist (requires login)
 - get_store_policies: Get store policies (shipping, returns, privacy, terms)
 - switch_language: Switch UI language (en, es, de)
@@ -245,9 +248,20 @@ WHEN TO USE EACH TOOL:
 14. User asks "track my order", "where's my order", "order status" → call track_order
 15. User asks "show my orders", "order history", "past purchases" → call get_order_history
 16. User wants to return/refund an order → call request_return (requires approval)
-17. User says "design a t-shirt", "create a design", "generate artwork" → call generate_design
+17. User says "design a t-shirt", "create a design", "generate artwork" → call generate_design with intent classification
+
+DESIGN INTENT CLASSIFICATION (for generate_design):
+When calling generate_design, classify the user's request into an intent:
+- "text-heavy": designs with text/logos/slogans/quotes/typography (e.g., "logo that says COFFEE", "motivational quote t-shirt")
+- "photorealistic": photo-quality images (e.g., "realistic mountain landscape", "photographic cat portrait")
+- "vector": clean flat design/SVG/icons/minimalist (e.g., "minimalist cat icon", "flat geometric logo")
+- "artistic": abstract/creative/painterly (e.g., "surreal dreamscape", "abstract watercolor")
+- "pattern": repeating/seamless patterns (e.g., "floral repeating pattern", "geometric tiles")
+- "quick-draft": user wants fast preview (e.g., "quick sketch", "rough idea")
+- "general": default when unclear
 18. User wants to modify existing design: "make it blue", "add stars" → call customize_design
-19. User says "add to wishlist", "save for later", "wishlist this" → call add_to_wishlist with product ID
+19. User says "remove background", "transparent", "quítale el fondo" → call remove_background with image URL from context
+20. User says "add to wishlist", "save for later", "wishlist this" → call add_to_wishlist with product ID
 20. User asks "what's your shipping policy", "return policy", "refund policy", "privacy policy" → call get_store_policies
 21. User says "switch to Spanish", "habla español", "change to German" → call switch_language with locale
 22. User uploads an image → call analyze_image with description of what you see
@@ -1439,6 +1453,9 @@ Be friendly, helpful, and concise.`
         parameters: z.object({
           prompt: z.string().describe('What the design should look like (e.g., "cute cat wearing sunglasses on a beach")'),
           style: z.string().optional().describe('Art style (e.g., "watercolor", "cartoon", "realistic", "minimalist")'),
+          intent: z.enum(['artistic', 'text-heavy', 'photorealistic', 'vector', 'pattern', 'quick-draft', 'general'])
+            .optional()
+            .describe('Design type — determines best AI provider. Classify from user request.'),
         }),
         // @ts-expect-error AI SDK 6.0.86 type mismatch — execute works at runtime
         execute: async (args: Record<string, any>) => {
@@ -1474,7 +1491,11 @@ Be friendly, helpful, and concise.`
               }
             }
 
-            const result = await generateDesign({ prompt: promptText, style })
+            const result = await generateDesign({
+              prompt: promptText,
+              style,
+              intent: args.intent as DesignIntent | undefined,
+            })
 
             if (!result.success) {
               // Rollback design usage on failure
@@ -1488,11 +1509,32 @@ Be friendly, helpful, and concise.`
               }
             }
 
+            // Auto-save design to database
+            let designId: string | null = null
+            try {
+              const { data: savedDesign } = await supabase.from('designs').insert({
+                prompt: promptText,
+                style: style || null,
+                model: result.provider || 'fal-schnell',
+                image_url: result.imageUrl,
+                width: 1024,
+                height: 1024,
+                user_id: chatUserId || null,
+                moderation_status: 'pending',
+                generation_time_ms: result.timings?.inference || null,
+              }).select('id').single()
+              designId = savedDesign?.id || null
+            } catch (saveErr) {
+              console.error('Failed to auto-save design:', saveErr)
+            }
+
             return {
               success: true,
               imageUrl: result.imageUrl,
               prompt: result.prompt,
               style: style || 'default',
+              designId,
+              provider: result.provider,
               message: 'Design generated successfully! You can customize it or add it to a product.',
             }
           } catch (error) {
@@ -1594,6 +1636,46 @@ Be friendly, helpful, and concise.`
               success: false,
               error: 'Failed to customize design. Make sure the design was generated first.',
             }
+          }
+        },
+      }),
+
+      remove_background: tool({
+        description: 'Remove the background from a design image, making it a transparent PNG. Call this when user wants to remove background, make transparent, or prepare for print.',
+        parameters: z.object({
+          image_url: z.string().describe('URL of the design image to remove background from'),
+          design_id: z.string().optional().describe('Design ID to update with the new transparent image'),
+        }),
+        // @ts-expect-error AI SDK 6.0.86 type mismatch — execute works at runtime
+        execute: async (args: { image_url: string; design_id?: string }) => {
+          try {
+            const result = await removeBackground(args.image_url)
+
+            if (!result.success) {
+              return {
+                success: false,
+                error: result.error || 'Background removal failed',
+              }
+            }
+
+            // Update design record if ID provided
+            if (args.design_id && result.imageUrl) {
+              const { error: updateErr } = await supabase
+                .from('designs')
+                .update({ image_url: result.imageUrl })
+                .eq('id', args.design_id)
+              if (updateErr) console.error('Failed to update design after bg removal:', updateErr)
+            }
+
+            return {
+              success: true,
+              imageUrl: result.imageUrl,
+              provider: result.provider,
+              message: 'Background removed successfully! The design now has a transparent background.',
+            }
+          } catch (error) {
+            console.error('remove_background error:', error)
+            return { success: false, error: 'Failed to remove background' }
           }
         },
       }),

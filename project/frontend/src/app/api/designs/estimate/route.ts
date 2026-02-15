@@ -7,13 +7,18 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { estimateDesignCost } from '@/lib/design-generation'
+import type { DesignIntent } from '@/lib/providers/router'
 import { getAuthUser, getClientIP } from '@/lib/auth-guard'
 import { getCurrentUsage, UserTier } from '@/lib/usage-limiter'
+
+const VALID_INTENTS = new Set<string>(['artistic', 'text-heavy', 'photorealistic', 'vector', 'pattern', 'quick-draft', 'general'])
 
 export async function GET(req: NextRequest) {
   try {
     const style = req.nextUrl.searchParams.get('style') || undefined
-    const estimate = estimateDesignCost({ style })
+    const rawIntent = req.nextUrl.searchParams.get('intent')
+    const intent = rawIntent && VALID_INTENTS.has(rawIntent) ? (rawIntent as DesignIntent) : undefined
+    const estimate = estimateDesignCost({ style, intent })
 
     // Get remaining usage for context
     const user = await getAuthUser(req)
