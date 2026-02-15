@@ -15,6 +15,7 @@
  */
 
 import { useState } from 'react'
+import dynamic from 'next/dynamic'
 import { usePathname, useParams } from 'next/navigation'
 import { StorefrontProvider, useStorefront } from './StorefrontContext'
 import { StorefrontSidebar } from './StorefrontSidebar'
@@ -25,6 +26,19 @@ import { Sheet, SheetContent } from '@/components/ui/sheet'
 import { useSidebarCollapsed } from '@/hooks/useSidebarCollapsed'
 import { cn } from '@/lib/utils'
 import { OfflineBanner } from '@/components/OfflineBanner'
+import { InstallPrompt } from '@/components/engagement/InstallPrompt'
+
+const ChatArea = dynamic(
+  () => import('@/components/storefront/ChatArea').then((mod) => ({ default: mod.ChatArea })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex items-center justify-center h-full">
+        <div className="animate-pulse text-muted-foreground">Loading chat...</div>
+      </div>
+    ),
+  }
+)
 
 function StorefrontShell({ children }: { children: React.ReactNode }) {
   const { selectedProduct, setSelectedProduct, setPendingChatMessage, artifacts, clearArtifacts } =
@@ -81,10 +95,19 @@ function StorefrontShell({ children }: { children: React.ReactNode }) {
           onToggleDesktopSidebar={toggleDesktopSidebar}
         />
         <OfflineBanner />
-        <div className="flex flex-1 flex-col min-h-0 overflow-y-auto">
-          {children}
-          {!isChatPage && <Footer />}
+        {/* ChatArea always mounted — CSS visibility toggle preserves SSE/state */}
+        <div className={cn(
+          "flex flex-1 flex-col min-h-0",
+          isChatPage ? "visible" : "invisible absolute inset-0 pointer-events-none"
+        )}>
+          <ChatArea />
         </div>
+        {!isChatPage && (
+          <div className="flex flex-1 flex-col min-h-0 overflow-y-auto">
+            {children}
+            <Footer />
+          </div>
+        )}
       </main>
 
       {/* Right Detail Panel - Desktop */}
@@ -100,6 +123,9 @@ function StorefrontShell({ children }: { children: React.ReactNode }) {
           <DetailPanel productId={selectedProduct || undefined} onClose={handleClosePanel} onAskAbout={handleAskAbout} />
         </div>
       )}
+
+      {/* PWA Install Prompt - appears after 3+ visits */}
+      <InstallPrompt />
     </div>
   )
 }

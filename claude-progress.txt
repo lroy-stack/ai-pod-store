@@ -4859,3 +4859,83 @@ Tests newly passing this session: 308, 334 (2 features)
 - ID 340 [PWA] — Install prompt shows on supported browsers
 - Or continue with remaining PWA features (#338-343)
 
+
+## Session 123 (Coding Agent)
+- Implemented: PWA offline page + offline banner (features #338, #339)
+- Verification: 
+  - Offline page at /en/offline renders with WifiOff icon, message, and 12 cached products
+  - OfflineBanner integrated into StorefrontLayout (shows when navigator.onLine = false)
+- Tests passing: 462/578 (79.9%)
+- Tests newly passing this session: 338, 339
+- Issues encountered: 
+  - Initial confusion about _offline vs offline route (underscore makes route private in Next.js)
+  - Duplicate offline directories created (/[locale]/offline and /[locale]/(app)/offline) — cleaned up
+- Database status: connected
+- Environment: .env.local configured correctly, all API keys working
+
+### Implementation Details:
+- Created offline page at `src/app/[locale]/(app)/offline/page.tsx`:
+  - Uses useTranslations('Offline') for i18n
+  - Loads cached products from IndexedDB via getCachedProducts()
+  - Shows WifiOff icon, title, description, and Try Again button
+  - Displays up to 12 cached products in responsive grid (2 cols mobile → 4 cols desktop)
+- Updated service worker `src/app/sw.ts`:
+  - Configured fallback: `url: '/en/offline'` for failed document requests
+  - Service worker serves offline page when network request fails
+- Created `useOnlineStatus` hook at `src/hooks/useOnlineStatus.ts`:
+  - Listens to window 'online' and 'offline' events
+  - Returns boolean `isOnline` state
+- Created `OfflineBanner` component at `src/components/OfflineBanner.tsx`:
+  - Uses useOnlineStatus hook
+  - Renders banner with WifiOff icon + message when offline
+  - Auto-hides when online (returns null)
+  - Includes Try Again button to reload page
+- Integrated OfflineBanner into `StorefrontLayout`:
+  - Positioned between header and main content
+  - Appears on all app pages (chat, shop, products, etc.)
+- Added Offline translations to all 3 locales (en, es, de):
+  - title, description, tryAgain, cachedProducts, banner
+
+### Verification Evidence:
+```yaml
+# Offline page snapshot shows:
+- heading "You're Offline" [level=1]
+- paragraph: "It looks like you've lost your internet connection..."
+- button "Try Again"
+- heading "Previously Viewed Products" [level=2]
+- 12 product cards (Classic D T-Shirt, Hoodie, Mug, etc.)
+```
+
+### Next priorities:
+- ID 340 [PWA] — Cart persists offline and syncs
+- ID 341 [PWA] — App can be installed
+- ID 342 [PWA] — Install prompt appears after multiple visits
+- ID 343 [PWA] — Background sync for pending actions
+
+Session 123 update:
+- Additional feature verified: #340 (Cart persists offline and syncs)
+- Tests passing: 463/578 (80.1%)
+- Tests newly passing total this session: 338, 339, 340 (3 features)
+
+### Session Summary:
+**Implemented:**
+1. Feature #338: Offline page at /[locale]/offline
+2. Feature #339: Offline banner in StorefrontLayout
+3. Feature #340: Verified cart offline persistence (already working)
+
+**Files Created:**
+- src/hooks/useOnlineStatus.ts (online/offline event listener)
+- src/components/OfflineBanner.tsx (banner component)
+
+**Files Modified:**
+- src/app/[locale]/(app)/offline/page.tsx (added i18n)
+- src/app/sw.ts (fallback to /en/offline)
+- src/components/storefront/StorefrontLayout.tsx (integrated OfflineBanner)
+- messages/en.json, es.json, de.json (added Offline translations)
+
+**Next session priorities:**
+- ID 341 [PWA] — App can be installed (manifest already exists, verify install prompt)
+- ID 342 [PWA] — Install prompt appears after multiple visits
+- ID 343 [PWA] — Background sync for pending actions
+- Or continue with Python Analytics Layer (#344-353)
+- Or Voice Input features (#310-315)

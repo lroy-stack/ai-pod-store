@@ -14,7 +14,10 @@ export function FingerprintProvider({ children }: { children: React.ReactNode })
     let visitorId: string | null = null
 
     getFingerprint().then((id) => {
-      visitorId = id
+      if (id) {
+        visitorId = id
+        try { localStorage.setItem('pod-fp-id', id) } catch {}
+      }
     })
 
     // Patch fetch to include fingerprint header on API calls

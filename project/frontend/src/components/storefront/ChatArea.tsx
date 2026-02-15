@@ -10,7 +10,7 @@
  * - AI SDK 6 integration with streaming SSE
  */
 
-import { useRef, useEffect, useState } from 'react'
+import { useRef, useEffect, useState, useMemo, useCallback } from 'react'
 import { useTranslations } from 'next-intl'
 import { User, Send, Paperclip, Package, Heart, X, Mic } from 'lucide-react'
 import { Input } from '@/components/ui/input'
@@ -26,11 +26,14 @@ import { useStorefront } from './StorefrontContext'
 import { useCart } from '@/hooks/useCart'
 import { useWishlist } from '@/hooks/useWishlist'
 import { SignupBanner } from '@/components/engagement/SignupBanner'
+import { AuthWallModal } from '@/components/engagement/AuthWallModal'
+import { UpgradeModal } from '@/components/engagement/UpgradeModal'
 import { useSpeechToText } from '@/hooks/useSpeechToText'
 import { useParams } from 'next/navigation'
 
 export function ChatArea() {
   const t = useTranslations('storefront')
+  const tEngagement = useTranslations('engagement.chat')
   const params = useParams()
   const locale = (params.locale as string) || 'en'
   const { setSelectedProduct, pendingChatMessage, setPendingChatMessage, addArtifact } = useStorefront()
@@ -46,9 +49,67 @@ export function ChatArea() {
     recentFavorites: Array<{ id: string; name: string; price: number }> | null
   }>({ user: null, activeOrders: null, recentFavorites: null })
 
-  // AI SDK 6 useChat hook with DefaultChatTransport
+  // Engagement state
+  const [showAuthWall, setShowAuthWall] = useState(false)
+  const [showUpgrade, setShowUpgrade] = useState(false)
+  const [isLimitReached, setIsLimitReached] = useState(false)
+
+  // Conversation ID tracking — persists across navigation via sessionStorage
+  const conversationIdRef = useRef<string | null>(
+    typeof window !== 'undefined' ? sessionStorage.getItem('pod-conversation-id') : null
+  )
+  const userRef = useRef<{ name: string } | null>(null)
+
+  // Keep userRef in sync with userData
+  useEffect(() => {
+    userRef.current = userData.user
+  }, [userData.user])
+
+  // Custom fetch wrapper to intercept conversation ID header and engagement errors
+  const customFetch = useCallback(async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+    // Inject conversation ID header if available
+    const headers = new Headers(init?.headers)
+    if (conversationIdRef.current) {
+      headers.set('x-conversation-id', conversationIdRef.current)
+    }
+
+    const response = await fetch(input, { ...init, headers })
+
+    // Extract conversation ID from response
+    const newConvId = response.headers.get('x-conversation-id')
+    if (newConvId && newConvId !== conversationIdRef.current) {
+      conversationIdRef.current = newConvId
+      try { sessionStorage.setItem('pod-conversation-id', newConvId) } catch {}
+    }
+
+    // Intercept engagement limit errors
+    if (response.status === 429 || response.status === 403) {
+      try {
+        const cloned = response.clone()
+        const body = await cloned.json()
+        if (body.code === 'LIMIT_REACHED') {
+          setIsLimitReached(true)
+          if (!userRef.current) {
+            setShowAuthWall(true)
+          } else {
+            setShowUpgrade(true)
+          }
+        }
+      } catch {
+        // Failed to parse body — ignore
+      }
+    }
+
+    return response
+  }, [])
+
+  // AI SDK 6 useChat hook with DefaultChatTransport + custom fetch
+  const transport = useMemo(
+    () => new DefaultChatTransport({ api: '/api/chat', fetch: customFetch }),
+    [customFetch]
+  )
   const { messages, sendMessage, status, addToolApprovalResponse, error } = useChat({
-    transport: new DefaultChatTransport({ api: '/api/chat' }),
+    transport,
   })
 
   const isLoading = status === 'submitted' || status === 'streaming'
@@ -644,10 +705,14 @@ export function ChatArea() {
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder={t('inputPlaceholder')}
+                placeholder={
+                  isLimitReached
+                    ? (userData.user ? tEngagement('limitReachedFree') : tEngagement('limitReached'))
+                    : t('inputPlaceholder')
+                }
                 aria-label="Chat with AI assistant"
-                className="flex-1 min-h-[40px] border-0 bg-transparent shadow-none focus-visible:ring-0 px-1 text-sm"
-                disabled={isLoading}
+                className={`flex-1 min-h-[40px] border-0 bg-transparent shadow-none focus-visible:ring-0 px-1 text-sm ${isLimitReached ? 'opacity-50' : ''}`}
+                disabled={isLoading || isLimitReached}
               />
 
               {isSpeechSupported && (
@@ -679,7 +744,7 @@ export function ChatArea() {
                 type="submit"
                 size="icon"
                 className="flex-shrink-0 h-9 w-9 rounded-full"
-                disabled={isLoading || (!inputValue.trim() && !selectedImage)}
+                disabled={isLoading || isLimitReached || (!inputValue.trim() && !selectedImage)}
               >
                 <Send className="h-4 w-4" aria-hidden="true" />
                 <span className="sr-only">Send message</span>
@@ -692,6 +757,19 @@ export function ChatArea() {
           </p>
         </div>
       </div>
+
+      {/* Engagement modals */}
+      <AuthWallModal
+        open={showAuthWall}
+        onOpenChange={setShowAuthWall}
+        reason={tEngagement('limitReached')}
+        variant="wall"
+      />
+      <UpgradeModal
+        open={showUpgrade}
+        onOpenChange={setShowUpgrade}
+        reason={tEngagement('limitReachedFree')}
+      />
     </div>
   )
 }

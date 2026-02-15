@@ -11,6 +11,12 @@ let fpPromise: Promise<any> | null = null
 export async function getFingerprint(): Promise<string | null> {
   if (typeof window === 'undefined') return null
 
+  // Check localStorage first (available instantly, eliminates race condition)
+  try {
+    const cached = localStorage.getItem('pod-fp-id')
+    if (cached) return cached
+  } catch {}
+
   try {
     if (!fpPromise) {
       const FingerprintJS = await import('@fingerprintjs/fingerprintjs')
@@ -19,7 +25,14 @@ export async function getFingerprint(): Promise<string | null> {
 
     const fp = await fpPromise
     const result = await fp.get()
-    return result.visitorId
+    const id = result.visitorId
+
+    // Save to localStorage for instant access on next call
+    if (id) {
+      try { localStorage.setItem('pod-fp-id', id) } catch {}
+    }
+
+    return id
   } catch {
     return null
   }

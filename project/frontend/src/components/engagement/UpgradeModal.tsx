@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -13,22 +14,12 @@ interface UpgradeModalProps {
   reason?: string
 }
 
-const FREE_FEATURES = [
-  '50 chats/day',
-  '3 designs/day',
-  '5 mockups/day',
-]
-
-const PREMIUM_FEATURES = [
-  '500 chats/day',
-  '30 designs/day',
-  '50 mockups/day',
-  '10 bonus credits/month',
-  'Priority support',
-]
-
 export function UpgradeModal({ open, onOpenChange, reason }: UpgradeModalProps) {
   const [loading, setLoading] = useState(false)
+  const t = useTranslations('engagement.upgrade')
+
+  const freeFeatures = [t('free1'), t('free2'), t('free3')]
+  const premiumFeatures = [t('premium1'), t('premium2'), t('premium3'), t('premium4'), t('premium5')]
 
   async function handleUpgrade() {
     setLoading(true)
@@ -66,7 +57,7 @@ export function UpgradeModal({ open, onOpenChange, reason }: UpgradeModalProps) 
         <DialogHeader>
           <DialogTitle className="text-xl flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-primary" />
-            Upgrade to Premium
+            {t('title')}
           </DialogTitle>
           {reason && (
             <DialogDescription>{reason}</DialogDescription>
@@ -77,9 +68,9 @@ export function UpgradeModal({ open, onOpenChange, reason }: UpgradeModalProps) 
           {/* Free column */}
           <div className="space-y-3">
             <div className="flex items-center gap-2">
-              <Badge variant="secondary">Free</Badge>
+              <Badge variant="secondary">{t('freeBadge')}</Badge>
             </div>
-            {FREE_FEATURES.map((f) => (
+            {freeFeatures.map((f) => (
               <div key={f} className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Check className="h-3.5 w-3.5 flex-shrink-0" />
                 {f}
@@ -90,10 +81,10 @@ export function UpgradeModal({ open, onOpenChange, reason }: UpgradeModalProps) 
           {/* Premium column */}
           <div className="space-y-3">
             <div className="flex items-center gap-2">
-              <Badge className="bg-primary">Premium</Badge>
-              <span className="text-sm font-medium text-foreground">9.99/mo</span>
+              <Badge className="bg-primary">{t('premiumBadge')}</Badge>
+              <span className="text-sm font-medium text-foreground">{t('price')}</span>
             </div>
-            {PREMIUM_FEATURES.map((f) => (
+            {premiumFeatures.map((f) => (
               <div key={f} className="flex items-center gap-2 text-sm text-foreground">
                 <Check className="h-3.5 w-3.5 text-primary flex-shrink-0" />
                 {f}
@@ -106,14 +97,14 @@ export function UpgradeModal({ open, onOpenChange, reason }: UpgradeModalProps) 
 
         <div className="flex flex-col gap-2 pt-1">
           <Button onClick={handleUpgrade} disabled={loading} className="w-full">
-            {loading ? 'Redirecting...' : 'Upgrade Now \u2014 \u20AC9.99/mo'}
+            {loading ? t('redirecting') : t('upgradeNow')}
           </Button>
           <button
             onClick={handleBuyCredits}
             disabled={loading}
             className="text-sm text-primary hover:underline text-center transition-colors"
           >
-            Or buy credits: 15 designs for 4.99
+            {t('buyCredits')}
           </button>
         </div>
       </DialogContent>

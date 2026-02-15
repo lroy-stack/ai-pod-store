@@ -101,6 +101,24 @@ export default function LoginForm({ locale }: { locale: string }) {
         console.error('Failed to broadcast login event:', e)
       }
 
+      // Migrate anonymous session data to new user
+      try {
+        const fp = localStorage.getItem('pod-fp-id')
+        const convId = sessionStorage.getItem('pod-conversation-id')
+        if (fp || convId) {
+          await fetch('/api/session/migrate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fingerprint: fp || undefined,
+              conversationIds: convId ? [convId] : undefined,
+            }),
+          })
+        }
+      } catch {
+        // Non-critical — ignore migration errors
+      }
+
       // Redirect to user's preferred locale if different from current
       const userLocale = data.user?.locale || locale
       router.push(`/${userLocale}/`)

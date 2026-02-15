@@ -33,6 +33,24 @@ export default function AuthCallbackPage() {
         }
 
         if (session) {
+          // Migrate anonymous session data to new user
+          try {
+            const fp = localStorage.getItem('pod-fp-id')
+            const convId = sessionStorage.getItem('pod-conversation-id')
+            if (fp || convId) {
+              await fetch('/api/session/migrate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  fingerprint: fp || undefined,
+                  conversationIds: convId ? [convId] : undefined,
+                }),
+              })
+            }
+          } catch {
+            // Non-critical — ignore migration errors
+          }
+
           // OAuth login successful — redirect to homepage
           router.push(`/${locale}/`)
         } else {

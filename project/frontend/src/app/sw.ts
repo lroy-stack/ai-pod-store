@@ -152,3 +152,81 @@ self.addEventListener('notificationclick', (event: any) => {
     })
   )
 })
+
+// --- Background Sync for Pending Cart Actions ---
+self.addEventListener('sync', (event: any) => {
+  if (event.tag === 'sync-cart') {
+    event.waitUntil(syncCartActions())
+  }
+})
+
+async function syncCartActions() {
+  // Get pending cart actions from IndexedDB
+  const pendingActions = await getPendingCartActions()
+
+  for (const action of pendingActions) {
+    try {
+      // Replay the action
+      const response = await fetch(action.url, {
+        method: action.method,
+        headers: action.headers,
+        body: action.body,
+      })
+
+      if (response.ok) {
+        // Action succeeded, remove from pending queue
+        await removePendingAction(action.id)
+
+        // Notify all clients that sync succeeded
+        const clients = await self.clients.matchAll()
+        clients.forEach((client: any) => {
+          client.postMessage({
+            type: 'sync-success',
+            action: action.type,
+          })
+        })
+      }
+    } catch (error) {
+      console.error('Failed to sync action:', action, error)
+      // Will retry on next sync
+    }
+  }
+}
+
+async function getPendingCartActions(): Promise<any[]> {
+  try {
+    const db = await openDB()
+    const tx = db.transaction('pendingActions', 'readonly')
+    const store = tx.objectStore('pendingActions')
+    return await store.getAll()
+  } catch {
+    return []
+  }
+}
+
+async function removePendingAction(id: string) {
+  try {
+    const db = await openDB()
+    const tx = db.transaction('pendingActions', 'readwrite')
+    const store = tx.objectStore('pendingActions')
+    await store.delete(id)
+  } catch (error) {
+    console.error('Failed to remove pending action:', error)
+  }
+}
+
+function openDB(): Promise<any> {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open('pod-ai-sync', 1)
+
+    request.onerror = () => reject(request.error)
+    request.onsuccess = () => resolve(request.result)
+
+    request.onupgradeneeded = (event: any) => {
+      const db = event.target.result
+      if (!db.objectStoreNames.contains('pendingActions')) {
+        db.createObjectStore('pendingActions', { keyPath: 'id' })
+      }
+    }
+  })
+}

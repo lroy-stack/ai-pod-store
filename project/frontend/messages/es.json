@@ -662,5 +662,45 @@
     "tryAgain": "Intentar de Nuevo",
     "cachedProducts": "Productos Vistos Anteriormente",
     "banner": "Estás sin conexión. Algunas funciones pueden no estar disponibles."
+  },
+  "engagement": {
+    "authWall": {
+      "title": "Crea tu cuenta gratuita",
+      "wallTitle": "Has usado tus {count} mensajes gratuitos de hoy",
+      "wallSubtitle": "Crea una cuenta gratuita para seguir chateando",
+      "benefit1": "50 chats de IA al día",
+      "benefit2": "3 diseños personalizados con IA",
+      "benefit3": "Guarda listas de deseos y sigue pedidos",
+      "benefit4": "Mockups de productos en artículos reales",
+      "benefit5": "Entrada por voz y subida de imágenes",
+      "signUp": "Crear Cuenta Gratis",
+      "logIn": "Iniciar Sesión",
+      "continueGuest": "Continuar como invitado",
+      "continueBrowsing": "Seguir navegando",
+      "premiumTeaser": "¿Necesitas más? Premium: €9,99/mes",
+      "premiumSummary": "500 chats · 30 diseños · créditos extra",
+      "seePremium": "Ver Premium"
+    },
+    "upgrade": {
+      "title": "Mejora a Premium",
+      "freeBadge": "Gratis",
+      "premiumBadge": "Premium",
+      "price": "€9,99/mes",
+      "free1": "50 chats/día",
+      "free2": "3 diseños/día",
+      "free3": "5 mockups/día",
+      "premium1": "500 chats/día",
+      "premium2": "30 diseños/día",
+      "premium3": "50 mockups/día",
+      "premium4": "10 créditos extra/mes",
+      "premium5": "Soporte prioritario",
+      "upgradeNow": "Mejorar Ahora — €9,99/mes",
+      "redirecting": "Redirigiendo...",
+      "buyCredits": "O compra créditos: 15 diseños por €4,99"
+    },
+    "chat": {
+      "limitReached": "Límite diario alcanzado — regístrate para más",
+      "limitReachedFree": "Límite diario alcanzado — mejora tu plan"
+    }
   }
 }

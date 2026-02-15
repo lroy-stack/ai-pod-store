@@ -662,5 +662,45 @@
     "tryAgain": "Erneut Versuchen",
     "cachedProducts": "Zuvor Angesehene Produkte",
     "banner": "Sie sind offline. Einige Funktionen sind möglicherweise nicht verfügbar."
+  },
+  "engagement": {
+    "authWall": {
+      "title": "Erstelle dein kostenloses Konto",
+      "wallTitle": "Du hast alle {count} kostenlosen Nachrichten heute verbraucht",
+      "wallSubtitle": "Erstelle ein kostenloses Konto, um weiterzuchatten",
+      "benefit1": "50 KI-Chats pro Tag",
+      "benefit2": "3 KI-generierte individuelle Designs",
+      "benefit3": "Wunschlisten speichern & Bestellungen verfolgen",
+      "benefit4": "Produkt-Mockups auf echten Artikeln",
+      "benefit5": "Spracheingabe & Bild-Upload",
+      "signUp": "Kostenloses Konto erstellen",
+      "logIn": "Anmelden",
+      "continueGuest": "Als Gast fortfahren",
+      "continueBrowsing": "Weiter stöbern",
+      "premiumTeaser": "Mehr Power? Premium: €9,99/Monat",
+      "premiumSummary": "500 Chats · 30 Designs · Bonusguthaben",
+      "seePremium": "Premium ansehen"
+    },
+    "upgrade": {
+      "title": "Auf Premium upgraden",
+      "freeBadge": "Kostenlos",
+      "premiumBadge": "Premium",
+      "price": "€9,99/Monat",
+      "free1": "50 Chats/Tag",
+      "free2": "3 Designs/Tag",
+      "free3": "5 Mockups/Tag",
+      "premium1": "500 Chats/Tag",
+      "premium2": "30 Designs/Tag",
+      "premium3": "50 Mockups/Tag",
+      "premium4": "10 Bonusguthaben/Monat",
+      "premium5": "Prioritäts-Support",
+      "upgradeNow": "Jetzt upgraden — €9,99/Monat",
+      "redirecting": "Weiterleitung...",
+      "buyCredits": "Oder Guthaben kaufen: 15 Designs für €4,99"
+    },
+    "chat": {
+      "limitReached": "Tageslimit erreicht — registriere dich für mehr",
+      "limitReachedFree": "Tageslimit erreicht — upgrade für mehr"
+    }
   }
 }

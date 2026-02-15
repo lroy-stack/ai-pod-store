@@ -1,0 +1,208 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e13]:
+    - link "Skip to main content" [ref=e14] [cursor=pointer]:
+      - /url: "#main-content"
+    - complementary [ref=e15]:
+      - generic [ref=e16]:
+        - generic [ref=e17]:
+          - link "P POD AI" [ref=e18] [cursor=pointer]:
+            - /url: /en
+            - generic [ref=e20]: P
+            - generic [ref=e21]: POD AI
+          - button "Collapse sidebar" [ref=e22]:
+            - img
+            - generic [ref=e23]: Collapse sidebar
+        - navigation [ref=e24]:
+          - link "Discover" [ref=e25] [cursor=pointer]:
+            - /url: /en
+            - img [ref=e26]
+            - generic [ref=e29]: Discover
+          - link "Shop" [ref=e30] [cursor=pointer]:
+            - /url: /en/shop
+            - img [ref=e31]
+            - generic [ref=e36]: Shop
+          - link "New Arrivals" [ref=e37] [cursor=pointer]:
+            - /url: /en/shop?sort=newest&newArrivals=true
+            - img [ref=e38]
+            - generic [ref=e40]: New Arrivals
+          - link "Favorites" [ref=e41] [cursor=pointer]:
+            - /url: /en/wishlist
+            - img [ref=e42]
+            - generic [ref=e44]: Favorites
+          - link "Orders" [ref=e45] [cursor=pointer]:
+            - /url: /en/orders
+            - img [ref=e46]
+            - generic [ref=e49]: Orders
+          - link "Cart 92" [ref=e50] [cursor=pointer]:
+            - /url: /en/cart
+            - img [ref=e51]
+            - generic [ref=e55]: Cart
+            - generic [ref=e56]: "92"
+        - generic [ref=e57]:
+          - generic [ref=e58]:
+            - heading "Recommended" [level=3] [ref=e59]
+            - generic [ref=e60]:
+              - button "Classic T-Shirt Classic T-Shirt €19.99 ★ 5" [ref=e61]:
+                - img "Classic T-Shirt" [ref=e62]
+                - generic [ref=e63]:
+                  - paragraph [ref=e64]: Classic T-Shirt
+                  - generic [ref=e65]:
+                    - generic [ref=e66]: €19.99
+                    - generic [ref=e67]:
+                      - generic [ref=e68]: ★
+                      - generic [ref=e69]: "5"
+              - button "Classic D T-Shirt €24.99 ★ 5" [ref=e70]:
+                - generic [ref=e72]:
+                  - paragraph [ref=e73]: Classic D T-Shirt
+                  - generic [ref=e74]:
+                    - generic [ref=e75]: €24.99
+                    - generic [ref=e76]:
+                      - generic [ref=e77]: ★
+                      - generic [ref=e78]: "5"
+          - generic [ref=e79]:
+            - heading "Popular Today" [level=3] [ref=e80]
+            - button "Dog Lover T-Shirt Dog Lover T-Shirt €24.99 ★ 4.7" [ref=e82]:
+              - img "Dog Lover T-Shirt" [ref=e83]
+              - generic [ref=e84]:
+                - paragraph [ref=e85]: Dog Lover T-Shirt
+                - generic [ref=e86]:
+                  - generic [ref=e87]: €24.99
+                  - generic [ref=e88]:
+                    - generic [ref=e89]: ★
+                    - generic [ref=e90]: "4.7"
+        - generic [ref=e94]: AI Store Manager Active
+    - main [ref=e95]:
+      - generic [ref=e96]:
+        - navigation [ref=e98]:
+          - link "Chat" [ref=e99] [cursor=pointer]:
+            - /url: /en
+          - link "Shop" [ref=e100] [cursor=pointer]:
+            - /url: /en/shop
+        - generic [ref=e102]:
+          - img [ref=e103]
+          - searchbox "Search products..." [ref=e106]
+        - generic [ref=e107]:
+          - button "Notifications" [ref=e108]:
+            - img
+            - generic [ref=e109]: Notifications
+          - link "92 Cart" [ref=e110] [cursor=pointer]:
+            - /url: /en/cart
+            - img
+            - generic [ref=e111]: "92"
+            - generic [ref=e112]: Cart
+          - button "Toggle theme" [ref=e113]:
+            - img
+            - generic [ref=e114]: Toggle theme
+          - button "Change language" [ref=e115]:
+            - img
+            - generic [ref=e116]: Change language
+          - link "Log in" [ref=e117] [cursor=pointer]:
+            - /url: /en/auth/login
+      - generic [ref=e118]:
+        - generic [ref=e119]:
+          - img
+          - heading "You're Offline" [level=1] [ref=e126]
+          - paragraph [ref=e127]: It looks like you've lost your internet connection. Some features may be unavailable until you're back online.
+          - button "Try Again" [ref=e128]:
+            - img
+            - text: Try Again
+          - generic [ref=e129]:
+            - heading "Previously Viewed Products" [level=2] [ref=e130]
+            - generic [ref=e131]:
+              - generic [ref=e133]:
+                - paragraph [ref=e134]: Classic D T-Shirt
+                - paragraph [ref=e135]: €24.99
+              - generic [ref=e137]:
+                - paragraph [ref=e138]: Hoodie
+                - paragraph [ref=e139]: €49.99
+              - generic [ref=e141]:
+                - paragraph [ref=e142]: Mug
+                - paragraph [ref=e143]: €14.99
+              - generic [ref=e145]:
+                - paragraph [ref=e146]: Classic Cat T-Shirt
+                - paragraph [ref=e147]: €24.99
+              - generic [ref=e149]:
+                - paragraph [ref=e150]: Vintage Hoodie
+                - paragraph [ref=e151]: €49.99
+              - generic [ref=e153]:
+                - paragraph [ref=e154]: Minimalist Cat Poster
+                - paragraph [ref=e155]: €19.99
+              - generic [ref=e157]:
+                - paragraph [ref=e158]: Phone Case
+                - paragraph [ref=e159]: €12.99
+              - generic [ref=e161]:
+                - paragraph [ref=e162]: Canvas Poster
+                - paragraph [ref=e163]: €29.99
+              - generic [ref=e165]:
+                - paragraph [ref=e166]: Dog Lover T-Shirt
+                - paragraph [ref=e167]: €24.99
+              - generic [ref=e169]:
+                - paragraph [ref=e170]: Classic T-Shirt
+                - paragraph [ref=e171]: €19.99
+              - generic [ref=e173]:
+                - paragraph [ref=e174]: Cat Phone Case
+                - paragraph [ref=e175]: €16.99
+              - generic [ref=e177]:
+                - paragraph [ref=e178]: Funny Cat Mug
+                - paragraph [ref=e179]: €14.99
+        - generic [ref=e181]:
+          - generic [ref=e182]:
+            - generic [ref=e183]:
+              - heading "POD AI" [level=3] [ref=e184]
+              - paragraph [ref=e185]: AI-powered print-on-demand storefront. Design, customize, and order unique products.
+              - generic [ref=e186]:
+                - link "Facebook" [ref=e187] [cursor=pointer]:
+                  - /url: https://facebook.com
+                  - img
+                - link "Twitter" [ref=e188] [cursor=pointer]:
+                  - /url: https://twitter.com
+                  - img
+                - link "Instagram" [ref=e189] [cursor=pointer]:
+                  - /url: https://instagram.com
+                  - img
+                - link "LinkedIn" [ref=e190] [cursor=pointer]:
+                  - /url: https://linkedin.com
+                  - img
+            - generic [ref=e191]:
+              - heading "Shop" [level=4] [ref=e192]
+              - navigation [ref=e193]:
+                - link "All Products" [ref=e194] [cursor=pointer]:
+                  - /url: /en/shop
+                - link "Apparel" [ref=e195] [cursor=pointer]:
+                  - /url: /en/shop?category=apparel
+                - link "Accessories" [ref=e196] [cursor=pointer]:
+                  - /url: /en/shop?category=accessories
+                - link "Home & Living" [ref=e197] [cursor=pointer]:
+                  - /url: /en/shop?category=home
+            - generic [ref=e198]:
+              - heading "Company" [level=4] [ref=e199]
+              - navigation [ref=e200]:
+                - link "About Us" [ref=e201] [cursor=pointer]:
+                  - /url: /en/about
+                - link "Contact" [ref=e202] [cursor=pointer]:
+                  - /url: /en/contact
+                - link "FAQ" [ref=e203] [cursor=pointer]:
+                  - /url: /en/faq
+            - generic [ref=e204]:
+              - heading "Legal" [level=4] [ref=e205]
+              - navigation [ref=e206]:
+                - link "Privacy Policy" [ref=e207] [cursor=pointer]:
+                  - /url: /en/privacy
+                - link "Terms of Service" [ref=e208] [cursor=pointer]:
+                  - /url: /en/terms
+                - link "Returns & Refunds" [ref=e209] [cursor=pointer]:
+                  - /url: /en/returns
+                - link "Shipping Policy" [ref=e210] [cursor=pointer]:
+                  - /url: /en/shipping
+              - generic [ref=e211]:
+                - generic [ref=e212]: Language
+                - combobox "Language" [ref=e214]:
+                  - generic: English
+                  - img
+          - generic [ref=e215]:
+            - paragraph [ref=e216]: © 2026 POD AI. All rights reserved.
+            - paragraph [ref=e217]: Powered by AI • Designed with care
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e8] [cursor=pointer]:
+    - img [ref=e9]
+  - alert [ref=e12]

@@ -662,5 +662,45 @@
     "tryAgain": "Try Again",
     "cachedProducts": "Previously Viewed Products",
     "banner": "You are offline. Some features may be unavailable."
+  },
+  "engagement": {
+    "authWall": {
+      "title": "Create your free account",
+      "wallTitle": "You've used all {count} free messages today",
+      "wallSubtitle": "Create a free account to keep chatting",
+      "benefit1": "50 AI chats per day",
+      "benefit2": "3 AI-generated custom designs",
+      "benefit3": "Save wishlists & track orders",
+      "benefit4": "Product mockups on real items",
+      "benefit5": "Voice input & image upload",
+      "signUp": "Create Free Account",
+      "logIn": "Log In",
+      "continueGuest": "Continue as guest",
+      "continueBrowsing": "Continue browsing",
+      "premiumTeaser": "Need more power? Premium: €9.99/mo",
+      "premiumSummary": "500 chats · 30 designs · bonus credits",
+      "seePremium": "See Premium"
+    },
+    "upgrade": {
+      "title": "Upgrade to Premium",
+      "freeBadge": "Free",
+      "premiumBadge": "Premium",
+      "price": "€9.99/mo",
+      "free1": "50 chats/day",
+      "free2": "3 designs/day",
+      "free3": "5 mockups/day",
+      "premium1": "500 chats/day",
+      "premium2": "30 designs/day",
+      "premium3": "50 mockups/day",
+      "premium4": "10 bonus credits/month",
+      "premium5": "Priority support",
+      "upgradeNow": "Upgrade Now — €9.99/mo",
+      "redirecting": "Redirecting...",
+      "buyCredits": "Or buy credits: 15 designs for €4.99"
+    },
+    "chat": {
+      "limitReached": "Daily limit reached — sign up for more",
+      "limitReachedFree": "Daily limit reached — upgrade for more"
+    }
   }
 }

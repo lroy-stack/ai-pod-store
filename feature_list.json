@@ -3371,7 +3371,7 @@
     "id": 306,
     "feature": "Social Login \u2014 Google + Apple OAuth",
     "description": "Social login session persists",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Login via Google OAuth",
       "Refresh the page",
@@ -3382,7 +3382,7 @@
     "id": 307,
     "feature": "Social Login \u2014 Google + Apple OAuth",
     "description": "Social login works from mobile",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Resize browser to mobile viewport",
       "Verify social login buttons are visible and clickable",
@@ -3751,7 +3751,7 @@
     "id": 341,
     "feature": "PWA Support + Offline Mode",
     "description": "App can be installed",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify install prompt appears or manual install via browser menu works",
       "Verify installation succeeds on supported browsers"
@@ -3761,7 +3761,7 @@
     "id": 342,
     "feature": "PWA Support + Offline Mode",
     "description": "Install prompt appears after multiple visits",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Visit the site multiple times",
       "Verify beforeinstallprompt event fires",
@@ -3772,7 +3772,7 @@
     "id": 343,
     "feature": "PWA Support + Offline Mode",
     "description": "Background sync for pending actions",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Go offline",
       "Perform an action such as adding to cart",
