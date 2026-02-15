@@ -4644,7 +4644,7 @@
     "id": 422,
     "feature": "WhatsApp Integration",
     "description": "WhatsApp webhook verification (GET challenge)",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Send a GET request to /api/webhooks/whatsapp with hub.mode=subscribe and hub.verify_token",
       "Verify the endpoint responds with the hub.challenge value",
@@ -4655,7 +4655,7 @@
     "id": 423,
     "feature": "WhatsApp Integration",
     "description": "WhatsApp webhook receives messages",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Send a POST request to /api/webhooks/whatsapp with a valid message payload",
       "Verify the endpoint responds with 200 OK",
@@ -4666,7 +4666,7 @@
     "id": 424,
     "feature": "WhatsApp Integration",
     "description": "WhatsApp webhook rejects invalid signature",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Send a POST request to /api/webhooks/whatsapp with an invalid X-Hub-Signature-256 header",
       "Verify the endpoint responds with 403 Forbidden",
