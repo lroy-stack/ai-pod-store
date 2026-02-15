@@ -3976,7 +3976,7 @@
     "id": 362,
     "feature": "Marketing Agent",
     "description": "Marketing agent runs on schedule (07:00 + 15:00 UTC)",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify scheduler has marketing_am job at 07:00",
       "Verify scheduler has marketing_pm job at 15:00",
@@ -4032,7 +4032,7 @@
     "id": 367,
     "feature": "Marketing Agent",
     "description": "Marketing agent campaigns stored in supabase",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Trigger marketing cycle",
       "Query supabase for marketing content records",
@@ -4043,7 +4043,7 @@
     "id": 368,
     "feature": "Marketing Agent",
     "description": "Marketing agent AM cycle creates content, PM cycle reviews performance",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Verify AM default_task includes content creation",
       "Verify PM default_task includes performance review",
@@ -4054,7 +4054,7 @@
     "id": 369,
     "feature": "Marketing Agent",
     "description": "Marketing agent includes hashtag research via web_search",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Trigger marketing agent",
       "Verify web_search tool is called for hashtag discovery",
@@ -6493,6 +6493,265 @@
       "Verify referral dedup (unique referred_id)",
       "Verify 3 credits awarded to both referrer and referred",
       "Verify referrals migration exists"
+    ]
+  },
+  {
+    "id": 579,
+    "feature": "Landing Page + Route Restructuring",
+    "description": "Chat page at /[locale]/chat renders null (ChatArea lives in StorefrontLayout)",
+    "passes": false,
+    "steps": [
+      "Read frontend/src/app/[locale]/(app)/chat/page.tsx",
+      "Verify the file does NOT import or call redirect()",
+      "Verify the default export function returns null",
+      "Verify the file exports metadata with title containing 'Chat'"
+    ]
+  },
+  {
+    "id": 580,
+    "feature": "Landing Page + Route Restructuring",
+    "description": "Chat page exports SEO metadata with title 'Chat \u2014 POD AI'",
+    "passes": false,
+    "steps": [
+      "Read frontend/src/app/[locale]/(app)/chat/page.tsx",
+      "Verify export const metadata or export function generateMetadata exists",
+      "Verify metadata.title contains 'Chat'",
+      "Verify metadata.description is a non-empty string"
+    ]
+  },
+  {
+    "id": 581,
+    "feature": "Landing Page + Route Restructuring",
+    "description": "StorefrontLayout detects /chat path for isChatPage instead of root /",
+    "passes": false,
+    "steps": [
+      "Read frontend/src/components/storefront/StorefrontLayout.tsx",
+      "Verify isChatPage variable checks pathname against /${locale}/chat",
+      "Verify isChatPage does NOT match /${locale} or /${locale}/ as chat page"
+    ]
+  },
+  {
+    "id": 582,
+    "feature": "Landing Page + Route Restructuring",
+    "description": "ChatArea visible on /chat, hidden on other routes via CSS visibility toggle",
+    "passes": false,
+    "steps": [
+      "Read frontend/src/components/storefront/StorefrontLayout.tsx",
+      "Verify ChatArea div has conditional class: visible when isChatPage, invisible otherwise",
+      "Verify children render when !isChatPage with overflow-y-auto",
+      "Verify ChatArea is always mounted (not conditionally rendered)"
+    ]
+  },
+  {
+    "id": 583,
+    "feature": "Landing Page + Route Restructuring",
+    "description": "Landing page hero section with logo, h1, subtitle, and CTA button to /chat",
+    "passes": false,
+    "steps": [
+      "Read frontend/src/app/[locale]/(app)/page.tsx",
+      "Verify 'use client' directive at top",
+      "Verify h1 element exists with t('heroTitle') or landing.heroTitle translation key",
+      "Verify Button or Link component with href containing /chat",
+      "Verify ArrowRight icon import from lucide-react"
+    ]
+  },
+  {
+    "id": 584,
+    "feature": "Landing Page + Route Restructuring",
+    "description": "Landing page has product carousel with Autoplay (embla-carousel-autoplay, 4s delay)",
+    "passes": false,
+    "steps": [
+      "Read frontend/src/app/[locale]/(app)/page.tsx",
+      "Verify import of Autoplay from embla-carousel-autoplay",
+      "Verify Carousel component with plugins prop containing Autoplay",
+      "Verify Autoplay config has delay: 4000",
+      "Verify CarouselContent with CarouselItem children"
+    ]
+  },
+  {
+    "id": 585,
+    "feature": "Landing Page + Route Restructuring",
+    "description": "Landing page accordion shows today's designs with fallback to latest",
+    "passes": false,
+    "steps": [
+      "Read frontend/src/app/[locale]/(app)/page.tsx",
+      "Verify Accordion component imported from @/components/ui/accordion",
+      "Verify AccordionItem, AccordionTrigger, AccordionContent used",
+      "Verify isTodayFallback state that switches title between todaysDesigns and latestDesigns",
+      "Verify today date filter: created_at.slice(0,10) === today comparison"
+    ]
+  },
+  {
+    "id": 586,
+    "feature": "Landing Page + Route Restructuring",
+    "description": "Landing page fetches products from /api/products with seasonal sort and newest",
+    "passes": false,
+    "steps": [
+      "Read frontend/src/app/[locale]/(app)/page.tsx",
+      "Verify useEffect with fetch calls to /api/products",
+      "Verify seasonal sort logic based on month (topRated winter, newest spring, featured default)",
+      "Verify Promise.all or parallel fetch for carousel and today products"
+    ]
+  },
+  {
+    "id": 587,
+    "feature": "Landing Page + Route Restructuring",
+    "description": "Landing page carousel responsive: 1 item mobile, 2 tablet, 3 desktop with loop",
+    "passes": false,
+    "steps": [
+      "Read frontend/src/app/[locale]/(app)/page.tsx",
+      "Verify CarouselItem className contains basis-full for mobile",
+      "Verify CarouselItem className contains md:basis-1/2 for tablet",
+      "Verify CarouselItem className contains lg:basis-1/3 for desktop",
+      "Verify Carousel opts includes loop: true"
+    ]
+  },
+  {
+    "id": 588,
+    "feature": "Landing Page + Route Restructuring",
+    "description": "WelcomePopup shows on /chat for unauthenticated users on first session visit",
+    "passes": false,
+    "steps": [
+      "Read frontend/src/components/engagement/WelcomePopup.tsx",
+      "Verify useAuth hook checks authenticated state",
+      "Verify useEffect only opens popup when !authenticated and !loading",
+      "Verify sessionStorage.getItem('pod-welcome-seen') check prevents re-showing"
+    ]
+  },
+  {
+    "id": 589,
+    "feature": "Landing Page + Route Restructuring",
+    "description": "WelcomePopup dismissed via sessionStorage, doesn't reappear in session",
+    "passes": false,
+    "steps": [
+      "Read frontend/src/components/engagement/WelcomePopup.tsx",
+      "Verify dismiss function calls sessionStorage.setItem('pod-welcome-seen', 'true')",
+      "Verify dismiss function calls setOpen(false)",
+      "Verify 'Continue as guest' button calls dismiss"
+    ]
+  },
+  {
+    "id": 590,
+    "feature": "Landing Page + Route Restructuring",
+    "description": "WelcomePopup never shows for authenticated users",
+    "passes": false,
+    "steps": [
+      "Read frontend/src/components/engagement/WelcomePopup.tsx",
+      "Verify useEffect has 'if (authenticated) return' before setting open to true",
+      "Verify useAuth import from @/hooks/useAuth"
+    ]
+  },
+  {
+    "id": 591,
+    "feature": "Landing Page + Route Restructuring",
+    "description": "WelcomePopup has logo, 3 benefits with Check icons, subscription teaser, and auth buttons",
+    "passes": false,
+    "steps": [
+      "Read frontend/src/components/engagement/WelcomePopup.tsx",
+      "Verify Dialog component wrapping the popup",
+      "Verify Check icon imported from lucide-react and used for benefits",
+      "Verify benefits array maps 3 items from t('benefit1'), t('benefit2'), t('benefit3')",
+      "Verify 'Create Free Account' button navigates to /auth/register",
+      "Verify 'Log In' button navigates to /auth/login"
+    ]
+  },
+  {
+    "id": 592,
+    "feature": "Landing Page + Route Restructuring",
+    "description": "StorefrontHeader shows Home + Chat + Shop nav links with correct active states",
+    "passes": false,
+    "steps": [
+      "Read frontend/src/components/storefront/StorefrontHeader.tsx",
+      "Verify isHomePage checks pathname === /${locale} or /${locale}/",
+      "Verify isChatPage checks pathname === /${locale}/chat or /${locale}/chat/",
+      "Verify 3 nav links: Home (href /${locale}), Chat (href /${locale}/chat), Shop (href /${locale}/shop)",
+      "Verify each link has bg-muted active state class when its page is active"
+    ]
+  },
+  {
+    "id": 593,
+    "feature": "Landing Page + Route Restructuring",
+    "description": "StorefrontSidebar has Home and Chat navigation items with MessageCircle icon",
+    "passes": false,
+    "steps": [
+      "Read frontend/src/components/storefront/StorefrontSidebar.tsx",
+      "Verify MessageCircle imported from lucide-react",
+      "Verify navigationItems array includes item with icon: Home and href: /${locale}",
+      "Verify navigationItems array includes item with icon: MessageCircle and href: /${locale}/chat"
+    ]
+  },
+  {
+    "id": 594,
+    "feature": "Landing Page + Route Restructuring",
+    "description": "Sidebar isActive correctly matches /chat exact and / exact without cross-matching",
+    "passes": false,
+    "steps": [
+      "Read frontend/src/components/storefront/StorefrontSidebar.tsx",
+      "Verify isActive has exact match case for /${locale} (home)",
+      "Verify isActive has exact match case for /${locale}/chat",
+      "Verify /chat match returns true only for /chat and /chat/ paths"
+    ]
+  },
+  {
+    "id": 595,
+    "feature": "Landing Page + Route Restructuring",
+    "description": "i18n keys landing.* and engagement.welcome.* present in all 3 locale files",
+    "passes": false,
+    "steps": [
+      "Read frontend/messages/en.json",
+      "Verify landing.heroTitle, landing.heroSubtitle, landing.heroCTA, landing.seasonalPicks, landing.todaysDesigns, landing.latestDesigns, landing.viewProduct keys exist",
+      "Verify engagement.welcome.title, engagement.welcome.description, engagement.welcome.benefit1, engagement.welcome.signUp, engagement.welcome.continueGuest keys exist",
+      "Read frontend/messages/es.json",
+      "Verify same landing.* and engagement.welcome.* keys exist with Spanish translations",
+      "Read frontend/messages/de.json",
+      "Verify same landing.* and engagement.welcome.* keys exist with German translations"
+    ]
+  },
+  {
+    "id": 596,
+    "feature": "Landing Page + Route Restructuring",
+    "description": "CommandPalette design action href points to /chat?prompt=design instead of root",
+    "passes": false,
+    "steps": [
+      "Read frontend/src/components/CommandPalette.tsx",
+      "Verify design command href contains /chat?prompt=design",
+      "Verify href does NOT point to /en?prompt=design (old pattern)"
+    ]
+  },
+  {
+    "id": 597,
+    "feature": "Landing Page + Route Restructuring",
+    "description": "DesignsGallery empty state 'Create Your First Design' links to /chat",
+    "passes": false,
+    "steps": [
+      "Read frontend/src/app/[locale]/(app)/designs/DesignsGallery.tsx",
+      "Verify Link href contains /${locale}/chat",
+      "Verify Link href does NOT point to /${locale} without /chat suffix"
+    ]
+  },
+  {
+    "id": 598,
+    "feature": "Landing Page + Route Restructuring",
+    "description": "sitemap.ts includes /en/chat, /es/chat, /de/chat entries with priority 0.9",
+    "passes": false,
+    "steps": [
+      "Read frontend/src/app/sitemap.ts",
+      "Verify entry with url containing /en/chat",
+      "Verify entry with url containing /es/chat",
+      "Verify entry with url containing /de/chat",
+      "Verify chat entries have priority: 0.9"
+    ]
+  },
+  {
+    "id": 599,
+    "feature": "Landing Page + Route Restructuring",
+    "description": "WelcomePopup mounted in StorefrontLayout only when isChatPage is true",
+    "passes": false,
+    "steps": [
+      "Read frontend/src/components/storefront/StorefrontLayout.tsx",
+      "Verify dynamic import of WelcomePopup with ssr: false",
+      "Verify {isChatPage && <WelcomePopup />} conditional render",
+      "Verify WelcomePopup import path is @/components/engagement/WelcomePopup"
     ]
   }
 ]
