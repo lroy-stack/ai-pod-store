@@ -3144,7 +3144,7 @@
     "id": 285,
     "feature": "Performance & Quality",
     "description": "Health check endpoint works (GET /api/health)",
-    "passes": false,
+    "passes": true,
     "steps": [
       "GET http://localhost:3000/api/health",
       "Verify 200 status code",
@@ -3155,7 +3155,7 @@
     "id": 286,
     "feature": "Performance & Quality",
     "description": "Error boundary catches React errors",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Trigger a component error",
       "Verify error boundary renders fallback UI instead of a white screen"
