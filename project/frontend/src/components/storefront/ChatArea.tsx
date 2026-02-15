@@ -196,8 +196,50 @@ export function ChatArea() {
     }
   }
 
+  // Drag-and-drop handlers
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    const files = e.dataTransfer.files
+    if (files && files.length > 0) {
+      const file = files[0]
+
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        alert('Please drop an image file')
+        return
+      }
+
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Image must be smaller than 5MB')
+        return
+      }
+
+      // Convert to base64 data URL
+      const reader = new FileReader()
+      reader.onload = (event) => {
+        const result = event.target?.result
+        if (typeof result === 'string') {
+          setSelectedImage(result)
+        }
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
   return (
-    <div className="flex flex-col flex-1 min-h-0 overflow-y-auto">
+    <div
+      className="flex flex-col flex-1 min-h-0 overflow-y-auto"
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+    >
       {/* Messages + Input (all scrollable, input sticky at bottom) */}
       <div className="flex-1 px-3 py-4 sm:px-4 md:px-6 md:py-6">
         {messages.length === 0 ? (
