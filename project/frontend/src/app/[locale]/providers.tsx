@@ -7,6 +7,7 @@ import { Toaster } from '@/components/ui/toaster'
 import { CartProvider } from '@/hooks/useCart'
 import { WishlistProvider } from '@/hooks/useWishlist'
 import { CommandPalette } from '@/components/CommandPalette'
+import { ServiceWorkerRegistration } from '@/components/ServiceWorkerRegistration'
 
 const locales = ['en', 'es', 'de']
 
@@ -36,6 +37,7 @@ async function ProvidersContent({
       >
         <CartProvider>
           <WishlistProvider>
+            <ServiceWorkerRegistration />
             {children}
             <Toaster />
             <CommandPalette />

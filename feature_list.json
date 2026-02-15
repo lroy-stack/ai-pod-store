@@ -3686,7 +3686,7 @@
     "id": 335,
     "feature": "PWA Support + Offline Mode",
     "description": "Service worker registered via @serwist/next",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Open DevTools > Application > Service Workers",
       "Verify a service worker is registered and active"

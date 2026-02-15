@@ -77,7 +77,8 @@ export async function POST(req: NextRequest) {
         is_read: false,
       }))
 
-      await supabase.from('notifications').insert(notifications).catch(() => {})
+      // Silently ignore notification insert errors (alert is already logged)
+      await supabase.from('notifications').insert(notifications)
     }
 
     return NextResponse.json({ sent: true })
