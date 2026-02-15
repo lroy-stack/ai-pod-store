@@ -16,12 +16,12 @@ const supabase = createClient(
 )
 
 export type UserTier = 'anonymous' | 'free' | 'premium'
-export type UsageAction = 'chat' | 'design:generate' | 'design:mockup' | 'design:save'
+export type UsageAction = 'chat' | 'chat:messages' | 'design:generate' | 'design:mockup' | 'design:save'
 
 export const USAGE_TIERS: Record<UserTier, Record<UsageAction, number>> = {
-  anonymous: { chat: 10, 'design:generate': 0, 'design:mockup': 0, 'design:save': 0 },
-  free:      { chat: 50, 'design:generate': 3, 'design:mockup': 5, 'design:save': 20 },
-  premium:   { chat: 500, 'design:generate': 30, 'design:mockup': 50, 'design:save': -1 },
+  anonymous: { chat: 5, 'chat:messages': 20, 'design:generate': 0, 'design:mockup': 3, 'design:save': 0 },
+  free:      { chat: 50, 'chat:messages': 200, 'design:generate': 3, 'design:mockup': 5, 'design:save': 20 },
+  premium:   { chat: 500, 'chat:messages': -1, 'design:generate': 30, 'design:mockup': 50, 'design:save': -1 },
 } as const
 
 export interface UsageResult {
@@ -338,7 +338,7 @@ export async function getUsageForTier(
   tier: UserTier
 ): Promise<Record<UsageAction, { used: number; limit: number; remaining: number }>> {
   const period = todayPeriod()
-  const actions: UsageAction[] = ['chat', 'design:generate', 'design:mockup', 'design:save']
+  const actions: UsageAction[] = ['chat', 'chat:messages', 'design:generate', 'design:mockup', 'design:save']
   const result = {} as Record<UsageAction, { used: number; limit: number; remaining: number }>
 
   for (const action of actions) {

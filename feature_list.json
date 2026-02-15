@@ -3587,7 +3587,7 @@
     "id": 326,
     "feature": "A/B Testing Framework",
     "description": "POST /api/ab-test/experiments creates experiment",
-    "passes": false,
+    "passes": true,
     "steps": [
       "POST /api/ab-test/experiments with name and variants",
       "Verify experiment is created with status 'draft'"
@@ -3608,7 +3608,7 @@
     "id": 328,
     "feature": "A/B Testing Framework",
     "description": "PUT /api/ab-test/experiments/:id starts/stops",
-    "passes": false,
+    "passes": true,
     "steps": [
       "PUT with status 'running' and verify started_at is set",
       "PUT with status 'completed' and verify ended_at is set"
@@ -3618,7 +3618,7 @@
     "id": 329,
     "feature": "A/B Testing Framework",
     "description": "Admin A/B test management page renders",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to http://localhost:3001/ab-tests",
       "Verify experiment list is displayed",
@@ -3641,7 +3641,7 @@
     "id": 331,
     "feature": "A/B Testing Framework",
     "description": "Experiment status transitions",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Create experiment and verify status is 'draft'",
       "Start experiment and verify status changes to 'running' with timestamp",
@@ -3663,7 +3663,7 @@
     "id": 333,
     "feature": "A/B Testing Framework",
     "description": "Admin can view experiment results",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to experiment detail page in admin",
       "Verify conversion rates are displayed",

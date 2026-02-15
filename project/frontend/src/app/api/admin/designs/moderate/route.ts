@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 import { z } from 'zod'
+import { requireAdmin, authErrorResponse } from '@/lib/auth-guard'
 
 const moderateDesignSchema = z.object({
   designId: z.string().uuid(),
@@ -14,8 +15,13 @@ const moderateDesignSchema = z.object({
  */
 export async function POST(req: NextRequest) {
   try {
-    // TODO: Add admin auth check
-    // For now, allow any request (will add auth middleware later)
+    // Admin auth check
+    let admin
+    try {
+      admin = await requireAdmin(req)
+    } catch (error) {
+      return authErrorResponse(error)
+    }
 
     const body = await req.json()
     const validation = moderateDesignSchema.safeParse(body)
@@ -35,6 +41,7 @@ export async function POST(req: NextRequest) {
       .update({
         moderation_status: action === 'approve' ? 'approved' : 'rejected',
         moderation_notes: moderationNotes || null,
+        moderated_by: admin.id,
       })
       .eq('id', designId)
       .select()
