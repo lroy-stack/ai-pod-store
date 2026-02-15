@@ -3187,7 +3187,7 @@
     "id": 289,
     "feature": "Performance & Quality",
     "description": "Forms show validation errors inline",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Submit empty login form and verify inline error under each required field",
       "Submit login form with invalid email and verify format error message"
@@ -3197,7 +3197,7 @@
     "id": 290,
     "feature": "Performance & Quality",
     "description": "Keyboard navigation works on forms and modals",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Tab through login form fields and verify focus is visible",
       "Open a modal and Tab through its elements",
