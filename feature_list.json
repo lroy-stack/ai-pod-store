@@ -4153,7 +4153,7 @@
     "id": 378,
     "feature": "Newsletter Agent",
     "description": "Newsletter agent sends locale-aware emails (en/es/de)",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Trigger newsletter for subscribers in different locales",
       "Verify email content is in subscriber's preferred language",
