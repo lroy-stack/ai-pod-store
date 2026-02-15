@@ -3922,7 +3922,7 @@
     "id": 357,
     "feature": "Marketing Agent",
     "description": "Marketing agent generates social media content for multiple platforms",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Trigger marketing agent via POST /agents/marketing/run",
       "Verify generated content includes Instagram, Twitter/X variations",
