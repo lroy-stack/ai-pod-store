@@ -4318,7 +4318,7 @@
     "id": 393,
     "feature": "Admin Panel Setup",
     "description": "Admin login rejects customer role users",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Log in with a user that has role='customer'",
       "Verify the user is rejected and cannot access admin pages",
@@ -4329,7 +4329,7 @@
     "id": 394,
     "feature": "Admin Panel Setup",
     "description": "Admin middleware redirects unauthenticated to /login",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to http://localhost:3001/ without being authenticated",
       "Verify the user is redirected to /login",
@@ -4340,7 +4340,7 @@
     "id": 395,
     "feature": "Admin Panel Setup",
     "description": "Admin bridge proxy catch-all route at /api/agent/[...path]/route.ts forwards all GET/POST requests to PODCLAW_BRIDGE_URL with auth header. Returns 503 with {error, offline:true} when bridge is offline.",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Make a GET request to http://localhost:3001/api/agent/status as admin",
       "Verify the request is proxied to PodClaw bridge at PODCLAW_BRIDGE_URL",
@@ -4351,7 +4351,7 @@
     "id": 396,
     "feature": "Admin Panel Setup",
     "description": "Admin bridge proxy forwards POST to PodClaw",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Make a POST request to http://localhost:3001/api/agent/start as admin",
       "Verify the request is proxied to PodClaw bridge at localhost:8000",
@@ -4362,7 +4362,7 @@
     "id": 397,
     "feature": "Admin Panel Setup",
     "description": "Admin bridge proxy requires admin auth",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Make a request to http://localhost:3001/api/agent/status without authentication",
       "Verify the request is rejected with 401 Unauthorized",
@@ -4373,7 +4373,7 @@
     "id": 398,
     "feature": "Admin Panel Setup",
     "description": "Admin SSE stream connects and delivers events",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Connect to http://localhost:3001/api/events/stream with admin auth",
       "Verify the connection uses Server-Sent Events (text/event-stream content type)",
@@ -4384,7 +4384,7 @@
     "id": 399,
     "feature": "Admin Panel Setup",
     "description": "Admin TopBar notification bell shows unread count",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Log in to admin panel at http://localhost:3001",
       "Verify the TopBar contains a notification bell icon",

@@ -5096,3 +5096,104 @@ $ curl http://localhost:3000/api/analytics/rfm
 4. Voice Input (#310-315) - Web Speech API
 5. Image Upload to chat (#316-321) - multimodal chat
 6. A/B Testing Framework (#322-333) - Edge Middleware variants
+
+## Session 125 (Coding Agent)
+**Tests passing**: 497/578 (86.0%)
+**Tests newly passing this session**: 6 features (#393-398)
+
+### Features Implemented:
+1. **#393**: Admin login rejects customer role users
+   - Verified login API returns 403 with "Access denied. Admin role required." for non-admin users
+   - Screenshot: admin-customer-rejection.png
+
+2. **#394**: Admin middleware redirects unauthenticated to /login
+   - Verified middleware redirects `/` and `/products` to `/login` when no session cookie present
+   - Used Puppeteer MCP for clean browser session testing
+
+3. **#395-397**: Admin bridge proxy with authentication
+   - Added `checkAdminAuth()` function to `/api/agent/[...path]/route.ts`
+   - Verified GET/POST/PUT requests require admin session
+   - Verified 503 response with `{error, offline: true}` when bridge unreachable
+   - Tested with curl using admin session cookies
+
+4. **#398**: Admin SSE stream endpoint
+   - Created `/api/events/stream/route.ts` with Server-Sent Events support
+   - Returns `text/event-stream` content type
+   - Sends `connected` event on connection + heartbeat every 30s
+   - Requires admin authentication (401 for unauthenticated)
+
+### Commits this session: 2
+1. feat: add admin auth to bridge proxy — tests #395-397 passing
+2. feat: add SSE stream endpoint for admin notifications — test #398 passing
+
+### Technical Details:
+- Admin panel uses httpOnly cookies for session management
+- Session cookie contains: `{id, email, role, name}`
+- Bridge proxy forwards to `PODCLAW_BRIDGE_URL` (default: http://localhost:8000)
+- SSE stream uses ReadableStream with heartbeat keepalive
+- All admin API routes check `role === 'admin'`
+
+### Verification Methods:
+- Browser testing: Playwright MCP + Puppeteer MCP
+- API testing: curl with session cookies
+- Screenshot evidence for visual features
+
+### Blocked Features (unchanged):
+- OAuth #299, #300, #302, #303: Require Google Cloud Console + Apple Developer + Supabase provider config
+- Marketing/Newsletter agent runtime (#357+): Require PodClaw process running
+
+### Next Session Priorities:
+1. Continue Admin Panel Setup features (#399-404)
+   - #399: TopBar notification bell with unread count
+   - #400: Designs gallery with approve/reject
+   - #401: Design create-product pipeline
+   - #402: Returns management with refund action
+   - #403: Messaging config page
+   - #404: Order Printify retry button
+2. Then: Telegram Integration (#405-421)
+3. Then: WhatsApp Integration (#422-435)
+4. Then: Messaging Infrastructure (#436-445)
+
+
+### Session 125 Final Summary:
+**Tests passing**: 498/578 (86.2%)
+**Tests newly passing this session**: 7 features (#393-399)
+
+**Features Implemented:**
+1. **#393**: Admin login rejects customer role users ✅
+2. **#394**: Admin middleware redirects unauthenticated to /login ✅
+3. **#395-397**: Admin bridge proxy with auth (GET/POST/PUT) ✅
+4. **#398**: Admin SSE stream endpoint ✅
+5. **#399**: Admin TopBar with notification bell ✅
+
+**Commits this session**: 3
+1. feat: add admin auth to bridge proxy — tests #395-397 passing
+2. feat: add SSE stream endpoint for admin notifications — test #398 passing
+3. feat: add TopBar with notification bell and dropdown — test #399 passing
+
+**Technical Highlights:**
+- Admin panel now has complete authentication flow:
+  * Login rejects customer role
+  * Middleware protects all routes
+  * Bridge proxy requires admin auth
+  * SSE stream requires admin auth
+- TopBar component with notification system:
+  * Custom dropdown implementation (no shadcn dropdown-menu needed)
+  * Bell icon with unread badge
+  * Click-outside-to-close functionality
+  * API endpoints for fetching notifications and marking as read
+  * Graceful handling when notifications table doesn't exist yet
+- All admin API routes use consistent `checkAdminAuth()` pattern
+- Session management via httpOnly cookies
+
+**Next Session Priorities:**
+1. Continue Admin Panel features (#400-404):
+   - #400: Designs gallery with approve/reject actions
+   - #401: Design create-product pipeline
+   - #402: Returns management with refund action
+   - #403: Messaging config page
+   - #404: Order Printify retry button
+2. Skip OAuth features (still blocked by external config)
+3. Skip PodClaw runtime features (require PodClaw running)
+4. Focus on implementable admin/messaging features
+
