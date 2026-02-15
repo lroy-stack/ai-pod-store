@@ -3036,7 +3036,7 @@
     "id": 275,
     "feature": "PodClaw Agent",
     "description": "Agent schedule cron jobs execute",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Set schedule for a test task at current time + 1 minute",
       "Wait for the scheduled time",

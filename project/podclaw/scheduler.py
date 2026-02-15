@@ -59,7 +59,12 @@ class PodClawScheduler:
         self.workspace_root = workspace_root or Path.cwd()
         self.schedule_file = self.workspace_root / "podclaw_schedule.json"
         self.current_schedule = self._load_schedule()
+        self._soul_evolution = None
         self._setup_jobs()
+
+    def set_soul_evolution(self, soul_evolution) -> None:
+        """Set the soul evolution reference for consolidation jobs."""
+        self._soul_evolution = soul_evolution
 
     def _load_schedule(self) -> dict:
         """Load schedule from file or return defaults."""
@@ -116,15 +121,21 @@ class PodClawScheduler:
             except Exception as e:
                 logger.error("job_add_failed", agent=agent_name, error=str(e))
 
-        # Always add memory consolidation at 23:30
+        # Always add memory consolidation at 23:30 (with soul review on Sundays)
         self.scheduler.add_job(
-            self.orchestrator.run_consolidation,
+            self._run_consolidation_with_soul,
             CronTrigger(hour=23, minute=30),
             id="memory_consolidation",
             name="Memory Consolidation",
         )
 
         logger.info("scheduler_configured", job_count=len(self.scheduler.get_jobs()))
+
+    async def _run_consolidation_with_soul(self) -> None:
+        """Run consolidation with optional soul evolution review."""
+        await self.orchestrator.run_consolidation(
+            soul_evolution=self._soul_evolution,
+        )
 
     def start(self) -> None:
         """Start the scheduler."""
@@ -174,13 +185,16 @@ class PodClawScheduler:
             job = self.scheduler.get_job(f"{agent_name}_scheduled")
             next_run = None
             if job:
-                # APScheduler 4.x uses different attribute
-                next_run_time = getattr(job, 'next_run_time', None) or getattr(job.trigger, 'next_fire_time', None)
+                # APScheduler 3.x uses 'next_run_time' attribute
+                next_run_time = getattr(job, 'next_run_time', None)
+                logger.debug("job_next_run", agent=agent_name, next_run_time=next_run_time, has_attr=hasattr(job, 'next_run_time'))
                 if next_run_time:
                     if hasattr(next_run_time, 'isoformat'):
                         next_run = next_run_time.isoformat()
                     else:
                         next_run = str(next_run_time)
+            else:
+                logger.warning("job_not_found", agent=agent_name, job_id=f"{agent_name}_scheduled")
 
             schedule_list.append({
                 "name": agent_name,
