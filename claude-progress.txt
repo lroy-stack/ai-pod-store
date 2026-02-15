@@ -3898,3 +3898,18 @@ Date: 2026-02-15 01:17 - 01:24 UTC
    - Each directory contains SKILL.md file with agent identity, tools, tasks, and guardrails
    - Verified client_factory.py loads skills from correct path
    - Each skill directory also has templates/ subdirectory for structured output
+
+3. **Feature #279** — Agent SOUL.md identity loaded at session start
+   - Verified SOUL.md exists at project/podclaw/SOUL.md
+   - Contains store identity, values, constraints, communication style, decision framework
+   - MemoryManager.read_soul() loads the file
+   - load_agent_context() wraps SOUL.md in [DATA source=SOUL.md] tags
+   - ClientFactory._build_system_prompt() includes SOUL.md in every agent's system prompt
+   - Verified via bridge API: GET /memory/soul returns full content
+   - Code review confirms SOUL.md is loaded before every session starts
+
+### Session Summary:
+- **Features completed**: 3 (IDs 277-279)
+- **Total passing**: 315/556 (56.7%)
+- **Browser testing**: Admin agent monitor verified via Playwright MCP
+- **API testing**: PodClaw bridge endpoints verified

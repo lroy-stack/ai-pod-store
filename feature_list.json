@@ -3080,7 +3080,7 @@
     "id": 279,
     "feature": "PodClaw Agent",
     "description": "Agent SOUL.md identity loaded at session start",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Start a new agent session",
       "Verify SOUL.md content is loaded",
