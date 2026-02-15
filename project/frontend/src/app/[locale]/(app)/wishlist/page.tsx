@@ -14,19 +14,23 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import Image from 'next/image';
 import Link from 'next/link';
-import { Heart, ShoppingCart, Share2, Trash2, Copy, Check } from 'lucide-react';
-import { formatPrice } from '@/lib/currency';
+import { Heart, ShoppingCart, Share2, Copy, Check, X } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-
+import { useWishlist } from '@/hooks/useWishlist';
+import { ProductGrid } from '@/components/products/ProductGrid';
+import { ProductCard } from '@/components/products/ProductCard';
 
 interface Product {
   id: string;
   title: string;
   description: string;
-  base_price: number;
-  images: string[];
+  price: number;
+  currency: string;
+  image: string;
+  rating?: number;
+  reviewCount?: number;
+  category?: string;
 }
 
 interface WishlistItem {
@@ -49,29 +53,64 @@ interface Wishlist {
 export default function WishlistPage() {
   const t = useTranslations();
   const { user } = useAuth();
+  const { wishlistItems, loading: wishlistLoading } = useWishlist();
+
+  // Auth mode: server wishlists
   const [wishlists, setWishlists] = useState<Wishlist[]>([]);
+  // Guest mode: product details fetched by IDs
+  const [guestProducts, setGuestProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Get user's preferred currency, fallback to EUR
-  const userCurrency = user?.currency || 'EUR';
-  const userLocale = user?.locale || 'en';
+  const [bannerDismissed, setBannerDismissed] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [shareUrl, setShareUrl] = useState('');
   const [copied, setCopied] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [newWishlistName, setNewWishlistName] = useState('');
 
+  // Auth mode: fetch wishlists from server
   useEffect(() => {
-    fetchWishlists();
-  }, []);
+    if (user) {
+      fetchWishlists();
+    }
+  }, [user]);
+
+  // Guest mode: fetch product details for localStorage wishlist items
+  useEffect(() => {
+    if (!user && !wishlistLoading) {
+      if (wishlistItems.length > 0) {
+        fetchGuestProducts(wishlistItems);
+      } else {
+        setGuestProducts([]);
+        setLoading(false);
+      }
+    }
+  }, [user, wishlistItems, wishlistLoading]);
 
   const fetchWishlists = async () => {
     try {
+      setLoading(true);
       const response = await fetch('/api/wishlist');
       const data = await response.json();
       setWishlists(data.wishlists || []);
     } catch (error) {
       console.error('Error fetching wishlists:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchGuestProducts = async (productIds: string[]) => {
+    try {
+      setLoading(true);
+      const ids = productIds.join(',');
+      const response = await fetch(`/api/products?ids=${ids}`);
+      const data = await response.json();
+      if (data.success && data.items) {
+        setGuestProducts(data.items);
+      }
+    } catch (error) {
+      console.error('Error fetching guest products:', error);
     } finally {
       setLoading(false);
     }
@@ -83,9 +122,7 @@ export default function WishlistPage() {
   };
 
   const createWishlist = async () => {
-    if (!newWishlistName.trim()) {
-      return;
-    }
+    if (!newWishlistName.trim()) return;
 
     try {
       const response = await fetch('/api/wishlist', {
@@ -104,45 +141,9 @@ export default function WishlistPage() {
     }
   };
 
-  const removeFromWishlist = async (itemId: string) => {
+  const addAllToCart = async (items: WishlistItem[]) => {
     try {
-      const response = await fetch(`/api/wishlist/items?item_id=${itemId}`, {
-        method: 'DELETE',
-      });
-
-      if (response.ok) {
-        await fetchWishlists();
-      }
-    } catch (error) {
-      console.error('Error removing item from wishlist:', error);
-    }
-  };
-
-  const addToCart = async (productId: string, variantId: string | null) => {
-    try {
-      const response = await fetch('/api/cart', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          product_id: productId,
-          variant_id: variantId,
-          quantity: 1,
-        }),
-      });
-
-      if (response.ok) {
-        // Optionally show success toast
-        console.log('Added to cart');
-      }
-    } catch (error) {
-      console.error('Error adding to cart:', error);
-    }
-  };
-
-  const addAllToCart = async (wishlistItems: WishlistItem[]) => {
-    try {
-      // Add each item to cart sequentially
-      for (const item of wishlistItems) {
+      for (const item of items) {
         await fetch('/api/cart', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -153,8 +154,6 @@ export default function WishlistPage() {
           }),
         });
       }
-      // Optionally show success toast
-      console.log(`Added ${wishlistItems.length} items to cart`);
     } catch (error) {
       console.error('Error adding all items to cart:', error);
     }
@@ -173,7 +172,6 @@ export default function WishlistPage() {
         setShareUrl(data.share_url);
         setShareDialogOpen(true);
         setCopied(false);
-        // Refresh wishlists to show updated is_public status
         await fetchWishlists();
       }
     } catch (error) {
@@ -191,37 +189,88 @@ export default function WishlistPage() {
     }
   };
 
-  if (loading) {
+  if (loading || wishlistLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="mb-6">
           <div className="h-8 w-48 bg-muted animate-pulse rounded" />
         </div>
-        <div className="grid gap-6">
-          {[1, 2].map((i) => (
-            <Card key={i} className="animate-pulse">
-              <CardHeader>
-                <div className="h-6 w-32 bg-muted rounded" />
-              </CardHeader>
-              <CardContent>
-                <div className="h-20 bg-muted rounded" />
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        <ProductGrid products={[]} isLoading skeletonCount={6} />
       </div>
     );
   }
+
+  // ==================== GUEST MODE ====================
+  if (!user) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold text-foreground">
+            {t('wishlist.myWishlist')}
+          </h1>
+        </div>
+
+        {guestProducts.length === 0 ? (
+          <Card>
+            <CardContent className="flex flex-col items-center justify-center py-12">
+              <Heart className="h-16 w-16 text-muted-foreground mb-4" />
+              <h2 className="text-xl font-semibold text-foreground mb-2">
+                {t('wishlist.empty')}
+              </h2>
+              <p className="text-muted-foreground mb-4 text-center">
+                {t('wishlist.emptyDescription')}
+              </p>
+              <Link href="/shop">
+                <Button>
+                  <ShoppingCart className="h-4 w-4 mr-2" />
+                  {t('wishlist.browseProducts')}
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+        ) : (
+          <>
+            {/* Promo bar — matches SignupBanner pattern */}
+            {!bannerDismissed && (
+              <div className="mb-4 px-4 py-2.5 bg-muted/60 border border-border/60 rounded-xl flex items-center justify-between gap-3 animate-in fade-in slide-in-from-bottom-1 duration-300">
+                <p className="text-xs text-muted-foreground">
+                  {t('wishlist.signInHeadline')}
+                </p>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <Link href="/auth/register">
+                    <Button size="sm" variant="default" className="h-7 text-xs px-3">
+                      {t('wishlist.createAccount')}
+                    </Button>
+                  </Link>
+                  <button
+                    onClick={() => setBannerDismissed(true)}
+                    className="text-xs text-muted-foreground hover:text-foreground"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            <ProductGrid products={guestProducts} />
+          </>
+        )}
+      </div>
+    );
+  }
+
+  // ==================== AUTH MODE ====================
+  const productGridClasses = 'grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-4';
 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 className="text-3xl font-bold text-foreground">
-          {t('wishlist.title', { default: 'My Wishlists' })}
+          {t('wishlist.title')}
         </h1>
         <Button onClick={openCreateDialog} className="w-full sm:w-auto">
           <Heart className="h-4 w-4 mr-2" />
-          {t('wishlist.createNew', { default: 'Create New Wishlist' })}
+          {t('wishlist.createNew')}
         </Button>
       </div>
 
@@ -230,16 +279,14 @@ export default function WishlistPage() {
           <CardContent className="flex flex-col items-center justify-center py-12">
             <Heart className="h-16 w-16 text-muted-foreground mb-4" />
             <h2 className="text-xl font-semibold text-foreground mb-2">
-              {t('wishlist.empty', { default: 'No wishlists yet' })}
+              {t('wishlist.empty')}
             </h2>
             <p className="text-muted-foreground mb-4 text-center">
-              {t('wishlist.emptyDescription', {
-                default: 'Create a wishlist to save your favorite products',
-              })}
+              {t('wishlist.emptyDescription')}
             </p>
             <Button onClick={openCreateDialog}>
               <Heart className="h-4 w-4 mr-2" />
-              {t('wishlist.createFirst', { default: 'Create Your First Wishlist' })}
+              {t('wishlist.createFirst')}
             </Button>
           </CardContent>
         </Card>
@@ -253,7 +300,7 @@ export default function WishlistPage() {
                     <CardTitle className="text-xl">{wishlist.name}</CardTitle>
                     {wishlist.is_public && (
                       <Badge variant="outline">
-                        {t('wishlist.public', { default: 'Public' })}
+                        {t('wishlist.public')}
                       </Badge>
                     )}
                   </div>
@@ -264,7 +311,7 @@ export default function WishlistPage() {
                       onClick={() => shareWishlist(wishlist.id)}
                     >
                       <Share2 className="h-4 w-4 mr-2" />
-                      {t('wishlist.share', { default: 'Share' })}
+                      {t('wishlist.share')}
                     </Button>
                     <Button
                       variant="outline"
@@ -273,7 +320,7 @@ export default function WishlistPage() {
                       disabled={wishlist.wishlist_items.length === 0}
                     >
                       <ShoppingCart className="h-4 w-4 mr-2" />
-                      {t('wishlist.addAllToCart', { default: 'Add All to Cart' })}
+                      {t('wishlist.addAllToCart')}
                     </Button>
                   </div>
                 </div>
@@ -282,55 +329,15 @@ export default function WishlistPage() {
               <CardContent className="pt-6">
                 {wishlist.wishlist_items.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
-                    {t('wishlist.noItems', {
-                      default: 'No items in this wishlist yet',
-                    })}
+                    {t('wishlist.noItems')}
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className={productGridClasses}>
                     {wishlist.wishlist_items.map((item) => (
-                      <div
+                      <ProductCard
                         key={item.id}
-                        className="border border-border rounded-lg p-4 hover:border-primary transition-colors"
-                      >
-                        <Link
-                          href={`/products/${item.products.id}`}
-                          className="block"
-                        >
-                          <div className="relative aspect-square mb-3 bg-muted rounded-md overflow-hidden">
-                            <Image
-                              src={item.products.images[0] || '/placeholder.png'}
-                              alt={item.products.title}
-                              fill
-                              className="object-cover"
-                              sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                            />
-                          </div>
-                          <h3 className="font-semibold text-foreground mb-1 line-clamp-2">
-                            {item.products.title}
-                          </h3>
-                          <p className="text-sm text-primary font-semibold">
-                            {formatPrice(item.products.base_price, userLocale, userCurrency)}
-                          </p>
-                        </Link>
-                        <div className="flex gap-2 mt-3">
-                          <Button
-                            size="sm"
-                            className="flex-1"
-                            onClick={() => addToCart(item.products.id, item.variant_id)}
-                          >
-                            <ShoppingCart className="h-3 w-3 mr-1" />
-                            {t('wishlist.addToCart', { default: 'Add to Cart' })}
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => removeFromWishlist(item.id)}
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      </div>
+                        product={item.products}
+                      />
                     ))}
                   </div>
                 )}
@@ -344,12 +351,10 @@ export default function WishlistPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {t('wishlist.createTitle', { default: 'Create New Wishlist' })}
+              {t('wishlist.createTitle')}
             </DialogTitle>
             <DialogDescription>
-              {t('wishlist.createDescription', {
-                default: 'Give your wishlist a name to organize your favorite products',
-              })}
+              {t('wishlist.createDescription')}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 mt-4">
@@ -357,9 +362,7 @@ export default function WishlistPage() {
               <Input
                 value={newWishlistName}
                 onChange={(e) => setNewWishlistName(e.target.value)}
-                placeholder={t('wishlist.namePlaceholder', {
-                  default: 'e.g., Gifts, Favorites, Summer Collection',
-                })}
+                placeholder={t('wishlist.namePlaceholder')}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     createWishlist();
@@ -373,13 +376,13 @@ export default function WishlistPage() {
                 variant="outline"
                 onClick={() => setCreateDialogOpen(false)}
               >
-                {t('wishlist.cancel', { default: 'Cancel' })}
+                {t('wishlist.cancel')}
               </Button>
               <Button
                 onClick={createWishlist}
                 disabled={!newWishlistName.trim()}
               >
-                {t('wishlist.create', { default: 'Create' })}
+                {t('wishlist.create')}
               </Button>
             </div>
           </div>
@@ -390,12 +393,10 @@ export default function WishlistPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {t('wishlist.shareTitle', { default: 'Share Wishlist' })}
+              {t('wishlist.shareTitle')}
             </DialogTitle>
             <DialogDescription>
-              {t('wishlist.shareDescription', {
-                default: 'Anyone with this link can view your wishlist',
-              })}
+              {t('wishlist.shareDescription')}
             </DialogDescription>
           </DialogHeader>
           <div className="flex gap-2 mt-4">
@@ -409,19 +410,18 @@ export default function WishlistPage() {
               {copied ? (
                 <>
                   <Check className="h-4 w-4 mr-2" />
-                  {t('wishlist.copied', { default: 'Copied' })}
+                  {t('wishlist.copied')}
                 </>
               ) : (
                 <>
                   <Copy className="h-4 w-4 mr-2" />
-                  {t('wishlist.copy', { default: 'Copy' })}
+                  {t('wishlist.copy')}
                 </>
               )}
             </Button>
           </div>
         </DialogContent>
       </Dialog>
-
     </div>
   );
 }

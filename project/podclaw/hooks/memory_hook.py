@@ -3,10 +3,12 @@ PodClaw — Memory Hook (PostToolUse)
 =====================================
 
 Appends action summaries to today's daily memory log.
+Optionally pushes high-priority actions to the heartbeat event queue.
 """
 
 from __future__ import annotations
 
+from datetime import datetime, timezone
 from typing import Any, Callable, Optional
 
 import structlog
@@ -16,9 +18,13 @@ from podclaw.memory_manager import MemoryManager
 logger = structlog.get_logger(__name__)
 
 
-def memory_hook(memory_manager: MemoryManager) -> Callable:
+def memory_hook(memory_manager: MemoryManager, event_queue=None) -> Callable:
     """
     Factory: creates a PostToolUse hook bound to a MemoryManager instance.
+
+    Args:
+        memory_manager: The memory manager for daily log appends
+        event_queue: Optional SystemEventQueue for heartbeat integration
     """
 
     async def _hook(
@@ -52,6 +58,18 @@ def memory_hook(memory_manager: MemoryManager) -> Callable:
                 else:
                     summary += f"input_keys={list(tool_input.keys())[:5]}"
             await memory_manager.append_daily(agent_name, summary)
+
+        # Push high-priority actions to heartbeat event queue
+        HIGH_PRIORITY_TOOLS = {"stripe_create_refund", "printify_delete_product"}
+        if event_queue and tool_name in HIGH_PRIORITY_TOOLS:
+            from podclaw.event_queue import SystemEvent
+            await event_queue.push(SystemEvent(
+                source=agent_name,
+                event_type="high_priority_action",
+                payload={"tool": tool_name, "input_keys": list(tool_input.keys())[:5]},
+                created_at=datetime.now(timezone.utc),
+                wake_mode="next-heartbeat",
+            ))
 
         return {}
 

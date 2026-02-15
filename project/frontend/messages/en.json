@@ -326,7 +326,11 @@
     "createDescription": "Give your wishlist a name to organize your favorite products",
     "namePlaceholder": "e.g., Gifts, Favorites, Summer Collection",
     "cancel": "Cancel",
-    "create": "Create"
+    "create": "Create",
+    "myWishlist": "My Wishlist",
+    "signInHeadline": "Your favorites aren't saved yet",
+    "signIn": "Sign In",
+    "createAccount": "Create Free Account"
   },
   "Checkout": {
     "title": "Checkout",
@@ -600,7 +604,10 @@
     "goHome": "Go Home",
     "notFoundTitle": "Page Not Found",
     "notFoundDescription": "The page you are looking for does not exist or has been moved.",
-    "backToStore": "Back to Store"
+    "backToStore": "Back to Store",
+    "productNotFoundTitle": "Product Not Found",
+    "productNotFoundDescription": "The product you are looking for does not exist or is no longer available.",
+    "browseProducts": "Browse Products"
   },
   "footer": {
     "description": "AI-powered print-on-demand storefront. Design, customize, and order unique products.",

@@ -8,13 +8,7 @@
 
 import { NextRequest } from 'next/server'
 import { requireAuth, authErrorResponse } from '@/lib/auth-guard'
-import { createClient } from '@supabase/supabase-js'
-
-const supabase = createClient(
-  process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_KEY!,
-  { auth: { autoRefreshToken: false, persistSession: false } }
-)
+import { supabaseAdmin } from '@/lib/supabase-admin'
 
 export async function POST(req: NextRequest) {
   try {
@@ -30,7 +24,7 @@ export async function POST(req: NextRequest) {
     const itemsToSync = items.slice(0, 50)
 
     // Get or create default wishlist
-    let { data: wishlists } = await supabase
+    let { data: wishlists } = await supabaseAdmin
       .from('wishlists')
       .select('id')
       .eq('user_id', user.id)
@@ -40,7 +34,7 @@ export async function POST(req: NextRequest) {
     let wishlistId: string
 
     if (!wishlists || wishlists.length === 0) {
-      const { data: newWishlist, error: createError } = await supabase
+      const { data: newWishlist, error: createError } = await supabaseAdmin
         .from('wishlists')
         .insert({ user_id: user.id, name: 'My Wishlist', is_public: false })
         .select('id')
@@ -54,31 +48,31 @@ export async function POST(req: NextRequest) {
       wishlistId = wishlists[0].id
     }
 
-    // Bulk upsert items (skip duplicates via ON CONFLICT)
+    // Insert items individually — the partial unique index (idx_wishlist_items_no_variant)
+    // correctly prevents duplicates when variant_id IS NULL.
     const insertItems = itemsToSync.map((item: { product_id: string }) => ({
       wishlist_id: wishlistId,
       product_id: item.product_id,
       variant_id: null,
     }))
 
-    const { error: insertError } = await supabase
-      .from('wishlist_items')
-      .upsert(insertItems, { onConflict: 'wishlist_id,product_id', ignoreDuplicates: true })
-
-    if (insertError) {
-      console.error('Wishlist sync insert error:', insertError)
-      // Don't fail — some items may have been inserted
+    let synced = 0
+    for (const item of insertItems) {
+      const { error } = await supabaseAdmin
+        .from('wishlist_items')
+        .upsert(item, { onConflict: 'wishlist_id,product_id', ignoreDuplicates: true })
+      if (!error) synced++
     }
 
     // Fetch merged wishlist
-    const { data: mergedItems } = await supabase
+    const { data: mergedItems } = await supabaseAdmin
       .from('wishlist_items')
       .select('id, product_id')
       .eq('wishlist_id', wishlistId)
 
     return Response.json({
       success: true,
-      synced: itemsToSync.length,
+      synced,
       wishlistId,
       items: mergedItems || [],
     })

@@ -8,36 +8,14 @@ declare global {
   }
 }
 
-declare const self: ServiceWorkerGlobalScope & typeof globalThis
+declare const self: any
 
 const serwist = new Serwist({
   precacheEntries: self.__SW_MANIFEST,
   skipWaiting: true,
   clientsClaim: true,
   navigationPreload: true,
-  runtimeCaching: [
-    // Cache product images aggressively
-    {
-      urlPattern: /\.(png|jpg|jpeg|webp|svg|gif|ico)$/i,
-      handler: 'CacheFirst',
-      options: {
-        cacheName: 'images',
-        expiration: { maxEntries: 200, maxAgeSeconds: 30 * 24 * 60 * 60 },
-      },
-    },
-    // Cache API responses with network-first
-    {
-      urlPattern: /\/api\//,
-      handler: 'NetworkFirst',
-      options: {
-        cacheName: 'api-cache',
-        expiration: { maxEntries: 50, maxAgeSeconds: 5 * 60 },
-        networkTimeoutSeconds: 3,
-      },
-    },
-    // Default cache rules from @serwist/next
-    ...defaultCache,
-  ],
+  runtimeCaching: defaultCache,
   fallbacks: {
     entries: [
       {
@@ -53,9 +31,9 @@ const serwist = new Serwist({
 serwist.addEventListeners()
 
 // --- Web Push Notification Handlers (preserved from original sw.js) ---
-self.addEventListener('push', (event) => {
+self.addEventListener('push', (event: any) => {
   const data = event.data ? event.data.json() : {}
-  const options = {
+  const options: any = {
     body: data.body || '',
     icon: '/icon-192.png',
     badge: '/icon-192.png',
@@ -69,11 +47,11 @@ self.addEventListener('push', (event) => {
   )
 })
 
-self.addEventListener('notificationclick', (event) => {
+self.addEventListener('notificationclick', (event: any) => {
   event.notification.close()
   const url = event.notification.data?.url || '/'
   event.waitUntil(
-    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients: any) => {
       for (const client of clients) {
         if (client.url.includes(self.location.origin) && 'focus' in client) {
           client.navigate(url)

@@ -1,42 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-import { cookies } from 'next/headers';
-
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_KEY!
-);
+import { requireAuth, authErrorResponse } from '@/lib/auth-guard';
+import { supabaseAdmin } from '@/lib/supabase-admin';
 
 // POST /api/wishlist/items - Add item to wishlist
 export async function POST(request: NextRequest) {
   try {
-    const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get('sb-session');
-
-    if (!sessionCookie) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      );
-    }
-
-    let userId: string | null = null;
-    try {
-      const sessionData = JSON.parse(sessionCookie.value);
-      userId = sessionData.user?.id;
-    } catch {
-      return NextResponse.json(
-        { error: 'Invalid session' },
-        { status: 401 }
-      );
-    }
-
-    if (!userId) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      );
-    }
+    const user = await requireAuth(request);
 
     const body = await request.json();
     const { wishlist_id, product_id, variant_id } = body;
@@ -49,11 +18,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify wishlist belongs to user
-    const { data: wishlist, error: wishlistError } = await supabase
+    const { data: wishlist, error: wishlistError } = await supabaseAdmin
       .from('wishlists')
       .select('id')
       .eq('id', wishlist_id)
-      .eq('user_id', userId)
+      .eq('user_id', user.id)
       .single();
 
     if (wishlistError || !wishlist) {
@@ -63,14 +32,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if item already exists
-    const { data: existing } = await supabase
+    // Check if item already exists — use .is(null) for NULL variant_id
+    let existingQuery = supabaseAdmin
       .from('wishlist_items')
       .select('id')
       .eq('wishlist_id', wishlist_id)
-      .eq('product_id', product_id)
-      .eq('variant_id', variant_id || null)
-      .maybeSingle();
+      .eq('product_id', product_id);
+
+    if (variant_id) {
+      existingQuery = existingQuery.eq('variant_id', variant_id);
+    } else {
+      existingQuery = existingQuery.is('variant_id', null);
+    }
+
+    const { data: existing } = await existingQuery.maybeSingle();
 
     if (existing) {
       return NextResponse.json(
@@ -80,7 +55,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Add item to wishlist
-    const { data: item, error } = await supabase
+    const { data: item, error } = await supabaseAdmin
       .from('wishlist_items')
       .insert({
         wishlist_id,
@@ -100,44 +75,14 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, item }, { status: 201 });
   } catch (error) {
-    console.error('Wishlist items API error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return authErrorResponse(error);
   }
 }
 
 // DELETE /api/wishlist/items - Remove item from wishlist
 export async function DELETE(request: NextRequest) {
   try {
-    const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get('sb-session');
-
-    if (!sessionCookie) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      );
-    }
-
-    let userId: string | null = null;
-    try {
-      const sessionData = JSON.parse(sessionCookie.value);
-      userId = sessionData.user?.id;
-    } catch {
-      return NextResponse.json(
-        { error: 'Invalid session' },
-        { status: 401 }
-      );
-    }
-
-    if (!userId) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      );
-    }
+    const user = await requireAuth(request);
 
     const { searchParams } = new URL(request.url);
     const item_id = searchParams.get('item_id');
@@ -150,13 +95,13 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Verify item belongs to user's wishlist
-    const { data: item } = await supabase
+    const { data: item } = await supabaseAdmin
       .from('wishlist_items')
       .select('wishlist_id, wishlists!inner(user_id)')
       .eq('id', item_id)
       .single();
 
-    if (!item || (item.wishlists as any).user_id !== userId) {
+    if (!item || (item.wishlists as any).user_id !== user.id) {
       return NextResponse.json(
         { error: 'Item not found' },
         { status: 404 }
@@ -164,7 +109,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Delete item
-    const { error } = await supabase
+    const { error } = await supabaseAdmin
       .from('wishlist_items')
       .delete()
       .eq('id', item_id);
@@ -179,10 +124,6 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Wishlist items DELETE error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return authErrorResponse(error);
   }
 }

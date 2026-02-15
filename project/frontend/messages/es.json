@@ -326,7 +326,11 @@
     "createDescription": "Dale un nombre a tu lista para organizar tus productos favoritos",
     "namePlaceholder": "ej., Regalos, Favoritos, Colección de Verano",
     "cancel": "Cancelar",
-    "create": "Crear"
+    "create": "Crear",
+    "myWishlist": "Mi Lista de Deseos",
+    "signInHeadline": "Tus favoritos aún no están guardados",
+    "signIn": "Iniciar Sesión",
+    "createAccount": "Crear Cuenta Gratis"
   },
   "Checkout": {
     "title": "Finalizar Compra",
@@ -600,7 +604,10 @@
     "goHome": "Ir al inicio",
     "notFoundTitle": "Página no encontrada",
     "notFoundDescription": "La página que buscas no existe o ha sido movida.",
-    "backToStore": "Volver a la tienda"
+    "backToStore": "Volver a la tienda",
+    "productNotFoundTitle": "Producto no encontrado",
+    "productNotFoundDescription": "El producto que buscas no existe o ya no está disponible.",
+    "browseProducts": "Ver Productos"
   },
   "footer": {
     "description": "Tienda de impresión bajo demanda impulsada por IA. Diseña, personaliza y ordena productos únicos.",

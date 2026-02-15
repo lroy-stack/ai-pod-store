@@ -1,43 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-import { cookies } from 'next/headers';
+import { requireAuth, authErrorResponse } from '@/lib/auth-guard';
+import { supabaseAdmin } from '@/lib/supabase-admin';
 import { randomBytes } from 'crypto';
-
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_KEY!
-);
 
 // POST /api/wishlist/share - Generate share token for a wishlist
 export async function POST(request: NextRequest) {
   try {
-    const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get('sb-session');
-
-    if (!sessionCookie) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      );
-    }
-
-    let userId: string | null = null;
-    try {
-      const sessionData = JSON.parse(sessionCookie.value);
-      userId = sessionData.user?.id;
-    } catch {
-      return NextResponse.json(
-        { error: 'Invalid session' },
-        { status: 401 }
-      );
-    }
-
-    if (!userId) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      );
-    }
+    const user = await requireAuth(request);
 
     const body = await request.json();
     const { wishlist_id } = body;
@@ -50,11 +19,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify the wishlist belongs to the user
-    const { data: wishlist, error: fetchError } = await supabase
+    const { data: wishlist, error: fetchError } = await supabaseAdmin
       .from('wishlists')
       .select('id, share_token, is_public')
       .eq('id', wishlist_id)
-      .eq('user_id', userId)
+      .eq('user_id', user.id)
       .single();
 
     if (fetchError || !wishlist) {
@@ -78,7 +47,7 @@ export async function POST(request: NextRequest) {
     const shareToken = randomBytes(16).toString('hex');
 
     // Update wishlist with share token and set is_public to true
-    const { error: updateError } = await supabase
+    const { error: updateError } = await supabaseAdmin
       .from('wishlists')
       .update({
         share_token: shareToken,
@@ -102,10 +71,6 @@ export async function POST(request: NextRequest) {
       share_url: shareUrl,
     });
   } catch (error) {
-    console.error('Share wishlist error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return authErrorResponse(error);
   }
 }

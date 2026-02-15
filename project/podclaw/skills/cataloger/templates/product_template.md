@@ -3,7 +3,7 @@
 ## Required Fields
 - **Title**: {en} | {es} | {de}
 - **Description**: {en} | {es} | {de}
-- **Price**: ${usd} (base + margin)
+- **Price**: €{eur} (base + margin)
 - **Category**: {category}
 - **Blueprint ID**: {printify_blueprint}
 - **Print Provider ID**: {provider}

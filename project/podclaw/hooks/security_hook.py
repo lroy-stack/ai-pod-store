@@ -19,6 +19,8 @@ from typing import Any, Optional
 
 import structlog
 
+import re
+
 from podclaw.config import (
     REFUND_APPROVAL_THRESHOLD,
     PRICE_CHANGE_MAX_PERCENT,
@@ -26,6 +28,16 @@ from podclaw.config import (
 )
 
 logger = structlog.get_logger(__name__)
+
+# Approved RPC functions (from Supabase migrations)
+ALLOWED_RPC_FUNCTIONS = frozenset({
+    "match_products",
+    "match_product_embeddings",
+    "match_designs",
+})
+
+# Valid identifier regex (same as supabase_connector._TABLE_RE)
+_RPC_NAME_RE = re.compile(r"^[a-zA-Z_][a-zA-Z0-9_]*$")
 
 # Supabase client (set via init_security)
 _supabase_client: Any = None
@@ -147,11 +159,13 @@ async def security_hook(
                 "Requires human approval."
             )
 
-    # --- SQL injection prevention ---
+    # --- RPC whitelist (defense-in-depth, supabase_connector also validates) ---
     if tool_name == "supabase_rpc":
         func_name = tool_input.get("function_name", "")
-        if any(c in func_name for c in [";", "--", "'", '"', "DROP", "DELETE"]):
-            return _deny(f"Suspicious RPC function name: {func_name}")
+        if not _RPC_NAME_RE.match(func_name):
+            return _deny(f"Invalid RPC function name format: {func_name}")
+        if func_name not in ALLOWED_RPC_FUNCTIONS:
+            return _deny(f"RPC function not in approved list: {func_name}")
 
     return {}
 

@@ -1,6 +1,6 @@
 {
   "researcher": {
-    "schedule": "0 7 * * *",
+    "schedule": "0 6 * * *",
     "description": "Daily trend research",
     "model": "haiku",
     "enabled": true

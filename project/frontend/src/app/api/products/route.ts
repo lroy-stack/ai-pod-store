@@ -409,6 +409,42 @@ export async function GET(request: NextRequest) {
     const sort = searchParams.get('sort')
     const newArrivals = searchParams.get('newArrivals')
 
+    // Fast-path: fetch by product IDs (used by guest wishlist)
+    const ids = searchParams.get('ids')
+    if (ids) {
+      const idList = ids.split(',').filter(Boolean).slice(0, 50)
+      if (idList.length === 0) {
+        return NextResponse.json({ success: true, total: 0, items: [], page: 1, limit: 50, totalPages: 0 })
+      }
+
+      const { data: products, error: idsError } = await supabaseAdmin
+        .from('products')
+        .select('id, title, description, category, tags, base_price_cents, currency, images, status, avg_rating, review_count, created_at, translations')
+        .eq('status', 'active')
+        .in('id', idList)
+
+      if (idsError) {
+        return NextResponse.json({ success: false, error: 'Failed to fetch products' }, { status: 500 })
+      }
+
+      const items = (products || []).map((p) => {
+        const { title, description } = applyTranslations(p, locale)
+        return {
+          id: p.id,
+          title,
+          description,
+          price: p.base_price_cents / 100,
+          currency: p.currency?.toUpperCase() || 'EUR',
+          image: Array.isArray(p.images) && p.images.length > 0 ? (p.images[0].src || p.images[0].url) : '',
+          images: Array.isArray(p.images) ? p.images.map((img: any) => img.src || img.url || '') : [],
+          rating: Number(p.avg_rating) || 0,
+          reviewCount: p.review_count || 0,
+          category: p.category?.toLowerCase(),
+        }
+      })
+      return NextResponse.json({ success: true, total: items.length, items, page: 1, limit: items.length, totalPages: 1 })
+    }
+
     // If search query exists, use hybrid search (vector + keyword)
     if (search && search.trim().length > 0) {
       return await hybridSearch(search, category, locale, page, limit, sort)

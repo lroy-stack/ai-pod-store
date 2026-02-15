@@ -89,7 +89,7 @@ def _build_connectors() -> dict:
     return connectors
 
 
-def _build_hooks(event_store, memory_manager) -> dict[str, list]:
+def _build_hooks(event_store, memory_manager, event_queue=None) -> dict[str, list]:
     """Build the hook chains for all sub-agents."""
     from podclaw.hooks.security_hook import security_hook
     from podclaw.hooks.cost_guard_hook import cost_guard_hook
@@ -107,7 +107,7 @@ def _build_hooks(event_store, memory_manager) -> dict[str, list]:
         ],
         "post_tool_use": [
             event_log_hook(event_store),
-            memory_hook(memory_manager),
+            memory_hook(memory_manager, event_queue=event_queue),
             metrics_hook,
         ],
         "stop": [],
@@ -130,6 +130,9 @@ async def _run(args: argparse.Namespace) -> None:
     from podclaw.client_factory import ClientFactory
     from podclaw.core import Orchestrator
     from podclaw.scheduler import PodClawScheduler
+    from podclaw.event_queue import SystemEventQueue
+    from podclaw.soul_evolution import SoulEvolution
+    from podclaw.heartbeat import HeartbeatRunner
 
     # Initialize components
     memory_manager = MemoryManager(workspace)
@@ -156,8 +159,11 @@ async def _run(args: argparse.Namespace) -> None:
         init_rate_limit(supabase_client)
         init_security(supabase_client)
 
+    # System event queue (inter-agent communication)
+    event_queue = SystemEventQueue()
+
     connectors = _build_connectors()
-    hooks = _build_hooks(event_store, memory_manager)
+    hooks = _build_hooks(event_store, memory_manager, event_queue=event_queue)
 
     skills_dir = Path(__file__).parent / "skills"
 
@@ -176,6 +182,21 @@ async def _run(args: argparse.Namespace) -> None:
 
     scheduler = PodClawScheduler(orchestrator, workspace_root=workspace)
 
+    # Soul evolution (controlled SOUL.md mutation)
+    soul_evolution = SoulEvolution(memory_manager.soul_path, event_store, memory_manager)
+    scheduler.set_soul_evolution(soul_evolution)
+
+    # Heartbeat runner
+    heartbeat_runner = HeartbeatRunner(
+        orchestrator=orchestrator,
+        event_store=event_store,
+        memory_manager=memory_manager,
+        event_queue=event_queue,
+        workspace=workspace,
+        interval_minutes=_cfg.HEARTBEAT_INTERVAL_MINUTES,
+        active_hours=(_cfg.HEARTBEAT_ACTIVE_HOURS_START, _cfg.HEARTBEAT_ACTIVE_HOURS_END),
+    )
+
     if args.dry_run:
         logger.info("dry_run_mode", workspace=str(workspace))
         status = orchestrator.get_status()
@@ -189,11 +210,17 @@ async def _run(args: argparse.Namespace) -> None:
         print(f"  Agents: {status['agent_count']}")
         print(f"  Scheduled jobs: {len(jobs)}")
         print(f"  SOUL.md: {'found' if memory_manager.soul_path.exists() else 'missing'}")
+        print(f"  Heartbeat: {'enabled' if _cfg.HEARTBEAT_ENABLED else 'disabled'}")
+        print(f"  Soul Evolution: {'enabled' if _cfg.SOUL_EVOLUTION_ENABLED else 'disabled'}")
         return
 
     # Start orchestrator
     orchestrator.start()
     scheduler.start()
+
+    # Start heartbeat
+    if _cfg.HEARTBEAT_ENABLED:
+        heartbeat_runner.start()
 
     # Start FastAPI bridge
     if not args.no_bridge:
@@ -201,7 +228,12 @@ async def _run(args: argparse.Namespace) -> None:
         import uvicorn
         from podclaw.config import BRIDGE_HOST, BRIDGE_PORT
 
-        app = create_app(orchestrator, scheduler, event_store, memory_manager)
+        app = create_app(
+            orchestrator, scheduler, event_store, memory_manager,
+            heartbeat=heartbeat_runner,
+            event_queue=event_queue,
+            soul_evolution=soul_evolution,
+        )
 
         config = uvicorn.Config(
             app, host=BRIDGE_HOST, port=BRIDGE_PORT,
@@ -212,9 +244,16 @@ async def _run(args: argparse.Namespace) -> None:
         # Handle shutdown signals
         loop = asyncio.get_event_loop()
         for sig in (signal.SIGINT, signal.SIGTERM):
-            loop.add_signal_handler(sig, lambda: asyncio.create_task(_shutdown(scheduler, orchestrator, server)))
+            loop.add_signal_handler(
+                sig,
+                lambda: asyncio.create_task(
+                    _shutdown(scheduler, orchestrator, server, heartbeat_runner)
+                ),
+            )
 
-        logger.info("podclaw_started", bridge=f"http://{BRIDGE_HOST}:{BRIDGE_PORT}")
+        logger.info("podclaw_started",
+                     bridge=f"http://{BRIDGE_HOST}:{BRIDGE_PORT}",
+                     heartbeat=_cfg.HEARTBEAT_ENABLED)
         await server.serve()
     else:
         # No bridge — just run scheduler
@@ -226,13 +265,16 @@ async def _run(args: argparse.Namespace) -> None:
             loop.add_signal_handler(sig, stop_event.set)
 
         await stop_event.wait()
+        heartbeat_runner.stop()
         scheduler.stop()
         orchestrator.stop()
 
 
-async def _shutdown(scheduler, orchestrator, server) -> None:
+async def _shutdown(scheduler, orchestrator, server, heartbeat=None) -> None:
     """Graceful shutdown."""
     logger.info("shutdown_initiated")
+    if heartbeat:
+        heartbeat.stop()
     scheduler.stop()
     orchestrator.stop()
     server.should_exit = True

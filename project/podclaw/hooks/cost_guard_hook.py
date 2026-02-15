@@ -20,7 +20,7 @@ from podclaw.config import AGENT_DAILY_BUDGETS, DEFAULT_DAILY_BUDGET
 
 logger = structlog.get_logger(__name__)
 
-# Estimated cost per tool call (USD) — conservative estimates
+# Estimated cost per tool call (EUR) — conservative estimates
 TOOL_COSTS: dict[str, float] = {
     "fal_generate": 0.05,
     "gemini_embed_text": 0.0,
@@ -66,6 +66,9 @@ TOOL_COSTS: dict[str, float] = {
 
 # In-memory daily cost tracker (fallback): {date_str: {agent_name: total_cost}}
 _daily_costs: dict[str, dict[str, float]] = {}
+
+# Lock for in-memory cost tracking
+_cost_lock = asyncio.Lock()
 
 # Supabase client (set via init_cost_guard)
 _supabase_client: Any = None
@@ -141,7 +144,10 @@ def _add_cost_sync(agent_name: str, cost: float) -> float | None:
 
 
 async def _add_cost(agent_name: str, cost: float) -> float:
-    """Add cost and return new total."""
+    """Add cost and return new total.
+
+    Caller MUST hold _cost_lock to prevent TOCTOU with _get_agent_cost.
+    """
     if _supabase_client:
         try:
             result = await asyncio.to_thread(_add_cost_sync, agent_name, cost)
@@ -150,7 +156,7 @@ async def _add_cost(agent_name: str, cost: float) -> float:
         except Exception as e:
             logger.warning("cost_guard_supabase_write_failed", error=str(e))
 
-    # Fallback to in-memory
+    # Fallback to in-memory (no lock here — caller holds _cost_lock)
     today = _today_key()
     if today not in _daily_costs:
         _daily_costs.clear()
@@ -166,31 +172,37 @@ async def cost_guard_hook(
 ) -> dict[str, Any]:
     """
     PreToolUse hook: enforce daily budget per agent.
+
+    The entire check-and-increment is atomic under _cost_lock to prevent
+    TOCTOU: two concurrent hooks both passing the budget check before either
+    increments the counter.
     """
     tool_name = input_data.get("tool_name", "")
     agent_name = input_data.get("_agent_name", "unknown")
 
     estimated_cost = TOOL_COSTS.get(tool_name, 0.001)
-
     budget = AGENT_DAILY_BUDGETS.get(agent_name, DEFAULT_DAILY_BUDGET)
-    current_cost = await _get_agent_cost(agent_name)
 
-    if current_cost + estimated_cost > budget:
-        reason = (
-            f"Agent '{agent_name}' daily budget exceeded: "
-            f"${current_cost:.4f} + ${estimated_cost:.4f} > ${budget:.2f} limit"
-        )
-        logger.warning("cost_guard_denied", agent=agent_name, cost=current_cost, budget=budget)
-        return {
-            "hookSpecificOutput": {
-                "hookEventName": "PreToolUse",
-                "permissionDecision": "deny",
-                "permissionDecisionReason": reason,
+    # Atomic check-and-increment under lock
+    async with _cost_lock:
+        current_cost = await _get_agent_cost(agent_name)
+
+        if current_cost + estimated_cost > budget:
+            reason = (
+                f"Agent '{agent_name}' daily budget exceeded: "
+                f"€{current_cost:.4f} + €{estimated_cost:.4f} > €{budget:.2f} limit"
+            )
+            logger.warning("cost_guard_denied", agent=agent_name, cost=current_cost, budget=budget)
+            return {
+                "hookSpecificOutput": {
+                    "hookEventName": "PreToolUse",
+                    "permissionDecision": "deny",
+                    "permissionDecisionReason": reason,
+                }
             }
-        }
 
-    new_total = await _add_cost(agent_name, estimated_cost)
-    logger.debug("cost_tracked", agent=agent_name, tool=tool_name, cost=estimated_cost, total=new_total)
+        new_total = await _add_cost(agent_name, estimated_cost)
+        logger.debug("cost_tracked", agent=agent_name, tool=tool_name, cost=estimated_cost, total=new_total)
 
     return {}
 

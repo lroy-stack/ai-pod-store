@@ -34,9 +34,11 @@ export async function GET(request: NextRequest) {
         .default
 
       // Cache for next time (fire and forget)
-      setCachedTranslations(locale, translations).catch(() => {
-        // Silent fail - caching is optional
-      })
+      if (translations) {
+        setCachedTranslations(locale, translations).catch(() => {
+          // Silent fail - caching is optional
+        })
+      }
     } catch (error) {
       return NextResponse.json(
         { error: 'Failed to load translations' },
@@ -49,7 +51,7 @@ export async function GET(request: NextRequest) {
 
   return NextResponse.json({
     locale,
-    translationCount: Object.keys(translations).length,
+    translationCount: translations ? Object.keys(translations).length : 0,
     fromCache,
     redisAvailable: isRedisAvailable(),
     duration,

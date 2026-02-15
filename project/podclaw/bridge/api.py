@@ -27,14 +27,29 @@ Endpoints:
   GET  /memory/daily        — Today's memory log
   GET  /memory/context/{file} — Read a context file
   GET  /memory/soul         — Read SOUL.md
+  GET  /memory/heartbeat    — Read HEARTBEAT.md
+  PUT  /memory/heartbeat    — Update HEARTBEAT.md
+  GET  /heartbeat/status    — Heartbeat runner status
+  POST /heartbeat/trigger   — Trigger manual heartbeat
+  POST /heartbeat/pause     — Pause heartbeat
+  POST /heartbeat/resume    — Resume heartbeat
+  GET  /heartbeat/alerts    — Query heartbeat alerts
+  GET  /queue               — Peek at event queue
+  POST /queue/push          — Push manual event
+  GET  /soul                — Read SOUL.md
+  GET  /soul/proposals      — Pending soul proposals
+  POST /soul/proposals/{id}/approve — Approve proposal
+  POST /soul/proposals/{id}/reject  — Reject proposal
 """
 
 from __future__ import annotations
 
+from datetime import datetime, timezone
 from typing import TYPE_CHECKING
 
 from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel, Field
 
 from podclaw.bridge.auth import require_auth
 
@@ -43,6 +58,9 @@ if TYPE_CHECKING:
     from podclaw.scheduler import PodClawScheduler
     from podclaw.event_store import EventStore
     from podclaw.memory_manager import MemoryManager
+    from podclaw.heartbeat import HeartbeatRunner
+    from podclaw.event_queue import SystemEventQueue
+    from podclaw.soul_evolution import SoulEvolution
 
 
 def create_app(
@@ -50,13 +68,16 @@ def create_app(
     scheduler: "PodClawScheduler",
     event_store: "EventStore",
     memory_manager: "MemoryManager",
+    heartbeat: "HeartbeatRunner | None" = None,
+    event_queue: "SystemEventQueue | None" = None,
+    soul_evolution: "SoulEvolution | None" = None,
 ) -> FastAPI:
     """Create the FastAPI application with all routes."""
 
     app = FastAPI(
         title="PodClaw Bridge",
         description="Control API for PodClaw autonomous store manager",
-        version="0.1.0",
+        version="0.2.0",
     )
 
     app.add_middleware(
@@ -125,6 +146,8 @@ def create_app(
     async def emergency_stop():
         orchestrator.stop()
         scheduler.stop()
+        if heartbeat:
+            heartbeat.stop()
         return {"status": "stopped", "message": "All agents halted"}
 
     # ----- Events -----
@@ -298,19 +321,187 @@ def create_app(
 
     @app.get("/memory/context/{filename}", dependencies=[Depends(require_auth)])
     async def get_context_file(filename: str):
-        content = memory_manager.read_context(filename)
+        try:
+            content = memory_manager.read_context(filename)
+        except ValueError as e:
+            raise HTTPException(400, str(e))
         if not content:
             raise HTTPException(404, f"Context file not found: {filename}")
         return {"content": content, "filename": filename}
 
     @app.get("/memory/soul", dependencies=[Depends(require_auth)])
-    async def get_soul():
+    async def get_soul_legacy():
         return {"content": memory_manager.read_soul()}
+
+    @app.post("/memory/consolidate", dependencies=[Depends(require_auth)])
+    async def run_consolidation():
+        """Trigger memory consolidation cycle manually."""
+        await orchestrator.run_consolidation()
+        return {"status": "ok", "message": "Memory consolidation completed"}
+
+    # ----- Memory: HEARTBEAT.md -----
+
+    @app.get("/memory/heartbeat", dependencies=[Depends(require_auth)])
+    async def get_heartbeat_md():
+        """Read the HEARTBEAT.md checklist."""
+        return {"content": memory_manager.read_heartbeat()}
+
+    @app.put("/memory/heartbeat", dependencies=[Depends(require_auth)])
+    async def update_heartbeat_md(body: dict):
+        """Update the HEARTBEAT.md checklist."""
+        content = body.get("content")
+        if content is None:
+            raise HTTPException(400, "Missing 'content' field")
+        await memory_manager.update_heartbeat(content)
+        return {"status": "ok"}
+
+    # ----- Heartbeat Runner -----
+
+    @app.get("/heartbeat/status", dependencies=[Depends(require_auth)])
+    async def get_heartbeat_status():
+        """Get heartbeat runner status."""
+        if not heartbeat:
+            return {"running": False, "message": "Heartbeat not initialized"}
+        return heartbeat.get_status()
+
+    @app.post("/heartbeat/trigger", dependencies=[Depends(require_auth)])
+    async def trigger_heartbeat():
+        """Trigger a manual heartbeat cycle."""
+        if not heartbeat:
+            raise HTTPException(503, "Heartbeat not initialized")
+        result = await heartbeat.run_once()
+        return result
+
+    @app.post("/heartbeat/pause", dependencies=[Depends(require_auth)])
+    async def pause_heartbeat():
+        """Pause the heartbeat runner."""
+        if not heartbeat:
+            raise HTTPException(503, "Heartbeat not initialized")
+        heartbeat.pause()
+        return {"status": "paused"}
+
+    @app.post("/heartbeat/resume", dependencies=[Depends(require_auth)])
+    async def resume_heartbeat():
+        """Resume the heartbeat runner."""
+        if not heartbeat:
+            raise HTTPException(503, "Heartbeat not initialized")
+        heartbeat.resume()
+        return {"status": "resumed"}
+
+    @app.get("/heartbeat/alerts", dependencies=[Depends(require_auth)])
+    async def get_heartbeat_alerts(
+        limit: int = Query(default=20, le=100),
+    ):
+        """Query recent heartbeat alerts from heartbeat_events table."""
+        import asyncio
+        if not event_store._client:
+            return {"alerts": [], "count": 0}
+
+        try:
+            result = await asyncio.to_thread(
+                lambda: (
+                    event_store._client.table("heartbeat_events")
+                    .select("*")
+                    .in_("event_type", ["alert", "dispatch"])
+                    .order("created_at", desc=True)
+                    .limit(limit)
+                    .execute()
+                )
+            )
+            alerts = result.data if result.data else []
+            return {"alerts": alerts, "count": len(alerts)}
+        except Exception as e:
+            raise HTTPException(500, f"Failed to query alerts: {str(e)}")
+
+    # ----- Event Queue -----
+
+    @app.get("/queue", dependencies=[Depends(require_auth)])
+    async def peek_queue():
+        """Peek at the system event queue without draining."""
+        if not event_queue:
+            return {"events": [], "size": 0}
+        events = await event_queue.peek()
+        return {
+            "events": [e.to_dict() for e in events],
+            "size": event_queue.size,
+        }
+
+    class QueuePushRequest(BaseModel):
+        source: str = Field(default="admin", max_length=50)
+        event_type: str = Field(default="message", max_length=50)
+        payload: dict = Field(default_factory=dict)
+        wake_mode: str = Field(default="next-heartbeat", pattern=r"^(now|next-heartbeat)$")
+        target_agent: str | None = Field(default=None, max_length=50)
+
+    @app.post("/queue/push", dependencies=[Depends(require_auth)])
+    async def push_queue_event(body: QueuePushRequest):
+        """Push a manual event to the system event queue."""
+        if not event_queue:
+            raise HTTPException(503, "Event queue not initialized")
+
+        # Limit payload size (10KB)
+        import json as _json
+        payload_str = _json.dumps(body.payload)
+        if len(payload_str) > 10_240:
+            raise HTTPException(400, "Payload exceeds 10KB limit")
+
+        from podclaw.event_queue import SystemEvent
+        event = SystemEvent(
+            source=body.source,
+            event_type=body.event_type,
+            payload=body.payload,
+            created_at=datetime.now(timezone.utc),
+            wake_mode=body.wake_mode,
+            target_agent=body.target_agent,
+        )
+        added = await event_queue.push(event)
+        return {"status": "ok", "added": added, "queue_size": event_queue.size}
+
+    # ----- Soul Evolution -----
+
+    @app.get("/soul", dependencies=[Depends(require_auth)])
+    async def get_soul():
+        """Read the full SOUL.md content."""
+        return {"content": memory_manager.read_soul()}
+
+    @app.get("/soul/proposals", dependencies=[Depends(require_auth)])
+    async def get_soul_proposals():
+        """List pending soul evolution proposals."""
+        if not soul_evolution:
+            return {"proposals": [], "count": 0}
+        proposals = soul_evolution.get_pending_proposals()
+        return {"proposals": proposals, "count": len(proposals)}
+
+    @app.post("/soul/proposals/{proposal_id}/approve", dependencies=[Depends(require_auth)])
+    async def approve_soul_proposal(proposal_id: str):
+        """Approve and apply a pending soul proposal."""
+        if not soul_evolution:
+            raise HTTPException(503, "Soul evolution not initialized")
+        success = await soul_evolution.apply_proposal(proposal_id)
+        if not success:
+            raise HTTPException(404, f"Proposal not found: {proposal_id}")
+        return {"status": "approved", "proposal_id": proposal_id}
+
+    @app.post("/soul/proposals/{proposal_id}/reject", dependencies=[Depends(require_auth)])
+    async def reject_soul_proposal(proposal_id: str, body: dict | None = None):
+        """Reject a pending soul proposal."""
+        if not soul_evolution:
+            raise HTTPException(503, "Soul evolution not initialized")
+        reason = (body or {}).get("reason", "")
+        success = await soul_evolution.reject_proposal(proposal_id, reason)
+        if not success:
+            raise HTTPException(404, f"Proposal not found: {proposal_id}")
+        return {"status": "rejected", "proposal_id": proposal_id}
 
     # ----- Health -----
 
     @app.get("/health")
     async def health():
-        return {"status": "ok", "service": "podclaw-bridge"}
+        return {
+            "status": "ok",
+            "service": "podclaw-bridge",
+            "heartbeat": heartbeat.get_status() if heartbeat else None,
+            "queue_size": event_queue.size if event_queue else 0,
+        }
 
     return app

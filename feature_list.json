@@ -3165,7 +3165,7 @@
     "id": 287,
     "feature": "Performance & Quality",
     "description": "404 and 500 pages render correctly",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate to /en/nonexistent and verify 404 page renders",
       "Trigger a server error and verify 500 page renders",

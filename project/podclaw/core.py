@@ -8,12 +8,14 @@ Manages agent lifecycle, session tracking, and error handling.
 
 from __future__ import annotations
 
-import time
+import asyncio
 import uuid
 from datetime import datetime, timezone
 from typing import Any
 
 import structlog
+
+from claude_agent_sdk import ResultMessage
 
 from podclaw.config import AGENT_MODELS, AGENT_TOOLS, MAX_ACTIONS_PER_CYCLE
 from podclaw.client_factory import ClientFactory
@@ -26,6 +28,8 @@ AGENT_NAMES = [
     "researcher", "marketing", "designer", "newsletter",
     "cataloger", "customer_manager", "seo_manager", "finance",
 ]
+
+ALL_SESSION_TYPES = AGENT_NAMES + ["heartbeat", "consolidation"]
 
 
 class Orchestrator:
@@ -51,6 +55,7 @@ class Orchestrator:
         self.memory = memory_manager
         self._active_sessions: dict[str, str] = {}  # agent_name → session_id
         self._running = False
+        self._session_lock = asyncio.Lock()
 
     @property
     def is_running(self) -> bool:
@@ -80,24 +85,28 @@ class Orchestrator:
         Returns:
             Session result dict with events, duration, etc.
         """
-        if not self._running:
-            logger.warning("orchestrator_not_running", agent=agent_name)
-            return {"status": "skipped", "reason": "orchestrator not running"}
+        # Acquire lock for check-then-set of _active_sessions
+        async with self._session_lock:
+            if not self._running:
+                logger.warning("orchestrator_not_running", agent=agent_name)
+                return {"status": "skipped", "reason": "orchestrator not running"}
 
-        if agent_name in self._active_sessions:
-            logger.warning("agent_already_running", agent=agent_name)
-            return {"status": "skipped", "reason": "already running"}
+            if agent_name in self._active_sessions:
+                logger.warning("agent_already_running", agent=agent_name)
+                return {"status": "skipped", "reason": "already running"}
 
-        if agent_name not in AGENT_NAMES:
-            logger.error("unknown_agent", agent=agent_name)
-            return {"status": "error", "reason": f"unknown agent: {agent_name}"}
+            if agent_name not in AGENT_NAMES:
+                logger.error("unknown_agent", agent=agent_name)
+                return {"status": "error", "reason": f"unknown agent: {agent_name}"}
 
-        # Reset rate limit counters for this agent's new session
-        from podclaw.hooks.rate_limit_hook import reset_counters
-        reset_counters(agent_name)
+            # Reset rate limit counters for this agent's new session
+            from podclaw.hooks.rate_limit_hook import reset_counters
+            reset_counters(agent_name)
 
-        session_id = str(uuid.uuid4())
-        self._active_sessions[agent_name] = session_id
+            session_id = str(uuid.uuid4())
+            self._active_sessions[agent_name] = session_id
+
+        # Release lock — agent execution is long-running
         start_time = datetime.now(timezone.utc)
 
         # Write session row to agent_sessions table
@@ -122,44 +131,36 @@ class Orchestrator:
         }
 
         try:
-            client = self.factory.create_client(agent_name)
+            # Pass session_id so hooks get proper context
+            client = self.factory.create_client(agent_name, session_id=session_id)
+
+            await client.connect()
 
             prompt = task or self._default_task(agent_name)
 
-            # Use streaming SDK pattern
+            # SDK handles hooks (can_use_tool, PreToolUse, PostToolUse) natively
             await client.query(prompt)
             tool_calls = 0
             response_text = ""
+            result_message = None
+
             async for msg in client.receive_response():
+                if isinstance(msg, ResultMessage):
+                    result_message = msg
+                    break
                 if hasattr(msg, "content"):
                     for block in msg.content:
                         block_type = type(block).__name__
                         if block_type == "ToolUseBlock":
                             tool_calls += 1
-                            # Measure latency for metrics hook
-                            t0 = time.monotonic()
-                            tool_error = None
-                            try:
-                                # Tool execution happens inside the SDK
-                                pass
-                            except Exception as te:
-                                tool_error = str(te)
-                            latency_ms = (time.monotonic() - t0) * 1000
-
-                            await self.events.record(
-                                agent_name=agent_name,
-                                event_type="tool_use",
-                                payload={
-                                    "tool": block.name,
-                                    "input": block.input,
-                                    "_agent_name": agent_name,
-                                    "_latency_ms": latency_ms,
-                                    "_error": tool_error,
-                                },
-                                session_id=session_id,
-                            )
                         elif block_type == "TextBlock":
                             response_text += block.text
+
+            # Use ResultMessage stats when available
+            if result_message:
+                result["num_turns"] = getattr(result_message, "num_turns", None)
+                result["total_cost_usd"] = getattr(result_message, "total_cost_usd", None)
+                result["session_id_sdk"] = getattr(result_message, "session_id", None)
 
             result["response"] = response_text[:2000]
             result["tool_calls"] = tool_calls
@@ -183,10 +184,18 @@ class Orchestrator:
             )
 
         finally:
+            # Disconnect the client if it was created
+            try:
+                if 'client' in locals():
+                    await client.disconnect()
+            except Exception as e:
+                logger.warning("client_disconnect_failed", error=str(e))
+
             end_time = datetime.now(timezone.utc)
             result["end_time"] = end_time.isoformat()
             result["duration_seconds"] = (end_time - start_time).total_seconds()
-            self._active_sessions.pop(agent_name, None)
+            async with self._session_lock:
+                self._active_sessions.pop(agent_name, None)
 
             await self.events.record(
                 agent_name=agent_name,
@@ -234,10 +243,75 @@ class Orchestrator:
     # Memory Consolidation
     # -----------------------------------------------------------------------
 
-    async def run_consolidation(self) -> None:
-        """Run the 23:30 UTC memory consolidation cycle."""
+    async def run_consolidation(self, soul_evolution=None) -> None:
+        """Run the 23:30 UTC memory consolidation cycle, with optional soul review."""
         logger.info("consolidation_starting")
         await self.memory.run_consolidation()
+
+        # Weekly soul review on Sundays
+        if soul_evolution:
+            from datetime import datetime, timezone
+            if datetime.now(timezone.utc).weekday() == 6:  # Sunday
+                await self._review_soul(soul_evolution)
+
+    async def _review_soul(self, soul_evolution) -> None:
+        """
+        LLM (Sonnet) compares SOUL.md + recent MEMORY.md and proposes changes.
+        Only runs during Sunday consolidation.
+        """
+        from podclaw.config import CONSOLIDATION_MODEL, CONSOLIDATION_MAX_TOKENS
+
+        soul = self.memory.read_soul()
+        memory = self.memory.read_memory()
+
+        if not soul:
+            return
+
+        try:
+            import anthropic
+            client = anthropic.AsyncAnthropic()
+
+            response = await client.messages.create(
+                model=CONSOLIDATION_MODEL,
+                max_tokens=CONSOLIDATION_MAX_TOKENS,
+                system=(
+                    "You are PodClaw's soul evolution reviewer. Compare the current SOUL.md "
+                    "with recent memory/learnings. Decide if any section should be updated. "
+                    "Respond with JSON: {\"action\": \"NO_CHANGES\"} or "
+                    "{\"action\": \"PROPOSE\", \"section\": \"Section Name\", "
+                    "\"proposed\": \"new content\", \"reasoning\": \"why\"}. "
+                    "Only propose changes based on strong evidence from memory. "
+                    "NEVER propose changes to Constraints or Escalation Rules."
+                ),
+                messages=[{
+                    "role": "user",
+                    "content": (
+                        f"## Current SOUL.md\n{soul[:4000]}\n\n"
+                        f"## Recent Memory\n{memory[-3000:]}\n\n"
+                        "Should any section of SOUL.md be updated?"
+                    ),
+                }],
+            )
+
+            import json
+            text = response.content[0].text.strip()
+            if text.startswith("```"):
+                text = text.split("\n", 1)[1].rsplit("```", 1)[0].strip()
+
+            result = json.loads(text)
+
+            if result.get("action") == "PROPOSE":
+                await soul_evolution.propose_change(
+                    section=result["section"],
+                    proposed_content=result["proposed"],
+                    reasoning=result["reasoning"],
+                )
+                logger.info("soul_review_proposed", section=result["section"])
+            else:
+                logger.info("soul_review_no_changes")
+
+        except Exception as e:
+            logger.warning("soul_review_failed", error=str(e))
 
     # -----------------------------------------------------------------------
     # Status

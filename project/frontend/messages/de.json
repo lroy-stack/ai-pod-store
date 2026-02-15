@@ -326,7 +326,11 @@
     "createDescription": "Gib deiner Wunschliste einen Namen, um deine Lieblingsprodukte zu organisieren",
     "namePlaceholder": "z.B., Geschenke, Favoriten, Sommerkollektion",
     "cancel": "Abbrechen",
-    "create": "Erstellen"
+    "create": "Erstellen",
+    "myWishlist": "Meine Wunschliste",
+    "signInHeadline": "Deine Favoriten sind noch nicht gesichert",
+    "signIn": "Anmelden",
+    "createAccount": "Kostenlos registrieren"
   },
   "Checkout": {
     "title": "Zur Kasse",
@@ -600,7 +604,10 @@
     "goHome": "Zur Startseite",
     "notFoundTitle": "Seite nicht gefunden",
     "notFoundDescription": "Die gesuchte Seite existiert nicht oder wurde verschoben.",
-    "backToStore": "Zurück zum Shop"
+    "backToStore": "Zurück zum Shop",
+    "productNotFoundTitle": "Produkt nicht gefunden",
+    "productNotFoundDescription": "Das gesuchte Produkt existiert nicht oder ist nicht mehr verfügbar.",
+    "browseProducts": "Produkte durchsuchen"
   },
   "footer": {
     "description": "KI-gestützte Print-on-Demand-Plattform. Entwerfen, anpassen und bestellen Sie einzigartige Produkte.",

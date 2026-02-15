@@ -444,8 +444,8 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
     }
 
     const isActive = subscription.status === 'active'
-    const periodEnd = subscription.current_period_end
-      ? new Date(subscription.current_period_end * 1000).toISOString()
+    const periodEnd = (subscription as any).current_period_end
+      ? new Date((subscription as any).current_period_end * 1000).toISOString()
       : null
 
     // Update user tier and subscription info

@@ -27,7 +27,7 @@ AGENT_MODELS: dict[str, str] = {
 }
 
 # ---------------------------------------------------------------------------
-# Daily Budget (USD) per agent
+# Daily Budget (EUR) per agent
 # ---------------------------------------------------------------------------
 DEFAULT_DAILY_BUDGET = float(os.environ.get("PODCLAW_DAILY_BUDGET", "5.0"))
 
@@ -94,6 +94,35 @@ BRIDGE_AUTH_TOKEN = os.environ.get("PODCLAW_BRIDGE_AUTH_TOKEN", "")
 BRIDGE_AUTH_ENABLED = os.environ.get("PODCLAW_BRIDGE_AUTH_ENABLED", "true").lower() == "true"
 BRIDGE_RATE_LIMIT_MAX = int(os.environ.get("PODCLAW_BRIDGE_RATE_LIMIT_MAX", "10"))
 BRIDGE_RATE_LIMIT_WINDOW = int(os.environ.get("PODCLAW_BRIDGE_RATE_LIMIT_WINDOW", "60"))
+
+# ---------------------------------------------------------------------------
+# Heartbeat Configuration
+# ---------------------------------------------------------------------------
+HEARTBEAT_INTERVAL_MINUTES = int(os.environ.get("PODCLAW_HEARTBEAT_INTERVAL", "30"))
+HEARTBEAT_ACTIVE_HOURS_START = int(os.environ.get("PODCLAW_HEARTBEAT_ACTIVE_START", "5"))
+HEARTBEAT_ACTIVE_HOURS_END = int(os.environ.get("PODCLAW_HEARTBEAT_ACTIVE_END", "23"))
+HEARTBEAT_MODEL = os.environ.get("PODCLAW_HEARTBEAT_MODEL", MODEL_RESEARCH)  # Haiku
+HEARTBEAT_MAX_TOKENS = int(os.environ.get("PODCLAW_HEARTBEAT_MAX_TOKENS", "1024"))
+HEARTBEAT_DEDUP_HOURS = int(os.environ.get("PODCLAW_HEARTBEAT_DEDUP_HOURS", "24"))
+HEARTBEAT_ENABLED = os.environ.get("PODCLAW_HEARTBEAT_ENABLED", "true").lower() == "true"
+
+# ---------------------------------------------------------------------------
+# Agentic Consolidation
+# ---------------------------------------------------------------------------
+CONSOLIDATION_MODEL = os.environ.get("PODCLAW_CONSOLIDATION_MODEL", MODEL_COMPLEX)  # Sonnet
+CONSOLIDATION_MAX_TOKENS = int(os.environ.get("PODCLAW_CONSOLIDATION_MAX_TOKENS", "2048"))
+
+# ---------------------------------------------------------------------------
+# Soul Evolution
+# ---------------------------------------------------------------------------
+SOUL_EVOLUTION_ENABLED = os.environ.get("PODCLAW_SOUL_EVOLUTION_ENABLED", "true").lower() == "true"
+SOUL_MAX_LINES = int(os.environ.get("PODCLAW_SOUL_MAX_LINES", "200"))
+SOUL_AUTO_APPROVE = os.environ.get("PODCLAW_SOUL_AUTO_APPROVE", "true").lower() == "true"
+
+# ---------------------------------------------------------------------------
+# Admin Notifications
+# ---------------------------------------------------------------------------
+ADMIN_TELEGRAM_CHAT_ID = os.environ.get("PODCLAW_ADMIN_TELEGRAM_CHAT_ID", "")
 
 # ---------------------------------------------------------------------------
 # Supabase

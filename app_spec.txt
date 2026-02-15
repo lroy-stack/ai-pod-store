@@ -1866,6 +1866,58 @@
       - Weekly consolidation extracts action lines only (lines starting with "- ") instead of copying daily verbatim
       - memory_hook: significant_tools expanded to include telegram_send, telegram_broadcast, whatsapp_send, whatsapp_send_template, printify_publish, resend_send_batch
     </phase_17>
+
+    <phase_18 name="PodClaw Heartbeat + Learning System">
+      <!-- Heartbeat Runner: periodic store health monitor -->
+      - heartbeat.py: HeartbeatRunner class with asyncio.Task-based loop
+      - Runs every 30 minutes (configurable via PODCLAW_HEARTBEAT_INTERVAL)
+      - Active hours: 05:00-23:00 UTC (configurable)
+      - Reads HEARTBEAT.md checklist + daily log tail + event queue
+      - Calls Haiku via Anthropic API (direct, no Agent SDK) for analysis
+      - Actions: HEARTBEAT_OK (log), ALERT (notify admin via Telegram), DISPATCH (run agent)
+      - Dedup: SHA256 fingerprint prevents duplicate alerts within 24h
+      - Cost: ~$0.04/day (48 Haiku calls)
+      - Bridge endpoints: GET/POST heartbeat/status, trigger, pause, resume, alerts
+
+      <!-- System Event Queue: inter-agent communication -->
+      - event_queue.py: SystemEventQueue with bounded deque (max 20 events)
+      - SystemEvent dataclass: source, event_type, payload, wake_mode, target_agent
+      - Async-safe with asyncio.Lock for push/drain/peek operations
+      - memory_hook pushes high-priority actions (refunds, deletes) to queue
+      - Heartbeat drains queue each cycle; admin can push events via bridge
+      - Bridge endpoints: GET /queue, POST /queue/push
+
+      <!-- Agentic Consolidation: LLM-powered memory summarization -->
+      - memory_manager.py: consolidate_daily_to_weekly uses Sonnet to summarize daily logs
+      - _llm_summarize_daily: focuses on key actions, patterns, metrics, follow-ups
+      - consolidate_weekly_to_memory uses Sonnet to extract durable facts with categories
+      - _llm_extract_learnings: categorizes as [Pattern], [Learning], [Opinion c=N], [Fact]
+      - Compares against existing MEMORY.md to avoid duplicates
+      - _mechanical_extract: fallback if LLM fails (original line-copying logic)
+      - Cost: ~$0.01/day (1 Sonnet call for daily, 1/week for weekly)
+
+      <!-- Soul Evolution: controlled SOUL.md mutation -->
+      - soul_evolution.py: SoulEvolution class with propose/apply/reject workflow
+      - IMMUTABLE_SECTIONS: "Constraints" and "Escalation Rules" cannot be modified
+      - REVIEW_TRIGGERS: destructive keywords require admin approval
+      - SOUL_MAX_LINES limit prevents unbounded growth
+      - Weekly review (Sundays during consolidation): Sonnet compares SOUL.md + MEMORY.md
+      - All changes generate unified diffs, logged to soul_change_log table
+      - Evolution Log section appended to SOUL.md for change history
+      - Bridge endpoints: GET /soul, GET/POST soul/proposals, approve, reject
+
+      <!-- Infrastructure -->
+      - config.py: 13 new constants (heartbeat, consolidation, soul evolution, admin notifications)
+      - Migration: 20260215120000_heartbeat_tables.sql (heartbeat_events, soul_change_log tables)
+      - agent_sessions type constraint updated to include 'heartbeat' and 'consolidation'
+      - main.py: full wiring of event_queue, soul_evolution, heartbeat_runner
+      - scheduler.py: consolidation job passes soul_evolution for Sunday review
+      - hooks/memory_hook.py: event_queue parameter for high-priority action forwarding
+      - bridge/api.py: 13 new endpoints (heartbeat, queue, soul, memory/heartbeat)
+      - memory/HEARTBEAT.md: template checklist for store health monitoring
+      - SOUL.md: Evolution Log section for change tracking
+      - Total estimated cost: ~$0.05/day
+    </phase_18>
   </implementation_phases>
 
   <success_criteria>

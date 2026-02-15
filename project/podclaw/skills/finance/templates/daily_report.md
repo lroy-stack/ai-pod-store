@@ -3,11 +3,11 @@
 ## Revenue Summary
 | Metric | Today | 7-Day Avg | Change |
 |--------|-------|-----------|--------|
-| Revenue | $ | $ | % |
+| Revenue | € | € | % |
 | Orders | | | % |
-| AOV | $ | $ | % |
-| Refunds | $ | $ | % |
-| Net Revenue | $ | $ | % |
+| AOV | € | € | % |
+| Refunds | € | € | % |
+| Net Revenue | € | € | % |
 
 ## Margin Analysis
 | Category | Revenue | COGS | Margin % |
@@ -17,9 +17,9 @@
 -
 
 ## Reconciliation
-- Stripe total: $
-- DB total: $
-- Discrepancy: $
+- Stripe total: €
+- DB total: €
+- Discrepancy: €
 
 ## Action Items
 1.
