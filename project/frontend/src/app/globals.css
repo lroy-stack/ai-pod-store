@@ -185,3 +185,51 @@ p {
 /* Tab horizontal scroll — hidden scrollbar */
 .tab-scroll { scrollbar-width: none; -ms-overflow-style: none; }
 .tab-scroll::-webkit-scrollbar { display: none; }
+
+/* ===== View Transitions (React 19) ===== */
+/* Define smooth cross-fade transition for page navigation */
+@view-transition {
+  navigation: auto;
+}
+
+/* Root transition - fade between pages */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 300ms;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Fade out old page */
+::view-transition-old(root) {
+  animation-name: fade-out;
+}
+
+/* Fade in new page */
+::view-transition-new(root) {
+  animation-name: fade-in;
+}
+
+@keyframes fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Prevent jarring layout shifts */
+::view-transition-group(*) {
+  animation-duration: 300ms;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Respect user's motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root),
+  ::view-transition-group(*) {
+    animation-duration: 0.01ms !important;
+  }
+}

@@ -3263,7 +3263,7 @@
     "id": 296,
     "feature": "Performance & Quality",
     "description": "View Transitions smooth on navigation",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Navigate between pages",
       "Verify smooth transition animations occur",
