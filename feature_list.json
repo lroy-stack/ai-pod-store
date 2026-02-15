@@ -3111,7 +3111,7 @@
     "id": 282,
     "feature": "Performance & Quality",
     "description": "All images have width/height, CLS < 0.1",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Inspect product images and verify width/height attributes are set",
       "Run Lighthouse and verify Cumulative Layout Shift (CLS) < 0.1"
