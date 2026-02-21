@@ -4,8 +4,22 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Package, Truck, CheckCircle, Clock, RefreshCw } from 'lucide-react';
+import { ArrowLeft, Package, Truck, CheckCircle, Clock, RefreshCw, Paintbrush } from 'lucide-react';
 import { toast } from 'sonner';
+
+interface OrderLineItem {
+  id: string;
+  order_id: string;
+  product_name: string;
+  variant_name?: string;
+  quantity: number;
+  price_cents: number;
+  personalization_text?: string;
+  personalization_font?: string;
+  personalization_font_color?: string;
+  personalization_font_size?: string;
+  personalization_position?: string;
+}
 
 interface OrderDetail {
   id: string;
@@ -24,6 +38,7 @@ interface OrderDetail {
   printify_order_id?: string;
   printify_status?: string;
   stripe_payment_intent_id?: string;
+  items?: OrderLineItem[];
   user?: {
     id: string;
     email: string;
@@ -304,6 +319,84 @@ export default function OrderDetailPage() {
                   )}
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* Order Items */}
+        {order.items && order.items.length > 0 && (
+          <div className="bg-card border rounded-lg p-6 mb-6">
+            <h2 className="text-xl font-semibold mb-4">Order Items</h2>
+            <div className="space-y-4">
+              {order.items.map((item) => (
+                <div key={item.id} className="border-b border-border last:border-0 pb-4 last:pb-0">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-medium">{item.product_name}</h3>
+                        {item.personalization_text && (
+                          <Badge variant="default" className="gap-1">
+                            <Paintbrush className="h-3 w-3" />
+                            Personalized
+                          </Badge>
+                        )}
+                      </div>
+                      {item.variant_name && (
+                        <p className="text-sm text-muted-foreground mt-1">{item.variant_name}</p>
+                      )}
+
+                      {/* Personalization Details */}
+                      {item.personalization_text && (
+                        <div className="mt-3 p-3 bg-muted/30 rounded-md border border-border">
+                          <p className="text-xs font-medium text-muted-foreground uppercase mb-2">Personalization</p>
+                          <div className="space-y-1.5 text-sm">
+                            <div>
+                              <span className="font-medium text-muted-foreground">Text: </span>
+                              <span className="text-foreground">{item.personalization_text}</span>
+                            </div>
+                            {item.personalization_font && (
+                              <div>
+                                <span className="font-medium text-muted-foreground">Font: </span>
+                                <span className="text-foreground" style={{ fontFamily: item.personalization_font }}>
+                                  {item.personalization_font}
+                                </span>
+                              </div>
+                            )}
+                            {item.personalization_font_color && (
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium text-muted-foreground">Color: </span>
+                                <div
+                                  className="w-4 h-4 rounded border border-border"
+                                  style={{ backgroundColor: item.personalization_font_color }}
+                                />
+                                <span className="text-foreground font-mono text-xs">
+                                  {item.personalization_font_color}
+                                </span>
+                              </div>
+                            )}
+                            {item.personalization_position && (
+                              <div>
+                                <span className="font-medium text-muted-foreground">Position: </span>
+                                <span className="text-foreground capitalize">{item.personalization_position}</span>
+                              </div>
+                            )}
+                            {item.personalization_font_size && (
+                              <div>
+                                <span className="font-medium text-muted-foreground">Font Size: </span>
+                                <span className="text-foreground capitalize">{item.personalization_font_size}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    <div className="text-right ml-4">
+                      <p className="font-medium">{formatCurrency(item.price_cents, order.currency)}</p>
+                      <p className="text-sm text-muted-foreground">Qty: {item.quantity}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )}

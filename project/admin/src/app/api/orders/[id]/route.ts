@@ -37,7 +37,22 @@ export async function GET(
       );
     }
 
-    return NextResponse.json({ order });
+    // Fetch order items (line_items) with personalization details
+    const { data: lineItems, error: itemsError } = await supabaseAdmin
+      .from('order_line_items')
+      .select('*')
+      .eq('order_id', orderId);
+
+    if (itemsError) {
+      console.error('Order items fetch error:', itemsError);
+    }
+
+    return NextResponse.json({
+      order: {
+        ...order,
+        items: lineItems || []
+      }
+    });
   } catch (error: any) {
     console.error('Order API error:', error);
     return NextResponse.json(
