@@ -1,0 +1,33 @@
+# POD AI — Caddy Reverse Proxy Configuration
+# =============================================
+#
+# Two modes:
+#   Local dev (Docker Desktop): DOMAIN=localhost (HTTP only, port 80)
+#   Production: DOMAIN=yourdomain.com (automatic HTTPS via Let's Encrypt)
+#
+# Set the DOMAIN environment variable, or it defaults to localhost.
+
+{$DOMAIN:localhost} {
+	# PodClaw Bridge API (internal, auth-protected)
+	# Matches /api/bridge/* and strips the prefix before proxying
+	handle /api/bridge/* {
+		uri strip_prefix /api/bridge
+		reverse_proxy podclaw:8000
+	}
+
+	# All other traffic goes to frontend (Next.js handles /api/* routes too)
+	reverse_proxy frontend:3000
+
+	# Security headers
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		X-XSS-Protection "1; mode=block"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+
+	# Gzip/Zstd compression
+	encode zstd gzip
+}

@@ -1,0 +1,30 @@
+# POD AI — Local Development Override (Docker Desktop)
+# =====================================================
+#
+# Usage:
+#   docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.local.yml up -d
+#
+# This override:
+#   - Caddy serves on localhost only (HTTP, no HTTPS)
+#   - Frontend runs with helpful debug settings
+#   - PodClaw enables JSON logs for Docker log drivers
+
+services:
+  caddy:
+    environment:
+      DOMAIN: localhost
+    ports:
+      - "127.0.0.1:80:80"
+      # No 443 binding for local dev — HTTP only
+    # Override: remove 443 from main compose
+    # Caddy will serve HTTP on port 80 for localhost
+
+  frontend:
+    environment:
+      NODE_ENV: production
+      NEXT_TELEMETRY_DISABLED: "1"
+
+  podclaw:
+    environment:
+      PODCLAW_JSON_LOGS: "true"
+      PODCLAW_CORS_ORIGINS: "http://localhost,http://localhost:3000,http://localhost:80"
