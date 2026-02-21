@@ -32,21 +32,13 @@ export async function GET(request: Request) {
       });
 
       if (rawError) {
-        // Last resort: use a raw query with the Supabase client
-        // This will work if we have the proper permissions
-        const query = `
-          SELECT column_name, data_type, character_maximum_length, is_nullable, column_default
-          FROM information_schema.columns
-          WHERE table_schema = 'public' AND table_name = '${tableName}'
-          ORDER BY ordinal_position
-        `;
-
-        // Note: Since we can't execute raw SQL directly, we'll just return the columns
-        // we can verify by trying to select them
+        // SECURITY: Removed dead code with SQL injection vulnerability
+        // The raw SQL query was never executed but could have been dangerous if used
+        // Return error response instead
         return NextResponse.json({
           table: tableName,
           method: 'verification_query',
-          note: 'Verifying column existence by querying the table',
+          note: 'Unable to query information_schema. Table schema verification unavailable.',
           error: error.message,
           rawError: rawError?.message
         });

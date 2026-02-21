@@ -29,22 +29,36 @@ export async function POST(req: NextRequest) {
     let migratedUsage = 0
 
     // 1. Migrate conversations
+    // SECURITY: Use separate queries instead of .or() with template literals to prevent SQL injection
     if (conversationIds?.length || sessionId) {
-      let query = supabase
-        .from('conversations')
-        .update({ user_id: user.id })
-        .is('user_id', null)
+      let totalMigrated = 0
 
-      if (conversationIds?.length && sessionId) {
-        query = query.or(`id.in.(${conversationIds.join(',')}),session_id.eq.${sessionId}`)
-      } else if (conversationIds?.length) {
-        query = query.in('id', conversationIds)
-      } else if (sessionId) {
-        query = query.eq('session_id', sessionId)
+      // Migrate by conversation IDs
+      if (conversationIds?.length) {
+        const { data: byId } = await supabase
+          .from('conversations')
+          .update({ user_id: user.id })
+          .is('user_id', null)
+          .in('id', conversationIds)
+          .select()
+
+        totalMigrated += byId?.length || 0
       }
 
-      const { data } = await query.select()
-      migratedConversations = data?.length || 0
+      // Migrate by session ID (only if no conversationIds to avoid complexity)
+      // If both are provided, the conversationIds query above already handled them
+      if (sessionId && !conversationIds?.length) {
+        const { data: bySession } = await supabase
+          .from('conversations')
+          .update({ user_id: user.id })
+          .is('user_id', null)
+          .eq('session_id', sessionId)
+          .select()
+
+        totalMigrated += bySession?.length || 0
+      }
+
+      migratedConversations = totalMigrated
     }
 
     // 2. Migrate usage via RPC

@@ -7,6 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { sanitizeForLike, sanitizeForPostgrest } from '@/lib/query-sanitizer';
 
 const supabase = createClient(
   process.env.SUPABASE_URL!,
@@ -72,8 +73,11 @@ export async function GET(req: NextRequest) {
     }
 
     // Apply search filter if provided
+    // SECURITY: Sanitize user input to prevent SQL injection in .or() query
     if (search) {
-      query = query.or(`customer_email.ilike.%${search}%,id.eq.${search}`);
+      const sanitizedSearch = sanitizeForLike(search, 'both');
+      const sanitizedId = sanitizeForPostgrest(search);
+      query = query.or(`customer_email.ilike.${sanitizedSearch},id.eq.${sanitizedId}`);
     }
 
     const { data: orders, error, count } = await query;

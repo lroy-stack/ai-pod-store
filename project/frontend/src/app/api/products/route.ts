@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 import { normalizeCategory } from '@/lib/categories'
+import { sanitizeForLike, sanitizeForPostgrest } from '@/lib/query-sanitizer'
 
 export const dynamic = 'force-dynamic'
 
@@ -309,7 +310,9 @@ async function getKeywordSearchResults(
     }
 
     // PostgreSQL full-text search on title, description, category
-    query = query.or(`title.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%,category.ilike.%${searchQuery}%`)
+    // SECURITY: Sanitize user input to prevent SQL injection
+    const sanitizedSearchQuery = sanitizeForLike(searchQuery, 'both')
+    query = query.or(`title.ilike.${sanitizedSearchQuery},description.ilike.${sanitizedSearchQuery},category.ilike.${sanitizedSearchQuery}`)
     query = query.limit(limit)
 
     const { data: products, error } = await query
@@ -344,7 +347,9 @@ async function fallbackTextSearch(
   }
 
   if (searchQuery) {
-    query = query.or(`title.wfts.${searchQuery},description.wfts.${searchQuery},category.wfts.${searchQuery}`)
+    // SECURITY: Sanitize user input to prevent SQL injection
+    const sanitizedSearchQuery = sanitizeForPostgrest(searchQuery)
+    query = query.or(`title.wfts.${sanitizedSearchQuery},description.wfts.${sanitizedSearchQuery},category.wfts.${sanitizedSearchQuery}`)
   }
 
   // Apply sorting

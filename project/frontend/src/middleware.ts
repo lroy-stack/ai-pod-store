@@ -1,6 +1,7 @@
 import createMiddleware from 'next-intl/middleware'
 import { routing } from './i18n/routing'
 import { NextRequest, NextResponse } from 'next/server'
+import { createServerClient } from '@supabase/ssr'
 
 // Protected routes that require authentication
 // Note: /cart and /checkout allow guest access for guest checkout feature
@@ -23,7 +24,7 @@ function simpleHash(str: string): number {
   return hash
 }
 
-export default function middleware(request: NextRequest) {
+export default async function middleware(request: NextRequest) {
   // First, run the i18n middleware
   const response = intlMiddleware(request)
 
@@ -33,9 +34,11 @@ export default function middleware(request: NextRequest) {
   if (!visitorId) {
     visitorId = crypto.randomUUID()
     response.cookies.set('pod-visitor-id', visitorId, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
       maxAge: 365 * 24 * 60 * 60,
       path: '/',
-      sameSite: 'lax',
     })
   }
 
@@ -57,9 +60,11 @@ export default function middleware(request: NextRequest) {
           const variantIndex = Math.abs(hash) % exp.variants.length
           variant = exp.variants[variantIndex]
           response.cookies.set(cookieName, variant, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
             maxAge: 30 * 24 * 60 * 60,
             path: '/',
-            sameSite: 'lax',
           })
         }
 
@@ -90,10 +95,35 @@ export default function middleware(request: NextRequest) {
   })
 
   if (isProtectedRoute) {
-    // Check for authentication token in cookies
-    const accessToken = request.cookies.get('sb-access-token')?.value
+    // SECURITY: Validate JWT token with Supabase (not just cookie presence)
+    // This prevents unauthorized access with expired/forged tokens
 
-    if (!accessToken) {
+    // Create Supabase client for middleware (edge-compatible)
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll: () => {
+            return request.cookies.getAll()
+          },
+          setAll: (cookiesToSet) => {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              request.cookies.set(name, value)
+            )
+            cookiesToSet.forEach(({ name, value, options }) =>
+              response.cookies.set(name, value, options)
+            )
+          },
+        },
+      }
+    )
+
+    // Validate JWT token by attempting to get user
+    const { data: { user }, error } = await supabase.auth.getUser()
+
+    if (!user || error) {
+      // Token is invalid, expired, or missing
       // Extract locale from pathname (e.g., /en/profile -> en)
       const localeMatch = pathname.match(/^\/([a-z]{2})/)
       const locale = localeMatch ? localeMatch[1] : 'en'
@@ -104,6 +134,10 @@ export default function middleware(request: NextRequest) {
 
       return NextResponse.redirect(loginUrl)
     }
+
+    // Token is valid, user is authenticated
+    // Add user ID to headers for downstream API routes (optional optimization)
+    response.headers.set('x-user-id', user.id)
   }
 
   return response

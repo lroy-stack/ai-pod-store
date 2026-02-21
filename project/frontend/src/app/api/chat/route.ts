@@ -11,6 +11,7 @@ import { checkAnomaly, trackRateLimitHit } from '@/lib/anomaly-monitor'
 import { checkPromptSafety } from '@/lib/content-safety'
 import { removeBackground } from '@/lib/providers/background-removal'
 import { normalizeCategory } from '@/lib/categories'
+import { sanitizeForLike, sanitizeForPostgrest } from '@/lib/query-sanitizer'
 
 export const maxDuration = 60
 
@@ -366,8 +367,10 @@ Be friendly, helpful, and concise.`
               .limit(limit)
 
             // Full-text search across title, description, and category
+            // SECURITY: Sanitize user input to prevent SQL injection
             if (query) {
-              dbQuery = dbQuery.or(`title.wfts.${query},description.wfts.${query},category.wfts.${query}`)
+              const sanitizedQuery = sanitizeForPostgrest(query)
+              dbQuery = dbQuery.or(`title.wfts.${sanitizedQuery},description.wfts.${sanitizedQuery},category.wfts.${sanitizedQuery}`)
             }
 
             const { data: products, error } = await dbQuery
@@ -527,11 +530,13 @@ Be friendly, helpful, and concise.`
               product = data
             } else {
               // Search by name/title
+              // SECURITY: Sanitize user input to prevent SQL injection
+              const sanitizedIdentifier = sanitizeForLike(productIdentifier, 'both')
               const { data, error } = await supabase
                 .from('products')
                 .select('*')
                 .eq('status', 'active')
-                .or(`title.ilike.%${productIdentifier}%,description.ilike.%${productIdentifier}%`)
+                .or(`title.ilike.${sanitizedIdentifier},description.ilike.${sanitizedIdentifier}`)
                 .limit(1)
                 .single()
 
