@@ -10,6 +10,68 @@ import { stripe } from '@/lib/stripe';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { printify } from '@/lib/printify';
 import { STORE_DEFAULTS, ALLOWED_SHIPPING_COUNTRIES } from '@/lib/store-config';
+import { createCanvas, registerFont } from 'canvas';
+import path from 'path';
+import fs from 'fs';
+
+// Font mapping for personalization
+const FONT_FILES: Record<string, string> = {
+  'Inter': 'Inter-Regular.ttf',
+  'Roboto': 'Roboto-Regular.ttf',
+  'Playfair Display': 'PlayfairDisplay-Regular.ttf',
+  'Montserrat': 'Montserrat-Regular.ttf',
+  'Oswald': 'Oswald-Regular.ttf',
+  'Lato': 'Lato-Regular.ttf',
+};
+
+// Register all fonts once at module load
+Object.entries(FONT_FILES).forEach(([fontName, fileName]) => {
+  const fontPath = path.join(process.cwd(), 'public', 'fonts', fileName);
+  if (fs.existsSync(fontPath)) {
+    registerFont(fontPath, { family: fontName });
+  }
+});
+
+/**
+ * Generate a high-resolution PNG with personalization text
+ * Returns base64 string (without data:image/png;base64, prefix)
+ */
+function generatePersonalizationPNG(
+  text: string,
+  font: string,
+  fontSize: number,
+  fontColor: string,
+  width: number,
+  height: number
+): string {
+  const canvas = createCanvas(width, height);
+  const ctx = canvas.getContext('2d');
+
+  // Transparent background
+  ctx.clearRect(0, 0, width, height);
+
+  // Set font properties
+  const selectedFont = FONT_FILES[font] ? font : 'Inter';
+  ctx.font = `${fontSize}px "${selectedFont}"`;
+  ctx.fillStyle = fontColor;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  // Render multi-line text
+  const lineHeight = fontSize * 1.3;
+  const textLines = text.split('\n');
+  const totalHeight = textLines.length * lineHeight;
+  const startY = (height / 2) - (totalHeight / 2) + (lineHeight / 2);
+
+  textLines.forEach((line, index) => {
+    const y = startY + (index * lineHeight);
+    ctx.fillText(line, width / 2, y);
+  });
+
+  // Convert to base64 (without data URL prefix)
+  const buffer = canvas.toBuffer('image/png');
+  return buffer.toString('base64');
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -71,7 +133,7 @@ export async function POST(req: NextRequest) {
 
     // --- Personalization: create Printify temp products for personalized items ---
     const yMap: Record<string, number> = { top: 0.15, center: 0.5, bottom: 0.85 }
-    const sizeMap: Record<string, number> = { small: 16, medium: 24, large: 36 }
+    const sizeMap: Record<string, number> = { small: 72, medium: 96, large: 120 } // High-res sizes
 
     for (const item of cartItems) {
       const personalizationId = item.personalization_id
@@ -102,21 +164,45 @@ export async function POST(req: NextRequest) {
         const printifyProduct = await printify.getProduct(dbProduct.printify_id)
         const originalPrintAreas = (printifyProduct as any).print_areas || []
 
-        // Build modified print_areas with personalization text
+        // Get placeholder dimensions from the first front placeholder
+        let placeholderWidth = 3000 // Default high-res width
+        let placeholderHeight = 3000 // Default high-res height
+        const frontPlaceholder = originalPrintAreas[0]?.placeholders?.find((p: any) => p.position === 'front')
+        if (frontPlaceholder?.width && frontPlaceholder?.height) {
+          placeholderWidth = frontPlaceholder.width
+          placeholderHeight = frontPlaceholder.height
+        }
+
+        // Generate high-resolution PNG with personalization text
+        const fontSize = sizeMap[pz.font_size || 'medium'] ?? 96
+        const base64PNG = generatePersonalizationPNG(
+          pz.text_content,
+          pz.font_family || 'Inter',
+          fontSize,
+          pz.font_color || '#000000',
+          placeholderWidth,
+          placeholderHeight
+        )
+
+        // Upload PNG to Printify
+        const uploadResult = await printify.uploadImageFromBase64(
+          base64PNG,
+          `personalization-${personalizationId}.png`
+        )
+
+        // Build modified print_areas with uploaded image
         const modifiedPrintAreas = originalPrintAreas.map((area: any) => {
           const modifiedPlaceholders = area.placeholders.map((placeholder: any) => {
             if (placeholder.position === 'front') {
               const images = [...(placeholder.images || [])]
+              // Add personalization image overlay
               images.push({
-                id: images[0]?.id || '',
+                id: uploadResult.id, // Use upload_id from Printify
                 x: 0.5,
                 y: yMap[pz.position || 'bottom'] ?? 0.85,
                 scale: 0.3,
                 angle: 0,
-                input_text: pz.text_content,
-                font_family: pz.font_family || 'Inter',
-                font_size: sizeMap[pz.font_size || 'medium'] ?? 24,
-                font_color: pz.font_color || '#000000',
+                // DO NOT include input_text, font_family, font_size, font_color (READ-ONLY)
               })
               return { ...placeholder, images }
             }
@@ -147,6 +233,7 @@ export async function POST(req: NextRequest) {
           .from('personalizations')
           .update({
             printify_temp_product_id: tempProduct.id,
+            printify_upload_id: uploadResult.id,
             status: 'ready',
           })
           .eq('id', personalizationId)

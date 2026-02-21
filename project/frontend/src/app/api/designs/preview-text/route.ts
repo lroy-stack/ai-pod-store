@@ -60,6 +60,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Validate line count and character limits
+    const lines = body.text.split('\n');
+    if (lines.length > 3) {
+      return NextResponse.json(
+        { error: 'Maximum 3 lines allowed' },
+        { status: 400 }
+      );
+    }
+
+    // Validate each line is max 50 characters
+    for (let i = 0; i < lines.length; i++) {
+      if (lines[i].length > 50) {
+        return NextResponse.json(
+          { error: `Line ${i + 1} exceeds 50 characters (${lines[i].length} chars)` },
+          { status: 400 }
+        );
+      }
+    }
+
     // Default values
     const font = body.font || 'Inter';
     const fontColor = body.fontColor || '#000000';
@@ -117,8 +136,20 @@ export async function POST(request: NextRequest) {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
-    // Render text
-    ctx.fillText(body.text, templateWidth / 2, textY);
+    // Render multi-line text
+    // Canvas fillText() doesn't support \n, so we must split and render each line separately
+    const lineHeight = fontSize * 1.3;
+    const textLines = body.text.split('\n');
+    const totalHeight = textLines.length * lineHeight;
+
+    // Calculate starting Y position to center the text block
+    const startY = textY - (totalHeight / 2) + (lineHeight / 2);
+
+    // Render each line separately
+    textLines.forEach((line, index) => {
+      const y = startY + (index * lineHeight);
+      ctx.fillText(line, templateWidth / 2, y);
+    });
 
     // Convert canvas to buffer
     const textBuffer = canvas.toBuffer('image/png');

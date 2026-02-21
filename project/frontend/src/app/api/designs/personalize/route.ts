@@ -4,15 +4,15 @@
  * POST /api/designs/personalize
  * Saves a text personalization to the database (draft status).
  * The actual Printify temp product is created at checkout time.
+ *
+ * AUTH: Anonymous users CAN personalize (user_id = null).
+ * Authenticated users get their user_id linked automatically.
+ * Only AI image generation (/api/designs/generate) requires auth.
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
-
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_KEY!
-)
+import { createServerClient, createAdminClient } from '@/lib/supabase-server'
+import { containsProfanity, getProfanityErrorMessage } from '@/lib/profanity-filter'
 
 export async function POST(req: NextRequest) {
   try {
@@ -38,9 +38,29 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    if (text.length > 50) {
+    // Validate line count and character limits
+    const lines = text.split('\n');
+    if (lines.length > 3) {
       return NextResponse.json(
-        { error: 'Text must be 50 characters or less' },
+        { error: 'Maximum 3 lines allowed' },
+        { status: 400 }
+      );
+    }
+
+    // Validate each line is max 50 characters
+    for (let i = 0; i < lines.length; i++) {
+      if (lines[i].length > 50) {
+        return NextResponse.json(
+          { error: `Line ${i + 1} exceeds 50 characters (${lines[i].length} chars)` },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Check for profanity (server-side validation)
+    if (containsProfanity(text)) {
+      return NextResponse.json(
+        { error: getProfanityErrorMessage() },
         { status: 400 }
       )
     }
@@ -55,8 +75,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid position' }, { status: 400 })
     }
 
+    // Try to get authenticated user (optional — anonymous users can personalize)
+    const { user } = await createServerClient(req)
+
+    // Use admin client to insert (bypasses RLS so anonymous users can save)
+    const adminClient = createAdminClient()
+
     // Verify product exists
-    const { data: product, error: productError } = await supabase
+    const { data: product, error: productError } = await adminClient
       .from('products')
       .select('id')
       .eq('id', productId)
@@ -66,20 +92,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 })
     }
 
-    // Get user ID from auth header if available
-    let userId: string | null = null
-    const authHeader = req.headers.get('authorization')
-    if (authHeader?.startsWith('Bearer ')) {
-      const token = authHeader.slice(7)
-      const { data: { user } } = await supabase.auth.getUser(token)
-      userId = user?.id || null
-    }
-
-    // Save personalization to DB as draft (no Printify product yet)
-    const { data: personalization, error: saveError } = await supabase
+    // Save personalization to DB as draft
+    // user_id is null for anonymous users, linked at checkout when they authenticate
+    const { data: personalization, error: saveError } = await adminClient
       .from('personalizations')
       .insert({
-        user_id: userId,
+        user_id: user?.id || null,
         product_id: productId,
         variant_id: variantId || null,
         text_content: text.trim(),

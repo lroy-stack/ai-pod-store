@@ -166,6 +166,16 @@ class PrintifyClient {
   }
 
   /**
+   * Upload an image to Printify from base64 string
+   */
+  async uploadImageFromBase64(base64: string, fileName: string): Promise<{ id: string; file_name: string; preview_url: string }> {
+    return this.request(`/uploads/images.json`, {
+      method: 'POST',
+      body: JSON.stringify({ file_name: fileName, contents: base64 }),
+    })
+  }
+
+  /**
    * Publish a product to the connected sales channel
    */
   async publishProduct(productId: string): Promise<void> {

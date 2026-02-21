@@ -4,8 +4,9 @@
  * Blocks inappropriate words in user-generated content
  */
 
-// Common profanity list (partial - can be extended)
+// Multilingual profanity list (en/es/de)
 const PROFANITY_LIST = [
+  // English
   'fuck',
   'shit',
   'ass',
@@ -26,6 +27,39 @@ const PROFANITY_LIST = [
   'retard',
   'cunt',
   'twat',
+
+  // Spanish (español)
+  'mierda',
+  'joder',
+  'puta',
+  'puto',
+  'coño',
+  'cabrón',
+  'pendejo',
+  'verga',
+  'chingar',
+  'maricón',
+  'culero',
+  'pinche',
+  'huevón',
+  'carajo',
+  'mamón',
+
+  // German (Deutsch)
+  'scheiße',
+  'scheisse',
+  'arsch',
+  'fotze',
+  'hure',
+  'schwuchtel',
+  'wichser',
+  'arschloch',
+  'mistkerl',
+  'hurensohn',
+  'drecksau',
+  'schlampe',
+  'fick',
+  'ficken',
 ];
 
 /**
