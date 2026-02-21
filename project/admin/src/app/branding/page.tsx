@@ -182,6 +182,13 @@ export default function BrandingPage() {
                           title="Background"
                         />
                       )}
+                      {theme.css_variables.foreground && (
+                        <div
+                          className="w-8 h-8 rounded border border-border"
+                          style={{ backgroundColor: theme.css_variables.foreground }}
+                          title="Foreground"
+                        />
+                      )}
                     </div>
                   </div>
 
