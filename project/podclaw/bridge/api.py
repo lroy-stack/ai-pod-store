@@ -6,6 +6,8 @@ HTTP API for the Next.js admin dashboard to control PodClaw.
 Runs on port 8000. Next.js /api/agent/* routes proxy here.
 
 Endpoints:
+  POST /task                — Send a natural language task (async, returns task_id)
+  GET  /task/{id}           — Check task status and results
   POST /start               — Start the orchestrator
   GET  /status              — Overall PodClaw status
   POST /stop                — Emergency stop all agents
@@ -44,14 +46,38 @@ Endpoints:
 
 from __future__ import annotations
 
+import asyncio
+import json
+import uuid
 from datetime import datetime, timezone
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
-from fastapi import Depends, FastAPI, HTTPException, Query
+from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
+import structlog
+
 from podclaw.bridge.auth import require_auth
+
+logger = structlog.get_logger(__name__)
+
+
+class TaskRequest(BaseModel):
+    message: str = Field(..., min_length=1, max_length=5000)
+
+
+class AgentRunRequest(BaseModel):
+    task: str | None = None
+
+
+class QueuePushRequest(BaseModel):
+    source: str = Field(default="admin", max_length=50)
+    event_type: str = Field(default="message", max_length=50)
+    payload: dict = Field(default_factory=dict)
+    wake_mode: str = Field(default="next-heartbeat", pattern=r"^(now|next-heartbeat)$")
+    target_agent: str | None = Field(default=None, max_length=50)
+
 
 if TYPE_CHECKING:
     from podclaw.core import Orchestrator
@@ -61,6 +87,39 @@ if TYPE_CHECKING:
     from podclaw.heartbeat import HeartbeatRunner
     from podclaw.event_queue import SystemEventQueue
     from podclaw.soul_evolution import SoulEvolution
+    from podclaw.state_store import StateStore
+
+
+class _TaskStore:
+    """Dict-like wrapper over StateStore for task persistence."""
+
+    def __init__(self, store: "StateStore | None" = None):
+        self._store = store
+        self._local: dict[str, dict[str, Any]] = {}
+
+    def __contains__(self, key: str) -> bool:
+        return key in self._local
+
+    def __getitem__(self, key: str) -> dict[str, Any]:
+        return self._local[key]
+
+    def __setitem__(self, key: str, value: dict[str, Any]) -> None:
+        self._local[key] = value
+        if self._store:
+            asyncio.create_task(self._store.set("task_store", self._local))
+
+    def values(self):
+        return self._local.values()
+
+    def __len__(self) -> int:
+        return len(self._local)
+
+    async def restore(self) -> None:
+        if self._store:
+            data = await self._store.get("task_store", {})
+            if data:
+                self._local.update(data)
+                logger.info("task_store_restored", count=len(data))
 
 
 def create_app(
@@ -71,6 +130,7 @@ def create_app(
     heartbeat: "HeartbeatRunner | None" = None,
     event_queue: "SystemEventQueue | None" = None,
     soul_evolution: "SoulEvolution | None" = None,
+    state_store: "StateStore | None" = None,
 ) -> FastAPI:
     """Create the FastAPI application with all routes."""
 
@@ -80,12 +140,186 @@ def create_app(
         version="0.2.0",
     )
 
+    from podclaw.config import CORS_ORIGINS
+    cors_origins = [o.strip() for o in CORS_ORIGINS.split(",") if o.strip()]
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["http://localhost:3000", "http://localhost:3001", "http://localhost:5555"],
+        allow_origins=cors_origins,
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    # ----- Task Store (persistent via SQLite) -----
+    _tasks = _TaskStore(state_store)
+
+    @app.on_event("startup")
+    async def _restore_tasks():
+        await _tasks.restore()
+
+    # ----- Natural Language Task Endpoint -----
+
+    async def _route_and_execute(task_id: str, message: str) -> None:
+        """Background coroutine: classify → run agent(s) → store results."""
+        _tasks[task_id]["status"] = "routing"
+
+        try:
+            # Classify which agent(s) should handle this message
+            agents = await _classify_task(message)
+            _tasks[task_id]["agents"] = agents
+            _tasks[task_id]["status"] = "running"
+            _tasks[task_id]["progress"] = []
+
+            total_cost = 0.0
+            for agent_name in agents:
+                _tasks[task_id]["current_agent"] = agent_name
+                logger.info("task_agent_start", task_id=task_id[:8], agent=agent_name)
+
+                result = await orchestrator.run_agent(agent_name, task=message, force_fresh=True)
+                cost = result.get("total_cost_usd") or 0
+                total_cost += cost
+
+                response_text = result.get("response", "")
+                _tasks[task_id]["progress"].append({
+                    "agent": agent_name,
+                    "status": result.get("status", "unknown"),
+                    "tool_calls": result.get("tool_calls", 0),
+                    "cost_usd": round(cost, 3),
+                    "duration_s": round(result.get("duration_seconds", 0)),
+                    "session_id": result.get("session_id", ""),
+                    "response": response_text[:1000] if response_text else "",
+                })
+
+                logger.info("task_agent_done", task_id=task_id[:8], agent=agent_name,
+                            status=result.get("status"), tools=result.get("tool_calls", 0),
+                            cost=round(cost, 3))
+
+            _tasks[task_id]["status"] = "completed"
+            _tasks[task_id]["total_cost_usd"] = round(total_cost, 3)
+            _tasks[task_id]["completed_at"] = datetime.now(timezone.utc).isoformat()
+
+            # Build consolidated summary from all agent responses
+            _tasks[task_id]["summary"] = await _build_task_summary(
+                message, _tasks[task_id]["progress"]
+            )
+
+        except Exception as e:
+            _tasks[task_id]["status"] = "error"
+            _tasks[task_id]["error"] = str(e)
+            logger.error("task_failed", task_id=task_id[:8], error=str(e))
+
+    async def _build_task_summary(
+        message: str, progress: list[dict[str, Any]]
+    ) -> str:
+        """Use Haiku to consolidate all agent responses into one executive summary."""
+        agent_outputs = "\n\n".join(
+            f"[{p['agent']}] ({p['tool_calls']} tools, ${p['cost_usd']:.3f}):\n{p.get('response', '(no response)')}"
+            for p in progress
+        )
+        try:
+            from podclaw.llm_helper import quick_llm_call
+            return await quick_llm_call(
+                system_prompt=(
+                    "You consolidate reports from multiple AI agents into one executive summary.\n"
+                    "Be concise, actionable, in the same language as the user's request.\n"
+                    "Highlight: key findings, problems found, recommended actions.\n"
+                    "Max 500 words."
+                ),
+                user_prompt=(
+                    f"Original request: {message[:500]}\n\n"
+                    f"Agent reports:\n{agent_outputs[:3000]}"
+                ),
+                model="claude-haiku-4-5-20251001",
+                max_budget=0.01,
+            )
+        except Exception as e:
+            logger.warning("summary_generation_failed", error=str(e))
+            return ""
+
+    async def _classify_task(message: str) -> list[str]:
+        """Use Haiku to decide which agent(s) should handle this message."""
+        from podclaw.llm_helper import quick_llm_call
+        from podclaw.core import AGENT_NAMES
+
+        logger.info("classify_task_start", message=message[:80])
+        text = await quick_llm_call(
+            system_prompt=(
+                "You are a JSON-only routing function. No explanations. No commentary.\n"
+                "You MUST respond with ONLY a raw JSON array. Nothing before or after it.\n\n"
+                "Available agents:\n"
+                "researcher, marketing, designer, newsletter, cataloger, "
+                "customer_manager, seo_manager, finance, qa_inspector\n\n"
+                "Rules:\n"
+                "- Pick 1-3 agents needed for the task\n"
+                "- Output format: [\"agent1\", \"agent2\"]\n"
+                "- NO text, NO markdown, NO explanation\n"
+            ),
+            user_prompt=f"Route this task: {message}",
+            model="claude-haiku-4-5-20251001",
+            max_budget=0.005,
+        )
+
+        logger.info("classify_task_raw", raw_text=repr(text[:300]))
+        text = text.strip()
+        if text.startswith("```"):
+            text = text.split("\n", 1)[1].rsplit("```", 1)[0].strip()
+
+        # Fallback: extract JSON array from anywhere in the response
+        if not text.startswith("["):
+            import re
+            match = re.search(r'\[.*?\]', text, re.DOTALL)
+            if match:
+                text = match.group(0)
+                logger.info("classify_task_extracted", extracted=text[:200])
+            else:
+                # Last resort: scan for known agent names
+                found = [a for a in AGENT_NAMES if a in text.lower()]
+                if found:
+                    logger.info("classify_task_fallback_names", agents=found)
+                    return found
+                raise ValueError(f"Could not extract agent list from: {text[:100]}")
+
+        logger.info("classify_task_parsed", clean_text=repr(text[:200]))
+        agents = json.loads(text)
+        valid = [a for a in agents if a in AGENT_NAMES]
+        logger.info("classify_task_result", agents=valid)
+        return valid
+
+    @app.post("/task", dependencies=[Depends(require_auth)])
+    async def create_task(body: TaskRequest, background_tasks: BackgroundTasks):
+        """Send a natural language task to PodClaw.
+
+        PodClaw classifies which agent(s) to run and executes them in background.
+        Returns immediately with a task_id to poll for progress.
+        """
+        task_id = str(uuid.uuid4())
+        _tasks[task_id] = {
+            "task_id": task_id,
+            "message": body.message,
+            "status": "accepted",
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "agents": [],
+            "progress": [],
+        }
+        background_tasks.add_task(_route_and_execute, task_id, body.message)
+        logger.info("task_accepted", task_id=task_id[:8], message=body.message[:80])
+        return {"task_id": task_id, "status": "accepted"}
+
+    @app.get("/task/{task_id}", dependencies=[Depends(require_auth)])
+    async def get_task(task_id: str):
+        """Check status and progress of a running or completed task."""
+        if task_id not in _tasks:
+            raise HTTPException(404, f"Task not found: {task_id}")
+        return _tasks[task_id]
+
+    @app.get("/tasks", dependencies=[Depends(require_auth)])
+    async def list_tasks(limit: int = Query(default=20, le=100)):
+        """List recent tasks, newest first."""
+        sorted_tasks = sorted(
+            _tasks.values(),
+            key=lambda t: t.get("created_at", ""),
+            reverse=True,
+        )
+        return {"tasks": sorted_tasks[:limit], "count": len(_tasks)}
 
     # ----- Start / Status -----
 
@@ -111,9 +345,6 @@ def create_app(
         if name not in AGENT_NAMES:
             raise HTTPException(404, f"Unknown agent: {name}")
         return orchestrator.get_agent_status(name)
-
-    class AgentRunRequest(BaseModel):
-        task: str | None = None
 
     @app.post("/agents/{name}/run", dependencies=[Depends(require_auth)])
     async def run_agent(name: str, body: AgentRunRequest | None = None):
@@ -303,7 +534,7 @@ def create_app(
         daily_path = memory_manager._daily_log_path()
         daily = daily_path.read_text() if daily_path.exists() else ""
 
-        context_dir = memory_manager.workspace / "memory" / "context"
+        context_dir = memory_manager.context_dir
         context_files = []
         if context_dir.is_dir():
             for f in sorted(context_dir.iterdir()):
@@ -431,13 +662,6 @@ def create_app(
             "size": event_queue.size,
         }
 
-    class QueuePushRequest(BaseModel):
-        source: str = Field(default="admin", max_length=50)
-        event_type: str = Field(default="message", max_length=50)
-        payload: dict = Field(default_factory=dict)
-        wake_mode: str = Field(default="next-heartbeat", pattern=r"^(now|next-heartbeat)$")
-        target_agent: str | None = Field(default=None, max_length=50)
-
     @app.post("/queue/push", dependencies=[Depends(require_auth)])
     async def push_queue_event(body: QueuePushRequest):
         """Push a manual event to the system event queue."""
@@ -508,5 +732,60 @@ def create_app(
             "heartbeat": heartbeat.get_status() if heartbeat else None,
             "queue_size": event_queue.size if event_queue else 0,
         }
+
+    @app.get("/api/health")
+    async def api_health():
+        """Deep health check with sub-component status."""
+        checks: dict[str, dict[str, Any]] = {}
+
+        # Orchestrator
+        checks["orchestrator"] = {"ok": orchestrator.is_running}
+
+        # Heartbeat: last_run < 2.5x interval
+        if heartbeat:
+            hb_status = heartbeat.get_status()
+            hb_ok = hb_status.get("running", False)
+            if hb_status.get("last_run"):
+                from datetime import datetime as _dt, timezone as _tz
+                try:
+                    last = _dt.fromisoformat(hb_status["last_run"])
+                    gap = (_dt.now(_tz.utc) - last).total_seconds() / 60
+                    hb_ok = hb_ok and gap < heartbeat.interval_minutes * 2.5
+                except Exception:
+                    pass
+            checks["heartbeat"] = {"ok": hb_ok, **hb_status}
+        else:
+            checks["heartbeat"] = {"ok": False, "reason": "not initialized"}
+
+        # Supabase connectivity
+        if event_store._client:
+            try:
+                result = await asyncio.to_thread(
+                    lambda: event_store._client.table("agent_events")
+                    .select("id")
+                    .limit(1)
+                    .execute()
+                )
+                checks["supabase"] = {"ok": True}
+            except Exception as e:
+                checks["supabase"] = {"ok": False, "error": str(e)[:200]}
+        else:
+            checks["supabase"] = {"ok": False, "reason": "no client"}
+
+        # Scheduler
+        try:
+            jobs = scheduler.get_jobs()
+            checks["scheduler"] = {"ok": len(jobs) > 0, "job_count": len(jobs)}
+        except Exception:
+            checks["scheduler"] = {"ok": False}
+
+        # Event queue
+        checks["event_queue"] = {
+            "ok": True,
+            "size": event_queue.size if event_queue else 0,
+        }
+
+        overall = all(v.get("ok") for v in checks.values())
+        return {"status": "ok" if overall else "degraded", "checks": checks}
 
     return app

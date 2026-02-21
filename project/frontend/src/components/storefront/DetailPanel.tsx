@@ -20,7 +20,7 @@
 
 import { useTranslations } from 'next-intl'
 import { useParams } from 'next/navigation'
-import { X, Star, ShoppingCart, MessageCircle, ImageOff, AlertCircle, Heart, Minus, Plus } from 'lucide-react'
+import { X, Star, ShoppingCart, MessageCircle, ImageOff, AlertCircle, Heart, Minus, Plus, Shirt, Globe, Printer, Droplets, ShieldCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { useEffect, useState } from 'react'
@@ -47,6 +47,12 @@ interface Product {
   images: string[]
   rating: number
   reviewCount: number
+  materials?: string | null
+  careInstructions?: string | null
+  printTechnique?: string | null
+  manufacturingCountry?: string | null
+  brand?: string | null
+  safetyInformation?: string | null
   variants?: {
     sizes?: string[]
     colors?: string[]
@@ -71,7 +77,7 @@ export function DetailPanel({ productId, onClose, onAskAbout }: DetailPanelProps
     async function fetchProduct() {
       try {
         setLoading(true)
-        const response = await fetch(`/api/products/${productId}`)
+        const response = await fetch(`/api/products/${productId}?locale=${locale}`)
         if (response.ok) {
           const data = await response.json()
           setProduct(data.product || data)
@@ -85,7 +91,7 @@ export function DetailPanel({ productId, onClose, onAskAbout }: DetailPanelProps
       }
     }
     fetchProduct()
-  }, [productId])
+  }, [productId, locale])
 
   // If we have artifacts, use the artifact system
   const hasArtifacts = artifacts.length > 0
@@ -136,20 +142,24 @@ export function DetailPanel({ productId, onClose, onAskAbout }: DetailPanelProps
             onValueChange={setActiveArtifactId}
             className="flex-1 flex flex-col overflow-hidden"
           >
-            <TabsList className="w-full justify-start rounded-none border-b border-border/40 p-0 h-auto bg-transparent overflow-x-auto tab-scroll flex-nowrap">
+            <TabsList className="w-full justify-start rounded-none border-b border-border/40 px-1 h-auto bg-transparent overflow-x-auto tab-scroll flex-nowrap gap-0">
               {artifacts.map((artifact) => (
                 <TabsTrigger
                   key={artifact.id}
                   value={artifact.id}
-                  className="relative rounded-none border-b-2 border-transparent data-[state=active]:border-primary px-4 py-2.5 group hover:bg-muted/30 transition-colors"
+                  className="relative rounded-t-lg rounded-b-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-muted/40 px-3.5 py-2 group hover:bg-muted/30 transition-all duration-200 gap-1.5 max-w-[180px]"
                 >
-                  <span className="text-[13px] font-medium truncate max-w-[140px]">{artifact.title}</span>
-                  <button
+                  <span className="text-[13px] font-medium truncate">{artifact.title}</span>
+                  <span
+                    role="button"
+                    tabIndex={0}
                     onClick={(e) => handleCloseTab(artifact.id, e)}
-                    className="ml-2 h-4 w-4 rounded-full opacity-0 group-hover:opacity-50 hover:!opacity-100 hover:bg-destructive/10 hover:text-destructive transition-all inline-flex items-center justify-center"
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleCloseTab(artifact.id, e as any) } }}
+                    className="ml-1 h-4 w-4 rounded-full opacity-0 group-hover:opacity-60 hover:!opacity-100 hover:bg-destructive/10 hover:text-destructive transition-all duration-150 inline-flex items-center justify-center flex-shrink-0"
+                    aria-label={`Close ${artifact.title}`}
                   >
-                    <X className="h-3 w-3" />
-                  </button>
+                    <X className="h-2.5 w-2.5" />
+                  </span>
                 </TabsTrigger>
               ))}
             </TabsList>
@@ -254,6 +264,12 @@ function ProductView({
     images?: string[]
     rating?: number
     reviewCount?: number
+    materials?: string | null
+    careInstructions?: string | null
+    printTechnique?: string | null
+    manufacturingCountry?: string | null
+    brand?: string | null
+    safetyInformation?: string | null
     variants?: { sizes?: string[]; colors?: string[] }
   }
   locale: string
@@ -330,6 +346,70 @@ function ProductView({
             <div>
               <h4 className="text-[13px] font-medium text-foreground/80 mb-1.5">{t('description')}</h4>
               <p className="text-sm text-muted-foreground leading-relaxed">{product.description}</p>
+            </div>
+          </>
+        )}
+
+        {/* Product Specifications — dynamic, only shown when data exists */}
+        {(product.materials || product.printTechnique || product.manufacturingCountry || product.careInstructions) && (
+          <>
+            <div className="h-px bg-border/40" />
+            <div className="space-y-2.5">
+              <h4 className="text-[13px] font-medium text-foreground/80">{t('specifications')}</h4>
+
+              {product.materials && (
+                <div className="flex items-start gap-2.5">
+                  <Shirt className="size-4 text-muted-foreground mt-0.5 shrink-0" />
+                  <div>
+                    <p className="text-xs font-medium text-foreground/80">{t('materials')}</p>
+                    <p className="text-xs text-muted-foreground">{product.materials}</p>
+                  </div>
+                </div>
+              )}
+
+              {product.printTechnique && (
+                <div className="flex items-start gap-2.5">
+                  <Printer className="size-4 text-muted-foreground mt-0.5 shrink-0" />
+                  <div>
+                    <p className="text-xs font-medium text-foreground/80">{t('printTechnique')}</p>
+                    <p className="text-xs text-muted-foreground">{product.printTechnique}</p>
+                  </div>
+                </div>
+              )}
+
+              {product.manufacturingCountry && (
+                <div className="flex items-start gap-2.5">
+                  <Globe className="size-4 text-muted-foreground mt-0.5 shrink-0" />
+                  <div>
+                    <p className="text-xs font-medium text-foreground/80">{t('madeIn')}</p>
+                    <p className="text-xs text-muted-foreground">{product.manufacturingCountry}</p>
+                  </div>
+                </div>
+              )}
+
+              {product.careInstructions && (
+                <div className="flex items-start gap-2.5">
+                  <Droplets className="size-4 text-muted-foreground mt-0.5 shrink-0" />
+                  <div>
+                    <p className="text-xs font-medium text-foreground/80">{t('careInstructions')}</p>
+                    <p className="text-xs text-muted-foreground">{product.careInstructions}</p>
+                  </div>
+                </div>
+              )}
+
+              {product.safetyInformation && (
+                <details className="group">
+                  <summary className="flex items-center gap-2 cursor-pointer list-none text-xs font-medium text-muted-foreground hover:text-foreground transition-colors">
+                    <ShieldCheck className="size-3.5 shrink-0" />
+                    {t('safetyInformation')}
+                    <span className="ml-auto text-[10px] group-open:rotate-180 transition-transform">▼</span>
+                  </summary>
+                  <div
+                    className="mt-1.5 text-xs text-muted-foreground [&_p]:my-0.5 [&_strong]:text-foreground"
+                    dangerouslySetInnerHTML={{ __html: product.safetyInformation }}
+                  />
+                </details>
+              )}
             </div>
           </>
         )}
@@ -471,7 +551,7 @@ function ArtifactContent({
   useEffect(() => {
     if (artifact.type === 'product' && artifact.data?.id && !hasFullData && !fetchedProduct && !fetchLoading) {
       setFetchLoading(true)
-      fetch(`/api/products/${artifact.data.id}`)
+      fetch(`/api/products/${artifact.data.id}?locale=${locale}`)
         .then((res) => (res.ok ? res.json() : null))
         .then((data) => {
           if (data) setFetchedProduct(data.product || data)
@@ -479,7 +559,7 @@ function ArtifactContent({
         .catch(() => {})
         .finally(() => setFetchLoading(false))
     }
-  }, [artifact.data?.id, artifact.type, hasFullData, fetchedProduct, fetchLoading])
+  }, [artifact.data?.id, artifact.type, hasFullData, fetchedProduct, fetchLoading, locale])
 
   // For product artifacts, render the product detail view
   if (artifact.type === 'product') {

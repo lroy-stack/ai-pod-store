@@ -26,15 +26,14 @@ podclaw/
 │   ├── event_log_hook.py   # Event store logging
 │   ├── memory_hook.py      # Memory and context updates
 │   └── metrics_hook.py     # Timing and metrics
-├── mcp/
+├── connectors/
 │   ├── supabase_connector.py
 │   ├── stripe_connector.py
 │   ├── printify_connector.py
 │   ├── fal_connector.py
 │   ├── gemini_connector.py
 │   ├── resend_connector.py
-│   ├── jina_connector.py
-│   ├── web_search_connector.py
+│   ├── jina_connector.py         # Unified: web search, read_url, images, rerank, dedup, screenshot
 │   ├── telegram_connector.py
 │   └── whatsapp_connector.py
 ├── skills/
@@ -135,7 +134,7 @@ scheduler.add_job(
 
 ### 1. Create connector file
 
-`mcp/my_service_connector.py`:
+`connectors/my_service_connector.py`:
 ```python
 from __future__ import annotations
 from typing import Any
@@ -173,7 +172,7 @@ class MyServiceMCPConnector:
 ### 2. Register in main.py
 
 ```python
-from podclaw.mcp.my_service_connector import MyServiceMCPConnector
+from podclaw.connectors.my_service_connector import MyServiceMCPConnector
 
 connectors["my_service"] = MyServiceMCPConnector(config.MY_SERVICE_API_KEY)
 ```
@@ -228,6 +227,19 @@ def my_observation_hook(some_dependency):
         # ... do observation work ...
     return hook
 ```
+
+## Task Source of Truth
+
+The **authoritative** default task for each agent is defined in `core.py:_default_task()`.
+The `skills/<agent>/SKILL.md` files provide contextual instructions that are injected into
+the agent's system prompt — they are supplementary context, not the task definition.
+
+When the scheduler dispatches an agent without an explicit task, `_default_task()` generates
+the prompt. Cycle-specific variants (e.g. `cataloger_pricing`, `cataloger_peakprep`) are
+also defined there, mapped via `scheduler.py:CYCLE_TASKS`.
+
+**To modify an agent's default behavior**: edit `_default_task()` in `core.py`.
+**To modify an agent's knowledge/context**: edit `skills/<agent>/SKILL.md`.
 
 ## Code Style
 

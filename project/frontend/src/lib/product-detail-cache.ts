@@ -1,5 +1,40 @@
 import { supabaseAdmin } from '@/lib/supabase-admin'
 
+/**
+ * Build variant → image indices map by matching printify_variant_id in image URLs.
+ * Printify mockup URLs contain the variant ID: /mockup/{product_id}/{variant_id}/{image_id}/...
+ *
+ * @param field - 'color' or 'size' — the variant dimension to group by
+ */
+function buildVariantImageMap(
+  images: string[],
+  variants: Array<{ color: string | null; size: string | null; printify_variant_id: string | null }>,
+  field: 'color' | 'size',
+): Record<string, number[]> {
+  const variantIdToValue = new Map<string, string>()
+  for (const v of variants) {
+    const value = v[field]
+    if (value && v.printify_variant_id) {
+      variantIdToValue.set(v.printify_variant_id, value)
+    }
+  }
+
+  const indices: Record<string, number[]> = {}
+  for (let i = 0; i < images.length; i++) {
+    const url = images[i]
+    for (const [pvid, value] of variantIdToValue) {
+      if (url.includes('/' + pvid + '/')) {
+        if (!indices[value]) indices[value] = []
+        // Avoid duplicates (multiple variants of same color/size point to same image)
+        if (!indices[value].includes(i)) indices[value].push(i)
+        break
+      }
+    }
+  }
+
+  return indices
+}
+
 // Fetch product by ID from Supabase
 export async function getProduct(id: string) {
   const [productResult, variantsResult] = await Promise.all([
@@ -11,7 +46,7 @@ export async function getProduct(id: string) {
       .single(),
     supabaseAdmin
       .from('product_variants')
-      .select('size, color, price_cents, is_enabled, is_available')
+      .select('size, color, price_cents, is_enabled, is_available, image_url, printify_variant_id')
       .eq('product_id', id)
       .eq('is_enabled', true)
       .eq('is_available', true),
@@ -26,6 +61,20 @@ export async function getProduct(id: string) {
   const sizes = [...new Set(variants.map((v) => v.size).filter(Boolean))] as string[]
   const colors = [...new Set(variants.map((v) => v.color).filter(Boolean))] as string[]
 
+  const allImages: string[] = Array.isArray(product.images)
+    ? product.images.map((img: { src?: string; url?: string }) => img.src || img.url || '').filter(Boolean)
+    : []
+
+  // Build variant→image indices maps (only when multiple options exist per dimension)
+  const colorImageIndices = colors.length > 1
+    ? buildVariantImageMap(allImages, variants, 'color')
+    : {}
+  const sizeImageIndices = sizes.length > 1
+    ? buildVariantImageMap(allImages, variants, 'size')
+    : {}
+
+  const details = product.product_details || {}
+
   return {
     id: product.id,
     title: product.title,
@@ -33,7 +82,7 @@ export async function getProduct(id: string) {
     longDescription: product.description,
     price: product.base_price_cents / 100,
     currency: product.currency?.toUpperCase() || 'EUR',
-    images: Array.isArray(product.images) ? product.images.map((img: { src?: string; url?: string; alt?: string }) => img.src || img.url || '') : [],
+    images: allImages,
     rating: Number(product.avg_rating) || 0,
     reviewCount: product.review_count || 0,
     category: product.category?.toLowerCase(),
@@ -41,9 +90,18 @@ export async function getProduct(id: string) {
     inStock: true,
     printifyId: product.printify_id,
     createdAt: product.created_at,
+    materials: details.material || null,
+    careInstructions: details.care_instructions || null,
+    printTechnique: details.print_technique || null,
+    manufacturingCountry: details.manufacturing_country || null,
+    brand: details.brand || null,
+    safetyInformation: details.safety_information || null,
+    productDetails: details,
     variants: {
       ...(sizes.length > 0 ? { sizes } : {}),
       ...(colors.length > 0 ? { colors } : {}),
+      ...(Object.keys(colorImageIndices).length > 0 ? { colorImageIndices } : {}),
+      ...(Object.keys(sizeImageIndices).length > 0 ? { sizeImageIndices } : {}),
     },
   }
 }

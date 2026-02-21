@@ -13,7 +13,7 @@
  * - Responsive: stacks on mobile
  */
 
-import { Star, ShoppingCart, Heart, Package, Ruler, Info } from 'lucide-react'
+import { Star, ShoppingCart, Heart, Package, Ruler, Info, Shirt, Globe, Printer, Droplets, ShieldCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -35,6 +35,11 @@ export interface ProductDetail {
   reviewCount: number
   variants?: { name: string; options: string[] }[]
   materials?: string
+  careInstructions?: string
+  printTechnique?: string
+  manufacturingCountry?: string
+  brand?: string
+  safetyInformation?: string
   shippingInfo?: string
   available: boolean
 }
@@ -138,13 +143,65 @@ export function ProductDetailArtifact({
               </>
             )}
 
-            {/* Materials */}
-            {product.materials && (
+            {/* Materials & Specifications */}
+            {(product.materials || product.careInstructions || product.printTechnique || product.manufacturingCountry) && (
               <>
-                <div>
-                  <h3 className="mb-2 text-sm font-semibold">{t('materials')}</h3>
-                  <p className="text-sm text-muted-foreground">{product.materials}</p>
+                <div className="space-y-2">
+                  {product.materials && (
+                    <div className="flex items-start gap-2">
+                      <Shirt className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+                      <div>
+                        <h3 className="text-sm font-semibold">{t('materials')}</h3>
+                        <p className="text-sm text-muted-foreground">{product.materials}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {product.careInstructions && (
+                    <div className="flex items-start gap-2">
+                      <Droplets className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+                      <div>
+                        <h3 className="text-sm font-semibold">{t('careInstructions')}</h3>
+                        <p className="text-sm text-muted-foreground">{product.careInstructions}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {product.printTechnique && (
+                    <div className="flex items-start gap-2">
+                      <Printer className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+                      <div>
+                        <h3 className="text-sm font-semibold">{t('printTechnique')}</h3>
+                        <p className="text-sm text-muted-foreground">{product.printTechnique}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {product.manufacturingCountry && (
+                    <div className="flex items-start gap-2">
+                      <Globe className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+                      <div>
+                        <h3 className="text-sm font-semibold">{t('madeIn')}</h3>
+                        <p className="text-sm text-muted-foreground">{product.manufacturingCountry}</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
+
+                {product.safetyInformation && (
+                  <details className="group mt-2">
+                    <summary className="flex items-center gap-2 cursor-pointer list-none text-xs font-medium text-muted-foreground hover:text-foreground transition-colors">
+                      <ShieldCheck className="h-3.5 w-3.5 shrink-0" />
+                      {t('safetyInformation')}
+                      <span className="ml-auto text-[10px] group-open:rotate-180 transition-transform">▼</span>
+                    </summary>
+                    <div
+                      className="mt-1.5 text-xs text-muted-foreground [&_p]:my-0.5 [&_strong]:text-foreground"
+                      dangerouslySetInnerHTML={{ __html: product.safetyInformation }}
+                    />
+                  </details>
+                )}
+
                 <Separator />
               </>
             )}

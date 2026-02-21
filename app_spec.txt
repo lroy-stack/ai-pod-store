@@ -948,9 +948,24 @@
   </api_endpoints>
 
   <ui_layout>
+    <route_groups>
+      IMPORTANT: Next.js route groups determine which layout wraps each page.
+      NEVER move pages between route groups. NEVER create (app)/page.tsx.
+
+      (landing)/ — Landing page ONLY. Minimal layout (bg-background, no StorefrontLayout).
+        - page.tsx = /[locale]/ (hero, product carousel, CTA to /chat, Footer)
+
+      (app)/ — All app pages. StorefrontLayout (sidebar + header + chat + detail panel).
+        - chat/page.tsx = /[locale]/chat (renders null, ChatArea via StorefrontLayout CSS toggle)
+        - shop/page.tsx, cart/page.tsx, orders/page.tsx, profile/page.tsx, etc.
+        - NO page.tsx at (app) root — the index page lives in (landing)/page.tsx
+
+      (focused)/ — Auth + checkout. Minimal wrapper, no sidebar.
+        - auth/login, auth/register, checkout/, etc.
+    </route_groups>
     <pages>
-      - /[locale]/ — Landing page (hero CTA, product carousel, today's designs accordion)
-      - /[locale]/chat — Conversational storefront (three-panel: sidebar + chat + detail) — PRIMARY AI INTERFACE
+      - /[locale]/ — Landing page in (landing)/ route group (hero CTA, product carousel, Footer with theme toggle)
+      - /[locale]/chat — Conversational storefront in (app)/ route group (three-panel: sidebar + chat + detail) — PRIMARY AI INTERFACE
       - /[locale]/shop — Product catalog with filters and search
       - /[locale]/shop/:id — Product detail page with reviews
       NOTE: /shop and /shop/:id are secondary SEO/fallback routes. The primary AI experience is at /chat. The landing page at / drives traffic to /chat.
@@ -2123,24 +2138,35 @@
   <!-- Phase 21: Landing Page + Route Restructuring (Feb 2026) -->
   <phase id="21" name="Landing Page + Route Restructuring">
     <description>
-      Separates the landing page from the chat interface. / now shows a dedicated landing page
-      with hero section, dynamic product carousel (seasonal sorting), and today's designs accordion.
+      Separates the landing page from the chat interface using Next.js route groups.
+
+      ARCHITECTURE (DO NOT CHANGE):
+      - (landing)/page.tsx = /[locale]/ — Landing page with its OWN minimal layout (NO StorefrontLayout)
+      - (app)/chat/page.tsx = /[locale]/chat — Conversational storefront inside StorefrontLayout
+      - There is NO (app)/page.tsx — NEVER create one
+
+      The landing page has: Metaballs shader hero (glass panel), "How It Works" 3-step cards,
+      product carousel (real data from /api/products), and final CTA + reusable Footer component.
+      NO fake statistics, NO fake testimonials, NO hardcoded social proof.
       Chat moves to /chat with a WelcomePopup for first-time unauthenticated visitors.
       Navigation updated across header, sidebar, command palette, sitemap, and design gallery links.
     </description>
     <features>
       <!-- Route Restructuring -->
+      <feature id="LP-route-landing">Landing page lives in (landing)/ route group with minimal layout — NOT inside (app)/</feature>
       <feature id="LP-route-chat">Chat page at /[locale]/chat renders null (ChatArea lives in StorefrontLayout)</feature>
       <feature id="LP-route-chat-meta">Chat page exports SEO metadata (title: "Chat — POD AI")</feature>
       <feature id="LP-layout-detect">StorefrontLayout detects /chat path for isChatPage (was root /)</feature>
       <feature id="LP-layout-chat-toggle">ChatArea visible on /chat, hidden on other routes (CSS visibility toggle preserved)</feature>
+      <feature id="LP-no-app-page">There is NO (app)/page.tsx — root index page lives in (landing)/page.tsx only</feature>
 
       <!-- Landing Page -->
-      <feature id="LP-page-hero">Landing page hero section with logo, h1, subtitle, and CTA button to /chat</feature>
-      <feature id="LP-page-carousel">Landing page carousel with Autoplay (4s, embla-carousel-autoplay), seasonal sorting</feature>
-      <feature id="LP-page-accordion">Landing page accordion shows today's designs with fallback to latest</feature>
-      <feature id="LP-page-data">Landing page fetches products from /api/products with seasonal sort + newest</feature>
-      <feature id="LP-page-responsive">Landing page carousel: 1 item mobile, 2 tablet, 3 desktop with loop</feature>
+      <feature id="LP-page-hero">Landing page hero with Metaballs shader background, glass panel (bg-card/50 backdrop-blur-2xl), CTA to /chat</feature>
+      <feature id="LP-page-carousel">Landing page product carousel with Autoplay (4.5s), real Supabase data, seasonal sorting</feature>
+      <feature id="LP-page-cards">Product cards match ProductCard.tsx design system: aspect-square, rounded-2xl, scale-[1.03], fill-rating text-rating stars</feature>
+      <feature id="LP-page-data">Landing page fetches products from /api/products with seasonal sort — NO mock/hardcoded data</feature>
+      <feature id="LP-page-responsive">Landing page carousel: 1 item mobile (80%), 2 tablet, 3 desktop with loop</feature>
+      <feature id="LP-page-footer">Landing page uses reusable Footer component (nav, social, legal, language selector, theme toggle)</feature>
 
       <!-- WelcomePopup -->
       <feature id="LP-welcome-popup">WelcomePopup shows on /chat for unauthenticated users (first session visit)</feature>
@@ -2154,7 +2180,7 @@
       <feature id="LP-nav-sidebar-active">Sidebar isActive correctly matches /chat exact and / exact</feature>
 
       <!-- i18n -->
-      <feature id="LP-i18n">landing.* and engagement.welcome.* keys in en.json, es.json, de.json</feature>
+      <feature id="LP-i18n">landing.* and engagement.welcome.* keys in en.json, es.json, de.json — all user-facing text translated, NO hardcoded English</feature>
 
       <!-- Minor Links -->
       <feature id="LP-links-palette">CommandPalette design action href points to /chat?prompt=design</feature>
@@ -2163,8 +2189,8 @@
     </features>
     <feature_ids>579-599</feature_ids>
     <new_files>
-      (none — all modifications to existing files, WelcomePopup.tsx rewritten)
+      - src/components/landing/MetaballsBackground.tsx (Metaballs shader wrapper with theme + WebGL check)
     </new_files>
-    <npm_dependencies>embla-carousel-autoplay (shadcn carousel + accordion installed via shadcn CLI)</npm_dependencies>
+    <npm_dependencies>embla-carousel-autoplay, @paper-design/shaders-react (shadcn carousel + accordion installed via shadcn CLI)</npm_dependencies>
   </phase>
 </project_specification>

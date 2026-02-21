@@ -38,10 +38,24 @@
     "category": {
       "all": "All",
       "apparel": "Apparel",
-      "home": "Home & Living",
-      "home & living": "Home & Living",
+      "home-decor": "Home & Living",
       "drinkware": "Drinkware",
-      "accessories": "Accessories"
+      "accessories": "Accessories",
+      "t-shirts": "T-Shirts",
+      "hoodies": "Hoodies",
+      "stickers": "Stickers",
+      "phone-cases": "Phone Cases",
+      "posters": "Posters",
+      "bags": "Bags",
+      "hats": "Hats",
+      "mugs": "Mugs",
+      "wall-art": "Wall Art",
+      "stationery": "Stationery",
+      "sweatshirts": "Sweatshirts",
+      "kitchen": "Kitchen",
+      "kids": "Kids",
+      "games": "Games",
+      "uncategorized": "Uncategorized"
     }
   },
   "product": {
@@ -91,7 +105,13 @@
     "quickView": "Quick View",
     "selectSize": "Select size",
     "selectColor": "Select color",
-    "viewFullDetails": "View full details"
+    "viewFullDetails": "View full details",
+    "specifications": "Specifications",
+    "materials": "Materials",
+    "careInstructions": "Care Instructions",
+    "printTechnique": "Print Technique",
+    "madeIn": "Made in",
+    "safetyInformation": "Product Safety Information (GPSR)"
   },
   "Auth": {
     "loginTitle": "Sign in to your account",
@@ -535,7 +555,12 @@
     "availability": "Availability",
     "noReviews": "No reviews",
     "action": "Action",
+    "specifications": "Specifications",
     "materials": "Materials",
+    "careInstructions": "Care Instructions",
+    "printTechnique": "Print Technique",
+    "madeIn": "Made in",
+    "safetyInformation": "Product Safety Information (GPSR)",
     "shipping": "Shipping",
     "shoppingCart": "Shopping Cart",
     "item": "item",
@@ -619,7 +644,7 @@
     "allProducts": "All Products",
     "apparel": "Apparel",
     "accessories": "Accessories",
-    "home": "Home & Living",
+    "home-decor": "Home & Living",
     "company": "Company",
     "about": "About Us",
     "contact": "Contact",
@@ -734,6 +759,11 @@
     "chat": {
       "limitReached": "Daily limit reached — sign up for more",
       "limitReachedFree": "Daily limit reached — upgrade for more"
+    },
+    "signupBanner": {
+      "remaining": "{used}/{limit} free messages today",
+      "exhausted": "No free messages left",
+      "cta": "Sign up"
     }
   }
 }

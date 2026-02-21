@@ -38,10 +38,24 @@
     "category": {
       "all": "Todos",
       "apparel": "Ropa",
-      "home": "Hogar y Decoración",
-      "home & living": "Hogar y Decoración",
+      "home-decor": "Hogar y Decoración",
       "drinkware": "Tazas y Vasos",
-      "accessories": "Accesorios"
+      "accessories": "Accesorios",
+      "t-shirts": "Camisetas",
+      "hoodies": "Sudaderas",
+      "stickers": "Pegatinas",
+      "phone-cases": "Fundas de Móvil",
+      "posters": "Pósters",
+      "bags": "Bolsas",
+      "hats": "Gorras",
+      "mugs": "Tazas",
+      "wall-art": "Arte Mural",
+      "stationery": "Papelería",
+      "sweatshirts": "Sudaderas sin Capucha",
+      "kitchen": "Cocina",
+      "kids": "Niños",
+      "games": "Juegos",
+      "uncategorized": "Sin categoría"
     }
   },
   "product": {
@@ -91,7 +105,13 @@
     "quickView": "Vista Rápida",
     "selectSize": "Seleccionar tamaño",
     "selectColor": "Seleccionar color",
-    "viewFullDetails": "Ver detalles completos"
+    "viewFullDetails": "Ver detalles completos",
+    "specifications": "Especificaciones",
+    "materials": "Materiales",
+    "careInstructions": "Instrucciones de cuidado",
+    "printTechnique": "Técnica de impresión",
+    "madeIn": "Fabricado en",
+    "safetyInformation": "Información de seguridad del producto (GPSR)"
   },
   "Auth": {
     "loginTitle": "Iniciar sesión en tu cuenta",
@@ -535,7 +555,12 @@
     "availability": "Disponibilidad",
     "noReviews": "Sin reseñas",
     "action": "Acción",
+    "specifications": "Especificaciones",
     "materials": "Materiales",
+    "careInstructions": "Instrucciones de cuidado",
+    "printTechnique": "Técnica de impresión",
+    "madeIn": "Fabricado en",
+    "safetyInformation": "Información de seguridad del producto (GPSR)",
     "shipping": "Envío",
     "shoppingCart": "Carrito de Compras",
     "item": "artículo",
@@ -619,7 +644,7 @@
     "allProducts": "Todos los Productos",
     "apparel": "Ropa",
     "accessories": "Accesorios",
-    "home": "Hogar y Vida",
+    "home-decor": "Hogar y Decoración",
     "company": "Empresa",
     "about": "Acerca de Nosotros",
     "contact": "Contacto",
@@ -734,6 +759,11 @@
     "chat": {
       "limitReached": "Límite diario alcanzado — regístrate para más",
       "limitReachedFree": "Límite diario alcanzado — mejora tu plan"
+    },
+    "signupBanner": {
+      "remaining": "{used}/{limit} mensajes gratis hoy",
+      "exhausted": "Sin mensajes gratis",
+      "cta": "Regístrate"
     }
   }
 }

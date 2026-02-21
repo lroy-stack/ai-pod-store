@@ -5,7 +5,7 @@ import { useTranslations, useLocale } from 'next-intl'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useState } from 'react'
-import { Star, Heart, ShoppingCart, ChevronLeft } from 'lucide-react'
+import { Star, Heart, ShoppingCart, ChevronLeft, Shirt, Droplets, Globe, Printer, ShieldCheck } from 'lucide-react'
 import { useCart } from '@/hooks/useCart'
 import { useWishlist } from '@/hooks/useWishlist'
 import { Button } from '@/components/ui/button'
@@ -48,16 +48,40 @@ export function ProductDetailClient({ product, relatedProducts, reviews }: Produ
   const { addToCart } = useCart()
   const { isWishlisted, toggleWishlist } = useWishlist()
 
+  // Extract variant data early for default selection
+  const sizes = product?.variants && 'sizes' in product.variants ? product.variants.sizes as string[] : undefined
+  const colors = product?.variants && 'colors' in product.variants ? product.variants.colors as string[] : undefined
+  const colorImageIndices = product?.variants && 'colorImageIndices' in product.variants ? product.variants.colorImageIndices as Record<string, number[]> : undefined
+  const sizeImageIndices = product?.variants && 'sizeImageIndices' in product.variants ? product.variants.sizeImageIndices as Record<string, number[]> : undefined
+
+  const hasColorMapping = !!(colorImageIndices && Object.keys(colorImageIndices).length > 0)
+  const hasSizeMapping = !!(sizeImageIndices && Object.keys(sizeImageIndices).length > 0)
+
   const [selectedImage, setSelectedImage] = useState(0)
-  const [selectedSize, setSelectedSize] = useState<string>('')
-  const [selectedColor, setSelectedColor] = useState<string>('')
+  // Auto-select first option when variant-to-image mapping exists
+  const [selectedSize, setSelectedSize] = useState<string>(
+    hasSizeMapping && sizes && sizes.length > 0 ? sizes[0] : ''
+  )
+  const [selectedColor, setSelectedColor] = useState<string>(
+    hasColorMapping && colors && colors.length > 0 ? colors[0] : ''
+  )
   const [quantity, setQuantity] = useState(1)
   const [isAddingToCart, setIsAddingToCart] = useState(false)
   const [showReviewForm, setShowReviewForm] = useState(false)
 
-  // Extract variants to avoid TypeScript union narrowing issues
-  const sizes = product?.variants && 'sizes' in product.variants ? product.variants.sizes : undefined
-  const colors = product?.variants && 'colors' in product.variants ? product.variants.colors : undefined
+  // Filter images by selected variant (color takes priority, then size)
+  const visibleImages: string[] = (() => {
+    if (!product) return []
+    // Color filter
+    if (hasColorMapping && selectedColor && colorImageIndices?.[selectedColor]) {
+      return colorImageIndices[selectedColor].map((idx: number) => product.images[idx]).filter(Boolean)
+    }
+    // Size filter (for products like mugs with 11oz/15oz)
+    if (hasSizeMapping && selectedSize && sizeImageIndices?.[selectedSize]) {
+      return sizeImageIndices[selectedSize].map((idx: number) => product.images[idx]).filter(Boolean)
+    }
+    return product.images.filter(Boolean)
+  })()
 
   if (!product) {
     return (
@@ -168,9 +192,9 @@ export function ProductDetailClient({ product, relatedProducts, reviews }: Produ
         {/* Image Gallery */}
         <div className="space-y-4">
           <div className="relative aspect-square bg-muted rounded-lg overflow-hidden">
-            {product.images[selectedImage] ? (
+            {visibleImages[selectedImage] ? (
               <Image
-                src={product.images[selectedImage]}
+                src={visibleImages[selectedImage]}
                 alt={product.title}
                 fill
                 className="object-cover"
@@ -185,11 +209,11 @@ export function ProductDetailClient({ product, relatedProducts, reviews }: Produ
           </div>
 
           {/* Thumbnail Gallery */}
-          {product.images.filter(Boolean).length > 1 && (
+          {visibleImages.length > 1 && (
             <div className="grid grid-cols-4 gap-4">
-              {product.images.filter(Boolean).map((image: string, index: number) => (
+              {visibleImages.map((image: string, index: number) => (
                 <Button
-                  key={index}
+                  key={image}
                   variant="outline"
                   onClick={() => setSelectedImage(index)}
                   className={cn(
@@ -247,6 +271,68 @@ export function ProductDetailClient({ product, relatedProducts, reviews }: Produ
             <p className="text-muted-foreground leading-relaxed">{product.longDescription}</p>
           </div>
 
+          {/* Product Specifications */}
+          {(product.materials || product.careInstructions || product.printTechnique || product.manufacturingCountry) && (
+            <div className="space-y-3">
+              <h2 className="text-xl font-semibold">{t('specifications')}</h2>
+
+              {product.materials && (
+                <div className="flex items-start gap-3">
+                  <Shirt className="size-5 text-muted-foreground mt-0.5 shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium">{t('materials')}</p>
+                    <p className="text-sm text-muted-foreground">{product.materials}</p>
+                  </div>
+                </div>
+              )}
+
+              {product.careInstructions && (
+                <div className="flex items-start gap-3">
+                  <Droplets className="size-5 text-muted-foreground mt-0.5 shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium">{t('careInstructions')}</p>
+                    <p className="text-sm text-muted-foreground">{product.careInstructions}</p>
+                  </div>
+                </div>
+              )}
+
+              {product.printTechnique && (
+                <div className="flex items-start gap-3">
+                  <Printer className="size-5 text-muted-foreground mt-0.5 shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium">{t('printTechnique')}</p>
+                    <p className="text-sm text-muted-foreground">{product.printTechnique}</p>
+                  </div>
+                </div>
+              )}
+
+              {product.manufacturingCountry && (
+                <div className="flex items-start gap-3">
+                  <Globe className="size-5 text-muted-foreground mt-0.5 shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium">{t('madeIn')}</p>
+                    <p className="text-sm text-muted-foreground">{product.manufacturingCountry}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* GPSR Safety Information (EU regulation) */}
+          {product.safetyInformation && (
+            <details className="group">
+              <summary className="flex items-center gap-2 cursor-pointer list-none text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+                <ShieldCheck className="size-4 shrink-0" />
+                {t('safetyInformation')}
+                <span className="ml-auto text-xs group-open:rotate-180 transition-transform">▼</span>
+              </summary>
+              <div
+                className="mt-2 text-sm text-muted-foreground prose prose-sm max-w-none [&_p]:my-1 [&_strong]:text-foreground"
+                dangerouslySetInnerHTML={{ __html: product.safetyInformation }}
+              />
+            </details>
+          )}
+
           <Separator />
 
           {/* Variants */}
@@ -257,7 +343,10 @@ export function ProductDetailClient({ product, relatedProducts, reviews }: Produ
                   <label className="text-sm font-medium">{t('size')}</label>
                   {product.category === 'apparel' && <SizeGuide productType={product.title} />}
                 </div>
-                <Select value={selectedSize} onValueChange={setSelectedSize}>
+                <Select value={selectedSize} onValueChange={(size) => {
+                  setSelectedSize(size)
+                  if (hasSizeMapping) setSelectedImage(0)
+                }}>
                   <SelectTrigger>
                     <SelectValue placeholder={t('selectVariant')} />
                   </SelectTrigger>
@@ -275,7 +364,11 @@ export function ProductDetailClient({ product, relatedProducts, reviews }: Produ
             {colors && colors.length > 0 && (
               <div>
                 <label className="text-sm font-medium mb-2 block">{t('color')}</label>
-                <Select value={selectedColor} onValueChange={setSelectedColor}>
+                <Select value={selectedColor} onValueChange={(color) => {
+                  setSelectedColor(color)
+                  // Reset to first image of the new color
+                  setSelectedImage(0)
+                }}>
                   <SelectTrigger>
                     <SelectValue placeholder={t('selectVariant')} />
                   </SelectTrigger>

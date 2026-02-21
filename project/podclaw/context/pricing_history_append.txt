@@ -1,0 +1,2 @@
+| 2026-02-16 | [E2E] Flame Ceramic Mug 11oz | 5.27 | 8.79 | 40.0% | PRICE_ADJUST | Product editing cycle +10% increase (was €7.99); title/description updated |
+| 2026-02-16 | [E2E] Flame Ceramic Mug 15oz | 8.88 | 14.29 | 37.9% | PRICE_ADJUST | Product editing cycle +10% increase (was €12.99); title/description updated |

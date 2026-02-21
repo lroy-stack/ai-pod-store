@@ -55,6 +55,7 @@ export const authLimiter = new RateLimiter(5, 15 * 60 * 1000)       // 5 attempt
 export const registerLimiter = new RateLimiter(3, 60 * 60 * 1000)   // 3 attempts / 60 min
 export const forgotPasswordLimiter = new RateLimiter(3, 60 * 60 * 1000) // 3 attempts / 60 min
 export const chatLimiter = new RateLimiter(20, 60 * 1000)            // 20 messages / 1 min
+export const noFpChatLimiter = new RateLimiter(5, 60 * 1000)        // 5 messages / 1 min (no fingerprint)
 export const couponLimiter = new RateLimiter(10, 5 * 60 * 1000)     // 10 attempts / 5 min
 export const apiLimiter = new RateLimiter(100, 60 * 1000)           // 100 requests / 1 min
 

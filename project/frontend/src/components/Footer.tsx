@@ -23,7 +23,8 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
-import { Facebook, Twitter, Instagram, Linkedin } from 'lucide-react'
+import { Facebook, Twitter, Instagram, Linkedin, Sun, Moon } from 'lucide-react'
+import { useTheme } from 'next-themes'
 import { STORE_DEFAULTS } from '@/lib/store-config'
 
 const LOCALES = [
@@ -37,6 +38,8 @@ export function Footer() {
   const locale = useLocale()
   const pathname = usePathname()
   const router = useRouter()
+
+  const { setTheme } = useTheme()
 
   const handleLocaleChange = (newLocale: string) => {
     const pathWithoutLocale = pathname.replace(`/${locale}`, '')
@@ -95,8 +98,8 @@ export function Footer() {
               <Link href={`/${locale}/shop?category=accessories`} className="text-muted-foreground hover:text-foreground transition-colors">
                 {t('accessories')}
               </Link>
-              <Link href={`/${locale}/shop?category=home`} className="text-muted-foreground hover:text-foreground transition-colors">
-                {t('home')}
+              <Link href={`/${locale}/shop?category=home-decor`} className="text-muted-foreground hover:text-foreground transition-colors">
+                {t('home-decor')}
               </Link>
             </nav>
           </div>
@@ -160,12 +163,30 @@ export function Footer() {
 
         <Separator className="my-6" />
 
-        {/* Copyright */}
+        {/* Copyright + Theme */}
         <div className="flex flex-col items-center gap-4 text-sm text-muted-foreground md:flex-row md:justify-between">
           <p suppressHydrationWarning>
             {t('copyright', { year: currentYear, storeName: STORE_DEFAULTS.platformName })}
           </p>
-          <p className="text-xs">{t('powered')}</p>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-1 rounded-full border border-border p-1">
+              <button
+                onClick={() => setTheme('light')}
+                className="rounded-full p-1.5 transition-colors bg-muted text-foreground dark:bg-transparent dark:text-muted-foreground dark:hover:text-foreground"
+                aria-label="Light mode"
+              >
+                <Sun className="h-3.5 w-3.5" />
+              </button>
+              <button
+                onClick={() => setTheme('dark')}
+                className="rounded-full p-1.5 transition-colors text-muted-foreground hover:text-foreground dark:bg-muted dark:text-foreground"
+                aria-label="Dark mode"
+              >
+                <Moon className="h-3.5 w-3.5" />
+              </button>
+            </div>
+            <p className="text-xs">{t('powered')}</p>
+          </div>
         </div>
       </div>
     </footer>

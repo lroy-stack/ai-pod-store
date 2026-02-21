@@ -36,25 +36,21 @@ def memory_hook(memory_manager: MemoryManager, event_queue=None) -> Callable:
         agent_name = input_data.get("_agent_name", "unknown")
         tool_input = input_data.get("tool_input", {})
 
-        # Only log significant actions (skip reads)
-        significant_tools = {
-            "supabase_insert", "supabase_update",
+        # Only log high-level events to daily memory (individual tool calls
+        # are already tracked in agent_events table via event_log_hook).
+        # This keeps daily logs at ~30-50 entries instead of ~400.
+        HIGH_LEVEL_TOOLS = {
             "stripe_create_refund",
-            "printify_create", "printify_update", "printify_publish",
-            "fal_generate",
-            "resend_send", "resend_send_batch",
-            "telegram_send", "telegram_broadcast",
-            "whatsapp_send", "whatsapp_send_template",
+            "printify_delete_product",
+            "resend_send_batch",
+            "telegram_broadcast",
         }
 
-        if tool_name in significant_tools:
+        if tool_name in HIGH_LEVEL_TOOLS:
             summary = f"- {tool_name}: "
             if isinstance(tool_input, dict):
-                # Summarize key fields
                 if "table" in tool_input:
                     summary += f"table={tool_input['table']} "
-                if "data" in tool_input and isinstance(tool_input["data"], dict):
-                    summary += f"fields={list(tool_input['data'].keys())[:5]}"
                 else:
                     summary += f"input_keys={list(tool_input.keys())[:5]}"
             await memory_manager.append_daily(agent_name, summary)
@@ -70,6 +66,22 @@ def memory_hook(memory_manager: MemoryManager, event_queue=None) -> Callable:
                 created_at=datetime.now(timezone.utc),
                 wake_mode="next-heartbeat",
             ))
+
+        # Detect URGENT pricing alerts written by Finance to pricing_history.md
+        if event_queue and agent_name == "finance" and tool_name == "Write":
+            file_path = tool_input.get("file_path", "")
+            if "pricing_history" in file_path:
+                content = str(tool_input.get("content", ""))
+                if "URGENT" in content or "NEGATIVE_MARGIN" in content:
+                    from podclaw.event_queue import SystemEvent
+                    await event_queue.push(SystemEvent(
+                        source="finance",
+                        event_type="pricing_negative_margin",
+                        payload={"trigger": "urgent_pricing_alert"},
+                        created_at=datetime.now(timezone.utc),
+                        wake_mode="now",
+                        target_agent="cataloger",
+                    ))
 
         return {}
 

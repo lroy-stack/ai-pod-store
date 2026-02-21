@@ -38,10 +38,24 @@
     "category": {
       "all": "Alle",
       "apparel": "Bekleidung",
-      "home": "Haus & Wohnen",
-      "home & living": "Haus & Wohnen",
+      "home-decor": "Haus & Wohnen",
       "drinkware": "Trinkgefäße",
-      "accessories": "Zubehör"
+      "accessories": "Zubehör",
+      "t-shirts": "T-Shirts",
+      "hoodies": "Hoodies",
+      "stickers": "Aufkleber",
+      "phone-cases": "Handyhüllen",
+      "posters": "Poster",
+      "bags": "Taschen",
+      "hats": "Mützen",
+      "mugs": "Tassen",
+      "wall-art": "Wandkunst",
+      "stationery": "Schreibwaren",
+      "sweatshirts": "Sweatshirts",
+      "kitchen": "Küche",
+      "kids": "Kinder",
+      "games": "Spiele",
+      "uncategorized": "Nicht kategorisiert"
     }
   },
   "product": {
@@ -91,7 +105,13 @@
     "quickView": "Schnellansicht",
     "selectSize": "Größe auswählen",
     "selectColor": "Farbe auswählen",
-    "viewFullDetails": "Alle Details anzeigen"
+    "viewFullDetails": "Alle Details anzeigen",
+    "specifications": "Spezifikationen",
+    "materials": "Materialien",
+    "careInstructions": "Pflegehinweise",
+    "printTechnique": "Drucktechnik",
+    "madeIn": "Hergestellt in",
+    "safetyInformation": "Produktsicherheitsinformationen (GPSR)"
   },
   "Auth": {
     "loginTitle": "Bei Ihrem Konto anmelden",
@@ -535,7 +555,12 @@
     "availability": "Verfügbarkeit",
     "noReviews": "Keine Bewertungen",
     "action": "Aktion",
+    "specifications": "Spezifikationen",
     "materials": "Materialien",
+    "careInstructions": "Pflegehinweise",
+    "printTechnique": "Drucktechnik",
+    "madeIn": "Hergestellt in",
+    "safetyInformation": "Produktsicherheitsinformationen (GPSR)",
     "shipping": "Versand",
     "shoppingCart": "Warenkorb",
     "item": "Artikel",
@@ -619,7 +644,7 @@
     "allProducts": "Alle Produkte",
     "apparel": "Kleidung",
     "accessories": "Accessoires",
-    "home": "Wohnen & Leben",
+    "home-decor": "Haus & Wohnen",
     "company": "Unternehmen",
     "about": "Über Uns",
     "contact": "Kontakt",
@@ -734,6 +759,11 @@
     "chat": {
       "limitReached": "Tageslimit erreicht — registriere dich für mehr",
       "limitReachedFree": "Tageslimit erreicht — upgrade für mehr"
+    },
+    "signupBanner": {
+      "remaining": "{used}/{limit} Nachrichten heute",
+      "exhausted": "Keine freien Nachrichten",
+      "cta": "Registrieren"
     }
   }
 }

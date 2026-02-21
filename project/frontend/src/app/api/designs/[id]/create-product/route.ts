@@ -78,13 +78,44 @@ export async function POST(
   }
 
   try {
-    // 2. Upload image to Printify if not already uploaded
+    // 2. Transparency guarantee: prefer bg-removed version
+    let imageUrl = design.bg_removed_url || design.image_url || design.url
+    if (!imageUrl) {
+      return NextResponse.json({ error: 'Design has no image URL' }, { status: 400 })
+    }
+
+    // If no bg-removed version exists, auto-remove now (defense-in-depth)
+    if (!design.bg_removed_url) {
+      try {
+        const { removeBackground } = await import('@/lib/providers/background-removal')
+        const bgResult = await removeBackground(imageUrl)
+        if (bgResult.success && bgResult.imageUrl) {
+          imageUrl = bgResult.imageUrl
+          await supabase
+            .from('designs')
+            .update({
+              bg_removed_url: imageUrl,
+              bg_removed_at: new Date().toISOString(),
+            })
+            .eq('id', designId)
+        } else {
+          return NextResponse.json(
+            { error: 'Background removal required for product creation but failed. Please try again.' },
+            { status: 422 }
+          )
+        }
+      } catch (bgError) {
+        console.error('Auto bg-removal in create-product failed:', bgError)
+        return NextResponse.json(
+          { error: 'Background removal required but service unavailable.' },
+          { status: 422 }
+        )
+      }
+    }
+
+    // 3. Upload image to Printify if not already uploaded
     let printifyUploadId = design.printify_upload_id
     if (!printifyUploadId) {
-      const imageUrl = design.image_url || design.url
-      if (!imageUrl) {
-        return NextResponse.json({ error: 'Design has no image URL' }, { status: 400 })
-      }
 
       const fileName = `design-${designId}.png`
       const uploadResult = await printify.uploadImage(imageUrl, fileName)
@@ -142,9 +173,8 @@ export async function POST(
         title: productTitle,
         description: productDescription,
         printify_id: printifyProduct.id,
-        design_id: designId,
-        status: 'publishing',
-        currency: 'eur',
+        status: 'draft',
+        currency: 'EUR',
       })
       .select()
       .single()

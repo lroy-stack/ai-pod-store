@@ -1,21 +1,20 @@
 # PodClaw — MCP Connector Reference
 
-PodClaw uses 11 MCP connectors exposing tools to sub-agents. Each connector is an in-process Python class converted to SDK MCP servers via `connector_adapter.py`.
+PodClaw uses 9 MCP connectors exposing tools to sub-agents. Each connector is an in-process Python class converted to SDK MCP servers via `connector_adapter.py`.
 
 ## Connector Overview
 
 | Connector | File | Agent(s) | Description |
 |-----------|------|----------|-------------|
-| supabase | `mcp/supabase_connector.py` | all | Database operations (PostgreSQL) |
-| stripe | `mcp/stripe_connector.py` | finance, customer_manager | Payment processing |
-| printify | `mcp/printify_connector.py` | cataloger, designer | POD fulfillment |
-| fal | `mcp/fal_connector.py` | designer | AI image generation (FLUX.1) |
-| gemini | `mcp/gemini_connector.py` | cataloger, newsletter | Text embeddings |
-| resend | `mcp/resend_connector.py` | newsletter, marketing, customer_manager | Transactional email |
-| jina | `mcp/jina_connector.py` | cataloger | Search reranking |
-| web_search | `mcp/web_search_connector.py` | researcher, seo_manager | Web search |
-| telegram | `mcp/telegram_connector.py` | marketing, customer_manager | Telegram messaging |
-| whatsapp | `mcp/whatsapp_connector.py` | marketing, customer_manager | WhatsApp messaging |
+| supabase | `connectors/supabase_connector.py` | all | Database operations (PostgreSQL) |
+| stripe | `connectors/stripe_connector.py` | finance, customer_manager | Payment processing |
+| printify | `connectors/printify_connector.py` | cataloger, designer | POD fulfillment |
+| fal | `connectors/fal_connector.py` | designer | AI image generation (FLUX.1) |
+| gemini | `connectors/gemini_connector.py` | cataloger, newsletter | Text embeddings |
+| resend | `connectors/resend_connector.py` | newsletter, marketing, customer_manager | Transactional email |
+| jina | `connectors/jina_connector.py` | researcher, marketing, designer, seo_manager | Web search, URL reading, image search, reranking, dedup, screenshots |
+| telegram | `connectors/telegram_connector.py` | marketing, customer_manager | Telegram messaging |
+| whatsapp | `connectors/whatsapp_connector.py` | marketing, customer_manager | WhatsApp messaging |
 
 ## Tool Details
 
@@ -97,17 +96,16 @@ PodClaw uses 11 MCP connectors exposing tools to sub-agents. Each connector is a
 
 | Tool | Description | Rate Limit |
 |------|-------------|------------|
-| `jina_rerank` | Rerank search results | — |
+| `web_search` | Search the web (POST svip.jina.ai) | researcher: 20, seo_manager: 15, marketing: 10 |
+| `read_url` | Extract markdown from URLs (r.jina.ai) | researcher: 15, seo_manager: 10, marketing: 5 |
+| `search_images` | Search for images | marketing: 5, designer: 10 |
+| `expand_query` | Expand search query into related terms | researcher: 5 |
+| `jina_rerank` | Rerank documents by relevance | researcher: 10, seo_manager: 5 |
+| `deduplicate_strings` | Remove near-duplicate strings via embeddings | researcher: 5, seo_manager: 3 |
+| `parallel_search_web` | Run up to 5 web searches in parallel | researcher: 3 |
+| `capture_screenshot` | Capture webpage screenshot | seo_manager: 3 |
 
 **Config**: `JINA_API_KEY`
-
-### web_search
-
-| Tool | Description | Rate Limit |
-|------|-------------|------------|
-| `web_search_search` | Search the web | researcher: 20, seo_manager: 15, marketing: 10 |
-
-**Config**: `JINA_API_KEY` (shares Jina key)
 
 ### telegram
 
@@ -130,7 +128,7 @@ PodClaw uses 11 MCP connectors exposing tools to sub-agents. Each connector is a
 
 ## Adding a New Connector
 
-1. Create `mcp/<name>_connector.py` implementing:
+1. Create `connectors/<name>_connector.py` implementing:
    ```python
    class MyConnector:
        def __init__(self, api_key: str):
@@ -156,7 +154,7 @@ PodClaw uses 11 MCP connectors exposing tools to sub-agents. Each connector is a
 
 2. Register in `main.py` → `_build_connectors()`:
    ```python
-   from podclaw.mcp.my_connector import MyConnector
+   from podclaw.connectors.my_connector import MyConnector
    connectors["my_name"] = MyConnector(config.MY_API_KEY)
    ```
 

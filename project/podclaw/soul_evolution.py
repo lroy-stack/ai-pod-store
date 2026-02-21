@@ -32,6 +32,7 @@ from podclaw.config import SOUL_AUTO_APPROVE, SOUL_MAX_LINES
 if TYPE_CHECKING:
     from podclaw.event_store import EventStore
     from podclaw.memory_manager import MemoryManager
+    from podclaw.state_store import StateStore
 
 logger = structlog.get_logger(__name__)
 
@@ -74,12 +75,55 @@ class SoulEvolution:
         soul_path: Path,
         event_store: "EventStore",
         memory_manager: "MemoryManager",
+        state_store: "StateStore | None" = None,
     ):
         self.soul_path = soul_path
         self.event_store = event_store
         self.memory = memory_manager
+        self.state = state_store
         self._pending_proposals: list[SoulProposal] = []
         self._soul_lock = asyncio.Lock()
+
+    async def restore_proposals(self) -> None:
+        """Restore pending proposals from local SQLite state store."""
+        if not self.state:
+            return
+        raw = await self.state.get("soul_proposals", [])
+        for item in raw:
+            try:
+                self._pending_proposals.append(SoulProposal(
+                    id=item["id"],
+                    section=item["section"],
+                    current_content=item.get("current_content", ""),
+                    proposed_content=item.get("proposed_content", ""),
+                    reasoning=item.get("reasoning", ""),
+                    requires_review=item.get("requires_review", True),
+                    created_at=datetime.fromisoformat(item["created_at"]),
+                    status=item.get("status", "pending"),
+                ))
+            except (KeyError, ValueError) as e:
+                logger.warning("soul_proposal_restore_skip", error=str(e))
+        if self._pending_proposals:
+            logger.info("soul_proposals_restored", count=len(self._pending_proposals))
+
+    async def _persist_proposals(self) -> None:
+        """Persist pending proposals to local SQLite state store."""
+        if not self.state:
+            return
+        data = [
+            {
+                "id": p.id,
+                "section": p.section,
+                "current_content": p.current_content[:2000],
+                "proposed_content": p.proposed_content[:2000],
+                "reasoning": p.reasoning[:500],
+                "requires_review": p.requires_review,
+                "created_at": p.created_at.isoformat(),
+                "status": p.status,
+            }
+            for p in self._pending_proposals
+        ]
+        await self.state.set("soul_proposals", data)
 
     async def propose_change(
         self,
@@ -142,6 +186,7 @@ class SoulEvolution:
                             section=section, proposal_id=proposal.id)
             else:
                 self._pending_proposals.append(proposal)
+                await self._persist_proposals()
                 logger.info("soul_change_pending_review",
                             section=section, proposal_id=proposal.id,
                             requires_review=requires_review)
@@ -179,6 +224,7 @@ class SoulEvolution:
             await self._apply(proposal, new_soul)
             proposal.status = "applied"
             self._pending_proposals = [p for p in self._pending_proposals if p.id != proposal_id]
+            await self._persist_proposals()
 
             # Update DB
             await self._update_db_status(proposal_id, "applied", reviewed_by="admin")
@@ -200,6 +246,7 @@ class SoulEvolution:
 
         proposal.status = "rejected"
         self._pending_proposals = [p for p in self._pending_proposals if p.id != proposal_id]
+        await self._persist_proposals()
 
         await self._update_db_status(proposal_id, "rejected", reviewed_by="admin", reason=reason)
 

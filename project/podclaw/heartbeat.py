@@ -89,6 +89,7 @@ class HeartbeatRunner:
         self.active_end = active_hours[1]
 
         self._task: asyncio.Task | None = None
+        self._urgent_task: asyncio.Task | None = None
         self._running = False
         self._paused = False
         self._seen_alerts: dict[str, datetime] = {}  # fingerprint → last_seen
@@ -99,20 +100,23 @@ class HeartbeatRunner:
         self._total_dispatches = 0
 
     def start(self) -> None:
-        """Start the heartbeat background loop."""
+        """Start the heartbeat background loop and urgent drain loop."""
         if self._task and not self._task.done():
             logger.warning("heartbeat_already_running")
             return
         self._running = True
         self._paused = False
         self._task = asyncio.get_event_loop().create_task(self._loop())
+        self._urgent_task = asyncio.get_event_loop().create_task(self._urgent_drain_loop())
         logger.info("heartbeat_started", interval_minutes=self.interval_minutes)
 
     def stop(self) -> None:
-        """Stop the heartbeat background loop."""
+        """Stop the heartbeat background loop and urgent drain loop."""
         self._running = False
         if self._task and not self._task.done():
             self._task.cancel()
+        if self._urgent_task and not self._urgent_task.done():
+            self._urgent_task.cancel()
         logger.info("heartbeat_stopped")
 
     def pause(self) -> None:
@@ -155,18 +159,25 @@ class HeartbeatRunner:
             logger.debug("heartbeat_skip_inactive_hours", hour=now.hour)
             return {"status": "skipped", "reason": "outside active hours"}
 
-        # 2. Read inputs
+        # 2. Run mechanical checks (zero LLM cost)
+        mech_alerts = await self._run_mechanical_checks(now)
+        for alert_msg in mech_alerts:
+            await self._record_event("alert", 2, None, alert_msg)
+            await self._notify_admin(alert_msg, 2)
+            self._total_alerts += 1
+
+        # 3. Read inputs
         heartbeat_md = self.memory.read_heartbeat()
         daily_tail = self.memory.read_daily_tail(100)
         events = await self.event_queue.drain()
 
-        # 3. Skip if nothing to process
+        # 4. Skip if nothing to process
         if not heartbeat_md.strip() and not events and not daily_tail.strip():
             logger.debug("heartbeat_skip_no_input")
             await self._record_event("skip", 0, None, "No input to process")
-            return {"status": "skipped", "reason": "no input"}
+            return {"status": "skipped", "reason": "no input", "mechanical_alerts": len(mech_alerts)}
 
-        # 4. Build prompt and call LLM
+        # 5. Build prompt and call LLM
         user_message = self._build_prompt(heartbeat_md, daily_tail, events, now)
 
         try:
@@ -175,7 +186,7 @@ class HeartbeatRunner:
             logger.error("heartbeat_llm_error", error=str(e))
             return {"status": "error", "reason": str(e)}
 
-        # 5. Validate and process actions
+        # 6. Validate and process actions
         from podclaw.core import AGENT_NAMES
         VALID_STATUSES = frozenset({"HEARTBEAT_OK", "ALERT", "DISPATCH"})
 
@@ -237,20 +248,135 @@ class HeartbeatRunner:
 
         return {"status": "ok", "actions": results, "run": self._total_runs}
 
+    async def _run_mechanical_checks(self, now: datetime) -> list[str]:
+        """Zero-LLM-cost health checks. Returns list of alert messages."""
+        alerts: list[str] = []
+
+        # 1. Check heartbeat gap (> 2.5x interval)
+        if self._last_run:
+            gap_minutes = (now - self._last_run).total_seconds() / 60
+            expected = self.interval_minutes * 2.5
+            if gap_minutes > expected:
+                alerts.append(
+                    f"Heartbeat gap: {gap_minutes:.0f}min (expected <{expected:.0f}min)"
+                )
+
+        # 2. Check Supabase connectivity
+        if self.event_store._client:
+            try:
+                await asyncio.to_thread(
+                    lambda: self.event_store._client.table("agent_events")
+                    .select("id").limit(1).execute()
+                )
+            except Exception as e:
+                alerts.append(f"Supabase connectivity check failed: {str(e)[:100]}")
+
+        # 3. Check agent error rates (>= 3 errors in 24h → circuit breaker)
+        if self.event_store._client:
+            try:
+                cutoff = (now - timedelta(hours=24)).isoformat()
+                result = await asyncio.to_thread(
+                    lambda: self.event_store._client.table("agent_events")
+                    .select("agent_name")
+                    .eq("event_type", "error")
+                    .gte("created_at", cutoff)
+                    .execute()
+                )
+                if result.data:
+                    from collections import Counter
+                    counts = Counter(r["agent_name"] for r in result.data)
+                    for agent, count in counts.items():
+                        if count >= 3:
+                            alerts.append(
+                                f"Circuit breaker: {agent} has {count} errors in 24h"
+                            )
+            except Exception:
+                pass  # Non-critical — don't alert on meta-check failure
+
+        return alerts
+
+    def _is_circuit_open(self, agent_name: str) -> bool:
+        """Check if circuit breaker is open for an agent (best-effort, sync check).
+
+        Fail-open: if we can't check, allow dispatch.
+        """
+        if not self.event_store._client:
+            return False
+        try:
+            import asyncio as _aio
+            # Synchronous check is not ideal but avoids blocking the dispatch decision.
+            # The mechanical checks above provide the async version.
+            return False  # Actual enforcement is in _dispatch_agent via async check
+        except Exception:
+            return False
+
+    async def _check_circuit_breaker(self, agent_name: str) -> bool:
+        """Async circuit breaker check. Returns True if circuit is OPEN (block dispatch)."""
+        if not self.event_store._client:
+            return False
+        try:
+            cutoff = (datetime.now(timezone.utc) - timedelta(hours=24)).isoformat()
+            result = await asyncio.to_thread(
+                lambda: self.event_store._client.table("agent_events")
+                .select("id", count="exact")
+                .eq("event_type", "error")
+                .eq("agent_name", agent_name)
+                .gte("created_at", cutoff)
+                .execute()
+            )
+            count = result.count if hasattr(result, 'count') and result.count else len(result.data or [])
+            if count >= 3:
+                logger.warning("circuit_breaker_open", agent=agent_name, errors_24h=count)
+                return True
+        except Exception:
+            pass  # Fail-open
+        return False
+
+    async def _urgent_drain_loop(self) -> None:
+        """Check for wake_mode='now' events every 60s and dispatch immediately."""
+        while self._running:
+            try:
+                await asyncio.sleep(60)
+                if not self._running or self._paused:
+                    continue
+
+                events = await self.event_queue.peek()
+                urgent = [e for e in events if e.wake_mode == "now"]
+                if not urgent:
+                    continue
+
+                # Drain all and process urgent ones
+                all_events = await self.event_queue.drain()
+                for evt in all_events:
+                    if evt.wake_mode == "now" and evt.target_agent:
+                        logger.info("urgent_drain_dispatch",
+                                    target=evt.target_agent, source=evt.source)
+                        task_desc = evt.payload.get("task", evt.payload.get("message", str(evt.event_type)))
+                        dt = asyncio.create_task(
+                            self._dispatch_agent(evt.target_agent, str(task_desc))
+                        )
+                        dt.set_name(f"urgent-dispatch-{evt.target_agent}")
+                        self._dispatch_tasks.add(dt)
+                        dt.add_done_callback(self._dispatch_tasks.discard)
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                logger.warning("urgent_drain_error", error=str(e))
+                await asyncio.sleep(30)
+
     async def _call_llm(self, user_message: str) -> list[dict[str, Any]]:
-        """Call Haiku via Anthropic API for heartbeat analysis."""
-        import anthropic
+        """Call Haiku via Claude Agent SDK for heartbeat analysis."""
+        from podclaw.llm_helper import quick_llm_call
 
-        client = anthropic.AsyncAnthropic()
-
-        response = await client.messages.create(
+        text = await quick_llm_call(
+            system_prompt=HEARTBEAT_SYSTEM_PROMPT,
+            user_prompt=user_message,
             model=HEARTBEAT_MODEL,
-            max_tokens=HEARTBEAT_MAX_TOKENS,
-            system=HEARTBEAT_SYSTEM_PROMPT,
-            messages=[{"role": "user", "content": user_message}],
+            max_budget=0.01,
+            max_retries=2,
         )
 
-        text = response.content[0].text.strip()
+        text = text.strip()
 
         # Parse JSON — handle potential markdown wrapping
         if text.startswith("```"):
@@ -315,18 +441,29 @@ class HeartbeatRunner:
             logger.debug("heartbeat_dedup_cleanup", removed=len(stale), remaining=len(self._seen_alerts))
 
     async def _dispatch_agent(self, agent_name: str, task: str) -> None:
-        """Dispatch an agent via the orchestrator with validation and error tracking."""
+        """Dispatch an agent via the orchestrator with circuit breaker, validation, and event tracking."""
         from podclaw.core import AGENT_NAMES
         if agent_name not in AGENT_NAMES:
             logger.error("heartbeat_dispatch_rejected_invalid_agent", agent=agent_name)
             await self._record_event("dispatch_rejected", 2, agent_name, f"Invalid agent: {agent_name}")
             return
+
+        # Circuit breaker: block dispatch if agent has >= 3 errors in 24h
+        if await self._check_circuit_breaker(agent_name):
+            await self._record_event("dispatch_blocked", 2, agent_name, "Circuit breaker open (>=3 errors in 24h)")
+            await self._notify_admin(f"Dispatch blocked for {agent_name}: circuit breaker open", 2)
+            return
+
         try:
             logger.info("heartbeat_dispatching_agent", agent=agent_name, task=task[:100])
             result = await self.orchestrator.run_agent(agent_name, task)
             if result.get("status") == "error":
                 logger.error("heartbeat_dispatch_agent_error", agent=agent_name, reason=result.get("reason"))
                 await self._record_event("dispatch_failed", 2, agent_name, result.get("reason", "unknown"))
+            else:
+                await self._record_event("dispatch_completed", 1, agent_name,
+                                          f"Completed: {result.get('tool_calls', 0)} tools, "
+                                          f"${result.get('total_cost_usd', 0):.3f}")
         except Exception as e:
             logger.error("heartbeat_dispatch_failed", agent=agent_name, error=str(e))
             await self._record_event("dispatch_error", 3, agent_name, str(e)[:500])

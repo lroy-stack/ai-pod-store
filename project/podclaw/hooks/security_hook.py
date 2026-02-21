@@ -25,15 +25,24 @@ from podclaw.config import (
     REFUND_APPROVAL_THRESHOLD,
     PRICE_CHANGE_MAX_PERCENT,
     BULK_DELETE_THRESHOLD,
+    MINIMUM_MARKUP_MULTIPLIER,
 )
 
 logger = structlog.get_logger(__name__)
 
 # Approved RPC functions (from Supabase migrations)
 ALLOWED_RPC_FUNCTIONS = frozenset({
+    # Vector search
     "match_products",
     "match_product_embeddings",
     "match_designs",
+    # Aggregation (read-only)
+    "get_category_distribution",
+    "get_product_stats",
+    "get_daily_revenue",
+    "get_rfm_segments",
+    # Usage tracking
+    "increment_usage",
 })
 
 # Valid identifier regex (same as supabase_connector._TABLE_RE)
@@ -61,7 +70,20 @@ READONLY_TOOLS = frozenset({
     "printify_get_orders",
     "printify_get_order_costs",
     "printify_get_shipping_profiles",
+    "printify_search_blueprints",
+    "printify_get_blueprint_detail",
+    "printify_get_gpsr",
+    "printify_list_shops",
+    "printify_get_shop",
+    "printify_list_webhooks",
+    "printify_list_uploads",
     "web_search",
+    "read_url",
+    "search_images",
+    "expand_query",
+    "deduplicate_strings",
+    "parallel_search_web",
+    "capture_screenshot",
     "gemini_embed_text",
     "gemini_embed_batch",
     "jina_rerank",
@@ -88,20 +110,40 @@ def init_security(supabase_client: Any) -> None:
     _supabase_client = supabase_client
 
 
-def _fetch_current_price(product_id: str) -> float | None:
-    """Fetch current price from Supabase products table (sync, run in thread)."""
+def _check_duplicate_title(title: str) -> str | None:
+    """Check if a product with this title already exists (non-deleted). Returns id or None."""
+    if not _supabase_client or not title:
+        return None
+    try:
+        result = (
+            _supabase_client.table("products")
+            .select("id,status")
+            .eq("title", title)
+            .execute()
+        )
+        if result.data:
+            for row in result.data:
+                if row.get("status") != "deleted":
+                    return row["id"]
+    except Exception as e:
+        logger.warning("security_dedup_check_failed", title=title, error=str(e))
+    return None
+
+
+def _fetch_current_price(product_id: str) -> int | None:
+    """Fetch current price in EUR cents from products table."""
     if not _supabase_client or not product_id:
         return None
     try:
         result = (
             _supabase_client.table("products")
-            .select("price")
+            .select("base_price_cents")
             .eq("id", product_id)
             .single()
             .execute()
         )
-        if result.data:
-            return float(result.data["price"])
+        if result.data and result.data.get("base_price_cents") is not None:
+            return int(result.data["base_price_cents"])
     except Exception as e:
         logger.warning("security_price_lookup_failed", product_id=product_id, error=str(e))
     return None
@@ -146,20 +188,31 @@ async def security_hook(
         table = tool_input.get("table", "")
         data = tool_input.get("data", {})
 
-        if table == "products" and "price" in data:
-            new_price = data["price"]
-            # Look up current price from DB (self-sufficient, no injection needed)
+        if table == "products" and "base_price_cents" in data:
+            new_price_cents = data["base_price_cents"]
             filters = tool_input.get("filters", {})
             product_id = filters.get("id", "")
-            old_price = await asyncio.to_thread(_fetch_current_price, product_id)
+            old_price_cents = await asyncio.to_thread(_fetch_current_price, product_id)
 
-            if old_price and old_price > 0:
-                change_pct = abs(new_price - old_price) / old_price * 100
+            if old_price_cents and old_price_cents > 0:
+                change_pct = abs(new_price_cents - old_price_cents) / old_price_cents * 100
                 if change_pct > PRICE_CHANGE_MAX_PERCENT:
                     return _deny(
-                        f"Price change {change_pct:.1f}% exceeds ±{PRICE_CHANGE_MAX_PERCENT}% limit. "
-                        f"Old: €{old_price:.2f}, New: €{new_price:.2f}. Requires human approval."
+                        f"Price change {change_pct:.1f}% exceeds +/-{PRICE_CHANGE_MAX_PERCENT}% limit. "
+                        f"Old: EUR {old_price_cents/100:.2f}, New: EUR {new_price_cents/100:.2f}."
                     )
+
+            # Dynamic minimum price floor based on cost
+            cost_cents = data.get("cost_cents")
+            if cost_cents and cost_cents > 0:
+                dynamic_floor = max(int(cost_cents * MINIMUM_MARKUP_MULTIPLIER), cost_cents + 200)
+                if new_price_cents < dynamic_floor:
+                    return _deny(
+                        f"Price EUR {new_price_cents/100:.2f} below dynamic floor "
+                        f"EUR {dynamic_floor/100:.2f} (cost EUR {cost_cents/100:.2f} × {MINIMUM_MARKUP_MULTIPLIER})."
+                    )
+            elif new_price_cents < 299:  # absolute safety net: EUR 2.99
+                return _deny(f"Price EUR {new_price_cents/100:.2f} below absolute minimum EUR 2.99.")
 
     # --- Bulk deletion checks ---
     if tool_name in ("supabase_delete", "printify_delete_product"):
@@ -185,6 +238,90 @@ async def security_hook(
         table = tool_input.get("table", "")
         if table in PROTECTED_TABLES:
             return _deny(f"Table '{table}' is protected from agent writes")
+
+    # --- Validate new product inserts (price floor + dedup) ---
+    if tool_name == "supabase_insert":
+        table = tool_input.get("table", "")
+        raw_data = tool_input.get("data", {})
+        # Normalize: handle both single dict and list of dicts
+        records = raw_data if isinstance(raw_data, list) else [raw_data]
+        if table == "products":
+            for record in records:
+                if not isinstance(record, dict):
+                    return _deny("Invalid product data format: expected dict")
+                # Dedup check
+                title = record.get("title", "")
+                if title:
+                    existing = await asyncio.to_thread(_check_duplicate_title, title)
+                    if existing:
+                        return _deny(
+                            f"Product '{title}' already exists in DB "
+                            f"(id={existing[:12]}…). Skip or use different title."
+                        )
+                # Dynamic price floor based on cost
+                price = record.get("base_price_cents")
+                cost = record.get("cost_cents")
+                if price is not None:
+                    if cost and cost > 0:
+                        dynamic_floor = max(int(cost * MINIMUM_MARKUP_MULTIPLIER), cost + 200)
+                        if price < dynamic_floor:
+                            return _deny(
+                                f"New product price EUR {price/100:.2f} below dynamic floor "
+                                f"EUR {dynamic_floor/100:.2f} (cost EUR {cost/100:.2f} × {MINIMUM_MARKUP_MULTIPLIER})."
+                            )
+                    elif price < 299:  # absolute safety net: EUR 2.99
+                        return _deny(f"New product price EUR {price/100:.2f} below absolute minimum EUR 2.99.")
+
+    # --- Duplicate product check for Printify creates ---
+    if tool_name == "printify_create":
+        title = tool_input.get("title", "")
+        if title and _supabase_client:
+            existing = await asyncio.to_thread(
+                _check_duplicate_title, title
+            )
+            if existing:
+                return _deny(
+                    f"Product with title '{title}' already exists in Supabase "
+                    f"(id={existing[:12]}…, status may be draft/active). "
+                    "Skip this product or use a different title."
+                )
+
+    # --- Order write operations: audit + validation ---
+    if tool_name == "printify_create_order":
+        line_items = tool_input.get("line_items", [])
+        if not isinstance(line_items, list):
+            return _deny("printify_create_order: line_items must be an array")
+        total_qty = sum(item.get("quantity", 1) for item in line_items if isinstance(item, dict))
+        if total_qty > 20:
+            return _deny(
+                f"Order with {total_qty} total items exceeds safety limit of 20. "
+                "Requires human approval."
+            )
+        logger.info(
+            "outbound_printify_order",
+            tool=tool_name,
+            line_items=len(line_items),
+            total_quantity=total_qty,
+        )
+
+    if tool_name == "printify_send_to_production":
+        order_id = tool_input.get("order_id", "")
+        logger.warning(
+            "printify_production_trigger",
+            tool=tool_name,
+            order_id=order_id,
+            note="IRREVERSIBLE: order will be charged and produced",
+        )
+
+    # --- Webhook write operations: audit ---
+    if tool_name in ("printify_create_webhook", "printify_delete_webhook"):
+        logger.info(
+            "outbound_printify_webhook",
+            tool=tool_name,
+            topic=tool_input.get("topic", ""),
+            url=tool_input.get("url", ""),
+            webhook_id=tool_input.get("webhook_id", ""),
+        )
 
     # --- Audit trail for outbound messaging ---
     if tool_name in ("resend_send", "resend_send_batch"):

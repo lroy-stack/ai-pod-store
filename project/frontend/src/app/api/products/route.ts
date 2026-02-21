@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
+import { normalizeCategory } from '@/lib/categories'
 
 /**
  * Apply locale-specific translations to product title and description
@@ -155,7 +156,7 @@ async function hybridSearch(
         images: Array.isArray(p.images) ? p.images.map((img: { src?: string; url?: string; alt?: string }) => img.src || img.url || '') : [],
         rating: Number(p.avg_rating) || 0,
         reviewCount: p.review_count || 0,
-        category: p.category?.toLowerCase(),
+        category: normalizeCategory(p.category),
         tags: p.tags || [],
         inStock: true,
         createdAt: p.created_at,
@@ -377,7 +378,7 @@ async function fallbackTextSearch(
       images: Array.isArray(p.images) ? p.images.map((img: { src?: string; url?: string; alt?: string }) => img.src || img.url || '') : [],
       rating: Number(p.avg_rating) || 0,
       reviewCount: p.review_count || 0,
-      category: p.category?.toLowerCase(),
+      category: normalizeCategory(p.category),
       tags: p.tags || [],
       inStock: true,
       createdAt: p.created_at,
@@ -439,7 +440,7 @@ export async function GET(request: NextRequest) {
           images: Array.isArray(p.images) ? p.images.map((img: any) => img.src || img.url || '') : [],
           rating: Number(p.avg_rating) || 0,
           reviewCount: p.review_count || 0,
-          category: p.category?.toLowerCase(),
+          category: normalizeCategory(p.category),
         }
       })
       return NextResponse.json({ success: true, total: items.length, items, page: 1, limit: items.length, totalPages: 1 })
@@ -520,7 +521,7 @@ export async function GET(request: NextRequest) {
         images: Array.isArray(p.images) ? p.images.map((img: { src?: string; url?: string; alt?: string }) => img.src || img.url || '') : [],
         rating: Number(p.avg_rating) || 0,
         reviewCount: p.review_count || 0,
-        category: p.category?.toLowerCase(),
+        category: normalizeCategory(p.category),
         tags: p.tags || [],
         inStock: true,
         createdAt: p.created_at,

@@ -3,13 +3,14 @@ import { createGoogleGenerativeAI } from '@ai-sdk/google'
 import { z } from 'zod'
 import { createClient } from '@supabase/supabase-js'
 import { STORE_DEFAULTS, SHIPPING_RATES, LOCALE_FORMAT } from '@/lib/store-config'
-import { chatLimiter } from '@/lib/rate-limit'
+import { chatLimiter, noFpChatLimiter } from '@/lib/rate-limit'
 import { generateDesign } from '@/lib/design-generation'
 import type { DesignIntent } from '@/lib/providers/router'
 import { checkAndIncrementUsage, decrementUsage, usageHeaders, UserTier, USAGE_TIERS } from '@/lib/usage-limiter'
 import { checkAnomaly, trackRateLimitHit } from '@/lib/anomaly-monitor'
 import { checkPromptSafety } from '@/lib/content-safety'
 import { removeBackground } from '@/lib/providers/background-removal'
+import { normalizeCategory } from '@/lib/categories'
 
 export const maxDuration = 60
 
@@ -40,8 +41,10 @@ export async function POST(req: Request) {
     const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
       req.headers.get('x-real-ip') || 'unknown'
 
-    // Burst rate limit (still applies to all tiers)
-    const { success } = chatLimiter.check(ip)
+    // Burst rate limit — stricter for requests without fingerprint
+    const fpId = req.headers.get('x-fp-id')
+    const limiter = fpId ? chatLimiter : noFpChatLimiter
+    const { success } = limiter.check(ip)
     if (!success) {
       return Response.json({ error: 'Too many requests' }, { status: 429 })
     }
@@ -79,28 +82,7 @@ export async function POST(req: Request) {
     }
 
     // Build identifier: prefer fingerprint for anonymous users, then IP
-    const fingerprint = req.headers.get('x-fp-id')
-    const chatIdentifier = chatUserId || (fingerprint ? `fp:${fingerprint}` : `ip:${ip}`)
-
-    // CAPTCHA gate for anonymous users: after 3 chats, require verification
-    if (chatUserTier === 'anonymous') {
-      const captchaVerified = cookieMap['pod-captcha-verified'] === '1'
-      if (!captchaVerified) {
-        // Check current chat:messages count without incrementing
-        const { getCurrentUsage } = await import('@/lib/usage-limiter')
-        const currentMsgUsage = await getCurrentUsage(chatIdentifier, 'chat:messages', 'anonymous')
-        if (currentMsgUsage.used >= 3) {
-          return Response.json(
-            {
-              requireCaptcha: true,
-              error: 'Please complete verification to continue chatting.',
-              code: 'CAPTCHA_REQUIRED',
-            },
-            { status: 403 }
-          )
-        }
-      }
-    }
+    const chatIdentifier = chatUserId || (fpId ? `fp:${fpId}` : `ip:${ip}`)
 
     // Per-tier daily usage check (conversations)
     const usageResult = await checkAndIncrementUsage(chatIdentifier, 'chat', chatUserTier, chatUserId || undefined)
@@ -209,7 +191,7 @@ ${currentLocaleConfig.instruction}
 TOOLS AVAILABLE (22 total):
 - product_search: Search/browse products (returns product list)
 - browse_catalog: Browse products by category with pagination and sorting (newest, topRated, popular, price). Can filter to new arrivals only.
-- get_product_detail: Get FULL details for ONE product including materials, shipping, variants (accepts product name OR ID)
+- get_product_detail: Get FULL details for ONE product including materials, care instructions, manufacturing country, print technique, shipping, variants (accepts product name OR ID). Share material and origin info when showing product details.
 - compare_products: Compare 2-4 products side-by-side (needs product IDs from search results)
 - get_recommendations: Get product recommendations by mode: "top_rated" (default), "new_arrivals" (last 14 days), "popular" (most reviewed). Can filter by category and max price.
 - get_size_guide: Get sizing chart for product types (t-shirts, hoodies, etc.)
@@ -259,6 +241,13 @@ When calling generate_design, classify the user's request into an intent:
 - "pattern": repeating/seamless patterns (e.g., "floral repeating pattern", "geometric tiles")
 - "quick-draft": user wants fast preview (e.g., "quick sketch", "rough idea")
 - "general": default when unclear
+
+PRIVACY CLASSIFICATION (for generate_design):
+- When user uploads a personal photo and asks for caricature/portrait/personalized design → set privacy_level: "personal"
+- When user explicitly says "keep this private" or "don't share" → set privacy_level: "private"
+- Default: "public" (shown in gallery, usable for marketing)
+- Personal designs auto-delete after 30 days and are never shown publicly.
+
 18. User wants to modify existing design: "make it blue", "add stars" → call customize_design
 19. User says "remove background", "transparent", "quítale el fondo" → call remove_background with image URL from context
 20. User says "add to wishlist", "save for later", "wishlist this" → call add_to_wishlist with product ID
@@ -290,8 +279,8 @@ EXAMPLES:
 - [user uploads image of a cat] → analyze_image(description="A cute orange cat sitting on a windowsill")
 - "what's new?" → get_recommendations(mode="new_arrivals")
 - "show me popular items" → get_recommendations(mode="popular")
-- "cheapest accessories" → browse_catalog(category="Accessories", sort="priceLowToHigh")
-- "latest apparel" → browse_catalog(category="Apparel", sort="newest", newArrivals=true)
+- "cheapest accessories" → browse_catalog(category="accessories", sort="priceLowToHigh")
+- "latest apparel" → browse_catalog(category="apparel", sort="newest", newArrivals=true)
 
 IMPORTANT:
 - get_product_detail works with product names directly - you don't need to search first!
@@ -336,7 +325,7 @@ Be friendly, helpful, and concise.`
               id: p.id,
               title: p.title,
               description: p.description?.substring(0, 150) + (p.description?.length > 150 ? '...' : ''),
-              category: p.category,
+              category: normalizeCategory(p.category),
               price: p.base_price_cents / 100,
               currency: p.currency?.toUpperCase() || 'EUR',
               image: Array.isArray(p.images) && p.images.length > 0 ? (p.images[0].src || p.images[0].url) : null,
@@ -363,7 +352,7 @@ Be friendly, helpful, and concise.`
       browse_catalog: tool({
         description: 'Browse products by category with pagination and sorting. Use this when user wants to see all products in a category, browse the catalog, or sort products.',
         parameters: z.object({
-          category: z.string().optional().describe('Category to filter by (e.g., "Apparel", "Accessories", "Home & Living"). Leave empty to show all.'),
+          category: z.string().optional().describe('Category to filter by (e.g., "apparel", "accessories", "home-decor", "t-shirts", "hoodies", "drinkware"). Leave empty to show all.'),
           page: z.number().optional().describe('Page number for pagination (default: 1)'),
           limit: z.number().optional().describe('Number of products per page (default: 12)'),
           sort: z.string().optional().describe('Sort order: "newest", "topRated", "popular", "priceLowToHigh", "priceHighToLow"'),
@@ -416,7 +405,7 @@ Be friendly, helpful, and concise.`
               id: p.id,
               title: p.title,
               description: p.description?.substring(0, 150) + (p.description?.length > 150 ? '...' : ''),
-              category: p.category,
+              category: normalizeCategory(p.category),
               price: p.base_price_cents / 100,
               currency: p.currency?.toUpperCase() || 'EUR',
               image: Array.isArray(p.images) && p.images.length > 0 ? (p.images[0].src || p.images[0].url) : null,
@@ -490,16 +479,21 @@ Be friendly, helpful, and concise.`
                 id: product.id,
                 title: product.title,
                 description: product.description || 'No description available',
-                category: product.category,
+                category: normalizeCategory(product.category),
                 price: product.base_price_cents / 100,
                 currency: product.currency?.toUpperCase() || 'EUR',
                 images: Array.isArray(product.images) ? product.images : [],
                 rating: product.avg_rating || 0,
                 reviewCount: product.review_count || 0,
                 variants: product.variants || [],
-                materials: product.materials || null,
-                shippingInfo: `Free shipping on orders over €${STORE_DEFAULTS.freeShippingThreshold}`,
-                available: product.stock_quantity > 0,
+                materials: product.product_details?.material || null,
+                careInstructions: product.product_details?.care_instructions || null,
+                printTechnique: product.product_details?.print_technique || null,
+                manufacturingCountry: product.product_details?.manufacturing_country || null,
+                brand: product.product_details?.brand || null,
+                safetyInformation: product.product_details?.safety_information || null,
+                shippingInfo: `Free shipping on orders over €${STORE_DEFAULTS.freeShippingThreshold}. Made to order in ${product.product_details?.manufacturing_country || 'EU'}.`,
+                available: true,  // POD = always available (made to order)
               },
             }
           } catch (error) {
@@ -532,14 +526,16 @@ Be friendly, helpful, and concise.`
               products: (products || []).map((p) => ({
                 id: p.id,
                 title: p.title,
-                category: p.category,
+                category: normalizeCategory(p.category),
                 price: p.base_price_cents / 100,
                 currency: p.currency?.toUpperCase() || 'EUR',
                 image: Array.isArray(p.images) && p.images.length > 0 ? (p.images[0].src || p.images[0].url) : null,
                 rating: p.avg_rating || 0,
                 reviewCount: p.review_count || 0,
-                available: p.stock_quantity > 0,
-                features: p.features || [],
+                materials: p.product_details?.material || null,
+                printTechnique: p.product_details?.print_technique || null,
+                manufacturingCountry: p.product_details?.manufacturing_country || null,
+                available: true,  // POD = always available (made to order)
               })),
             }
           } catch (error) {
@@ -596,7 +592,7 @@ Be friendly, helpful, and concise.`
               id: p.id,
               title: p.title,
               description: p.description?.substring(0, 150) + (p.description?.length > 150 ? '...' : ''),
-              category: p.category,
+              category: normalizeCategory(p.category),
               price: p.base_price_cents / 100,
               currency: p.currency?.toUpperCase() || 'EUR',
               image: Array.isArray(p.images) && p.images.length > 0 ? (p.images[0].src || p.images[0].url) : null,
@@ -1456,6 +1452,10 @@ Be friendly, helpful, and concise.`
           intent: z.enum(['artistic', 'text-heavy', 'photorealistic', 'vector', 'pattern', 'quick-draft', 'general'])
             .optional()
             .describe('Design type — determines best AI provider. Classify from user request.'),
+          privacy_level: z.enum(['public', 'private', 'personal'])
+            .optional()
+            .default('public')
+            .describe('Set to "personal" for caricatures/portraits from uploaded photos. Personal designs are never shown in gallery and auto-deleted after 30 days. Set to "private" if user explicitly asks to keep it private.'),
         }),
         // @ts-expect-error AI SDK 6.0.86 type mismatch — execute works at runtime
         execute: async (args: Record<string, any>) => {
@@ -1475,7 +1475,7 @@ Be friendly, helpful, and concise.`
             // Usage check for design generation (separate from chat usage)
             const tier = chatUserTier
             const designUsage = await checkAndIncrementUsage(
-              chatUserId || (fingerprint ? `fp:${fingerprint}` : `ip:${ip}`),
+              chatUserId || (fpId ? `fp:${fpId}` : `ip:${ip}`),
               'design:generate',
               tier,
               chatUserId || undefined
@@ -1500,7 +1500,7 @@ Be friendly, helpful, and concise.`
             if (!result.success) {
               // Rollback design usage on failure
               await decrementUsage(
-                chatUserId || (fingerprint ? `fp:${fingerprint}` : `ip:${ip}`),
+                chatUserId || (fpId ? `fp:${fpId}` : `ip:${ip}`),
                 'design:generate'
               )
               return {
@@ -1509,6 +1509,25 @@ Be friendly, helpful, and concise.`
               }
             }
 
+            // Auto bg-removal — PNG transparency guarantee
+            let finalImageUrl = result.imageUrl!
+            let bgRemovedUrl: string | null = null
+            try {
+              const bgResult = await removeBackground(finalImageUrl)
+              if (bgResult.success && bgResult.imageUrl) {
+                bgRemovedUrl = bgResult.imageUrl
+                finalImageUrl = bgResult.imageUrl
+              }
+            } catch (bgError) {
+              console.warn('Auto bg-removal failed, using original:', bgError)
+            }
+
+            // Privacy level: personal for caricatures/portraits, private if user asks
+            const privacyLevel = args.privacy_level || 'public'
+            const expiresAt = privacyLevel === 'personal'
+              ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+              : null
+
             // Auto-save design to database
             let designId: string | null = null
             try {
@@ -1516,12 +1535,16 @@ Be friendly, helpful, and concise.`
                 prompt: promptText,
                 style: style || null,
                 model: result.provider || 'fal-schnell',
-                image_url: result.imageUrl,
+                image_url: finalImageUrl,
+                bg_removed_url: bgRemovedUrl,
+                bg_removed_at: bgRemovedUrl ? new Date().toISOString() : null,
                 width: 1024,
                 height: 1024,
                 user_id: chatUserId || null,
                 moderation_status: 'pending',
                 generation_time_ms: result.timings?.inference || null,
+                privacy_level: privacyLevel,
+                expires_at: expiresAt,
               }).select('id').single()
               designId = savedDesign?.id || null
             } catch (saveErr) {
@@ -1530,18 +1553,19 @@ Be friendly, helpful, and concise.`
 
             return {
               success: true,
-              imageUrl: result.imageUrl,
+              imageUrl: finalImageUrl,
               prompt: result.prompt,
               style: style || 'default',
               designId,
               provider: result.provider,
+              bgRemoved: !!bgRemovedUrl,
               message: 'Design generated successfully! You can customize it or add it to a product.',
             }
           } catch (error) {
             console.error('generate_design error:', error)
             // Rollback on unexpected error
             await decrementUsage(
-              chatUserId || (fingerprint ? `fp:${fingerprint}` : `ip:${ip}`),
+              chatUserId || (fpId ? `fp:${fpId}` : `ip:${ip}`),
               'design:generate'
             ).catch(() => {})
             return { success: false, error: 'Failed to generate design' }
@@ -1567,7 +1591,7 @@ Be friendly, helpful, and concise.`
 
             // Usage check for design generation
             const tier = chatUserTier
-            const identifier = chatUserId || (fingerprint ? `fp:${fingerprint}` : `ip:${ip}`)
+            const identifier = chatUserId || (fpId ? `fp:${fpId}` : `ip:${ip}`)
             const designUsage = await checkAndIncrementUsage(identifier, 'design:generate', tier, chatUserId || undefined)
             if (!designUsage.allowed) {
               return {
@@ -1630,7 +1654,7 @@ Be friendly, helpful, and concise.`
             }
           } catch (error) {
             console.error('customize_design error:', error)
-            const identifier = chatUserId || (fingerprint ? `fp:${fingerprint}` : `ip:${ip}`)
+            const identifier = chatUserId || (fpId ? `fp:${fpId}` : `ip:${ip}`)
             await decrementUsage(identifier, 'design:generate').catch(() => {})
             return {
               success: false,

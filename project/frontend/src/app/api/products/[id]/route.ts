@@ -44,7 +44,7 @@ export async function GET(
         .single(),
       supabaseAdmin
         .from('product_variants')
-        .select('size, color, price_cents, is_enabled, is_available')
+        .select('size, color, price_cents, is_enabled, is_available, printify_variant_id')
         .eq('product_id', id)
         .eq('is_enabled', true)
         .eq('is_available', true),
@@ -67,6 +67,36 @@ export async function GET(
     // Apply locale-specific translations
     const { title, description } = applyTranslations(product, locale)
 
+    const details = product.product_details || {}
+
+    // Build image list
+    const allImages: string[] = Array.isArray(product.images)
+      ? product.images.map((img: { src?: string; url?: string }) => img.src || img.url || '').filter(Boolean)
+      : []
+
+    // Build variant→image indices (match printify_variant_id in image URLs)
+    function buildImageMap(field: 'color' | 'size'): Record<string, number[]> {
+      const idToValue = new Map<string, string>()
+      for (const v of variants) {
+        const val = v[field]
+        if (val && v.printify_variant_id) idToValue.set(v.printify_variant_id, val)
+      }
+      const indices: Record<string, number[]> = {}
+      for (let i = 0; i < allImages.length; i++) {
+        for (const [pvid, val] of idToValue) {
+          if (allImages[i].includes('/' + pvid + '/')) {
+            if (!indices[val]) indices[val] = []
+            if (!indices[val].includes(i)) indices[val].push(i)
+            break
+          }
+        }
+      }
+      return indices
+    }
+
+    const colorImageIndices = colors.length > 1 ? buildImageMap('color') : {}
+    const sizeImageIndices = sizes.length > 1 ? buildImageMap('size') : {}
+
     // Map DB schema to frontend format
     const mapped = {
       id: product.id,
@@ -74,8 +104,8 @@ export async function GET(
       description,
       price: product.base_price_cents / 100,
       currency: product.currency?.toUpperCase() || 'EUR',
-      image: Array.isArray(product.images) && product.images.length > 0 ? (product.images[0].src || product.images[0].url) : null,
-      images: Array.isArray(product.images) ? product.images.map((img: { src?: string; url?: string; alt?: string }) => img.src || img.url || '') : [],
+      image: allImages.length > 0 ? allImages[0] : null,
+      images: allImages,
       rating: Number(product.avg_rating) || 0,
       reviewCount: product.review_count || 0,
       category: product.category?.toLowerCase(),
@@ -83,9 +113,17 @@ export async function GET(
       inStock: true,
       printifyId: product.printify_id,
       createdAt: product.created_at,
+      materials: details.material || null,
+      careInstructions: details.care_instructions || null,
+      printTechnique: details.print_technique || null,
+      manufacturingCountry: details.manufacturing_country || null,
+      brand: details.brand || null,
+      safetyInformation: details.safety_information || null,
       variants: {
         ...(sizes.length > 0 ? { sizes } : {}),
         ...(colors.length > 0 ? { colors } : {}),
+        ...(Object.keys(colorImageIndices).length > 0 ? { colorImageIndices } : {}),
+        ...(Object.keys(sizeImageIndices).length > 0 ? { sizeImageIndices } : {}),
       },
     }
 

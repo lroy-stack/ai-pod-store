@@ -62,16 +62,15 @@ def _load_env(workspace: Path) -> None:
 
 def _build_connectors() -> dict:
     """Initialize all MCP connectors."""
-    from podclaw.mcp.supabase_connector import SupabaseMCPConnector
-    from podclaw.mcp.stripe_connector import StripeMCPConnector
-    from podclaw.mcp.printify_connector import PrintifyMCPConnector
-    from podclaw.mcp.fal_connector import FalMCPConnector
-    from podclaw.mcp.gemini_connector import GeminiMCPConnector
-    from podclaw.mcp.resend_connector import ResendMCPConnector
-    from podclaw.mcp.jina_connector import JinaMCPConnector
-    from podclaw.mcp.web_search_connector import WebSearchMCPConnector
-    from podclaw.mcp.telegram_connector import TelegramMCPConnector
-    from podclaw.mcp.whatsapp_connector import WhatsAppMCPConnector
+    from podclaw.connectors.supabase_connector import SupabaseMCPConnector
+    from podclaw.connectors.stripe_connector import StripeMCPConnector
+    from podclaw.connectors.printify_connector import PrintifyMCPConnector
+    from podclaw.connectors.fal_connector import FalMCPConnector
+    from podclaw.connectors.gemini_connector import GeminiMCPConnector
+    from podclaw.connectors.resend_connector import ResendMCPConnector
+    from podclaw.connectors.jina_connector import JinaMCPConnector
+    from podclaw.connectors.telegram_connector import TelegramMCPConnector
+    from podclaw.connectors.whatsapp_connector import WhatsAppMCPConnector
     from podclaw import config
 
     connectors = {
@@ -82,7 +81,6 @@ def _build_connectors() -> dict:
         "gemini": GeminiMCPConnector(config.GEMINI_API_KEY),
         "resend": ResendMCPConnector(config.RESEND_API_KEY, config.RESEND_FROM_EMAIL),
         "jina": JinaMCPConnector(config.JINA_API_KEY),
-        "web_search": WebSearchMCPConnector(config.JINA_API_KEY),
         "telegram": TelegramMCPConnector(config.TELEGRAM_BOT_TOKEN),
         "whatsapp": WhatsAppMCPConnector(config.WHATSAPP_PHONE_NUMBER_ID, config.WHATSAPP_ACCESS_TOKEN),
     }
@@ -99,6 +97,10 @@ def _build_hooks(event_store, memory_manager, event_queue=None) -> dict[str, lis
     from podclaw.hooks.event_log_hook import event_log_hook
     from podclaw.hooks.memory_hook import memory_hook
     from podclaw.hooks.metrics_hook import metrics_pre_hook, metrics_hook
+    from podclaw.hooks.sync_hook import sync_hook
+    from podclaw.hooks.transparency_hook import transparency_hook, transparency_catchup_hook
+    from podclaw.hooks.quality_gate_hook import quality_gate_hook
+    from podclaw import config
 
     return {
         "pre_tool_use": [
@@ -110,6 +112,12 @@ def _build_hooks(event_store, memory_manager, event_queue=None) -> dict[str, lis
         "post_tool_use": [
             event_log_hook(event_store),
             memory_hook(memory_manager, event_queue=event_queue),
+            transparency_hook(config.SUPABASE_URL, config.SUPABASE_SERVICE_KEY, rembg_url=config.REMBG_URL),
+            sync_hook(config.SUPABASE_URL, config.SUPABASE_SERVICE_KEY,
+                      printify_token=config.PRINTIFY_API_TOKEN, shop_id=config.PRINTIFY_SHOP_ID,
+                      event_queue=event_queue),
+            quality_gate_hook(config.SUPABASE_URL, config.SUPABASE_SERVICE_KEY, event_queue),
+            transparency_catchup_hook(config.SUPABASE_URL, config.SUPABASE_SERVICE_KEY),
             metrics_hook,
         ],
         "stop": [],
@@ -135,6 +143,11 @@ async def _run(args: argparse.Namespace) -> None:
     from podclaw.event_queue import SystemEventQueue
     from podclaw.soul_evolution import SoulEvolution
     from podclaw.heartbeat import HeartbeatRunner
+    from podclaw.state_store import StateStore
+
+    # Initialize local state store (SQLite — PodClaw brain state)
+    data_dir = Path(__file__).parent / "data"
+    state_store = StateStore(data_dir / "podclaw_state.db")
 
     # Initialize components
     memory_manager = MemoryManager(workspace)
@@ -161,8 +174,8 @@ async def _run(args: argparse.Namespace) -> None:
         init_rate_limit(supabase_client)
         init_security(supabase_client)
 
-    # System event queue (inter-agent communication)
-    event_queue = SystemEventQueue()
+    # System event queue (inter-agent communication, Supabase-backed)
+    event_queue = SystemEventQueue(supabase_client=supabase_client)
 
     connectors = _build_connectors()
     hooks = _build_hooks(event_store, memory_manager, event_queue=event_queue)
@@ -181,12 +194,16 @@ async def _run(args: argparse.Namespace) -> None:
         client_factory=client_factory,
         event_store=event_store,
         memory_manager=memory_manager,
+        state_store=state_store,
     )
 
     scheduler = PodClawScheduler(orchestrator, workspace_root=workspace)
 
     # Soul evolution (controlled SOUL.md mutation)
-    soul_evolution = SoulEvolution(memory_manager.soul_path, event_store, memory_manager)
+    soul_evolution = SoulEvolution(
+        memory_manager.soul_path, event_store, memory_manager,
+        state_store=state_store,
+    )
     scheduler.set_soul_evolution(soul_evolution)
 
     # Heartbeat runner
@@ -217,6 +234,9 @@ async def _run(args: argparse.Namespace) -> None:
         print(f"  Soul Evolution: {'enabled' if _cfg.SOUL_EVOLUTION_ENABLED else 'disabled'}")
         return
 
+    # Restore soul proposals from local state
+    asyncio.create_task(soul_evolution.restore_proposals())
+
     # Start orchestrator
     orchestrator.start()
     scheduler.start()
@@ -236,6 +256,7 @@ async def _run(args: argparse.Namespace) -> None:
             heartbeat=heartbeat_runner,
             event_queue=event_queue,
             soul_evolution=soul_evolution,
+            state_store=state_store,
         )
 
         config = uvicorn.Config(
@@ -253,6 +274,22 @@ async def _run(args: argparse.Namespace) -> None:
                     _shutdown(scheduler, orchestrator, server, heartbeat_runner)
                 ),
             )
+
+        # SIGHUP: hot-reload config (env vars, budgets, rate limits)
+        def _handle_sighup():
+            import importlib
+            from podclaw import config as _cfg_mod
+            try:
+                _load_env(workspace)
+                importlib.reload(_cfg_mod)
+                logger.info("config_reloaded_sighup")
+            except Exception as e:
+                logger.error("config_reload_failed", error=str(e))
+
+        try:
+            loop.add_signal_handler(signal.SIGHUP, _handle_sighup)
+        except (ValueError, OSError):
+            pass  # SIGHUP not available on Windows
 
         logger.info("podclaw_started",
                      bridge=f"http://{BRIDGE_HOST}:{BRIDGE_PORT}",

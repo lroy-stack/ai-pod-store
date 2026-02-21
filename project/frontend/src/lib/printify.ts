@@ -185,6 +185,19 @@ class PrintifyClient {
   }
 
   /**
+   * List all products in the shop (paginated)
+   */
+  async listProducts(page = 1, limit = 100): Promise<{
+    current_page: number
+    data: Record<string, unknown>[]
+    total: number
+  }> {
+    return this.request(
+      `/shops/${this.shopId}/products.json?page=${page}&limit=${limit}`
+    )
+  }
+
+  /**
    * Get a single product by ID
    */
   async getProduct(productId: string): Promise<Record<string, unknown>> {

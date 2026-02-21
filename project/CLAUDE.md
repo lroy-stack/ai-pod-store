@@ -92,23 +92,27 @@ Patterns:
 - Mobile-first responsive (Sheet sidebar on mobile, full layout on lg:)
 - Auth-aware UI (useAuth + useCart hooks)
 
-## Architecture — AppShell (claude.ai model)
+## Architecture — Route Groups (DO NOT CHANGE)
 
 ```
 [locale]/layout.tsx → Providers (i18n, CartProvider, Toaster)
-  (app)/layout.tsx  → StorefrontLayout (sidebar + header + detail panel)
-    page.tsx        → ChatArea (homepage = chat)
-    shop/           → Product grid
-    cart/           → Cart view
-    orders/         → Order list
-    profile/        → User profile
-    wishlist/       → Wishlists
+  (landing)/layout.tsx → Minimal layout (bg-background, NO StorefrontLayout)
+    page.tsx           → Landing page (/[locale]/ — hero, carousel, CTA, Footer)
+  (app)/layout.tsx     → StorefrontLayout (sidebar + header + detail panel)
+    chat/page.tsx      → Renders null (ChatArea lives in StorefrontLayout CSS toggle)
+    shop/              → Product grid
+    cart/              → Cart view
+    orders/            → Order list
+    profile/           → User profile
+    wishlist/          → Wishlists
+    ⚠ NO page.tsx here → (app) has NO root page — NEVER create one
   (focused)/layout.tsx → Minimal wrapper (no sidebar)
-    auth/           → Login, register, etc.
-    checkout/       → Checkout flow
+    auth/              → Login, register, etc.
+    checkout/          → Checkout flow
 ```
 
-Route groups `(app)` and `(focused)` are invisible in URLs.
+Route groups `(app)`, `(landing)`, and `(focused)` are invisible in URLs.
+The landing page is at `/` via `(landing)/page.tsx`. The chat is at `/chat` via `(app)/chat/page.tsx`.
 
 ## Before Writing ANY Component — Checklist
 

@@ -25,12 +25,8 @@ export function AuthWallModal({ open, onOpenChange, reason, variant = 'subtle' }
   const isWall = variant === 'wall'
 
   return (
-    <Dialog open={open} onOpenChange={isWall ? undefined : onOpenChange}>
-      <DialogContent
-        className={isWall ? 'sm:max-w-2xl' : 'sm:max-w-md'}
-        onInteractOutside={isWall ? (e) => e.preventDefault() : undefined}
-        onEscapeKeyDown={isWall ? (e) => e.preventDefault() : undefined}
-      >
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className={isWall ? 'sm:max-w-2xl' : 'sm:max-w-md'}>
         <DialogHeader className={isWall ? 'text-center items-center' : ''}>
           {isWall && (
             <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary/60 mb-2">
@@ -103,12 +99,13 @@ export function AuthWallModal({ open, onOpenChange, reason, variant = 'subtle' }
           </>
         )}
 
-        <button
+        <Button
+          variant="ghost"
           onClick={() => onOpenChange(false)}
-          className="text-xs text-muted-foreground hover:text-foreground text-center pt-1 transition-colors"
+          className="w-full text-sm text-muted-foreground hover:text-foreground"
         >
           {isWall ? t('continueBrowsing') : t('continueGuest')}
-        </button>
+        </Button>
       </DialogContent>
     </Dialog>
   )

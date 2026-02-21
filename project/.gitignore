@@ -76,6 +76,9 @@ dump.rdb
 # Supabase
 .supabase/
 
+# PodClaw local state (SQLite brain)
+podclaw/data/
+
 # Agent memory (keep structure, not sensitive data)
 pod_workspace_agent/memory/daily_logs/*.md
 !pod_workspace_agent/memory/daily_logs/.gitkeep

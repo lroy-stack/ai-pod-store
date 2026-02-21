@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
       .eq('verified', true)
       .single();
 
-    const isAdmin = adminLink?.users?.role === 'admin';
+    const isAdmin = (adminLink?.users as any)?.role === 'admin';
 
     // Process commands
     if (text?.startsWith('/')) {

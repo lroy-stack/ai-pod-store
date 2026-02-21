@@ -28,6 +28,7 @@ from podclaw.config import (
     AGENT_OUTPUT_SCHEMAS,
     AGENT_TOOLS,
     AGENT_CONTEXT_FILES,
+    AGENT_CATALOG_FILES,
     MAX_TURNS_PER_AGENT,
 )
 from podclaw.connector_adapter import connector_to_mcp_server
@@ -104,11 +105,12 @@ class ClientFactory:
         builtin_tools = AGENT_ALLOWED_BUILTINS.get(agent_name, ["Read", "Grep", "Glob"])
 
         # MCP tool names follow the pattern: mcp__{server_name}__{tool_name}
+        # Build from connectors (which have get_tools()), not from McpSdkServerConfig (which is a dict)
         mcp_tool_names = []
-        for server_name, server in mcp_servers.items():
-            if hasattr(server, "tools"):
-                for tool in server.tools:
-                    tool_name = tool.name if hasattr(tool, "name") else str(tool)
+        for server_name in mcp_servers:
+            connector = self.connectors.get(server_name)
+            if connector and hasattr(connector, "get_tools"):
+                for tool_name in connector.get_tools():
                     mcp_tool_names.append(f"mcp__{server_name}__{tool_name}")
 
         return builtin_tools + mcp_tool_names
@@ -116,7 +118,7 @@ class ClientFactory:
     def _build_system_prompt(self, agent_name: str) -> str:
         """Build complete system prompt with security preamble and data boundaries."""
         context_files = AGENT_CONTEXT_FILES.get(agent_name, [])
-        context = self.memory.load_agent_context(agent_name, context_files)
+        context = self.memory.load_agent_context_summary(agent_name, context_files)
         skill = self._load_skill(agent_name)
 
         parts = [_SECURITY_PREAMBLE]
@@ -124,6 +126,25 @@ class ClientFactory:
             parts.append(skill)
         if context:
             parts.append(context)
+
+        # Inject catalog reference (read-only EU product data)
+        catalog_files = AGENT_CATALOG_FILES.get(agent_name, [])
+        if catalog_files:
+            catalog = self.memory.load_catalog_summary(agent_name, catalog_files)
+            if catalog:
+                parts.append(catalog)
+
+        # Inject absolute file paths so agents use correct Write/Read targets
+        ctx_dir = self.memory.context_dir.resolve()
+        agent_files = AGENT_CONTEXT_FILES.get(agent_name, [])
+        if agent_files:
+            path_lines = [f"- {f}: {ctx_dir / f}" for f in agent_files]
+            paths_section = (
+                "## File Paths (ALWAYS use these absolute paths for Write/Read)\n"
+                f"- Context directory: {ctx_dir}\n"
+                + "\n".join(path_lines)
+            )
+            parts.append(paths_section)
 
         return "\n\n---\n\n".join(parts)
 

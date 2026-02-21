@@ -2,15 +2,16 @@
 PodClaw — Scheduler
 =====================
 
-APScheduler-based daily cycle for the 8 sub-agents.
+APScheduler-based daily cycle for the 9 sub-agents.
 Follows the logical production order.
 
 Daily Cycle (UTC):
   06:00 — RESEARCHER       → Finds trends & opportunities
   07:00 — DESIGNER         → Generates designs based on trends
-  08:00 — CATALOGER #1     → Creates products with new designs
   07:00 — MARKETING (AM)   → Promotes new products
+  08:00 — CATALOGER #1     → Creates products with new designs
   09:00 — NEWSLETTER (AM)  → Email campaigns
+  10:00 — QA INSPECTOR     → Verifies designs & products quality
   12:00 — CUSTOMER MANAGER #1
   14:00 — CATALOGER #2     → Sync & update existing products
   15:00 — MARKETING (PM)   → Afternoon social push
@@ -37,6 +38,17 @@ if TYPE_CHECKING:
 
 logger = structlog.get_logger(__name__)
 
+# Maps agent_name → {hour: task_key} for cycle-specific default tasks.
+# When the scheduler splits multi-hour crons (e.g. "0 8,14,18 * * *"),
+# each hour gets a distinct task_key that core.py._default_task() resolves.
+CYCLE_TASKS: dict[str, dict[int, str]] = {
+    "cataloger": {
+        8: "cataloger",            # Cycle 1: New Products (2-step pricing)
+        14: "cataloger_pricing",   # Cycle 2: Pricing & Inventory
+        18: "cataloger_peakprep",  # Cycle 3: Peak Prep
+    },
+}
+
 # Default schedule configuration
 DEFAULT_SCHEDULE = {
     "researcher": {"schedule": "0 6 * * *", "description": "Daily trend research", "model": "haiku", "enabled": True},
@@ -47,6 +59,7 @@ DEFAULT_SCHEDULE = {
     "customer_manager": {"schedule": "0 12,22 * * *", "description": "Customer support (2x daily)", "model": "sonnet", "enabled": True},
     "seo_manager": {"schedule": "0 16 * * 0", "description": "SEO optimization (weekly, Sunday)", "model": "haiku", "enabled": True},
     "finance": {"schedule": "0 23 * * *", "description": "Daily financial reconciliation", "model": "sonnet", "enabled": True},
+    "qa_inspector": {"schedule": "0 10 * * *", "description": "Verify designs and products quality", "model": "haiku", "enabled": True},
 }
 
 
@@ -55,7 +68,10 @@ class PodClawScheduler:
 
     def __init__(self, orchestrator: "Orchestrator", workspace_root: Path | None = None):
         self.orchestrator = orchestrator
-        self.scheduler = AsyncIOScheduler(timezone="UTC")
+        self.scheduler = AsyncIOScheduler(
+            timezone="UTC",
+            job_defaults={"misfire_grace_time": 3600, "coalesce": True},
+        )
         self.workspace_root = workspace_root or Path.cwd()
         self.schedule_file = self.workspace_root / "podclaw_schedule.json"
         self.current_schedule = self._load_schedule()
@@ -101,23 +117,65 @@ class PodClawScheduler:
             day_of_week=day_of_week if day_of_week != '*' else None,
         )
 
+    def _get_cycle_task(self, agent_name: str, hour: int) -> str | None:
+        """Get the cycle-specific task key for an agent at a given hour.
+
+        Returns the task prompt from core.py._default_task() for the given
+        task_key, or None if the agent has no cycle-specific mapping (in which
+        case the orchestrator uses the default task for that agent_name).
+        """
+        task_key = CYCLE_TASKS.get(agent_name, {}).get(hour)
+        if task_key and task_key != agent_name:
+            # Import here to avoid circular dependency at module level
+            from podclaw.core import Orchestrator
+            # Build a temporary orchestrator just to call _default_task
+            # (it's a pure function with no side effects)
+            return Orchestrator._default_task(self.orchestrator, task_key)
+        return None
+
     def _setup_jobs(self) -> None:
-        """Configure all scheduled jobs from current schedule config."""
-        # Add jobs for each agent based on current schedule
+        """Configure all scheduled jobs from current schedule config.
+
+        For agents with CYCLE_TASKS mapping and multi-hour crons (e.g.
+        "0 8,14,18 * * *"), creates separate jobs per hour with distinct
+        task overrides so each cycle runs a different prompt.
+        """
         for agent_name, config in self.current_schedule.items():
             if not config.get("enabled", True):
                 continue
 
             try:
-                trigger = self._parse_cron(config["schedule"])
-                self.scheduler.add_job(
-                    self.orchestrator.run_agent,
-                    trigger,
-                    args=[agent_name],
-                    id=f"{agent_name}_scheduled",
-                    name=f"{agent_name.replace('_', ' ').title()}",
-                )
-                logger.debug("job_added", agent=agent_name, schedule=config["schedule"])
+                schedule_str = config["schedule"]
+                parts = schedule_str.split()
+                hours_field = parts[1] if len(parts) >= 2 else ""
+
+                # Check if this agent needs cycle-specific splitting
+                if "," in hours_field and agent_name in CYCLE_TASKS:
+                    for hour_str in hours_field.split(","):
+                        hour = int(hour_str)
+                        single_cron = schedule_str.replace(hours_field, hour_str)
+                        trigger = self._parse_cron(single_cron)
+                        cycle_task = self._get_cycle_task(agent_name, hour)
+                        kwargs = {"task": cycle_task} if cycle_task else {}
+                        self.scheduler.add_job(
+                            self.orchestrator.run_agent,
+                            trigger,
+                            args=[agent_name],
+                            kwargs=kwargs,
+                            id=f"{agent_name}_h{hour_str}_scheduled",
+                            name=f"{agent_name.replace('_', ' ').title()} ({hour_str}:00)",
+                        )
+                        logger.debug("job_added", agent=agent_name, schedule=single_cron, hour=hour)
+                else:
+                    trigger = self._parse_cron(schedule_str)
+                    self.scheduler.add_job(
+                        self.orchestrator.run_agent,
+                        trigger,
+                        args=[agent_name],
+                        id=f"{agent_name}_scheduled",
+                        name=f"{agent_name.replace('_', ' ').title()}",
+                    )
+                    logger.debug("job_added", agent=agent_name, schedule=schedule_str)
             except Exception as e:
                 logger.error("job_add_failed", agent=agent_name, error=str(e))
 
@@ -129,6 +187,14 @@ class PodClawScheduler:
             name="Memory Consolidation",
         )
 
+        # Session reaper: daily at 01:00 UTC — clean up stuck sessions
+        self.scheduler.add_job(
+            self._reap_stale_sessions,
+            CronTrigger(hour=1, minute=0),
+            id="session_reaper",
+            name="Session Reaper",
+        )
+
         logger.info("scheduler_configured", job_count=len(self.scheduler.get_jobs()))
 
     async def _run_consolidation_with_soul(self) -> None:
@@ -136,6 +202,32 @@ class PodClawScheduler:
         await self.orchestrator.run_consolidation(
             soul_evolution=self._soul_evolution,
         )
+
+    async def _reap_stale_sessions(self) -> None:
+        """Mark sessions stuck in 'running' > 24h as 'error'."""
+        if not self.orchestrator.events._client:
+            return
+        try:
+            import asyncio
+            from datetime import datetime, timedelta, timezone
+            cutoff = (datetime.now(timezone.utc) - timedelta(hours=24)).isoformat()
+            result = await asyncio.to_thread(
+                lambda: (
+                    self.orchestrator.events._client.table("agent_sessions")
+                    .update({
+                        "status": "error",
+                        "error_log": "session_reaper: stuck > 24h",
+                    })
+                    .eq("status", "running")
+                    .lt("started_at", cutoff)
+                    .execute()
+                )
+            )
+            count = len(result.data) if result.data else 0
+            if count:
+                logger.info("session_reaper_cleaned", count=count)
+        except Exception as e:
+            logger.warning("session_reaper_failed", error=str(e))
 
     def start(self) -> None:
         """Start the scheduler."""
@@ -181,20 +273,22 @@ class PodClawScheduler:
 
         schedule_list = []
         for agent_name, config in self.current_schedule.items():
-            # Find corresponding job
+            # Find corresponding job(s) — may be split into per-hour jobs
             job = self.scheduler.get_job(f"{agent_name}_scheduled")
+            if not job:
+                # Look for split jobs (e.g. cataloger_h8_scheduled)
+                for j in self.scheduler.get_jobs():
+                    if j.id.startswith(f"{agent_name}_h"):
+                        job = j
+                        break  # Use first matching (earliest hour)
             next_run = None
             if job:
-                # APScheduler 3.x uses 'next_run_time' attribute
                 next_run_time = getattr(job, 'next_run_time', None)
-                logger.debug("job_next_run", agent=agent_name, next_run_time=next_run_time, has_attr=hasattr(job, 'next_run_time'))
                 if next_run_time:
                     if hasattr(next_run_time, 'isoformat'):
                         next_run = next_run_time.isoformat()
                     else:
                         next_run = str(next_run_time)
-            else:
-                logger.warning("job_not_found", agent=agent_name, job_id=f"{agent_name}_scheduled")
 
             schedule_list.append({
                 "name": agent_name,
@@ -211,7 +305,11 @@ class PodClawScheduler:
         }
 
     def update_schedule(self, new_schedule: list[dict]) -> dict:
-        """Update agent schedules and persist changes."""
+        """Update agent schedules and persist changes.
+
+        Handles CYCLE_TASKS agents by splitting multi-hour crons into
+        separate per-hour jobs with distinct task overrides.
+        """
         # Convert list to dict format
         updated_config = {}
         for agent in new_schedule:
@@ -222,29 +320,49 @@ class PodClawScheduler:
                 "enabled": agent.get("enabled", True),
             }
 
-        # Remove all existing agent jobs (keep memory consolidation)
+        # Remove all existing agent jobs (keep memory consolidation and session_reaper)
         for job in list(self.scheduler.get_jobs()):
-            if job.id != "memory_consolidation":
+            if job.id not in ("memory_consolidation", "session_reaper"):
                 job.remove()
 
         # Update current schedule and re-add jobs
         self.current_schedule = updated_config
         self._save_schedule()
 
-        # Re-add jobs with new schedules
+        # Re-add jobs — replicate _setup_jobs logic for CYCLE_TASKS
         for agent_name, config in self.current_schedule.items():
             if not config.get("enabled", True):
                 continue
 
             try:
-                trigger = self._parse_cron(config["schedule"])
-                self.scheduler.add_job(
-                    self.orchestrator.run_agent,
-                    trigger,
-                    args=[agent_name],
-                    id=f"{agent_name}_scheduled",
-                    name=f"{agent_name.replace('_', ' ').title()}",
-                )
+                schedule_str = config["schedule"]
+                parts = schedule_str.split()
+                hours_field = parts[1] if len(parts) >= 2 else ""
+
+                if "," in hours_field and agent_name in CYCLE_TASKS:
+                    for hour_str in hours_field.split(","):
+                        hour = int(hour_str)
+                        single_cron = schedule_str.replace(hours_field, hour_str)
+                        trigger = self._parse_cron(single_cron)
+                        cycle_task = self._get_cycle_task(agent_name, hour)
+                        kwargs = {"task": cycle_task} if cycle_task else {}
+                        self.scheduler.add_job(
+                            self.orchestrator.run_agent,
+                            trigger,
+                            args=[agent_name],
+                            kwargs=kwargs,
+                            id=f"{agent_name}_h{hour_str}_scheduled",
+                            name=f"{agent_name.replace('_', ' ').title()} ({hour_str}:00)",
+                        )
+                else:
+                    trigger = self._parse_cron(schedule_str)
+                    self.scheduler.add_job(
+                        self.orchestrator.run_agent,
+                        trigger,
+                        args=[agent_name],
+                        id=f"{agent_name}_scheduled",
+                        name=f"{agent_name.replace('_', ' ').title()}",
+                    )
                 logger.info("job_updated", agent=agent_name, schedule=config["schedule"])
             except Exception as e:
                 logger.error("job_update_failed", agent=agent_name, error=str(e))
@@ -256,9 +374,9 @@ class PodClawScheduler:
         self.current_schedule = DEFAULT_SCHEDULE.copy()
         self._save_schedule()
 
-        # Remove all existing agent jobs
+        # Remove all existing agent jobs (keep system jobs)
         for job in list(self.scheduler.get_jobs()):
-            if job.id != "memory_consolidation":
+            if job.id not in ("memory_consolidation", "session_reaper"):
                 job.remove()
 
         # Re-add jobs with default schedules

@@ -1,13 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useParams } from 'next/navigation'
+import { useState, useEffect, useCallback } from 'react'
+import { useParams, useSearchParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { Search, X, ChevronLeft, ChevronRight } from 'lucide-react'
 import { ProductGrid } from '@/components/products/ProductGrid'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 import { cn } from '@/lib/utils'
@@ -28,7 +27,7 @@ interface Product {
   createdAt: string
 }
 
-const PRODUCTS_PER_PAGE = 8
+const PRODUCTS_PER_PAGE = 20
 
 // Map frontend sort keys to API sort params
 const sortMap: Record<SortOption, string | undefined> = {
@@ -41,32 +40,53 @@ const sortMap: Record<SortOption, string | undefined> = {
 
 export default function ShopPage() {
   const params = useParams()
+  const searchParams = useSearchParams()
   const locale = params?.locale as string || 'en'
   const t = useTranslations('shop')
-  const [searchQuery, setSearchQuery] = useState('')
-  const [selectedCategory, setSelectedCategory] = useState<string>('all')
-  const [sortBy, setSortBy] = useState<SortOption>('featured')
+  const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '')
+  const [selectedCategory, setSelectedCategory] = useState<string>(searchParams.get('category') || 'all')
+  const [sortBy, setSortBy] = useState<SortOption>(() => {
+    const s = searchParams.get('sort') as SortOption | null
+    return s && s in sortMap ? s : 'featured'
+  })
+  const [showNewArrivals, setShowNewArrivals] = useState(searchParams.get('newArrivals') === 'true')
   const [currentPage, setCurrentPage] = useState(1)
   const [isLoading, setIsLoading] = useState(true)
+
+  // Sync state from URL when searchParams change (e.g. sidebar navigation)
+  useEffect(() => {
+    setSearchQuery(searchParams.get('q') || '')
+    setSelectedCategory(searchParams.get('category') || 'all')
+    const s = searchParams.get('sort') as SortOption | null
+    setSortBy(s && s in sortMap ? s : 'featured')
+    setShowNewArrivals(searchParams.get('newArrivals') === 'true')
+    setCurrentPage(1)
+  }, [searchParams])
   const [products, setProducts] = useState<Product[]>([])
   const [totalProducts, setTotalProducts] = useState(0)
   const [categories, setCategories] = useState<string[]>(['all'])
   const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({})
 
-  // React Compiler auto-memoizes this function and its dependencies
-  const fetchProducts = async () => {
+  // Collapsible category chips — show first VISIBLE_COUNT, expand with "+N" button
+  const VISIBLE_COUNT = 6
+  const [showAllCategories, setShowAllCategories] = useState(false)
+  const visibleCategories = showAllCategories ? categories : categories.slice(0, VISIBLE_COUNT)
+  const hiddenCount = categories.length - VISIBLE_COUNT
+
+  const fetchProducts = useCallback(async () => {
     setIsLoading(true)
     try {
-      const params = new URLSearchParams()
-      params.set('page', currentPage.toString())
-      params.set('limit', PRODUCTS_PER_PAGE.toString())
-      params.set('locale', locale)
-      if (selectedCategory !== 'all') params.set('category', selectedCategory)
-      if (searchQuery.trim()) params.set('q', searchQuery.trim())
+      const urlParams = new URLSearchParams()
+      urlParams.set('page', currentPage.toString())
+      urlParams.set('limit', PRODUCTS_PER_PAGE.toString())
+      urlParams.set('locale', locale)
+      if (selectedCategory !== 'all') urlParams.set('category', selectedCategory)
+      if (searchQuery.trim()) urlParams.set('q', searchQuery.trim())
+      if (showNewArrivals) urlParams.set('newArrivals', 'true')
       const sortParam = sortMap[sortBy]
-      if (sortParam) params.set('sort', sortParam)
+      if (sortParam) urlParams.set('sort', sortParam)
 
-      const res = await fetch(`/api/products?${params.toString()}`)
+      const res = await fetch(`/api/products?${urlParams.toString()}`)
       const data = await res.json()
 
       if (data.success) {
@@ -78,7 +98,7 @@ export default function ShopPage() {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [currentPage, locale, selectedCategory, searchQuery, sortBy, showNewArrivals])
 
   // Fetch all products once to extract categories
   useEffect(() => {
@@ -115,7 +135,6 @@ export default function ShopPage() {
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     setCurrentPage(1)
-    fetchProducts()
   }
 
   const clearSearch = () => {
@@ -174,27 +193,45 @@ export default function ShopPage() {
       </form>
 
       {/* Category Filters and Sort */}
-      <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div className="flex flex-wrap gap-2">
-          {categories.map((category) => (
-            <Badge
+      <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+        {/* Collapsible category chips */}
+        <div className="flex flex-wrap gap-1.5">
+          {visibleCategories.map((category) => (
+            <Button
               key={category}
               variant={selectedCategory === category ? 'default' : 'outline'}
-              className={cn(
-                'cursor-pointer px-4 py-2 text-sm transition-colors',
-                selectedCategory === category
-                  ? 'bg-primary text-primary-foreground hover:bg-primary/90'
-                  : 'hover:bg-muted'
-              )}
+              size="sm"
+              className="rounded-full"
               onClick={() => handleCategoryChange(category)}
             >
-              {t.has(`category.${category}`) ? t(`category.${category}`) : category.charAt(0).toUpperCase() + category.slice(1)} ({getCategoryCount(category)})
-            </Badge>
+              {t.has(`category.${category}`) ? t(`category.${category}`) : category.charAt(0).toUpperCase() + category.slice(1)}
+              <span className="ml-1 opacity-60">{getCategoryCount(category)}</span>
+            </Button>
           ))}
+          {hiddenCount > 0 && !showAllCategories && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="rounded-full border-dashed"
+              onClick={() => setShowAllCategories(true)}
+            >
+              +{hiddenCount}
+            </Button>
+          )}
+          {showAllCategories && hiddenCount > 0 && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="rounded-full size-8"
+              onClick={() => setShowAllCategories(false)}
+            >
+              <X className="size-3.5" />
+            </Button>
+          )}
         </div>
 
         {/* Sort selector */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <label htmlFor="sort" className="text-sm font-medium whitespace-nowrap">
             {t('sortBy')}:
           </label>

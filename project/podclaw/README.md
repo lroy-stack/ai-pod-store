@@ -5,17 +5,21 @@ PodClaw is an autonomous AI agent that manages a Print-on-Demand e-commerce stor
 ## Quick Start
 
 ```bash
-# From harness root (pod-agent-harness/)
-cd pod_workspace/project/podclaw
+# IMPORTANT: Always use the harness virtualenv
+# The venv lives at pod-agent-harness/venv/ and contains all dependencies
+# including claude_agent_sdk, structlog, fastapi, supabase, etc.
+
+# From project root (pod_workspace/project/)
+cd pod_workspace/project
 
 # Dry run — initialize everything without starting scheduler
-python3 -m podclaw.main --workspace ../../ --dry-run
+../../venv/bin/python -m podclaw.main --workspace ../../ --dry-run
 
-# Full run — start scheduler + FastAPI bridge
-python3 -m podclaw.main --workspace ../../
+# Full run — start scheduler + FastAPI bridge (port 8000)
+../../venv/bin/python -m podclaw.main --workspace ../../
 
 # No bridge — scheduler only
-python3 -m podclaw.main --workspace ../../ --no-bridge
+../../venv/bin/python -m podclaw.main --workspace ../../ --no-bridge
 ```
 
 ### Environment

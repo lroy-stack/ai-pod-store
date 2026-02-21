@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import { useParams, useRouter, usePathname } from 'next/navigation'
 import { useTranslations } from 'next-intl'
@@ -68,11 +69,20 @@ export function StorefrontHeader({ onToggleSidebar, isSidebarCollapsed, onToggle
       ? user.email[0].toUpperCase()
       : '?'
 
+  const [searchQuery, setSearchQuery] = useState('')
   const isShopPage = pathname.includes('/shop')
   const isChatPage = pathname === `/${locale}/chat` || pathname === `/${locale}/chat/`
 
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault()
+    const q = searchQuery.trim()
+    if (!q) return
+    router.push(`/${locale}/shop?q=${encodeURIComponent(q)}`)
+    setSearchQuery('')
+  }
+
   return (
-    <header className="flex items-center justify-between gap-4 px-4 py-3 border-b border-border bg-card">
+    <header className="flex items-center justify-between gap-4 px-4 h-14 border-b border-border bg-card">
       {/* Left: Mobile toggle + Logo + Nav links */}
       <div className="flex items-center gap-4 flex-shrink-0">
         {/* Mobile sidebar toggle */}
@@ -129,17 +139,19 @@ export function StorefrontHeader({ onToggleSidebar, isSidebarCollapsed, onToggle
       </div>
 
       {/* Center: Search */}
-      <div className="flex-1 max-w-md hidden lg:block">
+      <form onSubmit={handleSearch} className="flex-1 max-w-md hidden lg:block">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
           <Input
             type="search"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={t('searchPlaceholder')}
             className="pl-9 rounded-full bg-muted border-0"
             aria-label={t('searchPlaceholder')}
           />
         </div>
-      </div>
+      </form>
 
       {/* Right: Actions */}
       <div className="flex items-center gap-2 flex-shrink-0">

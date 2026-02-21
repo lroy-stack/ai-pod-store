@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
@@ -24,8 +25,14 @@ import {
   CarouselPrevious,
 } from '@/components/ui/carousel'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Footer } from '@/components/Footer'
 import { formatPrice } from '@/lib/currency'
 import { cn } from '@/lib/utils'
+
+const MetaballsBackground = dynamic(
+  () => import('@/components/landing/MetaballsBackground').then((mod) => ({ default: mod.MetaballsBackground })),
+  { ssr: false }
+)
 
 interface Product {
   id: string
@@ -91,42 +98,46 @@ export default function LandingPage() {
     { icon: Package, title: t('step3Title'), desc: t('step3Desc'), num: '03' },
   ]
 
+
   return (
     <div className="flex flex-col">
       {/* ─── Hero ─── */}
       <section className="relative flex flex-col items-center justify-center text-center px-6 min-h-dvh">
         <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[min(600px,90vw)] aspect-square rounded-full bg-primary/[0.04] blur-[100px]" />
+          <MetaballsBackground />
         </div>
+        <div className="absolute inset-x-0 bottom-0 h-40 shader-fade-bottom pointer-events-none" aria-hidden="true" />
 
         <div className="relative z-10 flex flex-col items-center max-w-4xl">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center mb-10 landing-float shadow-lg shadow-primary/20">
-            <span className="text-primary-foreground font-bold text-2xl">P</span>
+          <div className="bg-card/50 backdrop-blur-2xl border border-border/60 rounded-3xl shadow-xl ring-1 ring-white/10 px-8 py-10 md:px-12 md:py-12 flex flex-col items-center">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center mb-8 landing-float shadow-lg shadow-primary/20">
+              <span className="text-primary-foreground font-bold text-xl">P</span>
+            </div>
+
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.08] text-balance text-foreground">
+              {t('heroTitle')}
+            </h1>
+
+            <p className="mt-5 text-base md:text-lg text-muted-foreground max-w-xl text-balance leading-relaxed">
+              {t('heroSubtitle')}
+            </p>
+
+            <Button
+              size="lg"
+              className="mt-10 rounded-full text-sm md:text-base px-8 md:px-10 py-3 md:py-3.5 h-auto shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/25 transition-all duration-300 hover:scale-[1.02]"
+              asChild
+            >
+              <Link href={`/${locale}/chat`}>
+                {t('heroCTA')}
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+
+            <p className="mt-4 text-xs text-muted-foreground">{t('heroSubCTA')}</p>
           </div>
-
-          <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.08] text-balance landing-gradient-text">
-            {t('heroTitle')}
-          </h1>
-
-          <p className="mt-6 text-lg md:text-xl text-muted-foreground max-w-xl text-balance leading-relaxed">
-            {t('heroSubtitle')}
-          </p>
-
-          <Button
-            size="lg"
-            className="mt-12 rounded-full text-base md:text-lg px-10 md:px-14 py-6 md:py-7 h-auto shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all duration-300 hover:scale-[1.03]"
-            asChild
-          >
-            <Link href={`/${locale}/chat`}>
-              {t('heroCTA')}
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Link>
-          </Button>
-
-          <p className="mt-5 text-sm text-muted-foreground">{t('heroSubCTA')}</p>
         </div>
 
-        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce opacity-40">
+        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce opacity-40 z-10">
           <ChevronDown className="h-5 w-5 text-muted-foreground" />
         </div>
       </section>
@@ -187,15 +198,13 @@ export default function LandingPage() {
           {loading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {Array.from({ length: 3 }).map((_, i) => (
-                <Card key={i} className="overflow-hidden">
-                  <CardContent className="p-0">
-                    <Skeleton className="aspect-[4/5] w-full" />
-                    <div className="p-5 space-y-3">
-                      <Skeleton className="h-4 w-3/4" />
-                      <Skeleton className="h-4 w-1/3" />
-                    </div>
-                  </CardContent>
-                </Card>
+                <div key={i} className="rounded-2xl bg-card overflow-hidden border border-border/40">
+                  <Skeleton className="aspect-square w-full" />
+                  <div className="px-3.5 py-3 space-y-2">
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-4 w-1/3" />
+                  </div>
+                </div>
               ))}
             </div>
           ) : products.length > 0 ? (
@@ -210,39 +219,40 @@ export default function LandingPage() {
                     key={product.id}
                     className="basis-[80%] md:basis-1/2 lg:basis-1/3 pl-6"
                   >
-                    <Link href={`/${locale}/shop/${product.id}`} className="group block">
-                      <Card className="overflow-hidden border-border/50 group-hover:border-primary/20 group-hover:shadow-xl transition-all duration-300 group-hover:-translate-y-1">
-                        <CardContent className="p-0">
-                          <div className="aspect-[4/5] relative bg-muted overflow-hidden">
-                            {product.image ? (
-                              <img
-                                src={product.image}
-                                alt={product.title}
-                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                                loading="lazy"
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center">
-                                <Palette className="h-12 w-12 text-muted-foreground/20" />
-                              </div>
-                            )}
+                    <Link
+                      href={`/${locale}/shop/${product.id}`}
+                      className="group block rounded-2xl bg-card overflow-hidden border border-border/40 hover:border-border/80 shadow-sm hover:shadow-xl transition-all duration-300"
+                    >
+                      <div className="relative aspect-square bg-muted overflow-hidden">
+                        {product.image ? (
+                          <img
+                            src={product.image}
+                            alt={product.title}
+                            className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <Palette className="h-12 w-12 text-muted-foreground/20" />
                           </div>
-                          <div className="p-5">
-                            <p className="font-medium line-clamp-1">{product.title}</p>
-                            <div className="flex items-center justify-between mt-2">
-                              <span className="text-sm font-semibold">
-                                {formatPrice(product.price, locale, product.currency || 'EUR')}
-                              </span>
-                              {product.rating > 0 && (
-                                <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                                  <Star className="h-3.5 w-3.5 fill-current" />
-                                  {product.rating.toFixed(1)}
-                                </div>
-                              )}
+                        )}
+                      </div>
+                      <div className="px-3.5 py-3 space-y-2">
+                        <h3 className="font-medium text-sm leading-snug line-clamp-1 text-foreground group-hover:text-primary transition-colors">
+                          {product.title}
+                        </h3>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-semibold text-foreground tracking-tight">
+                            {formatPrice(product.price, locale, product.currency || 'EUR')}
+                          </span>
+                          {product.rating > 0 && (
+                            <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                              <Star className="h-3 w-3 fill-rating text-rating" />
+                              {product.rating.toFixed(1)}
                             </div>
-                          </div>
-                        </CardContent>
-                      </Card>
+                          )}
+                        </div>
+                      </div>
                     </Link>
                   </CarouselItem>
                 ))}
@@ -258,7 +268,7 @@ export default function LandingPage() {
       <section
         ref={ctaSection.ref as React.RefObject<HTMLElement>}
         className={cn(
-          'px-6 py-24 md:py-32 text-center transition-all duration-700 ease-out',
+          'px-6 py-24 md:py-32 text-center bg-muted/30 transition-all duration-700 ease-out',
           ctaSection.visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
         )}
       >
@@ -271,26 +281,19 @@ export default function LandingPage() {
           </p>
           <Button
             size="lg"
-            className="rounded-full text-base md:text-lg px-10 md:px-14 py-6 md:py-7 h-auto shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all duration-300 hover:scale-[1.03]"
+            className="rounded-full text-sm md:text-base px-8 md:px-10 py-3 md:py-3.5 h-auto shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/25 transition-all duration-300 hover:scale-[1.02]"
             asChild
           >
             <Link href={`/${locale}/chat`}>
               {t('finalCTA')}
-              <ArrowRight className="ml-2 h-5 w-5" />
+              <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
         </div>
       </section>
 
       {/* ─── Footer ─── */}
-      <footer className="px-6 py-8 border-t border-border/50">
-        <div className="max-w-6xl mx-auto flex items-center justify-center gap-2 text-sm text-muted-foreground">
-          <div className="w-5 h-5 rounded bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center">
-            <span className="text-primary-foreground font-bold text-[10px]">P</span>
-          </div>
-          <span>&copy; {new Date().getFullYear()} POD AI</span>
-        </div>
-      </footer>
+      <Footer />
     </div>
   )
 }

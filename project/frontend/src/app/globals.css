@@ -235,6 +235,10 @@ p {
 }
 
 /* ===== Landing page ===== */
+.shader-fade-bottom {
+  background: linear-gradient(to bottom, transparent 0%, var(--color-background) 100%);
+}
+
 .landing-gradient-text {
   color: var(--color-foreground);
   background: linear-gradient(

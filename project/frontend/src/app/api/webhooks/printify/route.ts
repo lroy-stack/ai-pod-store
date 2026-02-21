@@ -9,6 +9,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createHmac } from 'crypto'
 import { createClient } from '@supabase/supabase-js'
 import { sendOrderShippedEmail } from '@/lib/resend'
+import { printify } from '@/lib/printify'
+import { syncProductFromPrintify, deleteProductCascade } from '@/lib/printify-sync'
 
 const supabase = createClient(
   process.env.SUPABASE_URL!,
@@ -77,8 +79,24 @@ export async function POST(req: NextRequest) {
         console.log('Printify product publish started:', resource.id)
         break
       case 'product:publish:succeeded':
-        await handleProductPublished(resource)
+      case 'product:created':
+      case 'product:updated': {
+        const productId = resource?.id as string
+        if (productId) {
+          const fullProduct = await printify.getProduct(productId)
+          await syncProductFromPrintify(fullProduct, supabase)
+          console.log(`Product synced (${type}):`, productId)
+        }
         break
+      }
+      case 'product:deleted': {
+        const deletedProductId = resource?.id as string
+        if (deletedProductId) {
+          await deleteProductCascade(deletedProductId, supabase)
+          console.log('Product deleted from Supabase:', deletedProductId)
+        }
+        break
+      }
       default:
         console.log(`Unhandled Printify event: ${type}`)
     }
@@ -313,17 +331,5 @@ async function handleOrderCancelled(resource: Record<string, unknown>) {
   })
 }
 
-async function handleProductPublished(resource: Record<string, unknown>) {
-  const printifyProductId = resource.id as string
-
-  const { error } = await supabase
-    .from('products')
-    .update({ status: 'published' })
-    .eq('printify_id', printifyProductId)
-
-  if (error) {
-    console.error('Failed to update product status for publish event:', error)
-  } else {
-    console.log('Product marked as published:', printifyProductId)
-  }
-}
+// handleProductPublished is now handled by syncProductFromPrintify()
+// which does a full upsert including status, images, and pricing.

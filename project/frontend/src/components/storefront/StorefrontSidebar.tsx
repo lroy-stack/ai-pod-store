@@ -13,7 +13,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { useParams, usePathname } from 'next/navigation'
+import { useParams, usePathname, useSearchParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { Store, Sparkles, Heart, ShoppingBag, ShoppingCart, PanelLeftClose, MessageCircle } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
@@ -44,6 +44,7 @@ export function StorefrontSidebar({ onNavigate, onCollapse }: StorefrontSidebarP
   const { setSelectedProduct, addArtifact } = useStorefront()
   const params = useParams()
   const pathname = usePathname()
+  const currentSearchParams = useSearchParams()
   const locale = params.locale as string
   const [recommended, setRecommended] = useState<SidebarProduct[]>([])
   const [popular, setPopular] = useState<SidebarProduct[]>([])
@@ -100,9 +101,18 @@ export function StorefrontSidebar({ onNavigate, onCollapse }: StorefrontSidebarP
   const isActive = (href: string) => {
     // Exact match for chat
     if (href === `/${locale}/chat`) return pathname === `/${locale}/chat` || pathname === `/${locale}/chat/`
-    // Strip query params for comparison
-    const basePath = href.split('?')[0]
-    return pathname.startsWith(basePath)
+    // If href has query params, require full match (path + all specified params)
+    if (href.includes('?')) {
+      const url = new URL(href, 'http://x')
+      if (pathname !== url.pathname) return false
+      const hrefParams = new URLSearchParams(url.search)
+      for (const [key, val] of hrefParams) {
+        if (currentSearchParams.get(key) !== val) return false
+      }
+      return true
+    }
+    // Plain path: exact match only
+    return pathname === href || pathname === `${href}/`
   }
 
   const handleProductClick = (productId: string, productData?: SidebarProduct) => {
@@ -133,7 +143,7 @@ export function StorefrontSidebar({ onNavigate, onCollapse }: StorefrontSidebarP
   return (
     <div className="flex flex-col h-full bg-card">
       {/* Logo + Store Name */}
-      <div className="p-4 border-b border-border flex items-center justify-between">
+      <div className="px-4 h-14 border-b border-border flex items-center justify-between">
         <Link href={`/${locale}`} className="flex items-center gap-3" onClick={onNavigate}>
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center">
             <span className="text-primary-foreground font-bold text-sm">P</span>

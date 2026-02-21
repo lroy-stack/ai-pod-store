@@ -28,6 +28,12 @@ TOOL_COSTS: dict[str, float] = {
     "resend_send": 0.001,
     "resend_send_batch": 0.005,
     "web_search": 0.005,
+    "read_url": 0.005,
+    "search_images": 0.005,
+    "expand_query": 0.005,
+    "deduplicate_strings": 0.01,
+    "parallel_search_web": 0.025,
+    "capture_screenshot": 0.01,
     "stripe_create_refund": 0.0,
     "stripe_list_charges": 0.0,
     "stripe_get_balance": 0.0,
@@ -50,6 +56,18 @@ TOOL_COSTS: dict[str, float] = {
     "printify_get_orders": 0.0,
     "printify_get_order_costs": 0.0,
     "printify_get_shipping_profiles": 0.0,
+    "printify_search_blueprints": 0.0,
+    "printify_get_blueprint_detail": 0.0,
+    "printify_get_gpsr": 0.0,
+    "printify_list_shops": 0.0,
+    "printify_get_shop": 0.0,
+    "printify_create_order": 0.0,
+    "printify_send_to_production": 0.0,
+    "printify_cancel_order": 0.0,
+    "printify_list_webhooks": 0.0,
+    "printify_create_webhook": 0.0,
+    "printify_delete_webhook": 0.0,
+    "printify_list_uploads": 0.0,
     "supabase_query": 0.0,
     "supabase_insert": 0.0,
     "supabase_update": 0.0,
@@ -227,6 +245,37 @@ def get_daily_costs() -> dict[str, float]:
     return dict(_daily_costs.get(today, {}))
 
 
+async def record_session_cost(agent_name: str, session_cost_usd: float) -> None:
+    """Record SDK-reported LLM cost (USD) as part of daily budget tracking.
+
+    Called by Orchestrator after each agent session completes.
+    Converts USD to EUR using the standard rate before recording.
+    """
+    cost_eur = session_cost_usd * 0.92  # USD → EUR
+    async with _cost_lock:
+        new_total = await _add_cost(agent_name, cost_eur)
+        logger.info(
+            "session_cost_recorded",
+            agent=agent_name,
+            cost_usd=session_cost_usd,
+            cost_eur=cost_eur,
+            daily_total_eur=new_total,
+        )
+
+
 def reset_costs() -> None:
-    """Reset all cost tracking (for testing)."""
+    """Reset all cost tracking (for testing).
+
+    Clears both in-memory tracker AND Supabase agent_daily_costs for today.
+    """
     _daily_costs.clear()
+
+    if _supabase_client:
+        try:
+            today = _today_key()
+            _supabase_client.table("agent_daily_costs").delete().eq(
+                "date", today
+            ).execute()
+            logger.info("cost_guard_reset", date=today, source="supabase+memory")
+        except Exception as e:
+            logger.warning("cost_guard_reset_supabase_failed", error=str(e))

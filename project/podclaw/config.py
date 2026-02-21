@@ -2,7 +2,7 @@
 PodClaw — Configuration Constants
 ===================================
 
-All tunables for the 8 sub-agents, budgets, rate limits, and models.
+All tunables for the 9 sub-agents, budgets, rate limits, and models.
 Environment variables override defaults.
 """
 
@@ -24,6 +24,7 @@ AGENT_MODELS: dict[str, str] = {
     "customer_manager": MODEL_COMPLEX,
     "seo_manager": MODEL_RESEARCH,
     "finance": MODEL_COMPLEX,
+    "qa_inspector": MODEL_RESEARCH,
 }
 
 # ---------------------------------------------------------------------------
@@ -32,28 +33,53 @@ AGENT_MODELS: dict[str, str] = {
 DEFAULT_DAILY_BUDGET = float(os.environ.get("PODCLAW_DAILY_BUDGET", "5.0"))
 
 AGENT_DAILY_BUDGETS: dict[str, float] = {
-    "researcher": 0.50,
-    "marketing": 1.00,
-    "designer": 1.00,
-    "newsletter": 0.80,
-    "cataloger": 0.80,
-    "customer_manager": 0.60,
-    "seo_manager": 0.30,
-    "finance": 0.50,
+    "researcher": 1.50,        # Haiku, 2-3 sessions/day
+    "marketing": 2.00,         # Sonnet, content generation
+    "designer": 3.00,          # Sonnet, fal.ai adds extra cost
+    "newsletter": 1.50,        # Sonnet, email generation
+    "cataloger": 15.00,        # Sonnet, heavy batch creation (up to 5 sessions)
+    "customer_manager": 2.00,  # Sonnet, support + refunds
+    "seo_manager": 1.00,       # Haiku, SEO audit
+    "finance": 2.50,           # Sonnet, financial analysis
+    "qa_inspector": 0.15,      # Haiku, lightweight verification
 }
 
 # ---------------------------------------------------------------------------
 # Rate Limits (per cycle / invocation)
 # ---------------------------------------------------------------------------
 RATE_LIMITS: dict[str, dict[str, int]] = {
-    "researcher": {"web_search": 20},
-    "marketing": {"resend_send": 30, "web_search": 10, "telegram_send": 50, "telegram_send_photo": 20, "telegram_broadcast": 50, "whatsapp_send": 50},
-    "designer": {"fal_generate": 30, "printify_upload_image": 30},
+    "researcher": {"web_search": 20, "read_url": 15, "expand_query": 5, "jina_rerank": 10, "deduplicate_strings": 5, "parallel_search_web": 3},
+    "marketing": {"resend_send": 30, "web_search": 10, "read_url": 5, "search_images": 5, "telegram_send": 50, "telegram_send_photo": 20, "telegram_broadcast": 50, "whatsapp_send": 50},
+    "designer": {
+        "search_images": 30,           # FREE — primary source, highest limit
+        "fal_remove_bg": 30,           # FREE with local rembg
+        "gemini_check_image": 30,      # quality gate
+        "printify_upload_image": 30, "supabase_upload_image": 30,
+        "fal_generate": 10,            # PAID — secondary, reduced limit
+        "gemini_generate_image": 2,    # EXPENSIVE — last resort, lowest limit
+    },
     "newsletter": {"resend_send": 500},
-    "cataloger": {"printify_create": 50, "printify_publish": 50, "printify_upload_image": 50, "printify_delete_product": 10},
-    "customer_manager": {"resend_send": 100, "stripe_create_refund": 10, "telegram_send": 100, "telegram_send_photo": 20, "whatsapp_send": 100},
-    "seo_manager": {"web_search": 15},
+    "cataloger": {
+        "printify_create": 50, "printify_publish": 50, "printify_upload_image": 50,
+        "printify_delete_product": 10, "printify_update": 50, "printify_get_blueprint_detail": 50,
+        "printify_get_gpsr": 50,
+        "printify_list_shops": 2, "printify_get_shop": 2,
+        "printify_create_order": 5, "printify_send_to_production": 10, "printify_cancel_order": 5,
+        "printify_list_uploads": 5, "printify_unpublish": 10,
+        "printify_create_webhook": 3, "printify_delete_webhook": 3, "printify_list_webhooks": 3,
+    },
+    "customer_manager": {
+        "resend_send": 100, "stripe_create_refund": 10,
+        "telegram_send": 100, "telegram_send_photo": 20, "whatsapp_send": 100,
+        "printify_cancel_order": 5, "printify_send_to_production": 5,
+    },
+    "seo_manager": {"web_search": 15, "read_url": 10, "jina_rerank": 5, "deduplicate_strings": 3, "capture_screenshot": 3},
     "finance": {"stripe_create_refund": 5},
+    "qa_inspector": {
+        "gemini_check_image": 20, "printify_list_products": 3, "printify_get_product": 10,
+        "printify_list_shops": 1, "printify_get_shop": 1,
+        "printify_list_webhooks": 2, "printify_list_uploads": 3,
+    },
 }
 
 # ---------------------------------------------------------------------------
@@ -62,6 +88,18 @@ RATE_LIMITS: dict[str, dict[str, int]] = {
 REFUND_APPROVAL_THRESHOLD = float(os.environ.get("PODCLAW_REFUND_THRESHOLD", "100.0"))
 PRICE_CHANGE_MAX_PERCENT = float(os.environ.get("PODCLAW_PRICE_CHANGE_MAX", "20.0"))
 BULK_DELETE_THRESHOLD = int(os.environ.get("PODCLAW_BULK_DELETE_THRESHOLD", "10"))
+
+# ---------------------------------------------------------------------------
+# Pricing Configuration
+# ---------------------------------------------------------------------------
+MINIMUM_MARKUP_MULTIPLIER = float(os.environ.get("PODCLAW_MINIMUM_MARKUP", "1.4"))
+ABSOLUTE_MIN_PRICE_CENTS = 299  # EUR 2.99 safety net (when cost unknown)
+CONSERVATIVE_INITIAL_PRICE = int(os.environ.get("PODCLAW_CONSERVATIVE_PRICE", "2999"))  # EUR 29.99
+PRINTIFY_USD_TO_EUR_RATE = float(os.environ.get("PODCLAW_USD_EUR_RATE", "0.92"))
+STRIPE_FEE_PERCENT = float(os.environ.get("PODCLAW_STRIPE_FEE_PERCENT", "2.9"))
+STRIPE_FEE_FIXED_CENTS = int(os.environ.get("PODCLAW_STRIPE_FEE_FIXED", "30"))
+TARGET_GROSS_MARGIN = float(os.environ.get("PODCLAW_TARGET_GROSS_MARGIN", "40.0"))
+TARGET_NET_MARGIN = float(os.environ.get("PODCLAW_TARGET_NET_MARGIN", "30.0"))
 
 # ---------------------------------------------------------------------------
 # Max Actions per Cycle (per sub-agent invocation)
@@ -80,6 +118,19 @@ WEEKLY_LOG_RETENTION_DAYS = 90
 # ---------------------------------------------------------------------------
 HARNESS_ROOT = Path(__file__).parent.parent
 DEFAULT_WORKSPACE = HARNESS_ROOT / "pod_workspace"
+
+# ---------------------------------------------------------------------------
+# rembg Sidecar (local background removal)
+# ---------------------------------------------------------------------------
+REMBG_URL = os.environ.get("REMBG_URL", "")  # e.g. "http://localhost:7000"
+
+# ---------------------------------------------------------------------------
+# CORS (bridge)
+# ---------------------------------------------------------------------------
+CORS_ORIGINS = os.environ.get(
+    "PODCLAW_CORS_ORIGINS",
+    "http://localhost:3000,http://localhost:3001,http://localhost:5555"
+)
 
 # ---------------------------------------------------------------------------
 # FastAPI Bridge
@@ -136,6 +187,14 @@ SUPABASE_SERVICE_KEY = os.environ.get("SUPABASE_SERVICE_KEY", "")
 STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY", "")
 PRINTIFY_API_TOKEN = os.environ.get("PRINTIFY_API_TOKEN", "")
 PRINTIFY_SHOP_ID = os.environ.get("PRINTIFY_SHOP_ID", "")
+PRINTIFY_WEBHOOK_ALLOWED_HOSTS: list[str] = [
+    h.strip()
+    for h in os.environ.get(
+        "PODCLAW_WEBHOOK_ALLOWED_HOSTS",
+        "localhost,podai.com,www.podai.com,api.podai.com",
+    ).split(",")
+    if h.strip()
+]
 FAL_KEY = os.environ.get("FAL_KEY", "")
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "")
@@ -185,31 +244,38 @@ GEMINI_EMBEDDING_MODEL = "text-embedding-004"
 GEMINI_EMBEDDING_DIMENSIONS = 768
 
 # ---------------------------------------------------------------------------
+# Gemini Image Generation (Designer fallback)
+# ---------------------------------------------------------------------------
+GEMINI_IMAGE_MODEL = os.environ.get("GEMINI_IMAGE_MODEL", "gemini-3-pro-image-preview")
+
+# ---------------------------------------------------------------------------
 # Per-Session Budget (USD) — SDK max_budget_usd enforcement
 # ---------------------------------------------------------------------------
 AGENT_BUDGETS: dict[str, float] = {
-    "researcher": 0.30,
-    "marketing": 0.50,
-    "designer": 0.80,
-    "newsletter": 0.40,
-    "cataloger": 0.50,
-    "customer_manager": 0.50,
-    "seo_manager": 0.20,
-    "finance": 0.40,
+    "researcher": 0.60,        # Haiku, 10-15 tool calls
+    "marketing": 1.00,         # Sonnet, content generation
+    "designer": 1.50,          # Sonnet, fal.ai + product creation
+    "newsletter": 0.80,        # Sonnet, email generation
+    "cataloger": 6.00,         # Sonnet, heavy Printify exploration (batch creation)
+    "customer_manager": 1.00,  # Sonnet, support + refunds
+    "seo_manager": 0.50,       # Haiku, SEO audit
+    "finance": 1.20,           # Sonnet, financial analysis
+    "qa_inspector": 0.15,      # Haiku, lightweight design/product verification
 }
 
 # ---------------------------------------------------------------------------
 # Allowed Built-in Tools per Agent (SDK allowed_tools)
 # ---------------------------------------------------------------------------
 AGENT_ALLOWED_BUILTINS: dict[str, list[str]] = {
-    "researcher": ["Read", "Grep", "Glob", "WebSearch", "WebFetch"],
+    "researcher": ["Read", "Write", "Grep", "Glob", "WebSearch", "WebFetch"],
     "marketing": ["Read", "Write", "Grep", "Glob"],
     "designer": ["Read", "Write", "Glob"],
     "newsletter": ["Read", "Write", "Grep"],
     "cataloger": ["Read", "Write", "Grep", "Glob"],
     "customer_manager": ["Read", "Write", "Grep"],
     "seo_manager": ["Read", "Grep", "Glob", "WebSearch", "WebFetch"],
-    "finance": ["Read", "Grep", "Glob"],
+    "finance": ["Read", "Write", "Grep", "Glob"],
+    "qa_inspector": ["Read", "Write", "Glob"],
 }
 
 # ---------------------------------------------------------------------------
@@ -239,26 +305,57 @@ AGENT_OUTPUT_SCHEMAS: dict[str, dict] = {
 # Tool-to-Agent Mapping
 # ---------------------------------------------------------------------------
 AGENT_TOOLS: dict[str, list[str]] = {
-    "researcher": ["supabase", "web_search"],
-    "marketing": ["supabase", "web_search", "resend", "telegram", "whatsapp"],
-    "designer": ["supabase", "fal", "printify"],
+    "researcher": ["supabase", "jina"],
+    "marketing": ["supabase", "jina", "resend", "telegram", "whatsapp"],
+    "designer": ["supabase", "fal", "printify", "jina", "gemini"],
     "newsletter": ["supabase", "resend", "gemini"],
     "cataloger": ["supabase", "printify", "gemini"],
-    "customer_manager": ["supabase", "resend", "stripe", "telegram", "whatsapp"],
-    "seo_manager": ["supabase", "web_search"],
+    "customer_manager": ["supabase", "resend", "stripe", "telegram", "whatsapp", "printify"],
+    "seo_manager": ["supabase", "jina"],
     "finance": ["supabase", "stripe"],
+    "qa_inspector": ["supabase", "gemini", "printify"],
 }
 
 # ---------------------------------------------------------------------------
 # Context Files per Agent
 # ---------------------------------------------------------------------------
 AGENT_CONTEXT_FILES: dict[str, list[str]] = {
-    "researcher": ["best_sellers.md", "customer_insights.md"],
+    "researcher": ["best_sellers.md", "customer_insights.md", "pricing_history.md"],
     "marketing": ["best_sellers.md", "customer_insights.md", "design_library.md", "marketing_calendar.md"],
-    "designer": ["design_library.md", "best_sellers.md"],
+    "designer": ["design_library.md", "best_sellers.md", "product_specs.md", "design_workflow.md"],
     "newsletter": ["customer_insights.md", "marketing_calendar.md", "newsletter_segments.md"],
-    "cataloger": ["best_sellers.md", "pricing_history.md"],
+    "cataloger": ["best_sellers.md", "pricing_history.md", "product_specs.md", "product_workflow.md", "design_library.md"],
     "customer_manager": ["customer_insights.md", "store_config.md"],
     "seo_manager": ["best_sellers.md"],
     "finance": ["pricing_history.md", "store_config.md"],
+    "qa_inspector": ["design_library.md", "qa_report.md", "last_session_feedback.md"],
+}
+
+# ---------------------------------------------------------------------------
+# Catalog Files per Agent (READ-ONLY reference — EU products & pricing)
+# Catalog lives in podclaw/catalog/ and is admin-maintained (not agent-writable)
+# ---------------------------------------------------------------------------
+AGENT_CATALOG_FILES: dict[str, list[str]] = {
+    "cataloger": [
+        "INDEX.md", "PRICING-MODEL.md",
+        "01-camisetas.md", "02-sudaderas-hoodies.md", "03-gorras-sombreros.md",
+        "05-tazas-drinkware.md", "09-tote-bags-accesorios.md", "10-arte-decoracion.md",
+    ],
+    "designer": ["INDEX.md", "PRICING-MODEL.md"],
+    "qa_inspector": ["INDEX.md", "PRICING-MODEL.md"],
+    "finance": ["INDEX.md", "PRICING-MODEL.md"],
+    "researcher": ["INDEX.md", "11-trending-unsaturated.md"],
+    "marketing": ["INDEX.md"],
+}
+
+# ---------------------------------------------------------------------------
+# Context File Rotation Limits (max lines before archiving old content)
+# ---------------------------------------------------------------------------
+CONTEXT_FILE_MAX_LINES: dict[str, int] = {
+    "pricing_history.md": 200,
+    "design_library.md": 150,
+    "best_sellers.md": 150,
+    "customer_insights.md": 100,
+    "marketing_calendar.md": 100,
+    "newsletter_segments.md": 80,
 }

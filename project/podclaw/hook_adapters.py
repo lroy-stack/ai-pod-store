@@ -132,21 +132,83 @@ def make_can_use_tool(
 # 2. PreCompact hook — transcript archiving before SDK compaction
 # ---------------------------------------------------------------------------
 
-def make_precompact_hook(memory_manager):
-    """Archive transcript before SDK compacts context."""
+def make_precompact_hook(memory_manager, agent_name: str):
+    """Flush observations to daily memory before SDK compacts context.
+
+    The SDK calls PreCompact before it compresses the conversation. We seize
+    this moment to save what the agent has seen so far — otherwise those
+    observations are lost when context is compressed.
+
+    Handles both formats:
+    - transcript_path: file path to full transcript (jsonl)
+    - messages: list of conversation messages (SDK native)
+    """
 
     async def precompact_hook(input_data, tool_use_id, context):
-        transcript_path = input_data.get("transcript_path")
         session_id = input_data.get("session_id", "unknown")
 
+        # Strategy 1: transcript file exists — archive it
+        transcript_path = input_data.get("transcript_path")
         if transcript_path and Path(transcript_path).exists():
             content = Path(transcript_path).read_text()
             await memory_manager.archive_transcript(session_id, content)
             logger.info("transcript_archived", session_id=session_id[:8])
 
+        # Strategy 2: extract observations from messages and flush to daily log
+        messages = input_data.get("messages", [])
+        if messages:
+            observations = _extract_observations(messages, agent_name)
+            if observations:
+                await memory_manager.append_daily(
+                    agent_name,
+                    f"[PreCompact flush — {session_id[:8]}]\n{observations}",
+                )
+                logger.info(
+                    "precompact_flushed",
+                    agent=agent_name,
+                    session_id=session_id[:8],
+                    observation_len=len(observations),
+                )
+
         return {}
 
     return precompact_hook
+
+
+def _extract_observations(messages: list, agent_name: str) -> str:
+    """Mechanically extract key observations from conversation messages.
+
+    No LLM call — this runs synchronously during PreCompact.
+    Extracts: tool results summaries and assistant text snippets.
+    """
+    observations = []
+    tool_count = 0
+
+    for msg in messages:
+        content = msg.get("content", [])
+        if isinstance(content, str):
+            content = [{"type": "text", "text": content}]
+        if not isinstance(content, list):
+            continue
+
+        role = msg.get("role", "")
+        for block in content:
+            if not isinstance(block, dict):
+                continue
+            block_type = block.get("type", "")
+
+            if block_type == "tool_use":
+                tool_count += 1
+            elif block_type == "text" and role == "assistant":
+                text = block.get("text", "").strip()
+                # Keep meaningful text (skip short acknowledgments)
+                if len(text) > 80:
+                    observations.append(f"- {text[:200]}")
+
+    if tool_count > 0:
+        observations.insert(0, f"- Used {tool_count} tools before compaction")
+
+    return "\n".join(observations[:10])  # Cap at 10 observations
 
 
 # ---------------------------------------------------------------------------
@@ -228,10 +290,17 @@ def make_sdk_hooks(
     """
 
     async def post_tool_hook(hook_input, tool_use_id, context):
+        tool_response = hook_input.get("tool_response")
+        short = _short_name(hook_input.get("tool_name", ""))
+        logger.debug(
+            "post_hook_tool_response_type",
+            type=type(tool_response).__name__,
+            tool=short,
+        )
         input_data = {
-            "tool_name": _short_name(hook_input.get("tool_name", "")),
+            "tool_name": short,
             "tool_input": hook_input.get("tool_input", {}),
-            "tool_output": hook_input.get("tool_response"),
+            "tool_output": tool_response,
             "_agent_name": agent_name,
             "_session_id": session_id,
         }
@@ -271,9 +340,9 @@ def make_sdk_hooks(
 
         hooks["PreToolUse"] = [HookMatcher(matcher="*", hooks=[pre_observe_hook])]
 
-    # PreCompact: archive transcript before SDK compaction
+    # PreCompact: flush observations + archive transcript before SDK compaction
     if memory_manager is not None:
-        precompact_hook = make_precompact_hook(memory_manager)
+        precompact_hook = make_precompact_hook(memory_manager, agent_name)
         hooks["PreCompact"] = [HookMatcher(hooks=[precompact_hook])]
 
     # Stop: record agent stop events

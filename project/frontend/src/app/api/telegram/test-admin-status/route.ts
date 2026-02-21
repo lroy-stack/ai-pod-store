@@ -47,7 +47,7 @@ export async function GET() {
     const { data: link, error: linkError } = await supabase
       .from('user_messaging_links')
       .upsert({
-        user_id: user.id,
+        user_id: user!.id,
         platform: 'telegram',
         platform_user_id: telegramUserId,
         platform_username: 'testadmin',
@@ -95,7 +95,7 @@ export async function GET() {
     return NextResponse.json({
       success: true,
       adminUserCreated: !!user,
-      adminUserId: user.id,
+      adminUserId: user!.id,
       telegramLinked: true,
       telegramUserId,
       linkId: link.id,

@@ -31,6 +31,62 @@ import { UpgradeModal } from '@/components/engagement/UpgradeModal'
 import { useSpeechToText } from '@/hooks/useSpeechToText'
 import { useParams } from 'next/navigation'
 
+type SerializedMessage = {
+  id: string
+  role: 'user' | 'assistant'
+  parts: Array<{ type: 'text'; text: string }>
+  createdAt?: string
+}
+
+function serializeMessages(messages: Array<{ id: string; role: string; parts: Array<{ type: string; [key: string]: any }>; createdAt?: Date | string }>): string {
+  const slim: SerializedMessage[] = messages.map(m => ({
+    id: m.id,
+    role: m.role as 'user' | 'assistant',
+    parts: m.parts
+      .filter((p: any) => p.type === 'text')
+      .map((p: any) => ({ type: 'text' as const, text: p.text })),
+    createdAt: m.createdAt ? String(m.createdAt) : undefined,
+  }))
+  return JSON.stringify(slim)
+}
+
+const CHAT_TTL_MS = 3 * 60 * 60 * 1000 // 3 hours
+
+function clearChatSession() {
+  sessionStorage.removeItem('pod-chat-messages')
+  sessionStorage.removeItem('pod-chat-ts')
+  sessionStorage.removeItem('pod-conversation-id')
+}
+
+function isChatExpired(): boolean {
+  const ts = sessionStorage.getItem('pod-chat-ts')
+  // No timestamp = legacy session from before TTL feature → expired
+  if (!ts) return true
+  // Parse as numeric timestamp first; fall back to Date.parse for ISO strings
+  const epoch = Number(ts) || new Date(ts).getTime()
+  if (isNaN(epoch)) return true // Unparseable → treat as expired
+  return Date.now() - epoch > CHAT_TTL_MS
+}
+
+function deserializeMessages(isLoggedIn: boolean): SerializedMessage[] | undefined {
+  try {
+    const raw = sessionStorage.getItem('pod-chat-messages')
+    if (!raw) return undefined
+
+    // Anonymous users: expire after 3 hours (or if no timestamp exists)
+    if (!isLoggedIn && isChatExpired()) {
+      clearChatSession()
+      return undefined
+    }
+
+    const parsed = JSON.parse(raw)
+    if (!Array.isArray(parsed) || parsed.length === 0) return undefined
+    return parsed
+  } catch {
+    return undefined
+  }
+}
+
 export function ChatArea() {
   const t = useTranslations('storefront')
   const tEngagement = useTranslations('engagement.chat')
@@ -48,6 +104,13 @@ export function ChatArea() {
     activeOrders: Array<{ id: string; status: string; total: number }> | null
     recentFavorites: Array<{ id: string; name: string; price: number }> | null
   }>({ user: null, activeOrders: null, recentFavorites: null })
+
+  // Restore messages from sessionStorage (read once on mount)
+  // Check auth synchronously via cookie presence (userData is async)
+  const [initialMessages] = useState(() => {
+    const hasAuthCookie = typeof document !== 'undefined' && document.cookie.includes('sb-access-token')
+    return deserializeMessages(hasAuthCookie)
+  })
 
   // Engagement state
   const [showAuthWall, setShowAuthWall] = useState(false)
@@ -82,7 +145,7 @@ export function ChatArea() {
       try { sessionStorage.setItem('pod-conversation-id', newConvId) } catch {}
     }
 
-    // Intercept engagement limit errors
+    // Intercept engagement limit errors — show modal instead of raw error
     if (response.status === 429 || response.status === 403) {
       try {
         const cloned = response.clone()
@@ -94,6 +157,11 @@ export function ChatArea() {
           } else {
             setShowUpgrade(true)
           }
+          // Return a fake empty SSE stream so useChat doesn't show the raw error
+          return new Response('', {
+            status: 200,
+            headers: { 'content-type': 'text/event-stream' },
+          })
         }
       } catch {
         // Failed to parse body — ignore
@@ -108,8 +176,11 @@ export function ChatArea() {
     () => new DefaultChatTransport({ api: '/api/chat', fetch: customFetch }),
     [customFetch]
   )
-  const { messages, sendMessage, status, addToolApprovalResponse, error } = useChat({
+  const { messages, setMessages, sendMessage, status, addToolApprovalResponse, error } = useChat({
     transport,
+    // Restore text-only snapshots from sessionStorage; cast needed because
+    // SerializedMessage is a subset of UIMessage (tool parts are omitted).
+    messages: initialMessages as any,
   })
 
   const isLoading = status === 'submitted' || status === 'streaming'
@@ -162,9 +233,72 @@ export function ChatArea() {
     fetchUserData()
   }, [])
 
+  // Check usage limits on mount to pre-block input for anonymous users
+  useEffect(() => {
+    async function checkUsageOnMount() {
+      const hasAuth = document.cookie.includes('sb-access-token')
+      if (hasAuth) return
+      try {
+        const res = await fetch('/api/usage/status')
+        if (!res.ok) return
+        const data = await res.json()
+        const chatUsage = data.usage?.chat
+        if (chatUsage && chatUsage.limit > 0 && chatUsage.remaining <= 0) {
+          setIsLimitReached(true)
+        }
+      } catch {
+        // Silent — fail-open for UI check (real enforcement is server-side)
+      }
+    }
+    checkUsageOnMount()
+  }, [])
+
+  // Expire chat for anonymous users after 3h.
+  // Checks on: mount, tab regain focus, window focus, and periodic interval.
+  useEffect(() => {
+    function checkExpiry() {
+      const hasAuth = document.cookie.includes('sb-access-token')
+      if (hasAuth) return
+      if (isChatExpired()) {
+        clearChatSession()
+        setMessages([])
+        conversationIdRef.current = null
+      }
+    }
+
+    // Run immediately on mount to clear expired sessions before user sees them
+    checkExpiry()
+
+    function onVisibility() {
+      if (document.visibilityState === 'visible') checkExpiry()
+    }
+    document.addEventListener('visibilitychange', onVisibility)
+    window.addEventListener('focus', checkExpiry)
+    // Also check every 10 minutes in case tab stays in foreground
+    const interval = setInterval(checkExpiry, 10 * 60 * 1000)
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility)
+      window.removeEventListener('focus', checkExpiry)
+      clearInterval(interval)
+    }
+  }, [setMessages])
+
   // Auto-scroll to bottom when messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages])
+
+  // Persist messages to sessionStorage
+  useEffect(() => {
+    if (messages.length > 0) {
+      try {
+        sessionStorage.setItem('pod-chat-messages', serializeMessages(messages))
+        // Set timestamp on first message only (don't overwrite)
+        if (!sessionStorage.getItem('pod-chat-ts')) {
+          sessionStorage.setItem('pod-chat-ts', String(Date.now()))
+        }
+      } catch { /* quota exceeded — ignore */ }
+    }
   }, [messages])
 
   // Handle pending chat message from DetailPanel "Ask about" button
@@ -654,7 +788,7 @@ export function ChatArea() {
       </div>
 
       {/* Signup Banner for guests */}
-      <SignupBanner />
+      <SignupBanner messageCount={messages.length} />
 
       {/* Floating Input Bar — sticky at bottom */}
       <div className="sticky bottom-0 z-10 px-3 pb-3 pt-2 sm:px-4 md:px-6">

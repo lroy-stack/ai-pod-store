@@ -21,12 +21,14 @@ from podclaw.config import AGENT_MODELS, AGENT_TOOLS, MAX_ACTIONS_PER_CYCLE
 from podclaw.client_factory import ClientFactory
 from podclaw.event_store import EventStore
 from podclaw.memory_manager import MemoryManager
+from podclaw.state_store import StateStore
 
 logger = structlog.get_logger(__name__)
 
 AGENT_NAMES = [
     "researcher", "marketing", "designer", "newsletter",
     "cataloger", "customer_manager", "seo_manager", "finance",
+    "qa_inspector",
 ]
 
 ALL_SESSION_TYPES = AGENT_NAMES + ["heartbeat", "consolidation"]
@@ -49,10 +51,12 @@ class Orchestrator:
         client_factory: ClientFactory,
         event_store: EventStore,
         memory_manager: MemoryManager,
+        state_store: StateStore | None = None,
     ):
         self.factory = client_factory
         self.events = event_store
         self.memory = memory_manager
+        self.state = state_store
         self._active_sessions: dict[str, str] = {}  # agent_name → session_id
         self._last_sdk_sessions: dict[str, str] = {}  # agent_name → SDK session_id (for resume)
         self._running = False
@@ -64,7 +68,17 @@ class Orchestrator:
 
     def start(self) -> None:
         self._running = True
+        asyncio.create_task(self._restore_sdk_sessions())
         logger.info("orchestrator_started")
+
+    async def _restore_sdk_sessions(self) -> None:
+        """Restore SDK session IDs from local SQLite state store."""
+        if not self.state:
+            return
+        sessions = await self.state.get("sdk_sessions", {})
+        if sessions:
+            self._last_sdk_sessions.update(sessions)
+            logger.info("sdk_sessions_restored", count=len(sessions))
 
     def stop(self) -> None:
         self._running = False
@@ -75,13 +89,14 @@ class Orchestrator:
     # Agent Execution
     # -----------------------------------------------------------------------
 
-    async def run_agent(self, agent_name: str, task: str | None = None) -> dict[str, Any]:
+    async def run_agent(self, agent_name: str, task: str | None = None, force_fresh: bool = False) -> dict[str, Any]:
         """
         Execute a sub-agent cycle.
 
         Args:
             agent_name: One of the 8 sub-agent names
             task: Optional specific task override (default: use SKILL.md task)
+            force_fresh: If True, start a new SDK session instead of resuming
 
         Returns:
             Session result dict with events, duration, etc.
@@ -133,7 +148,7 @@ class Orchestrator:
 
         try:
             # Resume previous SDK session if available (session persistence)
-            resume_sdk_session = self._last_sdk_sessions.get(agent_name)
+            resume_sdk_session = None if force_fresh else self._last_sdk_sessions.get(agent_name)
 
             client = self.factory.create_client(
                 agent_name,
@@ -168,11 +183,22 @@ class Orchestrator:
                 result["num_turns"] = getattr(result_message, "num_turns", None)
                 result["total_cost_usd"] = getattr(result_message, "total_cost_usd", None)
                 result["session_id_sdk"] = getattr(result_message, "session_id", None)
+                result["usage"] = getattr(result_message, "usage", None)
 
                 # Persist SDK session ID for resume on next cycle
                 sdk_session = getattr(result_message, "session_id", None)
                 if sdk_session:
                     self._last_sdk_sessions[agent_name] = sdk_session
+                    if self.state:
+                        asyncio.create_task(
+                            self.state.set("sdk_sessions", dict(self._last_sdk_sessions))
+                        )
+
+                # Record LLM cost in daily budget tracker
+                llm_cost = getattr(result_message, "total_cost_usd", None)
+                if llm_cost and llm_cost > 0:
+                    from podclaw.hooks.cost_guard_hook import record_session_cost
+                    await record_session_cost(agent_name, llm_cost)
 
             result["response"] = response_text[:2000]
             result["tool_calls"] = tool_calls
@@ -235,18 +261,76 @@ class Orchestrator:
                 metadata={"agent": agent_name, "duration_seconds": result.get("duration_seconds")},
             )
 
+        # Write mechanical session feedback (zero LLM cost)
+        self._write_session_feedback(agent_name, result)
+
+        # Incremental learning: extract key insights and persist to MEMORY.md
+        if result.get("status") == "completed" and result.get("response"):
+            asyncio.create_task(
+                self._extract_and_persist_learnings(agent_name, result)
+            )
+
         return result
+
+    def _write_session_feedback(self, agent_name: str, result: dict[str, Any]) -> None:
+        """Write a descriptive summary of the last session to context file."""
+        try:
+            feedback_path = self.memory.context_dir / "last_session_feedback.md"
+            feedback_path.parent.mkdir(parents=True, exist_ok=True)
+            ts = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+            cost = result.get("total_cost_usd")
+            cost_str = f"${cost:.2f}" if cost else "unknown"
+            duration = result.get("duration_seconds", 0)
+
+            # Extract task summary (what was asked)
+            task_text = ""
+            session_id = result.get("session_id", "?")
+            # The task is logged in the daily memory, but we can extract from response
+            response = result.get("response", "")
+            response_summary = response[:300].strip() if response else "(no response captured)"
+
+            lines = [
+                f"## Last Session: {agent_name}",
+                f"- **When**: {ts}",
+                f"- **Session**: {session_id[:8]}",
+                f"- **Status**: {result.get('status', 'unknown')}",
+                f"- **Tools called**: {result.get('tool_calls', 0)}",
+                f"- **Cost**: {cost_str}",
+                f"- **Duration**: {duration:.0f}s",
+                f"- **Turns**: {result.get('num_turns', '?')}",
+                "",
+                "### What happened",
+                response_summary,
+            ]
+            if result.get("error"):
+                lines.extend(["", "### Error", result["error"][:300]])
+            feedback_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        except Exception as e:
+            logger.warning("session_feedback_write_failed", error=str(e))
+
+    async def direct_dispatch(self, source: str, target_agent: str, task: str) -> dict[str, Any]:
+        """Dispatch inmediato agent-to-agent. Sin esperar heartbeat (30min)."""
+        logger.info("direct_dispatch", source=source, target=target_agent, task=task[:80])
+        await self.events.record(
+            agent_name=source,
+            event_type="direct_dispatch",
+            payload={"target": target_agent, "task": task[:200]},
+        )
+        return await self.run_agent(target_agent, task)
 
     async def run_agent_with_retry(
         self, agent_name: str, task: str | None = None, max_retries: int = 2,
+        force_fresh: bool = False,
     ) -> dict[str, Any]:
         """
         Execute a sub-agent with automatic retry on failure.
 
         Uses exponential backoff: 5s, 10s between retries.
+        Retries use session resume (not force_fresh) to avoid discarding context.
         """
         for attempt in range(max_retries + 1):
-            result = await self.run_agent(agent_name, task)
+            retry_fresh = force_fresh if attempt == 0 else False
+            result = await self.run_agent(agent_name, task, force_fresh=retry_fresh)
             if result.get("status") != "error":
                 return result
             if attempt < max_retries:
@@ -264,105 +348,273 @@ class Orchestrator:
     def _default_task(self, agent_name: str) -> str:
         """Generate default task prompt based on agent role.
 
-        IMPORTANT: Tasks use explicit tool-call verbs ("Call supabase_query",
-        "Call web_search") so the LLM invokes MCP tools rather than generating
-        answers from its own knowledge.  Passive verbs like "research" or
-        "review" lead to zero tool usage.
+        NanoClaw pattern: define the GOAL, not the STEPS. The agent decides how.
+        Each task includes:
+        - Clear objective (1-2 sentences)
+        - Anti-hallucination anchor ("You MUST call tools")
+        - 2-3 key constraints inline
+        - Verification checklist (self-correction)
+
+        Keys that differ from agent_name (e.g. "cataloger_pricing") are used
+        by the scheduler to dispatch cycle-specific tasks.
         """
         tasks = {
             "researcher": (
-                "Run the daily research cycle. You MUST call tools — do NOT answer from memory.\n"
-                "1. Call supabase_query to SELECT top 10 products by review_count DESC.\n"
-                "2. Call supabase_query to SELECT order_items joined with orders for 7-day sales velocity.\n"
-                "3. Call supabase_query to SELECT customer_segments for RFM distribution counts.\n"
-                "4. Call web_search at least 10 times for: POD market trends, competitor pricing, "
-                "seasonal opportunities 2-4 weeks out, trending niches, and emerging design styles.\n"
-                "5. Write best_sellers.md with a top-10 products table and trending categories.\n"
-                "6. Write customer_insights.md with fresh RFM segment counts and purchase patterns."
+                "Research current sales trends, market opportunities, and cost benchmarks.\n"
+                "You MUST call tools — do NOT answer from memory.\n\n"
+                "Check product performance, customer segments, and competitor activity.\n"
+                "Look 2-4 weeks ahead for seasonal opportunities. All prices in EUR.\n"
+                "Update best_sellers.md, customer_insights.md, and pricing_history.md Cost Benchmarks.\n\n"
+                "CRITICAL: Write a 'Stock Needs for Designer' section at the TOP of best_sellers.md.\n"
+                "Query designs without product_id and products by category to find gaps.\n"
+                "Tell the Designer what product types need designs and what aspect ratios to use.\n"
+                "Read product_specs.md Product Priorities for tier ordering.\n"
+                "Consult catalog/INDEX.md for available EU products and margin targets.\n\n"
+                "Before finishing, verify:\n"
+                "- best_sellers.md has today's date and ≥5 trending categories\n"
+                "- pricing_history.md Cost Benchmarks table has current date\n"
+                "- If Printify product count ≠ Supabase product count, log SYNC MISMATCH at top of best_sellers.md\n"
+                "- best_sellers.md has 'Stock Needs for Designer' table at the top"
             ),
             "marketing": (
-                "Run the content creation cycle. You MUST call tools — do NOT answer from memory.\n"
-                "1. Call supabase_query to SELECT from products ORDER BY review_count DESC LIMIT 5 "
-                "to find the top products to promote.\n"
-                "2. Call web_search at least 5 times to find current trending hashtags for: "
-                "print-on-demand fashion, custom t-shirts, sustainable apparel, and POD design trends. "
-                "Extract platform-specific hashtags for Instagram, Twitter, and Pinterest.\n"
-                "3. Generate social media content for the top 3 products respecting platform limits "
-                "(Instagram 2200 chars, Twitter 280 chars, Pinterest 500 chars).\n"
-                "4. Call supabase_insert to store EACH content piece in the marketing_content table.\n"
-                "5. Draft promotional email content for the top 3 products.\n"
-                "6. Call telegram_send to schedule campaign messages for any planned flash sales.\n"
-                "7. Write marketing_calendar.md with today's generated content summary."
+                "Create multi-platform content to promote top products.\n"
+                "You MUST call tools — do NOT answer from memory.\n\n"
+                "Find the best-selling products, research trending hashtags, and create content\n"
+                "for Instagram, Twitter, Pinterest, and Telegram. Store all content in Supabase.\n"
+                "All prices in EUR. Respect platform character limits.\n\n"
+                "Before finishing, verify:\n"
+                "- Each content piece stored in marketing_content table\n"
+                "- marketing_calendar.md updated with today's content summary\n"
+                "- No private/personal designs used in any content"
             ),
             "designer": (
-                "Run the daily design generation cycle. You MUST call tools — do NOT answer from memory.\n"
-                "1. Call supabase_query to SELECT products grouped by category with COUNT — identify "
-                "categories with fewer than 3 active designs.\n"
-                "2. Call web_search 3 times for trending POD design styles and color palettes.\n"
-                "3. Call fal_generate for 5-10 new designs targeting trending categories and gaps.\n"
-                "4. Run 5-point moderation on each (copyright, NSFW, spelling, resolution, colors).\n"
-                "5. Call supabase_insert to store all approved designs in the designs table with "
-                "full metadata (prompt, style, image_url, moderation_status).\n"
-                "6. Write design_library.md with new entries."
+                "Create new designs for trending product categories.\n"
+                "You MUST call tools — do NOT answer from memory.\n\n"
+                "FREE IMAGES FIRST. The internet has billions of royalty-free images — use them.\n"
+                "AI generation costs real money ($0.003-$0.13 per image). Do NOT generate when you can source.\n\n"
+                "1. Read best_sellers.md — check 'Stock Needs for Designer' for what products need designs\n"
+                "2. Read product_specs.md — check Product Priorities (banned products, aspect ratios per tier)\n"
+                "3. Search for TRANSPARENT PNG images FIRST:\n"
+                "   - Call search_images with '{theme} transparent png site:pngimg.com OR site:cleanpng.com OR site:stickpng.com OR site:pngwing.com'\n"
+                "   - These already have transparent backgrounds — NO bg removal needed!\n"
+                "   - Fallback: search_images with '{theme} site:unsplash.com OR site:pexels.com' + fal_remove_bg\n"
+                "4. For each: use image_url (NOT url), upload → if NOT already transparent: fal_remove_bg → gemini_check_image → insert\n"
+                "5. ONLY if sourced < 5 approved: use fal_generate (cheap) or gemini_generate_image (expensive, last resort)\n"
+                "6. ALWAYS specify aspect_ratio matching intended product type:\n"
+                "   - Mugs/Totes/Stickers/Pillows → 1:1\n"
+                "   - T-Shirts/Hoodies/Canvas → 3:4\n"
+                "   - Phone Cases → 9:16\n"
+                "7. All designs must pass gemini_check_image (score ≥ 7)\n"
+                "8. Check catalog/INDEX.md for available product types and margin targets.\n"
+                "   Prioritize products in Tier 1-2. Posters and AOP are ALLOWED per EU catalog.\n\n"
+                "Target: ≥80% sourced. Minimum: ≥60% sourced.\n"
+                "Read design_workflow.md for detailed procedures.\n\n"
+                "Before finishing, verify:\n"
+                "- All new designs have bg_removed_url populated\n"
+                "- design_library.md updated with intended product types per design\n"
+                "- Sourcing ratio: count sourced vs AI\n"
+                "- Designs have correct aspect ratios (not all 1:1 squares)"
             ),
             "newsletter": (
-                "Run the campaign creation cycle. You MUST call tools — do NOT answer from memory.\n"
-                "1. Call supabase_query to SELECT from customer_segments for fresh RFM data.\n"
-                "2. Create personalized email content for Champions (exclusive preview) and "
-                "Loyal (new arrivals) segments.\n"
-                "3. Set up A/B test with 2 subject line variants.\n"
-                "4. Call resend_send_batch to send emails (max 100/call, 500 total). "
-                "Include CAN-SPAM footer with unsubscribe link and "
-                "POD AI Store, Friedrichstraße 123, 10117 Berlin, Germany.\n"
-                "5. Call supabase_insert to log the campaign in agent_events."
+                "Create and send personalized email campaigns by RFM segment.\n"
+                "You MUST call tools — do NOT answer from memory.\n\n"
+                "Query customer segments, create personalized content for Champions and Loyal segments,\n"
+                "set up A/B tests, and send via Resend. Include CAN-SPAM footer with unsubscribe link\n"
+                "and POD AI Store, Friedrichstraße 123, 10117 Berlin, Germany.\n\n"
+                "Before finishing, verify:\n"
+                "- All emails include CAN-SPAM footer\n"
+                "- Campaign logged in agent_events\n"
+                "- newsletter_segments.md updated"
             ),
+            # Cataloger Cycle 1 (08:00): New Products
             "cataloger": (
-                "Run the new products cycle. You MUST call tools — do NOT answer from memory.\n"
-                "1. Call supabase_query to SELECT from designs WHERE product_id IS NULL AND "
-                "moderation_status = 'approved'.\n"
-                "2. For each approved design: call printify_get_blueprints to find product types, "
-                "call printify_create_product with EUR pricing (Printify cost × 1.4).\n"
-                "3. Generate descriptions in en/es/de.\n"
-                "4. Call gemini_embed_text to create embeddings for search.\n"
-                "5. Call supabase_insert to store product metadata.\n"
-                "6. Write pricing_history.md with new products and prices. Max 50 creates per cycle."
+                "Create products from approved designs and publish them.\n"
+                "You MUST call tools — do NOT answer from memory.\n\n"
+                "Read product_specs.md Product Priorities FIRST — respect tier ordering.\n"
+                "Read design_library.md for intended product types and aspect ratios per design.\n\n"
+                "CATALOG VALIDATION (MANDATORY before creating ANY product):\n"
+                "Consult catalog/PRICING-MODEL.md to verify: (1) product exists in catalog,\n"
+                "(2) EU provider is available, (3) margin target is achievable (min 40%).\n"
+                "Skip products not in the EU catalog.\n\n"
+                "Dimension validation (MANDATORY):\n"
+                "- 1:1 designs → mugs, totes, stickers, pillows (NOT t-shirts or phone cases)\n"
+                "- 3:4 designs → t-shirts, hoodies, canvas, posters (NOT phone cases)\n"
+                "- 9:16 designs → phone cases only\n"
+                "- Full coverage → AOP apparel, blankets, tapestries\n"
+                "- Create Tier 1 products first, then Tier 2 (see product_specs.md)\n\n"
+                "For each approved design without a product: select blueprint, pick EU provider,\n"
+                "create in Printify, extract real costs, calculate EUR pricing (≥40% margin),\n"
+                "save to Supabase with ALL mockup images and i18n descriptions, then publish.\n"
+                "Use bg_removed_url when available. Minimum 4 color variants per product.\n"
+                "Read pricing_history.md for Cost Benchmarks before pricing.\n"
+                "For detailed procedures, Read product_workflow.md.\n\n"
+                "CRITICAL DATA REQUIREMENTS (EVERY product):\n"
+                "- description: PLAIN TEXT in English only. Example: 'Comfortable cotton t-shirt with bold design'\n"
+                "- translations: JSONB example: {\"es\": {\"title\": \"Camiseta\", \"description\": \"...\"}, \"de\": {\"title\": \"T-Shirt\", \"description\": \"...\"}}\n"
+                "  WRONG: putting {\"en\":\"...\",\"es\":\"...\"} in the description field\n"
+                "- product_details: from printify_get_blueprint_detail — {\"material\": \"...\", \"care_instructions\": \"...\"}\n"
+                "- product_variants: sync_hook auto-inserts on printify_create + publish. Query product_variants after publish to VERIFY.\n"
+                "- images: JSONB array with ≥1 image from printify_get_mockup\n\n"
+                "Before finishing, verify:\n"
+                "- Every Printify product has a matching Supabase row (query both, compare counts)\n"
+                "- All products have cost_cents AND base_price_cents with margin ≥40%\n"
+                "- All products have ≥1 image in the images JSONB array\n"
+                "- No URGENT alerts remain in pricing_history.md\n"
+                "- All products exist in EU catalog (catalog/PRICING-MODEL.md)\n"
+                "- No dimension-mismatched products"
+            ),
+            # Cataloger Cycle 2 (14:00): Pricing & Inventory
+            "cataloger_pricing": (
+                "Resolve pricing alerts and backfill missing costs.\n"
+                "You MUST call tools — do NOT answer from memory.\n\n"
+                "Read pricing_history.md for Active Alerts from Finance — resolve URGENT first.\n"
+                "Backfill any products missing cost_cents by fetching real costs from Printify.\n"
+                "Adjust prices based on demand forecasts (±20% max). Log all changes.\n"
+                "For detailed procedures, Read product_workflow.md.\n\n"
+                "Before finishing, verify:\n"
+                "- All URGENT alerts resolved or escalated\n"
+                "- pricing_history.md updated with all changes\n"
+                "- No products with cost_cents = NULL remain"
+            ),
+            # Cataloger Cycle 3 (18:00): Peak Prep
+            "cataloger_peakprep": (
+                "Prepare store for peak browsing hours.\n"
+                "You MUST call tools — do NOT answer from memory.\n\n"
+                "Check that trending products from best_sellers.md are published and in stock.\n"
+                "Archive anything out of stock. Publish any remaining drafts.\n"
+                "Verify no URGENT alerts in pricing_history.md are unresolved."
             ),
             "customer_manager": (
-                "Run the support cycle. You MUST call tools — do NOT answer from memory.\n"
-                "1. Call supabase_query to SELECT from return_requests WHERE status = 'pending'.\n"
-                "2. For each pending return: if amount ≤ €100, call stripe_create_refund; "
-                "if > €100, flag for escalation.\n"
-                "3. Call supabase_query to SELECT from product_reviews WHERE response IS NULL.\n"
-                "4. For each unanswered review: generate localized response based on sentiment, "
-                "then call supabase_update to store the response.\n"
-                "5. Call resend_send to send retention emails to at-risk RFM segment.\n"
-                "6. Write customer_insights.md with support issue counts and review sentiment. "
-                "Never log customer PII."
+                "Handle customer support: refunds, reviews, and retention.\n"
+                "You MUST call tools — do NOT answer from memory.\n\n"
+                "Process pending return requests (auto-approve ≤ EUR 100, escalate > EUR 100).\n"
+                "Respond to unanswered product reviews in the customer's language.\n"
+                "Send retention emails to at-risk RFM segments. Never log customer PII.\n\n"
+                "Before finishing, verify:\n"
+                "- All pending return requests processed\n"
+                "- All unanswered reviews have responses\n"
+                "- customer_insights.md updated with issue counts and sentiment\n"
+                "- No customer PII in any context file"
             ),
             "seo_manager": (
-                "Run the weekly SEO audit. You MUST call tools — do NOT answer from memory.\n"
-                "1. Call supabase_query to SELECT from seo_meta_tags — check title ≤ 60 chars, "
-                "description ≤ 160 chars, target keyword present.\n"
-                "2. Call supabase_query to verify translations table has hreflang entries for en/es/de.\n"
-                "3. Call web_search at least 10 times for POD long-tail keywords, competitor SEO "
-                "strategies, and trending search terms in the print-on-demand space.\n"
-                "4. Generate audit report with issues sorted by impact and action items.\n"
-                "5. Call supabase_insert to log the audit in agent_events."
+                "Audit SEO health and optimize for POD long-tail keywords.\n"
+                "You MUST call tools — do NOT answer from memory.\n\n"
+                "Check meta tags (title ≤ 60, description ≤ 160), verify hreflang for en/es/de,\n"
+                "research trending POD keywords, and generate an audit report sorted by impact.\n\n"
+                "Before finishing, verify:\n"
+                "- All meta tag violations flagged\n"
+                "- Hreflang entries present for all locales\n"
+                "- Audit stored in agent_events"
             ),
             "finance": (
-                "Run the daily financial report. You MUST call tools — do NOT answer from memory.\n"
-                "1. Call stripe_get_revenue_report for today's revenue data.\n"
-                "2. Call supabase_query to SELECT SUM(total) from orders for DB totals — "
-                "flag if difference with Stripe > €5.\n"
-                "3. Call supabase_query to calculate gross margin per category (target ≥ 40%).\n"
-                "4. Call stripe_list_disputes to check for new chargebacks.\n"
-                "5. Call supabase_query to SELECT from return_requests to calculate refund rate — "
-                "alert if > 5%.\n"
-                "6. Call supabase_query to SELECT from agent_daily_costs — alert if > €5/day.\n"
-                "7. Write pricing_history.md with daily margin analysis and reconciliation."
+                "Run daily financial analysis and margin verification.\n"
+                "You MUST call tools — do NOT answer from memory.\n\n"
+                "Reconcile Stripe revenue with Supabase orders (flag discrepancy > EUR 5).\n"
+                "For each product created/adjusted today, verify gross margin ≥ 40%.\n"
+                "Use catalog/PRICING-MODEL.md as the authoritative pricing reference.\n"
+                "Compare actual store prices against catalog margin targets.\n"
+                "Write MARGIN_LOW (OPEN) or NEGATIVE_MARGIN (URGENT) alerts to pricing_history.md.\n"
+                "Check chargebacks, refund rate (alert if > 5%), and agent daily costs.\n\n"
+                "Before finishing, verify:\n"
+                "- Daily Margin Summary appended to pricing_history.md\n"
+                "- All products with margin < 40% have alerts written\n"
+                "- Stripe ↔ DB reconciliation complete\n"
+                "- Agent costs checked (agent_daily_costs table)"
+            ),
+            "qa_inspector": (
+                "Verify quality and integrity of today's designs and products.\n"
+                "You MUST call tools — do NOT answer from memory.\n\n"
+                "Start by reading today's daily memory log to know what agents did today.\n"
+                "Then check all designs created today: image_url present, bg_removed_url exists,\n"
+                "quality_score >= 7. Check all products: printify_id present, images not empty,\n"
+                "positive margins, currency = EUR.\n\n"
+                "CRITICAL — Background removal visual check:\n"
+                "Pick 5-10 designs with bg_removed_url and call gemini_check_image on the\n"
+                "bg_removed_url (NOT image_url). Look for: partial bg removal, subject cut off,\n"
+                "edge artifacts, nearly empty images. Mark failures with quality_score = 3.\n\n"
+                "CRITICAL — Variant and Translation checks:\n"
+                "Query product_variants grouped by product_id — report any active product with 0 variants.\n"
+                "Query products WHERE translations = '{}' OR translations IS NULL — report missing i18n.\n"
+                "Query products WHERE description LIKE '{%%' — report JSON in description field.\n"
+                "For products with 0 variants: fetch from Printify (printify_get_product) and report the\n"
+                "variant count there — if Printify has variants but Supabase doesn't, flag as SYNC BUG.\n\n"
+                "CATALOG VALIDATION:\n"
+                "Cross-reference products against catalog/PRICING-MODEL.md.\n"
+                "Flag: (1) products not in catalog, (2) margins below catalog target, (3) wrong provider.\n\n"
+                "Count products in Printify (printify_list_products) and Supabase (supabase_query).\n"
+                "If counts differ, write SYNC MISMATCH at the top of qa_report.md.\n\n"
+                "Write your full report to qa_report.md with:\n"
+                "- Date and time\n"
+                "- Design count + issues found\n"
+                "- BG removal quality: how many passed/failed visual check\n"
+                "- Product count + issues found\n"
+                "- Variant status: N products with 0 variants, M products OK\n"
+                "- Translation status: N products missing translations\n"
+                "- Sync status (Printify count vs Supabase count)\n"
+                "- Action items for other agents"
             ),
         }
         return tasks.get(agent_name, f"Execute standard {agent_name} cycle.")
+
+    # -----------------------------------------------------------------------
+    # Incremental Learning
+    # -----------------------------------------------------------------------
+
+    async def _extract_and_persist_learnings(
+        self, agent_name: str, result: dict[str, Any]
+    ) -> None:
+        """Extract key learnings from an agent's response and persist to MEMORY.md.
+
+        Uses Haiku for cheap extraction (~$0.001 per call). Only persists
+        genuinely novel insights — not routine confirmations.
+        Runs as a fire-and-forget task to avoid blocking agent return.
+        """
+        response = result.get("response", "")
+        if len(response) < 100:
+            return  # Too short to have meaningful learnings
+
+        try:
+            from podclaw.llm_helper import quick_llm_call
+
+            extraction = await quick_llm_call(
+                system_prompt=(
+                    "You extract durable learnings from an AI agent's work session.\n"
+                    "Return 1-3 bullet points of genuinely novel insights.\n"
+                    "Skip routine actions like 'queried database' or 'checked data'.\n"
+                    "Focus on: data anomalies found, new patterns discovered, "
+                    "configuration issues, pricing problems, quality gaps.\n"
+                    "If there's nothing truly novel, respond with exactly: NONE\n"
+                    "Use '- ' prefix for each bullet. Max 200 chars per bullet."
+                ),
+                user_prompt=(
+                    f"Agent: {agent_name}\n"
+                    f"Tools used: {result.get('tool_calls', 0)}\n"
+                    f"Cost: ${result.get('total_cost_usd', 0):.3f}\n\n"
+                    f"Response:\n{response[:1500]}"
+                ),
+                model="claude-haiku-4-5-20251001",
+                max_budget=0.005,
+            )
+
+            extraction = extraction.strip()
+            if extraction == "NONE" or not extraction:
+                return
+
+            # Persist each learning to MEMORY.md
+            for line in extraction.splitlines():
+                line = line.strip()
+                if line.startswith("- ") and len(line) > 5:
+                    await self.memory.append_memory(f"[{agent_name}] {line[2:]}")
+
+            logger.info(
+                "incremental_learning_saved",
+                agent=agent_name,
+                learnings=len([l for l in extraction.splitlines() if l.strip().startswith("- ")]),
+            )
+
+        except Exception as e:
+            # Non-critical — don't fail the agent run
+            logger.debug("incremental_learning_failed", agent=agent_name, error=str(e))
 
     # -----------------------------------------------------------------------
     # Memory Consolidation
@@ -381,10 +633,10 @@ class Orchestrator:
 
     async def _review_soul(self, soul_evolution) -> None:
         """
-        LLM (Sonnet) compares SOUL.md + recent MEMORY.md and proposes changes.
+        LLM compares SOUL.md + recent MEMORY.md and proposes changes.
         Only runs during Sunday consolidation.
         """
-        from podclaw.config import CONSOLIDATION_MODEL, CONSOLIDATION_MAX_TOKENS
+        from podclaw.config import CONSOLIDATION_MODEL
 
         soul = self.memory.read_soul()
         memory = self.memory.read_memory()
@@ -393,13 +645,10 @@ class Orchestrator:
             return
 
         try:
-            import anthropic
-            client = anthropic.AsyncAnthropic()
+            from podclaw.llm_helper import quick_llm_call
 
-            response = await client.messages.create(
-                model=CONSOLIDATION_MODEL,
-                max_tokens=CONSOLIDATION_MAX_TOKENS,
-                system=(
+            text = await quick_llm_call(
+                system_prompt=(
                     "You are PodClaw's soul evolution reviewer. Compare the current SOUL.md "
                     "with recent memory/learnings. Decide if any section should be updated. "
                     "Respond with JSON: {\"action\": \"NO_CHANGES\"} or "
@@ -408,18 +657,17 @@ class Orchestrator:
                     "Only propose changes based on strong evidence from memory. "
                     "NEVER propose changes to Constraints or Escalation Rules."
                 ),
-                messages=[{
-                    "role": "user",
-                    "content": (
-                        f"## Current SOUL.md\n{soul[:4000]}\n\n"
-                        f"## Recent Memory\n{memory[-3000:]}\n\n"
-                        "Should any section of SOUL.md be updated?"
-                    ),
-                }],
+                user_prompt=(
+                    f"## Current SOUL.md\n{soul[:4000]}\n\n"
+                    f"## Recent Memory\n{memory[-3000:]}\n\n"
+                    "Should any section of SOUL.md be updated?"
+                ),
+                model=CONSOLIDATION_MODEL,
+                max_budget=0.03,
             )
 
             import json
-            text = response.content[0].text.strip()
+            text = text.strip()
             if text.startswith("```"):
                 text = text.split("\n", 1)[1].rsplit("```", 1)[0].strip()
 

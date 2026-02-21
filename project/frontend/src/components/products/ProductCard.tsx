@@ -10,7 +10,7 @@ import { formatPrice, getLocalizedPrice } from '@/lib/currency'
 import { Button } from '@/components/ui/button'
 import { useWishlist } from '@/hooks/useWishlist'
 import { useCart } from '@/hooks/useCart'
-import { QuickViewModal } from './QuickViewModal'
+import { useStorefront } from '@/components/storefront/StorefrontContext'
 
 interface Product {
   id: string
@@ -38,7 +38,7 @@ export function ProductCard({ product }: ProductCardProps) {
   const locale = useLocale()
   const { isWishlisted, toggleWishlist } = useWishlist()
   const { addToCart } = useCart()
-  const [showQuickView, setShowQuickView] = useState(false)
+  const { setSelectedProduct, addArtifact } = useStorefront()
   const [imgError, setImgError] = useState(false)
   const wishlisted = isWishlisted(product.id)
 
@@ -57,7 +57,13 @@ export function ProductCard({ product }: ProductCardProps) {
   const handleQuickView = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    setShowQuickView(true)
+    addArtifact({
+      id: product.id,
+      type: 'product',
+      title: product.title,
+      data: product,
+    })
+    setSelectedProduct(product.id)
   }
 
   const localizedPrice = getLocalizedPrice(product.price, product.currency, locale)
@@ -119,7 +125,7 @@ export function ProductCard({ product }: ProductCardProps) {
             <p className="text-sm font-semibold text-foreground tracking-tight">
               {formattedPrice}
             </p>
-            {product.rating && product.rating > 0 && (
+            {product.rating != null && product.rating > 0 && (
               <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
                 <Star className="h-3 w-3 fill-rating text-rating" />
                 <span>{product.rating.toFixed(1)}</span>
@@ -150,12 +156,6 @@ export function ProductCard({ product }: ProductCardProps) {
           </div>
         </div>
       </Link>
-
-      <QuickViewModal
-        product={product}
-        open={showQuickView}
-        onOpenChange={setShowQuickView}
-      />
     </>
   )
 }
