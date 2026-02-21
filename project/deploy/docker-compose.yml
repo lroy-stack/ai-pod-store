@@ -1,7 +1,53 @@
-# PodClaw — Docker Compose
-# Run: docker compose -f deploy/docker-compose.yml up -d
+# POD AI — Docker Compose (Complete Self-Hosted Stack)
+# =====================================================
+#
+# Services:
+#   frontend  — Next.js 16 storefront + admin dashboard (port 3000)
+#   podclaw   — Python agent system with FastAPI bridge (port 8000)
+#   rembg     — Background removal sidecar with u2net (port 7000)
+#   redis     — Session cache, rate limiting, queues (port 6379)
+#   caddy     — Reverse proxy with automatic HTTPS (ports 80, 443)
+#
+# Supabase is cloud-managed (NOT self-hosted).
+#
+# Usage:
+#   docker compose -f deploy/docker-compose.yml up -d
+#   docker compose -f deploy/docker-compose.yml logs -f
+#
+# Local dev (Docker Desktop):
+#   docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.local.yml up -d
 
 services:
+  # ---------------------------------------------------------------------------
+  # Frontend — Next.js 16
+  # ---------------------------------------------------------------------------
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    env_file:
+      - ../frontend/.env.local
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+    depends_on:
+      redis:
+        condition: service_healthy
+      podclaw:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 3
+
+  # ---------------------------------------------------------------------------
+  # PodClaw — Autonomous Agent System + FastAPI Bridge
+  # ---------------------------------------------------------------------------
   podclaw:
     build:
       context: ..
@@ -10,16 +56,80 @@ services:
       - "8000:8000"
     env_file:
       - ../frontend/.env.local
+    environment:
+      REMBG_URL: http://rembg:7000
+      REDIS_URL: redis://redis:6379
     volumes:
-      - podclaw-data:/app/podclaw/data  # PodClaw brain state (SQLite)
+      - podclaw-data:/app/podclaw/data
+      - podclaw-memory:/app/podclaw/memory
+    depends_on:
+      redis:
+        condition: service_healthy
+      rembg:
+        condition: service_healthy
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 15s
+      retries: 3
 
+  # ---------------------------------------------------------------------------
+  # rembg — Local Background Removal (u2net, zero cloud cost)
+  # ---------------------------------------------------------------------------
   rembg:
     build:
       context: rembg
     ports:
       - "7000:7000"
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 2G
 
+  # ---------------------------------------------------------------------------
+  # Redis — Session cache, rate limiting, queues
+  # ---------------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      start_period: 5s
+      retries: 3
+
+  # ---------------------------------------------------------------------------
+  # Caddy — Reverse Proxy with Automatic HTTPS
+  # ---------------------------------------------------------------------------
+  caddy:
+    image: caddy:2-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - frontend
+      - podclaw
+    restart: unless-stopped
+
+# ---------------------------------------------------------------------------
+# Named Volumes
+# ---------------------------------------------------------------------------
 volumes:
-  podclaw-data:
+  podclaw-data:      # PodClaw brain state (SQLite DB)
+  podclaw-memory:    # PodClaw memory logs and context files
+  redis-data:        # Redis AOF persistence
+  caddy-data:        # TLS certificates
+  caddy-config:      # Caddy runtime config
