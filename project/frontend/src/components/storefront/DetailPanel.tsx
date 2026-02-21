@@ -32,6 +32,7 @@ import { useWishlist } from '@/hooks/useWishlist'
 import { cn } from '@/lib/utils'
 import { ProductPersonalizer, PersonalizationData } from '@/components/products/ProductPersonalizer'
 import { Badge } from '@/components/ui/badge'
+import { SafeHTML } from '@/components/common/SafeHTML'
 
 interface DetailPanelProps {
   productId?: string
@@ -496,9 +497,9 @@ function ProductView({
                     {t('safetyInformation')}
                     <span className="ml-auto text-[10px] group-open:rotate-180 transition-transform">▼</span>
                   </summary>
-                  <div
+                  <SafeHTML
+                    html={product.safetyInformation}
                     className="mt-1.5 text-xs text-muted-foreground [&_p]:my-0.5 [&_strong]:text-foreground"
-                    dangerouslySetInnerHTML={{ __html: product.safetyInformation }}
                   />
                 </details>
               )}

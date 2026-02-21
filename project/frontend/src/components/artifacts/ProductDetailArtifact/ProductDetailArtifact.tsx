@@ -22,6 +22,7 @@ import { useTranslations, useLocale } from 'next-intl'
 import { formatPrice } from '@/lib/currency'
 import { cn } from '@/lib/utils'
 import { useWishlist } from '@/hooks/useWishlist'
+import { SafeHTML } from '@/components/common/SafeHTML'
 
 export interface ProductDetail {
   id: string
@@ -195,9 +196,9 @@ export function ProductDetailArtifact({
                       {t('safetyInformation')}
                       <span className="ml-auto text-[10px] group-open:rotate-180 transition-transform">▼</span>
                     </summary>
-                    <div
+                    <SafeHTML
+                      html={product.safetyInformation}
                       className="mt-1.5 text-xs text-muted-foreground [&_p]:my-0.5 [&_strong]:text-foreground"
-                      dangerouslySetInnerHTML={{ __html: product.safetyInformation }}
                     />
                   </details>
                 )}

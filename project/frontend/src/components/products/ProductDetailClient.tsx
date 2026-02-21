@@ -15,6 +15,7 @@ import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { formatPrice, getLocalizedPrice } from '@/lib/currency'
 import { ProductPersonalizer, PersonalizationData } from './ProductPersonalizer'
+import { SafeHTML } from '@/components/common/SafeHTML'
 import {
   Select,
   SelectContent,
@@ -359,9 +360,9 @@ export function ProductDetailClient({ product, relatedProducts, reviews }: Produ
                 {t('safetyInformation')}
                 <span className="ml-auto text-xs group-open:rotate-180 transition-transform">▼</span>
               </summary>
-              <div
+              <SafeHTML
+                html={product.safetyInformation}
                 className="mt-2 text-sm text-muted-foreground prose prose-sm max-w-none [&_p]:my-1 [&_strong]:text-foreground"
-                dangerouslySetInnerHTML={{ __html: product.safetyInformation }}
               />
             </details>
           )}
