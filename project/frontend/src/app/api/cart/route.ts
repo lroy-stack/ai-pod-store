@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
     // Fetch cart items (either by user_id or session_id)
     const query = supabase
       .from('cart_items')
-      .select('id, product_id, quantity, variant_id, created_at, updated_at')
+      .select('id, product_id, quantity, variant_id, personalization_id, created_at, updated_at')
       .order('created_at', { ascending: false })
 
     if (userId) {
@@ -116,6 +116,33 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    // Fetch personalization details for cart items that have a personalization_id
+    const personalizationIds = (cartItems || [])
+      .map((item: any) => item.personalization_id)
+      .filter(Boolean)
+
+    let personalizationMap = new Map<string, any>()
+    if (personalizationIds.length > 0) {
+      const { data: personalizations } = await supabase
+        .from('personalizations')
+        .select('id, text_content, font_family, font_color, font_size, position, preview_url')
+        .in('id', personalizationIds)
+
+      personalizationMap = new Map(
+        (personalizations || []).map((p: any) => [
+          p.id,
+          {
+            text: p.text_content || '',
+            font: p.font_family || 'Inter',
+            fontColor: p.font_color || '#000000',
+            fontSize: p.font_size || 'medium',
+            position: p.position || 'bottom',
+            preview: p.preview_url || null,
+          },
+        ])
+      )
+    }
+
     // Transform cart items to include product details
     const items = (cartItems || []).map((item: any) => {
       const productDetails = productMap.get(item.product_id) || {
@@ -135,6 +162,10 @@ export async function GET(request: NextRequest) {
         product_image: productDetails.image || '',
         product_currency: productDetails.currency || 'EUR',
         variant_details: item.variant_id ? (variantMap.get(item.variant_id) || {}) : {},
+        personalization_id: item.personalization_id,
+        personalization: item.personalization_id
+          ? personalizationMap.get(item.personalization_id)
+          : undefined,
       }
     })
 
@@ -181,7 +212,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { product_id, quantity, variant_details } = body
+    const { product_id, quantity, variant_details, personalization_id } = body
 
     if (!product_id || !quantity || quantity < 1) {
       return NextResponse.json(
@@ -213,7 +244,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Check if item already exists in cart (same product + same variant)
+    // Check if item already exists in cart (same product + same variant + same personalization)
     const existingQuery = supabase
       .from('cart_items')
       .select('*')
@@ -223,6 +254,12 @@ export async function POST(request: NextRequest) {
       existingQuery.eq('variant_id', variantId)
     } else {
       existingQuery.is('variant_id', null)
+    }
+
+    if (personalization_id) {
+      existingQuery.eq('personalization_id', personalization_id)
+    } else {
+      existingQuery.is('personalization_id', null)
     }
 
     if (userId) {
@@ -270,6 +307,7 @@ export async function POST(request: NextRequest) {
       session_id: userId ? null : sessionId,
       user_id: userId,
       ...(variantId ? { variant_id: variantId } : {}),
+      ...(personalization_id ? { personalization_id } : {}),
     }
 
     const { error: insertError } = await supabase

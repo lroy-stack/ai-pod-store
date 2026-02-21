@@ -39,6 +39,14 @@ const SHADOW_PRESETS: Record<string, string> = {
   extra_large: '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)',
 };
 
+const RADIUS_PRESETS: Record<string, string> = {
+  none: '0',
+  small: '0.375rem',
+  medium: '0.75rem',
+  large: '1rem',
+  full: '2rem',
+};
+
 /**
  * Converts theme CSS variables object to CSS custom properties string
  */
@@ -75,22 +83,14 @@ function injectThemeCSS(theme: Theme): void {
   styleTag.textContent = `
 :root {
 ${lightCSS}
-  --radius: ${theme.border_radius};
+  --radius: ${RADIUS_PRESETS[theme.border_radius] || theme.border_radius};
   --shadow: ${shadowValue};
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
+.dark {
 ${darkCSS}
-  }
-}
-
-[data-theme="dark"] {
-${darkCSS}
-}
-
-[data-theme="light"] {
-${lightCSS}
+  --radius: ${RADIUS_PRESETS[theme.border_radius] || theme.border_radius};
+  --shadow: ${shadowValue};
 }
 `.trim();
 
@@ -162,8 +162,6 @@ export async function loadActiveTheme(): Promise<Theme> {
       headers: {
         'Content-Type': 'application/json',
       },
-      // Cache the theme for 5 minutes on the client
-      next: { revalidate: 300 },
     });
 
     if (!response.ok) {

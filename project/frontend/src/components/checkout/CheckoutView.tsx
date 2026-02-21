@@ -2,7 +2,8 @@
 
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
-import { ShoppingCart, ArrowLeft, MapPin, Check, Package } from 'lucide-react'
+import Image from 'next/image'
+import { ShoppingCart, ArrowLeft, MapPin, Check, Package, Paintbrush } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { useCart } from '@/hooks/useCart'
 import { Button } from '@/components/ui/button'
@@ -509,10 +510,37 @@ export default function CheckoutView({ locale }: { locale: string }) {
               <div className="space-y-3 max-h-[400px] overflow-y-auto">
                 {cartItems.map((item) => (
                   <div key={item.id} className="flex gap-3">
+                    {/* Product Image or Personalized Preview */}
                     <div className="relative size-16 md:size-20 rounded-lg overflow-hidden bg-muted flex-shrink-0">
-                      <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">
-                        <Package className="h-6 w-6" />
-                      </div>
+                      {/* Show server-generated mockup preview if available, otherwise product image */}
+                      {item.personalization?.preview ? (
+                        /* eslint-disable-next-line @next/next/no-img-element */
+                        <img
+                          src={item.personalization.preview}
+                          alt={`${item.product_title} (Personalized)`}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : item.product_image ? (
+                        <Image
+                          src={item.product_image}
+                          alt={item.product_title}
+                          fill
+                          className="object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">
+                          <Package className="h-6 w-6" />
+                        </div>
+                      )}
+                      {/* Personalized badge overlay */}
+                      {item.personalization && (
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end justify-center pb-1">
+                          <Badge variant="default" className="text-[9px] h-4 px-1 gap-0.5">
+                            <Paintbrush className="size-2" />
+                            <span>Custom</span>
+                          </Badge>
+                        </div>
+                      )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <h3 className="font-medium text-sm text-foreground line-clamp-1">
@@ -521,6 +549,12 @@ export default function CheckoutView({ locale }: { locale: string }) {
                       {item.variant_details && (
                         <p className="text-xs text-muted-foreground">
                           {[item.variant_details.size, item.variant_details.color].filter(Boolean).join(' / ')}
+                        </p>
+                      )}
+                      {/* Personalization details */}
+                      {item.personalization && (
+                        <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
+                          "{item.personalization.text}"
                         </p>
                       )}
                       <div className="flex items-center justify-between mt-1">

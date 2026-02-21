@@ -178,6 +178,7 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
         order_id: order.id,
         product_id: cartItem.product_id || null,
         variant_id: cartItem.variant_id || null,
+        personalization_id: cartItem.personalization_id || null,
         quantity: item.quantity || 1,
         unit_price_cents: Math.round((item.amount_total || 0) / (item.quantity || 1)),
       }
@@ -282,6 +283,7 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
         // Fetch product and variant Printify IDs
         const productIds = validOrderItems.map(item => item.product_id)
         const variantIds = validOrderItems.map(item => item.variant_id).filter(Boolean)
+        const personalizationIds = validOrderItems.map(item => item.personalization_id).filter(Boolean)
 
         const { data: products } = await supabase
           .from('products')
@@ -293,23 +295,44 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
           .select('id, printify_variant_id')
           .in('id', variantIds)
 
+        // Fetch personalization details (for temporary Printify product IDs)
+        let personalizations: any[] = []
+        if (personalizationIds.length > 0) {
+          const { data } = await supabase
+            .from('personalizations')
+            .select('id, printify_temp_product_id')
+            .in('id', personalizationIds)
+          personalizations = data || []
+        }
+
         // Create lookup maps
         const productMap = new Map(products?.map(p => [p.id, p.printify_id]) || [])
         const variantMap = new Map(variants?.map(v => [v.id, v.printify_variant_id]) || [])
+        const personalizationMap = new Map(personalizations.map(p => [p.id, p.printify_temp_product_id]))
 
         // Build Printify line items
         const printifyLineItems = validOrderItems
           .filter(item => {
-            const printifyProductId = productMap.get(item.product_id)
+            // For personalized items, use temp product ID; otherwise use base product ID
+            const printifyProductId = item.personalization_id
+              ? personalizationMap.get(item.personalization_id)
+              : productMap.get(item.product_id)
             const printifyVariantId = item.variant_id ? variantMap.get(item.variant_id) : null
             // Only include items where we have Printify IDs
             return printifyProductId && (printifyVariantId || !item.variant_id)
           })
-          .map(item => ({
-            product_id: productMap.get(item.product_id)!,
-            variant_id: item.variant_id ? parseInt(variantMap.get(item.variant_id)!, 10) : 0,
-            quantity: item.quantity,
-          }))
+          .map(item => {
+            // For personalized items, use temp product ID; otherwise use base product ID
+            const printifyProductId = item.personalization_id
+              ? personalizationMap.get(item.personalization_id)!
+              : productMap.get(item.product_id)!
+
+            return {
+              product_id: printifyProductId,
+              variant_id: item.variant_id ? parseInt(variantMap.get(item.variant_id)!, 10) : 0,
+              quantity: item.quantity,
+            }
+          })
 
         if (printifyLineItems.length === 0) {
           console.log('No valid Printify line items - skipping Printify submission')

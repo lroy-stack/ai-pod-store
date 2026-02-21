@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import sharp from 'sharp';
 import path from 'path';
 import fs from 'fs';
+import { createCanvas, registerFont } from 'canvas';
 
 /**
  * POST /api/designs/preview-text
@@ -19,6 +20,24 @@ interface PreviewRequest {
   fontSize?: number;
   position?: 'top' | 'center' | 'bottom';
 }
+
+// Font mapping: font name to file path
+const FONT_FILES: Record<string, string> = {
+  'Inter': 'Inter-Regular.ttf',
+  'Roboto': 'Roboto-Regular.ttf',
+  'Playfair Display': 'PlayfairDisplay-Regular.ttf',
+  'Montserrat': 'Montserrat-Regular.ttf',
+  'Oswald': 'Oswald-Regular.ttf',
+  'Lato': 'Lato-Regular.ttf',
+};
+
+// Register all fonts once at module load
+Object.entries(FONT_FILES).forEach(([fontName, fileName]) => {
+  const fontPath = path.join(process.cwd(), 'public', 'fonts', fileName);
+  if (fs.existsSync(fontPath)) {
+    registerFont(fontPath, { family: fontName });
+  }
+});
 
 export async function POST(request: NextRequest) {
   try {
@@ -61,18 +80,6 @@ export async function POST(request: NextRequest) {
     const templateWidth = templateMetadata.width || 500;
     const templateHeight = templateMetadata.height || 600;
 
-    // Parse font color to RGB
-    const hexToRgb = (hex: string): { r: number; g: number; b: number } => {
-      const sanitized = hex.replace('#', '');
-      return {
-        r: parseInt(sanitized.substring(0, 2), 16),
-        g: parseInt(sanitized.substring(2, 4), 16),
-        b: parseInt(sanitized.substring(4, 6), 16),
-      };
-    };
-
-    const rgb = hexToRgb(fontColor);
-
     // Calculate text position
     const calculateY = (pos: string, imgHeight: number): number => {
       switch (pos) {
@@ -88,28 +95,30 @@ export async function POST(request: NextRequest) {
 
     const textY = calculateY(position, templateHeight);
 
-    // Create SVG text overlay
-    // Note: sharp doesn't support custom fonts directly, so we'll use a simple text rendering
-    // For production, you'd want to use @vercel/og or a proper font rendering library
-    const textSvg = `
-      <svg width="${templateWidth}" height="${templateHeight}">
-        <text
-          x="50%"
-          y="${textY}"
-          font-family="${font}, sans-serif"
-          font-size="${fontSize}"
-          fill="rgb(${rgb.r}, ${rgb.g}, ${rgb.b})"
-          text-anchor="middle"
-          dominant-baseline="middle"
-        >${body.text}</text>
-      </svg>
-    `;
+    // Validate font
+    const selectedFont = FONT_FILES[font] ? font : 'Inter';
 
-    // Overlay text on template
+    // Create canvas for text rendering
+    const canvas = createCanvas(templateWidth, templateHeight);
+    const ctx = canvas.getContext('2d');
+
+    // Set font properties
+    ctx.font = `${fontSize}px "${selectedFont}"`;
+    ctx.fillStyle = fontColor;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    // Render text
+    ctx.fillText(body.text, templateWidth / 2, textY);
+
+    // Convert canvas to buffer
+    const textBuffer = canvas.toBuffer('image/png');
+
+    // Overlay text on template using sharp
     const compositeBuffer = await sharp(templateBuffer)
       .composite([
         {
-          input: Buffer.from(textSvg),
+          input: textBuffer,
           top: 0,
           left: 0,
         },
@@ -126,6 +135,7 @@ export async function POST(request: NextRequest) {
         productType: body.productType,
         color: body.color,
         text: body.text,
+        font: selectedFont,
         fontSize,
         fontColor,
         position,

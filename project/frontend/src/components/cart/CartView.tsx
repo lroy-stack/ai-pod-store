@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Loader2, Minus, Plus, Trash2 } from 'lucide-react'
+import { Loader2, Minus, Plus, Trash2, ChevronDown, ChevronUp, Paintbrush } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { useCart } from '@/hooks/useCart'
 import { Button } from '@/components/ui/button'
@@ -26,6 +26,7 @@ export default function CartView({ locale }: { locale: string }) {
   // Get user's preferred currency from cart items or locale default
   const userCurrency = user?.currency || (cartItems[0]?.product_currency) || STORE_DEFAULTS.currency
   const [updatingItems, setUpdatingItems] = useState<Set<string>>(new Set())
+  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set())
   const [couponCode, setCouponCode] = useState('')
   const [appliedCoupon, setAppliedCoupon] = useState<{
     code: string
@@ -49,6 +50,18 @@ export default function CartView({ locale }: { locale: string }) {
   const discountedTotal = appliedCoupon ? appliedCoupon.new_total : cartTotal
   const shippingCost = shippingEstimate?.cost || 0
   const finalTotal = discountedTotal + shippingCost
+
+  const toggleExpanded = (itemId: string) => {
+    setExpandedItems((prev) => {
+      const next = new Set(prev)
+      if (next.has(itemId)) {
+        next.delete(itemId)
+      } else {
+        next.add(itemId)
+      }
+      return next
+    })
+  }
 
   const updateQuantity = async (itemId: string, newQuantity: number) => {
     // Enforce maximum quantity on client side
@@ -227,18 +240,77 @@ export default function CartView({ locale }: { locale: string }) {
                           {item.product_title}
                         </h3>
 
-                        {/* Variant Details */}
-                        {item.variant_details && (
-                          <div className="flex gap-2 mb-2">
-                            {item.variant_details.size && (
-                              <Badge variant="secondary" className="text-xs">
-                                Size: {item.variant_details.size}
-                              </Badge>
-                            )}
-                            {item.variant_details.color && (
-                              <Badge variant="secondary" className="text-xs">
-                                Color: {item.variant_details.color}
-                              </Badge>
+                        {/* Variant Details and Personalization Badge */}
+                        <div className="flex flex-wrap gap-2 mb-2">
+                          {item.variant_details?.size && (
+                            <Badge variant="secondary" className="text-xs">
+                              Size: {item.variant_details.size}
+                            </Badge>
+                          )}
+                          {item.variant_details?.color && (
+                            <Badge variant="secondary" className="text-xs">
+                              Color: {item.variant_details.color}
+                            </Badge>
+                          )}
+                          {item.personalization && (
+                            <Badge variant="default" className="text-xs gap-1">
+                              <Paintbrush className="size-3" />
+                              Personalized
+                            </Badge>
+                          )}
+                        </div>
+
+                        {/* Personalization Details (expandable) */}
+                        {item.personalization && (
+                          <div className="mb-3">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 px-2 text-xs gap-1"
+                              onClick={() => toggleExpanded(item.id)}
+                            >
+                              {expandedItems.has(item.id) ? (
+                                <>
+                                  <ChevronUp className="size-3" />
+                                  Hide Details
+                                </>
+                              ) : (
+                                <>
+                                  <ChevronDown className="size-3" />
+                                  Show Details
+                                </>
+                              )}
+                            </Button>
+
+                            {expandedItems.has(item.id) && (
+                              <div className="mt-2 p-3 bg-muted/30 rounded-md border border-border space-y-1.5 text-xs">
+                                <div>
+                                  <span className="font-medium text-muted-foreground">Text:</span>{' '}
+                                  <span className="text-foreground">{item.personalization.text}</span>
+                                </div>
+                                <div>
+                                  <span className="font-medium text-muted-foreground">Font:</span>{' '}
+                                  <span className="text-foreground" style={{ fontFamily: item.personalization.font }}>
+                                    {item.personalization.font}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <span className="font-medium text-muted-foreground">Color:</span>
+                                  <div
+                                    className="size-4 rounded border border-border"
+                                    style={{ backgroundColor: item.personalization.fontColor }}
+                                  />
+                                  <span className="text-foreground font-mono">{item.personalization.fontColor}</span>
+                                </div>
+                                <div>
+                                  <span className="font-medium text-muted-foreground">Size:</span>{' '}
+                                  <span className="text-foreground capitalize">{item.personalization.fontSize}</span>
+                                </div>
+                                <div>
+                                  <span className="font-medium text-muted-foreground">Position:</span>{' '}
+                                  <span className="text-foreground capitalize">{item.personalization.position}</span>
+                                </div>
+                              </div>
                             )}
                           </div>
                         )}
