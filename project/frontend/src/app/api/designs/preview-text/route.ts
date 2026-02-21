@@ -3,6 +3,7 @@ import sharp from 'sharp';
 import path from 'path';
 import fs from 'fs';
 import { createCanvas, registerFont } from 'canvas';
+import { containsProfanity, getProfanityErrorMessage } from '@/lib/profanity-filter';
 
 /**
  * POST /api/designs/preview-text
@@ -47,6 +48,14 @@ export async function POST(request: NextRequest) {
     if (!body.productType || !body.color || !body.text) {
       return NextResponse.json(
         { error: 'Missing required fields: productType, color, text' },
+        { status: 400 }
+      );
+    }
+
+    // Check for profanity (server-side validation)
+    if (containsProfanity(body.text)) {
+      return NextResponse.json(
+        { error: getProfanityErrorMessage() },
         { status: 400 }
       );
     }

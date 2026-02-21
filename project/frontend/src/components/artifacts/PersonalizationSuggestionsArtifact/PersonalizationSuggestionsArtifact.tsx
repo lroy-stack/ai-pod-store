@@ -99,7 +99,7 @@ export function PersonalizationSuggestionsArtifact({
               style={{
                 top: positionCss[recommendedPosition],
                 fontFamily: recommendedFont,
-                color: '#000000',
+                color: 'var(--color-foreground)',
                 fontSize: 'clamp(10px, 3vw, 16px)',
                 lineHeight: 1.2,
                 wordBreak: 'break-word',

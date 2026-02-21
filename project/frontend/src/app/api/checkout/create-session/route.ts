@@ -173,11 +173,16 @@ export async function POST(req: NextRequest) {
         productData.images = [item.product_image];
       }
 
+      // Calculate unit amount including personalization surcharge
+      const basePrice = item.product_price || 0;
+      const personalizationSurcharge = item.personalization?.surcharge || 0;
+      const totalUnitPrice = basePrice + personalizationSurcharge;
+
       return {
         price_data: {
           currency: currency.toLowerCase(),
           product_data: productData,
-          unit_amount: Math.round((item.product_price || 0) * 100), // Convert to cents
+          unit_amount: Math.round(totalUnitPrice * 100), // Convert to cents
         },
         quantity: item.quantity || 1,
       };

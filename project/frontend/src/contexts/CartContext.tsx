@@ -21,6 +21,7 @@ export interface CartItem {
     fontColor: string;
     fontSize: 'small' | 'medium' | 'large';
     position: 'top' | 'center' | 'bottom';
+    surcharge?: number | null;
   };
 }
 
@@ -133,7 +134,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
-  const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const total = items.reduce((sum, item) => {
+    const itemTotal = item.price * item.quantity;
+    const surcharge = (item.personalization?.surcharge || 0) * item.quantity;
+    return sum + itemTotal + surcharge;
+  }, 0);
 
   return (
     <CartContext.Provider

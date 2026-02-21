@@ -110,7 +110,7 @@ export default function LandingPage() {
         <div className="absolute inset-x-0 bottom-0 h-40 shader-fade-bottom pointer-events-none" aria-hidden="true" />
 
         <div className="relative z-10 flex flex-col items-center max-w-4xl">
-          <div className="bg-card/50 backdrop-blur-2xl border border-border/60 rounded-3xl shadow-xl ring-1 ring-white/10 px-8 py-10 md:px-12 md:py-12 flex flex-col items-center">
+          <div className="bg-card/50 backdrop-blur-2xl border border-border/60 rounded-3xl shadow-xl ring-1 ring-foreground/10 px-8 py-10 md:px-12 md:py-12 flex flex-col items-center">
             <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center mb-8 landing-float shadow-lg shadow-primary/20">
               <span className="text-primary-foreground font-bold text-xl">P</span>
             </div>

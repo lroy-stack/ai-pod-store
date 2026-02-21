@@ -28,6 +28,7 @@ import { Paintbrush, AlignVerticalJustifyStart, AlignVerticalJustifyCenter, Alig
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { getPreviewZone } from '@/lib/print-areas'
+import { containsProfanity, getProfanityErrorMessage } from '@/lib/profanity-filter'
 
 const FONT_OPTIONS = [
   { value: 'Inter', label: 'Inter' },
@@ -44,6 +45,7 @@ export interface PersonalizationData {
   fontColor: string
   fontSize: 'small' | 'medium' | 'large'
   position: 'top' | 'center' | 'bottom'
+  surcharge?: number | null
 }
 
 /** CSS top% → Printify y-coordinate mapping */
@@ -86,6 +88,10 @@ export function ProductPersonalizer({
   const [fontSize, setFontSize] = useState<'small' | 'medium' | 'large'>(initialData?.fontSize || 'medium')
   const [position, setPosition] = useState<'top' | 'center' | 'bottom'>(initialData?.position || 'bottom')
 
+  // Personalization surcharge state
+  const [surcharge, setSurcharge] = useState<number | null>(null)
+  const [isFetchingSurcharge, setIsFetchingSurcharge] = useState(false)
+
   // Preview mode: 'quick' (CSS overlay, instant) or 'accurate' (server mockup, 1-2s)
   const [previewMode, setPreviewMode] = useState<'quick' | 'accurate'>('quick')
   const [serverPreview, setServerPreview] = useState<string | null>(null)
@@ -110,6 +116,28 @@ export function ProductPersonalizer({
 
     return () => clearTimeout(timer)
   }, [text, font, fontColor, fontSize, position])
+
+  // Fetch personalization surcharge when dialog opens
+  useEffect(() => {
+    if (!open) return
+
+    const fetchSurcharge = async () => {
+      setIsFetchingSurcharge(true)
+      try {
+        const response = await fetch('/api/storefront/personalization-surcharge')
+        if (response.ok) {
+          const data = await response.json()
+          setSurcharge(data.surcharge)
+        }
+      } catch (error) {
+        console.error('Error fetching surcharge:', error)
+      } finally {
+        setIsFetchingSurcharge(false)
+      }
+    }
+
+    fetchSurcharge()
+  }, [open])
 
   // Fetch server-generated preview when in 'accurate' mode
   useEffect(() => {
@@ -167,12 +195,19 @@ export function ProductPersonalizer({
       return
     }
 
+    // Final profanity check before submission
+    if (containsProfanity(text)) {
+      toast.error(getProfanityErrorMessage())
+      return
+    }
+
     const data: PersonalizationData = {
       text: text.trim(),
       font,
       fontColor,
       fontSize,
       position,
+      surcharge,
     }
     onPersonalized?.(data)
     setOpen(false)
@@ -206,6 +241,12 @@ export function ProductPersonalizer({
 
   const handleTextChange = (value: string) => {
     const info = getLineInfo(value)
+
+    // Check for profanity first
+    if (containsProfanity(value)) {
+      toast.error(getProfanityErrorMessage())
+      return
+    }
 
     // Block if more than 3 lines
     if (info.lineCount > 3) {
@@ -479,6 +520,16 @@ export function ProductPersonalizer({
                 ))}
               </div>
             </div>
+
+            {/* Surcharge display */}
+            {surcharge !== null && surcharge > 0 && (
+              <div className="rounded-lg border border-border bg-muted/30 p-3">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Personalization fee</span>
+                  <span className="font-medium">+€{surcharge.toFixed(2)}</span>
+                </div>
+              </div>
+            )}
 
             {/* Action buttons */}
             <div className="flex gap-2 mt-auto">

@@ -310,6 +310,12 @@ export default function CartView({ locale }: { locale: string }) {
                                   <span className="font-medium text-muted-foreground">Position:</span>{' '}
                                   <span className="text-foreground capitalize">{item.personalization.position}</span>
                                 </div>
+                                {item.personalization.surcharge && item.personalization.surcharge > 0 && (
+                                  <div className="mt-2 pt-2 border-t border-border">
+                                    <span className="font-medium text-muted-foreground">Personalization fee:</span>{' '}
+                                    <span className="text-foreground">+€{item.personalization.surcharge.toFixed(2)}</span>
+                                  </div>
+                                )}
                               </div>
                             )}
                           </div>

@@ -534,7 +534,7 @@ export default function CheckoutView({ locale }: { locale: string }) {
                       )}
                       {/* Personalized badge overlay */}
                       {item.personalization && (
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end justify-center pb-1">
+                        <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 to-transparent flex items-end justify-center pb-1">
                           <Badge variant="default" className="text-[9px] h-4 px-1 gap-0.5">
                             <Paintbrush className="size-2" />
                             <span>Custom</span>

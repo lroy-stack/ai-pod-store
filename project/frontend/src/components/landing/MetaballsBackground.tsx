@@ -29,11 +29,16 @@ export function MetaballsBackground() {
 
   if (!mounted || !supportsWebGL) return null
 
-  const colorBack = resolvedTheme === 'dark' ? '#0a0a0b' : '#dcdde0'
+  // Read theme colors from CSS custom properties
+  const style = getComputedStyle(document.documentElement)
+  const colorBack = style.getPropertyValue('--color-background').trim() || (resolvedTheme === 'dark' ? '#0a0a0b' : '#dcdde0')
+  const blobColor1 = style.getPropertyValue('--color-primary').trim() || '#2b00ff'
+  const blobColor2 = style.getPropertyValue('--color-chart-2').trim() || '#ae00ff'
+  const blobColor3 = style.getPropertyValue('--color-chart-5').trim() || '#ffc105'
 
   return (
     <Metaballs
-      colors={['#2b00ff', '#ae00ff', '#ffc105']}
+      colors={[blobColor1, blobColor2, blobColor3]}
       colorBack={colorBack}
       count={19.8}
       size={0.05}
