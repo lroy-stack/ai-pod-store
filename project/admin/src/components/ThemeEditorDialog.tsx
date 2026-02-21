@@ -33,6 +33,7 @@ interface Theme {
     mono: string;
   };
   border_radius: string;
+  shadow_preset: string;
 }
 
 interface ThemeEditorDialogProps {
@@ -67,19 +68,28 @@ const GOOGLE_FONTS = [
   'Merriweather',
 ];
 
+const SHADOW_PRESETS = [
+  { value: 'none', label: 'None', shadow: 'none' },
+  { value: 'subtle', label: 'Subtle', shadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)' },
+  { value: 'medium', label: 'Medium', shadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)' },
+  { value: 'dramatic', label: 'Dramatic', shadow: '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)' },
+];
+
 export function ThemeEditorDialog({ theme, onSave, trigger }: ThemeEditorDialogProps) {
   const [open, setOpen] = useState(false);
   const [cssVariables, setCssVariables] = useState<Record<string, string>>({});
   const [fonts, setFonts] = useState({ heading: '', body: '', mono: '' });
   const [borderRadius, setBorderRadius] = useState('0.5rem');
+  const [shadowPreset, setShadowPreset] = useState('subtle');
   const [saving, setSaving] = useState(false);
 
-  // Initialize CSS variables, fonts, and border radius from theme
+  // Initialize CSS variables, fonts, border radius, and shadow preset from theme
   useEffect(() => {
     if (open) {
       setCssVariables({ ...theme.css_variables });
       setFonts({ ...theme.fonts });
       setBorderRadius(theme.border_radius || '0.5rem');
+      setShadowPreset(theme.shadow_preset || 'subtle');
     }
   }, [open, theme]);
 
@@ -105,6 +115,7 @@ export function ThemeEditorDialog({ theme, onSave, trigger }: ThemeEditorDialogP
         css_variables: cssVariables,
         fonts: fonts,
         border_radius: borderRadius,
+        shadow_preset: shadowPreset,
       };
 
       if (onSave) {
@@ -258,6 +269,44 @@ export function ThemeEditorDialog({ theme, onSave, trigger }: ThemeEditorDialogP
                 />
                 <p className="text-xs text-muted-foreground">
                   Preview of border radius applied to UI elements
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <Separator />
+
+          <div>
+            <h3 className="text-sm font-semibold mb-4">Shadow Preset</h3>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="shadow-preset" className="text-sm font-medium">
+                  Shadow Style
+                </Label>
+                <Select value={shadowPreset} onValueChange={setShadowPreset}>
+                  <SelectTrigger id="shadow-preset">
+                    <SelectValue placeholder="Select shadow preset" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SHADOW_PRESETS.map((preset) => (
+                      <SelectItem key={preset.value} value={preset.value}>
+                        {preset.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-center gap-4">
+                <div
+                  className="w-20 h-20 bg-card rounded-lg"
+                  style={{
+                    boxShadow:
+                      SHADOW_PRESETS.find((p) => p.value === shadowPreset)?.shadow || 'none',
+                  }}
+                  title={`Preview: ${shadowPreset}`}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Preview of shadow applied to cards and elevated elements
                 </p>
               </div>
             </div>
