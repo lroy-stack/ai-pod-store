@@ -8,7 +8,7 @@ Intercepts: gemini_generate_image, fal_generate
 After successful generation -> auto-removes background -> persists bg-removed version
 to Supabase Storage -> updates designs.bg_removed_url if the row exists.
 
-Requires: Docker rembg-sidecar on REMBG_URL (localhost:7000). No cloud fallback.
+Requires: Docker rembg-sidecar on REMBG_URL (localhost:8090). No cloud fallback.
 
 Fire-and-forget: never blocks the agent.
 
@@ -32,6 +32,10 @@ logger = structlog.get_logger(__name__)
 
 # Pending bg removals: original_image_url -> bg_removed_url
 # Used by the catch-up hook when the designs row didn't exist yet at hook time.
+# NOTE: In-memory only — lost on restart. This is acceptable because:
+# 1. The window is short (seconds between image gen and supabase_insert)
+# 2. On restart, QA inspector re-checks designs missing bg_removed_url
+# 3. reconcile_and_fix.py pass_d also backfills missing bg_removed_url
 _pending_bg_removals: dict[str, str] = {}
 
 _MAX_UPDATE_RETRIES = 3

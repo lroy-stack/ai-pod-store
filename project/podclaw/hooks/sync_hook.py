@@ -24,7 +24,9 @@ from typing import Any, Callable, Optional
 import httpx
 import structlog
 
+from podclaw.config import PRINTIFY_USD_TO_EUR_RATE
 from podclaw.hooks._parse_output import parse_tool_output
+from podclaw.pricing import engagement_price as _engagement_price_canonical
 
 logger = structlog.get_logger(__name__)
 
@@ -105,50 +107,14 @@ def sync_hook(supabase_url: str, supabase_key: str, printify_token: str = "", sh
 
 
 # ---------------------------------------------------------------------------
-# USD→EUR conversion factor (approximate, avoids external API call)
+# USD→EUR conversion factor — single source of truth in config.py
 # ---------------------------------------------------------------------------
-_USD_TO_EUR = 0.92
+_USD_TO_EUR = PRINTIFY_USD_TO_EUR_RATE
 
 
 def _engagement_price(cost_cents: int, title: str = "") -> int:
-    """Calculate retail price from cost using tiered multipliers, rounded to .99.
-
-    Uses product-type-aware multipliers matching the Cataloger SKILL.md pricing table.
-    Falls back to x1.8 when product type cannot be determined from the title.
-    """
-    title_lower = title.lower()
-
-    # Determine multiplier and minimum price based on product type
-    if any(k in title_lower for k in ("sticker", "pin", "badge", "magnet")):
-        multiplier, min_price = 2.5, 399
-    elif any(k in title_lower for k in ("mug", "phone case", "iphone", "samsung", "case")):
-        multiplier, min_price = 2.0, 999
-    elif any(k in title_lower for k in ("hoodie", "sweater", "sweatshirt", "pullover")):
-        multiplier, min_price = 1.7, 2999
-    elif any(k in title_lower for k in ("t-shirt", "tee", "tote", "bag", "tank")):
-        multiplier, min_price = 1.8, 1499
-    elif any(k in title_lower for k in ("poster", "canvas", "print", "art")):
-        multiplier, min_price = 2.0, 799
-    elif any(k in title_lower for k in ("blanket", "pillow", "throw", "cushion", "flag")):
-        multiplier, min_price = 1.55, 3999
-    else:
-        multiplier, min_price = 1.8, 1499  # default: apparel-like
-
-    raw = cost_cents * multiplier
-
-    # Hard floor: at least 40% margin
-    floor = cost_cents * 1.4
-    raw = max(raw, floor)
-
-    # Hard ceiling: at most 3x cost
-    ceiling = cost_cents * 3.0
-    raw = min(raw, ceiling)
-
-    # Round up to nearest .99
-    rounded = math.ceil(raw / 100) * 100 - 1
-
-    # Apply minimum price for the product type
-    return max(rounded, min_price)
+    """Delegate to canonical pricing engine in podclaw.pricing."""
+    return _engagement_price_canonical(cost_cents, title)
 
 
 def _infer_category(tags: list[str], title: str = "") -> str:
@@ -682,6 +648,46 @@ async def _sync_printify_publish(
                     new_status=patch_data["status"],
                     verified=verified_visible,
                 )
+
+                # Confirm publishing to Printify (custom integration requirement)
+                if printify_token and shop_id:
+                    try:
+                        succeed_url = (
+                            f"https://api.printify.com/v1/shops/{shop_id}"
+                            f"/products/{printify_id}/publishing_succeeded.json"
+                        )
+                        succeed_body = {
+                            "external": {
+                                "id": str(product_id),
+                                "handle": f"/shop/{product_id}",
+                            }
+                        }
+                        succeed_resp = await client.post(
+                            succeed_url,
+                            headers={
+                                "Authorization": f"Bearer {printify_token}",
+                                "Content-Type": "application/json",
+                            },
+                            json=succeed_body,
+                            timeout=15,
+                        )
+                        if succeed_resp.status_code < 400:
+                            logger.info(
+                                "sync_hook_publishing_succeeded",
+                                printify_id=printify_id,
+                            )
+                        else:
+                            logger.warning(
+                                "sync_hook_publishing_succeeded_failed",
+                                printify_id=printify_id,
+                                status=succeed_resp.status_code,
+                            )
+                    except Exception as pub_err:
+                        logger.warning(
+                            "sync_hook_publishing_succeeded_error",
+                            printify_id=printify_id,
+                            error=str(pub_err),
+                        )
             else:
                 logger.error(
                     "sync_hook_activate_failed",

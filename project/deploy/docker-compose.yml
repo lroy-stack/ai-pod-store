@@ -2,9 +2,10 @@
 # =====================================================
 #
 # Services:
-#   frontend  — Next.js 16 storefront + admin dashboard (port 3000)
+#   frontend  — Next.js 16 storefront (port 3000)
+#   admin     — Next.js 16 admin panel (port 3001)
 #   podclaw   — Python agent system with FastAPI bridge (port 8000)
-#   rembg     — Background removal sidecar with u2net (port 7000)
+#   rembg     — Background removal sidecar with u2net (port 8080)
 #   redis     — Session cache, rate limiting, queues (port 6379)
 #   caddy     — Reverse proxy with automatic HTTPS (ports 80, 443)
 #
@@ -25,13 +26,16 @@ services:
     build:
       context: ../frontend
       dockerfile: Dockerfile
-    ports:
-      - "3000:3000"
+    # No external ports in base — Caddy is the public entry point.
+    # Override in docker-compose.local.yml for direct debug access.
     env_file:
       - ../frontend/.env.local
     environment:
       NODE_ENV: production
       PORT: "3000"
+      REDIS_URL: redis://redis:6379
+      REMBG_URL: http://rembg:8080
+      PODCLAW_BRIDGE_URL: http://podclaw:8000
     depends_on:
       redis:
         condition: service_healthy
@@ -46,18 +50,47 @@ services:
       retries: 3
 
   # ---------------------------------------------------------------------------
+  # Admin — Next.js 16 Admin Panel (Store + PodClaw Management)
+  # ---------------------------------------------------------------------------
+  admin:
+    build:
+      context: ../admin
+      dockerfile: Dockerfile
+      args:
+        ADMIN_BASE_PATH: "/panel"
+    # No external ports in base — Caddy proxies /panel → admin:3001.
+    env_file:
+      - ../admin/.env.local
+    environment:
+      NODE_ENV: production
+      PORT: "3001"
+      ADMIN_BASE_PATH: "/panel"
+      PODCLAW_BRIDGE_URL: http://podclaw:8000
+    depends_on:
+      redis:
+        condition: service_healthy
+      podclaw:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/panel/api/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 3
+
+  # ---------------------------------------------------------------------------
   # PodClaw — Autonomous Agent System + FastAPI Bridge
   # ---------------------------------------------------------------------------
   podclaw:
     build:
       context: ..
       dockerfile: deploy/Dockerfile
-    ports:
-      - "8000:8000"
+    # No external ports in base — Caddy proxies /api/bridge → podclaw:8000.
     env_file:
       - ../frontend/.env.local
     environment:
-      REMBG_URL: http://rembg:7000
+      REMBG_URL: http://rembg:8080
       REDIS_URL: redis://redis:6379
     volumes:
       - podclaw-data:/app/podclaw/data
@@ -81,8 +114,7 @@ services:
   rembg:
     build:
       context: rembg
-    ports:
-      - "7000:7000"
+    # No external port — accessed only via Docker network (podclaw → rembg:8080)
     restart: unless-stopped
     deploy:
       resources:
@@ -94,8 +126,7 @@ services:
   # ---------------------------------------------------------------------------
   redis:
     image: redis:7-alpine
-    ports:
-      - "6379:6379"
+    # No external port in base — override in local/prod as needed
     volumes:
       - redis-data:/data
     command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
@@ -112,17 +143,25 @@ services:
   # ---------------------------------------------------------------------------
   caddy:
     image: caddy:2-alpine
-    ports:
-      - "80:80"
-      - "443:443"
+    # Ports defined in override files (local: 8080, prod: 80+443)
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile
       - caddy-data:/data
       - caddy-config:/config
     depends_on:
-      - frontend
-      - podclaw
+      frontend:
+        condition: service_healthy
+      admin:
+        condition: service_healthy
+      podclaw:
+        condition: service_healthy
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/"]
+      interval: 30s
+      timeout: 10s
+      start_period: 15s
+      retries: 3
 
 # ---------------------------------------------------------------------------
 # Named Volumes

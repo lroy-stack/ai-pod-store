@@ -7,16 +7,29 @@
 
 import Stripe from 'stripe';
 
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error('STRIPE_SECRET_KEY is not defined in environment variables');
+let _stripe: Stripe | undefined;
+
+function initStripe(): Stripe {
+  if (!_stripe) {
+    if (!process.env.STRIPE_SECRET_KEY) {
+      throw new Error('STRIPE_SECRET_KEY is not defined in environment variables');
+    }
+
+    _stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: '2026-01-28.clover',
+      typescript: true,
+    });
+  }
+  return _stripe;
 }
 
-/**
- * Singleton Stripe client instance
- */
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2026-01-28.clover',
-  typescript: true,
+// Lazy singleton — client is created on first property access, not at import time.
+export const stripe: Stripe = new Proxy({} as Stripe, {
+  get(_, prop) {
+    const client = initStripe();
+    const value = (client as any)[prop];
+    return typeof value === 'function' ? value.bind(client) : value;
+  },
 });
 
 /**

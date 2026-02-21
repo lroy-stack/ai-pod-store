@@ -54,7 +54,7 @@ export async function POST(
   }
 
   const supabase = createClient(supabaseUrl, supabaseServiceKey)
-  const stripe = new Stripe(stripeSecretKey, { apiVersion: '2024-12-18.acacia' })
+  const stripe = new Stripe(stripeSecretKey, { apiVersion: '2026-01-28.clover' })
 
   try {
     const body = await request.json()

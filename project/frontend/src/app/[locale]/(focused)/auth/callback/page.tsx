@@ -74,8 +74,8 @@ export default function AuthCallbackPage() {
 
   if (error) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="w-full max-w-md p-8">
+      <div className="mx-auto max-w-md">
+        <div className="w-full">
           <div className="rounded-lg border border-destructive/20 bg-destructive/10 p-4 text-center">
             <p className="text-sm font-medium text-destructive">{error}</p>
             <p className="mt-2 text-xs text-destructive/80">Redirecting to login...</p>
@@ -86,11 +86,9 @@ export default function AuthCallbackPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="w-full max-w-md p-8 text-center">
-        <Loader2 className="mx-auto h-12 w-12 animate-spin text-primary" />
-        <p className="mt-4 text-sm text-muted-foreground">Completing sign-in...</p>
-      </div>
+    <div className="mx-auto max-w-md text-center">
+      <Loader2 className="mx-auto h-12 w-12 animate-spin text-primary" />
+      <p className="mt-4 text-sm text-muted-foreground">Completing sign-in...</p>
     </div>
   )
 }

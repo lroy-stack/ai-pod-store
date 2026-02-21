@@ -1,4 +1,5 @@
 import { getTranslations } from 'next-intl/server'
+import Link from 'next/link'
 import RegisterForm from '@/components/auth/RegisterForm'
 import { Card, CardContent } from '@/components/ui/card'
 
@@ -16,9 +17,14 @@ export default async function RegisterPage({ params }: { params: Promise<{ local
   const { locale } = await params
 
   return (
-    <div className="flex items-center justify-center py-8 md:py-12 px-4">
-      <Card className="w-full max-w-md">
-        <CardContent className="pt-6">
+    <div className="mx-auto max-w-md flex flex-col items-center">
+      <Link href={`/${locale}/`} className="mb-6 group" aria-label="Home">
+        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center shadow-lg shadow-primary/20 landing-float">
+          <span className="text-primary-foreground font-bold text-lg">P</span>
+        </div>
+      </Link>
+      <Card className="w-full bg-card/80 backdrop-blur-xl border-border/60 shadow-xl">
+        <CardContent className="px-4 pt-6 md:px-6">
           <RegisterForm locale={locale} />
         </CardContent>
       </Card>

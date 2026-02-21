@@ -101,6 +101,7 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
     const locale = session.metadata?.locale || 'en'
     const cartItemsStr = session.metadata?.cart_items || '[]'
     const cartItems = JSON.parse(cartItemsStr)
+    const giftMessage = session.metadata?.gift_message || null
 
     // Get session details with line items
     const fullSession = await stripe.checkout.sessions.retrieve(session.id, {
@@ -157,6 +158,7 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
         shipping_address: shippingAddress,
         customer_email: customerEmail,
         locale,
+        gift_message: giftMessage,
         paid_at: new Date().toISOString(),
       })
       .select()

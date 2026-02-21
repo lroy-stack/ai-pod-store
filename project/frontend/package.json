@@ -9,7 +9,16 @@
     "build:turbopack": "next build",
     "start": "next start",
     "lint": "next lint",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed",
+    "test:api": "playwright test --grep @api",
+    "test:chat": "playwright test --grep @chat",
+    "test:shop": "playwright test --grep @shop",
+    "test:auth": "playwright test --grep @auth",
+    "test:cart": "playwright test --grep @cart",
+    "test:report": "playwright show-report"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^1.0.0",
@@ -59,6 +68,7 @@
   },
   "devDependencies": {
     "@next/bundle-analyzer": "^16.1.6",
+    "@playwright/test": "^1.58.2",
     "@serwist/build": "^9.0.0",
     "@tailwindcss/postcss": "^4.1.18",
     "@tailwindcss/typography": "^0.5.15",
@@ -72,7 +82,6 @@
     "eslint": "^9.0.0",
     "eslint-config-next": "16.1.6",
     "lighthouse": "^12.8.2",
-    "playwright": "^1.58.2",
     "postcss": "^8.4.49",
     "puppeteer": "^24.37.3",
     "tailwindcss": "^4.0.0",

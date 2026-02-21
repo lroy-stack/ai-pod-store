@@ -60,6 +60,7 @@ DEFAULT_SCHEDULE = {
     "seo_manager": {"schedule": "0 16 * * 0", "description": "SEO optimization (weekly, Sunday)", "model": "haiku", "enabled": True},
     "finance": {"schedule": "0 23 * * *", "description": "Daily financial reconciliation", "model": "sonnet", "enabled": True},
     "qa_inspector": {"schedule": "0 10 * * *", "description": "Verify designs and products quality", "model": "haiku", "enabled": True},
+    "brand_manager": {"schedule": "0 8 * * 1", "description": "Weekly brand audit and label management", "model": "sonnet", "enabled": True},
 }
 
 
@@ -379,20 +380,40 @@ class PodClawScheduler:
             if job.id not in ("memory_consolidation", "session_reaper"):
                 job.remove()
 
-        # Re-add jobs with default schedules
+        # Re-add jobs with default schedules (same CYCLE_TASKS split logic as _setup_jobs)
         for agent_name, config in self.current_schedule.items():
             if not config.get("enabled", True):
                 continue
 
             try:
-                trigger = self._parse_cron(config["schedule"])
-                self.scheduler.add_job(
-                    self.orchestrator.run_agent,
-                    trigger,
-                    args=[agent_name],
-                    id=f"{agent_name}_scheduled",
-                    name=f"{agent_name.replace('_', ' ').title()}",
-                )
+                schedule_str = config["schedule"]
+                parts = schedule_str.split()
+                hours_field = parts[1] if len(parts) >= 2 else ""
+
+                if "," in hours_field and agent_name in CYCLE_TASKS:
+                    for hour_str in hours_field.split(","):
+                        hour = int(hour_str)
+                        single_cron = schedule_str.replace(hours_field, hour_str)
+                        trigger = self._parse_cron(single_cron)
+                        cycle_task = self._get_cycle_task(agent_name, hour)
+                        kwargs = {"task": cycle_task} if cycle_task else {}
+                        self.scheduler.add_job(
+                            self.orchestrator.run_agent,
+                            trigger,
+                            args=[agent_name],
+                            kwargs=kwargs,
+                            id=f"{agent_name}_h{hour_str}_scheduled",
+                            name=f"{agent_name.replace('_', ' ').title()} ({hour_str}:00)",
+                        )
+                else:
+                    trigger = self._parse_cron(schedule_str)
+                    self.scheduler.add_job(
+                        self.orchestrator.run_agent,
+                        trigger,
+                        args=[agent_name],
+                        id=f"{agent_name}_scheduled",
+                        name=f"{agent_name.replace('_', ' ').title()}",
+                    )
             except Exception as e:
                 logger.error("job_reset_failed", agent=agent_name, error=str(e))
 

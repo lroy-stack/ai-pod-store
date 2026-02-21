@@ -12,6 +12,7 @@
  */
 
 import { useState, useEffect } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { useParams, usePathname, useSearchParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
@@ -278,7 +279,9 @@ function ProductCard({
       className="flex items-center gap-3 w-full p-2 h-auto rounded-lg hover:bg-muted transition-colors justify-start"
     >
       {image ? (
-        <img src={image} alt={title} className="w-11 h-11 rounded-md object-cover flex-shrink-0" />
+        <div className="relative w-11 h-11 rounded-md overflow-hidden flex-shrink-0 bg-muted">
+          <Image src={image} alt={title} fill className="object-cover" sizes="44px" />
+        </div>
       ) : (
         <div className="w-11 h-11 rounded-md bg-muted flex-shrink-0" />
       )}

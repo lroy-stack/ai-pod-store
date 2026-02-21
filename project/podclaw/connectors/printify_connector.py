@@ -29,7 +29,7 @@ _ALLOWED_IMAGE_HOSTS = frozenset({
 _VALID_WEBHOOK_TOPICS = frozenset({
     "order:created", "order:updated", "order:sent-to-production",
     "order:shipping-update", "order:completed", "order:cancelled",
-    "product:publish:started", "product:deleted",
+    "product:publish:started", "product:publish:succeeded", "product:deleted",
 })
 
 # Safe ID pattern: alphanumeric, hyphens, underscores only
@@ -172,6 +172,24 @@ class PrintifyMCPConnector:
             "Content-Type": "application/json",
             "User-Agent": "PodClaw/1.0",
         }
+        # Shared httpx client for connection pooling (lazy init)
+        self._client: httpx.AsyncClient | None = None
+
+    async def _get_client(self) -> httpx.AsyncClient:
+        """Get or create shared httpx client with connection pooling."""
+        if self._client is None or self._client.is_closed:
+            self._client = httpx.AsyncClient(
+                headers=self._headers,
+                timeout=30,
+                limits=httpx.Limits(max_connections=10, max_keepalive_connections=5),
+            )
+        return self._client
+
+    async def close(self) -> None:
+        """Close the shared httpx client."""
+        if self._client and not self._client.is_closed:
+            await self._client.aclose()
+            self._client = None
 
     def get_tools(self) -> dict[str, dict[str, Any]]:
         return {
@@ -311,6 +329,35 @@ class PrintifyMCPConnector:
                     "required": ["product_id"],
                 },
                 "handler": self._unpublish_product,
+            },
+            "printify_publishing_succeeded": {
+                "description": (
+                    "Confirm successful publishing for custom integration. "
+                    "MUST be called after printify_publish to unlock the product from 'publishing' state. "
+                    "Returns {publishing_succeeded: true, product_id}."
+                ),
+                "input_schema": {
+                    "type": "object",
+                    "properties": {
+                        "product_id": {"type": "string"},
+                        "external_id": {"type": "string", "description": "Supabase product UUID"},
+                        "handle": {"type": "string", "description": "URL path e.g. /shop/<uuid>"},
+                    },
+                    "required": ["product_id", "external_id"],
+                },
+                "handler": self._publishing_succeeded,
+            },
+            "printify_publishing_failed": {
+                "description": "Report publishing failure to Printify. Unlocks the product from 'publishing' state.",
+                "input_schema": {
+                    "type": "object",
+                    "properties": {
+                        "product_id": {"type": "string"},
+                        "reason": {"type": "string", "description": "Failure reason"},
+                    },
+                    "required": ["product_id"],
+                },
+                "handler": self._publishing_failed,
             },
             "printify_upload_image": {
                 "description": (
@@ -557,10 +604,10 @@ class PrintifyMCPConnector:
         page = _clamp_page(params.get("page", 1))
         limit = _clamp_limit(params.get("limit", 20))
         url = f"{PRINTIFY_API}/shops/{self._shop_id}/products.json?page={page}&limit={limit}"
-        async with httpx.AsyncClient() as client:
-            resp = await client.get(url, headers=self._headers)
-            resp.raise_for_status()
-            return resp.json()
+        client = await self._get_client()
+        resp = await client.get(url, headers=self._headers)
+        resp.raise_for_status()
+        return resp.json()
 
     async def _create_product(self, params: dict[str, Any]) -> dict[str, Any]:
         url = f"{PRINTIFY_API}/shops/{self._shop_id}/products.json"
@@ -591,11 +638,11 @@ class PrintifyMCPConnector:
         # GPSR: pass safety_information if provided
         if params.get("safety_information"):
             body["safety_information"] = params["safety_information"]
-        async with httpx.AsyncClient() as client:
-            resp = await client.post(url, headers=self._headers, json=body, timeout=30)
-            if resp.status_code >= 400:
-                _raise_with_detail(resp, "printify_create")
-            return resp.json()
+        client = await self._get_client()
+        resp = await client.post(url, headers=self._headers, json=body, timeout=30)
+        if resp.status_code >= 400:
+            _raise_with_detail(resp, "printify_create")
+        return resp.json()
 
     async def _update_product(self, params: dict[str, Any]) -> dict[str, Any]:
         pid = params["product_id"]
@@ -616,49 +663,49 @@ class PrintifyMCPConnector:
                 normalized.append(entry)
             body["variants"] = normalized
 
-        async with httpx.AsyncClient() as client:
-            resp = await client.put(url, headers=self._headers, json=body, timeout=30)
-            if resp.status_code >= 400:
-                _raise_with_detail(resp, "printify_update")
-            return resp.json()
+        client = await self._get_client()
+        resp = await client.put(url, headers=self._headers, json=body, timeout=30)
+        if resp.status_code >= 400:
+            _raise_with_detail(resp, "printify_update")
+        return resp.json()
 
     async def _get_blueprints(self, params: dict[str, Any]) -> dict[str, Any]:
         url = f"{PRINTIFY_API}/catalog/blueprints.json"
-        async with httpx.AsyncClient() as client:
-            resp = await client.get(url, headers=self._headers)
-            resp.raise_for_status()
-            return {"blueprints": resp.json()}
+        client = await self._get_client()
+        resp = await client.get(url, headers=self._headers)
+        resp.raise_for_status()
+        return {"blueprints": resp.json()}
 
     async def _get_mockup(self, params: dict[str, Any]) -> dict[str, Any]:
         pid = params["product_id"]
         url = f"{PRINTIFY_API}/shops/{self._shop_id}/products/{pid}.json"
-        async with httpx.AsyncClient() as client:
-            resp = await client.get(url, headers=self._headers)
-            resp.raise_for_status()
-            product = resp.json()
-            return {"images": product.get("images", []), "title": product.get("title", "")}
+        client = await self._get_client()
+        resp = await client.get(url, headers=self._headers)
+        resp.raise_for_status()
+        product = resp.json()
+        return {"images": product.get("images", []), "title": product.get("title", "")}
 
     async def _get_product(self, params: dict[str, Any]) -> dict[str, Any]:
         pid = params["product_id"]
         url = f"{PRINTIFY_API}/shops/{self._shop_id}/products/{pid}.json"
-        async with httpx.AsyncClient() as client:
-            resp = await client.get(url, headers=self._headers)
-            resp.raise_for_status()
-            return resp.json()
+        client = await self._get_client()
+        resp = await client.get(url, headers=self._headers)
+        resp.raise_for_status()
+        return resp.json()
 
     async def _delete_product(self, params: dict[str, Any]) -> dict[str, Any]:
         pid = params["product_id"]
         url = f"{PRINTIFY_API}/shops/{self._shop_id}/products/{pid}.json"
-        async with httpx.AsyncClient() as client:
-            resp = await client.delete(url, headers=self._headers, timeout=30)
-            if resp.status_code >= 400:
-                _raise_with_detail(resp, "printify_delete")
-            logger.warning(
-                "printify_product_deleted",
-                product_id=pid,
-                reminder="Update Supabase status='deleted' for this printify_id",
-            )
-            return {"deleted": True, "product_id": pid}
+        client = await self._get_client()
+        resp = await client.delete(url, headers=self._headers, timeout=30)
+        if resp.status_code >= 400:
+            _raise_with_detail(resp, "printify_delete")
+        logger.warning(
+            "printify_product_deleted",
+            product_id=pid,
+            reminder="Update Supabase status='deleted' for this printify_id",
+        )
+        return {"deleted": True, "product_id": pid}
 
     async def _publish_product(self, params: dict[str, Any]) -> dict[str, Any]:
         pid = params["product_id"]
@@ -671,22 +718,46 @@ class PrintifyMCPConnector:
             "variants": params.get("variants", True),
             "tags": params.get("tags", True),
         }
-        async with httpx.AsyncClient() as client:
-            resp = await client.post(url, headers=self._headers, json=body, timeout=30)
-            if resp.status_code >= 400:
-                _raise_with_detail(resp, "printify_publish")
-            # Return actual Printify response merged with our fields
-            data = resp.json() if resp.text else {}
-            return {"published": True, "product_id": pid, **data}
+        client = await self._get_client()
+        resp = await client.post(url, headers=self._headers, json=body, timeout=30)
+        if resp.status_code >= 400:
+            _raise_with_detail(resp, "printify_publish")
+        # Return actual Printify response merged with our fields
+        data = resp.json() if resp.text else {}
+        return {"published": True, "product_id": pid, **data}
 
     async def _unpublish_product(self, params: dict[str, Any]) -> dict[str, Any]:
         pid = params["product_id"]
         url = f"{PRINTIFY_API}/shops/{self._shop_id}/products/{pid}/unpublish.json"
-        async with httpx.AsyncClient() as client:
-            resp = await client.post(url, headers=self._headers, timeout=30)
-            if resp.status_code >= 400:
-                _raise_with_detail(resp, "printify_unpublish")
-            return {"unpublished": True, "product_id": pid}
+        client = await self._get_client()
+        resp = await client.post(url, headers=self._headers, timeout=30)
+        if resp.status_code >= 400:
+            _raise_with_detail(resp, "printify_unpublish")
+        return {"unpublished": True, "product_id": pid}
+
+    async def _publishing_succeeded(self, params: dict[str, Any]) -> dict[str, Any]:
+        pid = params["product_id"]
+        _validate_id(pid, "product_id")
+        external_id = params.get("external_id", pid)
+        handle = params.get("handle", f"/shop/{external_id}")
+        url = f"{PRINTIFY_API}/shops/{self._shop_id}/products/{pid}/publishing_succeeded.json"
+        body = {"external": {"id": str(external_id), "handle": handle}}
+        client = await self._get_client()
+        resp = await client.post(url, headers=self._headers, json=body, timeout=30)
+        if resp.status_code >= 400:
+            _raise_with_detail(resp, "printify_publishing_succeeded")
+        return {"publishing_succeeded": True, "product_id": pid}
+
+    async def _publishing_failed(self, params: dict[str, Any]) -> dict[str, Any]:
+        pid = params["product_id"]
+        _validate_id(pid, "product_id")
+        reason = params.get("reason", "Publishing failed")
+        url = f"{PRINTIFY_API}/shops/{self._shop_id}/products/{pid}/publishing_failed.json"
+        client = await self._get_client()
+        resp = await client.post(url, headers=self._headers, json={"reason": reason}, timeout=30)
+        if resp.status_code >= 400:
+            _raise_with_detail(resp, "printify_publishing_failed")
+        return {"publishing_failed": True, "product_id": pid}
 
     async def _upload_image(self, params: dict[str, Any]) -> dict[str, Any]:
         image_url = params.get("url") or params.get("image_url", "")
@@ -697,28 +768,28 @@ class PrintifyMCPConnector:
             "file_name": file_name,
             "url": image_url,
         }
-        async with httpx.AsyncClient() as client:
-            resp = await client.post(url, headers=self._headers, json=body, timeout=60)
-            if resp.status_code >= 400:
-                _raise_with_detail(resp, "printify_upload_image")
-            return resp.json()
+        client = await self._get_client()
+        resp = await client.post(url, headers=self._headers, json=body, timeout=60)
+        if resp.status_code >= 400:
+            _raise_with_detail(resp, "printify_upload_image")
+        return resp.json()
 
     async def _get_providers(self, params: dict[str, Any]) -> dict[str, Any]:
         bid = params["blueprint_id"]
         url = f"{PRINTIFY_API}/catalog/blueprints/{bid}/print_providers.json"
-        async with httpx.AsyncClient() as client:
-            resp = await client.get(url, headers=self._headers)
-            resp.raise_for_status()
-            return {"providers": resp.json()}
+        client = await self._get_client()
+        resp = await client.get(url, headers=self._headers)
+        resp.raise_for_status()
+        return {"providers": resp.json()}
 
     async def _get_variants(self, params: dict[str, Any]) -> dict[str, Any]:
         bid = params["blueprint_id"]
         pid = params["print_provider_id"]
         url = f"{PRINTIFY_API}/catalog/blueprints/{bid}/print_providers/{pid}/variants.json"
-        async with httpx.AsyncClient() as client:
-            resp = await client.get(url, headers=self._headers)
-            resp.raise_for_status()
-            return resp.json()
+        client = await self._get_client()
+        resp = await client.get(url, headers=self._headers)
+        resp.raise_for_status()
+        return resp.json()
 
     async def _get_orders(self, params: dict[str, Any]) -> dict[str, Any]:
         _VALID_ORDER_STATUSES = {"pending", "processing", "shipped", "delivered", "cancelled"}
@@ -730,52 +801,52 @@ class PrintifyMCPConnector:
             if status not in _VALID_ORDER_STATUSES:
                 raise ValueError(f"Invalid order status filter: '{status}'. Valid: {_VALID_ORDER_STATUSES}")
             url += f"&status={status}"
-        async with httpx.AsyncClient() as client:
-            resp = await client.get(url, headers=self._headers)
-            resp.raise_for_status()
-            return resp.json()
+        client = await self._get_client()
+        resp = await client.get(url, headers=self._headers)
+        resp.raise_for_status()
+        return resp.json()
 
     async def _get_order_costs(self, params: dict[str, Any]) -> dict[str, Any]:
         oid = params["order_id"]
         _validate_id(oid, "order_id")
         url = f"{PRINTIFY_API}/shops/{self._shop_id}/orders/{oid}.json"
-        async with httpx.AsyncClient() as client:
-            resp = await client.get(url, headers=self._headers)
-            resp.raise_for_status()
-            order = resp.json()
-            line_items = order.get("line_items", [])
-            total_cost = sum(item.get("cost", 0) for item in line_items)
-            total_shipping = sum(item.get("shipping_cost", 0) for item in line_items)
-            return {
-                "order_id": oid,
-                "line_items": len(line_items),
-                "total_cost_cents": total_cost,
-                "total_shipping_cents": total_shipping,
-                "status": order.get("status"),
-            }
+        client = await self._get_client()
+        resp = await client.get(url, headers=self._headers)
+        resp.raise_for_status()
+        order = resp.json()
+        line_items = order.get("line_items", [])
+        total_cost = sum(item.get("cost", 0) for item in line_items)
+        total_shipping = sum(item.get("shipping_cost", 0) for item in line_items)
+        return {
+            "order_id": oid,
+            "line_items": len(line_items),
+            "total_cost_cents": total_cost,
+            "total_shipping_cents": total_shipping,
+            "status": order.get("status"),
+        }
 
     async def _get_shipping_profiles(self, params: dict[str, Any]) -> dict[str, Any]:
         url = f"{PRINTIFY_API}/shops/{self._shop_id}/shipping.json"
-        async with httpx.AsyncClient() as client:
-            resp = await client.get(url, headers=self._headers)
-            resp.raise_for_status()
-            return {"profiles": resp.json()}
+        client = await self._get_client()
+        resp = await client.get(url, headers=self._headers)
+        resp.raise_for_status()
+        return {"profiles": resp.json()}
 
     async def _get_blueprint_detail(self, params: dict[str, Any]) -> dict[str, Any]:
         bid = params["blueprint_id"]
         url = f"{PRINTIFY_API}/catalog/blueprints/{bid}.json"
-        async with httpx.AsyncClient() as client:
-            resp = await client.get(url, headers=self._headers)
-            resp.raise_for_status()
-            data = resp.json()
-            return {
-                "id": data.get("id"),
-                "title": data.get("title", ""),
-                "description": data.get("description", ""),
-                "brand": data.get("brand", ""),
-                "model": data.get("model", ""),
-                "images": data.get("images", []),
-            }
+        client = await self._get_client()
+        resp = await client.get(url, headers=self._headers)
+        resp.raise_for_status()
+        data = resp.json()
+        return {
+            "id": data.get("id"),
+            "title": data.get("title", ""),
+            "description": data.get("description", ""),
+            "brand": data.get("brand", ""),
+            "model": data.get("model", ""),
+            "images": data.get("images", []),
+        }
 
     async def _fetch_blueprints_cached(self) -> list[dict[str, Any]]:
         """Fetch all blueprints, caching the result for the session."""
@@ -810,36 +881,36 @@ class PrintifyMCPConnector:
         """Fetch auto-generated GPSR safety information for a product."""
         pid = params["product_id"]
         url = f"{PRINTIFY_API}/shops/{self._shop_id}/products/{pid}/gpsr.json"
-        async with httpx.AsyncClient() as client:
-            resp = await client.get(url, headers=self._headers, timeout=15)
-            if resp.status_code >= 400:
-                _raise_with_detail(resp, "printify_get_gpsr")
-            return resp.json()
+        client = await self._get_client()
+        resp = await client.get(url, headers=self._headers, timeout=15)
+        if resp.status_code >= 400:
+            _raise_with_detail(resp, "printify_get_gpsr")
+        return resp.json()
 
     # --- Shops ---
 
     async def _list_shops(self, params: dict[str, Any]) -> dict[str, Any]:
         """List all connected shops, marking the current one."""
         url = f"{PRINTIFY_API}/shops.json"
-        async with httpx.AsyncClient(timeout=15) as client:
-            resp = await client.get(url, headers=self._headers)
-            if resp.status_code >= 400:
-                return _format_error("printify_list_shops", resp.status_code, resp.text)
-            shops = resp.json()
-            for s in shops:
-                s["is_current"] = str(s.get("id")) == str(self._shop_id)
-            return {"shops": shops}
+        client = await self._get_client()
+        resp = await client.get(url, headers=self._headers)
+        if resp.status_code >= 400:
+            return _format_error("printify_list_shops", resp.status_code, resp.text)
+        shops = resp.json()
+        for s in shops:
+            s["is_current"] = str(s.get("id")) == str(self._shop_id)
+        return {"shops": shops}
 
     async def _get_shop(self, params: dict[str, Any]) -> dict[str, Any]:
         """Get details for a specific shop. Locked to current shop for security."""
         # M3 fix: ignore arbitrary shop_id — always use configured shop
         sid = self._shop_id
         url = f"{PRINTIFY_API}/shops/{sid}.json"
-        async with httpx.AsyncClient(timeout=15) as client:
-            resp = await client.get(url, headers=self._headers)
-            if resp.status_code >= 400:
-                return _format_error("printify_get_shop", resp.status_code, resp.text)
-            return resp.json()
+        client = await self._get_client()
+        resp = await client.get(url, headers=self._headers)
+        if resp.status_code >= 400:
+            return _format_error("printify_get_shop", resp.status_code, resp.text)
+        return resp.json()
 
     # --- Orders Write ---
 
@@ -878,11 +949,11 @@ class PrintifyMCPConnector:
             line_items_count=len(line_items),
             country=address.get("country", "unknown"),
         )
-        async with httpx.AsyncClient() as client:
-            resp = await client.post(url, headers=self._headers, json=body, timeout=30)
-            if resp.status_code >= 400:
-                return _format_error("printify_create_order", resp.status_code, resp.text)
-            return resp.json()
+        client = await self._get_client()
+        resp = await client.post(url, headers=self._headers, json=body, timeout=30)
+        if resp.status_code >= 400:
+            return _format_error("printify_create_order", resp.status_code, resp.text)
+        return resp.json()
 
     async def _send_to_production(self, params: dict[str, Any]) -> dict[str, Any]:
         """Send an order to production manually. IRREVERSIBLE — charges production cost."""
@@ -890,35 +961,35 @@ class PrintifyMCPConnector:
         _validate_id(oid, "order_id")
         logger.warning("printify_send_to_production", order_id=oid)
         url = f"{PRINTIFY_API}/shops/{self._shop_id}/orders/{oid}/send_to_production.json"
-        async with httpx.AsyncClient() as client:
-            resp = await client.post(url, headers=self._headers, timeout=30)
-            if resp.status_code >= 400:
-                return _format_error("printify_send_to_production", resp.status_code, resp.text)
-            data = resp.json() if resp.text else {}
-            return {"sent_to_production": True, "order_id": oid, **data}
+        client = await self._get_client()
+        resp = await client.post(url, headers=self._headers, timeout=30)
+        if resp.status_code >= 400:
+            return _format_error("printify_send_to_production", resp.status_code, resp.text)
+        data = resp.json() if resp.text else {}
+        return {"sent_to_production": True, "order_id": oid, **data}
 
     async def _cancel_order(self, params: dict[str, Any]) -> dict[str, Any]:
         """Cancel an order before production."""
         oid = params["order_id"]
         _validate_id(oid, "order_id")
         url = f"{PRINTIFY_API}/shops/{self._shop_id}/orders/{oid}/cancel.json"
-        async with httpx.AsyncClient() as client:
-            resp = await client.post(url, headers=self._headers, timeout=30)
-            if resp.status_code >= 400:
-                return _format_error("printify_cancel_order", resp.status_code, resp.text)
-            logger.info("printify_order_cancelled", order_id=oid)
-            return {"cancelled": True, "order_id": oid}
+        client = await self._get_client()
+        resp = await client.post(url, headers=self._headers, timeout=30)
+        if resp.status_code >= 400:
+            return _format_error("printify_cancel_order", resp.status_code, resp.text)
+        logger.info("printify_order_cancelled", order_id=oid)
+        return {"cancelled": True, "order_id": oid}
 
     # --- Webhooks ---
 
     async def _list_webhooks(self, params: dict[str, Any]) -> dict[str, Any]:
         """List active webhooks for the shop."""
         url = f"{PRINTIFY_API}/shops/{self._shop_id}/webhooks.json"
-        async with httpx.AsyncClient(timeout=15) as client:
-            resp = await client.get(url, headers=self._headers)
-            if resp.status_code >= 400:
-                return _format_error("printify_list_webhooks", resp.status_code, resp.text)
-            return {"webhooks": resp.json()}
+        client = await self._get_client()
+        resp = await client.get(url, headers=self._headers)
+        if resp.status_code >= 400:
+            return _format_error("printify_list_webhooks", resp.status_code, resp.text)
+        return {"webhooks": resp.json()}
 
     async def _create_webhook(self, params: dict[str, Any]) -> dict[str, Any]:
         """Register a new webhook. URL must be HTTPS and point to allowed domains."""
@@ -938,11 +1009,11 @@ class PrintifyMCPConnector:
         logger.warning("printify_webhook_created", topic=topic, url=webhook_url)
         url = f"{PRINTIFY_API}/shops/{self._shop_id}/webhooks.json"
         body = {"topic": topic, "url": webhook_url}
-        async with httpx.AsyncClient() as client:
-            resp = await client.post(url, headers=self._headers, json=body, timeout=15)
-            if resp.status_code >= 400:
-                return _format_error("printify_create_webhook", resp.status_code, resp.text)
-            return resp.json()
+        client = await self._get_client()
+        resp = await client.post(url, headers=self._headers, json=body, timeout=15)
+        if resp.status_code >= 400:
+            return _format_error("printify_create_webhook", resp.status_code, resp.text)
+        return resp.json()
 
     async def _delete_webhook(self, params: dict[str, Any]) -> dict[str, Any]:
         """Delete a webhook by ID."""
@@ -950,11 +1021,11 @@ class PrintifyMCPConnector:
         _validate_id(wid, "webhook_id")
         logger.warning("printify_webhook_deleted", webhook_id=wid)
         url = f"{PRINTIFY_API}/shops/{self._shop_id}/webhooks/{wid}.json"
-        async with httpx.AsyncClient() as client:
-            resp = await client.delete(url, headers=self._headers, timeout=15)
-            if resp.status_code >= 400:
-                return _format_error("printify_delete_webhook", resp.status_code, resp.text)
-            return {"deleted": True, "webhook_id": wid}
+        client = await self._get_client()
+        resp = await client.delete(url, headers=self._headers, timeout=15)
+        if resp.status_code >= 400:
+            return _format_error("printify_delete_webhook", resp.status_code, resp.text)
+        return {"deleted": True, "webhook_id": wid}
 
     # --- Uploads Read ---
 
@@ -963,8 +1034,8 @@ class PrintifyMCPConnector:
         page = _clamp_page(params.get("page", 1))
         limit = _clamp_limit(params.get("limit", 20))
         url = f"{PRINTIFY_API}/uploads.json?page={page}&limit={limit}"
-        async with httpx.AsyncClient(timeout=15) as client:
-            resp = await client.get(url, headers=self._headers)
-            if resp.status_code >= 400:
-                return _format_error("printify_list_uploads", resp.status_code, resp.text)
-            return resp.json()
+        client = await self._get_client()
+        resp = await client.get(url, headers=self._headers)
+        if resp.status_code >= 400:
+            return _format_error("printify_list_uploads", resp.status_code, resp.text)
+        return resp.json()

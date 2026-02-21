@@ -23,6 +23,9 @@ logger = structlog.get_logger(__name__)
 # In-memory counter: {agent_name: {tool_name: count}}
 _counters: dict[str, dict[str, int]] = {}
 
+# Lock for concurrent access to _counters
+_counter_lock = asyncio.Lock()
+
 # Optional Supabase client for audit logging
 _supabase_client: Any = None
 
@@ -51,42 +54,44 @@ async def rate_limit_hook(
     if limit is None:
         return {}  # No limit for this tool/agent combo
 
-    # Check counter
-    if agent_name not in _counters:
-        _counters[agent_name] = {}
+    # Atomic check-and-increment under lock
+    async with _counter_lock:
+        if agent_name not in _counters:
+            _counters[agent_name] = {}
 
-    current = _counters[agent_name].get(tool_name, 0)
+        current = _counters[agent_name].get(tool_name, 0)
 
-    if current >= limit:
-        reason = (
-            f"Rate limit exceeded for '{agent_name}': "
-            f"{tool_name} called {current}/{limit} times this cycle"
-        )
-        logger.warning("rate_limit_exceeded", agent=agent_name, tool=tool_name, count=current, limit=limit)
+        if current >= limit:
+            reason = (
+                f"Rate limit exceeded for '{agent_name}': "
+                f"{tool_name} called {current}/{limit} times this cycle"
+            )
+            logger.warning("rate_limit_exceeded", agent=agent_name, tool=tool_name, count=current, limit=limit)
 
-        # Audit log to Supabase (non-blocking)
-        if _supabase_client:
-            try:
-                await asyncio.to_thread(
-                    lambda: _supabase_client.table("agent_events").insert({
-                        "agent_name": agent_name,
-                        "event_type": "rate_limit_exceeded",
-                        "payload": {"tool": tool_name, "count": current, "limit": limit},
-                    }).execute()
-                )
-            except Exception:
-                pass  # Don't fail the hook on audit log errors
+            # Audit log to Supabase (non-blocking, outside lock)
+            if _supabase_client:
+                try:
+                    await asyncio.to_thread(
+                        lambda: _supabase_client.table("agent_events").insert({
+                            "agent_name": agent_name,
+                            "event_type": "rate_limit_exceeded",
+                            "payload": {"tool": tool_name, "count": current, "limit": limit},
+                        }).execute()
+                    )
+                except Exception:
+                    pass  # Don't fail the hook on audit log errors
 
-        return {
-            "hookSpecificOutput": {
-                "hookEventName": "PreToolUse",
-                "permissionDecision": "deny",
-                "permissionDecisionReason": reason,
+            return {
+                "hookSpecificOutput": {
+                    "hookEventName": "PreToolUse",
+                    "permissionDecision": "deny",
+                    "permissionDecisionReason": reason,
+                }
             }
-        }
 
-    # Increment counter
-    _counters[agent_name][tool_name] = current + 1
+        # Increment counter
+        _counters[agent_name][tool_name] = current + 1
+
     return {}
 
 

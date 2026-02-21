@@ -29,23 +29,27 @@ WORKDIR /app
 # Disable Next.js telemetry during build
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Dummy env vars needed at build time for page data collection
-# These are NOT used at runtime — real values come from env_file/environment
-ENV SUPABASE_URL=https://placeholder.supabase.co
-ENV SUPABASE_SERVICE_KEY=placeholder-service-key
-ENV NEXT_PUBLIC_SUPABASE_URL=https://placeholder.supabase.co
-ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=placeholder-anon-key
-ENV STRIPE_SECRET_KEY=sk_test_placeholder
-ENV STRIPE_WEBHOOK_SECRET=whsec_placeholder
-ENV NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_placeholder
-ENV GOOGLE_GENERATIVE_AI_API_KEY=placeholder
-ENV NEXT_PUBLIC_BASE_URL=http://localhost:3000
-ENV RESEND_API_KEY=re_placeholder
-ENV PRINTIFY_API_TOKEN=placeholder
-ENV PRINTIFY_SHOP_ID=0
-ENV PRINTIFY_WEBHOOK_SECRET=placeholder
-ENV CRON_SECRET=placeholder
-ENV REDIS_URL=redis://placeholder:6379
+# NEXT_PUBLIC vars are inlined by webpack into client-side bundles at build time.
+# For production: pass real values via --build-arg.
+# For local builds: defaults allow the build to succeed.
+ARG NEXT_PUBLIC_SUPABASE_URL=https://placeholder.supabase.co
+ARG NEXT_PUBLIC_SUPABASE_ANON_KEY=placeholder-anon-key
+ARG NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_placeholder
+ARG NEXT_PUBLIC_BASE_URL=http://localhost:3000
+ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL
+ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY
+ENV NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=$NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+ENV NEXT_PUBLIC_BASE_URL=$NEXT_PUBLIC_BASE_URL
+
+# Server-side vars needed only at build time — some API routes create
+# Supabase clients at module scope (imported during `next build`).
+# These do NOT leak to the production image (runner stage is separate).
+# All other server clients (Stripe, Resend, Printify, Redis) use lazy
+# initialization and do NOT need build-time values.
+ARG SUPABASE_URL=https://placeholder.supabase.co
+ARG SUPABASE_SERVICE_KEY=placeholder
+ENV SUPABASE_URL=$SUPABASE_URL
+ENV SUPABASE_SERVICE_KEY=$SUPABASE_SERVICE_KEY
 
 # Copy node_modules from deps stage
 COPY --from=deps /app/node_modules ./node_modules

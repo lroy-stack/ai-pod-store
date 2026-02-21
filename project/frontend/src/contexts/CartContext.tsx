@@ -14,6 +14,14 @@ export interface CartItem {
     size?: string;
     color?: string;
   };
+  personalizationId?: string;
+  personalization?: {
+    text: string;
+    font: string;
+    fontColor: string;
+    fontSize: 'small' | 'medium' | 'large';
+    position: 'top' | 'center' | 'bottom';
+  };
 }
 
 interface CartContextType {

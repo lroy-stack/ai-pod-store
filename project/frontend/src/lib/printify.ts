@@ -185,6 +185,40 @@ class PrintifyClient {
   }
 
   /**
+   * Confirm successful publishing to custom integration.
+   * REQUIRED for custom integrations — without this, products stay in "publishing" forever.
+   */
+  async publishingSucceeded(productId: string, externalId: string, handle?: string): Promise<void> {
+    await this.request(
+      `/shops/${this.shopId}/products/${productId}/publishing_succeeded.json`,
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          external: {
+            id: externalId,
+            handle: handle || `/products/${externalId}`,
+          },
+        }),
+      }
+    )
+  }
+
+  /**
+   * Report publishing failure to Printify.
+   */
+  async publishingFailed(productId: string, reason?: string): Promise<void> {
+    await this.request(
+      `/shops/${this.shopId}/products/${productId}/publishing_failed.json`,
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          reason: reason || 'Publishing failed',
+        }),
+      }
+    )
+  }
+
+  /**
    * List all products in the shop (paginated)
    */
   async listProducts(page = 1, limit = 100): Promise<{
@@ -202,6 +236,27 @@ class PrintifyClient {
    */
   async getProduct(productId: string): Promise<Record<string, unknown>> {
     return this.request(`/shops/${this.shopId}/products/${productId}.json`)
+  }
+
+  /**
+   * List all available blueprints (product templates) from the Printify catalog
+   */
+  async getBlueprints(): Promise<Array<{ id: number; title: string; description: string; images: string[] }>> {
+    return this.request(`/catalog/blueprints.json`)
+  }
+
+  /**
+   * Get print providers for a specific blueprint
+   */
+  async getProviders(blueprintId: number): Promise<Array<{ id: number; title: string; location: { country: string; region: string } }>> {
+    return this.request(`/catalog/blueprints/${blueprintId}/print_providers.json`)
+  }
+
+  /**
+   * Get available variants (sizes/colors) for a blueprint+provider combination
+   */
+  async getVariants(blueprintId: number, providerId: number): Promise<{ id: number; title: string; variants: Array<{ id: number; title: string; options: Record<string, string>; placeholders: Array<{ position: string; height: number; width: number }> }> }> {
+    return this.request(`/catalog/blueprints/${blueprintId}/print_providers/${providerId}/variants.json`)
   }
 
   async calculateShipping(
@@ -224,8 +279,23 @@ class PrintifyClient {
   }
 }
 
-// Export singleton instance
-export const printify = new PrintifyClient()
+// Lazy singleton — client is created on first property access, not at import time.
+let _printify: PrintifyClient | undefined
+
+function initPrintify(): PrintifyClient {
+  if (!_printify) {
+    _printify = new PrintifyClient()
+  }
+  return _printify
+}
+
+export const printify: PrintifyClient = new Proxy({} as PrintifyClient, {
+  get(_, prop) {
+    const client = initPrintify()
+    const value = (client as any)[prop]
+    return typeof value === 'function' ? value.bind(client) : value
+  },
+})
 
 // Helper to build shipping address from Stripe format
 export function buildPrintifyAddress(

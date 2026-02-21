@@ -71,17 +71,21 @@ Agents cannot:
 
 ### Budget Table
 
-| Agent | Per-Session (SDK) | Daily Limit | Model |
-|-------|-------------------|-------------|-------|
-| researcher | $0.30 | $0.50 | Haiku |
-| marketing | $0.50 | $1.00 | Sonnet |
-| designer | $0.80 | $1.00 | Sonnet |
-| newsletter | $0.40 | $0.80 | Sonnet |
-| cataloger | $0.50 | $0.80 | Sonnet |
-| customer_manager | $0.50 | $0.60 | Sonnet |
-| seo_manager | $0.20 | $0.30 | Haiku |
-| finance | $0.40 | $0.50 | Sonnet |
-| **Total daily max** | — | **$5.50** | — |
+| Agent | Per-Session (USD) | Daily Limit (EUR) | Model |
+|-------|-------------------|-------------------|-------|
+| researcher | $0.60 | €1.50 | Haiku |
+| marketing | $1.00 | €2.00 | Sonnet |
+| designer | $1.50 | €3.00 | Sonnet |
+| newsletter | $0.80 | €1.50 | Sonnet |
+| cataloger | $6.00 | €15.00 | Sonnet |
+| customer_manager | $1.00 | €2.00 | Sonnet |
+| seo_manager | $0.50 | €1.00 | Haiku |
+| finance | $1.20 | €2.50 | Sonnet |
+| qa_inspector | $0.15 | €0.15 | Haiku |
+| brand_manager | $0.80 | €1.50 | Sonnet |
+| **Total daily max** | — | **€30.15** | — |
+
+> Source of truth: `podclaw/config.py` → `AGENT_BUDGETS` (per-session) and `AGENT_DAILY_BUDGETS` (daily).
 
 ## Rate Limiting
 
@@ -92,7 +96,9 @@ Per-session tool call limits prevent runaway agents:
 | researcher | web_search | 20 |
 | marketing | resend_send | 30 |
 | marketing | telegram_send, telegram_broadcast, whatsapp_send | 50 each |
-| designer | fal_generate, printify_upload_image | 30 each |
+| designer | search_images | 30 |
+| designer | fal_generate | 10 |
+| designer | gemini_generate_image | 2 |
 | newsletter | resend_send | 500 |
 | cataloger | printify_create, printify_publish, printify_upload_image | 50 each |
 | cataloger | printify_delete_product | 10 |
@@ -100,6 +106,10 @@ Per-session tool call limits prevent runaway agents:
 | customer_manager | stripe_create_refund | 10 |
 | seo_manager | web_search | 15 |
 | finance | stripe_create_refund | 5 |
+| qa_inspector | gemini_check_image | 20 |
+| qa_inspector | printify_get_product | 10 |
+| brand_manager | printify_update | 50 |
+| brand_manager | printify_get_product | 30 |
 
 ## Escalation Rules
 

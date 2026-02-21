@@ -11,12 +11,28 @@
 ## Fórmula de Pricing
 
 ```
-Coste Total = Coste Base (Premium) + Envío EU (1er artículo)
+Coste Total = Coste Base (Premium) + Envío EU (1er artículo) + Branding
 Precio Venta = Coste Total / (1 - Margen Objetivo)
 Beneficio Bruto = Precio Venta - Coste Total
 ```
 
-**Ejemplo:** Camiseta Bella+Canvas 3001
+### Costes de Branding (opcionales)
+| Concepto | Coste USD | Coste EUR (×0.92) | Aplica a |
+|----------|-----------|-------------------|----------|
+| Neck Label | $0.44 | €0.40 | Apparel (camisetas, hoodies, tank tops) |
+| Packaging Insert | $0.15 | €0.14 | Todos los productos |
+| Gift Message | $0.00 | €0.00 | Per-order (checkout) |
+
+**Ejemplo con branding:** Camiseta Bella+Canvas 3001
+- Coste base Premium: €8.08
+- Envío EU: €3.76
+- Neck label: €0.40
+- Total: €12.24
+- Margen objetivo: 46%
+- PVP = €12.24 / (1 - 0.46) = **€22.67 → €22.95**
+- Beneficio bruto: €10.71 por unidad
+
+**Ejemplo sin branding:** Camiseta Bella+Canvas 3001
 - Coste base Premium: €8.08
 - Envío EU: €3.76
 - Total: €11.84

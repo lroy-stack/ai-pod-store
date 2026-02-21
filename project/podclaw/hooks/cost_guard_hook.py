@@ -16,7 +16,7 @@ from typing import Any, Optional
 
 import structlog
 
-from podclaw.config import AGENT_DAILY_BUDGETS, DEFAULT_DAILY_BUDGET
+from podclaw.config import AGENT_DAILY_BUDGETS, DEFAULT_DAILY_BUDGET, PRINTIFY_USD_TO_EUR_RATE
 
 logger = structlog.get_logger(__name__)
 
@@ -251,7 +251,7 @@ async def record_session_cost(agent_name: str, session_cost_usd: float) -> None:
     Called by Orchestrator after each agent session completes.
     Converts USD to EUR using the standard rate before recording.
     """
-    cost_eur = session_cost_usd * 0.92  # USD → EUR
+    cost_eur = session_cost_usd * PRINTIFY_USD_TO_EUR_RATE  # USD → EUR
     async with _cost_lock:
         new_total = await _add_cost(agent_name, cost_eur)
         logger.info(

@@ -30,19 +30,18 @@ export function Breadcrumbs() {
   const segments = pathname.split('/').filter(Boolean);
 
   // Build breadcrumb items
-  const items = [
+  const items: { name: string; href: string; icon?: typeof Home }[] = [
     { name: 'Admin', href: '/', icon: Home },
   ];
 
   let currentPath = '';
-  segments.forEach((segment, index) => {
+  segments.forEach((segment) => {
     currentPath += `/${segment}`;
     const name = pathNameMap[segment] || segment;
 
     items.push({
       name,
       href: currentPath,
-      icon: undefined,
     });
   });
 

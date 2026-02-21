@@ -17,6 +17,9 @@ const withSerwist = withSerwistInit({
 
 const nextConfig: NextConfig = {
   output: 'standalone',
+  turbopack: {
+    root: __dirname,
+  },
   typescript: {
     ignoreBuildErrors: false,
   },
@@ -107,7 +110,7 @@ const nextConfig: NextConfig = {
       { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
       {
         key: 'Content-Security-Policy',
-        value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://images.printify.com https://images-api.printify.com https://*.supabase.co https://via.placeholder.com https://placehold.co https://*.fal.ai https://fal.media https://images.unsplash.com; connect-src 'self' https://*.supabase.co https://generativelanguage.googleapis.com https://*.fal.ai; font-src 'self'; frame-ancestors 'none'",
+        value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://images.printify.com https://images-api.printify.com https://*.supabase.co https://via.placeholder.com https://placehold.co https://*.fal.ai https://fal.media https://images.unsplash.com; connect-src 'self' https://*.supabase.co https://generativelanguage.googleapis.com https://*.fal.ai https://images-api.printify.com https://api.printify.com; font-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com; frame-ancestors 'none'",
       },
     ]
     return [

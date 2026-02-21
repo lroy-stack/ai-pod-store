@@ -43,17 +43,20 @@ PRINTIFY_TOKEN = os.environ["PRINTIFY_API_TOKEN"]
 PRINTIFY_SHOP = os.environ["PRINTIFY_SHOP_ID"]
 
 PRINTIFY_API = "https://api.printify.com/v1"
-_USD_TO_EUR = 0.92
+
+from podclaw.config import PRINTIFY_USD_TO_EUR_RATE
+from podclaw.pricing import engagement_price
+
+_USD_TO_EUR = PRINTIFY_USD_TO_EUR_RATE
 
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
-def _engagement_price(cost_cents: int) -> int:
-    markup = max(cost_cents * 1.4, cost_cents + 200)
-    rounded = math.ceil(markup / 100) * 100 - 1
-    return max(rounded, cost_cents + 100)
+def _engagement_price(cost_cents: int, title: str = "") -> int:
+    """Delegate to canonical pricing engine."""
+    return engagement_price(cost_cents, title)
 
 
 async def _fetch_all_printify(client: httpx.AsyncClient) -> list[dict]:

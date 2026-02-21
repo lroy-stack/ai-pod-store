@@ -48,7 +48,11 @@ PRINTIFY_SHOP = os.environ["PRINTIFY_SHOP_ID"]
 FAL_KEY = os.environ.get("FAL_KEY", "")
 
 PRINTIFY_API = "https://api.printify.com/v1"
-_USD_TO_EUR = 0.92
+
+from podclaw.config import PRINTIFY_USD_TO_EUR_RATE
+from podclaw.pricing import engagement_price as _canonical_engagement_price
+
+_USD_TO_EUR = PRINTIFY_USD_TO_EUR_RATE
 
 # Test artifact patterns in product titles
 _TEST_PATTERNS = re.compile(r"\[E2E\]|\[TREND-E2E\]|\[TEST\]", re.IGNORECASE)
@@ -70,28 +74,8 @@ PF_HEADERS = {
 # ---------------------------------------------------------------------------
 
 def _engagement_price(cost_cents: int, title: str = "") -> int:
-    title_lower = title.lower()
-    if any(k in title_lower for k in ("sticker", "pin", "badge", "magnet")):
-        multiplier, min_price = 2.5, 399
-    elif any(k in title_lower for k in ("mug", "phone case", "iphone", "samsung", "case")):
-        multiplier, min_price = 2.0, 999
-    elif any(k in title_lower for k in ("hoodie", "sweater", "sweatshirt", "pullover")):
-        multiplier, min_price = 1.7, 2999
-    elif any(k in title_lower for k in ("t-shirt", "tee", "tote", "bag", "tank")):
-        multiplier, min_price = 1.8, 1499
-    elif any(k in title_lower for k in ("poster", "canvas", "print", "art")):
-        multiplier, min_price = 2.0, 799
-    elif any(k in title_lower for k in ("blanket", "pillow", "throw", "cushion", "flag")):
-        multiplier, min_price = 1.55, 3999
-    else:
-        multiplier, min_price = 1.8, 1499
-    raw = cost_cents * multiplier
-    floor = cost_cents * 1.4
-    raw = max(raw, floor)
-    ceiling = cost_cents * 3.0
-    raw = min(raw, ceiling)
-    rounded = math.ceil(raw / 100) * 100 - 1
-    return max(rounded, min_price)
+    """Delegate to canonical pricing engine."""
+    return _canonical_engagement_price(cost_cents, title)
 
 
 # ---------------------------------------------------------------------------

@@ -59,6 +59,7 @@ export async function POST(
     title?: string
     description?: string
     tags?: string[]
+    has_neck_position?: boolean
   }
 
   try {
@@ -135,6 +136,46 @@ export async function POST(
     const productTitle = body.title || design.title || `Design ${designId.slice(0, 8)}`
     const productDescription = body.description || design.description || ''
 
+    // Build placeholders — front design + optional neck label
+    const placeholders: Array<Record<string, unknown>> = [
+      {
+        position: 'front',
+        images: [
+          {
+            id: printifyUploadId,
+            x: 0.5,
+            y: 0.5,
+            scale: 1,
+            angle: 0,
+          },
+        ],
+      },
+    ]
+
+    // Add neck label if brand config has one and blueprint supports neck position
+    if (body.has_neck_position) {
+      const { data: brandConfig } = await supabase
+        .from('brand_config')
+        .select('neck_label_image_id')
+        .eq('is_active', true)
+        .single()
+
+      if (brandConfig?.neck_label_image_id) {
+        placeholders.push({
+          position: 'neck',
+          images: [
+            {
+              id: brandConfig.neck_label_image_id,
+              x: 0.5,
+              y: 0.5,
+              scale: 1,
+              angle: 0,
+            },
+          ],
+        })
+      }
+    }
+
     const printifyProduct = await printify.createProduct({
       title: productTitle,
       description: productDescription,
@@ -144,20 +185,7 @@ export async function POST(
       print_areas: [
         {
           variant_ids: body.variants.map((v: { id: number }) => v.id),
-          placeholders: [
-            {
-              position: 'front',
-              images: [
-                {
-                  id: printifyUploadId,
-                  x: 0.5,
-                  y: 0.5,
-                  scale: 1,
-                  angle: 0,
-                },
-              ],
-            },
-          ],
+          placeholders,
         },
       ],
       tags: body.tags || [],
@@ -166,7 +194,7 @@ export async function POST(
     // 4. Publish product
     await printify.publishProduct(printifyProduct.id)
 
-    // 5. Save to products table
+    // 5. Save to products table (before publishingSucceeded so we have the UUID)
     const { data: product, error: productError } = await supabase
       .from('products')
       .insert({
@@ -181,6 +209,20 @@ export async function POST(
 
     if (productError) {
       console.error('Failed to save product to DB:', productError)
+    }
+
+    // 6. Confirm publishing to Printify (custom integration requirement)
+    if (product) {
+      try {
+        await printify.publishingSucceeded(
+          printifyProduct.id,
+          product.id,
+          `/shop/${product.id}`
+        )
+      } catch (e) {
+        console.error('Failed to confirm publishing:', e)
+        // Non-fatal — webhook or cron will retry
+      }
     }
 
     return NextResponse.json({

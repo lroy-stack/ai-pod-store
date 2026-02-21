@@ -9,8 +9,8 @@ import { createClient } from '@supabase/supabase-js'
  */
 export async function GET() {
   try {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
     if (!supabaseUrl || !supabaseAnonKey) {
       return NextResponse.json(
@@ -90,7 +90,7 @@ export async function GET() {
       setupInstructions: {
         google: {
           step1: 'Go to https://console.cloud.google.com/ and create OAuth 2.0 credentials',
-          step2: 'Add authorized redirect URI: https://your-project.supabase.co/auth/v1/callback',
+          step2: `Add authorized redirect URI: ${supabaseUrl}/auth/v1/callback`,
           step3: 'Copy Client ID and Client Secret',
           step4: 'Go to Supabase Dashboard → Authentication → Providers → Google',
           step5: 'Enable Google provider and paste credentials',

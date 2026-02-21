@@ -22,6 +22,7 @@ import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport, isToolUIPart, getToolName } from 'ai'
 import ReactMarkdown from 'react-markdown'
 import { getArtifact } from '@/components/artifacts/registry'
+import { toast } from 'sonner'
 import { useStorefront } from './StorefrontContext'
 import { useCart } from '@/hooks/useCart'
 import { useWishlist } from '@/hooks/useWishlist'
@@ -202,8 +203,7 @@ export function ChatArea() {
       }
     },
     onError: (error) => {
-      console.error('Speech recognition error:', error)
-      // Could show a toast notification here
+      toast.error(error)
     },
   })
 

@@ -20,8 +20,15 @@ RUN pip install --no-cache-dir -r /tmp/requirements.txt && rm /tmp/requirements.
 # Copy application code
 COPY podclaw/ /app/podclaw/
 
-# Create persistent data and memory directories
-RUN mkdir -p /app/podclaw/data /app/podclaw/memory
+# Create persistent data, memory, and workspace directories
+RUN mkdir -p /app/podclaw/data /app/podclaw/memory /app/pod_workspace
+
+# Non-root user (security hardening)
+RUN addgroup --system --gid 1001 podclaw && \
+    adduser --system --uid 1001 --ingroup podclaw podclaw && \
+    chown -R podclaw:podclaw /app
+
+USER podclaw
 
 EXPOSE 8000
 

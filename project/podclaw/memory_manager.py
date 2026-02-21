@@ -271,12 +271,25 @@ class MemoryManager:
         return ""
 
     async def append_memory(self, fact: str) -> None:
-        """Append a durable fact to long-term memory."""
+        """Append a durable fact to long-term memory.
+
+        Prunes oldest entries if file exceeds 500 lines to prevent unbounded growth.
+        The consolidation LLM should distill old entries before they're pruned.
+        """
         fact = _sanitize_data(fact)
         async with self._write_lock:
             now = datetime.now(timezone.utc).strftime("%Y-%m-%d")
             existing = self.memory_path.read_text() if self.memory_path.exists() else ""
-            _atomic_write(self.memory_path, existing + f"- [{now}] {fact}\n")
+            new_content = existing + f"- [{now}] {fact}\n"
+
+            # Prune if > 500 lines (keep last 400 to avoid constant pruning)
+            lines = new_content.splitlines(keepends=True)
+            if len(lines) > 500:
+                lines = lines[-400:]
+                new_content = "".join(lines)
+                logger.info("memory_pruned", kept=len(lines))
+
+            _atomic_write(self.memory_path, new_content)
 
     # -----------------------------------------------------------------------
     # HEARTBEAT.md

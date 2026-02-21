@@ -1,0 +1,28 @@
+# POD AI — Production Override (VPS)
+# ====================================
+#
+# Usage:
+#   DOMAIN=yourdomain.com docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.prod.yml up -d
+#
+# This override:
+#   - Caddy binds to 80 and 443 for automatic HTTPS via Let's Encrypt
+#   - DOMAIN env var is REQUIRED (fails fast if not set)
+#   - Bridge auth enabled (requires PODCLAW_BRIDGE_AUTH_TOKEN in .env.local)
+#   - CORS restricted to production domain
+
+services:
+  caddy:
+    environment:
+      CADDY_SITE_ADDRESS: "${DOMAIN:?DOMAIN env var is required}"
+    ports:
+      - "80:80"
+      - "443:443"
+
+  frontend:
+    environment:
+      NEXT_PUBLIC_BASE_URL: "https://${DOMAIN:?}"
+
+  podclaw:
+    environment:
+      PODCLAW_BRIDGE_AUTH_ENABLED: "true"
+      PODCLAW_CORS_ORIGINS: "https://${DOMAIN:?}"

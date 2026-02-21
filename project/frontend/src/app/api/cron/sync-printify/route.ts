@@ -128,6 +128,19 @@ export async function GET(req: NextRequest) {
         // Always reconcile 'publishing' products (transitional status from sync_hook)
         const isPublishing = existing.status === 'publishing'
 
+        // If product is stuck in publishing, try to confirm with Printify
+        if (isPublishing) {
+          try {
+            await printify.publishingSucceeded(
+              pid,
+              existing.id,
+              `/shop/${existing.id}`
+            )
+          } catch {
+            // Ignore — product may already be confirmed or not in publishing state on Printify
+          }
+        }
+
         if (titleChanged || imagesChanged || statusChanged || isPublishing) {
           const result = await syncProductFromPrintify(printifyProduct, supabase)
           if (result.error) {

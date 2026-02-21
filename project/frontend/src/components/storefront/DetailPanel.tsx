@@ -19,16 +19,19 @@
  */
 
 import { useTranslations } from 'next-intl'
+import Image from 'next/image'
 import { useParams } from 'next/navigation'
 import { X, Star, ShoppingCart, MessageCircle, ImageOff, AlertCircle, Heart, Minus, Plus, Shirt, Globe, Printer, Droplets, ShieldCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { formatPrice } from '@/lib/currency'
 import { useStorefront } from './StorefrontContext'
 import { useCart } from '@/hooks/useCart'
 import { useWishlist } from '@/hooks/useWishlist'
 import { cn } from '@/lib/utils'
+import { ProductPersonalizer, PersonalizationData } from '@/components/products/ProductPersonalizer'
+import { Badge } from '@/components/ui/badge'
 
 interface DetailPanelProps {
   productId?: string
@@ -47,6 +50,7 @@ interface Product {
   images: string[]
   rating: number
   reviewCount: number
+  inStock?: boolean
   materials?: string | null
   careInstructions?: string | null
   printTechnique?: string | null
@@ -56,6 +60,11 @@ interface Product {
   variants?: {
     sizes?: string[]
     colors?: string[]
+    allColors?: string[]
+    allSizes?: string[]
+    unavailableCombinations?: Array<{ color: string; size: string }>
+    colorImageIndices?: Record<string, number[]>
+    sizeImageIndices?: Record<string, number[]>
   }
 }
 
@@ -258,19 +267,29 @@ function ProductView({
     id?: string
     title: string
     description?: string
+    category?: string
     price: number
     currency: string
     image?: string | null
     images?: string[]
     rating?: number
     reviewCount?: number
+    inStock?: boolean
     materials?: string | null
     careInstructions?: string | null
     printTechnique?: string | null
     manufacturingCountry?: string | null
     brand?: string | null
     safetyInformation?: string | null
-    variants?: { sizes?: string[]; colors?: string[] }
+    variants?: {
+      sizes?: string[]
+      colors?: string[]
+      allColors?: string[]
+      allSizes?: string[]
+      unavailableCombinations?: Array<{ color: string; size: string }>
+      colorImageIndices?: Record<string, number[]>
+      sizeImageIndices?: Record<string, number[]>
+    }
   }
   locale: string
   onAddToCart?: (quantity: number, variants?: { size?: string; color?: string }) => void
@@ -278,14 +297,65 @@ function ProductView({
 }) {
   const t = useTranslations('storefront')
   const { isWishlisted, toggleWishlist } = useWishlist()
-  const image = product.image || (product.images && product.images.length > 0 ? product.images[0] : null)
-  const [selectedSize, setSelectedSize] = useState('')
-  const [selectedColor, setSelectedColor] = useState('')
-  const [quantity, setQuantity] = useState(1)
 
-  const hasSizes = (product.variants?.sizes?.length ?? 0) > 0
-  const hasColors = (product.variants?.colors?.length ?? 0) > 0
+  // Extract variant-to-image mappings
+  const colorImageIndices = product.variants?.colorImageIndices
+  const sizeImageIndices = product.variants?.sizeImageIndices
+  const hasColorMapping = !!(colorImageIndices && Object.keys(colorImageIndices).length > 0)
+  const hasSizeMapping = !!(sizeImageIndices && Object.keys(sizeImageIndices).length > 0)
+
+  const allColors = product.variants?.allColors || product.variants?.colors
+  const allSizes = product.variants?.allSizes || product.variants?.sizes
+  const unavailableCombinations = product.variants?.unavailableCombinations || []
+  const availableColorSet = new Set(product.variants?.colors || [])
+  const availableSizeSet = new Set(product.variants?.sizes || [])
+
+  const hasSizes = (allSizes?.length ?? 0) > 0
+  const hasColors = (allColors?.length ?? 0) > 0
+
+  // Auto-select first variant when mapping exists
+  const [selectedSize, setSelectedSize] = useState(
+    hasSizeMapping && product.variants?.sizes?.[0] || ''
+  )
+  const [selectedColor, setSelectedColor] = useState(
+    hasColorMapping && product.variants?.colors?.[0] || ''
+  )
+  const [selectedImageIdx, setSelectedImageIdx] = useState(0)
+  const [quantity, setQuantity] = useState(1)
+  const [personalization, setPersonalization] = useState<PersonalizationData | null>(null)
+
+  // Filter visible images based on selected variant (color > size > all)
+  const visibleImages = useMemo(() => {
+    if (hasColorMapping && selectedColor && colorImageIndices?.[selectedColor]) {
+      return colorImageIndices[selectedColor].map(idx => product.images?.[idx]).filter(Boolean) as string[]
+    }
+    if (hasSizeMapping && selectedSize && sizeImageIndices?.[selectedSize]) {
+      return sizeImageIndices[selectedSize].map(idx => product.images?.[idx]).filter(Boolean) as string[]
+    }
+    if (product.images && product.images.length > 0) {
+      return product.images.filter(Boolean)
+    }
+    return product.image ? [product.image] : []
+  }, [selectedColor, selectedSize, product.images, product.image, colorImageIndices, sizeImageIndices, hasColorMapping, hasSizeMapping])
+
+  // Reset image index when variant changes
+  useEffect(() => { setSelectedImageIdx(0) }, [selectedColor, selectedSize])
+
+  const currentImage = visibleImages[selectedImageIdx] || visibleImages[0] || null
   const wishlisted = product.id ? isWishlisted(product.id) : false
+
+  // Check if current combination is available
+  const isCurrentCombinationAvailable = (() => {
+    if (product.inStock === false) return false
+    if (unavailableCombinations.length > 0 && selectedColor && selectedSize) {
+      return !unavailableCombinations.some(
+        uc => uc.color === selectedColor && uc.size === selectedSize
+      )
+    }
+    if (selectedColor && !availableColorSet.has(selectedColor)) return false
+    if (selectedSize && !availableSizeSet.has(selectedSize)) return false
+    return true
+  })()
 
   const handleAddToCart = () => {
     const variants: { size?: string; color?: string } = {}
@@ -300,11 +370,13 @@ function ProductView({
       <div className="flex-1 overflow-y-auto detail-scroll px-5 py-4 space-y-4">
         {/* Product Image */}
         <div className="aspect-[4/3] w-full rounded-2xl bg-muted overflow-hidden relative group/img">
-          {image ? (
-            <img
-              src={image}
+          {currentImage ? (
+            <Image
+              src={currentImage}
               alt={product.title}
-              className="w-full h-full object-cover group-hover/img:scale-[1.03] transition-transform duration-500 ease-out"
+              fill
+              className="object-cover group-hover/img:scale-[1.03] transition-transform duration-500 ease-out"
+              sizes="(max-width: 1024px) 100vw, 40vw"
             />
           ) : (
             <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground/40 gap-2">
@@ -312,6 +384,26 @@ function ProductView({
             </div>
           )}
         </div>
+
+        {/* Thumbnail Gallery */}
+        {visibleImages.length > 1 && (
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            {visibleImages.map((img, idx) => (
+              <button
+                key={img}
+                onClick={() => setSelectedImageIdx(idx)}
+                className={cn(
+                  'relative w-14 h-14 rounded-lg overflow-hidden border-2 transition-all duration-200 flex-shrink-0',
+                  selectedImageIdx === idx
+                    ? 'border-primary'
+                    : 'border-border/40 hover:border-border/80'
+                )}
+              >
+                <Image src={img} alt={`${product.title} ${idx + 1}`} fill className="object-cover" sizes="56px" />
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Title, Rating & Price */}
         <div className="space-y-2">
@@ -425,20 +517,26 @@ function ProductView({
                     {t('size')}
                   </label>
                   <div className="flex flex-wrap gap-1.5">
-                    {product.variants!.sizes!.map((size) => (
-                      <button
-                        key={size}
-                        onClick={() => setSelectedSize(selectedSize === size ? '' : size)}
-                        className={cn(
-                          'px-3 py-1.5 rounded-lg text-[13px] font-medium border transition-all duration-200',
-                          selectedSize === size
-                            ? 'bg-foreground text-background border-foreground'
-                            : 'bg-transparent text-foreground border-border/60 hover:border-border'
-                        )}
-                      >
-                        {size}
-                      </button>
-                    ))}
+                    {allSizes!.map((size) => {
+                      const isSizeAvailable = availableSizeSet.has(size)
+                      return (
+                        <button
+                          key={size}
+                          onClick={() => isSizeAvailable && setSelectedSize(hasSizeMapping ? size : (selectedSize === size ? '' : size))}
+                          disabled={!isSizeAvailable}
+                          className={cn(
+                            'px-3 py-1.5 rounded-lg text-[13px] font-medium border transition-all duration-200',
+                            !isSizeAvailable
+                              ? 'opacity-40 cursor-not-allowed line-through border-border/40 text-muted-foreground'
+                              : selectedSize === size
+                                ? 'bg-foreground text-background border-foreground'
+                                : 'bg-transparent text-foreground border-border/60 hover:border-border'
+                          )}
+                        >
+                          {size}
+                        </button>
+                      )
+                    })}
                   </div>
                 </div>
               )}
@@ -448,20 +546,26 @@ function ProductView({
                     {t('color')}
                   </label>
                   <div className="flex flex-wrap gap-1.5">
-                    {product.variants!.colors!.map((color) => (
-                      <button
-                        key={color}
-                        onClick={() => setSelectedColor(selectedColor === color ? '' : color)}
-                        className={cn(
-                          'px-3 py-1.5 rounded-lg text-[13px] font-medium border transition-all duration-200',
-                          selectedColor === color
-                            ? 'bg-foreground text-background border-foreground'
-                            : 'bg-transparent text-foreground border-border/60 hover:border-border'
-                        )}
-                      >
-                        {color}
-                      </button>
-                    ))}
+                    {allColors!.map((color) => {
+                      const isColorAvailable = availableColorSet.has(color)
+                      return (
+                        <button
+                          key={color}
+                          onClick={() => isColorAvailable && setSelectedColor(hasColorMapping ? color : (selectedColor === color ? '' : color))}
+                          disabled={!isColorAvailable}
+                          className={cn(
+                            'px-3 py-1.5 rounded-lg text-[13px] font-medium border transition-all duration-200',
+                            !isColorAvailable
+                              ? 'opacity-40 cursor-not-allowed line-through border-border/40 text-muted-foreground'
+                              : selectedColor === color
+                                ? 'bg-foreground text-background border-foreground'
+                                : 'bg-transparent text-foreground border-border/60 hover:border-border'
+                          )}
+                        >
+                          {color}
+                        </button>
+                      )
+                    })}
                   </div>
                 </div>
               )}
@@ -498,20 +602,52 @@ function ProductView({
 
       {/* Footer Actions */}
       <div className="px-5 py-4 border-t border-border/40 space-y-2">
+        {/* Personalization badge */}
+        {personalization && (
+          <div className="flex items-center gap-2 mb-1">
+            <Badge variant="secondary" className="text-xs gap-1">
+              Personalized: &quot;{personalization.text.slice(0, 20)}{personalization.text.length > 20 ? '...' : ''}&quot;
+            </Badge>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-5 w-5 rounded-full"
+              onClick={() => setPersonalization(null)}
+            >
+              <X className="h-3 w-3" />
+            </Button>
+          </div>
+        )}
         <div className="flex gap-2">
-          <Button className="flex-1 h-11 text-sm font-semibold" onClick={handleAddToCart}>
+          <Button
+            className="flex-1 h-11 text-sm font-semibold"
+            onClick={handleAddToCart}
+            disabled={!isCurrentCombinationAvailable}
+          >
             <ShoppingCart className="h-4 w-4 mr-2" />
-            {t('addToCart')}
+            {isCurrentCombinationAvailable ? t('addToCart') : t('outOfStock')}
           </Button>
           {product.id && (
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-11 w-11 flex-shrink-0 rounded-lg"
-              onClick={() => toggleWishlist(product.id!)}
-            >
-              <Heart className={cn('h-4 w-4', wishlisted ? 'fill-destructive text-destructive' : 'text-muted-foreground')} />
-            </Button>
+            <>
+              <ProductPersonalizer
+                productId={product.id}
+                productTitle={product.title}
+                productImage={currentImage || product.image || undefined}
+                category={product.category}
+                onPersonalized={setPersonalization}
+                onClear={() => setPersonalization(null)}
+                initialData={personalization || undefined}
+                iconOnly
+              />
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-11 w-11 flex-shrink-0 rounded-lg"
+                onClick={() => toggleWishlist(product.id!)}
+              >
+                <Heart className={cn('h-4 w-4', wishlisted ? 'fill-destructive text-destructive' : 'text-muted-foreground')} />
+              </Button>
+            </>
           )}
         </div>
         {onAskAbout && (
@@ -546,10 +682,9 @@ function ArtifactContent({
   const [fetchedProduct, setFetchedProduct] = useState<any>(null)
   const [fetchLoading, setFetchLoading] = useState(false)
 
-  // If product artifact has incomplete data (only id), fetch the full product
-  const hasFullData = artifact.data?.title && artifact.data?.price !== undefined
+  // Always fetch full product from detail API (includes colorImageIndices/sizeImageIndices)
   useEffect(() => {
-    if (artifact.type === 'product' && artifact.data?.id && !hasFullData && !fetchedProduct && !fetchLoading) {
+    if (artifact.type === 'product' && artifact.data?.id && !fetchedProduct && !fetchLoading) {
       setFetchLoading(true)
       fetch(`/api/products/${artifact.data.id}?locale=${locale}`)
         .then((res) => (res.ok ? res.json() : null))
@@ -559,13 +694,11 @@ function ArtifactContent({
         .catch(() => {})
         .finally(() => setFetchLoading(false))
     }
-  }, [artifact.data?.id, artifact.type, hasFullData, fetchedProduct, fetchLoading, locale])
+  }, [artifact.data?.id, artifact.type, fetchedProduct, fetchLoading, locale])
 
   // For product artifacts, render the product detail view
   if (artifact.type === 'product') {
-    const productData = hasFullData ? artifact.data : fetchedProduct
-
-    if (fetchLoading || (!productData && !hasFullData)) {
+    if (fetchLoading || !fetchedProduct) {
       return (
         <div className="flex-1 p-5 space-y-4">
           <div className="aspect-[4/3] w-full bg-muted/30 rounded-2xl animate-pulse" />
@@ -580,20 +713,18 @@ function ArtifactContent({
       )
     }
 
-    if (productData) {
-      const handleAddToCart = (quantity: number, variants?: { size?: string; color?: string }) => {
-        addToCart(productData.id, quantity, variants, productData.title, productData.price)
-      }
-
-      return (
-        <ProductView
-          product={productData}
-          locale={locale}
-          onAddToCart={handleAddToCart}
-          onAskAbout={onAskAbout ? () => onAskAbout(`Tell me more about ${productData.title}`) : undefined}
-        />
-      )
+    const handleAddToCart = (quantity: number, variants?: { size?: string; color?: string }) => {
+      addToCart(fetchedProduct.id, quantity, variants, fetchedProduct.title, fetchedProduct.price)
     }
+
+    return (
+      <ProductView
+        product={fetchedProduct}
+        locale={locale}
+        onAddToCart={handleAddToCart}
+        onAskAbout={onAskAbout ? () => onAskAbout(`Tell me more about ${fetchedProduct.title}`) : undefined}
+      />
+    )
   }
 
   // Design artifacts — show image + prompt
@@ -602,8 +733,8 @@ function ArtifactContent({
       <div className="flex-1 overflow-y-auto detail-scroll p-5 space-y-4">
         <h3 className="font-semibold text-foreground text-[15px]">{artifact.title}</h3>
         {artifact.data?.image && (
-          <div className="aspect-[4/3] w-full rounded-2xl bg-muted overflow-hidden">
-            <img src={artifact.data.image} alt={artifact.title} className="w-full h-full object-cover" />
+          <div className="aspect-[4/3] w-full rounded-2xl bg-muted overflow-hidden relative">
+            <Image src={artifact.data.image} alt={artifact.title} fill className="object-cover" sizes="(max-width: 1024px) 100vw, 40vw" />
           </div>
         )}
         {artifact.data?.prompt && (

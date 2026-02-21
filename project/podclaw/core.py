@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import asyncio
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import structlog
@@ -28,7 +28,7 @@ logger = structlog.get_logger(__name__)
 AGENT_NAMES = [
     "researcher", "marketing", "designer", "newsletter",
     "cataloger", "customer_manager", "seo_manager", "finance",
-    "qa_inspector",
+    "qa_inspector", "brand_manager",
 ]
 
 ALL_SESSION_TYPES = AGENT_NAMES + ["heartbeat", "consolidation"]
@@ -86,6 +86,35 @@ class Orchestrator:
         logger.info("orchestrator_stopped")
 
     # -----------------------------------------------------------------------
+    # Circuit Breaker
+    # -----------------------------------------------------------------------
+
+    async def _check_circuit_breaker(self, agent_name: str) -> bool:
+        """Check if circuit breaker is open for an agent (>=3 errors in 24h).
+
+        Fail-open: if we can't check (no DB), allow dispatch.
+        """
+        if not self.events._client:
+            return False
+        try:
+            cutoff = (datetime.now(timezone.utc) - timedelta(hours=24)).isoformat()
+            result = await asyncio.to_thread(
+                lambda: self.events._client.table("agent_events")
+                .select("id", count="exact")
+                .eq("event_type", "error")
+                .eq("agent_name", agent_name)
+                .gte("created_at", cutoff)
+                .execute()
+            )
+            count = result.count if hasattr(result, 'count') and result.count else len(result.data or [])
+            if count >= 3:
+                logger.warning("circuit_breaker_open", agent=agent_name, errors_24h=count)
+                return True
+        except Exception:
+            pass  # Fail-open
+        return False
+
+    # -----------------------------------------------------------------------
     # Agent Execution
     # -----------------------------------------------------------------------
 
@@ -114,6 +143,11 @@ class Orchestrator:
             if agent_name not in AGENT_NAMES:
                 logger.error("unknown_agent", agent=agent_name)
                 return {"status": "error", "reason": f"unknown agent: {agent_name}"}
+
+            # Circuit breaker: block if agent has >= 3 errors in 24h
+            if await self._check_circuit_breaker(agent_name):
+                logger.warning("circuit_breaker_blocked", agent=agent_name)
+                return {"status": "skipped", "reason": f"circuit breaker open for {agent_name} (>=3 errors in 24h)"}
 
             # Reset rate limit counters for this agent's new session
             from podclaw.hooks.rate_limit_hook import reset_counters
@@ -307,16 +341,6 @@ class Orchestrator:
             feedback_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
         except Exception as e:
             logger.warning("session_feedback_write_failed", error=str(e))
-
-    async def direct_dispatch(self, source: str, target_agent: str, task: str) -> dict[str, Any]:
-        """Dispatch inmediato agent-to-agent. Sin esperar heartbeat (30min)."""
-        logger.info("direct_dispatch", source=source, target=target_agent, task=task[:80])
-        await self.events.record(
-            agent_name=source,
-            event_type="direct_dispatch",
-            payload={"target": target_agent, "task": task[:200]},
-        )
-        return await self.run_agent(target_agent, task)
 
     async def run_agent_with_retry(
         self, agent_name: str, task: str | None = None, max_retries: int = 2,
@@ -552,6 +576,27 @@ class Orchestrator:
                 "- Translation status: N products missing translations\n"
                 "- Sync status (Printify count vs Supabase count)\n"
                 "- Action items for other agents"
+            ),
+            "brand_manager": (
+                "Audit brand consistency across all published products.\n"
+                "You MUST call tools — do NOT answer from memory.\n\n"
+                "1. Read brand_config.md FIRST — check neck label status\n"
+                "2. If neck label status is 'Not configured' → SKIP neck label audit entirely\n"
+                "   (no Printify Upload ID means there's nothing to apply)\n"
+                "3. List all products via printify_list_products\n"
+                "4. Only audit neck labels on APPAREL products (t-shirts, hoodies, tank tops, long sleeves)\n"
+                "   Skip mugs, phone cases, posters, stickers, pillows, blankets — they don't have neck areas\n"
+                "5. If neck label IS configured: verify it's in print_areas for apparel, apply where missing\n"
+                "6. Verify packaging insert and gift message settings are active\n"
+                "7. Update brand_config.md with audit results\n\n"
+                "GUARDRAILS:\n"
+                "- Max 50 product updates per cycle\n"
+                "- NEVER remove existing print areas (front/back)\n"
+                "- Only ADD or UPDATE the neck label placeholder\n"
+                "- Do NOT attempt to apply neck labels if Printify Upload ID is missing\n\n"
+                "Before finishing, verify:\n"
+                "- All apparel products audited\n"
+                "- brand_config.md updated with date, counts, and issues"
             ),
         }
         return tasks.get(agent_name, f"Execute standard {agent_name} cycle.")

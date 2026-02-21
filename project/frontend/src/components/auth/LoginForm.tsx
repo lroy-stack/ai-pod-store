@@ -160,9 +160,9 @@ export default function LoginForm({ locale }: { locale: string }) {
   }
 
   return (
-    <div className="w-full space-y-6">
+    <div className="w-full space-y-4 md:space-y-6">
       <div className="text-center">
-        <h2 className="text-2xl md:text-3xl font-bold text-foreground">
+        <h2 className="text-xl md:text-2xl font-bold text-foreground">
           {t('loginTitle')}
         </h2>
         <p className="mt-2 text-sm text-muted-foreground">
@@ -185,12 +185,12 @@ export default function LoginForm({ locale }: { locale: string }) {
         </div>
       )}
 
-      <form className="space-y-4" onSubmit={handleSubmit}>
+      <form className="space-y-3 md:space-y-4" onSubmit={handleSubmit}>
         <div className="space-y-2">
           <Label htmlFor="email">{t('emailLabel')}</Label>
           <Input
             id="email"
-            type="text"
+            type="email"
             autoComplete="email"
             value={formData.email}
             onChange={(e) => {
@@ -280,7 +280,7 @@ export default function LoginForm({ locale }: { locale: string }) {
           <Separator />
         </div>
         <div className="relative flex justify-center text-sm">
-          <span className="bg-card px-2 text-muted-foreground">{t('orContinueWith')}</span>
+          <span className="bg-card/80 backdrop-blur-sm px-2 text-muted-foreground">{t('orContinueWith')}</span>
         </div>
       </div>
 
@@ -296,8 +296,8 @@ export default function LoginForm({ locale }: { locale: string }) {
         </Button>
 
         <Button type="button" variant="outline" onClick={() => handleSocialLogin('apple')} disabled={loading}>
-          <svg className="size-4" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-            <path d="M13.762 4.29a6.51 6.51 0 0 0-5.024 3.834 6.034 6.034 0 0 0-.544 2.457 6.474 6.474 0 0 0 .544 2.457 6.486 6.486 0 0 0 1.504 2.104c1.048 1.025 2.385 1.637 3.898 1.785 1.513.148 2.982-.166 4.135-1.012a5.827 5.827 0 0 0 2.145-3.292c.135-.503.2-1.019.193-1.537-.007-.518-.082-1.034-.223-1.534a5.982 5.982 0 0 0-2.126-3.194A5.827 5.827 0 0 0 13.762 4.29zM10 0C4.477 0 0 4.477 0 10s4.477 10 10 10 10-4.477 10-10S15.523 0 10 0z"/>
+          <svg className="size-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
           </svg>
           {t('appleLogin')}
         </Button>

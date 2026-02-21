@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import dynamic from 'next/dynamic'
+import Image from 'next/image'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
@@ -214,7 +215,7 @@ export default function LandingPage() {
               className="w-full"
             >
               <CarouselContent className="-ml-6">
-                {products.map((product) => (
+                {products.map((product, index) => (
                   <CarouselItem
                     key={product.id}
                     className="basis-[80%] md:basis-1/2 lg:basis-1/3 pl-6"
@@ -225,11 +226,13 @@ export default function LandingPage() {
                     >
                       <div className="relative aspect-square bg-muted overflow-hidden">
                         {product.image ? (
-                          <img
+                          <Image
                             src={product.image}
                             alt={product.title}
-                            className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]"
-                            loading="lazy"
+                            fill
+                            className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]"
+                            sizes="(max-width: 768px) 80vw, (max-width: 1024px) 50vw, 33vw"
+                            priority={index < 3}
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center">

@@ -26,7 +26,8 @@ export async function GET() {
     }>();
 
     orders?.forEach((order) => {
-      const email = order.users?.email;
+      const user = Array.isArray(order.users) ? order.users[0] : order.users;
+      const email = user?.email;
       if (!email) return;
 
       const existing = customerMap.get(email);
@@ -36,7 +37,7 @@ export async function GET() {
       } else {
         customerMap.set(email, {
           email,
-          name: order.users?.name || email,
+          name: user?.name || email,
           orderCount: 1,
           totalSpent: (order.total_cents || 0) / 100,
           currency: order.currency || 'eur',

@@ -25,6 +25,7 @@ AGENT_MODELS: dict[str, str] = {
     "seo_manager": MODEL_RESEARCH,
     "finance": MODEL_COMPLEX,
     "qa_inspector": MODEL_RESEARCH,
+    "brand_manager": MODEL_COMPLEX,
 }
 
 # ---------------------------------------------------------------------------
@@ -42,6 +43,7 @@ AGENT_DAILY_BUDGETS: dict[str, float] = {
     "seo_manager": 1.00,       # Haiku, SEO audit
     "finance": 2.50,           # Sonnet, financial analysis
     "qa_inspector": 0.15,      # Haiku, lightweight verification
+    "brand_manager": 1.50,      # Sonnet, weekly brand audit
 }
 
 # ---------------------------------------------------------------------------
@@ -79,6 +81,10 @@ RATE_LIMITS: dict[str, dict[str, int]] = {
         "gemini_check_image": 20, "printify_list_products": 3, "printify_get_product": 10,
         "printify_list_shops": 1, "printify_get_shop": 1,
         "printify_list_webhooks": 2, "printify_list_uploads": 3,
+    },
+    "brand_manager": {
+        "printify_update": 50, "printify_get_product": 30, "printify_upload_image": 10,
+        "printify_list_products": 3, "printify_get_blueprint_detail": 20,
     },
 }
 
@@ -122,7 +128,7 @@ DEFAULT_WORKSPACE = HARNESS_ROOT / "pod_workspace"
 # ---------------------------------------------------------------------------
 # rembg Sidecar (local background removal)
 # ---------------------------------------------------------------------------
-REMBG_URL = os.environ.get("REMBG_URL", "")  # e.g. "http://localhost:7000"
+REMBG_URL = os.environ.get("REMBG_URL", "")  # e.g. "http://localhost:8090"
 
 # ---------------------------------------------------------------------------
 # CORS (bridge)
@@ -261,6 +267,7 @@ AGENT_BUDGETS: dict[str, float] = {
     "seo_manager": 0.50,       # Haiku, SEO audit
     "finance": 1.20,           # Sonnet, financial analysis
     "qa_inspector": 0.15,      # Haiku, lightweight design/product verification
+    "brand_manager": 0.80,      # Sonnet, weekly brand audit
 }
 
 # ---------------------------------------------------------------------------
@@ -276,6 +283,7 @@ AGENT_ALLOWED_BUILTINS: dict[str, list[str]] = {
     "seo_manager": ["Read", "Grep", "Glob", "WebSearch", "WebFetch"],
     "finance": ["Read", "Write", "Grep", "Glob"],
     "qa_inspector": ["Read", "Write", "Glob"],
+    "brand_manager": ["Read", "Write", "Grep", "Glob"],
 }
 
 # ---------------------------------------------------------------------------
@@ -299,6 +307,15 @@ AGENT_OUTPUT_SCHEMAS: dict[str, dict] = {
             "threats": {"type": "array", "items": {"type": "string"}},
         },
     },
+    "brand_manager": {
+        "type": "object",
+        "properties": {
+            "products_audited": {"type": "integer"},
+            "labels_applied": {"type": "integer"},
+            "issues_found": {"type": "array", "items": {"type": "string"}},
+            "recommendations": {"type": "array", "items": {"type": "string"}},
+        },
+    },
 }
 
 # ---------------------------------------------------------------------------
@@ -314,6 +331,7 @@ AGENT_TOOLS: dict[str, list[str]] = {
     "seo_manager": ["supabase", "jina"],
     "finance": ["supabase", "stripe"],
     "qa_inspector": ["supabase", "gemini", "printify"],
+    "brand_manager": ["supabase", "printify"],
 }
 
 # ---------------------------------------------------------------------------
@@ -322,13 +340,14 @@ AGENT_TOOLS: dict[str, list[str]] = {
 AGENT_CONTEXT_FILES: dict[str, list[str]] = {
     "researcher": ["best_sellers.md", "customer_insights.md", "pricing_history.md"],
     "marketing": ["best_sellers.md", "customer_insights.md", "design_library.md", "marketing_calendar.md"],
-    "designer": ["design_library.md", "best_sellers.md", "product_specs.md", "design_workflow.md"],
+    "designer": ["design_library.md", "best_sellers.md", "product_specs.md", "design_workflow.md", "qa_report.md"],
     "newsletter": ["customer_insights.md", "marketing_calendar.md", "newsletter_segments.md"],
-    "cataloger": ["best_sellers.md", "pricing_history.md", "product_specs.md", "product_workflow.md", "design_library.md"],
+    "cataloger": ["best_sellers.md", "pricing_history.md", "product_specs.md", "product_workflow.md", "design_library.md", "qa_report.md"],
     "customer_manager": ["customer_insights.md", "store_config.md"],
     "seo_manager": ["best_sellers.md"],
     "finance": ["pricing_history.md", "store_config.md"],
     "qa_inspector": ["design_library.md", "qa_report.md", "last_session_feedback.md"],
+    "brand_manager": ["brand_config.md", "store_config.md"],
 }
 
 # ---------------------------------------------------------------------------
@@ -346,6 +365,7 @@ AGENT_CATALOG_FILES: dict[str, list[str]] = {
     "finance": ["INDEX.md", "PRICING-MODEL.md"],
     "researcher": ["INDEX.md", "11-trending-unsaturated.md"],
     "marketing": ["INDEX.md"],
+    "brand_manager": ["INDEX.md", "PRICING-MODEL.md"],
 }
 
 # ---------------------------------------------------------------------------

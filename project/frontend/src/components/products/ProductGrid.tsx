@@ -13,6 +13,12 @@ interface Product {
   rating?: number
   reviewCount?: number
   category?: string
+  inStock?: boolean
+  variants?: {
+    sizes?: string[]
+    colors?: string[]
+    colorImages?: Record<string, string>
+  }
 }
 
 interface ProductGridProps {
@@ -55,8 +61,8 @@ export function ProductGrid({
   // Show products
   return (
     <div className={gridClasses}>
-      {products.map((product) => (
-        <ProductCard key={product.id} product={product} />
+      {products.map((product, i) => (
+        <ProductCard key={product.id} product={product} priority={i < 4} />
       ))}
     </div>
   )

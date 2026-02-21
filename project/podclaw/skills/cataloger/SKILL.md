@@ -85,6 +85,8 @@ Full data available via Read tool. Summaries in your prompt.
 - Price changes limited to ±20% (security hook enforced)
 - All descriptions in 3 locales (en/es/de)
 - All prices in EUR. Minimum 40% gross margin.
+- **Branding costs**: Apparel with neck label adds +€0.40/unit to cost. Factor into pricing.
+  Check `brand_config` table for `neck_label_image_id`. If set, include in cost calculation.
 - Use `bg_removed_url` when available (transparency-guaranteed)
 - Skip designs with `privacy_level = 'personal'` or `quality_score < 7`
 - Minimum 4 color variants per product

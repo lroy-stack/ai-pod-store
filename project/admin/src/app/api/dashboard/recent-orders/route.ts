@@ -19,15 +19,18 @@ export async function GET() {
     }
 
     // Transform the data for the frontend
-    const formattedOrders = orders?.map((order) => ({
-      id: order.id,
-      status: order.status,
-      total: order.total_cents / 100, // Convert cents to currency
-      currency: order.currency || 'EUR',
-      createdAt: order.created_at,
-      customerName: order.users?.name || 'Guest',
-      customerEmail: order.users?.email || 'N/A',
-    })) || [];
+    const formattedOrders = orders?.map((order) => {
+      const user = Array.isArray(order.users) ? order.users[0] : order.users;
+      return {
+        id: order.id,
+        status: order.status,
+        total: order.total_cents / 100, // Convert cents to currency
+        currency: order.currency || 'EUR',
+        createdAt: order.created_at,
+        customerName: user?.name || 'Guest',
+        customerEmail: user?.email || 'N/A',
+      };
+    }) || [];
 
     return NextResponse.json(formattedOrders);
   } catch (error) {

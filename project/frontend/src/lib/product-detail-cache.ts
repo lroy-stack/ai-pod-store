@@ -37,7 +37,7 @@ function buildVariantImageMap(
 
 // Fetch product by ID from Supabase
 export async function getProduct(id: string) {
-  const [productResult, variantsResult] = await Promise.all([
+  const [productResult, variantsResult, allEnabledResult] = await Promise.all([
     supabaseAdmin
       .from('products')
       .select('*')
@@ -50,6 +50,11 @@ export async function getProduct(id: string) {
       .eq('product_id', id)
       .eq('is_enabled', true)
       .eq('is_available', true),
+    supabaseAdmin
+      .from('product_variants')
+      .select('size, color, is_available, printify_variant_id')
+      .eq('product_id', id)
+      .eq('is_enabled', true),
   ])
 
   const { data: product, error } = productResult
@@ -75,6 +80,14 @@ export async function getProduct(id: string) {
 
   const details = product.product_details || {}
 
+  // Build unavailable combinations from all enabled variants
+  const allEnabled = allEnabledResult.data || []
+  const allEnabledColors = [...new Set(allEnabled.map(v => v.color).filter(Boolean))] as string[]
+  const allEnabledSizes = [...new Set(allEnabled.map(v => v.size).filter(Boolean))] as string[]
+  const unavailableCombinations = allEnabled
+    .filter(v => !v.is_available)
+    .map(v => ({ color: v.color || '', size: v.size || '' }))
+
   return {
     id: product.id,
     title: product.title,
@@ -87,7 +100,7 @@ export async function getProduct(id: string) {
     reviewCount: product.review_count || 0,
     category: product.category?.toLowerCase(),
     tags: product.tags || [],
-    inStock: true,
+    inStock: variants.length > 0,
     printifyId: product.printify_id,
     createdAt: product.created_at,
     materials: details.material || null,
@@ -102,6 +115,9 @@ export async function getProduct(id: string) {
       ...(colors.length > 0 ? { colors } : {}),
       ...(Object.keys(colorImageIndices).length > 0 ? { colorImageIndices } : {}),
       ...(Object.keys(sizeImageIndices).length > 0 ? { sizeImageIndices } : {}),
+      ...(allEnabledColors.length > 0 ? { allColors: allEnabledColors } : {}),
+      ...(allEnabledSizes.length > 0 ? { allSizes: allEnabledSizes } : {}),
+      ...(unavailableCombinations.length > 0 ? { unavailableCombinations } : {}),
     },
   }
 }

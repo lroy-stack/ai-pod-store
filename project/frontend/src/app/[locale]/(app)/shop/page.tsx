@@ -86,7 +86,7 @@ export default function ShopPage() {
       const sortParam = sortMap[sortBy]
       if (sortParam) urlParams.set('sort', sortParam)
 
-      const res = await fetch(`/api/products?${urlParams.toString()}`)
+      const res = await fetch(`/api/products?${urlParams.toString()}`, { cache: 'no-store' })
       const data = await res.json()
 
       if (data.success) {
@@ -104,7 +104,7 @@ export default function ShopPage() {
   useEffect(() => {
     async function fetchCategories() {
       try {
-        const res = await fetch(`/api/products?limit=100&locale=${locale}`)
+        const res = await fetch(`/api/products?limit=100&locale=${locale}`, { cache: 'no-store' })
         const data = await res.json()
         if (data.success && data.items) {
           const counts: Record<string, number> = {}

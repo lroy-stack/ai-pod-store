@@ -1,521 +1,397 @@
-# POD AI — Print-on-Demand AI Platform
+# POD AI Store
 
-A 100% AI-managed Print-on-Demand ecommerce platform with conversational storefront powered by PodClaw autonomous agent.
+**Autonomous AI-powered print-on-demand platform with conversational storefront.**
+
+![Node](https://img.shields.io/badge/node-22-339933?logo=node.js&logoColor=white)
+![Python](https://img.shields.io/badge/python-3.12-3776AB?logo=python&logoColor=white)
+![Next.js](https://img.shields.io/badge/Next.js-16-000000?logo=next.js)
+![License](https://img.shields.io/badge/license-proprietary-red)
+
+---
+
+## Table of Contents
+
+- [Features](#features)
+- [Architecture](#architecture)
+- [Quick Start](#quick-start)
+- [Manual Installation](#manual-installation)
+- [Configuration](#configuration)
+- [Project Structure](#project-structure)
+- [PodClaw Agents](#podclaw-agents)
+- [Deployment](#deployment)
+- [Development](#development)
+- [Troubleshooting](#troubleshooting)
+- [Contributing](#contributing)
+- [License](#license)
+
+---
 
 ## Features
 
-- 🤖 **Conversational AI Storefront** — Chat-first shopping experience with real-time product search, design generation, and checkout
-- 🎨 **AI Design Generation** — FLUX.1 via fal.ai creates custom designs on-demand
-- 🛍️ **Full Ecommerce** — Cart, wishlist, checkout, payments (Stripe), order tracking
-- 🌍 **Multi-language** — EN/ES/DE with next-intl routing
-- 🔍 **RAG Pipeline** — Google Gemini embeddings + pgvector semantic search
-- 📦 **Print-on-Demand** — Printify integration for product fulfillment
-- 🔐 **Social Auth** — Google OAuth + Apple Sign-In via Supabase Auth
-- 📊 **Analytics** — Python-based RFM, cohort, demand forecasting
-- 🧠 **PodClaw Agent** — Autonomous store manager (8 sub-agents: researcher, cataloger, designer, customer_manager, finance, seo_manager, marketing, newsletter)
-- 📱 **PWA** — Offline mode with IndexedDB catalog cache
-- 🎯 **A/B Testing** — Edge Middleware variant assignment
-- 🔊 **Voice Input** — Web Speech API (locale-aware)
-- 📸 **Image Upload** — Multimodal chat with image analysis
-- 📧 **Email** — Transactional emails via Resend (locale-aware templates)
+- **Conversational Storefront** — The chat IS the store. Three-panel UI with AI-driven product search, design generation, and checkout via 22 tool-augmented interactions.
+- **10 Autonomous Agents (PodClaw)** — Claude-powered agents manage research, design, cataloging, marketing, newsletters, customer support, SEO, finance, quality assurance, and brand compliance on configurable schedules.
+- **AI Design Generation** — On-demand custom designs via fal.ai (FLUX.1) with automatic background removal (rembg sidecar).
+- **Multi-Language** — Full i18n support for English, Spanish, and German with locale-aware routing, emails, and voice input.
+- **Full Ecommerce** — Cart, wishlists, Stripe checkout with tax calculation, Printify fulfillment, order tracking, and return management.
+- **RAG Semantic Search** — Google Gemini embeddings (768-dim) stored in pgvector for intelligent product discovery.
+- **Self-Hostable** — Single `docker compose up` deploys the entire platform with Caddy reverse proxy and automatic HTTPS.
+- **Admin Dashboard** — Real-time agent monitoring, order management, customer analytics, and schedule control.
 
-## Tech Stack
+---
 
-### Frontend
-- **Next.js 16.1.6** — App Router, Turbopack, React Compiler, PPR, `use cache`
-- **React 19.2** — View Transitions, useEffectEvent, Activity API
-- **Tailwind CSS v4** — Semantic design tokens
-- **shadcn/ui** — Component library
-- **next-intl** — i18n with `[locale]` prefix routing
-- **AI SDK 6** — ToolLoopAgent, streaming, artifacts
+## Architecture
 
-### Backend & Infrastructure
-- **Supabase** — PostgreSQL + pgvector + RLS + Auth (remote cloud instance)
-- **Redis** — Sessions, semantic cache, translation cache (optional — graceful fallback)
-- **Stripe** — Payments + Tax + webhooks
-- **Printify** — Product fulfillment + webhooks
-- **Google Gemini** — 768-dim embeddings (gemini-embedding-001)
-- **fal.ai** — FLUX.1 design generation
-- **Resend** — Transactional emails
+```
+                        ┌──────────────────────┐
+                        │    Caddy (80/443)     │
+                        │  Reverse Proxy + TLS  │
+                        └──────┬───────────────┘
+                               │
+              ┌────────────────┼────────────────┐
+              │                │                │
+     ┌────────▼──────┐  ┌─────▼──────┐  ┌──────▼──────────┐
+     │  Frontend      │  │  Admin     │  │  PodClaw Bridge  │
+     │  Next.js 16    │  │  Next.js   │  │  FastAPI         │
+     │  Port 3000     │  │  Port 3001 │  │  Port 8000       │
+     └────────┬───────┘  └─────┬──────┘  └──────┬───────────┘
+              │                │                 │
+              └────────┬───────┘          ┌──────▼───────────┐
+                       │                  │  10 Claude Agents │
+              ┌────────▼────────┐         │  (APScheduler)    │
+              │  Supabase Cloud │         └──────┬───────────┘
+              │  PostgreSQL 16  │                 │
+              │  + pgvector     │         ┌──────┴───────────┐
+              │  + Auth + RLS   │         │  Services         │
+              └─────────────────┘         │  rembg    (7000) │
+                                          │  Redis    (6379) │
+                                          └──────────────────┘
+                                                 │
+                                    ┌────────────┴────────────┐
+                                    │  External APIs           │
+                                    │  Stripe  Printify        │
+                                    │  fal.ai  Gemini  Resend  │
+                                    │  Telegram  WhatsApp      │
+                                    └──────────────────────────┘
+```
 
-### PodClaw Autonomous Agent
-- **Python 3.11+** — Claude Agent SDK (NanoClaw fork)
-- **FastAPI** — Bridge API (port 8000) for admin dashboard
-- **APScheduler** — Daily cycle automation (06:00-23:30 UTC)
-- **8 Sub-Agents** — Each with specialized tools and daily schedules
+---
+
+## Quick Start
+
+> Requires: [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/install/)
+
+```bash
+# 1. Clone the repository
+git clone <repository-url>
+cd project
+
+# 2. Copy and configure environment variables
+cp config/.env.required .env
+# Edit .env with your actual API keys (see Configuration section)
+
+# 3. Start all services
+docker compose -f deploy/docker-compose.yml up -d
+```
+
+Once running:
+
+| Service | URL |
+|---------|-----|
+| Storefront | http://localhost:3000 |
+| Admin Panel | http://localhost:3001 |
+| PodClaw API | http://localhost:8000/health |
+
+```bash
+# View logs
+docker compose -f deploy/docker-compose.yml logs -f
+
+# Stop all services
+docker compose -f deploy/docker-compose.yml down
+```
+
+---
+
+## Manual Installation
+
+### Prerequisites
+
+- Node.js 22+ (LTS)
+- Python 3.12+
+- Git
+- Supabase account ([supabase.com](https://supabase.com))
+
+### 1. Frontend
+
+```bash
+cd frontend
+npm install
+cp .env.example .env.local
+# Edit .env.local — see Configuration section
+npm run dev
+# Runs on http://localhost:3000
+```
+
+### 2. Admin Panel
+
+```bash
+cd admin
+npm install
+cp .env.example .env.local
+# Edit .env.local
+npm run dev
+# Runs on http://localhost:3001
+```
+
+### 3. PodClaw Agent
+
+```bash
+cd podclaw
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env
+# Edit .env
+
+# Verify setup
+python3 -m podclaw.main --workspace ../ --dry-run
+
+# Start
+python3 -m podclaw.main --workspace ../
+# Bridge API on http://localhost:8000
+```
+
+### 4. Database
+
+Supabase runs as a **remote cloud instance** — no local database needed.
+
+```bash
+# Link to your Supabase project
+supabase link --project-ref <your-project-ref>
+
+# Push all migrations (56 tables)
+supabase db push
+```
+
+---
+
+## Configuration
+
+All services read from environment variables. **Never commit real credentials.**
+
+See [`config/.env.required`](config/.env.required) for the complete variable list with placeholder values.
+
+### Required Variables
+
+| Variable | Service | Description |
+|----------|---------|-------------|
+| `SUPABASE_URL` | All | Supabase project URL |
+| `SUPABASE_SERVICE_KEY` | All | Supabase service role key |
+| `NEXT_PUBLIC_SUPABASE_URL` | Frontend | Public Supabase URL (same as above) |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Frontend | Public anon key |
+| `STRIPE_SECRET_KEY` | Frontend, PodClaw | Stripe secret key |
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Frontend | Stripe publishable key |
+| `STRIPE_WEBHOOK_SECRET` | Frontend | Stripe webhook signing secret |
+| `PRINTIFY_TOKEN` | Frontend, PodClaw | Printify API token |
+| `ANTHROPIC_API_KEY` | PodClaw | Claude API key for agents |
+| `GEMINI_API_KEY` | Frontend, PodClaw | Google Gemini API key (embeddings) |
+| `FAL_KEY` | Frontend, PodClaw | fal.ai API key (design generation) |
+| `RESEND_API_KEY` | Frontend, PodClaw | Resend email API key |
+
+### Optional Variables
+
+| Variable | Service | Description |
+|----------|---------|-------------|
+| `REDIS_URL` | Frontend, PodClaw | Redis connection string (graceful fallback if absent) |
+| `TELEGRAM_BOT_TOKEN` | PodClaw | Telegram bot for admin notifications |
+| `WHATSAPP_ACCESS_TOKEN` | PodClaw | WhatsApp Business API token |
+| `PODCLAW_BRIDGE_AUTH_TOKEN` | Admin, PodClaw | Bearer token for Bridge API auth |
+| `REMBG_URL` | PodClaw | Background removal sidecar URL (default: `http://localhost:7000`) |
+
+---
 
 ## Project Structure
 
 ```
 project/
-├── frontend/          # Next.js 16 storefront (port 3000)
-│   ├── src/
-│   │   ├── app/       # App Router pages & API routes
-│   │   ├── components/ # React components
-│   │   └── lib/       # Server utilities
-│   ├── messages/      # i18n translations (en/es/de)
-│   └── public/        # Static assets
-├── admin/             # Next.js 16 admin panel (port 3001, English-only)
-│   └── src/
-│       ├── app/       # Admin pages & API routes
-│       └── components/
-├── podclaw/           # Python autonomous agent
-│   ├── main.py        # Entry point + scheduler
-│   ├── core.py        # Orchestrator
-│   ├── agents/        # 8 sub-agent definitions
-│   ├── mcp/           # SDK in-process MCP connectors
-│   └── bridge/        # FastAPI bridge (port 8000)
-└── supabase/          # Database migrations
-    └── migrations/
+├── frontend/        Next.js 16 storefront — React 19, Tailwind v4, AI SDK 6
+├── admin/           Next.js 16 admin dashboard — TanStack Query/Table, Recharts
+├── podclaw/         Python autonomous agent system — Claude Agent SDK, FastAPI
+│   ├── agents/      Agent definitions and configuration
+│   ├── bridge/      FastAPI HTTP API (port 8000)
+│   ├── connectors/  MCP connectors (Printify, Supabase, Stripe, etc.)
+│   ├── hooks/       PreToolUse/PostToolUse hooks (security, rate limits, costs)
+│   ├── skills/      Per-agent skill prompts and templates
+│   └── scripts/     Reconciliation and maintenance scripts
+├── deploy/          Docker Compose, Dockerfiles, Caddyfile
+├── supabase/        PostgreSQL migrations (56 tables)
+└── config/          Environment variable templates
 ```
 
-## Prerequisites
+---
 
-- **Node.js 18+** (Node 20+ recommended)
-- **Python 3.11+**
-- **Git**
-- **Supabase account** (cloud instance)
-- **API Keys**:
-  - Supabase (URL + Service Key + Anon Key)
-  - Stripe (Secret Key + Publishable Key + Webhook Secret)
-  - Printify (Token)
-  - Google Gemini (API Key)
-  - fal.ai (API Key)
-  - Resend (API Key)
-  - Optional: Redis (URL)
+## PodClaw Agents
 
-## Installation
+PodClaw orchestrates 10 autonomous agents with configurable schedules, budgets, and tool permissions.
 
-### 1. Clone the Repository
+| Agent | Model | Schedule (UTC) | Role |
+|-------|-------|----------------|------|
+| researcher | Haiku | 06:00 | Market trends, competitor analysis, niche discovery |
+| designer | Sonnet | 07:00 | AI design generation, mockup creation |
+| cataloger | Sonnet | 08:00, 14:00, 18:00 | Product CRUD, Printify sync, pricing |
+| marketing | Sonnet | 09:00, 15:00 | Social media, ad copy, campaign management |
+| newsletter | Sonnet | 10:00, 17:00 | Email campaigns via Resend |
+| customer_manager | Sonnet | 12:00, 22:00 | Reviews, retention, support, refunds |
+| seo_manager | Haiku | Sunday 16:00 | Meta tags, sitemaps, search optimization |
+| finance | Sonnet | 23:00 | Revenue reports, anomaly detection |
+| qa_inspector | Haiku | After cataloger | Image quality checks, listing validation |
+| brand_manager | Sonnet | After cataloger | Brand consistency, neck labels, style audit |
+
+**Safety controls:** Per-session budget limits, daily spending caps (total EUR 30.15/day), rate-limited tool calls, fail-closed security hook, and circuit breaker (3+ errors in 24h blocks dispatch). See [`podclaw/SECURITY.md`](podclaw/SECURITY.md) for the full threat model.
+
+---
+
+## Deployment
+
+### Production (Docker Compose + Caddy)
+
+Caddy provides automatic HTTPS via Let's Encrypt.
 
 ```bash
-git clone <repository-url>
-cd pod-agent-harness/pod_workspace/project
+# Set your domain
+export DOMAIN=your-domain.com
+
+# Start production stack
+docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.prod.yml up -d
 ```
 
-### 2. Install Frontend Dependencies
+This runs:
+- **Caddy** on ports 80/443 with automatic TLS
+- **Frontend** on port 3000 (proxied at `/`)
+- **Admin** on port 3001 (proxied at `/panel`)
+- **PodClaw** on port 8000 (proxied at `/api/bridge/*`)
+- **rembg** on port 7000 (internal only)
+- **Redis** on port 6379 (internal only)
+
+### Health Checks
 
 ```bash
-cd frontend
-npm install
+curl http://localhost:3000/api/health    # Frontend
+curl http://localhost:8000/health        # PodClaw
+curl http://localhost:8000/api/health    # PodClaw deep check
 ```
 
-### 3. Install Admin Panel Dependencies
+### Local Development (Docker)
+
+For local development with Docker:
 
 ```bash
-cd ../admin
-npm install
+docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.local.yml up -d
 ```
 
-### 4. Install PodClaw Dependencies
+---
 
-```bash
-cd ../podclaw
-python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-pip install -r requirements.txt
-```
+## Development
 
-### 5. Configure Environment Variables
-
-Create `.env.local` files:
-
-**Frontend** (`frontend/.env.local`):
-```bash
-# Supabase (Remote Cloud)
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_SERVICE_KEY=your_service_key_here
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key_here
-
-# Stripe
-STRIPE_SECRET_KEY=sk_test_...
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
-STRIPE_WEBHOOK_SECRET=whsec_...
-
-# Printify
-PRINTIFY_TOKEN=your_token_here
-
-# Google Gemini
-GEMINI_API_KEY=your_api_key_here
-
-# fal.ai
-FAL_KEY=your_key_here
-
-# Resend
-RESEND_API_KEY=re_...
-RESEND_FROM_EMAIL=noreply@podai.com
-
-# Redis (Optional)
-REDIS_URL=redis://localhost:6379
-
-# App Config
-NEXT_PUBLIC_BASE_URL=https://podai.com
-NODE_ENV=development
-```
-
-**Admin** (`admin/.env.local`):
-```bash
-# Same Supabase credentials as frontend
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_SERVICE_KEY=your_service_key_here
-
-# PodClaw Bridge
-PODCLAW_BRIDGE_URL=http://localhost:8000
-```
-
-**PodClaw** (`podclaw/.env`):
-```bash
-# Claude API
-ANTHROPIC_API_KEY=sk-ant-...
-
-# Supabase (same as frontend)
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_SERVICE_KEY=your_service_key_here
-
-# External APIs
-STRIPE_SECRET_KEY=sk_test_...
-PRINTIFY_TOKEN=your_token_here
-FAL_KEY=your_key_here
-GEMINI_API_KEY=your_api_key_here
-RESEND_API_KEY=re_...
-
-# Telegram (Optional)
-TELEGRAM_BOT_TOKEN=your_bot_token
-TELEGRAM_CHAT_ID=your_chat_id
-
-# WhatsApp (Optional)
-WHATSAPP_PHONE_NUMBER_ID=your_phone_id
-WHATSAPP_ACCESS_TOKEN=your_token
-```
-
-### 6. Setup Database
-
-**Supabase is a REMOTE CLOUD instance** — no local database needed.
-
-```bash
-cd project
-supabase link --project-ref yehvotdnhcwxjjpcznrf
-supabase db push
-```
-
-This pushes all migrations to the remote Supabase instance. 24 tables will be created.
-
-## Running the Application
-
-### Quick Start (All Services)
-
-From the `project/` directory:
-
-```bash
-bash init.sh
-```
-
-This starts:
-- Frontend (port 3000) — `npm run dev` in frontend/
-- Admin panel (port 3001) — `npm run dev` in admin/
-- PodClaw agent (port 8000) — `python3 -m podclaw.main --workspace ../`
-
-### Individual Services
-
-**Frontend Storefront:**
-```bash
-cd frontend
-npm run dev
-# Access: http://localhost:3000
-```
-
-**Admin Panel:**
-```bash
-cd admin
-npm run dev
-# Access: http://localhost:3001
-```
-
-**PodClaw Agent:**
-```bash
-cd podclaw
-python3 -m podclaw.main --workspace ../../
-# Bridge API: http://localhost:8000
-```
-
-**Dry-run PodClaw (verify setup):**
-```bash
-cd podclaw
-python3 -m podclaw.main --workspace ../../ --dry-run
-```
-
-## Development Workflow
-
-### Frontend Development
+### Frontend
 
 ```bash
 cd frontend
-npm run dev          # Start dev server
+npm run dev          # Dev server (Turbopack)
 npm run build        # Production build
 npm run lint         # ESLint
 npx tsc --noEmit     # Type check
 ```
 
+### Admin
+
+```bash
+cd admin
+npm run dev          # Dev server
+npm run build        # Production build
+```
+
+### PodClaw
+
+```bash
+cd podclaw
+source venv/bin/activate
+python3 -m podclaw.main --workspace ../ --dry-run   # Verify config
+python3 -m podclaw.main --workspace ../              # Start orchestrator
+```
+
 ### Database Migrations
 
 ```bash
-cd project
-supabase migration new <migration_name>  # Create new migration
-supabase db push                          # Push to remote
-supabase migration list                   # Check status
+supabase migration new <name>     # Create new migration
+supabase db push                  # Push to remote
+supabase migration list           # Check status
 ```
 
-### Testing
+### Tests
 
 ```bash
 cd frontend
-npm test             # Run tests
-npm run test:e2e     # Playwright E2E tests
+npm test                          # Unit tests
+npx playwright test               # E2E tests
 ```
 
-## Architecture Overview
-
-### Conversational Storefront (PRIMARY INTERFACE)
-
-The homepage (`/[locale]/`) IS the three-panel conversational storefront:
-
-- **Left Sidebar** — Store navigation + AI-curated recommendations (adaptive based on DataPart streaming)
-- **Center Panel** — Chat interface with 22 AI tools, streaming SSE, artifact components
-- **Right Panel** — Detail view (expands when artifact clicked)
-
-**NOT** a traditional ecommerce site with a chat widget. The chat IS the store.
-
-### Chat Tools (22 total)
-
-1. `search_products` → ProductGridArtifact
-2. `browse_catalog` → ProductGridArtifact
-3. `get_product_details` → ProductCardArtifact
-4. `compare_products` → ComparisonTableArtifact
-5. `get_recommendations` → ProductGridArtifact
-6. `get_size_guide` → SizeGuideArtifact
-7. `add_to_cart` → CartSummaryArtifact
-8. `get_cart` → CartSummaryArtifact
-9. `update_cart_quantity` → CartSummaryArtifact
-10. `remove_from_cart` → CartSummaryArtifact
-11. `apply_coupon` → CartSummaryArtifact
-12. `estimate_shipping` → PricingTableArtifact
-13. `create_checkout` (needsApproval) → ApprovalCardArtifact
-14. `track_order` → OrderTimelineArtifact
-15. `get_order_history` → OrderListArtifact
-16. `request_return` (needsApproval) → ApprovalCardArtifact
-17. `generate_design` → DesignPreviewArtifact
-18. `customize_design` → DesignPreviewArtifact
-19. `add_to_wishlist` → ConfirmationArtifact
-20. `get_store_policies` → PolicyArtifact
-21. `switch_language` → ConfirmationArtifact
-22. `analyze_image` → AnalysisArtifact
-
-### PodClaw Agent (8 Sub-Agents)
-
-| Agent | Model | Schedule | Purpose |
-|-------|-------|----------|---------|
-| researcher | Haiku | 06:00 | Market trends, competitor analysis |
-| designer | Sonnet | 07:00 | AI design generation |
-| cataloger | Sonnet | 08:00, 14:00, 18:00 | Product CRUD, Printify sync |
-| marketing | Sonnet | 09:00, 15:00 | Social media, campaigns |
-| newsletter | Sonnet | 10:00, 17:00 | Email campaigns |
-| customer_manager | Sonnet | 12:00, 22:00 + continuous | Reviews, retention, chat |
-| seo_manager | Haiku | Sunday 16:00 | SEO, meta tags, sitemaps |
-| finance | Sonnet | 23:00 | Revenue reports, anomaly detection |
-
-**Bridge API** (port 8000):
-- `GET /status` — Overall status
-- `GET /agents` — All agents with tools
-- `GET /events` — Query agent_events table
-- `GET /schedule` — Scheduled jobs
-- `POST /agents/{name}/run` — Trigger manually
-
-## API Routes
-
-### Storefront (`frontend/src/app/api/`)
-
-- `/api/health` — Health check
-- `/api/chat` — AI chat (ToolLoopAgent, SSE streaming)
-- `/api/products` — Product catalog
-- `/api/cart/*` — Shopping cart
-- `/api/checkout/*` — Stripe checkout
-- `/api/webhooks/stripe` — Stripe webhooks
-- `/api/webhooks/printify` — Printify webhooks
-- `/api/rag/*` — RAG search + indexing
-- `/api/designs/*` — AI design generation
-- `/api/auth/*` — Supabase Auth
-- `/api/wishlist/*` — Wishlist CRUD
-
-### Admin (`admin/src/app/api/`)
-
-- `/api/agent/*` — PodClaw bridge proxy (catch-all)
-- `/api/analytics/*` — Python analytics endpoints
-- `/api/orders/*` — Order management
-- `/api/customers/*` — Customer management
-
-## Database Schema (24 Tables)
-
-**Core:**
-- `users` — User accounts (auth)
-- `user_profiles` — Extended profile data
-- `shipping_addresses` — User shipping addresses
-
-**Products:**
-- `products` — Product catalog (base_price_cents, currency, images JSONB)
-- `product_variants` — SKUs, sizes, colors
-- `reviews` — Product reviews
-
-**Orders:**
-- `orders` — Order records
-- `order_items` — Line items
-- `returns` — Return requests
-
-**Cart & Wishlist:**
-- `cart_items` — Shopping cart (session-based)
-- `wishlists` — Named wishlists
-- `wishlist_items` — Products in wishlists
-
-**AI & RAG:**
-- `documents` — RAG corpus (embedding vector<768>, locale)
-- `designs` — AI-generated designs
-- `chat_sessions` — Chat history
-
-**Payments:**
-- `coupons` — Discount codes
-- `stripe_events` — Webhook event log
-
-**Agent:**
-- `agent_events` — Event sourcing (agent_name, session_id, data JSONB)
-- `agent_daily_costs` — Cost tracking
-- `agent_memory` — Daily memory logs
-
-**Notifications:**
-- `notifications` — User notifications
-- `audit_log` — System audit trail
-
-**i18n & A/B:**
-- `translations` — Dynamic translations
-- `ab_experiments` — A/B test definitions
-- `ab_assignments` — Variant assignments
-
-## Deployment
-
-### Prerequisites
-- Vercel account (or other Next.js host)
-- Supabase cloud instance (already configured)
-- Redis cloud instance (optional — app works without it)
-
-### Frontend Deployment
-
-```bash
-cd frontend
-npm run build
-# Deploy to Vercel or:
-npm start  # Production server
-```
-
-### PodClaw Deployment
-
-```bash
-cd podclaw
-# Option 1: systemd service
-sudo cp podclaw.service /etc/systemd/system/
-sudo systemctl enable podclaw
-sudo systemctl start podclaw
-
-# Option 2: Docker
-docker build -t podclaw .
-docker run -d --env-file .env -p 8000:8000 podclaw
-```
-
-## Environment Variables Reference
-
-See `config/.env.required` for the complete list of required environment variables.
-
-**CRITICAL:**
-- All Supabase vars point to the REMOTE CLOUD instance (not local)
-- Redis is optional — app works without it (graceful fallback)
-- `NEXT_PUBLIC_BASE_URL` must be `https://podai.com` (production) or `http://localhost:3000` (dev)
-- Email sender must use `RESEND_FROM_EMAIL` (no hardcoded domains)
+---
 
 ## Troubleshooting
 
-### Dev Server Won't Start
+### Port already in use
 
 ```bash
-# Check port availability
-lsof -i :3000  # Frontend
-lsof -i :3001  # Admin
-lsof -i :8000  # PodClaw
-
-# Kill existing processes
-kill -9 <PID>
-
-# Restart
-cd project && bash init.sh
+lsof -i :3000    # Check which process holds the port
+kill -9 <PID>    # Free the port
 ```
 
-### Supabase Connection Errors
+### Environment variables not loaded
+
+Ensure `.env.local` (frontend/admin) or `.env` (podclaw) exists and has all required variables. The app will fail on startup if critical variables are missing. Check `config/.env.required` for the complete list.
+
+### Supabase connection errors
 
 ```bash
-# Verify credentials
-grep SUPABASE_URL frontend/.env.local
-
-# Test connection
-curl -H "apikey: YOUR_ANON_KEY" \
-  "https://your-project.supabase.co/rest/v1/"
-
-# Check migration status
-cd project
-supabase migration list
+# Verify your project ref and keys
+supabase projects list
+supabase migration list    # Should show 64 migrations
 ```
 
-### PodClaw Won't Start
+### PodClaw agents not starting
 
 ```bash
-# Verify dependencies
-cd podclaw
-source venv/bin/activate
-pip list
+# Check Bridge API health
+curl http://localhost:8000/health
 
-# Check logs
-python3 -m podclaw.main --workspace ../../ 2>&1 | tee podclaw.log
+# Check agent status
+curl -H "Authorization: Bearer $PODCLAW_BRIDGE_AUTH_TOKEN" \
+  http://localhost:8000/agents
 
-# Dry-run mode
-python3 -m podclaw.main --workspace ../../ --dry-run
+# Review logs
+docker compose -f deploy/docker-compose.yml logs podclaw
 ```
 
-### Chat API Errors
+### rembg sidecar not responding
 
-Check browser console and server logs:
+The background removal service must be running for design transparency processing.
 
 ```bash
-# Frontend logs
-cd frontend
-npm run dev
-
-# Check health endpoint
-curl http://localhost:3000/api/health
-
-# Check chat endpoint
-curl -X POST http://localhost:3000/api/chat \
-  -H "Content-Type: application/json" \
-  -d '{"messages":[{"role":"user","content":"Hello"}]}'
+curl http://localhost:7000/health
+docker compose -f deploy/docker-compose.yml logs rembg
 ```
+
+---
 
 ## Contributing
 
-1. Feature branches: `feat/feature-name`
-2. Bug fixes: `fix/issue-description`
-3. Commit format: `feat: description — test #123 passing`
-4. Test all changes through browser UI (use Playwright MCP)
-5. Update `feature_list.json` after verification
+1. Create a feature branch: `feat/feature-name` or `fix/issue-description`
+2. Follow existing code patterns (shadcn/ui components, semantic tokens, next-intl)
+3. Test through browser UI and verify with Playwright
+4. Commit format: `feat: description` or `fix: description`
+
+---
 
 ## License
 
-Proprietary — All rights reserved
-
-## Support
-
-For issues, contact: support@podai.com
+Proprietary — All rights reserved.

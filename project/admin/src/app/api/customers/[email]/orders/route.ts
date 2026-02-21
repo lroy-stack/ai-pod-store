@@ -3,10 +3,11 @@ import { NextResponse } from 'next/server';
 
 export async function GET(
   request: Request,
-  { params }: { params: { email: string } }
+  { params }: { params: Promise<{ email: string }> }
 ) {
   try {
-    const email = decodeURIComponent(params.email);
+    const { email: rawEmail } = await params;
+    const email = decodeURIComponent(rawEmail);
     const supabase = createClient();
 
     // First get the user ID from the email

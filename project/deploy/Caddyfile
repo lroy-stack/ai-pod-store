@@ -7,12 +7,18 @@
 #
 # Set the DOMAIN environment variable, or it defaults to localhost.
 
-{$DOMAIN:localhost} {
+{$CADDY_SITE_ADDRESS:http://localhost} {
 	# PodClaw Bridge API (internal, auth-protected)
 	# Matches /api/bridge/* and strips the prefix before proxying
 	handle /api/bridge/* {
 		uri strip_prefix /api/bridge
 		reverse_proxy podclaw:8000
+	}
+
+	# Admin Panel — Next.js with basePath=/panel handles the prefix
+	# No strip needed: admin expects /panel/* paths
+	handle /panel* {
+		reverse_proxy admin:3001
 	}
 
 	# All other traffic goes to frontend (Next.js handles /api/* routes too)

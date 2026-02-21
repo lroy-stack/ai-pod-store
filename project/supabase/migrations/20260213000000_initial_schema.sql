@@ -601,7 +601,7 @@ FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 INSERT INTO users (email, password_hash, name, role, email_verified)
 VALUES (
   'admin@podstore.local',
-  '$2a$10$rQZ4YXxN5nU5yXHkJxYhPeVYvJ.xz8HWz8mQxqXPKxYzJ5XqwYXKu',
+  '$2b$10$CJJCGQqBQGsz98AAkzl1oukiynF/9HUk2yP2eJWnAYUVJOrKJTZ6i',
   'Admin User',
   'admin',
   true

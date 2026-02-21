@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -11,6 +11,19 @@ import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Separator } from '@/components/ui/separator'
 import { supabase } from '@/lib/supabase'
+
+function getPasswordStrength(password: string): 0 | 1 | 2 | 3 {
+  if (!password) return 0
+  let score = 0
+  if (password.length >= 8) score++
+  if (password.length >= 12) score++
+  if (/[A-Z]/.test(password) && /[a-z]/.test(password)) score++
+  if (/\d/.test(password)) score++
+  if (/[^A-Za-z0-9]/.test(password)) score++
+  if (score <= 1) return 1
+  if (score <= 3) return 2
+  return 3
+}
 
 export default function RegisterForm({ locale }: { locale: string }) {
   const t = useTranslations('Auth')
@@ -25,19 +38,57 @@ export default function RegisterForm({ locale }: { locale: string }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
+  const [fieldErrors, setFieldErrors] = useState<{
+    name?: string
+    email?: string
+    password?: string
+    confirmPassword?: string
+    terms?: string
+  }>({})
+
+  const passwordStrength = useMemo(() => getPasswordStrength(formData.password), [formData.password])
+
+  const strengthLabel = passwordStrength === 1 ? t('passwordWeak') : passwordStrength === 2 ? t('passwordMedium') : passwordStrength === 3 ? t('passwordStrong') : ''
+  const strengthColor = passwordStrength === 1 ? 'bg-destructive' : passwordStrength === 2 ? 'bg-warning' : passwordStrength === 3 ? 'bg-success' : 'bg-muted'
+
+  const validateForm = () => {
+    const errors: typeof fieldErrors = {}
+
+    if (!formData.name.trim()) {
+      errors.name = t('nameRequired')
+    }
+
+    if (!formData.email) {
+      errors.email = t('emailRequired')
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      errors.email = t('emailInvalid')
+    }
+
+    if (!formData.password) {
+      errors.password = t('passwordRequired')
+    } else if (formData.password.length < 8) {
+      errors.password = t('passwordMin')
+    }
+
+    if (formData.password && formData.confirmPassword && formData.password !== formData.confirmPassword) {
+      errors.confirmPassword = t('passwordMismatch')
+    }
+
+    if (!formData.terms) {
+      errors.terms = t('termsRequired')
+    }
+
+    setFieldErrors(errors)
+    return Object.keys(errors).length === 0
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    setFieldErrors({})
     setSuccess(false)
 
-    if (formData.password !== formData.confirmPassword) {
-      setError(t('passwordMismatch'))
-      return
-    }
-
-    if (!formData.terms) {
-      setError(t('termsRequired'))
+    if (!validateForm()) {
       return
     }
 
@@ -95,10 +146,16 @@ export default function RegisterForm({ locale }: { locale: string }) {
     }
   }
 
+  const clearFieldError = (field: keyof typeof fieldErrors) => {
+    if (fieldErrors[field]) {
+      setFieldErrors(prev => ({ ...prev, [field]: undefined }))
+    }
+  }
+
   return (
-    <div className="w-full space-y-6">
+    <div className="w-full space-y-4 md:space-y-6">
       <div className="text-center">
-        <h2 className="text-2xl md:text-3xl font-bold text-foreground">
+        <h2 className="text-xl md:text-2xl font-bold text-foreground">
           {t('registerTitle')}
         </h2>
         <p className="mt-2 text-sm text-muted-foreground">
@@ -122,19 +179,29 @@ export default function RegisterForm({ locale }: { locale: string }) {
         </div>
       )}
 
-      <form className="space-y-4" onSubmit={handleSubmit}>
+      <form className="space-y-3 md:space-y-4" onSubmit={handleSubmit}>
         <div className="space-y-2">
           <Label htmlFor="name">{t('nameLabel')}</Label>
           <Input
             id="name"
             type="text"
             autoComplete="name"
-            required
             value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            onChange={(e) => {
+              setFormData({ ...formData, name: e.target.value })
+              clearFieldError('name')
+            }}
             disabled={loading || success}
             placeholder={t('namePlaceholder')}
+            className={fieldErrors.name ? 'border-destructive' : ''}
+            aria-invalid={!!fieldErrors.name}
+            aria-describedby={fieldErrors.name ? 'name-error' : undefined}
           />
+          {fieldErrors.name && (
+            <p id="name-error" className="text-sm text-destructive">
+              {fieldErrors.name}
+            </p>
+          )}
         </div>
 
         <div className="space-y-2">
@@ -143,27 +210,47 @@ export default function RegisterForm({ locale }: { locale: string }) {
             id="email"
             type="email"
             autoComplete="email"
-            required
             value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            onChange={(e) => {
+              setFormData({ ...formData, email: e.target.value })
+              clearFieldError('email')
+            }}
             disabled={loading || success}
             placeholder={t('emailPlaceholder')}
+            className={fieldErrors.email ? 'border-destructive' : ''}
+            aria-invalid={!!fieldErrors.email}
+            aria-describedby={fieldErrors.email ? 'email-error' : undefined}
           />
+          {fieldErrors.email && (
+            <p id="email-error" className="text-sm text-destructive">
+              {fieldErrors.email}
+            </p>
+          )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
           <div className="space-y-2">
             <Label htmlFor="password">{t('passwordLabel')}</Label>
             <Input
               id="password"
               type="password"
               autoComplete="new-password"
-              required
               value={formData.password}
-              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+              onChange={(e) => {
+                setFormData({ ...formData, password: e.target.value })
+                clearFieldError('password')
+              }}
               disabled={loading || success}
               placeholder={t('passwordPlaceholder')}
+              className={fieldErrors.password ? 'border-destructive' : ''}
+              aria-invalid={!!fieldErrors.password}
+              aria-describedby={fieldErrors.password ? 'password-error' : 'password-strength'}
             />
+            {fieldErrors.password && (
+              <p id="password-error" className="text-sm text-destructive">
+                {fieldErrors.password}
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -172,35 +259,71 @@ export default function RegisterForm({ locale }: { locale: string }) {
               id="confirmPassword"
               type="password"
               autoComplete="new-password"
-              required
               value={formData.confirmPassword}
-              onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+              onChange={(e) => {
+                setFormData({ ...formData, confirmPassword: e.target.value })
+                clearFieldError('confirmPassword')
+              }}
               disabled={loading || success}
               placeholder={t('confirmPasswordPlaceholder')}
+              className={fieldErrors.confirmPassword ? 'border-destructive' : ''}
+              aria-invalid={!!fieldErrors.confirmPassword}
+              aria-describedby={fieldErrors.confirmPassword ? 'confirm-password-error' : undefined}
             />
+            {fieldErrors.confirmPassword && (
+              <p id="confirm-password-error" className="text-sm text-destructive">
+                {fieldErrors.confirmPassword}
+              </p>
+            )}
           </div>
         </div>
 
-        <div className="flex items-start gap-2">
-          <Checkbox
-            id="terms"
-            checked={formData.terms}
-            onCheckedChange={(checked) =>
-              setFormData({ ...formData, terms: checked === true })
-            }
-            disabled={loading || success}
-            required
-          />
-          <Label htmlFor="terms" className="text-sm font-normal leading-snug">
-            {t('agreeToTerms')}{' '}
-            <Link href={`/${locale}/legal/terms`} className="text-primary hover:text-primary/80">
-              {t('termsLink')}
-            </Link>{' '}
-            {t('and')}{' '}
-            <Link href={`/${locale}/legal/privacy`} className="text-primary hover:text-primary/80">
-              {t('privacyLink')}
-            </Link>
-          </Label>
+        {formData.password && (
+          <div id="password-strength" className="space-y-1.5" aria-live="polite">
+            <div className="flex gap-1.5">
+              {[1, 2, 3].map((level) => (
+                <div
+                  key={level}
+                  className={`h-1.5 flex-1 rounded-full transition-colors ${
+                    passwordStrength >= level ? strengthColor : 'bg-muted'
+                  }`}
+                />
+              ))}
+            </div>
+            {strengthLabel && (
+              <p className="text-xs text-muted-foreground">{strengthLabel}</p>
+            )}
+          </div>
+        )}
+
+        <div className="space-y-1">
+          <label htmlFor="terms" className="flex items-start gap-2 cursor-pointer select-none">
+            <Checkbox
+              id="terms"
+              checked={formData.terms}
+              onCheckedChange={(checked) => {
+                setFormData({ ...formData, terms: checked === true })
+                clearFieldError('terms')
+              }}
+              disabled={loading || success}
+              className="mt-0.5 shrink-0"
+            />
+            <span className="text-xs md:text-sm leading-relaxed text-muted-foreground">
+              {t('agreeToTerms')}{' '}
+              <Link href={`/${locale}/legal/terms`} className="text-primary hover:text-primary/80">
+                {t('termsLink')}
+              </Link>{' '}
+              {t('and')}{' '}
+              <Link href={`/${locale}/legal/privacy`} className="text-primary hover:text-primary/80">
+                {t('privacyLink')}
+              </Link>
+            </span>
+          </label>
+          {fieldErrors.terms && (
+            <p className="text-xs text-destructive pl-6">
+              {fieldErrors.terms}
+            </p>
+          )}
         </div>
 
         <Button type="submit" className="w-full" disabled={loading || success}>
@@ -220,7 +343,7 @@ export default function RegisterForm({ locale }: { locale: string }) {
           <Separator />
         </div>
         <div className="relative flex justify-center text-sm">
-          <span className="bg-card px-2 text-muted-foreground">{t('orContinueWith')}</span>
+          <span className="bg-card/80 backdrop-blur-sm px-2 text-muted-foreground">{t('orContinueWith')}</span>
         </div>
       </div>
 
@@ -236,8 +359,8 @@ export default function RegisterForm({ locale }: { locale: string }) {
         </Button>
 
         <Button type="button" variant="outline" onClick={() => handleSocialLogin('apple')} disabled={loading}>
-          <svg className="size-4" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-            <path d="M13.762 4.29a6.51 6.51 0 0 0-5.024 3.834 6.034 6.034 0 0 0-.544 2.457 6.474 6.474 0 0 0 .544 2.457 6.486 6.486 0 0 0 1.504 2.104c1.048 1.025 2.385 1.637 3.898 1.785 1.513.148 2.982-.166 4.135-1.012a5.827 5.827 0 0 0 2.145-3.292c.135-.503.2-1.019.193-1.537-.007-.518-.082-1.034-.223-1.534a5.982 5.982 0 0 0-2.126-3.194A5.827 5.827 0 0 0 13.762 4.29zM10 0C4.477 0 0 4.477 0 10s4.477 10 10 10 10-4.477 10-10S15.523 0 10 0z"/>
+          <svg className="size-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
           </svg>
           {t('appleLogin')}
         </Button>

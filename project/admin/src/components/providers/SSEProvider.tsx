@@ -11,7 +11,9 @@ interface SSEEvent {
 
 export function SSEProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
-    // Establish SSE connection
+    // Only connect if admin session cookie exists
+    if (!document.cookie.includes('admin-session')) return
+
     const eventSource = new EventSource('/api/events/stream')
 
     eventSource.addEventListener('connected', () => {
@@ -80,16 +82,9 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
       }
     })
 
-    // Handle connection errors
-    eventSource.onerror = (err) => {
-      console.error('[SSE] Connection error:', err)
+    // Handle connection errors — silent close, no reload loop
+    eventSource.onerror = () => {
       eventSource.close()
-
-      // Attempt to reconnect after 5 seconds
-      setTimeout(() => {
-        console.log('[SSE] Attempting to reconnect...')
-        window.location.reload()
-      }, 5000)
     }
 
     // Cleanup on unmount

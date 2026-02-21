@@ -36,8 +36,9 @@ export async function GET() {
 
     orderItems?.forEach(item => {
       const productId = item.product_id;
-      const productName = item.products?.title || 'Unknown Product';
-      const productCategory = item.products?.category || 'uncategorized';
+      const product = Array.isArray(item.products) ? item.products[0] : item.products;
+      const productName = product?.title || 'Unknown Product';
+      const productCategory = product?.category || 'uncategorized';
       const revenue = (item.unit_price_cents || 0) * (item.quantity || 0);
       const quantity = item.quantity || 0;
 

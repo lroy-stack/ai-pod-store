@@ -18,6 +18,7 @@ import {
   MessageSquare,
   Settings,
   Palette,
+  PaintBucket,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -27,6 +28,7 @@ const navigation = [
   { name: 'Orders', href: '/orders', icon: ShoppingCart },
   { name: 'Customers', href: '/customers', icon: Users },
   { name: 'Designs', href: '/designs', icon: Palette },
+  { name: 'Branding', href: '/branding', icon: PaintBucket },
   { name: 'Analytics', href: '/analytics', icon: TrendingUp },
   { name: 'Finance', href: '/finance', icon: DollarSign },
   { name: 'Agent Monitor', href: '/agent', icon: Bot },

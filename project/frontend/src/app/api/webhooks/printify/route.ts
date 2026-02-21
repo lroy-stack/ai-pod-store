@@ -3,6 +3,12 @@
  *
  * POST /api/webhooks/printify
  * Handles Printify webhook events (order:shipped, order:delivered, etc.)
+ *
+ * Architecture note: PodClaw agents do NOT receive these webhooks directly.
+ * This handler writes all state changes to Supabase (orders, products,
+ * notifications, audit_log), and PodClaw agents read from Supabase during
+ * their scheduled runs / heartbeat cycles. This avoids coupling between
+ * the frontend and PodClaw deployments.
  */
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -75,9 +81,36 @@ export async function POST(req: NextRequest) {
       case 'order:cancelled':
         await handleOrderCancelled(resource)
         break
-      case 'product:publish:started':
-        console.log('Printify product publish started:', resource.id)
+      case 'product:publish:started': {
+        const publishProductId = resource?.id as string
+        if (publishProductId) {
+          // Find the Supabase product to get external ID for publishing confirmation
+          const { data: existingProduct } = await supabase
+            .from('products')
+            .select('id')
+            .eq('printify_id', publishProductId)
+            .single()
+
+          if (existingProduct) {
+            try {
+              await printify.publishingSucceeded(
+                publishProductId,
+                existingProduct.id,
+                `/shop/${existingProduct.id}`
+              )
+              console.log('Publishing confirmed for:', publishProductId)
+            } catch (e) {
+              console.error('Failed to confirm publishing:', publishProductId, e)
+            }
+          } else {
+            console.log(
+              'Product not in Supabase yet, will be confirmed by create-product pipeline:',
+              publishProductId
+            )
+          }
+        }
         break
+      }
       case 'product:publish:succeeded':
       case 'product:created':
       case 'product:updated': {

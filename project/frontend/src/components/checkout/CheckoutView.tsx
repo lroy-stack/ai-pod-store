@@ -11,8 +11,11 @@ import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Switch } from '@/components/ui/switch'
+import { Textarea } from '@/components/ui/textarea'
 import { formatPrice } from '@/lib/currency'
 import { STORE_DEFAULTS } from '@/lib/store-config'
+import { toast } from 'sonner'
 import { useState, useEffect } from 'react'
 import AddressForm, { AddressFormData } from './AddressForm'
 import CheckoutBreadcrumb from './CheckoutBreadcrumb'
@@ -45,6 +48,8 @@ export default function CheckoutView({ locale }: { locale: string }) {
   const [creatingSession, setCreatingSession] = useState(false)
   const [guestEmail, setGuestEmail] = useState('')
   const [guestEmailError, setGuestEmailError] = useState('')
+  const [giftMessageEnabled, setGiftMessageEnabled] = useState(false)
+  const [giftMessageText, setGiftMessageText] = useState('')
 
   // Get user's preferred currency, fallback to locale default
   const userCurrency = user?.currency || STORE_DEFAULTS.currency
@@ -209,6 +214,11 @@ export default function CheckoutView({ locale }: { locale: string }) {
         body.customerEmail = guestEmail
       }
 
+      // Add gift message if enabled
+      if (giftMessageEnabled && giftMessageText.trim()) {
+        body.gift_message = giftMessageText.trim()
+      }
+
       const response = await fetch('/api/checkout/create-session', {
         method: 'POST',
         headers: {
@@ -223,9 +233,17 @@ export default function CheckoutView({ locale }: { locale: string }) {
         if (data.url) {
           window.location.href = data.url
         }
+      } else if (response.status === 409) {
+        const data = await response.json()
+        const names = data.unavailableItems
+          ?.map((item: any) => [item.name, item.color, item.size].filter(Boolean).join(' / '))
+          .join(', ')
+        toast.error(t('itemsUnavailable'), {
+          description: names || undefined,
+        })
       } else {
         console.error('Failed to create checkout session')
-        alert('Failed to proceed to payment. Please try again.')
+        toast.error(t('paymentError'))
       }
     } catch (error) {
       console.error('Error creating checkout session:', error)
@@ -562,6 +580,32 @@ export default function CheckoutView({ locale }: { locale: string }) {
                     userCurrency
                   )}
                 </span>
+              </div>
+
+              <Separator />
+
+              {/* Gift Message */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Switch
+                    id="gift-message"
+                    checked={giftMessageEnabled}
+                    onCheckedChange={setGiftMessageEnabled}
+                  />
+                  <Label htmlFor="gift-message" className="text-sm cursor-pointer">
+                    {t('giftMessage')}
+                  </Label>
+                </div>
+                {giftMessageEnabled && (
+                  <Textarea
+                    placeholder={t('giftMessagePlaceholder')}
+                    value={giftMessageText}
+                    onChange={(e) => setGiftMessageText(e.target.value)}
+                    maxLength={200}
+                    className="resize-none"
+                    rows={3}
+                  />
+                )}
               </div>
 
               <Separator />

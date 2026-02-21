@@ -49,7 +49,7 @@ Use `bg_removed_url` when available, fall back to `image_url`.
 - Variant details: id, title, options (size/color), cost, price
 
 ### 8. Convert Currency
-`cost_eur_cents = int(cost_usd_cents * 0.92)`
+`cost_eur_cents = int(cost_usd_cents * PRINTIFY_USD_TO_EUR_RATE)` (rate from config.py, currently 0.92)
 
 ### 9. Calculate Final Price
 Use the Pricing Quick-Reference Table below.

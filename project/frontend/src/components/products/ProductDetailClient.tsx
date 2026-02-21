@@ -1,11 +1,11 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useTranslations, useLocale } from 'next-intl'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useState } from 'react'
-import { Star, Heart, ShoppingCart, ChevronLeft, Shirt, Droplets, Globe, Printer, ShieldCheck } from 'lucide-react'
+import { Star, Heart, ShoppingCart, ChevronLeft, Shirt, Droplets, Globe, Printer, ShieldCheck, Paintbrush } from 'lucide-react'
 import { useCart } from '@/hooks/useCart'
 import { useWishlist } from '@/hooks/useWishlist'
 import { Button } from '@/components/ui/button'
@@ -14,6 +14,7 @@ import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { formatPrice, getLocalizedPrice } from '@/lib/currency'
+import { ProductPersonalizer, PersonalizationData } from './ProductPersonalizer'
 import {
   Select,
   SelectContent,
@@ -41,6 +42,7 @@ interface ProductDetailClientProps {
 
 export function ProductDetailClient({ product, relatedProducts, reviews }: ProductDetailClientProps) {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const t = useTranslations('product')
   const tNav = useTranslations('navigation')
   const tCategory = useTranslations('shop.category')
@@ -51,11 +53,23 @@ export function ProductDetailClient({ product, relatedProducts, reviews }: Produ
   // Extract variant data early for default selection
   const sizes = product?.variants && 'sizes' in product.variants ? product.variants.sizes as string[] : undefined
   const colors = product?.variants && 'colors' in product.variants ? product.variants.colors as string[] : undefined
+  const allColors = product?.variants && 'allColors' in product.variants ? product.variants.allColors as string[] : colors
+  const allSizes = product?.variants && 'allSizes' in product.variants ? product.variants.allSizes as string[] : sizes
+  const unavailableCombinations = product?.variants && 'unavailableCombinations' in product.variants
+    ? product.variants.unavailableCombinations as Array<{ color: string; size: string }>
+    : []
   const colorImageIndices = product?.variants && 'colorImageIndices' in product.variants ? product.variants.colorImageIndices as Record<string, number[]> : undefined
   const sizeImageIndices = product?.variants && 'sizeImageIndices' in product.variants ? product.variants.sizeImageIndices as Record<string, number[]> : undefined
 
   const hasColorMapping = !!(colorImageIndices && Object.keys(colorImageIndices).length > 0)
   const hasSizeMapping = !!(sizeImageIndices && Object.keys(sizeImageIndices).length > 0)
+
+  // Available sets for quick lookup
+  const availableColorSet = new Set(colors || [])
+  const availableSizeSet = new Set(sizes || [])
+
+  // Read ?color= from URL to pre-select the variant from ProductCard navigation
+  const initialColor = searchParams.get('color')
 
   const [selectedImage, setSelectedImage] = useState(0)
   // Auto-select first option when variant-to-image mapping exists
@@ -63,11 +77,14 @@ export function ProductDetailClient({ product, relatedProducts, reviews }: Produ
     hasSizeMapping && sizes && sizes.length > 0 ? sizes[0] : ''
   )
   const [selectedColor, setSelectedColor] = useState<string>(
-    hasColorMapping && colors && colors.length > 0 ? colors[0] : ''
+    initialColor && colors?.includes(initialColor)
+      ? initialColor
+      : (hasColorMapping && colors && colors.length > 0 ? colors[0] : '')
   )
   const [quantity, setQuantity] = useState(1)
   const [isAddingToCart, setIsAddingToCart] = useState(false)
   const [showReviewForm, setShowReviewForm] = useState(false)
+  const [personalization, setPersonalization] = useState<PersonalizationData | null>(null)
 
   // Filter images by selected variant (color takes priority, then size)
   const visibleImages: string[] = (() => {
@@ -125,6 +142,22 @@ export function ProductDetailClient({ product, relatedProducts, reviews }: Produ
   }
 
   const wishlisted = product ? isWishlisted(product.id) : false
+
+  // Check if current combination is available
+  const isCurrentCombinationAvailable = (() => {
+    if (!product?.inStock) return false
+    // If we have unavailable combinations, check current selection
+    if (unavailableCombinations.length > 0 && selectedColor && selectedSize) {
+      return !unavailableCombinations.some(
+        uc => uc.color === selectedColor && uc.size === selectedSize
+      )
+    }
+    // If only color matters, check if color is available
+    if (selectedColor && !availableColorSet.has(selectedColor)) return false
+    // If only size matters, check if size is available
+    if (selectedSize && !availableSizeSet.has(selectedSize)) return false
+    return product?.inStock !== false
+  })()
 
   const handleAddToCart = async () => {
     if (!product) return
@@ -337,7 +370,7 @@ export function ProductDetailClient({ product, relatedProducts, reviews }: Produ
 
           {/* Variants */}
           <div className="space-y-4">
-            {sizes && sizes.length > 0 && (
+            {allSizes && allSizes.length > 0 && (
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <label className="text-sm font-medium">{t('size')}</label>
@@ -351,17 +384,25 @@ export function ProductDetailClient({ product, relatedProducts, reviews }: Produ
                     <SelectValue placeholder={t('selectVariant')} />
                   </SelectTrigger>
                   <SelectContent>
-                    {sizes.map((size: string) => (
-                      <SelectItem key={size} value={size}>
-                        {size}
-                      </SelectItem>
-                    ))}
+                    {allSizes.map((size: string) => {
+                      const isSizeAvailable = availableSizeSet.has(size)
+                      return (
+                        <SelectItem
+                          key={size}
+                          value={size}
+                          disabled={!isSizeAvailable}
+                          className={cn(!isSizeAvailable && 'opacity-40 line-through')}
+                        >
+                          {size}{!isSizeAvailable ? ` — ${t('outOfStock')}` : ''}
+                        </SelectItem>
+                      )
+                    })}
                   </SelectContent>
                 </Select>
               </div>
             )}
 
-            {colors && colors.length > 0 && (
+            {allColors && allColors.length > 0 && (
               <div>
                 <label className="text-sm font-medium mb-2 block">{t('color')}</label>
                 <Select value={selectedColor} onValueChange={(color) => {
@@ -373,11 +414,19 @@ export function ProductDetailClient({ product, relatedProducts, reviews }: Produ
                     <SelectValue placeholder={t('selectVariant')} />
                   </SelectTrigger>
                   <SelectContent>
-                    {colors.map((color: string) => (
-                      <SelectItem key={color} value={color}>
-                        {color}
-                      </SelectItem>
-                    ))}
+                    {allColors.map((color: string) => {
+                      const isColorAvailable = availableColorSet.has(color)
+                      return (
+                        <SelectItem
+                          key={color}
+                          value={color}
+                          disabled={!isColorAvailable}
+                          className={cn(!isColorAvailable && 'opacity-40 line-through')}
+                        >
+                          {color}{!isColorAvailable ? ` — ${t('outOfStock')}` : ''}
+                        </SelectItem>
+                      )
+                    })}
                   </SelectContent>
                 </Select>
               </div>
@@ -403,17 +452,44 @@ export function ProductDetailClient({ product, relatedProducts, reviews }: Produ
             </div>
           </div>
 
+          {/* Personalization badge */}
+          {personalization && (
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary" className="gap-1.5">
+                <Paintbrush className="size-3" />
+                &quot;{personalization.text.slice(0, 25)}{personalization.text.length > 25 ? '...' : ''}&quot;
+              </Badge>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 px-2 text-xs"
+                onClick={() => setPersonalization(null)}
+              >
+                {t('personalizeClear')}
+              </Button>
+            </div>
+          )}
+
           {/* Action Buttons */}
           <div className="flex gap-3">
             <Button
               className="flex-1"
               size="lg"
-              disabled={!product.inStock || isAddingToCart}
+              disabled={!isCurrentCombinationAvailable || isAddingToCart}
               onClick={handleAddToCart}
             >
               <ShoppingCart className="size-5 mr-2" />
-              {isAddingToCart ? t('adding') || 'Adding...' : t('addToCart')}
+              {!isCurrentCombinationAvailable ? t('outOfStock') : isAddingToCart ? t('adding') || 'Adding...' : t('addToCart')}
             </Button>
+            <ProductPersonalizer
+              productId={product.id}
+              productTitle={product.title}
+              productImage={visibleImages[selectedImage] || product.image}
+              category={product.category}
+              onPersonalized={setPersonalization}
+              onClear={() => setPersonalization(null)}
+              initialData={personalization || undefined}
+            />
             <Button
               variant="outline"
               size="lg"

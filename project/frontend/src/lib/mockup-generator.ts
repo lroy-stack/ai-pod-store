@@ -7,6 +7,7 @@
 import sharp from 'sharp'
 import path from 'path'
 import { supabaseAdmin } from './supabase-admin'
+import { PRINT_AREAS, TEMPLATE_COLORS } from './print-areas'
 
 export interface MockupOptions {
   designUrl: string
@@ -22,24 +23,6 @@ export interface MockupResult {
   placeholder?: boolean
   watermarked?: boolean
   resolution?: number
-}
-
-// Print area definitions (x, y, width, height in px on a 1024x1024 template)
-const PRINT_AREAS: Record<string, { x: number; y: number; w: number; h: number }> = {
-  'tshirt':     { x: 312, y: 200, w: 400, h: 500 },
-  'hoodie':     { x: 300, y: 220, w: 420, h: 480 },
-  'mug':        { x: 150, y: 180, w: 350, h: 300 },
-  'phone-case': { x: 100, y: 150, w: 300, h: 550 },
-  'tote-bag':   { x: 200, y: 150, w: 400, h: 500 },
-}
-
-// Available template colors per product type
-const TEMPLATE_COLORS: Record<string, string[]> = {
-  'tshirt':     ['white', 'black'],
-  'hoodie':     ['white', 'black'],
-  'mug':        ['white'],
-  'phone-case': ['black'],
-  'tote-bag':   ['natural'],
 }
 
 /**

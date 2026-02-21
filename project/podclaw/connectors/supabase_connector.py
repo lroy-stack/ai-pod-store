@@ -234,13 +234,14 @@ class SupabaseMCPConnector:
         data = params["data"]
         filters = params.get("filters", {})
 
+        if not filters:
+            return {"error": "Filters are required for update — unfiltered updates are blocked"}
+
         query_parts = []
         for col, val in filters.items():
             query_parts.append(f"{quote(col)}=eq.{quote(str(val))}")
 
-        url = f"{self._url}/rest/v1/{table}"
-        if query_parts:
-            url += "?" + "&".join(query_parts)
+        url = f"{self._url}/rest/v1/{table}?" + "&".join(query_parts)
 
         async with httpx.AsyncClient() as client:
             resp = await client.patch(url, headers=self._headers, json=data, timeout=30)

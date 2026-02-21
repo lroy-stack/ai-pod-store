@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 import { normalizeCategory } from '@/lib/categories'
 
+export const dynamic = 'force-dynamic'
+
 /**
  * Apply locale-specific translations to product title and description
  */
@@ -34,40 +36,52 @@ function applyTranslations(product: any, locale: string) {
 
 /**
  * Batch-fetch product variants grouped by product ID
+ * Returns sizes, colors, and colorImages (first image_url per color)
  */
-async function fetchVariantsByProductId(productIds: string[]): Promise<Map<string, { sizes: string[]; colors: string[] }>> {
+async function fetchVariantsByProductId(productIds: string[]): Promise<Map<string, { sizes: string[]; colors: string[]; colorImages: Record<string, string> }>> {
   if (productIds.length === 0) return new Map()
 
   const { data: allVariants } = await supabaseAdmin
     .from('product_variants')
-    .select('product_id, size, color')
+    .select('product_id, size, color, image_url')
     .in('product_id', productIds)
     .eq('is_enabled', true)
     .eq('is_available', true)
 
-  const grouped = new Map<string, { sizes: Set<string>; colors: Set<string> }>()
+  const grouped = new Map<string, { sizes: Set<string>; colors: Set<string>; colorImages: Map<string, string> }>()
   for (const v of allVariants || []) {
     if (!grouped.has(v.product_id)) {
-      grouped.set(v.product_id, { sizes: new Set(), colors: new Set() })
+      grouped.set(v.product_id, { sizes: new Set(), colors: new Set(), colorImages: new Map() })
     }
     const entry = grouped.get(v.product_id)!
     if (v.size) entry.sizes.add(v.size)
-    if (v.color) entry.colors.add(v.color)
+    if (v.color) {
+      entry.colors.add(v.color)
+      // Keep first image_url per color
+      if (v.image_url && !entry.colorImages.has(v.color)) {
+        entry.colorImages.set(v.color, v.image_url)
+      }
+    }
   }
 
-  const result = new Map<string, { sizes: string[]; colors: string[] }>()
-  for (const [id, { sizes, colors }] of grouped) {
-    result.set(id, { sizes: [...sizes], colors: [...colors] })
+  const result = new Map<string, { sizes: string[]; colors: string[]; colorImages: Record<string, string> }>()
+  for (const [id, { sizes, colors, colorImages }] of grouped) {
+    result.set(id, {
+      sizes: [...sizes],
+      colors: [...colors],
+      colorImages: Object.fromEntries(colorImages),
+    })
   }
   return result
 }
 
-function buildVariantsField(variantsMap: Map<string, { sizes: string[]; colors: string[] }>, productId: string) {
+function buildVariantsField(variantsMap: Map<string, { sizes: string[]; colors: string[]; colorImages: Record<string, string> }>, productId: string) {
   const pv = variantsMap.get(productId)
   if (!pv) return {}
   return {
     ...(pv.sizes.length > 0 ? { sizes: pv.sizes } : {}),
     ...(pv.colors.length > 0 ? { colors: pv.colors } : {}),
+    ...(Object.keys(pv.colorImages).length > 0 ? { colorImages: pv.colorImages } : {}),
   }
 }
 
@@ -158,7 +172,7 @@ async function hybridSearch(
         reviewCount: p.review_count || 0,
         category: normalizeCategory(p.category),
         tags: p.tags || [],
-        inStock: true,
+        inStock: variantsMap.has(p.id),
         createdAt: p.created_at,
         variants: buildVariantsField(variantsMap, p.id),
         // Include search metadata for debugging
@@ -380,7 +394,7 @@ async function fallbackTextSearch(
       reviewCount: p.review_count || 0,
       category: normalizeCategory(p.category),
       tags: p.tags || [],
-      inStock: true,
+      inStock: variantsMap.has(p.id),
       createdAt: p.created_at,
       variants: buildVariantsField(variantsMap, p.id),
     }
@@ -428,6 +442,8 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ success: false, error: 'Failed to fetch products' }, { status: 500 })
       }
 
+      const idsVariantsMap = await fetchVariantsByProductId((products || []).map(p => p.id))
+
       const items = (products || []).map((p) => {
         const { title, description } = applyTranslations(p, locale)
         return {
@@ -441,6 +457,8 @@ export async function GET(request: NextRequest) {
           rating: Number(p.avg_rating) || 0,
           reviewCount: p.review_count || 0,
           category: normalizeCategory(p.category),
+          inStock: idsVariantsMap.has(p.id),
+          variants: buildVariantsField(idsVariantsMap, p.id),
         }
       })
       return NextResponse.json({ success: true, total: items.length, items, page: 1, limit: items.length, totalPages: 1 })
@@ -523,7 +541,7 @@ export async function GET(request: NextRequest) {
         reviewCount: p.review_count || 0,
         category: normalizeCategory(p.category),
         tags: p.tags || [],
-        inStock: true,
+        inStock: variantsMap.has(p.id),
         createdAt: p.created_at,
         variants: buildVariantsField(variantsMap, p.id),
       }

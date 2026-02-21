@@ -6,11 +6,26 @@
 
 import { Resend } from 'resend'
 
-if (!process.env.RESEND_API_KEY) {
-  console.warn('RESEND_API_KEY not configured — emails will not be sent')
+let _resend: Resend | undefined
+
+function initResend(): Resend {
+  if (!_resend) {
+    if (!process.env.RESEND_API_KEY) {
+      console.warn('RESEND_API_KEY not configured — emails will not be sent')
+    }
+    _resend = new Resend(process.env.RESEND_API_KEY)
+  }
+  return _resend
 }
 
-export const resend = new Resend(process.env.RESEND_API_KEY)
+// Lazy singleton — client is created on first property access, not at import time.
+export const resend: Resend = new Proxy({} as Resend, {
+  get(_, prop) {
+    const client = initResend()
+    const value = (client as any)[prop]
+    return typeof value === 'function' ? value.bind(client) : value
+  },
+})
 
 /**
  * Send order confirmation email

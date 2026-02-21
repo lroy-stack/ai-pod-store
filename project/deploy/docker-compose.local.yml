@@ -6,25 +6,42 @@
 #
 # This override:
 #   - Caddy serves on localhost only (HTTP, no HTTPS)
-#   - Frontend runs with helpful debug settings
-#   - PodClaw enables JSON logs for Docker log drivers
+#   - PodClaw bridge auth disabled for easier local testing
+#   - Redis and rembg ports exposed for local debugging
+#   - NEXT_PUBLIC_BASE_URL set to localhost
 
 services:
   caddy:
     environment:
-      DOMAIN: localhost
+      CADDY_SITE_ADDRESS: "http://localhost"
     ports:
-      - "127.0.0.1:80:80"
+      - "127.0.0.1:8080:80"
       # No 443 binding for local dev — HTTP only
-    # Override: remove 443 from main compose
-    # Caddy will serve HTTP on port 80 for localhost
 
   frontend:
+    ports:
+      - "3000:3000"  # Direct access for local dev/debugging
     environment:
       NODE_ENV: production
       NEXT_TELEMETRY_DISABLED: "1"
+      NEXT_PUBLIC_BASE_URL: http://localhost:3000
+
+  admin:
+    ports:
+      - "3001:3001"  # Direct access for local dev/debugging
+
+  rembg:
+    ports:
+      - "8090:8080"  # Debug access: host 8090 → container 8080
 
   podclaw:
+    ports:
+      - "8000:8000"  # Direct access for local dev/debugging
     environment:
       PODCLAW_JSON_LOGS: "true"
-      PODCLAW_CORS_ORIGINS: "http://localhost,http://localhost:3000,http://localhost:80"
+      PODCLAW_CORS_ORIGINS: "http://localhost,http://localhost:3000,http://localhost:8080"
+      PODCLAW_BRIDGE_AUTH_ENABLED: "false"
+
+  redis:
+    ports:
+      - "6379:6379"  # Only exposed in local dev for debugging

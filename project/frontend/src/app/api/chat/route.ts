@@ -14,16 +14,58 @@ import { normalizeCategory } from '@/lib/categories'
 
 export const maxDuration = 60
 
+/** Format a raw product row into the shape returned by search/browse tools */
+function formatProduct(p: any) {
+  return {
+    id: p.id,
+    title: p.title,
+    description: p.description?.substring(0, 150) + (p.description?.length > 150 ? '...' : ''),
+    category: normalizeCategory(p.category),
+    price: p.base_price_cents / 100,
+    currency: p.currency?.toUpperCase() || 'EUR',
+    image: Array.isArray(p.images) && p.images.length > 0 ? (p.images[0].src || p.images[0].url) : null,
+    rating: p.avg_rating || 0,
+    reviewCount: p.review_count || 0,
+  }
+}
+
 // Initialize Google AI with API key
 const google = createGoogleGenerativeAI({
   apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.GEMINI_API_KEY,
 })
 
 // Initialize Supabase client for database access
+// Use SUPABASE_URL (not NEXT_PUBLIC_*) — NEXT_PUBLIC vars are inlined at build time
 const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_KEY!
 )
+
+/** Fetch top-rated suggestions + available categories when a search returns 0 results */
+async function getSearchFallback() {
+  const [catResult, sugResult] = await Promise.all([
+    supabase.from('products').select('category').eq('status', 'active'),
+    supabase
+      .from('products')
+      .select('id, title, description, category, base_price_cents, currency, images, avg_rating, review_count')
+      .eq('status', 'active')
+      .order('avg_rating', { ascending: false })
+      .limit(4),
+  ])
+
+  const categoryCounts: Record<string, number> = {}
+  for (const p of catResult.data || []) {
+    const cat = normalizeCategory(p.category)
+    categoryCounts[cat] = (categoryCounts[cat] || 0) + 1
+  }
+
+  return {
+    suggestions: (sugResult.data || []).map(formatProduct),
+    availableCategories: Object.entries(categoryCounts)
+      .sort((a, b) => b[1] - a[1])
+      .map(([name, count]) => ({ name, count })),
+  }
+}
 
 /**
  * POST /api/chat
@@ -257,6 +299,12 @@ PRIVACY CLASSIFICATION (for generate_design):
 23. User asks "what's new", "new arrivals", "latest products" → get_recommendations(mode="new_arrivals")
 24. User asks "what's popular", "trending", "best sellers" → get_recommendations(mode="popular")
 25. User asks "cheapest t-shirts", "sort by price" → browse_catalog(sort="priceLowToHigh", category="...")
+26. User says "personalize this", "add my name", "put text on this product", "personalizar esto" → call personalize_product with product ID from context. Generate 3-4 creative text suggestions based on the product type:
+  - For mugs: short phrases, names, morning greetings
+  - For t-shirts: names, short quotes, fun phrases
+  - For hoodies: team names, city names, custom text
+  - For tote bags: eco-friendly messages, names, short quotes
+  - For posters: quotes, dates, location names
 
 EXAMPLES:
 - "show me cat t-shirts" → product_search(query="cat t-shirt")
@@ -286,6 +334,14 @@ IMPORTANT:
 - get_product_detail works with product names directly - you don't need to search first!
 - You have VISION capabilities - when user uploads an image, you can see it directly
 - Call analyze_image tool ONLY when user has uploaded an image to provide structured analysis
+
+WHEN SEARCH RETURNS NO RESULTS (noExactMatch: true):
+- Never just say "no products found" — always be helpful and proactive
+- Acknowledge what the user was looking for
+- Show the suggested alternative products from the "suggestions" field as product cards
+- List the available categories from "availableCategories" so the user knows what's in stock
+- Suggest browsing by category or trying different search terms
+- Example: "I couldn't find T-shirts in our catalog, but we have great hoodies and bags! Here are some popular items you might like: [show suggestions]. Browse our categories: bags (10), mugs (12), hoodies (1)..."
 
 Be friendly, helpful, and concise.`
 
@@ -321,17 +377,22 @@ Be friendly, helpful, and concise.`
               return { success: false, error: error.message, products: [] }
             }
 
-            const formattedProducts = (products || []).map((p) => ({
-              id: p.id,
-              title: p.title,
-              description: p.description?.substring(0, 150) + (p.description?.length > 150 ? '...' : ''),
-              category: normalizeCategory(p.category),
-              price: p.base_price_cents / 100,
-              currency: p.currency?.toUpperCase() || 'EUR',
-              image: Array.isArray(p.images) && p.images.length > 0 ? (p.images[0].src || p.images[0].url) : null,
-              rating: p.avg_rating || 0,
-              reviewCount: p.review_count || 0,
-            }))
+            const formattedProducts = (products || []).map(formatProduct)
+
+            // Fallback: when no results match, suggest alternatives
+            if (formattedProducts.length === 0 && query) {
+              const fallback = await getSearchFallback()
+              return {
+                success: true,
+                products: [],
+                count: 0,
+                query,
+                noExactMatch: true,
+                suggestions: fallback.suggestions,
+                availableCategories: fallback.availableCategories,
+                hint: `No products found matching "${query}". Showing top-rated alternatives and available categories. Suggest the user browse these categories or try different search terms.`,
+              }
+            }
 
             return {
               success: true,
@@ -401,17 +462,24 @@ Be friendly, helpful, and concise.`
               return { success: false, error: error.message, products: [] }
             }
 
-            const formattedProducts = (products || []).map((p) => ({
-              id: p.id,
-              title: p.title,
-              description: p.description?.substring(0, 150) + (p.description?.length > 150 ? '...' : ''),
-              category: normalizeCategory(p.category),
-              price: p.base_price_cents / 100,
-              currency: p.currency?.toUpperCase() || 'EUR',
-              image: Array.isArray(p.images) && p.images.length > 0 ? (p.images[0].src || p.images[0].url) : null,
-              rating: p.avg_rating || 0,
-              reviewCount: p.review_count || 0,
-            }))
+            const formattedProducts = (products || []).map(formatProduct)
+
+            // Fallback: when category filter returns 0 results, suggest alternatives
+            if (formattedProducts.length === 0 && category) {
+              const fallback = await getSearchFallback()
+              return {
+                success: true,
+                products: [],
+                category,
+                page,
+                totalCount: 0,
+                hasMore: false,
+                noExactMatch: true,
+                suggestions: fallback.suggestions,
+                availableCategories: fallback.availableCategories,
+                hint: `Category "${category}" has no products. Showing top-rated alternatives. Suggest the user browse available categories.`,
+              }
+            }
 
             return {
               success: true,
@@ -588,17 +656,7 @@ Be friendly, helpful, and concise.`
               return { success: false, error: error.message, products: [] }
             }
 
-            const formattedProducts = (products || []).map((p) => ({
-              id: p.id,
-              title: p.title,
-              description: p.description?.substring(0, 150) + (p.description?.length > 150 ? '...' : ''),
-              category: normalizeCategory(p.category),
-              price: p.base_price_cents / 100,
-              currency: p.currency?.toUpperCase() || 'EUR',
-              image: Array.isArray(p.images) && p.images.length > 0 ? (p.images[0].src || p.images[0].url) : null,
-              rating: p.avg_rating || 0,
-              reviewCount: p.review_count || 0,
-            }))
+            const formattedProducts = (products || []).map(formatProduct)
 
             return {
               success: true,
@@ -1863,6 +1921,41 @@ Be friendly, helpful, and concise.`
           }
         },
       }),
+
+      personalize_product: tool({
+        description: 'Suggest personalized text for a product the user is viewing. Use when user wants to add their name, a message, or custom text to an existing product.',
+        parameters: z.object({
+          product_id: z.string().describe('Product UUID from context'),
+          suggested_texts: z.array(z.string().max(50)).max(4)
+            .describe('3-4 text suggestions based on product type and user context'),
+          recommended_font: z.string().optional().default('Inter'),
+          recommended_position: z.enum(['top', 'center', 'bottom']).optional().default('bottom'),
+        }),
+        // @ts-expect-error AI SDK 6.0.86 type mismatch — execute works at runtime
+        execute: async (args: { product_id: string; suggested_texts: string[]; recommended_font?: string; recommended_position?: string }) => {
+          const { data: product } = await supabase
+            .from('products')
+            .select('id, title, images, category')
+            .eq('id', args.product_id)
+            .single()
+
+          if (!product) return { success: false, error: 'Product not found' }
+
+          const image = Array.isArray(product.images) && product.images.length > 0
+            ? ((product.images[0] as any).src || (product.images[0] as any).url) : null
+
+          return {
+            success: true,
+            productId: product.id,
+            productTitle: product.title,
+            productImage: image,
+            category: product.category,
+            suggestions: args.suggested_texts,
+            recommendedFont: args.recommended_font || 'Inter',
+            recommendedPosition: args.recommended_position || 'bottom',
+          }
+        },
+      }),
     }
 
     // RAG Pipeline Integration
@@ -1924,7 +2017,7 @@ Be friendly, helpful, and concise.`
     // Using gemini-2.5-flash (latest stable as of June 2025)
     // Convert UIMessage format (with parts array) to CoreMessage format (with content string)
     // This is needed because useChat sends UIMessage but streamText expects CoreMessage
-    const convertedMessages = await convertToModelMessages(messages)
+    const convertedMessages = await convertToModelMessages(messages, { tools })
 
     // Inject RAG context into system prompt
     const enhancedSystemPrompt = systemPrompt + ragContext

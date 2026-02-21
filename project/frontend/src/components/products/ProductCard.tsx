@@ -2,12 +2,13 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { useTranslations, useLocale } from 'next-intl'
 import { Star, Heart, ShoppingCart, ImageOff, Eye } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { formatPrice, getLocalizedPrice } from '@/lib/currency'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { useWishlist } from '@/hooks/useWishlist'
 import { useCart } from '@/hooks/useCart'
 import { useStorefront } from '@/components/storefront/StorefrontContext'
@@ -25,15 +26,18 @@ interface Product {
   variants?: {
     sizes?: string[]
     colors?: string[]
+    colorImages?: Record<string, string>
   }
   stock?: number
+  inStock?: boolean
 }
 
 interface ProductCardProps {
   product: Product
+  priority?: boolean
 }
 
-export function ProductCard({ product }: ProductCardProps) {
+export function ProductCard({ product, priority }: ProductCardProps) {
   const t = useTranslations('product')
   const locale = useLocale()
   const { isWishlisted, toggleWishlist } = useWishlist()
@@ -41,6 +45,27 @@ export function ProductCard({ product }: ProductCardProps) {
   const { setSelectedProduct, addArtifact } = useStorefront()
   const [imgError, setImgError] = useState(false)
   const wishlisted = isWishlisted(product.id)
+
+  // Color variant selection (user-driven, no auto-rotation)
+  const colorImages = product.variants?.colorImages
+  const colorEntries = colorImages ? Object.entries(colorImages) : []
+  const hasMultipleColors = colorEntries.length > 1
+  const [colorIdx, setColorIdx] = useState(0)
+
+  const displayImage = hasMultipleColors ? colorEntries[colorIdx][1] : product.image
+  const displayColor = hasMultipleColors ? colorEntries[colorIdx][0] : null
+
+  const handleColorSwatch = useCallback((e: React.MouseEvent, i: number) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setColorIdx(i)
+    setImgError(false)
+  }, [])
+
+  const handleColorSwatchHover = useCallback((i: number) => {
+    setColorIdx(i)
+    setImgError(false)
+  }, [])
 
   const handleToggleWishlist = (e: React.MouseEvent) => {
     e.preventDefault()
@@ -69,27 +94,37 @@ export function ProductCard({ product }: ProductCardProps) {
   const localizedPrice = getLocalizedPrice(product.price, product.currency, locale)
   const formattedPrice = formatPrice(localizedPrice, locale)
 
+  const productHref = `/shop/${product.id}${displayColor ? `?color=${encodeURIComponent(displayColor)}` : ''}`
+
   return (
     <>
       <Link
-        href={`/shop/${product.id}`}
+        href={productHref}
         className="group block rounded-2xl bg-card overflow-hidden border border-border/40 hover:border-border/80 shadow-sm hover:shadow-xl transition-all duration-300"
       >
         {/* Image */}
         <div className="relative aspect-square bg-muted overflow-hidden">
-          {product.image && !imgError ? (
+          {displayImage && !imgError ? (
             <Image
-              src={product.image}
+              src={displayImage}
               alt={product.title}
               fill
               className="object-cover group-hover:scale-[1.03] transition-transform duration-500 ease-out"
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+              priority={priority}
               onError={() => setImgError(true)}
             />
           ) : (
             <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground/40 gap-2">
               <ImageOff className="h-10 w-10" />
               <span className="text-xs font-medium text-muted-foreground/60">{product.title}</span>
+            </div>
+          )}
+
+          {/* Out of stock overlay */}
+          {product.inStock === false && (
+            <div className="absolute inset-0 bg-background/60 flex items-center justify-center">
+              <Badge variant="secondary" className="text-xs">{t('outOfStock')}</Badge>
             </div>
           )}
 
@@ -112,14 +147,38 @@ export function ProductCard({ product }: ProductCardProps) {
 
         {/* Info + Actions */}
         <div className="px-3.5 py-3 space-y-2">
-          <div className="space-y-0.5">
-            <h3 className="font-medium text-sm leading-snug line-clamp-1 text-foreground group-hover:text-primary transition-colors">
-              {product.title}
-            </h3>
-            <p className="text-xs text-muted-foreground line-clamp-1">
-              {product.description}
-            </p>
-          </div>
+          <h3 className="font-medium text-sm leading-snug line-clamp-1 text-foreground group-hover:text-primary transition-colors">
+            {product.title}
+          </h3>
+
+          {/* Color variant swatches — mini product thumbnails */}
+          {hasMultipleColors && (
+            <div className="flex items-center gap-1.5">
+              {colorEntries.map(([color, imgUrl], i) => (
+                <button
+                  key={color}
+                  className={cn(
+                    'relative w-6 h-6 rounded-full overflow-hidden border-2 transition-all duration-200 flex-shrink-0',
+                    i === colorIdx
+                      ? 'border-primary ring-1 ring-primary/30'
+                      : 'border-border/60 hover:border-border'
+                  )}
+                  onClick={(e) => handleColorSwatch(e, i)}
+                  onMouseEnter={() => handleColorSwatchHover(i)}
+                  aria-label={color}
+                  title={color}
+                >
+                  <Image
+                    src={imgUrl}
+                    alt={color}
+                    fill
+                    className="object-cover"
+                    sizes="24px"
+                  />
+                </button>
+              ))}
+            </div>
+          )}
 
           <div className="flex items-center justify-between">
             <p className="text-sm font-semibold text-foreground tracking-tight">
@@ -140,9 +199,10 @@ export function ProductCard({ product }: ProductCardProps) {
               size="sm"
               className="flex-1 h-8 text-xs font-medium rounded-lg"
               onClick={handleAddToCart}
+              disabled={product.inStock === false}
             >
               <ShoppingCart className="h-3.5 w-3.5 mr-1.5" />
-              {t('addToCart')}
+              {product.inStock === false ? t('outOfStock') : t('addToCart')}
             </Button>
             <Button
               variant="outline"
