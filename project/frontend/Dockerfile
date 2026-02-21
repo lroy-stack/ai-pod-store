@@ -16,8 +16,8 @@ WORKDIR /app
 # Copy only package manifests for better layer caching
 COPY package.json package-lock.json ./
 
-# Install production + dev dependencies (dev needed for build step)
-RUN npm ci
+# Install dependencies (npm install tolerates minor peer dep mismatches)
+RUN npm install --ignore-scripts=false
 
 # ---------------------------------------------------------------------------
 # Stage 2: Build the application
@@ -28,6 +28,24 @@ WORKDIR /app
 
 # Disable Next.js telemetry during build
 ENV NEXT_TELEMETRY_DISABLED=1
+
+# Dummy env vars needed at build time for page data collection
+# These are NOT used at runtime — real values come from env_file/environment
+ENV SUPABASE_URL=https://placeholder.supabase.co
+ENV SUPABASE_SERVICE_KEY=placeholder-service-key
+ENV NEXT_PUBLIC_SUPABASE_URL=https://placeholder.supabase.co
+ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=placeholder-anon-key
+ENV STRIPE_SECRET_KEY=sk_test_placeholder
+ENV STRIPE_WEBHOOK_SECRET=whsec_placeholder
+ENV NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_placeholder
+ENV GOOGLE_GENERATIVE_AI_API_KEY=placeholder
+ENV NEXT_PUBLIC_BASE_URL=http://localhost:3000
+ENV RESEND_API_KEY=re_placeholder
+ENV PRINTIFY_API_TOKEN=placeholder
+ENV PRINTIFY_SHOP_ID=0
+ENV PRINTIFY_WEBHOOK_SECRET=placeholder
+ENV CRON_SECRET=placeholder
+ENV REDIS_URL=redis://placeholder:6379
 
 # Copy node_modules from deps stage
 COPY --from=deps /app/node_modules ./node_modules
