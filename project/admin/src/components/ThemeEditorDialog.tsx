@@ -19,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { OklchColorPicker } from './OklchColorPicker';
 import { Settings } from 'lucide-react';
 
@@ -78,6 +79,7 @@ const SHADOW_PRESETS = [
 export function ThemeEditorDialog({ theme, onSave, trigger }: ThemeEditorDialogProps) {
   const [open, setOpen] = useState(false);
   const [cssVariables, setCssVariables] = useState<Record<string, string>>({});
+  const [cssVariablesDark, setCssVariablesDark] = useState<Record<string, string>>({});
   const [fonts, setFonts] = useState({ heading: '', body: '', mono: '' });
   const [borderRadius, setBorderRadius] = useState('0.5rem');
   const [shadowPreset, setShadowPreset] = useState('subtle');
@@ -87,6 +89,7 @@ export function ThemeEditorDialog({ theme, onSave, trigger }: ThemeEditorDialogP
   useEffect(() => {
     if (open) {
       setCssVariables({ ...theme.css_variables });
+      setCssVariablesDark({ ...theme.css_variables_dark });
       setFonts({ ...theme.fonts });
       setBorderRadius(theme.border_radius || '0.5rem');
       setShadowPreset(theme.shadow_preset || 'subtle');
@@ -95,6 +98,13 @@ export function ThemeEditorDialog({ theme, onSave, trigger }: ThemeEditorDialogP
 
   const handleColorChange = (key: string, value: string) => {
     setCssVariables((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+  };
+
+  const handleDarkColorChange = (key: string, value: string) => {
+    setCssVariablesDark((prev) => ({
       ...prev,
       [key]: value,
     }));
@@ -113,6 +123,7 @@ export function ThemeEditorDialog({ theme, onSave, trigger }: ThemeEditorDialogP
       const updatedTheme = {
         ...theme,
         css_variables: cssVariables,
+        css_variables_dark: cssVariablesDark,
         fonts: fonts,
         border_radius: borderRadius,
         shadow_preset: shadowPreset,
@@ -155,16 +166,34 @@ export function ThemeEditorDialog({ theme, onSave, trigger }: ThemeEditorDialogP
         <div className="space-y-6">
           <div>
             <h3 className="text-sm font-semibold mb-4">Color Variables</h3>
-            <div className="space-y-4">
-              {COLOR_VARIABLES.map((variable) => (
-                <OklchColorPicker
-                  key={variable.key}
-                  label={variable.label}
-                  value={cssVariables[variable.key] || 'oklch(0.5 0.1 0)'}
-                  onChange={(value) => handleColorChange(variable.key, value)}
-                />
-              ))}
-            </div>
+            <Tabs defaultValue="light" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="light">Light Mode</TabsTrigger>
+                <TabsTrigger value="dark">Dark Mode</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="light" className="space-y-4 mt-4">
+                {COLOR_VARIABLES.map((variable) => (
+                  <OklchColorPicker
+                    key={variable.key}
+                    label={variable.label}
+                    value={cssVariables[variable.key] || 'oklch(0.5 0.1 0)'}
+                    onChange={(value) => handleColorChange(variable.key, value)}
+                  />
+                ))}
+              </TabsContent>
+
+              <TabsContent value="dark" className="space-y-4 mt-4">
+                {COLOR_VARIABLES.map((variable) => (
+                  <OklchColorPicker
+                    key={`dark-${variable.key}`}
+                    label={variable.label}
+                    value={cssVariablesDark[variable.key] || 'oklch(0.5 0.1 0)'}
+                    onChange={(value) => handleDarkColorChange(variable.key, value)}
+                  />
+                ))}
+              </TabsContent>
+            </Tabs>
           </div>
 
           <Separator />
