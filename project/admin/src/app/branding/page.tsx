@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Check, Sparkles } from 'lucide-react';
+import { ThemeEditorDialog } from '@/components/ThemeEditorDialog';
 
 interface Theme {
   id: string;
@@ -211,11 +212,19 @@ export default function BrandingPage() {
                         {activatingId === theme.id ? 'Activating...' : 'Activate'}
                       </Button>
                     )}
-                    {theme.is_custom && (
-                      <Button variant="outline" size="sm" className="flex-1">
-                        Edit
-                      </Button>
-                    )}
+                    <ThemeEditorDialog
+                      theme={theme}
+                      onSave={async (updatedTheme) => {
+                        // TODO: Call API to update theme
+                        console.log('Saving theme:', updatedTheme);
+                        await fetchThemes();
+                      }}
+                      trigger={
+                        <Button variant="outline" size="sm" className="flex-1">
+                          Customize
+                        </Button>
+                      }
+                    />
                   </div>
                 </CardContent>
               </Card>
