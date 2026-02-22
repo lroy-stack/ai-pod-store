@@ -74,8 +74,14 @@ RUN groupadd -r crawl4ai && useradd -r -g crawl4ai -u 1000 crawl4ai
 WORKDIR /app
 RUN chown -R crawl4ai:crawl4ai /app
 
+# Create output directory for crawled data
+RUN mkdir -p /app/output && chown -R crawl4ai:crawl4ai /app/output
+
 # Copy application code
 COPY --chown=crawl4ai:crawl4ai . .
+
+# Volume for persistent crawl output
+VOLUME ["/app/output"]
 
 # Switch to non-root user
 USER crawl4ai
