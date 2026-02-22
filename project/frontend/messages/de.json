@@ -821,5 +821,79 @@
         "description": "Werden verwendet, um Besucher über Websites hinweg zu verfolgen und relevante und ansprechende Werbung anzuzeigen."
       }
     }
+  },
+  "privacy": {
+    "title": "Datenschutzerklärung",
+    "lastUpdated": "Zuletzt aktualisiert",
+    "intro": {
+      "title": "Einführung",
+      "content": "Bei POD AI Store respektieren wir Ihre Privatsphäre und verpflichten uns, Ihre personenbezogenen Daten zu schützen. Diese Datenschutzerklärung erklärt, wie wir Ihre Informationen sammeln, verwenden und schützen, wenn Sie unsere KI-gestützte Print-on-Demand-Plattform nutzen."
+    },
+    "dataCollected": {
+      "title": "Gesammelte Daten",
+      "content": "Wir sammeln und verarbeiten die folgenden Arten von personenbezogenen Daten:",
+      "items": {
+        "0": "Kontoinformationen: E-Mail-Adresse, Name, Passwort (verschlüsselt)",
+        "1": "Bestellinformationen: Lieferadresse, Rechnungsadresse, Kaufhistorie",
+        "2": "Zahlungsinformationen: sicher über Stripe verarbeitet (wir speichern keine Kartendetails)",
+        "3": "Design-Daten: von Ihnen erstellte KI-generierte Designs, Personalisierungspräferenzen",
+        "4": "Nutzungsdaten: Chat-Gespräche mit unserem KI-Agenten, Seitenaufrufe, Interaktionsmuster",
+        "5": "Technische Daten: IP-Adresse, Browsertyp, Geräteinformationen, Cookies",
+        "6": "Marketing-Präferenzen: Newsletter-Abonnementstatus, Kommunikationspräferenzen"
+      }
+    },
+    "legalBasis": {
+      "title": "Rechtsgrundlage für die Verarbeitung",
+      "content": "Wir verarbeiten Ihre personenbezogenen Daten auf folgenden rechtlichen Grundlagen:",
+      "items": {
+        "0": "Vertragserfüllung: zur Erfüllung Ihrer Bestellungen und Bereitstellung unserer Dienste",
+        "1": "Berechtigte Interessen: zur Verbesserung unserer Plattform, Betrugsprävention und Nutzungsanalyse",
+        "2": "Einwilligung: für Marketing-Kommunikation und optionale Analyse-Cookies",
+        "3": "Rechtliche Verpflichtung: zur Einhaltung steuerlicher, buchhalterischer und rechtlicher Anforderungen"
+      }
+    },
+    "retention": {
+      "title": "Datenspeicherung",
+      "content": "Wir bewahren Ihre personenbezogenen Daten nur so lange auf wie nötig:",
+      "items": {
+        "0": "Kontodaten: bis Sie Ihr Konto löschen, dann 30 Tage Schonfrist",
+        "1": "Bestellhistorie: 7 Jahre für steuerliche und rechtliche Compliance",
+        "2": "Chat-Gespräche: 1 Jahr, dann automatisch gelöscht",
+        "3": "Audit-Protokolle: 2 Jahre für Sicherheit und Compliance",
+        "4": "Marketing-Ereignisse: 6 Monate für Kampagnenanalyse",
+        "5": "Unbestätigte Konten: 30 Tage, dann automatisch gelöscht"
+      }
+    },
+    "thirdParties": {
+      "title": "Drittanbieter-Dienste",
+      "content": "Wir teilen Ihre Daten mit vertrauenswürdigen Drittanbietern:",
+      "items": {
+        "0": "Stripe: Zahlungsabwicklung (PCI DSS-konform)",
+        "1": "Printify: Auftragsabwicklung und Versand",
+        "2": "Supabase: Datenbank- und Authentifizierungsinfrastruktur",
+        "3": "Google Gemini: KI-Embeddings für Produktempfehlungen",
+        "4": "fal.ai: KI-Bildgenerierung für individuelle Designs",
+        "5": "Resend: Transaktions-E-Mail-Zustellung",
+        "6": "Anthropic Claude: Konversations-KI-Agent"
+      }
+    },
+    "rights": {
+      "title": "Ihre Datenschutzrechte",
+      "content": "Unter der DSGVO haben Sie folgende Rechte:",
+      "items": {
+        "0": "Recht auf Auskunft: Kopie Ihrer personenbezogenen Daten anfordern",
+        "1": "Recht auf Berichtigung: ungenaue oder unvollständige Daten korrigieren",
+        "2": "Recht auf Löschung: Ihr Konto und personenbezogene Daten löschen",
+        "3": "Recht auf Datenübertragbarkeit: Ihre Daten in maschinenlesbarem Format herunterladen",
+        "4": "Recht auf Widerruf der Einwilligung: jederzeit vom Marketing abmelden",
+        "5": "Widerspruchsrecht: Profilbildung und automatisierte Entscheidungsfindung ablehnen",
+        "6": "Recht auf Beschwerde: Ihre örtliche Datenschutzbehörde kontaktieren"
+      }
+    },
+    "contact": {
+      "title": "Kontakt",
+      "content": "Für datenschutzbezogene Fragen, Auskunftsersuchen oder zur Ausübung Ihrer Rechte kontaktieren Sie uns bitte unter: privacy@podai.com. Wir werden innerhalb von 30 Tagen antworten."
+    },
+    "footer": "Diese Datenschutzerklärung kann regelmäßig aktualisiert werden. Die fortgesetzte Nutzung unserer Plattform stellt die Akzeptanz von Änderungen dar."
   }
 }

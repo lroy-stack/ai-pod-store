@@ -821,5 +821,79 @@
         "description": "Used to track visitors across websites to display relevant and engaging advertisements."
       }
     }
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "lastUpdated": "Last updated",
+    "intro": {
+      "title": "Introduction",
+      "content": "At POD AI Store, we respect your privacy and are committed to protecting your personal data. This privacy policy explains how we collect, use, and safeguard your information when you use our AI-powered print-on-demand platform."
+    },
+    "dataCollected": {
+      "title": "Data We Collect",
+      "content": "We collect and process the following types of personal data:",
+      "items": {
+        "0": "Account information: email address, name, password (encrypted)",
+        "1": "Order information: shipping address, billing address, purchase history",
+        "2": "Payment information: processed securely through Stripe (we do not store card details)",
+        "3": "Design data: AI-generated designs you create, personalization preferences",
+        "4": "Usage data: chat conversations with our AI agent, page views, interaction patterns",
+        "5": "Technical data: IP address, browser type, device information, cookies",
+        "6": "Marketing preferences: newsletter subscription status, communication preferences"
+      }
+    },
+    "legalBasis": {
+      "title": "Legal Basis for Processing",
+      "content": "We process your personal data based on the following legal grounds:",
+      "items": {
+        "0": "Contract performance: to fulfill your orders and provide our services",
+        "1": "Legitimate interests: to improve our platform, prevent fraud, and analyze usage",
+        "2": "Consent: for marketing communications and optional analytics cookies",
+        "3": "Legal obligation: to comply with tax, accounting, and legal requirements"
+      }
+    },
+    "retention": {
+      "title": "Data Retention",
+      "content": "We retain your personal data only as long as necessary:",
+      "items": {
+        "0": "Account data: until you delete your account, then 30 days grace period",
+        "1": "Order history: 7 years for tax and legal compliance",
+        "2": "Chat conversations: 1 year, then automatically deleted",
+        "3": "Audit logs: 2 years for security and compliance",
+        "4": "Marketing events: 6 months for campaign analysis",
+        "5": "Unconfirmed accounts: 30 days, then automatically deleted"
+      }
+    },
+    "thirdParties": {
+      "title": "Third-Party Services",
+      "content": "We share your data with trusted third-party service providers:",
+      "items": {
+        "0": "Stripe: payment processing (PCI DSS compliant)",
+        "1": "Printify: order fulfillment and shipping",
+        "2": "Supabase: database and authentication infrastructure",
+        "3": "Google Gemini: AI embeddings for product recommendations",
+        "4": "fal.ai: AI image generation for custom designs",
+        "5": "Resend: transactional email delivery",
+        "6": "Anthropic Claude: conversational AI agent"
+      }
+    },
+    "rights": {
+      "title": "Your Privacy Rights",
+      "content": "Under GDPR, you have the following rights:",
+      "items": {
+        "0": "Right to access: request a copy of your personal data",
+        "1": "Right to rectification: correct inaccurate or incomplete data",
+        "2": "Right to erasure: delete your account and personal data",
+        "3": "Right to data portability: download your data in machine-readable format",
+        "4": "Right to withdraw consent: unsubscribe from marketing at any time",
+        "5": "Right to object: opt-out of profiling and automated decision-making",
+        "6": "Right to lodge a complaint: contact your local data protection authority"
+      }
+    },
+    "contact": {
+      "title": "Contact Us",
+      "content": "For privacy-related questions, data subject access requests, or to exercise your rights, please contact us at: privacy@podai.com. We will respond within 30 days."
+    },
+    "footer": "This privacy policy may be updated periodically. Continued use of our platform constitutes acceptance of any changes."
   }
 }

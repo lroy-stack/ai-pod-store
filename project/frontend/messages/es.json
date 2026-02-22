@@ -821,5 +821,79 @@
         "description": "Se utilizan para rastrear visitantes en sitios web y mostrar anuncios relevantes y atractivos."
       }
     }
+  },
+  "privacy": {
+    "title": "Política de Privacidad",
+    "lastUpdated": "Última actualización",
+    "intro": {
+      "title": "Introducción",
+      "content": "En POD AI Store, respetamos tu privacidad y nos comprometemos a proteger tus datos personales. Esta política de privacidad explica cómo recopilamos, usamos y protegemos tu información cuando utilizas nuestra plataforma de impresión bajo demanda con IA."
+    },
+    "dataCollected": {
+      "title": "Datos que Recopilamos",
+      "content": "Recopilamos y procesamos los siguientes tipos de datos personales:",
+      "items": {
+        "0": "Información de cuenta: dirección de correo electrónico, nombre, contraseña (encriptada)",
+        "1": "Información de pedidos: dirección de envío, dirección de facturación, historial de compras",
+        "2": "Información de pago: procesada de forma segura a través de Stripe (no almacenamos datos de tarjeta)",
+        "3": "Datos de diseño: diseños generados por IA que creas, preferencias de personalización",
+        "4": "Datos de uso: conversaciones de chat con nuestro agente IA, vistas de página, patrones de interacción",
+        "5": "Datos técnicos: dirección IP, tipo de navegador, información del dispositivo, cookies",
+        "6": "Preferencias de marketing: estado de suscripción al boletín, preferencias de comunicación"
+      }
+    },
+    "legalBasis": {
+      "title": "Base Legal para el Procesamiento",
+      "content": "Procesamos tus datos personales basándonos en los siguientes fundamentos legales:",
+      "items": {
+        "0": "Ejecución del contrato: para cumplir tus pedidos y proporcionar nuestros servicios",
+        "1": "Intereses legítimos: para mejorar nuestra plataforma, prevenir fraude y analizar el uso",
+        "2": "Consentimiento: para comunicaciones de marketing y cookies de análisis opcionales",
+        "3": "Obligación legal: para cumplir con requisitos fiscales, contables y legales"
+      }
+    },
+    "retention": {
+      "title": "Retención de Datos",
+      "content": "Conservamos tus datos personales solo el tiempo necesario:",
+      "items": {
+        "0": "Datos de cuenta: hasta que elimines tu cuenta, luego 30 días de período de gracia",
+        "1": "Historial de pedidos: 7 años para cumplimiento fiscal y legal",
+        "2": "Conversaciones de chat: 1 año, luego se eliminan automáticamente",
+        "3": "Registros de auditoría: 2 años para seguridad y cumplimiento",
+        "4": "Eventos de marketing: 6 meses para análisis de campañas",
+        "5": "Cuentas no confirmadas: 30 días, luego se eliminan automáticamente"
+      }
+    },
+    "thirdParties": {
+      "title": "Servicios de Terceros",
+      "content": "Compartimos tus datos con proveedores de servicios de terceros de confianza:",
+      "items": {
+        "0": "Stripe: procesamiento de pagos (cumple con PCI DSS)",
+        "1": "Printify: cumplimiento y envío de pedidos",
+        "2": "Supabase: infraestructura de base de datos y autenticación",
+        "3": "Google Gemini: embeddings de IA para recomendaciones de productos",
+        "4": "fal.ai: generación de imágenes con IA para diseños personalizados",
+        "5": "Resend: entrega de correos electrónicos transaccionales",
+        "6": "Anthropic Claude: agente IA conversacional"
+      }
+    },
+    "rights": {
+      "title": "Tus Derechos de Privacidad",
+      "content": "Bajo el RGPD, tienes los siguientes derechos:",
+      "items": {
+        "0": "Derecho de acceso: solicitar una copia de tus datos personales",
+        "1": "Derecho de rectificación: corregir datos inexactos o incompletos",
+        "2": "Derecho de supresión: eliminar tu cuenta y datos personales",
+        "3": "Derecho a la portabilidad: descargar tus datos en formato legible por máquina",
+        "4": "Derecho a retirar el consentimiento: cancelar la suscripción al marketing en cualquier momento",
+        "5": "Derecho de oposición: optar por no participar en perfiles y toma de decisiones automatizada",
+        "6": "Derecho a presentar una queja: contactar con tu autoridad local de protección de datos"
+      }
+    },
+    "contact": {
+      "title": "Contáctanos",
+      "content": "Para preguntas relacionadas con la privacidad, solicitudes de acceso a datos personales o para ejercer tus derechos, contáctanos en: privacy@podai.com. Responderemos en un plazo de 30 días."
+    },
+    "footer": "Esta política de privacidad puede actualizarse periódicamente. El uso continuado de nuestra plataforma constituye la aceptación de cualquier cambio."
   }
 }
