@@ -27,6 +27,7 @@ import { useSidebarCollapsed } from '@/hooks/useSidebarCollapsed'
 import { cn } from '@/lib/utils'
 import { OfflineBanner } from '@/components/OfflineBanner'
 import { InstallPrompt } from '@/components/engagement/InstallPrompt'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
 
 const WelcomePopup = dynamic(
   () => import('@/components/engagement/WelcomePopup').then((mod) => ({ default: mod.WelcomePopup })),
@@ -105,7 +106,9 @@ function StorefrontShell({ children }: { children: React.ReactNode }) {
           "flex flex-1 flex-col min-h-0",
           isChatPage ? "visible" : "invisible absolute inset-0 pointer-events-none"
         )}>
-          <ChatArea />
+          <ErrorBoundary>
+            <ChatArea />
+          </ErrorBoundary>
         </div>
         {!isChatPage && (
           <div className="flex flex-1 flex-col min-h-0 overflow-y-auto">

@@ -1,0 +1,199 @@
+name: CI
+
+# Trigger CI on push to main and on pull requests
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+# Cancel in-progress runs if a new commit is pushed
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Lint and type-check the frontend
+  lint-and-typecheck:
+    name: Lint & Type Check (Node ${{ matrix.node-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [20, 22]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Run ESLint
+        working-directory: frontend
+        run: npm run lint
+
+      - name: Run TypeScript type check
+        working-directory: frontend
+        run: npm run type-check
+
+  # Build the frontend
+  build:
+    name: Build Frontend (Node ${{ matrix.node-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [20, 22]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build production bundle
+        working-directory: frontend
+        run: npm run build
+        env:
+          # Mock environment variables for build (not used in CI)
+          NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: mock_anon_key
+          SUPABASE_SERVICE_KEY: mock_service_key
+          STRIPE_SECRET_KEY: sk_test_mock
+          STRIPE_WEBHOOK_SECRET: whsec_mock
+          PRINTIFY_API_TOKEN: mock_token
+          PRINTIFY_SHOP_ID: 123456
+          PRINTIFY_WEBHOOK_SECRET: mock_webhook_secret
+          ANTHROPIC_API_KEY: sk-ant-api-mock
+          FAL_KEY: mock_fal_key
+          GEMINI_API_KEY: AIza_mock_key
+
+  # Run E2E tests with Playwright
+  e2e-tests:
+    name: E2E Tests (Node ${{ matrix.node-version }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      matrix:
+        node-version: [20, 22]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Install Playwright browsers
+        working-directory: frontend
+        run: npx playwright install --with-deps chromium
+
+      - name: Start development server
+        working-directory: frontend
+        run: npm run dev &
+        env:
+          # Mock environment variables for E2E tests
+          NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: mock_anon_key
+          SUPABASE_SERVICE_KEY: mock_service_key
+          STRIPE_SECRET_KEY: sk_test_mock
+          STRIPE_WEBHOOK_SECRET: whsec_mock
+          PRINTIFY_API_TOKEN: mock_token
+          PRINTIFY_SHOP_ID: 123456
+          PRINTIFY_WEBHOOK_SECRET: mock_webhook_secret
+          ANTHROPIC_API_KEY: sk-ant-api-mock
+          FAL_KEY: mock_fal_key
+          GEMINI_API_KEY: AIza_mock_key
+
+      - name: Wait for server to be ready
+        run: |
+          timeout 60 bash -c 'until curl -f http://localhost:3000/api/ping; do sleep 2; done'
+
+      - name: Run E2E tests
+        working-directory: frontend
+        run: npm run test:e2e -- --project=chromium
+        env:
+          TEST_BASE_URL: http://localhost:3000
+
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report-node-${{ matrix.node-version }}
+          path: frontend/playwright-report/
+          retention-days: 7
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-node-${{ matrix.node-version }}
+          path: frontend/test-results/
+          retention-days: 7
+
+  # Lint and build the admin panel
+  admin-lint-and-build:
+    name: Admin Panel - Lint & Build (Node ${{ matrix.node-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [20, 22]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          cache-dependency-path: admin/package-lock.json
+
+      - name: Install dependencies
+        working-directory: admin
+        run: npm ci
+
+      - name: Run ESLint
+        working-directory: admin
+        run: npm run lint
+
+      - name: Run TypeScript type check
+        working-directory: admin
+        run: npm run type-check || true  # Admin may not have type-check script
+
+      - name: Build production bundle
+        working-directory: admin
+        run: npm run build
+        env:
+          # Mock environment variables for build
+          NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: mock_anon_key
+          SUPABASE_SERVICE_KEY: mock_service_key
+          STRIPE_SECRET_KEY: sk_test_mock

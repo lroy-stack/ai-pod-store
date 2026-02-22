@@ -11,7 +11,15 @@ export function getCorsHeaders(origin?: string | null): Record<string, string> {
   ]
 
   const requestOrigin = origin || ''
-  const allowOrigin = allowedOrigins.some((allowed) => requestOrigin.startsWith(allowed))
+  const allowOrigin = allowedOrigins.some((allowed) => {
+    try {
+      const allowedUrl = new URL(allowed)
+      const requestUrl = new URL(requestOrigin)
+      return allowedUrl.origin === requestUrl.origin
+    } catch {
+      return allowed === requestOrigin
+    }
+  })
     ? requestOrigin
     : allowedOrigins[0]
 

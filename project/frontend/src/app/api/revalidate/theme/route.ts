@@ -1,5 +1,6 @@
 import { revalidateTag } from 'next/cache'
 import { NextRequest, NextResponse } from 'next/server'
+import { verifyCronSecret } from '@/lib/rate-limit'
 
 /**
  * POST /api/revalidate/theme
@@ -10,7 +11,7 @@ export async function POST(request: NextRequest) {
   const authHeader = request.headers.get('authorization')
   const expectedKey = process.env.SUPABASE_SERVICE_KEY
 
-  if (!expectedKey || authHeader !== `Bearer ${expectedKey}`) {
+  if (!verifyCronSecret(authHeader, expectedKey)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

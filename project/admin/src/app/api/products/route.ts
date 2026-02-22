@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import { withPermission } from '@/lib/rbac';
+import { logCreate } from '@/lib/audit';
 
-export async function GET(req: NextRequest) {
+// GET requires 'read' permission on 'products' resource
+export const GET = withPermission('products', 'read', async (req: NextRequest) => {
   try {
     const { searchParams } = new URL(req.url);
     const limit = parseInt(searchParams.get('limit') || '50');
@@ -28,9 +31,10 @@ export async function GET(req: NextRequest) {
       { status: 500 }
     );
   }
-}
+});
 
-export async function POST(req: NextRequest) {
+// POST requires 'create' permission on 'products' resource
+export const POST = withPermission('products', 'create', async (req: NextRequest, session) => {
   try {
     const body = await req.json();
     const {
@@ -86,6 +90,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Log audit event
+    await logCreate(session.userId, 'products', product.id, product);
+
     return NextResponse.json({ product }, { status: 201 });
   } catch (error) {
     console.error('Product creation error:', error);
@@ -94,4 +101,4 @@ export async function POST(req: NextRequest) {
       { status: 500 }
     );
   }
-}
+});

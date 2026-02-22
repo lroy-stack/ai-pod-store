@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Toaster } from "sonner";
 import { SSEProvider } from "@/components/providers/SSEProvider";
+import { GlobalSearch } from "@/components/GlobalSearch";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 export const metadata: Metadata = {
   title: "POD AI Admin",
@@ -17,8 +19,11 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <SSEProvider>
-          {children}
+          <ErrorBoundary>
+            {children}
+          </ErrorBoundary>
         </SSEProvider>
+        <GlobalSearch />
         <Toaster position="top-right" richColors />
       </body>
     </html>

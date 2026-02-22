@@ -101,12 +101,14 @@ export async function POST(
 
     // Create audit log entry
     await supabase
-      .from('audit_logs')
+      .from('audit_log')
       .insert({
-        event_type: 'return_rejected',
+        actor_type: 'admin',
         actor_id: session.id,
+        action: 'return_rejected',
         resource_type: 'return_request',
         resource_id: id,
+        changes: { after: { status: 'rejected' } },
         metadata: {
           order_id: returnRequest.order_id,
           rejection_reason: admin_notes,

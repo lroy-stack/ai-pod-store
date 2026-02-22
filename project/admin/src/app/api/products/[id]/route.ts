@@ -1,11 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import { withPermission } from '@/lib/rbac';
+import { logUpdate } from '@/lib/audit';
 
-export async function GET(
+// GET requires 'read' permission on 'products' resource
+export const GET = withPermission('products', 'read', async (
   req: NextRequest,
-  context: { params: Promise<{ id: string }> }
-) {
+  session,
+  context?: { params: Promise<{ id: string }> }
+) => {
   try {
+    if (!context) {
+      return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
+    }
+
     const { id } = await context.params;
 
     const { data: product, error } = await supabaseAdmin
@@ -29,16 +37,37 @@ export async function GET(
       { status: 500 }
     );
   }
-}
+});
 
-export async function PATCH(
+// PATCH requires 'update' permission on 'products' resource
+export const PATCH = withPermission('products', 'update', async (
   req: NextRequest,
-  context: { params: Promise<{ id: string }> }
-) {
+  session,
+  context?: { params: Promise<{ id: string }> }
+) => {
   try {
+    if (!context) {
+      return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
+    }
+
     const { id } = await context.params;
     const body = await req.json();
 
+    // Fetch current product state (before update)
+    const { data: beforeProduct, error: fetchError } = await supabaseAdmin
+      .from('products')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (fetchError || !beforeProduct) {
+      return NextResponse.json(
+        { error: 'Product not found' },
+        { status: 404 }
+      );
+    }
+
+    // Perform update
     const { data: product, error } = await supabaseAdmin
       .from('products')
       .update(body)
@@ -54,6 +83,9 @@ export async function PATCH(
       );
     }
 
+    // Log audit event with before/after values
+    await logUpdate(session.userId, 'products', id, beforeProduct, product);
+
     return NextResponse.json({ product });
   } catch (error) {
     console.error('Product update error:', error);
@@ -62,4 +94,4 @@ export async function PATCH(
       { status: 500 }
     );
   }
-}
+});

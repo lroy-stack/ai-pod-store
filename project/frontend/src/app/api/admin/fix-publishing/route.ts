@@ -11,13 +11,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 import { printify } from '@/lib/printify'
+import { verifyCronSecret } from '@/lib/rate-limit'
 
 const CRON_SECRET = process.env.CRON_SECRET || process.env.PODCLAW_BRIDGE_AUTH_TOKEN
 
 export async function GET(req: NextRequest) {
-  // Auth check — requires CRON_SECRET
+  // Auth check — timing-safe
   const authHeader = req.headers.get('authorization')
-  if (!CRON_SECRET || authHeader !== `Bearer ${CRON_SECRET}`) {
+  if (!verifyCronSecret(authHeader, CRON_SECRET)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

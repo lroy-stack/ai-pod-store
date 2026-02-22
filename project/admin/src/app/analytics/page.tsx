@@ -10,7 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { TrendingUp, DollarSign, ShoppingCart, Package, Users, Target, RefreshCw } from 'lucide-react';
+import { TrendingUp, DollarSign, ShoppingCart, Package, Users, Target, RefreshCw, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface FinanceReport {
@@ -154,6 +154,36 @@ export default function AnalyticsPage() {
     }).format(amount);
   };
 
+  const handleExport = async () => {
+    try {
+      const response = await fetch('/api/admin/analytics/export', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          report,
+          rfmData,
+          demandData,
+        }),
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `analytics-export-${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      }
+    } catch (error) {
+      console.error('Error exporting analytics:', error);
+    }
+  };
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -190,10 +220,16 @@ export default function AnalyticsPage() {
           <h1 className="text-3xl font-bold">Analytics & Finance</h1>
           <p className="text-muted-foreground">Financial overview, customer segments, and demand forecasting</p>
         </div>
-        <Button onClick={fetchAllData} variant="outline">
-          <RefreshCw className="mr-2 h-4 w-4" />
-          Refresh
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={handleExport} variant="outline" disabled={!report && !rfmData && !demandData}>
+            <Download className="mr-2 h-4 w-4" />
+            Export CSV
+          </Button>
+          <Button onClick={fetchAllData} variant="outline">
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Refresh
+          </Button>
+        </div>
       </div>
 
       {/* RFM Customer Segmentation */}

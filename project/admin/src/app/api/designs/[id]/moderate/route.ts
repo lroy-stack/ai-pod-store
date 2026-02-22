@@ -1,93 +1,60 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
-import { cookies } from 'next/headers'
+import { NextRequest, NextResponse } from 'next/server';
+import { supabaseAdmin } from '@/lib/supabase';
+import { withPermission } from '@/lib/rbac';
 
-// Admin auth check
-async function checkAdminAuth() {
-  const cookieStore = await cookies()
-  const sessionCookie = cookieStore.get('admin-session')
-
-  if (!sessionCookie) {
-    return null
-  }
-
-  try {
-    const session = JSON.parse(sessionCookie.value)
-    if (session.role !== 'admin') {
-      return null
-    }
-    return session
-  } catch {
-    return null
-  }
-}
-
-export async function PUT(
+// PUT requires 'moderate' permission on 'designs' resource
+export const PUT = withPermission('designs', 'moderate', async (
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  // Check admin authentication
-  const session = await checkAdminAuth()
-  if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
-  const { id } = await params
-
-  const supabaseUrl = process.env.SUPABASE_URL
-  const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY
-
-  if (!supabaseUrl || !supabaseServiceKey) {
-    return NextResponse.json(
-      { error: 'Supabase configuration missing' },
-      { status: 500 }
-    )
-  }
-
-  const supabase = createClient(supabaseUrl, supabaseServiceKey)
-
+  session,
+  context?: { params: Promise<{ id: string }> }
+) => {
   try {
-    const body = await request.json()
-    const { status, notes } = body
+    if (!context) {
+      return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
+    }
+
+    const { id } = await context.params;
+    const body = await request.json();
+    const { status, notes } = body;
 
     // Validate status
     if (!status || !['approved', 'rejected'].includes(status)) {
       return NextResponse.json(
         { error: 'Invalid status. Must be "approved" or "rejected"' },
         { status: 400 }
-      )
+      );
     }
 
     // Update the design moderation status
     const updateData: any = {
       moderation_status: status,
-    }
+    };
 
     if (notes) {
-      updateData.moderation_notes = notes
+      updateData.moderation_notes = notes;
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('designs')
       .update(updateData)
       .eq('id', id)
       .select()
-      .single()
+      .single();
 
     if (error) {
-      console.error('Supabase error:', error)
+      console.error('Supabase error:', error);
       return NextResponse.json(
         { error: 'Failed to update design', details: error.message },
         { status: 500 }
-      )
+      );
     }
 
-    return NextResponse.json({ design: data })
+    return NextResponse.json({ design: data });
   } catch (error) {
-    console.error('Error moderating design:', error)
+    console.error('Error moderating design:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
-    )
+    );
   }
-}
+});

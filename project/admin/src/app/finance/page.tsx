@@ -10,7 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { DollarSign, TrendingUp, ArrowUpRight, ArrowDownRight, RefreshCw } from 'lucide-react';
+import { DollarSign, TrendingUp, ArrowUpRight, ArrowDownRight, RefreshCw, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface FinanceReport {
@@ -81,6 +81,32 @@ export default function FinancePage() {
       style: 'currency',
       currency: currency.toUpperCase(),
     }).format(amount);
+  };
+
+  const handleExport = async () => {
+    try {
+      const response = await fetch('/api/admin/finance/export', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ report }),
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `finance-export-${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      }
+    } catch (error) {
+      console.error('Error exporting finance report:', error);
+    }
   };
 
   if (loading) {
@@ -155,10 +181,16 @@ export default function FinancePage() {
             Comprehensive financial overview and performance metrics
           </p>
         </div>
-        <Button onClick={fetchReport} variant="outline">
-          <RefreshCw className="mr-2 h-4 w-4" />
-          Refresh
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={handleExport} variant="outline" disabled={!report}>
+            <Download className="mr-2 h-4 w-4" />
+            Export CSV
+          </Button>
+          <Button onClick={fetchReport} variant="outline">
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Refresh
+          </Button>
+        </div>
       </div>
 
       {/* Key Metrics */}

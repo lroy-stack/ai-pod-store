@@ -10,6 +10,7 @@ import { CommandPalette } from '@/components/CommandPalette'
 import { ServiceWorkerRegistration } from '@/components/ServiceWorkerRegistration'
 import { ThemeLoader } from '@/components/ThemeLoader'
 import { CookieConsent } from '@/components/gdpr/CookieConsent'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
 
 const locales = ['en', 'es', 'de']
 
@@ -39,12 +40,14 @@ async function ProvidersContent({
       >
         <CartProvider>
           <WishlistProvider>
-            <ServiceWorkerRegistration />
-            <ThemeLoader />
-            {children}
-            <Toaster />
-            <CommandPalette />
-            <CookieConsent />
+            <ErrorBoundary>
+              <ServiceWorkerRegistration />
+              <ThemeLoader />
+              {children}
+              <Toaster />
+              <CommandPalette />
+              <CookieConsent />
+            </ErrorBoundary>
           </WishlistProvider>
         </CartProvider>
       </ThemeProvider>

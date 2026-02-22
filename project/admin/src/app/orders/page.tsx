@@ -5,6 +5,24 @@ import Link from 'next/link';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import {
   Table,
   TableBody,
@@ -55,6 +73,12 @@ export default function OrdersPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
+
+  // Bulk operations state
+  const [selectedOrders, setSelectedOrders] = useState<Set<string>>(new Set());
+  const [bulkAction, setBulkAction] = useState<string>('');
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [bulkLoading, setBulkLoading] = useState(false);
 
   useEffect(() => {
     fetchOrders();
@@ -110,6 +134,82 @@ export default function OrdersPage() {
       hour: '2-digit',
       minute: '2-digit',
     });
+  };
+
+  // Bulk selection handlers
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedOrders(new Set(orders.map((order) => order.id)));
+    } else {
+      setSelectedOrders(new Set());
+    }
+  };
+
+  const handleSelectOrder = (orderId: string, checked: boolean) => {
+    const newSelected = new Set(selectedOrders);
+    if (checked) {
+      newSelected.add(orderId);
+    } else {
+      newSelected.delete(orderId);
+    }
+    setSelectedOrders(newSelected);
+  };
+
+  const isAllSelected = orders.length > 0 && selectedOrders.size === orders.length;
+  const isSomeSelected = selectedOrders.size > 0 && selectedOrders.size < orders.length;
+
+  // Bulk action handlers
+  const handleBulkActionChange = (action: string) => {
+    setBulkAction(action);
+    setShowConfirmDialog(true);
+  };
+
+  const executeBulkAction = async () => {
+    if (!bulkAction || selectedOrders.size === 0) return;
+
+    try {
+      setBulkLoading(true);
+      const response = await fetch('/api/admin/orders/bulk', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          orderIds: Array.from(selectedOrders),
+          action: bulkAction,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Bulk action failed');
+      }
+
+      // Refresh orders and clear selection
+      await fetchOrders();
+      setSelectedOrders(new Set());
+      setBulkAction('');
+      setShowConfirmDialog(false);
+    } catch (error) {
+      console.error('Failed to execute bulk action:', error);
+      alert('Failed to execute bulk action. Please try again.');
+    } finally {
+      setBulkLoading(false);
+    }
+  };
+
+  const getBulkActionLabel = (action: string) => {
+    switch (action) {
+      case 'cancel':
+        return 'Cancel Orders';
+      case 'mark_shipped':
+        return 'Mark as Shipped';
+      case 'mark_delivered':
+        return 'Mark as Delivered';
+      case 'mark_processing':
+        return 'Mark as Processing';
+      default:
+        return 'Unknown Action';
+    }
   };
 
   return (
@@ -186,6 +286,35 @@ export default function OrdersPage() {
           </div>
         </div>
 
+        {/* Bulk Actions Bar */}
+        {selectedOrders.size > 0 && (
+          <div className="mb-4 p-4 border rounded-lg bg-muted/50 flex items-center justify-between">
+            <p className="text-sm font-medium">
+              {selectedOrders.size} order{selectedOrders.size !== 1 ? 's' : ''} selected
+            </p>
+            <div className="flex items-center gap-3">
+              <Select onValueChange={handleBulkActionChange} value="">
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="Bulk actions..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="mark_processing">Mark as Processing</SelectItem>
+                  <SelectItem value="mark_shipped">Mark as Shipped</SelectItem>
+                  <SelectItem value="mark_delivered">Mark as Delivered</SelectItem>
+                  <SelectItem value="cancel">Cancel Orders</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setSelectedOrders(new Set())}
+              >
+                Clear Selection
+              </Button>
+            </div>
+          </div>
+        )}
+
         {/* Orders Table */}
         <div className="border rounded-lg bg-card">
           {loading ? (
@@ -201,6 +330,13 @@ export default function OrdersPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-[50px]">
+                      <Checkbox
+                        checked={isAllSelected}
+                        onCheckedChange={handleSelectAll}
+                        aria-label="Select all orders"
+                      />
+                    </TableHead>
                     <TableHead>Order ID</TableHead>
                     <TableHead>Customer</TableHead>
                     <TableHead>Status</TableHead>
@@ -211,6 +347,15 @@ export default function OrdersPage() {
                 <TableBody>
                   {orders.map((order) => (
                     <TableRow key={order.id}>
+                      <TableCell>
+                        <Checkbox
+                          checked={selectedOrders.has(order.id)}
+                          onCheckedChange={(checked) =>
+                            handleSelectOrder(order.id, checked as boolean)
+                          }
+                          aria-label={`Select order ${order.id}`}
+                        />
+                      </TableCell>
                       <TableCell className="font-mono text-sm">
                         <Link
                           href={`/orders/${order.id}`}
@@ -275,6 +420,29 @@ export default function OrdersPage() {
             </>
           )}
         </div>
+
+        {/* Confirmation Dialog */}
+        <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Confirm Bulk Action</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to {getBulkActionLabel(bulkAction).toLowerCase()} for{' '}
+                {selectedOrders.size} order{selectedOrders.size !== 1 ? 's' : ''}?
+                This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={bulkLoading}>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={executeBulkAction}
+                disabled={bulkLoading}
+              >
+                {bulkLoading ? 'Processing...' : 'Confirm'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );

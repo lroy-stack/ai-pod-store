@@ -13,6 +13,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { printify } from '@/lib/printify'
+import { verifyCronSecret } from '@/lib/rate-limit'
 
 const supabase = createClient(
   process.env.SUPABASE_URL!,
@@ -25,9 +26,9 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  // Auth: require bearer token (called by PodClaw or cron)
+  // Auth: require bearer token, timing-safe (called by PodClaw or cron)
   const authHeader = req.headers.get('authorization')
-  if (!CRON_SECRET || authHeader !== `Bearer ${CRON_SECRET}`) {
+  if (!verifyCronSecret(authHeader, CRON_SECRET)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

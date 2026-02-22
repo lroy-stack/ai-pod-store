@@ -5,6 +5,7 @@ import { Bell } from 'lucide-react';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
+import { ThemeToggle } from './ThemeToggle';
 
 interface Notification {
   id: string;
@@ -78,6 +79,9 @@ export function TopBar() {
         <div className="flex-1" />
 
         <div className="flex items-center gap-4">
+          {/* Theme Toggle */}
+          <ThemeToggle />
+
           {/* Notification Bell */}
           <div className="relative" ref={dropdownRef}>
             <Button

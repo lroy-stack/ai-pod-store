@@ -5,6 +5,7 @@ import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/
 import { getRedisClient, closeRedis } from './lib/redis.js';
 import { getSupabaseClient } from './lib/supabase.js';
 import { getStripeClient } from './lib/stripe.js';
+import { getOrCreateSessionId } from './lib/session.js';
 import {
   handleAuthorizationServerMetadata,
   handleProtectedResourceMetadata,
@@ -42,6 +43,11 @@ let toolCount = 0;
 // Tools will be registered in subsequent features
 
 console.info('[MCP Server] Initialized');
+
+// Create and connect the Streamable HTTP transport once at startup
+const transport = new StreamableHTTPServerTransport();
+await mcpServer.connect(transport);
+console.info('[MCP Server] Transport connected');
 
 // Create HTTP server
 const server = http.createServer(async (req, res) => {
@@ -107,10 +113,18 @@ const server = http.createServer(async (req, res) => {
   // MCP endpoint - handle via StreamableHTTPServerTransport
   if (req.url?.startsWith('/mcp') || req.url === '/') {
     try {
-      const transport = new StreamableHTTPServerTransport();
-      await mcpServer.connect(transport);
+      // Get or create session ID
+      const sessionId = await getOrCreateSessionId(req);
 
-      // Handle the request through the transport
+      // Wrap response to add session ID header
+      const originalWriteHead = res.writeHead.bind(res);
+      res.writeHead = function (statusCode: number, ...args: any[]) {
+        // Add session ID header before writing
+        res.setHeader('Mcp-Session-Id', sessionId);
+        return originalWriteHead(statusCode, ...args);
+      };
+
+      // Use the pre-connected transport to handle the request
       await transport.handleRequest(req, res);
     } catch (error) {
       console.error('[MCP Server] Error handling request:', error);

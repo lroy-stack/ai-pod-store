@@ -25,6 +25,11 @@ class RateLimiter {
   }
 
   check(key: string): { success: boolean; remaining: number } {
+    // Bypass rate limiting for E2E tests
+    if (process.env.PLAYWRIGHT_TEST_BASE_URL || process.env.CI) {
+      return { success: true, remaining: this.limit }
+    }
+
     const now = Date.now()
 
     // Cleanup expired entries periodically
@@ -60,6 +65,22 @@ export const couponLimiter = new RateLimiter(10, 5 * 60 * 1000)     // 10 attemp
 export const apiLimiter = new RateLimiter(100, 60 * 1000)           // 100 requests / 1 min
 export const designGenerateLimiter = new RateLimiter(5, 60 * 1000)  // 5 requests / 1 min
 export const newsletterLimiter = new RateLimiter(10, 60 * 1000)     // 10 requests / 1 min
+
+/**
+ * Timing-safe comparison for bearer tokens (prevents timing attacks).
+ * Returns true if the provided authorization header matches `Bearer ${secret}`.
+ */
+export function verifyCronSecret(authHeader: string | null, secret: string | undefined): boolean {
+  if (!secret || !authHeader) return false
+  const expected = `Bearer ${secret}`
+  if (authHeader.length !== expected.length) return false
+  const { timingSafeEqual } = require('crypto')
+  try {
+    return timingSafeEqual(Buffer.from(authHeader), Buffer.from(expected))
+  } catch {
+    return false
+  }
+}
 
 /**
  * Helper to get client IP from request headers

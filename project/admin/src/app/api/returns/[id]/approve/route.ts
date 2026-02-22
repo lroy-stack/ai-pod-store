@@ -154,15 +154,16 @@ export async function POST(
 
     // Create audit log entry
     await supabase
-      .from('audit_logs')
+      .from('audit_log')
       .insert({
-        event_type: 'return_approved',
+        actor_type: 'admin',
         actor_id: session.id,
+        action: 'return_approved',
         resource_type: 'return_request',
         resource_id: id,
+        changes: { after: { status: 'approved', refund_amount_cents: order.total_cents } },
         metadata: {
           order_id: returnRequest.order_id,
-          refund_amount_cents: order.total_cents,
           stripe_refund_id: stripeRefund.id,
         }
       })

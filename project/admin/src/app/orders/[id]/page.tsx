@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Package, Truck, CheckCircle, Clock, RefreshCw, Paintbrush } from 'lucide-react';
+import { ArrowLeft, Package, Truck, CheckCircle, Clock, RefreshCw, Paintbrush, ShoppingCart, CreditCard, Send } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface OrderLineItem {
@@ -58,12 +58,74 @@ const statusColors: Record<string, 'default' | 'secondary' | 'destructive' | 'ou
   refunded: 'outline',
 };
 
-const timelineStages = [
-  { key: 'paid', label: 'Paid', icon: CheckCircle },
-  { key: 'submitted', label: 'Submitted to Printify', icon: Package },
-  { key: 'production', label: 'In Production', icon: Clock },
-  { key: 'shipped', label: 'Shipped', icon: Truck },
-];
+// Helper to generate timeline events from order data
+const generateTimelineEvents = (order: OrderDetail) => {
+  const events: Array<{ label: string; timestamp: string | null; icon: any; details?: string }> = [];
+
+  // Order created
+  events.push({
+    label: 'Order Created',
+    timestamp: order.created_at,
+    icon: ShoppingCart,
+    details: `Order placed${order.user?.email ? ` by ${order.user.email}` : ''}`,
+  });
+
+  // Payment received
+  if (order.paid_at) {
+    events.push({
+      label: 'Payment Received',
+      timestamp: order.paid_at,
+      icon: CreditCard,
+      details: order.stripe_payment_intent_id
+        ? `Payment ID: ${order.stripe_payment_intent_id.substring(0, 20)}...`
+        : 'Payment processed successfully',
+    });
+  }
+
+  // Submitted to Printify
+  if (order.printify_order_id) {
+    events.push({
+      label: 'Submitted to Printify',
+      timestamp: order.paid_at, // Typically happens right after payment
+      icon: Send,
+      details: `Printify Order ID: ${order.printify_order_id}`,
+    });
+  }
+
+  // In Production (if status is production or later)
+  if (['production', 'shipped', 'delivered'].includes(order.status)) {
+    events.push({
+      label: 'In Production',
+      timestamp: null, // Would need separate tracking
+      icon: Clock,
+      details: order.printify_status ? `Status: ${order.printify_status}` : undefined,
+    });
+  }
+
+  // Shipped
+  if (order.shipped_at) {
+    events.push({
+      label: 'Shipped',
+      timestamp: order.shipped_at,
+      icon: Truck,
+      details: order.tracking_number
+        ? `Tracking: ${order.tracking_number}${order.carrier ? ` (${order.carrier})` : ''}`
+        : undefined,
+    });
+  }
+
+  // Delivered (if status is delivered)
+  if (order.status === 'delivered') {
+    events.push({
+      label: 'Delivered',
+      timestamp: null, // Would need separate tracking
+      icon: CheckCircle,
+      details: 'Order successfully delivered',
+    });
+  }
+
+  return events;
+};
 
 export default function OrderDetailPage() {
   const params = useParams();
@@ -115,19 +177,6 @@ export default function OrderDetailPage() {
     });
   };
 
-  const getStatusStage = (status: string): number => {
-    const stages: Record<string, number> = {
-      pending: 0,
-      paid: 1,
-      submitted: 2,
-      processing: 2,
-      production: 3,
-      shipped: 4,
-      delivered: 4,
-    };
-    return stages[status] || 0;
-  };
-
   const handleRetryPrintify = async () => {
     if (!order) return;
 
@@ -176,7 +225,7 @@ export default function OrderDetailPage() {
     );
   }
 
-  const currentStage = getStatusStage(order.status);
+  const timelineEvents = generateTimelineEvents(order);
 
   return (
     <div className="min-h-screen p-4 md:p-8">
@@ -202,31 +251,25 @@ export default function OrderDetailPage() {
           </div>
         </div>
 
-        {/* Status Timeline */}
+        {/* Event History Timeline */}
         <div className="bg-card border rounded-lg p-6 mb-6">
-          <h2 className="text-xl font-semibold mb-6">Order Timeline</h2>
+          <h2 className="text-xl font-semibold mb-6">Event History</h2>
           <div className="relative">
-            {timelineStages.map((stage, index) => {
-              const isCompleted = index < currentStage;
-              const isActive = index === currentStage;
-              const Icon = stage.icon;
+            {timelineEvents.map((event, index) => {
+              const Icon = event.icon;
+              const hasTimestamp = !!event.timestamp;
 
               return (
-                <div key={stage.key} className="flex items-start mb-6 last:mb-0">
+                <div key={index} className="flex items-start mb-6 last:mb-0">
                   {/* Connector Line */}
-                  {index < timelineStages.length - 1 && (
-                    <div
-                      className={`absolute left-5 top-12 w-0.5 h-12 ${
-                        isCompleted ? 'bg-primary' : 'bg-border'
-                      }`}
-                      style={{ marginTop: `${index * 96}px` }}
-                    />
+                  {index < timelineEvents.length - 1 && (
+                    <div className="absolute left-5 w-0.5 bg-border" style={{ top: `${index * 96 + 40}px`, height: '56px' }} />
                   )}
 
                   {/* Icon */}
                   <div
                     className={`relative z-10 flex items-center justify-center w-10 h-10 rounded-full border-2 ${
-                      isCompleted || isActive
+                      hasTimestamp
                         ? 'bg-primary border-primary text-primary-foreground'
                         : 'bg-background border-border text-muted-foreground'
                     }`}
@@ -236,18 +279,14 @@ export default function OrderDetailPage() {
 
                   {/* Content */}
                   <div className="ml-4 flex-1">
-                    <p
-                      className={`font-medium ${
-                        isCompleted || isActive ? 'text-foreground' : 'text-muted-foreground'
-                      }`}
-                    >
-                      {stage.label}
+                    <p className={`font-medium ${hasTimestamp ? 'text-foreground' : 'text-muted-foreground'}`}>
+                      {event.label}
                     </p>
-                    {stage.key === 'paid' && order.paid_at && (
-                      <p className="text-sm text-muted-foreground">{formatDate(order.paid_at)}</p>
+                    {event.timestamp && (
+                      <p className="text-sm text-muted-foreground mt-0.5">{formatDate(event.timestamp)}</p>
                     )}
-                    {stage.key === 'shipped' && order.shipped_at && (
-                      <p className="text-sm text-muted-foreground">{formatDate(order.shipped_at)}</p>
+                    {event.details && (
+                      <p className="text-xs text-muted-foreground mt-1">{event.details}</p>
                     )}
                   </div>
                 </div>

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import {
   Table,
   TableBody,
@@ -13,6 +14,17 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { DollarSign, ShoppingCart, Package, TrendingUp } from 'lucide-react';
 import { DashboardLayout } from '@/components/DashboardLayout';
+import {
+  LineChart,
+  Line,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from 'recharts';
 
 interface DashboardStats {
   revenue: number;
@@ -36,6 +48,13 @@ export default function DashboardPage() {
   const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [ordersLoading, setOrdersLoading] = useState(true);
+
+  // Chart data state
+  const [revenuePeriod, setRevenuePeriod] = useState<'7d' | '30d' | '90d'>('7d');
+  const [revenueData, setRevenueData] = useState<any[]>([]);
+  const [topProductsData, setTopProductsData] = useState<any[]>([]);
+  const [customerAcquisitionData, setCustomerAcquisitionData] = useState<any[]>([]);
+  const [chartsLoading, setChartsLoading] = useState(true);
 
   useEffect(() => {
     async function fetchStats() {
@@ -69,6 +88,41 @@ export default function DashboardPage() {
     fetchStats();
     fetchRecentOrders();
   }, []);
+
+  useEffect(() => {
+    async function fetchChartData() {
+      try {
+        setChartsLoading(true);
+
+        // Fetch revenue trend
+        const revenueRes = await fetch(`/api/dashboard/revenue-trend?period=${revenuePeriod}`);
+        if (revenueRes.ok) {
+          const data = await revenueRes.json();
+          setRevenueData(data);
+        }
+
+        // Fetch top products
+        const productsRes = await fetch('/api/dashboard/top-products');
+        if (productsRes.ok) {
+          const data = await productsRes.json();
+          setTopProductsData(data);
+        }
+
+        // Fetch customer acquisition
+        const customersRes = await fetch('/api/dashboard/customer-acquisition');
+        if (customersRes.ok) {
+          const data = await customersRes.json();
+          setCustomerAcquisitionData(data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch chart data:', error);
+      } finally {
+        setChartsLoading(false);
+      }
+    }
+
+    fetchChartData();
+  }, [revenuePeriod]);
 
   if (loading) {
     return (
@@ -158,6 +212,118 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Charts Section */}
+      <div className="grid gap-6 md:grid-cols-2 mt-6">
+        {/* Revenue Trend Chart */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle>Revenue Trend</CardTitle>
+              <div className="flex gap-2">
+                <Button
+                  variant={revenuePeriod === '7d' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setRevenuePeriod('7d')}
+                >
+                  7d
+                </Button>
+                <Button
+                  variant={revenuePeriod === '30d' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setRevenuePeriod('30d')}
+                >
+                  30d
+                </Button>
+                <Button
+                  variant={revenuePeriod === '90d' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setRevenuePeriod('90d')}
+                >
+                  90d
+                </Button>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {chartsLoading ? (
+              <div className="h-[300px] flex items-center justify-center">
+                <p className="text-muted-foreground">Loading chart...</p>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={revenueData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis
+                    dataKey="date"
+                    tickFormatter={(value) => new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                  />
+                  <YAxis />
+                  <Tooltip
+                    formatter={(value: number) => [`€${value.toFixed(2)}`, 'Revenue']}
+                    labelFormatter={(label) => new Date(label).toLocaleDateString()}
+                  />
+                  <Line type="monotone" dataKey="revenue" stroke="hsl(var(--primary))" strokeWidth={2} />
+                </LineChart>
+              </ResponsiveContainer>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Top Selling Products Chart */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Top Selling Products</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {chartsLoading ? (
+              <div className="h-[300px] flex items-center justify-center">
+                <p className="text-muted-foreground">Loading chart...</p>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={topProductsData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="sales" fill="hsl(var(--primary))" />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Customer Acquisition Chart */}
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle>Customer Acquisition (Last 30 Days)</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {chartsLoading ? (
+            <div className="h-[300px] flex items-center justify-center">
+              <p className="text-muted-foreground">Loading chart...</p>
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={customerAcquisitionData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis
+                  dataKey="date"
+                  tickFormatter={(value) => new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                />
+                <YAxis />
+                <Tooltip
+                  formatter={(value: number) => [value, 'New Customers']}
+                  labelFormatter={(label) => new Date(label).toLocaleDateString()}
+                />
+                <Line type="monotone" dataKey="customers" stroke="hsl(var(--chart-2))" strokeWidth={2} />
+              </LineChart>
+            </ResponsiveContainer>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Recent Orders Table */}
       <Card className="mt-6">

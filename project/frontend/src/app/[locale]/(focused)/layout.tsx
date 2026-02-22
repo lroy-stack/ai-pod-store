@@ -1,4 +1,5 @@
 import { AuthBackground } from '@/components/auth/AuthBackground'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
 
 export default function FocusedLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -6,7 +7,9 @@ export default function FocusedLayout({ children }: { children: React.ReactNode 
       <AuthBackground />
       <div className="relative z-10 flex min-h-dvh flex-col items-center px-4 py-6 md:py-10">
         <div className="my-auto w-full">
-          {children}
+          <ErrorBoundary>
+            {children}
+          </ErrorBoundary>
         </div>
       </div>
     </div>
