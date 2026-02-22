@@ -1,8 +1,8 @@
-import Redis from 'ioredis';
+import Redis, { type Redis as RedisClient } from 'ioredis';
 
-let redisClient: Redis | null = null;
+let redisClient: RedisClient | null = null;
 
-export function getRedisClient(): Redis | null {
+export function getRedisClient(): RedisClient | null {
   if (redisClient) return redisClient;
 
   const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
@@ -21,7 +21,7 @@ export function getRedisClient(): Redis | null {
       lazyConnect: true,
     });
 
-    redisClient.on('error', (err) => {
+    redisClient.on('error', (err: Error) => {
       console.error('[Redis] Connection error:', err.message);
     });
 
@@ -30,7 +30,7 @@ export function getRedisClient(): Redis | null {
     });
 
     // Attempt connection (lazy connect)
-    redisClient.connect().catch((err) => {
+    redisClient.connect().catch((err: Error) => {
       console.error('[Redis] Failed to connect:', err.message);
       console.warn('[Redis] Running without Redis (graceful fallback)');
     });
