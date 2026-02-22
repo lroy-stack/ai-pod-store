@@ -73,6 +73,21 @@ function generatePersonalizationPNG(
   return buffer.toString('base64');
 }
 
+/**
+ * POST /api/checkout/create-session
+ *
+ * Create a Stripe Checkout Session for cart checkout
+ *
+ * Request body:
+ * @param {Array} cartItems - Array of cart items with productId, variantId, quantity, personalization
+ * @param {Object} shippingAddress - Shipping address (name, line1, city, state, postal_code, country)
+ * @param {string} locale - User locale (en/es/de, default: en)
+ * @param {string} currency - Currency code (default: EUR)
+ * @param {string} customerEmail - Customer email address
+ * @param {string} gift_message - Optional gift message
+ *
+ * @returns {Object} JSON response with Stripe Checkout Session URL
+ */
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();

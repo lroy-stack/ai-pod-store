@@ -3,6 +3,14 @@ import { getRedisClient } from '@/lib/redis'
 import { getCorsHeaders, handleCorsPrelight } from '@/lib/cors'
 import { logInfo } from '@/lib/logger'
 
+/**
+ * OPTIONS /api/health
+ *
+ * Handle CORS preflight requests for the health endpoint
+ *
+ * @param {Request} req - The incoming request
+ * @returns {Response} CORS preflight response
+ */
 export async function OPTIONS(req: Request) {
   const preflightResponse = handleCorsPrelight(req)
   return preflightResponse || new Response(null, { status: 405 })
@@ -20,6 +28,20 @@ async function measureLatency<T>(
   return { result, latency }
 }
 
+/**
+ * GET /api/health
+ *
+ * Health check endpoint with dependency latency measurements
+ *
+ * Returns system status, memory usage, and latency metrics for:
+ * - Supabase (database)
+ * - Redis (cache)
+ * - Printify (fulfillment API)
+ * - Stripe (payment API)
+ *
+ * @param {Request} req - The incoming request
+ * @returns {Response} JSON health status with latencies
+ */
 export async function GET(req: Request) {
   const health: Record<string, unknown> = {
     status: 'ok',

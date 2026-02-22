@@ -418,6 +418,23 @@ async function fallbackTextSearch(
   })
 }
 
+/**
+ * GET /api/products
+ *
+ * Fetch products with pagination, filtering, and search
+ *
+ * Query Parameters:
+ * @param {string} page - Page number (default: 1)
+ * @param {string} limit - Items per page (default: 10)
+ * @param {string} locale - Locale for translations (en/es/de, default: en)
+ * @param {string} category - Filter by category
+ * @param {string} q - Search query (hybrid vector + keyword search)
+ * @param {string} sort - Sort order (newest, price-asc, price-desc, rating)
+ * @param {string} newArrivals - Filter for new arrivals (true/false)
+ * @param {string} ids - Comma-separated product IDs (fast-path lookup)
+ *
+ * @returns {Object} JSON response with products list, pagination, and metadata
+ */
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
