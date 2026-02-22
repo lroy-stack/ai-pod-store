@@ -91,6 +91,11 @@ import {
 } from './tools/remove-from-wishlist.js';
 import { readProductsCatalog } from './resources/catalog.js';
 import { readStorePolicies } from './resources/policies.js';
+import {
+  shoppingAssistantSchema,
+  getShoppingAssistantPrompt,
+  type ShoppingAssistantInput,
+} from './prompts/shopping-assistant.js';
 
 const PORT = parseInt(process.env.PORT || '8002', 10);
 const MCP_BASE_URL = process.env.MCP_BASE_URL || `http://localhost:${PORT}`;
@@ -445,6 +450,21 @@ function createMcpServer(): McpServer {
     },
     async (uri: URL) => {
       return readStorePolicies(uri);
+    }
+  );
+
+  // ===================================
+  // PROMPTS
+  // ===================================
+
+  // Prompt: shopping_assistant
+  // @ts-ignore - using deprecated method intentionally
+  server.prompt(
+    'shopping_assistant',
+    'Multi-locale shopping assistant prompt template with system + user messages',
+    shoppingAssistantSchema.shape,
+    async (args: ShoppingAssistantInput) => {
+      return getShoppingAssistantPrompt(args);
     }
   );
 
