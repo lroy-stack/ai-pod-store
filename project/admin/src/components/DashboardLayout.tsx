@@ -7,9 +7,12 @@ import { Breadcrumbs } from './Breadcrumbs';
 import { TopBar } from './TopBar';
 import { Menu } from 'lucide-react';
 import { Button } from './ui/button';
+import { useSidebarCollapsed } from '@/hooks/useSidebarCollapsed';
+import { cn } from '@/lib/utils';
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { collapsed } = useSidebarCollapsed();
 
   return (
     <div className="flex min-h-screen">
@@ -22,7 +25,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
       <MobileSidebar open={mobileMenuOpen} onOpenChange={setMobileMenuOpen} />
 
       {/* Main Content */}
-      <div className="flex-1 lg:ml-64">
+      <div className={cn('flex-1 transition-all duration-300', collapsed ? 'lg:ml-16' : 'lg:ml-64')}>
         {/* TopBar - desktop only */}
         <div className="hidden lg:block sticky top-0 z-40">
           <TopBar />

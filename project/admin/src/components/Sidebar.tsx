@@ -19,10 +19,20 @@ import {
   Settings,
   Palette,
   Sparkles,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Separator } from './ui/separator';
 import { ScrollArea } from './ui/scroll-area';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from './ui/tooltip';
+import { Button } from './ui/button';
+import { useSidebarCollapsed } from '@/hooks/useSidebarCollapsed';
 
 interface NavItem {
   name: string;
@@ -81,48 +91,86 @@ const navigationSections: NavSection[] = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { collapsed, toggleCollapsed } = useSidebarCollapsed();
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-64 border-r bg-card">
-      <div className="flex h-16 items-center border-b px-6">
-        <h1 className="text-xl font-bold">POD AI</h1>
-      </div>
-      <ScrollArea className="h-[calc(100vh-4rem)]">
-        <nav className="flex flex-col gap-4 p-4">
-          {navigationSections.map((section, sectionIndex) => (
-            <div key={section.label}>
-              {sectionIndex > 0 && <Separator className="mb-4" />}
-              <div className="mb-2">
-                <h2 className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  {section.label}
-                </h2>
-                <div className="flex flex-col gap-1">
-                  {section.items.map((item) => {
-                    const isActive = pathname === item.href;
-                    const Icon = item.icon;
+    <TooltipProvider delayDuration={0}>
+      <aside
+        className={cn(
+          'fixed left-0 top-0 h-screen border-r bg-card transition-all duration-300',
+          collapsed ? 'w-16' : 'w-64'
+        )}
+      >
+        <div className="flex h-16 items-center justify-between border-b px-4">
+          {!collapsed && <h1 className="text-xl font-bold">POD AI</h1>}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleCollapsed}
+            className={cn('h-8 w-8', collapsed && 'mx-auto')}
+          >
+            {collapsed ? (
+              <ChevronRight className="h-4 w-4" />
+            ) : (
+              <ChevronLeft className="h-4 w-4" />
+            )}
+          </Button>
+        </div>
+        <ScrollArea className="h-[calc(100vh-4rem)]">
+          <nav className={cn('flex flex-col gap-4', collapsed ? 'p-2' : 'p-4')}>
+            {navigationSections.map((section, sectionIndex) => (
+              <div key={section.label}>
+                {sectionIndex > 0 && <Separator className="mb-4" />}
+                <div className="mb-2">
+                  {!collapsed && (
+                    <h2 className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      {section.label}
+                    </h2>
+                  )}
+                  <div className="flex flex-col gap-1">
+                    {section.items.map((item) => {
+                      const isActive = pathname === item.href;
+                      const Icon = item.icon;
 
-                    return (
-                      <Link
-                        key={item.name}
-                        href={item.href}
-                        className={cn(
-                          'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
-                          isActive
-                            ? 'bg-primary text-primary-foreground'
-                            : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                        )}
-                      >
-                        <Icon className="h-5 w-5" />
-                        {item.name}
-                      </Link>
-                    );
-                  })}
+                      const linkContent = (
+                        <Link
+                          key={item.name}
+                          href={item.href}
+                          className={cn(
+                            'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                            isActive
+                              ? 'bg-primary text-primary-foreground'
+                              : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                            collapsed && 'justify-center'
+                          )}
+                        >
+                          <Icon className="h-5 w-5 shrink-0" />
+                          {!collapsed && item.name}
+                        </Link>
+                      );
+
+                      if (collapsed) {
+                        return (
+                          <Tooltip key={item.name}>
+                            <TooltipTrigger asChild>
+                              {linkContent}
+                            </TooltipTrigger>
+                            <TooltipContent side="right">
+                              <p>{item.name}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        );
+                      }
+
+                      return linkContent;
+                    })}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </nav>
-      </ScrollArea>
-    </aside>
+            ))}
+          </nav>
+        </ScrollArea>
+      </aside>
+    </TooltipProvider>
   );
 }
