@@ -184,6 +184,37 @@ services:
       retries: 3
 
   # ---------------------------------------------------------------------------
+  # Crawl4AI — Lightweight web crawler with JavaScript rendering (port 11235)
+  # ---------------------------------------------------------------------------
+  crawl4ai:
+    build:
+      context: ../crawl4ai
+      dockerfile: Dockerfile
+    # No external port in base — internal service only
+    # Port 11235 is exposed for internal API access
+    environment:
+      MAX_CONCURRENT_TASKS: "1"
+      PLAYWRIGHT_BROWSERS_PATH: /opt/playwright
+      CHROMIUM_EXECUTABLE_PATH: /usr/bin/chromium
+    volumes:
+      - crawl4ai-output:/app/output
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 768M
+        reservations:
+          memory: 384M
+    shm_size: 512m
+    healthcheck:
+      test: ["CMD", "python", "-c", "import crawl4ai; print('OK')"]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
+
+  # ---------------------------------------------------------------------------
   # MCP Server — Model Context Protocol (AI assistant tools, port 8002)
   # ---------------------------------------------------------------------------
   mcp-server:
@@ -258,5 +289,6 @@ volumes:
   podclaw-data:      # PodClaw brain state (SQLite DB)
   podclaw-memory:    # PodClaw memory logs and context files
   redis-data:        # Redis AOF persistence
+  crawl4ai-output:   # Crawl4AI scraped data and cache
   caddy-data:        # TLS certificates
   caddy-config:      # Caddy runtime config
