@@ -1,8 +1,14 @@
-import { NextRequest } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 import { getAuthUser } from '@/lib/auth-guard'
 
+
 export async function POST(request: NextRequest) {
+  if (process.env.NODE_ENV === 'production') {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  }
+
+
   const body = await request.json()
   const { experiment_id, variant, event_type, value, session_id, metadata } = body
 

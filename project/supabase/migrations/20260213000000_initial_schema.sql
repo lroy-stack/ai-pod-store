@@ -596,16 +596,21 @@ FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 -- SEED DATA (optional)
 -- ==========================
 
--- Insert default admin user (password: admin123 - CHANGE IN PRODUCTION)
--- Password hash is bcrypt for 'admin123'
-INSERT INTO users (email, password_hash, name, role, email_verified)
-VALUES (
-  'admin@podstore.local',
-  '$2b$10$CJJCGQqBQGsz98AAkzl1oukiynF/9HUk2yP2eJWnAYUVJOrKJTZ6i',
-  'Admin User',
-  'admin',
-  true
-) ON CONFLICT DO NOTHING;
+-- ⚠️  SECURITY: Do NOT insert admin users with hardcoded passwords in migrations!
+-- Instead, use the secure admin creation script after deployment:
+--   node scripts/create-secure-admin.mjs admin@example.com
+--
+-- The script generates a cryptographically secure random password and displays it once.
+--
+-- DEPRECATED: The following INSERT is commented out for security reasons:
+-- INSERT INTO users (email, password_hash, name, role, email_verified)
+-- VALUES (
+--   'admin@podstore.local',
+--   '$2b$10$...', -- REMOVED: Never commit hardcoded password hashes
+--   'Admin User',
+--   'admin',
+--   true
+-- ) ON CONFLICT DO NOTHING;
 
 -- Success message
 DO $$

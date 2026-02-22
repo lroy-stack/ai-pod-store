@@ -100,7 +100,7 @@ export function ProductCard({ product, priority }: ProductCardProps) {
     <>
       <Link
         href={productHref}
-        className="group block rounded-2xl bg-card overflow-hidden border border-border/40 hover:border-border/80 shadow-sm hover:shadow-xl transition-all duration-300"
+        className="group flex flex-col rounded-2xl bg-card overflow-hidden border border-border/40 hover:border-border/80 shadow-sm hover:shadow-xl transition-all duration-300"
       >
         {/* Image */}
         <div className="relative aspect-square bg-muted overflow-hidden">
@@ -146,7 +146,7 @@ export function ProductCard({ product, priority }: ProductCardProps) {
         </div>
 
         {/* Info + Actions */}
-        <div className="px-3.5 py-3 space-y-2">
+        <div className="flex flex-col flex-1 px-3.5 py-3 space-y-2">
           <h3 className="font-medium text-sm leading-snug line-clamp-1 text-foreground group-hover:text-primary transition-colors">
             {product.title}
           </h3>
@@ -194,7 +194,7 @@ export function ProductCard({ product, priority }: ProductCardProps) {
           </div>
 
           {/* Action buttons — always visible, touch-friendly */}
-          <div className="flex gap-1.5 pt-0.5">
+          <div className="flex gap-1.5 pt-0.5 mt-auto">
             <Button
               size="sm"
               className="flex-1 h-8 text-xs font-medium rounded-lg"

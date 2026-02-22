@@ -80,6 +80,9 @@ dump.rdb
 # PodClaw local state (SQLite brain)
 podclaw/data/
 
+# PodClaw memory (event logs, sensitive context)
+podclaw/memory/
+
 # Agent memory (keep structure, not sensitive data)
 pod_workspace_agent/memory/daily_logs/*.md
 !pod_workspace_agent/memory/daily_logs/.gitkeep

@@ -5,7 +5,13 @@
 
 import { NextResponse } from 'next/server';
 
+
 export async function POST() {
+  if (process.env.NODE_ENV === 'production') {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  }
+
+
   try {
     // This endpoint documents the rate limit enforcement
     // The actual enforcement happens in PodClaw's rate_limit_hook.py

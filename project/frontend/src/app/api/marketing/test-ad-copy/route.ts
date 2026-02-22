@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
+
 const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseKey = process.env.SUPABASE_SERVICE_KEY!
 
@@ -9,6 +10,11 @@ const supabaseKey = process.env.SUPABASE_SERVICE_KEY!
  * Simulates what the marketing agent should be creating
  */
 export async function POST() {
+  if (process.env.NODE_ENV === 'production') {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  }
+
+
   try {
     const supabase = createClient(supabaseUrl, supabaseKey)
 

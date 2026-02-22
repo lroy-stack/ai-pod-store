@@ -1,27 +1,85 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 
+const CRON_SECRET = process.env.CRON_SECRET || process.env.PODCLAW_BRIDGE_AUTH_TOKEN
+
 /**
  * GET /api/cron/cleanup
- * Periodic GDPR cleanup job:
- * 1. Delete anonymous conversations older than 7 days
- * 2. Delete user_usage rows older than 90 days
- * 3. Clean drip_queue sent entries older than 30 days
+ * Periodic GDPR data retention cleanup job:
+ * 1. Delete conversations older than 1 year
+ * 2. Delete audit logs older than 2 years
+ * 3. Delete marketing events (ab_events) older than 6 months
+ * 4. Delete anonymous conversations older than 7 days
+ * 5. Delete user_usage rows older than 90 days
+ * 6. Clean drip_queue sent entries older than 30 days
  *
  * Intended to be called by Vercel Cron or external scheduler.
- * Protected by CRON_SECRET header.
+ * Protected by Bearer token authentication.
  */
 export async function GET(req: NextRequest) {
   // Verify cron secret
-  const cronSecret = process.env.CRON_SECRET
-  if (cronSecret && req.headers.get('authorization') !== `Bearer ${cronSecret}`) {
+  const authHeader = req.headers.get('authorization')
+  if (!CRON_SECRET || authHeader !== `Bearer ${CRON_SECRET}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   const results: Record<string, string> = {}
 
   try {
-    // 1. Delete anonymous conversations > 7 days
+    // 1. Delete conversations older than 1 year
+    const oneYearAgo = new Date()
+    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1)
+
+    // Get old conversation IDs (batch process for performance)
+    const { data: oldConvs } = await supabaseAdmin
+      .from('conversations')
+      .select('id')
+      .lt('updated_at', oneYearAgo.toISOString())
+      .limit(500)
+
+    if (oldConvs && oldConvs.length > 0) {
+      const ids = oldConvs.map((c) => c.id)
+
+      // Delete messages first (foreign key constraint)
+      await supabaseAdmin
+        .from('messages')
+        .delete()
+        .in('conversation_id', ids)
+
+      // Delete conversations
+      const { count } = await supabaseAdmin
+        .from('conversations')
+        .delete({ count: 'exact' })
+        .in('id', ids)
+
+      results.conversations = `Deleted ${count || 0} conversations older than 1 year`
+    } else {
+      results.conversations = 'No old conversations to clean'
+    }
+
+    // 2. Delete audit logs older than 2 years
+    const twoYearsAgo = new Date()
+    twoYearsAgo.setFullYear(twoYearsAgo.getFullYear() - 2)
+
+    const { count: auditCount } = await supabaseAdmin
+      .from('audit_log')
+      .delete({ count: 'exact' })
+      .lt('created_at', twoYearsAgo.toISOString())
+
+    results.auditLogs = `Deleted ${auditCount || 0} audit logs older than 2 years`
+
+    // 3. Delete marketing events (ab_events) older than 6 months
+    const sixMonthsAgo = new Date()
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6)
+
+    const { count: abEventsCount } = await supabaseAdmin
+      .from('ab_events')
+      .delete({ count: 'exact' })
+      .lt('created_at', sixMonthsAgo.toISOString())
+
+    results.marketingEvents = `Deleted ${abEventsCount || 0} marketing events older than 6 months`
+
+    // 4. Delete anonymous conversations > 7 days
     const sevenDaysAgo = new Date()
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
 
@@ -48,12 +106,12 @@ export async function GET(req: NextRequest) {
         .delete({ count: 'exact' })
         .in('id', ids)
 
-      results.anonymousConversations = `Deleted ${count || 0} anonymous conversations`
+      results.anonymousConversations = `Deleted ${count || 0} anonymous conversations older than 7 days`
     } else {
       results.anonymousConversations = 'No anonymous conversations to clean'
     }
 
-    // 2. Delete user_usage rows > 90 days
+    // 5. Delete user_usage rows > 90 days
     const ninetyDaysAgo = new Date()
     ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90)
 
@@ -64,7 +122,7 @@ export async function GET(req: NextRequest) {
 
     results.userUsage = `Deleted ${usageCount || 0} old usage records`
 
-    // 3. Clean drip_queue sent entries > 30 days
+    // 6. Clean drip_queue sent entries > 30 days
     const thirtyDaysAgo = new Date()
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
 

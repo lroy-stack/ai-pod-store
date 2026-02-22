@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { supabaseAdmin } from '@/lib/supabase-admin'
+import { createClient } from '@supabase/supabase-js'
 import { STORE_DEFAULTS } from '@/lib/store-config'
 
 const MAX_CART_QUANTITY = STORE_DEFAULTS.maxCartQuantity
@@ -23,9 +24,22 @@ export async function GET(request: NextRequest) {
 
     // Try to get user from session
     let userId: string | null = null
+    let userScopedClient: ReturnType<typeof createClient> | null = null
     if (sessionCookie) {
       const { data: { user } } = await supabase.auth.getUser(sessionCookie.value)
       userId = user?.id || null
+
+      // Create user-scoped client for RLS-protected queries (personalizations)
+      if (userId) {
+        userScopedClient = createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+          {
+            auth: { persistSession: false },
+            global: { headers: { Authorization: `Bearer ${sessionCookie.value}` } },
+          }
+        )
+      }
     }
 
     // Fetch cart items (either by user_id or session_id)
@@ -117,13 +131,15 @@ export async function GET(request: NextRequest) {
     }
 
     // Fetch personalization details for cart items that have a personalization_id
+    // Only authenticated users can have personalizations (RLS-protected)
     const personalizationIds = (cartItems || [])
       .map((item: any) => item.personalization_id)
       .filter(Boolean)
 
     let personalizationMap = new Map<string, any>()
-    if (personalizationIds.length > 0) {
-      const { data: personalizations } = await supabase
+    if (personalizationIds.length > 0 && userScopedClient) {
+      // Use user-scoped client to respect RLS policies on personalizations table
+      const { data: personalizations } = await userScopedClient
         .from('personalizations')
         .select('id, text_content, font_family, font_color, font_size, position, preview_url')
         .in('id', personalizationIds)

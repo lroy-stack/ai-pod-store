@@ -895,5 +895,121 @@
       "content": "Für datenschutzbezogene Fragen, Auskunftsersuchen oder zur Ausübung Ihrer Rechte kontaktieren Sie uns bitte unter: privacy@podai.com. Wir werden innerhalb von 30 Tagen antworten."
     },
     "footer": "Diese Datenschutzerklärung kann regelmäßig aktualisiert werden. Die fortgesetzte Nutzung unserer Plattform stellt die Akzeptanz von Änderungen dar."
+  },
+  "terms": {
+    "title": "Nutzungsbedingungen",
+    "lastUpdated": "Zuletzt aktualisiert",
+    "intro": {
+      "title": "Einführung",
+      "content": "Willkommen bei POD AI Store. Durch den Zugriff auf oder die Nutzung unserer KI-gestützten Print-on-Demand-Plattform erklären Sie sich mit diesen Nutzungsbedingungen einverstanden. Bitte lesen Sie sie sorgfältig, bevor Sie unsere Dienste nutzen."
+    },
+    "acceptance": {
+      "title": "Annahme der Bedingungen",
+      "content": "Durch das Erstellen eines Kontos, das Aufgeben einer Bestellung oder die Nutzung einer Funktion unserer Plattform bestätigen Sie, dass Sie diese Nutzungsbedingungen und unsere Datenschutzrichtlinie gelesen, verstanden und akzeptiert haben. Wenn Sie nicht einverstanden sind, müssen Sie die Nutzung sofort einstellen.",
+      "items": {
+        "0": "Sie müssen mindestens 18 Jahre alt sein, um unsere Dienste zu nutzen",
+        "1": "Sie versichern, dass alle von Ihnen bereitgestellten Informationen korrekt und vollständig sind",
+        "2": "Sie verpflichten sich, alle geltenden Gesetze und Vorschriften einzuhalten",
+        "3": "Sie übernehmen die alleinige Verantwortung für Ihre Kontoaktivitäten"
+      }
+    },
+    "services": {
+      "title": "Unsere Dienstleistungen",
+      "content": "POD AI Store bietet eine KI-gestützte Plattform zum Erstellen individueller Designs und Bestellen von Print-on-Demand-Produkten. Unsere Dienstleistungen umfassen:",
+      "items": {
+        "0": "KI-gestützte Designgenerierung mit fortschrittlichen Machine-Learning-Modellen",
+        "1": "Tools zur Erstellung und Personalisierung individueller Produkte",
+        "2": "Print-on-Demand-Erfüllung über unser Partnernetzwerk (Printify)",
+        "3": "Sichere Zahlungsabwicklung über Stripe",
+        "4": "Auftragsverfolgung und Kundensupport",
+        "5": "Design-Speicherung und -Verwaltung in Ihrem Konto"
+      }
+    },
+    "userAccounts": {
+      "title": "Benutzerkonten",
+      "content": "Um auf bestimmte Funktionen zuzugreifen, müssen Sie ein Konto erstellen. Sie sind verantwortlich für:",
+      "items": {
+        "0": "Die Wahrung der Vertraulichkeit Ihrer Kontoanmeldedaten",
+        "1": "Alle Aktivitäten, die unter Ihrem Konto stattfinden",
+        "2": "Die unverzügliche Benachrichtigung bei unbefugtem Zugriff",
+        "3": "Die Bereitstellung korrekter und aktueller Kontaktinformationen",
+        "4": "Das Nicht-Teilen Ihres Kontos mit anderen oder das Erstellen mehrerer Konten"
+      }
+    },
+    "intellectualProperty": {
+      "title": "Rechte an geistigem Eigentum",
+      "content": "Eigentum und Lizenzierung von auf unserer Plattform erstellten und verwendeten Inhalten:",
+      "items": {
+        "0": "Sie behalten das Eigentum an Designs, die Sie mit unseren KI-Tools erstellen",
+        "1": "Sie gewähren uns eine Lizenz zur Verwendung Ihrer Designs für die Auftragsabwicklung",
+        "2": "Sie müssen Rechte an allen Texten, Bildern oder Inhalten haben, die Sie hochladen",
+        "3": "Sie dürfen keine Designs verwenden, die geistiges Eigentum Dritter verletzen",
+        "4": "Unsere Plattform, Code und KI-Modelle bleiben unser ausschließliches Eigentum",
+        "5": "Sie dürfen unsere Technologie nicht zurückentwickeln, kopieren oder weiterverteilen"
+      }
+    },
+    "ordersAndPayments": {
+      "title": "Bestellungen und Zahlungen",
+      "content": "Alle Bestellungen unterliegen der Annahme und Verfügbarkeit. Zahlungsbedingungen:",
+      "items": {
+        "0": "Preise werden in Ihrer ausgewählten Währung angezeigt und enthalten anfallende Steuern",
+        "1": "Die Zahlung wird sicher über Stripe beim Checkout verarbeitet",
+        "2": "Wir behalten uns das Recht vor, Bestellungen aus beliebigen Gründen abzulehnen oder zu stornieren",
+        "3": "Sobald die Produktion beginnt, können Bestellungen nicht mehr geändert oder storniert werden",
+        "4": "Rückerstattungen und Rücksendungen unterliegen unseren Rückgabe- und Erstattungsrichtlinien",
+        "5": "Sie sind verantwortlich für die Bereitstellung korrekter Versandinformationen"
+      }
+    },
+    "prohibitedUses": {
+      "title": "Verbotene Verwendungen",
+      "content": "Sie dürfen unsere Plattform nicht für rechtswidrige oder verbotene Zwecke verwenden, einschließlich:",
+      "items": {
+        "0": "Erstellen von Designs mit anstößigen, diffamierenden oder hasserfüllten Inhalten",
+        "1": "Verletzung der geistigen Eigentumsrechte anderer",
+        "2": "Versuche, Sicherheits- oder Zugriffskontrollen zu umgehen",
+        "3": "Nutzung unserer Dienste für betrügerische oder täuschende Zwecke",
+        "4": "Scraping, Mining oder Harvesting von Daten von unserer Plattform",
+        "5": "Beeinträchtigung oder Störung unserer Dienste oder Server",
+        "6": "Weiterverkauf oder Weiterverbreitung unserer KI-generierten Designs ohne Rechte"
+      }
+    },
+    "limitationOfLiability": {
+      "title": "Haftungsbeschränkung",
+      "content": "Im maximal gesetzlich zulässigen Umfang haftet POD AI Store nicht für:",
+      "items": {
+        "0": "Indirekte, zufällige, besondere oder Folgeschäden",
+        "1": "Verlust von Gewinn, Umsatz, Daten oder Geschäftsmöglichkeiten",
+        "2": "Verzögerungen oder Ausfälle bei der Lieferung durch Drittanbieter-Erfüllungspartner",
+        "3": "Fehler oder Ungenauigkeiten in KI-generierten Inhalten oder Designs",
+        "4": "Unbefugter Zugriff auf Ihr Konto aufgrund Ihrer Fahrlässigkeit",
+        "5": "Produktfehler oder Qualitätsprobleme aufgrund der Herstellung"
+      }
+    },
+    "termination": {
+      "title": "Kündigung",
+      "content": "Wir behalten uns das Recht vor, Ihr Konto jederzeit zu sperren oder zu kündigen:",
+      "items": {
+        "0": "Bei Verstoß gegen diese Nutzungsbedingungen oder unsere Richtlinien",
+        "1": "Bei betrügerischer, missbräuchlicher oder rechtswidriger Aktivität",
+        "2": "Bei Rückbuchungen oder Zahlungsstreitigkeiten",
+        "3": "Auf Ihre Anfrage zur Löschung Ihres Kontos",
+        "4": "Wenn Ihr Konto über einen längeren Zeitraum inaktiv bleibt"
+      }
+    },
+    "governingLaw": {
+      "title": "Anwendbares Recht und Streitigkeiten",
+      "content": "Diese Nutzungsbedingungen unterliegen den Gesetzen der Gerichtsbarkeit, in der unser Unternehmen registriert ist. Streitigkeiten werden wie folgt gelöst:",
+      "items": {
+        "0": "Verhandlung in gutem Glauben zwischen Ihnen und POD AI Store",
+        "1": "Verbindliche Schiedsgerichtsbarkeit, wenn die Verhandlung scheitert (sofern gesetzlich zulässig)",
+        "2": "Die ausschließliche Zuständigkeit der Gerichte an unserem registrierten Standort",
+        "3": "Sie verzichten auf das Recht, an Sammelklagen teilzunehmen"
+      }
+    },
+    "contact": {
+      "title": "Kontakt",
+      "content": "Bei Fragen zu diesen Nutzungsbedingungen kontaktieren Sie uns bitte unter: legal@podai.com. Wir werden alle Anfragen innerhalb von 5 Werktagen beantworten."
+    },
+    "footer": "Wir behalten uns das Recht vor, diese Nutzungsbedingungen jederzeit zu ändern. Die fortgesetzte Nutzung unserer Plattform stellt die Annahme von Änderungen dar."
   }
 }

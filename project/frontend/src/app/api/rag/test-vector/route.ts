@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 
+
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
@@ -9,6 +10,11 @@ export const dynamic = 'force-dynamic'
  * POST /api/rag/test-vector
  */
 export async function POST() {
+  if (process.env.NODE_ENV === 'production') {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  }
+
+
   try {
     // Generate a test 768-dimensional vector (all zeros for simplicity)
     const testVector = new Array(768).fill(0)
@@ -73,6 +79,11 @@ export async function POST() {
  * GET /api/rag/test-vector
  */
 export async function GET() {
+  if (process.env.NODE_ENV === 'production') {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  }
+
+
   try {
     const { data, error } = await supabaseAdmin
       .from('documents')

@@ -1,6 +1,8 @@
 /**
  * Test endpoint for rate limiting verification
  * Allows 10 requests per minute for testing purposes
+ *
+ * ⚠️  SECURITY: This endpoint is disabled in production
  */
 
 import { NextResponse } from 'next/server'
@@ -45,11 +47,21 @@ class TestRateLimiter {
 const testLimiter = new TestRateLimiter()
 
 export async function OPTIONS(req: Request) {
+  if (process.env.NODE_ENV === 'production') {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  }
+
+
   const preflightResponse = handleCorsPrelight(req)
   return preflightResponse || new Response(null, { status: 405 })
 }
 
 export async function GET(req: Request) {
+  if (process.env.NODE_ENV === 'production') {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  }
+
+
   const origin = req.headers.get('origin')
   const ip = getClientIP(req)
 

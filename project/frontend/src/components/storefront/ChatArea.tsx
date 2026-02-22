@@ -20,7 +20,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Card, CardContent } from '@/components/ui/card'
 import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport, isToolUIPart, getToolName } from 'ai'
-import ReactMarkdown from 'react-markdown'
+import { SafeMarkdown } from '@/components/common/SafeMarkdown'
 import { getArtifact } from '@/components/artifacts/registry'
 import { toast } from 'sonner'
 import { useStorefront } from './StorefrontContext'
@@ -560,7 +560,7 @@ export function ChatArea() {
                       if (message.role === 'assistant') {
                         return (
                           <div key={index} className="bg-muted rounded-2xl w-fit max-w-full prose prose-sm dark:prose-invert prose-p:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-0 px-4 py-2.5">
-                            <ReactMarkdown>{part.text}</ReactMarkdown>
+                            <SafeMarkdown>{part.text}</SafeMarkdown>
                           </div>
                         )
                       }

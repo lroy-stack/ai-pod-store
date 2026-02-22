@@ -1,21 +1,22 @@
 /**
- * Theme Loader
+ * Theme Loader (Client-side)
  *
  * Fetches the active theme from the API and injects CSS variables into the document.
- * This enables dynamic theme switching without page reload.
+ * Variables are injected WITHOUT the --color- prefix (e.g., --background, --primary)
+ * so they propagate through the @theme inline bridge in globals.css.
  */
 
-interface ThemeVariables {
+export interface ThemeVariables {
   [key: string]: string;
 }
 
-interface ThemeFonts {
+export interface ThemeFonts {
   heading: string;
   body: string;
   mono: string;
 }
 
-interface Theme {
+export interface Theme {
   id: string;
   name: string;
   slug: string;
@@ -27,10 +28,7 @@ interface Theme {
   shadow_preset: string;
 }
 
-/**
- * Maps shadow presets to CSS shadow values
- */
-const SHADOW_PRESETS: Record<string, string> = {
+export const SHADOW_PRESETS: Record<string, string> = {
   none: 'none',
   small: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
   subtle: '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
@@ -39,7 +37,7 @@ const SHADOW_PRESETS: Record<string, string> = {
   extra_large: '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)',
 };
 
-const RADIUS_PRESETS: Record<string, string> = {
+export const RADIUS_PRESETS: Record<string, string> = {
   none: '0',
   small: '0.375rem',
   medium: '0.75rem',
@@ -48,13 +46,14 @@ const RADIUS_PRESETS: Record<string, string> = {
 };
 
 /**
- * Converts theme CSS variables object to CSS custom properties string
+ * Converts theme CSS variables object to CSS custom properties string.
+ * Outputs unprefixed variables (--background, --primary, etc.)
+ * that propagate through @theme inline { --color-background: var(--background); }
  */
-function variablesToCSS(variables: ThemeVariables, isDark = false): string {
+function variablesToCSS(variables: ThemeVariables): string {
   const properties = Object.entries(variables).map(([key, value]) => {
-    // Convert snake_case to kebab-case for CSS variable names
     const cssKey = key.replace(/_/g, '-');
-    return `  --color-${cssKey}: ${value};`;
+    return `  --${cssKey}: ${value};`;
   });
   return properties.join('\n');
 }
@@ -63,52 +62,54 @@ function variablesToCSS(variables: ThemeVariables, isDark = false): string {
  * Injects theme CSS into document head
  */
 function injectThemeCSS(theme: Theme): void {
-  // Remove existing theme style tag if it exists
+  // Remove existing theme style tags (both server-rendered and dynamic)
+  const serverStyle = document.getElementById('server-theme-style');
+  if (serverStyle) {
+    serverStyle.remove();
+  }
   const existingStyle = document.getElementById('dynamic-theme-style');
   if (existingStyle) {
     existingStyle.remove();
   }
 
-  // Create new style tag
   const styleTag = document.createElement('style');
   styleTag.id = 'dynamic-theme-style';
 
-  // Generate CSS with both light and dark mode variables
-  const lightCSS = variablesToCSS(theme.css_variables, false);
-  const darkCSS = variablesToCSS(theme.css_variables_dark, true);
-
-  // Get shadow value from preset
+  const lightCSS = variablesToCSS(theme.css_variables);
+  const darkCSS = variablesToCSS(theme.css_variables_dark);
   const shadowValue = SHADOW_PRESETS[theme.shadow_preset] || SHADOW_PRESETS.medium;
+  const radiusValue = RADIUS_PRESETS[theme.border_radius] || theme.border_radius;
 
   styleTag.textContent = `
 :root {
 ${lightCSS}
-  --radius: ${RADIUS_PRESETS[theme.border_radius] || theme.border_radius};
+  --radius: ${radiusValue};
   --shadow: ${shadowValue};
+  --font-sans: "${theme.fonts.body}", system-ui, sans-serif;
+  --font-heading: "${theme.fonts.heading}", system-ui, sans-serif;
+  --font-mono: "${theme.fonts.mono}", ui-monospace, monospace;
 }
 
 .dark {
 ${darkCSS}
-  --radius: ${RADIUS_PRESETS[theme.border_radius] || theme.border_radius};
+  --radius: ${radiusValue};
   --shadow: ${shadowValue};
 }
 `.trim();
 
-  // Append to head
   document.head.appendChild(styleTag);
 }
 
 /**
- * Loads Google Fonts dynamically based on theme fonts
+ * Loads Google Fonts dynamically based on theme fonts.
+ * Only loads the <link> tag — font CSS variables are set by injectThemeCSS().
  */
 function loadGoogleFonts(fonts: ThemeFonts): void {
-  // Remove existing font link if it exists
   const existingLink = document.getElementById('dynamic-theme-fonts');
   if (existingLink) {
     existingLink.remove();
   }
 
-  // Collect unique font families
   const fontFamilies = new Set<string>();
   if (fonts.heading && fonts.heading !== 'system-ui' && fonts.heading !== 'ui-monospace') {
     fontFamilies.add(fonts.heading);
@@ -120,12 +121,10 @@ function loadGoogleFonts(fonts: ThemeFonts): void {
     fontFamilies.add(fonts.mono);
   }
 
-  // If no custom fonts, return early
   if (fontFamilies.size === 0) {
     return;
   }
 
-  // Create Google Fonts link
   const link = document.createElement('link');
   link.id = 'dynamic-theme-fonts';
   link.rel = 'stylesheet';
@@ -133,79 +132,27 @@ function loadGoogleFonts(fonts: ThemeFonts): void {
     .map(font => `family=${encodeURIComponent(font)}:wght@400;500;600;700`)
     .join('&')}&display=swap`;
 
-  // Append to head
   document.head.appendChild(link);
-
-  // Update CSS variables for fonts
-  const fontStyleTag = document.createElement('style');
-  fontStyleTag.id = 'dynamic-theme-font-families';
-  fontStyleTag.textContent = `
-:root {
-  --font-heading: "${fonts.heading}", system-ui, sans-serif;
-  --font-body: "${fonts.body}", system-ui, sans-serif;
-  --font-mono: "${fonts.mono}", ui-monospace, monospace;
-}
-`.trim();
-  document.head.appendChild(fontStyleTag);
 }
 
 /**
  * Loads the active theme from the API and applies it to the document
- *
- * @returns Promise that resolves with the loaded theme
- * @throws Error if theme loading fails
  */
 export async function loadActiveTheme(): Promise<Theme> {
-  try {
-    const response = await fetch('/api/storefront/theme', {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+  const response = await fetch('/api/storefront/theme', {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' },
+  });
 
-    if (!response.ok) {
-      throw new Error(`Failed to fetch theme: ${response.status} ${response.statusText}`);
-    }
-
-    const theme: Theme = await response.json();
-
-    // Inject CSS variables into document
-    injectThemeCSS(theme);
-
-    // Load Google Fonts
-    loadGoogleFonts(theme.fonts);
-
-    console.log(`✓ Theme loaded: ${theme.name} (${theme.slug})`);
-
-    return theme;
-  } catch (error) {
-    console.error('Error loading theme:', error);
-    throw error;
+  if (!response.ok) {
+    throw new Error(`Failed to fetch theme: ${response.status} ${response.statusText}`);
   }
-}
 
-/**
- * Preloads the active theme (useful for SSR/SSG)
- * Can be called during server-side rendering to warm up the cache
- */
-export async function preloadActiveTheme(): Promise<Theme | null> {
-  if (typeof window === 'undefined') {
-    // Server-side: just fetch the theme without injecting
-    try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/storefront/theme`,
-        { next: { revalidate: 300 } }
-      );
-      if (response.ok) {
-        return await response.json();
-      }
-    } catch (error) {
-      console.error('Error preloading theme:', error);
-    }
-    return null;
-  } else {
-    // Client-side: load and inject
-    return loadActiveTheme();
-  }
+  const theme: Theme = await response.json();
+
+  injectThemeCSS(theme);
+  loadGoogleFonts(theme.fonts);
+
+  console.log(`Theme loaded: ${theme.name} (${theme.slug})`);
+  return theme;
 }

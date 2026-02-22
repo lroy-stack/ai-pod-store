@@ -1,6 +1,6 @@
 import { defaultCache } from '@serwist/next/worker'
 import type { PrecacheEntry, SerwistGlobalConfig } from 'serwist'
-import { Serwist, CacheFirst, NetworkFirst } from 'serwist'
+import { Serwist, CacheFirst, NetworkFirst, NetworkOnly } from 'serwist'
 
 declare global {
   interface WorkerGlobalScope extends SerwistGlobalConfig {
@@ -16,6 +16,11 @@ const serwist = new Serwist({
   clientsClaim: true,
   navigationPreload: true,
   runtimeCaching: [
+    // API routes must NEVER be cached — always fetch fresh from server
+    {
+      matcher: /\/api\/.*/i,
+      handler: new NetworkOnly(),
+    },
     ...defaultCache,
     // Product images from Printify CDN
     {

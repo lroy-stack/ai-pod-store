@@ -5,10 +5,12 @@
  * Reads pending emails from drip_queue where send_at <= now, sends via Resend.
  *
  * Should be called every 15-30 minutes via Vercel Cron or external cron.
+ * Protected by Bearer token authentication.
  */
 
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { generateUnsubscribeToken } from '@/lib/unsubscribe-token'
 
 const supabase = createClient(
   process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -16,9 +18,11 @@ const supabase = createClient(
   { auth: { autoRefreshToken: false, persistSession: false } }
 )
 
-// Simple email templates
-const TEMPLATES: Record<string, (email: string) => { html: string }> = {
-  welcome: (email) => ({
+const CRON_SECRET = process.env.CRON_SECRET || process.env.PODCLAW_BRIDGE_AUTH_TOKEN
+
+// Simple email templates with unsubscribe links (RFC 8058 + CAN-SPAM compliant)
+const TEMPLATES: Record<string, (email: string, unsubscribeUrl: string) => { html: string }> = {
+  welcome: (email, unsubscribeUrl) => ({
     html: `
       <h1>Welcome to POD AI!</h1>
       <p>Hey there! Thanks for joining POD AI, your AI-powered design studio.</p>
@@ -29,9 +33,14 @@ const TEMPLATES: Record<string, (email: string) => { html: string }> = {
         <li>Preview mockups on real products</li>
       </ul>
       <p><a href="${process.env.NEXT_PUBLIC_BASE_URL || 'https://podai.com'}">Start Designing →</a></p>
+      <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
+      <p style="font-size: 12px; color: #999; text-align: center;">
+        You received this email because you signed up for POD AI Store.<br>
+        <a href="${unsubscribeUrl}" style="color: #999; text-decoration: underline;">Unsubscribe from marketing emails</a>
+      </p>
     `,
   }),
-  tips: (email) => ({
+  tips: (email, unsubscribeUrl) => ({
     html: `
       <h1>3 Ways to Create Amazing Designs</h1>
       <p>Here are some tips to get the most out of POD AI:</p>
@@ -41,19 +50,35 @@ const TEMPLATES: Record<string, (email: string) => { html: string }> = {
         <li><strong>Preview on products</strong> — Generate mockups to see how your design looks on a t-shirt</li>
       </ol>
       <p><a href="${process.env.NEXT_PUBLIC_BASE_URL || 'https://podai.com'}">Try It Now →</a></p>
+      <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
+      <p style="font-size: 12px; color: #999; text-align: center;">
+        You received this email because you signed up for POD AI Store.<br>
+        <a href="${unsubscribeUrl}" style="color: #999; text-decoration: underline;">Unsubscribe from marketing emails</a>
+      </p>
     `,
   }),
-  credit_offer: (email) => ({
+  credit_offer: (email, unsubscribeUrl) => ({
     html: `
       <h1>Your 5 Free Design Credits</h1>
       <p>Did you know? You received 5 free design credits when you signed up!</p>
       <p>Each credit lets you generate one custom AI design. Use them to create unique products.</p>
       <p><a href="${process.env.NEXT_PUBLIC_BASE_URL || 'https://podai.com'}">Use Your Credits →</a></p>
+      <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
+      <p style="font-size: 12px; color: #999; text-align: center;">
+        You received this email because you signed up for POD AI Store.<br>
+        <a href="${unsubscribeUrl}" style="color: #999; text-decoration: underline;">Unsubscribe from marketing emails</a>
+      </p>
     `,
   }),
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  // Verify cron secret
+  const authHeader = req.headers.get('authorization')
+  if (!CRON_SECRET || authHeader !== `Bearer ${CRON_SECRET}`) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
   try {
     const now = new Date().toISOString()
 
@@ -88,7 +113,12 @@ export async function GET() {
           continue
         }
 
-        const { html } = templateFn(item.email)
+        // Generate one-click unsubscribe token (RFC 8058)
+        const unsubscribeToken = generateUnsubscribeToken(item.email)
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+        const unsubscribeUrl = `${baseUrl}/api/newsletter/unsubscribe?token=${unsubscribeToken}`
+
+        const { html } = templateFn(item.email, unsubscribeUrl)
 
         // Send via Resend
         const resendKey = process.env.RESEND_API_KEY
@@ -98,12 +128,18 @@ export async function GET() {
             headers: {
               'Authorization': `Bearer ${resendKey}`,
               'Content-Type': 'application/json',
+              'List-Unsubscribe': `<${unsubscribeUrl}>`,
+              'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
             },
             body: JSON.stringify({
               from: process.env.RESEND_FROM_EMAIL || 'POD AI <noreply@podai.com>',
               to: item.email,
               subject: item.subject,
               html,
+              headers: {
+                'List-Unsubscribe': `<${unsubscribeUrl}>`,
+                'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+              },
             }),
           })
 

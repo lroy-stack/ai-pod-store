@@ -33,7 +33,7 @@ services:
     environment:
       NODE_ENV: production
       PORT: "3000"
-      REDIS_URL: redis://redis:6379
+      REDIS_URL: redis://:${REDIS_PASSWORD:-changeme_in_production}@redis:6379
       REMBG_URL: http://rembg:8080
       PODCLAW_BRIDGE_URL: http://podclaw:8000
     depends_on:
@@ -42,6 +42,13 @@ services:
       podclaw:
         condition: service_healthy
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          memory: 512M
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
       interval: 30s
@@ -72,6 +79,13 @@ services:
       podclaw:
         condition: service_healthy
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          memory: 256M
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3001/panel/api/health"]
       interval: 30s
@@ -91,7 +105,7 @@ services:
       - ../frontend/.env.local
     environment:
       REMBG_URL: http://rembg:8080
-      REDIS_URL: redis://redis:6379
+      REDIS_URL: redis://:${REDIS_PASSWORD:-changeme_in_production}@redis:6379
     volumes:
       - podclaw-data:/app/podclaw/data
       - podclaw-memory:/app/podclaw/memory
@@ -101,6 +115,13 @@ services:
       rembg:
         condition: service_healthy
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          memory: 512M
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
@@ -119,7 +140,16 @@ services:
     deploy:
       resources:
         limits:
+          cpus: '2.0'
           memory: 2G
+        reservations:
+          memory: 1G
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 3
 
   # ---------------------------------------------------------------------------
   # Redis — Session cache, rate limiting, queues
@@ -127,12 +157,26 @@ services:
   redis:
     image: redis:7-alpine
     # No external port in base — override in local/prod as needed
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-changeme_in_production}
     volumes:
       - redis-data:/data
-    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    command: >
+      redis-server
+      --requirepass ${REDIS_PASSWORD:-changeme_in_production}
+      --appendonly yes
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          memory: 128M
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-changeme_in_production}", "ping"]
       interval: 10s
       timeout: 5s
       start_period: 5s
@@ -156,6 +200,13 @@ services:
       podclaw:
         condition: service_healthy
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          memory: 64M
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/"]
       interval: 30s

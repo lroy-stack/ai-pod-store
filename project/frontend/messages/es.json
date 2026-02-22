@@ -895,5 +895,121 @@
       "content": "Para preguntas relacionadas con la privacidad, solicitudes de acceso a datos personales o para ejercer tus derechos, contáctanos en: privacy@podai.com. Responderemos en un plazo de 30 días."
     },
     "footer": "Esta política de privacidad puede actualizarse periódicamente. El uso continuado de nuestra plataforma constituye la aceptación de cualquier cambio."
+  },
+  "terms": {
+    "title": "Términos de Servicio",
+    "lastUpdated": "Última actualización",
+    "intro": {
+      "title": "Introducción",
+      "content": "Bienvenido a POD AI Store. Al acceder o usar nuestra plataforma de impresión bajo demanda impulsada por IA, acepta estar sujeto a estos Términos de Servicio. Por favor, léalos cuidadosamente antes de usar nuestros servicios."
+    },
+    "acceptance": {
+      "title": "Aceptación de los Términos",
+      "content": "Al crear una cuenta, realizar un pedido o usar cualquier función de nuestra plataforma, reconoce que ha leído, entendido y acepta estos Términos de Servicio y nuestra Política de Privacidad. Si no está de acuerdo, debe dejar de usar inmediatamente.",
+      "items": {
+        "0": "Debe tener al menos 18 años para usar nuestros servicios",
+        "1": "Declara que toda la información que proporciona es precisa y completa",
+        "2": "Acepta cumplir con todas las leyes y regulaciones aplicables",
+        "3": "Acepta la responsabilidad exclusiva de la actividad de su cuenta"
+      }
+    },
+    "services": {
+      "title": "Nuestros Servicios",
+      "content": "POD AI Store proporciona una plataforma impulsada por IA para crear diseños personalizados y ordenar productos bajo demanda. Nuestros servicios incluyen:",
+      "items": {
+        "0": "Generación de diseños impulsada por IA usando modelos de aprendizaje automático avanzados",
+        "1": "Herramientas de creación y personalización de productos personalizados",
+        "2": "Cumplimiento de impresión bajo demanda a través de nuestra red de socios (Printify)",
+        "3": "Procesamiento de pagos seguro a través de Stripe",
+        "4": "Seguimiento de pedidos y soporte al cliente",
+        "5": "Almacenamiento y gestión de diseños en su cuenta"
+      }
+    },
+    "userAccounts": {
+      "title": "Cuentas de Usuario",
+      "content": "Para acceder a ciertas funciones, debe crear una cuenta. Es responsable de:",
+      "items": {
+        "0": "Mantener la confidencialidad de las credenciales de su cuenta",
+        "1": "Todas las actividades que ocurran bajo su cuenta",
+        "2": "Notificarnos inmediatamente de cualquier acceso no autorizado",
+        "3": "Proporcionar información de contacto precisa y actualizada",
+        "4": "No compartir su cuenta con otros ni crear múltiples cuentas"
+      }
+    },
+    "intellectualProperty": {
+      "title": "Derechos de Propiedad Intelectual",
+      "content": "Propiedad y licencia del contenido creado y usado en nuestra plataforma:",
+      "items": {
+        "0": "Conserva la propiedad de los diseños que crea usando nuestras herramientas de IA",
+        "1": "Nos otorga una licencia para usar sus diseños para el cumplimiento de pedidos",
+        "2": "Debe tener derechos sobre cualquier texto, imagen o contenido que cargue",
+        "3": "No puede usar diseños que infrinjan la propiedad intelectual de terceros",
+        "4": "Nuestra plataforma, código y modelos de IA siguen siendo de nuestra propiedad exclusiva",
+        "5": "No puede realizar ingeniería inversa, copiar o redistribuir nuestra tecnología"
+      }
+    },
+    "ordersAndPayments": {
+      "title": "Pedidos y Pagos",
+      "content": "Todos los pedidos están sujetos a aceptación y disponibilidad. Términos de pago:",
+      "items": {
+        "0": "Los precios se muestran en su moneda seleccionada e incluyen impuestos aplicables",
+        "1": "El pago se procesa de forma segura a través de Stripe en el momento de pagar",
+        "2": "Nos reservamos el derecho de rechazar o cancelar pedidos por cualquier motivo",
+        "3": "Una vez que comienza la producción, los pedidos no se pueden modificar ni cancelar",
+        "4": "Los reembolsos y devoluciones están sujetos a nuestra política de Devoluciones y Reembolsos",
+        "5": "Es responsable de proporcionar información de envío precisa"
+      }
+    },
+    "prohibitedUses": {
+      "title": "Usos Prohibidos",
+      "content": "No puede usar nuestra plataforma para ningún propósito ilegal o prohibido, incluyendo:",
+      "items": {
+        "0": "Crear diseños con contenido ofensivo, difamatorio o de odio",
+        "1": "Violar los derechos de propiedad intelectual de otros",
+        "2": "Intentar eludir la seguridad o los controles de acceso",
+        "3": "Usar nuestros servicios con fines fraudulentos o engañosos",
+        "4": "Extraer, minar o recopilar datos de nuestra plataforma",
+        "5": "Interferir o interrumpir nuestros servicios o servidores",
+        "6": "Revender o redistribuir nuestros diseños generados por IA sin derechos"
+      }
+    },
+    "limitationOfLiability": {
+      "title": "Limitación de Responsabilidad",
+      "content": "En la medida máxima permitida por la ley, POD AI Store no será responsable de:",
+      "items": {
+        "0": "Daños indirectos, incidentales, especiales o consecuentes",
+        "1": "Pérdida de ganancias, ingresos, datos u oportunidades comerciales",
+        "2": "Retrasos o fallos en la entrega causados por socios de cumplimiento de terceros",
+        "3": "Errores o inexactitudes en el contenido o diseños generados por IA",
+        "4": "Acceso no autorizado a su cuenta debido a su negligencia",
+        "5": "Defectos de productos o problemas de calidad derivados de la fabricación"
+      }
+    },
+    "termination": {
+      "title": "Terminación",
+      "content": "Nos reservamos el derecho de suspender o terminar su cuenta en cualquier momento:",
+      "items": {
+        "0": "Por violación de estos Términos de Servicio o nuestras políticas",
+        "1": "Por actividad fraudulenta, abusiva o ilegal",
+        "2": "Por contracargos o disputas de pago",
+        "3": "A su solicitud de eliminar su cuenta",
+        "4": "Si su cuenta permanece inactiva durante un período prolongado"
+      }
+    },
+    "governingLaw": {
+      "title": "Ley Aplicable y Disputas",
+      "content": "Estos Términos de Servicio se rigen por las leyes de la jurisdicción donde nuestra empresa está registrada. Cualquier disputa se resolverá mediante:",
+      "items": {
+        "0": "Negociación de buena fe entre usted y POD AI Store",
+        "1": "Arbitraje vinculante si la negociación falla (donde lo permita la ley)",
+        "2": "La jurisdicción exclusiva de los tribunales en nuestra ubicación registrada",
+        "3": "Renuncia al derecho de participar en demandas colectivas"
+      }
+    },
+    "contact": {
+      "title": "Contáctenos",
+      "content": "Para preguntas sobre estos Términos de Servicio, contáctenos en: legal@podai.com. Responderemos a todas las consultas dentro de 5 días hábiles."
+    },
+    "footer": "Nos reservamos el derecho de modificar estos Términos de Servicio en cualquier momento. El uso continuado de nuestra plataforma constituye la aceptación de cualquier cambio."
   }
 }

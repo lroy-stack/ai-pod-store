@@ -895,5 +895,121 @@
       "content": "For privacy-related questions, data subject access requests, or to exercise your rights, please contact us at: privacy@podai.com. We will respond within 30 days."
     },
     "footer": "This privacy policy may be updated periodically. Continued use of our platform constitutes acceptance of any changes."
+  },
+  "terms": {
+    "title": "Terms of Service",
+    "lastUpdated": "Last updated",
+    "intro": {
+      "title": "Introduction",
+      "content": "Welcome to POD AI Store. By accessing or using our AI-powered print-on-demand platform, you agree to be bound by these Terms of Service. Please read them carefully before using our services."
+    },
+    "acceptance": {
+      "title": "Acceptance of Terms",
+      "content": "By creating an account, placing an order, or using any feature of our platform, you acknowledge that you have read, understood, and agree to these Terms of Service and our Privacy Policy. If you do not agree, you must discontinue use immediately.",
+      "items": {
+        "0": "You must be at least 18 years old to use our services",
+        "1": "You represent that all information you provide is accurate and complete",
+        "2": "You agree to comply with all applicable laws and regulations",
+        "3": "You accept sole responsibility for your account activity"
+      }
+    },
+    "services": {
+      "title": "Our Services",
+      "content": "POD AI Store provides an AI-powered platform for creating custom designs and ordering print-on-demand products. Our services include:",
+      "items": {
+        "0": "AI-powered design generation using advanced machine learning models",
+        "1": "Custom product creation and personalization tools",
+        "2": "Print-on-demand fulfillment through our partner network (Printify)",
+        "3": "Secure payment processing via Stripe",
+        "4": "Order tracking and customer support",
+        "5": "Design storage and management in your account"
+      }
+    },
+    "userAccounts": {
+      "title": "User Accounts",
+      "content": "To access certain features, you must create an account. You are responsible for:",
+      "items": {
+        "0": "Maintaining the confidentiality of your account credentials",
+        "1": "All activities that occur under your account",
+        "2": "Notifying us immediately of any unauthorized access",
+        "3": "Providing accurate and up-to-date contact information",
+        "4": "Not sharing your account with others or creating multiple accounts"
+      }
+    },
+    "intellectualProperty": {
+      "title": "Intellectual Property Rights",
+      "content": "Ownership and licensing of content created and used on our platform:",
+      "items": {
+        "0": "You retain ownership of designs you create using our AI tools",
+        "1": "You grant us a license to use your designs for order fulfillment",
+        "2": "You must have rights to any text, images, or content you upload",
+        "3": "You may not use designs that infringe third-party intellectual property",
+        "4": "Our platform, code, and AI models remain our exclusive property",
+        "5": "You may not reverse-engineer, copy, or redistribute our technology"
+      }
+    },
+    "ordersAndPayments": {
+      "title": "Orders and Payments",
+      "content": "All orders are subject to acceptance and availability. Payment terms:",
+      "items": {
+        "0": "Prices are displayed in your selected currency and include applicable taxes",
+        "1": "Payment is processed securely through Stripe at checkout",
+        "2": "We reserve the right to reject or cancel orders for any reason",
+        "3": "Once production begins, orders cannot be modified or cancelled",
+        "4": "Refunds and returns are subject to our Returns & Refunds policy",
+        "5": "You are responsible for providing accurate shipping information"
+      }
+    },
+    "prohibitedUses": {
+      "title": "Prohibited Uses",
+      "content": "You may not use our platform for any unlawful or prohibited purpose, including:",
+      "items": {
+        "0": "Creating designs with offensive, defamatory, or hateful content",
+        "1": "Violating intellectual property rights of others",
+        "2": "Attempting to circumvent security or access controls",
+        "3": "Using our services for fraudulent or deceptive purposes",
+        "4": "Scraping, mining, or harvesting data from our platform",
+        "5": "Interfering with or disrupting our services or servers",
+        "6": "Reselling or redistributing our AI-generated designs without rights"
+      }
+    },
+    "limitationOfLiability": {
+      "title": "Limitation of Liability",
+      "content": "To the maximum extent permitted by law, POD AI Store shall not be liable for:",
+      "items": {
+        "0": "Indirect, incidental, special, or consequential damages",
+        "1": "Loss of profits, revenue, data, or business opportunities",
+        "2": "Delays or failures in delivery caused by third-party fulfillment partners",
+        "3": "Errors or inaccuracies in AI-generated content or designs",
+        "4": "Unauthorized access to your account due to your negligence",
+        "5": "Product defects or quality issues arising from manufacturing"
+      }
+    },
+    "termination": {
+      "title": "Termination",
+      "content": "We reserve the right to suspend or terminate your account at any time:",
+      "items": {
+        "0": "For violation of these Terms of Service or our policies",
+        "1": "For fraudulent, abusive, or unlawful activity",
+        "2": "For chargebacks or payment disputes",
+        "3": "Upon your request to delete your account",
+        "4": "If your account remains inactive for an extended period"
+      }
+    },
+    "governingLaw": {
+      "title": "Governing Law and Disputes",
+      "content": "These Terms of Service are governed by the laws of the jurisdiction where our company is registered. Any disputes shall be resolved through:",
+      "items": {
+        "0": "Good faith negotiation between you and POD AI Store",
+        "1": "Binding arbitration if negotiation fails (where permitted by law)",
+        "2": "The exclusive jurisdiction of courts in our registered location",
+        "3": "You waive the right to participate in class action lawsuits"
+      }
+    },
+    "contact": {
+      "title": "Contact Us",
+      "content": "For questions about these Terms of Service, please contact us at: legal@podai.com. We will respond to all inquiries within 5 business days."
+    },
+    "footer": "We reserve the right to modify these Terms of Service at any time. Continued use of our platform constitutes acceptance of any changes."
   }
 }

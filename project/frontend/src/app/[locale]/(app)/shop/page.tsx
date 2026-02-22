@@ -25,6 +25,11 @@ interface Product {
   category: string
   inStock: boolean
   createdAt: string
+  variants?: {
+    sizes?: string[]
+    colors?: string[]
+    colorImages?: Record<string, string>
+  }
 }
 
 const PRODUCTS_PER_PAGE = 20

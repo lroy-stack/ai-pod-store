@@ -58,6 +58,15 @@ export async function POST(
       );
     }
 
+    // Invalidate SSR theme cache on the frontend
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000'
+    fetch(`${frontendUrl}/api/revalidate/theme`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${process.env.SUPABASE_SERVICE_KEY}` },
+    }).catch(() => {
+      // Non-blocking — worst case, SSR cache refreshes in 5 minutes
+    })
+
     return NextResponse.json({
       success: true,
       message: `Theme "${theme.name}" activated successfully`,

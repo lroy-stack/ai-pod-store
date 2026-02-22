@@ -1,9 +1,10 @@
 import { Inter } from 'next/font/google'
 import { Providers } from './providers'
+import { getActiveTheme, themeToInlineCSS, themeGoogleFontsURL } from '@/lib/theme-server'
 import '../globals.css'
 import type { Metadata } from 'next'
 
-const inter = Inter({ subsets: ['latin'] })
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 
 const locales = ['en', 'es', 'de'] as const
 
@@ -69,9 +70,24 @@ export default async function LocaleLayout({
 }) {
   const { locale } = await params
 
+  // Fetch theme server-side for zero FOUC
+  const theme = await getActiveTheme()
+  const themeCSS = theme ? themeToInlineCSS(theme) : ''
+  const fontsURL = theme ? themeGoogleFontsURL(theme) : null
+
   return (
     <html lang={locale} suppressHydrationWarning>
       <head>
+        {themeCSS && (
+          <style id="server-theme-style" dangerouslySetInnerHTML={{ __html: themeCSS }} />
+        )}
+        {fontsURL && (
+          <>
+            <link rel="preconnect" href="https://fonts.googleapis.com" />
+            <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+            <link rel="stylesheet" href={fontsURL} />
+          </>
+        )}
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#fafafa" media="(prefers-color-scheme: light)" />
         <meta name="theme-color" content="#0a0a0b" media="(prefers-color-scheme: dark)" />
@@ -79,7 +95,7 @@ export default async function LocaleLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <link rel="apple-touch-icon" href="/icon-192.png" />
       </head>
-      <body className={inter.className}>
+      <body className={inter.variable}>
         <Providers params={params}>{children}</Providers>
       </body>
     </html>

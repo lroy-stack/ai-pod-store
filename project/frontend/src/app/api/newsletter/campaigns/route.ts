@@ -5,8 +5,26 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
+import { newsletterLimiter, getClientIP } from '@/lib/rate-limit';
 
 export async function GET(request: NextRequest) {
+  // Rate limiting: 10 requests per minute per IP
+  const clientIP = getClientIP(request)
+  const rateLimitResult = newsletterLimiter.check(`newsletter:${clientIP}`)
+  if (!rateLimitResult.success) {
+    return NextResponse.json(
+      { error: 'Too many requests. Please try again later.' },
+      {
+        status: 429,
+        headers: {
+          'X-RateLimit-Limit': '10',
+          'X-RateLimit-Remaining': String(rateLimitResult.remaining),
+          'Retry-After': '60',
+        }
+      }
+    )
+  }
+
   try {
     const { searchParams } = new URL(request.url);
     const segment = searchParams.get('segment');

@@ -6,6 +6,7 @@
  * from both Supabase Storage and the designs table.
  *
  * Should be called daily via Vercel Cron or external scheduler.
+ * Protected by Bearer token authentication.
  */
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -17,15 +18,13 @@ const supabase = createClient(
   { auth: { autoRefreshToken: false, persistSession: false } }
 )
 
-const CRON_SECRET = process.env.CRON_SECRET
+const CRON_SECRET = process.env.CRON_SECRET || process.env.PODCLAW_BRIDGE_AUTH_TOKEN
 
 export async function GET(req: NextRequest) {
-  // Verify cron secret (optional, for security)
-  if (CRON_SECRET) {
-    const authHeader = req.headers.get('authorization')
-    if (authHeader !== `Bearer ${CRON_SECRET}`) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+  // Verify cron secret
+  const authHeader = req.headers.get('authorization')
+  if (!CRON_SECRET || authHeader !== `Bearer ${CRON_SECRET}`) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   try {

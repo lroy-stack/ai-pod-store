@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 
+
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
@@ -8,6 +9,11 @@ export const dynamic = 'force-dynamic'
  * POST /api/rag/test-gemini
  */
 export async function POST(request: Request) {
+  if (process.env.NODE_ENV === 'production') {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  }
+
+
   try {
     const { text } = await request.json()
     const testText = text || 'Test document for embedding generation'
@@ -98,6 +104,11 @@ export async function POST(request: Request) {
  * GET /api/rag/test-gemini
  */
 export async function GET() {
+  if (process.env.NODE_ENV === 'production') {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  }
+
+
   const apiKey = process.env.GEMINI_API_KEY
   const hasApiKey = !!apiKey
   const apiKeyLength = apiKey?.length || 0

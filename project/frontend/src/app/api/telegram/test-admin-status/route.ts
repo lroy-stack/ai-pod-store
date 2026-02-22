@@ -5,7 +5,13 @@ import { supabaseAdmin } from '@/lib/supabase-admin';
  * Test endpoint to verify Telegram /status admin command
  * Creates a test admin user, links them to Telegram, and simulates the /status command
  */
+
 export async function GET() {
+  if (process.env.NODE_ENV === 'production') {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  }
+
+
   try {
     const supabase = supabaseAdmin;
 

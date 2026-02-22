@@ -71,14 +71,27 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Fetch user's locale preference from database
+    // Fetch user's locale and deletion status from database
     const { data: userData } = await supabase
       .from('users')
-      .select('locale')
+      .select('locale, deletion_requested_at')
       .eq('email', email)
       .single()
 
     const userLocale = userData?.locale || 'en'
+
+    // Cancel account deletion if user logs in during grace period
+    if (userData?.deletion_requested_at) {
+      await supabase
+        .from('users')
+        .update({
+          deletion_requested_at: null,
+          updated_at: new Date().toISOString()
+        })
+        .eq('email', email)
+
+      console.log(`Account deletion cancelled for user ${email} via login`)
+    }
 
     // Create response with session data
     const response = NextResponse.json(

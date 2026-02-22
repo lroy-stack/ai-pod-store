@@ -4,6 +4,7 @@ import { generateDesign } from '@/lib/design-generation'
 import { requireAuth, authErrorResponse } from '@/lib/auth-guard'
 import { checkAndIncrementUsage, usageHeaders, UserTier } from '@/lib/usage-limiter'
 import { checkPromptSafety } from '@/lib/content-safety'
+import { designGenerateLimiter } from '@/lib/rate-limit'
 
 const designRequestSchema = z.object({
   prompt: z.string().min(3, 'Prompt must be at least 3 characters'),
@@ -20,6 +21,27 @@ export async function POST(req: NextRequest) {
       user = await requireAuth(req)
     } catch (error) {
       return authErrorResponse(error)
+    }
+
+    // Rate limiting: 5 requests per minute per user
+    const rateLimitKey = `design:generate:${user.id}`
+    const rateLimitResult = designGenerateLimiter.check(rateLimitKey)
+    if (!rateLimitResult.success) {
+      return NextResponse.json(
+        {
+          error: 'Rate limit exceeded',
+          message: 'Maximum 5 design generations per minute. Please wait and try again.',
+          code: 'RATE_LIMIT_EXCEEDED',
+        },
+        {
+          status: 429,
+          headers: {
+            'X-RateLimit-Limit': '5',
+            'X-RateLimit-Remaining': String(rateLimitResult.remaining),
+            'Retry-After': '60',
+          }
+        }
+      )
     }
 
     // Check usage limits

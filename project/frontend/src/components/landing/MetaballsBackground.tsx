@@ -13,6 +13,26 @@ function hasWebGL(): boolean {
   }
 }
 
+/** Resolve any CSS color (including oklch) to hex via canvas */
+function cssColorToHex(cssColor: string): string {
+  if (cssColor.startsWith('#')) return cssColor
+  const canvas = document.createElement('canvas')
+  canvas.width = canvas.height = 1
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return '#000000'
+  ctx.fillStyle = cssColor
+  ctx.fillRect(0, 0, 1, 1)
+  const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data
+  return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`
+}
+
+/** Read a CSS variable from :root and resolve to hex */
+function getThemeColorHex(varName: string, fallback: string): string {
+  const raw = getComputedStyle(document.documentElement).getPropertyValue(varName).trim()
+  if (!raw) return fallback
+  return cssColorToHex(raw)
+}
+
 export function MetaballsBackground() {
   const { resolvedTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
@@ -29,12 +49,11 @@ export function MetaballsBackground() {
 
   if (!mounted || !supportsWebGL) return null
 
-  // Read theme colors from CSS custom properties
-  const style = getComputedStyle(document.documentElement)
-  const colorBack = style.getPropertyValue('--color-background').trim() || (resolvedTheme === 'dark' ? '#0a0a0b' : '#dcdde0')
-  const blobColor1 = style.getPropertyValue('--color-primary').trim() || '#2b00ff'
-  const blobColor2 = style.getPropertyValue('--color-chart-2').trim() || '#ae00ff'
-  const blobColor3 = style.getPropertyValue('--color-chart-5').trim() || '#ffc105'
+  // Read unprefixed theme variables from :root and convert oklch→hex for shader
+  const colorBack = getThemeColorHex('--background', resolvedTheme === 'dark' ? '#0a0a0b' : '#dcdde0')
+  const blobColor1 = getThemeColorHex('--primary', '#2b00ff')
+  const blobColor2 = getThemeColorHex('--chart-2', '#ae00ff')
+  const blobColor3 = getThemeColorHex('--chart-5', '#ffc105')
 
   return (
     <Metaballs

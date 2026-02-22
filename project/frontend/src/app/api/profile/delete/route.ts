@@ -1,6 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
+import { Resend } from 'resend'
 
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
+
+/**
+ * POST /api/profile/delete
+ * GDPR-compliant account deletion with 30-day grace period
+ *
+ * Implements soft delete:
+ * 1. Marks account with deletion_requested_at timestamp
+ * 2. Sends confirmation email to user
+ * 3. After 30 days, cron job will hard-delete the account
+ *
+ * User can cancel deletion within 30 days by logging in again
+ */
 export async function POST(request: NextRequest) {
   try {
     // Get user from session token
@@ -23,49 +37,85 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Confirmation required' }, { status: 400 })
     }
 
-    // GDPR-compliant deletion:
-    // Anonymize personal data (keep order history for business records)
-    // Note: Full soft-delete with deleted_at column will be added when migration is run
+    // Get user details for email
+    const { data: userData } = await supabaseAdmin
+      .from('users')
+      .select('email, name, locale')
+      .eq('id', user.id)
+      .single()
 
-    // Update user record with anonymized data
+    if (!userData) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+    }
+
+    // SOFT DELETE: Mark account for deletion (30-day grace period)
+    const now = new Date().toISOString()
     const { error: updateError } = await supabaseAdmin
       .from('users')
       .update({
-        email: `deleted_${user.id}@deleted.local`,
-        name: 'Deleted User',
-        phone: null,
-        avatar_url: null,
-        notification_preferences: { email: false, push: false, sms: false },
-        preferences: {}
+        deletion_requested_at: now,
+        updated_at: now
       })
       .eq('id', user.id)
 
     if (updateError) {
-      console.error('Error anonymizing user:', updateError)
+      console.error('Error marking user for deletion:', updateError)
       return NextResponse.json({ error: 'Failed to delete account' }, { status: 500 })
     }
 
-    // Delete shipping addresses (cascading delete will handle this if FK is set)
-    await supabaseAdmin
-      .from('shipping_addresses')
-      .delete()
-      .eq('user_id', user.id)
+    // Send confirmation email
+    if (resend && userData.email) {
+      const deletionDate = new Date()
+      deletionDate.setDate(deletionDate.getDate() + 30)
+      const formattedDate = deletionDate.toLocaleDateString(userData.locale || 'en', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      })
 
-    // Delete the user from Supabase Auth (complete account deletion)
-    const { error: deleteAuthError } = await supabaseAdmin.auth.admin.deleteUser(user.id)
+      try {
+        await resend.emails.send({
+          from: process.env.RESEND_FROM_EMAIL || 'noreply@podstore.local',
+          to: userData.email,
+          subject: 'Account Deletion Confirmation - 30 Day Grace Period',
+          html: `
+            <h2>Account Deletion Requested</h2>
+            <p>Hi ${userData.name || 'there'},</p>
+            <p>We've received your request to delete your account. Your account is now scheduled for permanent deletion.</p>
 
-    if (deleteAuthError) {
-      console.error('Error deleting auth user:', deleteAuthError)
-      // Continue anyway - the user data is already anonymized
+            <h3>30-Day Grace Period</h3>
+            <p>Your account will be <strong>permanently deleted on ${formattedDate}</strong>.</p>
+
+            <h3>Changed Your Mind?</h3>
+            <p>If you log in before this date, your account deletion will be automatically cancelled and your account will remain active.</p>
+
+            <h3>What Happens Next</h3>
+            <ul>
+              <li>For the next 30 days, your account remains accessible by logging in</li>
+              <li>Logging in will cancel the deletion request</li>
+              <li>After 30 days, your account and all associated data will be permanently deleted</li>
+              <li>This includes: personal information, order history, saved addresses, and preferences</li>
+            </ul>
+
+            <p>If you did not request this deletion, please log in immediately to cancel it.</p>
+
+            <p>Best regards,<br>The POD Store Team</p>
+          `
+        })
+      } catch (emailError) {
+        console.error('Error sending deletion confirmation email:', emailError)
+        // Continue - deletion is already marked, email is best-effort
+      }
     }
 
-    // Sign out the user from Supabase Auth
+    // Sign out the user from current session
     await supabaseAdmin.auth.admin.signOut(token)
 
     // Create response with cleared cookies
     const response = NextResponse.json({
       success: true,
-      message: 'Account deleted successfully'
+      message: 'Account deletion requested. You have 30 days to cancel by logging in again.',
+      deletionDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
     })
 
     // Clear all session cookies

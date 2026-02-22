@@ -72,6 +72,40 @@ export function saveConsent(consent: Omit<CookieConsent, 'necessary' | 'timestam
   const maxAge = 365 * 24 * 60 * 60; // 1 year in seconds
   const cookieValue = encodeURIComponent(JSON.stringify(fullConsent));
   document.cookie = `${CONSENT_COOKIE_NAME}=${cookieValue}; max-age=${maxAge}; path=/; SameSite=Lax; Secure`;
+
+  // Record consent to database (GDPR compliance)
+  recordConsentToDatabase(fullConsent).catch((error) => {
+    console.error('Failed to record consent to database:', error);
+  });
+}
+
+/**
+ * Record consent to database for GDPR compliance
+ */
+async function recordConsentToDatabase(consent: CookieConsent): Promise<void> {
+  try {
+    const response = await fetch('/api/consent', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        consents: {
+          necessary: consent.necessary,
+          analytics: consent.analytics,
+          marketing: consent.marketing,
+        },
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`API returned ${response.status}`);
+    }
+  } catch (error) {
+    // Fail silently for anonymous users or network errors
+    // Consent is still saved to localStorage/cookie
+    console.warn('Consent recording skipped:', error);
+  }
 }
 
 /**

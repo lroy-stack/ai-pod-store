@@ -7,7 +7,13 @@
 
 import { NextResponse } from 'next/server'
 
+
 export async function POST() {
+  if (process.env.NODE_ENV === 'production') {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  }
+
+
   const bridgeUrl = process.env.PODCLAW_BRIDGE_URL || 'http://localhost:8000'
 
   try {
