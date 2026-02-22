@@ -101,8 +101,48 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Stock validation: check variant availability before creating payment session
+    // Validate all items have variant_id (required for Printify fulfillment)
+    const itemsWithoutVariant = cartItems.filter(
+      (item: any) => !item.variant_id
+    );
+    if (itemsWithoutVariant.length > 0) {
+      return NextResponse.json(
+        {
+          error: 'Incomplete cart items',
+          code: 'MISSING_VARIANTS',
+          message: 'All items require a variant selection (size/color).',
+          items: itemsWithoutVariant.map((i: any) => i.product_id),
+        },
+        { status: 400 }
+      );
+    }
+
+    // Validate all products exist and are active
     const productIds = [...new Set(cartItems.map((item: any) => item.product_id).filter(Boolean))];
+
+    // Verify all products are active
+    if (productIds.length > 0) {
+      const { data: activeProducts } = await supabaseAdmin
+        .from('products')
+        .select('id')
+        .in('id', productIds)
+        .eq('status', 'active');
+
+      const activeProductIds = new Set((activeProducts || []).map((p: any) => p.id));
+      const inactiveItems = productIds.filter(id => !activeProductIds.has(id));
+      if (inactiveItems.length > 0) {
+        return NextResponse.json(
+          {
+            error: 'Some products are no longer available',
+            code: 'PRODUCTS_UNAVAILABLE',
+            items: inactiveItems,
+          },
+          { status: 409 }
+        );
+      }
+    }
+
+    // Stock validation: check variant availability before creating payment session
     if (productIds.length > 0) {
       const { data: variants } = await supabaseAdmin
         .from('product_variants')
@@ -349,7 +389,7 @@ export async function POST(req: NextRequest) {
         locale,
         cart_items: JSON.stringify(cartItems.map((item: any) => ({
           product_id: item.product_id,
-          variant_id: item.variant_id || null,
+          variant_id: item.variant_id,
           quantity: item.quantity,
           personalization_id: item.personalization_id || null,
           printify_temp_id: item._printify_temp_id || null,

@@ -175,14 +175,14 @@ async function handleGenerateEnv(services) {
 
   // Optional Services
   if (services.optionalServices) {
-    const { resendKey, resendFrom, jinaKey, telegramToken, telegramSecret, whatsappPhoneId, whatsappToken, whatsappVerify } = services.optionalServices;
+    const { resendKey, resendFrom, crawl4aiUrl, telegramToken, telegramSecret, whatsappPhoneId, whatsappToken, whatsappVerify } = services.optionalServices;
 
     frontendEnv.push('# Optional Services');
     if (resendKey) {
       frontendEnv.push(`RESEND_API_KEY=${resendKey}`);
       frontendEnv.push(`RESEND_FROM_EMAIL=${resendFrom || 'noreply@example.com'}`);
     }
-    if (jinaKey) frontendEnv.push(`JINA_API_KEY=${jinaKey}`);
+    if (crawl4aiUrl) frontendEnv.push(`CRAWL4AI_URL=${crawl4aiUrl}`);
     if (telegramToken) {
       frontendEnv.push(`TELEGRAM_BOT_TOKEN=${telegramToken}`);
       frontendEnv.push(`TELEGRAM_WEBHOOK_SECRET=${telegramSecret || ''}`);
@@ -681,20 +681,20 @@ function getHTMLTemplate() {
             </div>
           </div>
 
-          <!-- Jina -->
+          <!-- Crawl4AI -->
           <div class="border rounded-lg p-4">
             <div class="flex items-center justify-between mb-3">
-              <h3 class="font-semibold">Jina (Search)</h3>
+              <h3 class="font-semibold">Crawl4AI (Web Crawler)</h3>
               <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" x-model="formData.optionalServices.enableJina" class="sr-only peer">
+                <input type="checkbox" x-model="formData.optionalServices.enableCrawl4ai" class="sr-only peer">
                 <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
               </label>
             </div>
-            <div x-show="formData.optionalServices.enableJina">
+            <div x-show="formData.optionalServices.enableCrawl4ai">
               <input
-                type="password"
-                x-model="formData.optionalServices.jinaKey"
-                placeholder="API Key (jina_...)"
+                type="text"
+                x-model="formData.optionalServices.crawl4aiUrl"
+                placeholder="Service URL (default: http://crawl4ai:11235)"
                 class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
@@ -823,7 +823,7 @@ function getHTMLTemplate() {
           </div>
 
           <!-- Optional Services Review -->
-          <div class="bg-gray-50 p-4 rounded-lg" x-show="formData.optionalServices.enableResend || formData.optionalServices.enableJina || formData.optionalServices.enableTelegram || formData.optionalServices.enableWhatsapp">
+          <div class="bg-gray-50 p-4 rounded-lg" x-show="formData.optionalServices.enableResend || formData.optionalServices.enableCrawl4ai || formData.optionalServices.enableTelegram || formData.optionalServices.enableWhatsapp">
             <h3 class="font-semibold mb-3">Optional Services</h3>
             <div class="space-y-2 text-sm">
               <!-- Resend -->
@@ -840,13 +840,13 @@ function getHTMLTemplate() {
                   </div>
                 </div>
               </template>
-              <!-- Jina -->
-              <template x-if="formData.optionalServices.enableJina">
+              <!-- Crawl4AI -->
+              <template x-if="formData.optionalServices.enableCrawl4ai">
                 <div class="space-y-2 border-l-2 border-blue-400 pl-3 mb-3">
-                  <div class="font-medium text-gray-700">Jina</div>
+                  <div class="font-medium text-gray-700">Crawl4AI</div>
                   <div class="flex justify-between">
-                    <span class="text-gray-600">API Key:</span>
-                    <span class="font-mono text-xs" x-text="maskValue(formData.optionalServices.jinaKey)"></span>
+                    <span class="text-gray-600">Service URL:</span>
+                    <span class="font-mono text-xs" x-text="formData.optionalServices.crawl4aiUrl || 'http://crawl4ai:11235'"></span>
                   </div>
                 </div>
               </template>
@@ -1039,8 +1039,8 @@ function getHTMLTemplate() {
             enableResend: false,
             resendKey: '',
             resendFrom: '',
-            enableJina: false,
-            jinaKey: '',
+            enableCrawl4ai: false,
+            crawl4aiUrl: 'http://crawl4ai:11235',
             enableTelegram: false,
             telegramToken: '',
             telegramSecret: '',

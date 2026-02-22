@@ -24,11 +24,12 @@ import {
 import { Separator } from '@/components/ui/separator'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Paintbrush, AlignVerticalJustifyStart, AlignVerticalJustifyCenter, AlignVerticalJustifyEnd, X, Zap, Sparkles } from 'lucide-react'
+import { Paintbrush, AlignVerticalJustifyStart, AlignVerticalJustifyCenter, AlignVerticalJustifyEnd, X, Zap, Sparkles, AlertTriangle } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
-import { getPreviewZone } from '@/lib/print-areas'
+import { getPreviewZone, getPrintArea } from '@/lib/print-areas'
 import { containsProfanity, getProfanityErrorMessage } from '@/lib/profanity-filter'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 
 const FONT_OPTIONS = [
   { value: 'Inter', label: 'Inter' },
@@ -50,11 +51,83 @@ export interface PersonalizationData {
 
 /** CSS top% → Printify y-coordinate mapping */
 export const POSITION_MAP = { top: 0.15, center: 0.50, bottom: 0.85 } as const
-/** fontSize preset → Printify font_size mapping */
+/** fontSize preset → Printify font_size mapping (production print sizes) */
 export const SIZE_MAP = { small: 16, medium: 24, large: 36 } as const
+
+/** Canvas preview font sizes (scaled to match CSS visual size, not production print size) */
+const CANVAS_SIZE_MAP = { small: 9, medium: 12, large: 16 } as const
 
 /** CSS font-size for preview overlay (relative to print area height) */
 const CSS_SIZE_MAP = { small: 'clamp(7px, 1.8vw, 11px)', medium: 'clamp(9px, 2.5vw, 14px)', large: 'clamp(12px, 3.5vw, 20px)' } as const
+
+/**
+ * Detects if text will likely overflow the printable area.
+ * Uses heuristics based on font size, line count, and average character width.
+ */
+function detectTextOverflow(
+  text: string,
+  fontSize: 'small' | 'medium' | 'large',
+  category?: string
+): boolean {
+  if (!text.trim()) return false
+
+  const lines = text.split('\n')
+  const printArea = getPrintArea(category)
+
+  // Approximate character widths per font size (in px at production print size)
+  const charWidthMap = { small: 9, medium: 14, large: 21 }
+  const lineHeightMap = { small: 20, medium: 30, large: 45 }
+
+  const charWidth = charWidthMap[fontSize]
+  const lineHeight = lineHeightMap[fontSize]
+
+  // Calculate approximate text dimensions
+  const maxLineLength = Math.max(...lines.map(l => l.length))
+  const estimatedWidth = maxLineLength * charWidth
+  const estimatedHeight = lines.length * lineHeight
+
+  // Add safety margin (10% on each side)
+  const safeWidth = printArea.w * 0.8
+  const safeHeight = printArea.h * 0.8
+
+  // Overflow if text exceeds 80% of print area (safe zone)
+  return estimatedWidth > safeWidth || estimatedHeight > safeHeight
+}
+
+/**
+ * Maps product category to mockup template path.
+ * Returns default if category not recognized.
+ */
+function getMockupTemplate(category?: string, color?: string): string {
+  if (!category) return '/mockup-templates/tshirt-white.png'
+
+  const cat = category.toLowerCase()
+  const col = color?.toLowerCase() || 'white'
+
+  // Map category + color to mockup template
+  if (cat.includes('shirt') || cat.includes('apparel')) {
+    return col.includes('black') || col.includes('dark')
+      ? '/mockup-templates/tshirt-black.png'
+      : '/mockup-templates/tshirt-white.png'
+  }
+  if (cat.includes('hoodie') || cat.includes('sweatshirt')) {
+    return col.includes('black') || col.includes('dark')
+      ? '/mockup-templates/hoodie-black.png'
+      : '/mockup-templates/hoodie-white.png'
+  }
+  if (cat.includes('bag') || cat.includes('tote')) {
+    return '/mockup-templates/tote-bag-natural.png'
+  }
+  if (cat.includes('mug') || cat.includes('cup')) {
+    return '/mockup-templates/mug-white.png'
+  }
+  if (cat.includes('phone') || cat.includes('case')) {
+    return '/mockup-templates/phone-case-black.png'
+  }
+
+  // Default fallback
+  return '/mockup-templates/tshirt-white.png'
+}
 
 interface ProductPersonalizerProps {
   productId: string
@@ -62,6 +135,8 @@ interface ProductPersonalizerProps {
   productImage?: string
   /** Product category (e.g. "bags", "mugs") — used to determine print area */
   category?: string
+  /** Product color (e.g. "black", "white") — used to select mockup template */
+  productColor?: string
   onPersonalized?: (data: PersonalizationData) => void
   onClear?: () => void
   /** Pre-fill values (e.g. from chat suggestions) */
@@ -75,6 +150,7 @@ export function ProductPersonalizer({
   productTitle,
   productImage,
   category,
+  productColor,
   onPersonalized,
   onClear,
   initialData,
@@ -104,6 +180,9 @@ export function ProductPersonalizer({
   const [debouncedFontSize, setDebouncedFontSize] = useState(fontSize)
   const [debouncedPosition, setDebouncedPosition] = useState(position)
 
+  // Text overflow detection
+  const [hasOverflow, setHasOverflow] = useState(false)
+
   // Debounce preview updates (500ms delay)
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -116,6 +195,12 @@ export function ProductPersonalizer({
 
     return () => clearTimeout(timer)
   }, [text, font, fontColor, fontSize, position])
+
+  // Check for text overflow
+  useEffect(() => {
+    const overflow = detectTextOverflow(text, fontSize, category)
+    setHasOverflow(overflow)
+  }, [text, fontSize, category])
 
   // Fetch personalization surcharge when dialog opens
   useEffect(() => {
@@ -163,7 +248,7 @@ export function ProductPersonalizer({
             text: debouncedText,
             font: debouncedFont,
             fontColor: debouncedFontColor,
-            fontSize: SIZE_MAP[debouncedFontSize],
+            fontSize: CANVAS_SIZE_MAP[debouncedFontSize], // Use preview sizes, not production sizes
             position: debouncedPosition,
           }),
         })
@@ -349,18 +434,12 @@ export function ProductPersonalizer({
             {/* CSS overlay preview (quick mode) */}
             {(previewMode === 'quick' || (!isLoadingPreview && previewMode === 'accurate' && !serverPreview)) && (
               <div className="relative w-full max-w-[280px] aspect-square">
-                {productImage ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={productImage}
-                    alt={productTitle}
-                    className="w-full h-full object-contain rounded-md"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center rounded-md bg-muted text-muted-foreground text-sm">
-                    {productTitle}
-                  </div>
-                )}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={getMockupTemplate(category, productColor)}
+                  alt={productTitle}
+                  className="w-full h-full object-contain rounded-md"
+                />
 
                 {/* Print area guide + text overlay — positioned within product's visible print zone */}
                 <div
@@ -437,6 +516,16 @@ export function ProductPersonalizer({
                 </div>
               </div>
             </div>
+
+            {/* Overflow warning */}
+            {hasOverflow && hasText && (
+              <Alert variant="destructive" className="py-2.5">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription className="text-xs">
+                  {t('personalizeOverflowWarning')}
+                </AlertDescription>
+              </Alert>
+            )}
 
             {/* Font + Color row */}
             <div className="grid grid-cols-2 gap-3">

@@ -4,13 +4,13 @@
 
 | Agent | Model | Schedule | Session Budget | Daily Budget | MCP Connectors | Built-in Tools | Context Files |
 |-------|-------|----------|---------------|-------------|----------------|----------------|---------------|
-| researcher | Haiku 4.5 | 06:00 | $0.60 | €1.50 | supabase, jina | Read, Write, Grep, Glob, WebSearch, WebFetch | best_sellers.md, customer_insights.md, pricing_history.md |
-| marketing | Sonnet 4.5 | 07:00, 15:00 | $1.00 | €2.00 | supabase, jina, resend, telegram, whatsapp | Read, Write, Grep, Glob | best_sellers.md, customer_insights.md, design_library.md, marketing_calendar.md |
-| designer | Sonnet 4.5 | 07:00 | $1.50 | €3.00 | supabase, fal, printify, jina, gemini | Read, Write, Glob | design_library.md, best_sellers.md, product_specs.md, design_workflow.md, qa_report.md |
+| researcher | Haiku 4.5 | 06:00 | $0.60 | €1.50 | supabase, crawl4ai | Read, Write, Grep, Glob, WebSearch, WebFetch | best_sellers.md, customer_insights.md, pricing_history.md |
+| marketing | Sonnet 4.5 | 07:00, 15:00 | $1.00 | €2.00 | supabase, crawl4ai, resend, telegram, whatsapp | Read, Write, Grep, Glob | best_sellers.md, customer_insights.md, design_library.md, marketing_calendar.md |
+| designer | Sonnet 4.5 | 07:00 | $1.50 | €3.00 | supabase, fal, printify, crawl4ai, gemini | Read, Write, Glob | design_library.md, best_sellers.md, product_specs.md, design_workflow.md, qa_report.md |
 | newsletter | Sonnet 4.5 | 09:00, 17:00 | $0.80 | €1.50 | supabase, resend, gemini | Read, Write, Grep | customer_insights.md, marketing_calendar.md, newsletter_segments.md |
 | cataloger | Sonnet 4.5 | 08:00, 14:00, 18:00 | $6.00 | €15.00 | supabase, printify, gemini | Read, Write, Grep, Glob | best_sellers.md, pricing_history.md, product_specs.md, product_workflow.md, design_library.md, qa_report.md |
 | customer_manager | Sonnet 4.5 | 12:00, 22:00 | $1.00 | €2.00 | supabase, resend, stripe, telegram, whatsapp, printify | Read, Write, Grep | customer_insights.md, store_config.md |
-| seo_manager | Haiku 4.5 | 16:00 (Sun) | $0.50 | €1.00 | supabase, jina | Read, Grep, Glob, WebSearch, WebFetch | best_sellers.md |
+| seo_manager | Haiku 4.5 | 16:00 (Sun) | $0.50 | €1.00 | supabase, crawl4ai | Read, Grep, Glob, WebSearch, WebFetch | best_sellers.md |
 | finance | Sonnet 4.5 | 23:00 | $1.20 | €2.50 | supabase, stripe | Read, Write, Grep, Glob | pricing_history.md, store_config.md |
 | qa_inspector | Haiku 4.5 | 10:00 | $0.15 | €0.15 | supabase, gemini, printify | Read, Write, Glob | design_library.md, qa_report.md, last_session_feedback.md |
 | brand_manager | Sonnet 4.5 | 08:00 (Mon) | $0.80 | €1.50 | supabase, printify | Read, Write, Grep, Glob | brand_config.md, store_config.md |
@@ -50,7 +50,7 @@ APScheduler cron trigger
 ### designer
 - Highest budget ($1.50/session) due to fal.ai image generation costs
 - Creates product designs and uploads to Printify
-- Rate limited: 10 fal_generate, 30 search_images, 2 gemini_generate_image per session
+- Rate limited: 10 fal_generate, 10 crawl_url for design inspiration per session
 - Reads qa_report.md for quality feedback from QA inspector
 
 ### newsletter
@@ -70,8 +70,8 @@ APScheduler cron trigger
 
 ### seo_manager
 - Uses Haiku for efficiency — SEO tasks are analytical
-- Audits meta tags, researches keywords, optimizes descriptions
-- Rate limited: 15 web searches per session
+- Audits meta tags, analyzes competitor pages, optimizes descriptions
+- Rate limited: 10 crawl_url, 2 crawl_site, 5 capture_screenshot per session
 
 ### finance
 - Generates structured daily revenue reports (JSON schema)

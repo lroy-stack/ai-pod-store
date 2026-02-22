@@ -45,8 +45,9 @@ export default function CartView({ locale }: { locale: string }) {
   const [calculatingShipping, setCalculatingShipping] = useState(false)
 
   const loading = authLoading || cartLoading
-  const cartTotal = cartItems.reduce((total, item) => total + (item.product_price * item.quantity), 0)
-  const itemCount = cartItems.reduce((count, item) => count + item.quantity, 0)
+  const availableItems = cartItems.filter((item: any) => !item.unavailable)
+  const cartTotal = availableItems.reduce((total, item) => total + (item.product_price * item.quantity), 0)
+  const itemCount = availableItems.reduce((count, item) => count + item.quantity, 0)
   const discountedTotal = appliedCoupon ? appliedCoupon.new_total : cartTotal
   const shippingCost = shippingEstimate?.cost || 0
   const finalTotal = discountedTotal + shippingCost
@@ -250,6 +251,11 @@ export default function CartView({ locale }: { locale: string }) {
                           {item.variant_details?.color && (
                             <Badge variant="secondary" className="text-xs">
                               Color: {item.variant_details.color}
+                            </Badge>
+                          )}
+                          {item.unavailable && (
+                            <Badge variant="destructive" className="text-xs">
+                              Unavailable
                             </Badge>
                           )}
                           {item.personalization && (

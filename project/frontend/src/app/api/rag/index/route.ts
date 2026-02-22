@@ -6,9 +6,15 @@ export const dynamic = 'force-dynamic'
 
 /**
  * Chunk text into smaller pieces for better RAG retrieval
- * Strategy: Split on sentence boundaries, keep chunks under 1000 tokens (~750 chars)
+ * Strategy: Recursive splitting with overlap, respecting boundaries
+ * - Target: 400-512 tokens (≈ 1600-2048 chars, using 1 token ≈ 4 chars)
+ * - Overlap: 15% (center of 10-20% range)
+ * - Boundary priority: code blocks > paragraphs > newlines > sentences > words
  */
-function chunkText(text: string, maxChunkSize = 750): string[] {
+function chunkText(text: string, targetChunkSize = 1800, maxChunkSize = 2048): string[] {
+  const overlapPercent = 0.15 // 15% overlap
+  const overlapSize = Math.round(targetChunkSize * overlapPercent)
+
   // If text is short enough, return as single chunk
   if (text.length <= maxChunkSize) {
     return [text]
@@ -16,34 +22,114 @@ function chunkText(text: string, maxChunkSize = 750): string[] {
 
   const chunks: string[] = []
 
-  // Split on sentence boundaries (., !, ?, followed by space or newline)
-  const sentences = text.match(/[^.!?\n]+[.!?\n]+/g) || [text]
+  // Helper: Extract code blocks with their positions
+  function extractCodeBlocks(content: string): Array<{ start: number; end: number; text: string }> {
+    const blocks: Array<{ start: number; end: number; text: string }> = []
+    const regex = /```[\s\S]*?```/g
+    let match
+    while ((match = regex.exec(content)) !== null) {
+      blocks.push({
+        start: match.index,
+        end: match.index + match[0].length,
+        text: match[0],
+      })
+    }
+    return blocks
+  }
 
-  let currentChunk = ''
+  // Helper: Check if position is inside a code block
+  function isInCodeBlock(pos: number, blocks: Array<{ start: number; end: number }>): boolean {
+    return blocks.some((block) => pos > block.start && pos < block.end)
+  }
 
-  for (const sentence of sentences) {
-    // If adding this sentence would exceed max size, save current chunk and start new one
-    if (currentChunk.length > 0 && currentChunk.length + sentence.length > maxChunkSize) {
-      chunks.push(currentChunk.trim())
-      currentChunk = sentence
-    } else {
-      currentChunk += sentence
+  // Helper: Find best split position with boundary respect
+  function findSplitPosition(content: string, idealPos: number): number {
+    const codeBlocks = extractCodeBlocks(content)
+
+    // Don't split inside code blocks
+    if (isInCodeBlock(idealPos, codeBlocks)) {
+      // Find nearest code block boundary before idealPos
+      const blockBefore = codeBlocks.find((b) => b.end <= idealPos)
+      if (blockBefore) return blockBefore.end
+      // Otherwise, find block start
+      const blockContaining = codeBlocks.find((b) => idealPos >= b.start && idealPos <= b.end)
+      if (blockContaining) return blockContaining.start
+    }
+
+    // Search window: ±200 chars from ideal position
+    const searchStart = Math.max(0, idealPos - 200)
+    const searchEnd = Math.min(content.length, idealPos + 200)
+    const searchWindow = content.substring(searchStart, searchEnd)
+
+    // Priority 1: Paragraph boundary (\n\n)
+    const paragraphMatch = searchWindow.lastIndexOf('\n\n')
+    if (paragraphMatch !== -1) {
+      return searchStart + paragraphMatch + 2 // After the \n\n
+    }
+
+    // Priority 2: Single newline
+    const newlineMatch = searchWindow.lastIndexOf('\n')
+    if (newlineMatch !== -1) {
+      return searchStart + newlineMatch + 1 // After the \n
+    }
+
+    // Priority 3: Sentence boundary (. ! ? followed by space)
+    const sentenceRegex = /[.!?]\s+/g
+    let lastSentencePos = -1
+    let match
+    while ((match = sentenceRegex.exec(searchWindow)) !== null) {
+      lastSentencePos = match.index + match[0].length
+    }
+    if (lastSentencePos !== -1) {
+      return searchStart + lastSentencePos
+    }
+
+    // Priority 4: Word boundary (space)
+    const spaceMatch = searchWindow.lastIndexOf(' ')
+    if (spaceMatch !== -1) {
+      return searchStart + spaceMatch + 1 // After the space
+    }
+
+    // Fallback: split at ideal position (hard break)
+    return idealPos
+  }
+
+  // Recursive splitting with overlap
+  let remaining = text
+  let startOffset = 0
+
+  while (remaining.length > 0) {
+    // If remaining text fits in one chunk, add it and finish
+    if (remaining.length <= maxChunkSize) {
+      chunks.push(remaining.trim())
+      break
+    }
+
+    // Find split position
+    const splitPos = findSplitPosition(remaining, targetChunkSize)
+    const chunk = remaining.substring(0, splitPos).trim()
+
+    if (chunk.length > 0) {
+      chunks.push(chunk)
+    }
+
+    // Calculate next start with overlap
+    const nextStart = Math.max(0, splitPos - overlapSize)
+    remaining = remaining.substring(nextStart)
+    startOffset += nextStart
+
+    // Safety: prevent infinite loop if split position doesn't advance
+    if (splitPos === 0) {
+      // Force a split at targetChunkSize
+      const forceChunk = remaining.substring(0, targetChunkSize).trim()
+      if (forceChunk.length > 0) {
+        chunks.push(forceChunk)
+      }
+      remaining = remaining.substring(targetChunkSize)
     }
   }
 
-  // Add the last chunk if it has content
-  if (currentChunk.trim().length > 0) {
-    chunks.push(currentChunk.trim())
-  }
-
-  // If no chunks were created (e.g., single long sentence), split by character limit
-  if (chunks.length === 0) {
-    for (let i = 0; i < text.length; i += maxChunkSize) {
-      chunks.push(text.slice(i, i + maxChunkSize))
-    }
-  }
-
-  return chunks
+  return chunks.filter((c) => c.length > 0)
 }
 
 /**
@@ -100,8 +186,8 @@ export async function POST(request: Request) {
       )
     }
 
-    // 1. Chunk the content if it's long
-    const chunks = chunkText(content, 750) // ~750 chars ≈ 200-250 tokens (well under 1000 token limit)
+    // 1. Chunk the content if it's long (target 400-512 tokens with 15% overlap)
+    const chunks = chunkText(content) // ~1800 chars ≈ 450 tokens with recursive boundary-aware splitting
 
     const indexedChunks = []
     const embeddingUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent?key=${apiKey}`

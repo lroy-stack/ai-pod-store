@@ -4,6 +4,7 @@ import path from 'path';
 import fs from 'fs';
 import { createCanvas, registerFont } from 'canvas';
 import { containsProfanity, getProfanityErrorMessage } from '@/lib/profanity-filter';
+import { previewTextLimiter, getClientIP } from '@/lib/rate-limit';
 
 /**
  * POST /api/designs/preview-text
@@ -42,6 +43,25 @@ Object.entries(FONT_FILES).forEach(([fontName, fileName]) => {
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting: 20 requests/min per IP (canvas rendering is CPU-intensive)
+    const clientIP = getClientIP(request);
+    const rateLimitResult = previewTextLimiter.check(clientIP);
+
+    if (!rateLimitResult.success) {
+      return NextResponse.json(
+        { error: 'Too many requests. Please wait a moment and try again.' },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': '60',
+            'X-RateLimit-Limit': '20',
+            'X-RateLimit-Remaining': '0',
+            'X-RateLimit-Reset': String(Math.ceil(Date.now() / 1000) + 60),
+          }
+        }
+      );
+    }
+
     const body: PreviewRequest = await request.json();
 
     // Validate required fields
@@ -108,16 +128,16 @@ export async function POST(request: NextRequest) {
     const templateWidth = templateMetadata.width || 500;
     const templateHeight = templateMetadata.height || 600;
 
-    // Calculate text position
+    // Calculate text position (matches CSS Quick preview positioning)
     const calculateY = (pos: string, imgHeight: number): number => {
       switch (pos) {
         case 'top':
-          return Math.floor(imgHeight * 0.2);
+          return Math.floor(imgHeight * 0.1); // 10% from top (matches CSS top-[10%])
         case 'bottom':
-          return Math.floor(imgHeight * 0.8);
+          return Math.floor(imgHeight * 0.9); // 90% from top (matches CSS bottom-[10%])
         case 'center':
         default:
-          return Math.floor(imgHeight * 0.5);
+          return Math.floor(imgHeight * 0.5); // 50% from top (centered)
       }
     };
 

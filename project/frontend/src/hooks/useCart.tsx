@@ -13,9 +13,19 @@ interface CartItem {
   product_price: number
   product_image?: string
   product_currency?: string
+  unavailable?: boolean
   variant_details?: {
     size?: string
     color?: string
+  }
+  personalization_id?: string
+  personalization?: {
+    text?: string
+    font?: string
+    fontColor?: string
+    fontSize?: string
+    position?: string
+    preview?: string | null
   }
 }
 
@@ -78,19 +88,27 @@ export function CartProvider({ children }: { children: ReactNode }) {
       })
 
       if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.message || 'Failed to add to cart')
+        const errorData = await response.json()
+        const err = new Error(errorData.message || errorData.error || 'Failed to add to cart')
+        ;(err as any).code = errorData.code
+        throw err
       }
 
       await refreshCart()
       toast.success('Added to cart', {
         description: `${productTitle || 'Product'} has been added to your cart`,
       })
-    } catch (error) {
+    } catch (error: any) {
       console.error('Add to cart error:', error)
-      toast.error('Failed to add to cart', {
-        description: error instanceof Error ? error.message : 'Please try again',
-      })
+      if (error?.code === 'VARIANT_REQUIRED') {
+        toast.info('Please select a size or color', {
+          description: error.message || 'This product requires selecting a variant.',
+        })
+      } else {
+        toast.error('Failed to add to cart', {
+          description: error instanceof Error ? error.message : 'Please try again',
+        })
+      }
       throw error
     }
   }, [refreshCart])

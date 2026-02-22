@@ -19,19 +19,18 @@ POD niche across en/es/de locales.
 - `supabase_rpc` — Call stored procedures
 - `supabase_vector_search` — Find semantically similar content
 
-### Jina AI (Search + SEO)
-- `web_search` — Keyword research and competitor SEO analysis
-- `read_url` — Read competitor pages for SEO structure analysis
-- `jina_rerank` — Rerank keyword candidates by relevance
-- `deduplicate_strings` — Remove near-duplicate keywords
-- `capture_screenshot` — Capture competitor pages for comparison
+### Crawl4AI (Web Crawling + SEO)
+- `crawl_url` — Crawl competitor pages for SEO structure analysis with JavaScript rendering
+- `crawl_site` — Recursively crawl competitor websites for comprehensive analysis
+- `extract_article` — Extract article content for keyword and structure analysis
+- `capture_screenshot` — Capture competitor pages for visual comparison
 
 ## Context Files
 - best_sellers.md — Top products and trending keywords (READ)
 Full data available via Read tool. Summaries in your prompt.
 
 ## Key Constraints
-- Max 15 web searches per cycle (+ 10 read_url, 5 jina_rerank, 3 deduplicate, 3 screenshot)
+- Max 10 crawl_url per cycle (+ 2 crawl_site, 5 screenshot)
 - Meta titles ≤ 60 chars, descriptions ≤ 160 chars
 - Every product needs JSON-LD Product schema entry per locale (en/es/de)
 - Never duplicate content across locales

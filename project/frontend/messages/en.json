@@ -134,7 +134,8 @@
     "personalizeFontSizeLarge": "Large",
     "personalizeClear": "Clear",
     "personalizeLoginRequired": "Log in to personalize",
-    "personalizePreviewDisclaimer": "Final result may vary slightly"
+    "personalizePreviewDisclaimer": "Final result may vary slightly",
+    "personalizeOverflowWarning": "Text may exceed printable area. Try shorter text or smaller font size."
   },
   "Auth": {
     "loginTitle": "Sign in to your account",

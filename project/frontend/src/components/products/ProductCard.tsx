@@ -73,10 +73,27 @@ export function ProductCard({ product, priority }: ProductCardProps) {
     toggleWishlist(product.id)
   }
 
+  // Determine if product has multiple variant options requiring selection
+  const sizesCount = product.variants?.sizes?.length || 0
+  const colorsCount = product.variants?.colors?.length || 0
+  const hasMultipleVariants = sizesCount > 1 || (sizesCount >= 1 && colorsCount > 1)
+
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    addToCart(product.id, 1, undefined, product.title, product.price)
+    if (hasMultipleVariants) {
+      // Open product detail for variant selection instead of blind add
+      addArtifact({
+        id: product.id,
+        type: 'product',
+        title: product.title,
+        data: product,
+      })
+      setSelectedProduct(product.id)
+    } else {
+      // Single variant — server will autoselect
+      addToCart(product.id, 1, undefined, product.title, product.price)
+    }
   }
 
   const handleQuickView = (e: React.MouseEvent) => {

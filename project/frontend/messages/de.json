@@ -134,7 +134,8 @@
     "personalizeFontSizeLarge": "Groß",
     "personalizeClear": "Löschen",
     "personalizeLoginRequired": "Melde dich an zum Personalisieren",
-    "personalizePreviewDisclaimer": "Ergebnis kann leicht abweichen"
+    "personalizePreviewDisclaimer": "Ergebnis kann leicht abweichen",
+    "personalizeOverflowWarning": "Text kann den Druckbereich überschreiten. Versuchen Sie kürzeren Text oder kleinere Schriftgröße."
   },
   "Auth": {
     "loginTitle": "Bei Ihrem Konto anmelden",

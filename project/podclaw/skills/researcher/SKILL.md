@@ -17,13 +17,12 @@ seasonal opportunities 2-4 weeks ahead. Your findings feed every other agent.
 - `supabase_rpc` — Call stored procedures for analytics
 - `supabase_vector_search` — Semantic search over product embeddings
 
-### Jina AI (Search + Analysis)
-- `web_search` — Search web for trends, competitors, opportunities (supports `num`, `tbs`, `gl`, `hl`, `site`)
-- `read_url` — Extract clean markdown from any URL
-- `expand_query` — Expand search query into related terms
-- `parallel_search_web` — Run up to 5 searches at once
-- `jina_rerank` — Rerank documents by relevance
-- `deduplicate_strings` — Remove near-duplicate strings
+### Crawl4AI (Web Crawling + Analysis)
+- `crawl_url` — Crawl a single URL with JavaScript rendering and extract content
+- `crawl_batch` — Crawl multiple URLs in parallel (max 10 per batch)
+- `extract_article` — Extract article content using heuristics
+- `crawl_site` — Recursively crawl a website (respects robots.txt, max depth 4, max pages 100)
+- `capture_screenshot` — Capture webpage screenshot as base64 PNG
 
 > **Restriction**: READ-ONLY database access. Write findings to context files only.
 
@@ -34,7 +33,7 @@ seasonal opportunities 2-4 weeks ahead. Your findings feed every other agent.
 Full data available via Read tool. Summaries in your prompt.
 
 ## Key Constraints
-- Max 20 web searches per cycle (+ 15 read_url, 5 expand_query, 3 parallel_search_web)
+- Max 15 crawl_url per cycle (+ 5 crawl_batch, 3 crawl_site)
 - All monetary values in EUR. Never use USD.
 - Focus on actionable insights, not general news
 - **Evidence required**: When reporting numbers (product counts, margins, missing fields),

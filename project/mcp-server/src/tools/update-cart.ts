@@ -16,7 +16,7 @@ import { createClient } from '@supabase/supabase-js';
 
 export const updateCartSchema = z.object({
   product_id: z.string().uuid().describe('The UUID of the product to add/update/remove'),
-  variant_id: z.string().uuid().optional().describe('Optional variant ID if the product has variants'),
+  variant_id: z.string().uuid().optional().describe('Variant ID. Required when adding items (quantity > 0) for products with multiple variants. Auto-selected if product has only one variant.'),
   quantity: z.number().int().min(0).max(100).describe('Quantity to set (0 to remove item)'),
 });
 
@@ -26,10 +26,12 @@ export interface UpdateCartResult {
   success: boolean;
   error?: string;
   message?: string;
+  needsVariantSelection?: boolean;
+  available_variants?: Array<{ id: string; size?: string; color?: string }>;
   cart_item?: {
     id: string;
     product_id: string;
-    variant_id?: string;
+    variant_id: string;
     quantity: number;
   };
 }
@@ -112,6 +114,33 @@ export async function updateCart(
       }
     }
 
+    // For adds (quantity > 0): variant_id is required — autoselect or reject
+    let resolvedVariantId = variant_id;
+    if (quantity > 0 && !resolvedVariantId) {
+      const { data: availableVariants } = await supabase
+        .from('product_variants')
+        .select('id, size, color')
+        .eq('product_id', product_id)
+        .eq('is_enabled', true)
+        .eq('is_available', true);
+
+      if (availableVariants && availableVariants.length === 1) {
+        resolvedVariantId = availableVariants[0].id;
+      } else if (availableVariants && availableVariants.length > 1) {
+        return {
+          success: false,
+          error: 'Variant selection required. This product has multiple variants.',
+          needsVariantSelection: true,
+          available_variants: availableVariants,
+        };
+      } else {
+        return {
+          success: false,
+          error: 'No available variants for this product',
+        };
+      }
+    }
+
     // Build query to find existing cart item
     let query = supabase
       .from('cart_items')
@@ -119,11 +148,8 @@ export async function updateCart(
       .eq('user_id', userId)
       .eq('product_id', product_id);
 
-    // Handle variant matching (both NULL or both equal)
-    if (variant_id) {
-      query = query.eq('variant_id', variant_id);
-    } else {
-      query = query.is('variant_id', null);
+    if (resolvedVariantId) {
+      query = query.eq('variant_id', resolvedVariantId);
     }
 
     const { data: existingItem, error: queryError } = await query.maybeSingle();
@@ -190,19 +216,19 @@ export async function updateCart(
         cart_item: {
           id: updatedItem.id,
           product_id: updatedItem.product_id,
-          ...(updatedItem.variant_id && { variant_id: updatedItem.variant_id }),
+          variant_id: updatedItem.variant_id,
           quantity: updatedItem.quantity,
         },
       };
     }
 
-    // Case 3: Add new item to cart
+    // Case 3: Add new item to cart (resolvedVariantId is guaranteed non-null for quantity > 0)
     const { data: newItem, error: insertError } = await supabase
       .from('cart_items')
       .insert({
         user_id: userId,
         product_id,
-        variant_id: variant_id || null,
+        variant_id: resolvedVariantId,
         quantity,
       })
       .select('id, product_id, variant_id, quantity')
@@ -222,7 +248,7 @@ export async function updateCart(
       cart_item: {
         id: newItem.id,
         product_id: newItem.product_id,
-        ...(newItem.variant_id && { variant_id: newItem.variant_id }),
+        variant_id: newItem.variant_id,
         quantity: newItem.quantity,
       },
     };

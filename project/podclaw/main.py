@@ -68,7 +68,7 @@ def _build_connectors() -> dict:
     from podclaw.connectors.fal_connector import FalMCPConnector
     from podclaw.connectors.gemini_connector import GeminiMCPConnector
     from podclaw.connectors.resend_connector import ResendMCPConnector
-    from podclaw.connectors.jina_connector import JinaMCPConnector
+    from podclaw.connectors.crawl4ai_connector import CrawlForAIMCPConnector
     from podclaw.connectors.telegram_connector import TelegramMCPConnector
     from podclaw.connectors.whatsapp_connector import WhatsAppMCPConnector
     from podclaw import config
@@ -80,7 +80,7 @@ def _build_connectors() -> dict:
         "fal": FalMCPConnector(config.FAL_KEY),
         "gemini": GeminiMCPConnector(config.GEMINI_API_KEY),
         "resend": ResendMCPConnector(config.RESEND_API_KEY, config.RESEND_FROM_EMAIL),
-        "jina": JinaMCPConnector(config.JINA_API_KEY),
+        "crawl4ai": CrawlForAIMCPConnector(config.CRAWL4AI_URL),
         "telegram": TelegramMCPConnector(config.TELEGRAM_BOT_TOKEN),
         "whatsapp": WhatsAppMCPConnector(config.WHATSAPP_PHONE_NUMBER_ID, config.WHATSAPP_ACCESS_TOKEN),
     }

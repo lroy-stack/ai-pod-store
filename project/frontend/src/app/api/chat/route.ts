@@ -81,6 +81,74 @@ async function getSearchFallback() {
 }
 
 /**
+ * Load FAQ content for Context-Augmented Generation (CAG pattern)
+ * Returns FAQ content if total size is under 200K tokens (~800K chars), otherwise null
+ * Sources FAQs from store policies (shipping, returns, privacy, terms)
+ */
+async function loadFAQContext(locale: string): Promise<string | null> {
+  const MAX_FAQ_TOKENS = 200_000
+  const MAX_FAQ_CHARS = MAX_FAQ_TOKENS * 4 // 1 token ≈ 4 chars
+
+  try {
+    // Fetch store policies (hardcoded FAQ-like content)
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+    const policiesResponse = await fetch(`${baseUrl}/api/policies?locale=${locale}`, {
+      headers: { 'Content-Type': 'application/json' },
+    })
+
+    if (!policiesResponse.ok) {
+      console.error('[CAG] Failed to load policies:', policiesResponse.status)
+      return null
+    }
+
+    const { policies } = await policiesResponse.json()
+
+    // Format policies as FAQ entries
+    const faqEntries: string[] = []
+
+    if (policies.shipping) {
+      faqEntries.push(`Q: What is your shipping policy?\nA: ${policies.shipping.content}`)
+      if (policies.shipping.rates) {
+        faqEntries.push(`Q: What are your shipping rates?\nA: ${Object.values(policies.shipping.rates).join(', ')}`)
+      }
+    }
+
+    if (policies.returns) {
+      faqEntries.push(`Q: What is your return policy?\nA: ${policies.returns.content}`)
+    }
+
+    if (policies.privacy) {
+      faqEntries.push(`Q: How do you handle my personal data?\nA: ${policies.privacy.content}`)
+    }
+
+    if (policies.terms) {
+      faqEntries.push(`Q: What are your terms of service?\nA: ${policies.terms.content}`)
+    }
+
+    // Add payment FAQ
+    faqEntries.push(`Q: What payment methods do you accept?\nA: We accept all major credit cards (Visa, Mastercard, American Express), debit cards, and alternative payment methods via Stripe. All payments are secure and encrypted.`)
+
+    // Calculate total size
+    const totalContent = faqEntries.join('\n\n')
+    const totalChars = totalContent.length
+    const estimatedTokens = Math.round(totalChars / 4)
+
+    // If small enough, return as context (CAG pattern)
+    if (totalChars <= MAX_FAQ_CHARS) {
+      console.log(`[CAG] Loaded ${faqEntries.length} FAQ entries (${estimatedTokens.toLocaleString()} tokens) directly into context`)
+      return `\n\nFREQUENTLY ASKED QUESTIONS:\n${totalContent}\n\nUse the above FAQs to answer customer questions directly. These are our official policies.`
+    }
+
+    // Too large — will fall back to RAG retrieval
+    console.log(`[CAG] FAQ content too large (${estimatedTokens.toLocaleString()} tokens > ${MAX_FAQ_TOKENS.toLocaleString()}), using RAG retrieval instead`)
+    return null
+  } catch (err) {
+    console.error('[CAG] FAQ load error (non-critical):', err)
+    return null
+  }
+}
+
+/**
  * POST /api/chat
  *
  * AI SDK 6 chat endpoint with ToolLoopAgent pattern
@@ -298,10 +366,13 @@ export async function POST(req: Request) {
     }
     const currentLocaleConfig = localeConfig[chatLocale] || localeConfig.en
 
+    // Load FAQ content for CAG (Context-Augmented Generation) if available
+    const faqContext = await loadFAQContext(chatLocale)
+
     // System prompt for storefront chat assistant
     const systemPrompt = `You are ${STORE_DEFAULTS.assistantName}, an AI assistant for ${STORE_DEFAULTS.storeName}, a European print-on-demand store. This is a European store. Prices are in ${STORE_DEFAULTS.currency} (€). Measurements are in ${STORE_DEFAULTS.measurementUnit}. You help customers find and buy products.
 
-${currentLocaleConfig.instruction}
+${currentLocaleConfig.instruction}${faqContext || ''}
 
 TOOLS AVAILABLE (22 total):
 - product_search: Search/browse products (returns product list)
@@ -877,19 +948,21 @@ Be friendly, helpful, and concise.`
         },
       }),
       add_to_cart: tool({
-        description: 'Add a product to the shopping cart. Call this when user wants to add/buy a product.',
+        description: 'Add a product to the shopping cart. IMPORTANT: Always check available variants first. If the product has multiple variants (sizes/colors), you MUST ask the user which one they want before calling this tool, or provide variantId/size/color parameters.',
         parameters: z.object({
           productId: z.string().describe('Product ID (UUID) to add to cart'),
+          variantId: z.string().optional().describe('Variant ID (UUID). Required if product has multiple variants.'),
+          size: z.string().optional().describe('Size name (e.g. "M", "L", "XL"). Used to find variant if variantId not provided.'),
+          color: z.string().optional().describe('Color name (e.g. "Black", "White"). Used to find variant if variantId not provided.'),
           quantity: z.number().optional().describe('Quantity to add (default: 1)'),
         }),
         // @ts-expect-error AI SDK 6.0.86 type mismatch — execute works at runtime
-        execute: async (args: { productId: string; quantity?: number }) => {
-          const { productId, quantity = 1 } = args
+        execute: async (args: { productId: string; variantId?: string; size?: string; color?: string; quantity?: number }) => {
+          const { productId, variantId: directVariantId, size, color, quantity = 1 } = args
           try {
-            // Use the browser's cart session (shared with /cart page)
             const sessionId = cartSessionId || crypto.randomUUID()
 
-            // Check if product exists
+            // Check if product exists and is active
             const { data: product, error: productError } = await supabase
               .from('products')
               .select('id, title, base_price_cents')
@@ -898,14 +971,84 @@ Be friendly, helpful, and concise.`
               .single()
 
             if (productError || !product) {
-              return { success: false, error: 'Product not found' }
+              return { success: false, error: 'Product not found or unavailable' }
             }
 
-            // Check if item already exists in this cart (merge quantities)
+            // Resolve variant_id
+            let resolvedVariantId: string | null = null
+
+            // 1. Direct variantId provided — validate it
+            if (directVariantId) {
+              const { data: variant } = await supabase
+                .from('product_variants')
+                .select('id')
+                .eq('id', directVariantId)
+                .eq('product_id', productId)
+                .eq('is_enabled', true)
+                .eq('is_available', true)
+                .single()
+
+              if (variant) {
+                resolvedVariantId = variant.id
+              } else {
+                return { success: false, error: 'Variant not found or unavailable' }
+              }
+            }
+
+            // 2. Size/color provided — resolve variant
+            if (!resolvedVariantId && (size || color)) {
+              let variantQuery = supabase
+                .from('product_variants')
+                .select('id')
+                .eq('product_id', productId)
+                .eq('is_enabled', true)
+                .eq('is_available', true)
+
+              if (size) variantQuery = variantQuery.ilike('size', size)
+              if (color) variantQuery = variantQuery.ilike('color', color)
+
+              const { data: matchedVariants } = await variantQuery.limit(1)
+              if (matchedVariants && matchedVariants.length > 0) {
+                resolvedVariantId = matchedVariants[0].id
+              } else {
+                return { success: false, error: `No variant found matching ${size ? `size "${size}"` : ''}${size && color ? ' and ' : ''}${color ? `color "${color}"` : ''}` }
+              }
+            }
+
+            // 3. No variant specified — autoselect if only 1, otherwise return options
+            if (!resolvedVariantId) {
+              const { data: availableVariants } = await supabase
+                .from('product_variants')
+                .select('id, size, color, price_cents')
+                .eq('product_id', productId)
+                .eq('is_enabled', true)
+                .eq('is_available', true)
+
+              if (availableVariants && availableVariants.length === 1) {
+                resolvedVariantId = availableVariants[0].id
+              } else if (availableVariants && availableVariants.length > 1) {
+                return {
+                  success: false,
+                  needsVariantSelection: true,
+                  message: 'This product comes in multiple options. Please ask the customer which one they want:',
+                  variants: availableVariants.map(v => ({
+                    id: v.id,
+                    size: v.size,
+                    color: v.color,
+                    price: v.price_cents ? v.price_cents / 100 : product.base_price_cents / 100,
+                  })),
+                }
+              } else {
+                return { success: false, error: 'No available variants for this product' }
+              }
+            }
+
+            // Check if item already exists in this cart (same product + variant)
             const existingQuery = supabase
               .from('cart_items')
               .select('id, quantity')
               .eq('product_id', productId)
+              .eq('variant_id', resolvedVariantId)
 
             if (chatUserId) {
               existingQuery.eq('user_id', chatUserId)
@@ -916,7 +1059,6 @@ Be friendly, helpful, and concise.`
             const { data: existingItems } = await existingQuery
 
             if (existingItems && existingItems.length > 0) {
-              // Update existing item quantity (capped at 99)
               const existing = existingItems[0]
               const newQty = Math.min(existing.quantity + quantity, STORE_DEFAULTS.maxCartQuantity)
               await supabase
@@ -924,11 +1066,11 @@ Be friendly, helpful, and concise.`
                 .update({ quantity: newQty, updated_at: new Date().toISOString() })
                 .eq('id', existing.id)
             } else {
-              // Insert new cart item linked to user's session
               const { error: insertError } = await supabase
                 .from('cart_items')
                 .insert({
                   product_id: productId,
+                  variant_id: resolvedVariantId,
                   quantity,
                   session_id: chatUserId ? null : sessionId,
                   user_id: chatUserId,

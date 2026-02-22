@@ -181,21 +181,21 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
 
     console.log('Created order:', order.id)
 
-    // Create order items
+    // Create order items (variant_id is required — NOT NULL constraint)
     const orderItems = lineItems.map((item, index) => {
       const cartItem = cartItems[index] || {}
       return {
         order_id: order.id,
         product_id: cartItem.product_id || null,
-        variant_id: cartItem.variant_id || null,
+        variant_id: cartItem.variant_id,
         personalization_id: cartItem.personalization_id || null,
         quantity: item.quantity || 1,
         unit_price_cents: Math.round((item.amount_total || 0) / (item.quantity || 1)),
       }
     })
 
-    // Filter out items without product_id (in case of data mismatch)
-    const validOrderItems = orderItems.filter((item) => item.product_id)
+    // Filter out items without product_id or variant_id (data integrity check)
+    const validOrderItems = orderItems.filter((item) => item.product_id && item.variant_id)
 
     if (validOrderItems.length > 0) {
       const { error: itemsError } = await supabase
@@ -320,26 +320,43 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
         const variantMap = new Map(variants?.map(v => [v.id, v.printify_variant_id]) || [])
         const personalizationMap = new Map(personalizations.map(p => [p.id, p.printify_temp_product_id]))
 
-        // Build Printify line items
+        // Guard: verify all items have valid Printify variant mappings
+        const itemsMissingPrintifyVariant = validOrderItems.filter(item => {
+          const pvId = variantMap.get(item.variant_id)
+          return !pvId || pvId === '0'
+        })
+
+        if (itemsMissingPrintifyVariant.length > 0) {
+          console.error('Order items missing printify_variant_id:', itemsMissingPrintifyVariant)
+          await supabase.from('orders').update({
+            printify_error: 'Items missing Printify variant mapping',
+            status: 'requires_review',
+          }).eq('id', order.id)
+
+          await notifyAdminOfPrintifyFailure(order.id, 'variant_mapping', 'One or more items have no Printify variant mapping')
+          if (customerEmail) {
+            await sendOrderIssueEmail(customerEmail, order.id, order.locale || 'en')
+          }
+          return
+        }
+
+        // Build Printify line items (variant_id is guaranteed non-null)
         const printifyLineItems = validOrderItems
           .filter(item => {
-            // For personalized items, use temp product ID; otherwise use base product ID
             const printifyProductId = item.personalization_id
               ? personalizationMap.get(item.personalization_id)
               : productMap.get(item.product_id)
-            const printifyVariantId = item.variant_id ? variantMap.get(item.variant_id) : null
-            // Only include items where we have Printify IDs
-            return printifyProductId && (printifyVariantId || !item.variant_id)
+            const printifyVariantId = variantMap.get(item.variant_id)
+            return printifyProductId && printifyVariantId
           })
           .map(item => {
-            // For personalized items, use temp product ID; otherwise use base product ID
             const printifyProductId = item.personalization_id
               ? personalizationMap.get(item.personalization_id)!
               : productMap.get(item.product_id)!
 
             return {
               product_id: printifyProductId,
-              variant_id: item.variant_id ? parseInt(variantMap.get(item.variant_id)!, 10) : 0,
+              variant_id: parseInt(variantMap.get(item.variant_id)!, 10),
               quantity: item.quantity,
             }
           })
@@ -398,8 +415,11 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
               })
               .eq('id', order.id)
 
-            // Notify admin of production failure
+            // Notify admin and customer of production failure
             await notifyAdminOfPrintifyFailure(order.id, 'production', errorMessage)
+            if (customerEmail) {
+              await sendOrderIssueEmail(customerEmail, order.id, order.locale || 'en')
+            }
           }
         }
       } catch (printifyError) {
@@ -419,8 +439,11 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
           })
           .eq('id', order.id)
 
-        // Notify admin of the failure
+        // Notify admin and customer of the failure
         await notifyAdminOfPrintifyFailure(order.id, 'submission', errorMessage)
+        if (customerEmail) {
+          await sendOrderIssueEmail(customerEmail, order.id, order.locale || 'en')
+        }
 
         // Don't throw - we don't want to fail the entire webhook
         // The order is still created in our system and marked for retry
@@ -727,9 +750,48 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
  * Notify admin of Printify submission failure
  * Creates a notification for all admin users
  */
+/**
+ * Notify the customer that their order requires manual review.
+ * Uses Resend email service.
+ */
+async function sendOrderIssueEmail(email: string, orderId: string, locale: string) {
+  try {
+    const resendKey = process.env.RESEND_API_KEY
+    if (!resendKey) return
+
+    const orderNumber = orderId.slice(0, 8)
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://podai.com'
+
+    await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${resendKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: process.env.RESEND_FROM_EMAIL || 'POD AI <noreply@podai.com>',
+        to: email,
+        subject: locale === 'es'
+          ? `Pedido #${orderNumber} — Revisión necesaria`
+          : locale === 'de'
+            ? `Bestellung #${orderNumber} — Überprüfung erforderlich`
+            : `Order #${orderNumber} — Review Required`,
+        html: locale === 'es'
+          ? `<h1>Tu pedido requiere revisión</h1><p>Estamos revisando tu pedido #${orderNumber}. Nuestro equipo te contactará pronto con una actualización.</p><p><a href="${baseUrl}/es/orders">Ver tus pedidos →</a></p>`
+          : locale === 'de'
+            ? `<h1>Deine Bestellung wird überprüft</h1><p>Wir überprüfen deine Bestellung #${orderNumber}. Unser Team wird sich bald mit einem Update bei dir melden.</p><p><a href="${baseUrl}/de/orders">Bestellungen ansehen →</a></p>`
+            : `<h1>Your order is under review</h1><p>We're reviewing your order #${orderNumber}. Our team will contact you shortly with an update.</p><p><a href="${baseUrl}/en/orders">View your orders →</a></p>`,
+      }),
+    })
+    console.log(`Order issue email sent to ${email} for order ${orderNumber}`)
+  } catch (err) {
+    console.error('Failed to send order issue email:', err)
+  }
+}
+
 async function notifyAdminOfPrintifyFailure(
   orderId: string,
-  failureType: 'submission' | 'production',
+  failureType: 'submission' | 'production' | 'variant_mapping',
   errorMessage: string
 ) {
   try {

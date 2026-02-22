@@ -12,6 +12,7 @@ Connectors:
   fal       → generate_image, get_status
   gemini    → embed_text, embed_batch
   resend    → send_email, send_template
-  jina      → rerank
-  web_search → search
+  crawl4ai  → crawl_url, crawl_site, capture_screenshot, extract_article
+  telegram  → send_message, broadcast
+  whatsapp  → send_message
 """

@@ -134,7 +134,8 @@
     "personalizeFontSizeLarge": "Grande",
     "personalizeClear": "Borrar",
     "personalizeLoginRequired": "Inicia sesión para personalizar",
-    "personalizePreviewDisclaimer": "El resultado final puede variar ligeramente"
+    "personalizePreviewDisclaimer": "El resultado final puede variar ligeramente",
+    "personalizeOverflowWarning": "El texto puede exceder el área imprimible. Prueba con texto más corto o tamaño de fuente más pequeño."
   },
   "Auth": {
     "loginTitle": "Iniciar sesión en tu cuenta",

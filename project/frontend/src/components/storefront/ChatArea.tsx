@@ -346,7 +346,14 @@ export function ChatArea() {
   }
 
   const handleAddToCart = async (productId: string, title?: string, price?: number) => {
-    await addToCart(productId, 1, undefined, title, price)
+    try {
+      await addToCart(productId, 1, undefined, title, price)
+    } catch (error: any) {
+      if (error?.code === 'VARIANT_REQUIRED') {
+        // Open product detail panel for variant selection
+        setSelectedProduct(productId)
+      }
+    }
   }
 
   const handleAddToWishlist = (productId: string) => {

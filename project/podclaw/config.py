@@ -50,16 +50,16 @@ AGENT_DAILY_BUDGETS: dict[str, float] = {
 # Rate Limits (per cycle / invocation)
 # ---------------------------------------------------------------------------
 RATE_LIMITS: dict[str, dict[str, int]] = {
-    "researcher": {"web_search": 20, "read_url": 15, "expand_query": 5, "jina_rerank": 10, "deduplicate_strings": 5, "parallel_search_web": 3},
-    "marketing": {"resend_send": 30, "web_search": 10, "read_url": 5, "search_images": 5, "telegram_send": 50, "telegram_send_photo": 20, "telegram_broadcast": 50, "whatsapp_send": 50},
+    "researcher": {"crawl_url": 15, "extract_article": 10, "crawl_site": 2, "capture_screenshot": 5},
+    "marketing": {"resend_send": 30, "crawl_url": 10, "extract_article": 5, "capture_screenshot": 3, "telegram_send": 50, "telegram_send_photo": 20, "telegram_broadcast": 50, "whatsapp_send": 50},
     "designer": {
-        "search_images": 30,           # FREE — primary source, highest limit
         "fal_remove_bg": 30,           # FREE with local rembg
         "fal_upscale": 15,             # ~$0.003/image — auto-triggered post BG removal
         "gemini_check_image": 30,      # quality gate
         "printify_upload_image": 30, "supabase_upload_image": 30,
         "fal_generate": 10,            # PAID — secondary, reduced limit
         "gemini_generate_image": 2,    # EXPENSIVE — last resort, lowest limit
+        "crawl_url": 5, "capture_screenshot": 5,  # web research for design trends
     },
     "newsletter": {"resend_send": 500},
     "cataloger": {
@@ -76,7 +76,7 @@ RATE_LIMITS: dict[str, dict[str, int]] = {
         "telegram_send": 100, "telegram_send_photo": 20, "whatsapp_send": 100,
         "printify_cancel_order": 5, "printify_send_to_production": 5,
     },
-    "seo_manager": {"web_search": 15, "read_url": 10, "jina_rerank": 5, "deduplicate_strings": 3, "capture_screenshot": 3},
+    "seo_manager": {"crawl_url": 15, "extract_article": 10, "crawl_site": 3, "capture_screenshot": 3},
     "finance": {"stripe_create_refund": 5},
     "qa_inspector": {
         "gemini_check_image": 20, "printify_list_products": 3, "printify_get_product": 10,
@@ -131,6 +131,11 @@ DEFAULT_WORKSPACE = HARNESS_ROOT / "pod_workspace"
 # rembg Sidecar (local background removal)
 # ---------------------------------------------------------------------------
 REMBG_URL = os.environ.get("REMBG_URL", "")  # e.g. "http://localhost:8090"
+
+# ---------------------------------------------------------------------------
+# Crawl4AI Service (web crawling with JS rendering)
+# ---------------------------------------------------------------------------
+CRAWL4AI_URL = os.environ.get("CRAWL4AI_URL", "http://crawl4ai:11235")
 
 # ---------------------------------------------------------------------------
 # CORS (bridge)
@@ -217,7 +222,6 @@ FAL_KEY = os.environ.get("FAL_KEY", "")
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "")
 RESEND_FROM_EMAIL = os.environ.get("RESEND_FROM_EMAIL", "noreply@podai.com")
-JINA_API_KEY = os.environ.get("JINA_API_KEY", "")
 
 # ---------------------------------------------------------------------------
 # Telegram & WhatsApp
@@ -341,13 +345,13 @@ AGENT_OUTPUT_SCHEMAS: dict[str, dict] = {
 # Tool-to-Agent Mapping
 # ---------------------------------------------------------------------------
 AGENT_TOOLS: dict[str, list[str]] = {
-    "researcher": ["supabase", "jina"],
-    "marketing": ["supabase", "jina", "resend", "telegram", "whatsapp"],
-    "designer": ["supabase", "fal", "printify", "jina", "gemini"],
+    "researcher": ["supabase", "crawl4ai"],
+    "marketing": ["supabase", "crawl4ai", "resend", "telegram", "whatsapp"],
+    "designer": ["supabase", "fal", "printify", "crawl4ai", "gemini"],
     "newsletter": ["supabase", "resend", "gemini"],
     "cataloger": ["supabase", "printify", "gemini"],
     "customer_manager": ["supabase", "resend", "stripe", "telegram", "whatsapp", "printify"],
-    "seo_manager": ["supabase", "jina"],
+    "seo_manager": ["supabase", "crawl4ai"],
     "finance": ["supabase", "stripe"],
     "qa_inspector": ["supabase", "gemini", "printify"],
     "brand_manager": ["supabase", "printify"],

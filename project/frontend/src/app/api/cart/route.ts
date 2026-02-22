@@ -81,10 +81,10 @@ export async function GET(request: NextRequest) {
       return response
     }
 
-    // Fetch products with their base info
+    // Fetch products with their base info (include status for availability check)
     const { data: products, error: productsError } = await supabase
       .from('products')
-      .select('id, title, base_price_cents, currency, images')
+      .select('id, title, base_price_cents, currency, images, status')
       .in('id', productIds)
 
     if (productsError) {
@@ -108,6 +108,7 @@ export async function GET(request: NextRequest) {
             price: p.base_price_cents ? p.base_price_cents / 100 : 0,
             image: img,
             currency: p.currency?.toUpperCase() || 'EUR',
+            unavailable: p.status !== 'active',
           },
         ]
       })
@@ -166,6 +167,7 @@ export async function GET(request: NextRequest) {
         price: 0,
         image: '',
         currency: 'EUR',
+        unavailable: true,
       }
 
       return {
@@ -177,6 +179,7 @@ export async function GET(request: NextRequest) {
         product_price: productDetails.price,
         product_image: productDetails.image || '',
         product_currency: productDetails.currency || 'EUR',
+        unavailable: productDetails.unavailable || false,
         variant_details: item.variant_id ? (variantMap.get(item.variant_id) || {}) : {},
         personalization_id: item.personalization_id,
         personalization: item.personalization_id
@@ -237,6 +240,21 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Validate product exists and is active
+    const { data: product } = await supabase
+      .from('products')
+      .select('id, status')
+      .eq('id', product_id)
+      .eq('status', 'active')
+      .single()
+
+    if (!product) {
+      return NextResponse.json(
+        { error: 'Product not found or unavailable', code: 'PRODUCT_NOT_FOUND' },
+        { status: 404 }
+      )
+    }
+
     // Resolve variant_id from variant_details (size/color)
     let variantId: string | null = null
     if (variant_details && (variant_details.size || variant_details.color)) {
@@ -260,17 +278,42 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // If variant not resolved, try autoselect or reject
+    if (!variantId) {
+      const { data: availableVariants } = await supabase
+        .from('product_variants')
+        .select('id, size, color')
+        .eq('product_id', product_id)
+        .eq('is_enabled', true)
+        .eq('is_available', true)
+
+      if (availableVariants && availableVariants.length === 1) {
+        variantId = availableVariants[0].id
+      } else if (availableVariants && availableVariants.length > 1) {
+        return NextResponse.json(
+          {
+            error: 'Variant selection required',
+            code: 'VARIANT_REQUIRED',
+            message: 'This product requires selecting a size/color.',
+            available_variants: availableVariants,
+          },
+          { status: 400 }
+        )
+      } else {
+        return NextResponse.json(
+          { error: 'No available variants for this product', code: 'NO_VARIANTS' },
+          { status: 400 }
+        )
+      }
+    }
+
     // Check if item already exists in cart (same product + same variant + same personalization)
+    // variantId is guaranteed non-null at this point
     const existingQuery = supabase
       .from('cart_items')
       .select('*')
       .eq('product_id', product_id)
-
-    if (variantId) {
-      existingQuery.eq('variant_id', variantId)
-    } else {
-      existingQuery.is('variant_id', null)
-    }
+      .eq('variant_id', variantId)
 
     if (personalization_id) {
       existingQuery.eq('personalization_id', personalization_id)
@@ -316,13 +359,13 @@ export async function POST(request: NextRequest) {
       return response
     }
 
-    // Insert new cart item
+    // Insert new cart item (variant_id is guaranteed non-null)
     const cartItem: any = {
       product_id,
       quantity,
+      variant_id: variantId,
       session_id: userId ? null : sessionId,
       user_id: userId,
-      ...(variantId ? { variant_id: variantId } : {}),
       ...(personalization_id ? { personalization_id } : {}),
     }
 

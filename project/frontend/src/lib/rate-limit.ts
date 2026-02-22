@@ -66,6 +66,7 @@ export const apiLimiter = new RateLimiter(100, 60 * 1000)           // 100 reque
 export const designGenerateLimiter = new RateLimiter(5, 60 * 1000)  // 5 requests / 1 min
 export const mockupGenerateLimiter = new RateLimiter(10, 60 * 1000) // 10 requests / 1 min
 export const newsletterLimiter = new RateLimiter(10, 60 * 1000)     // 10 requests / 1 min
+export const previewTextLimiter = new RateLimiter(20, 60 * 1000)    // 20 requests / 1 min (canvas rendering is CPU-intensive)
 
 /**
  * Timing-safe comparison for bearer tokens (prevents timing attacks).
