@@ -72,27 +72,49 @@ if (!userId) return { content: [{ type: 'text', text: 'Authentication required' 
 
 ## Testing with curl
 
-**ALWAYS** use `Accept: application/json` to avoid SSE responses:
+**IMPORTANT:** SDK 1.0.4+ requires `Accept: application/json, text/event-stream` and returns SSE format:
 
 ```bash
-# 1. Initialize session
+# 1. Initialize session (returns SSE format)
 curl -s -D- -X POST http://localhost:8002/mcp \
   -H "Content-Type: application/json" \
-  -H "Accept: application/json" \
-  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-03-26","clientInfo":{"name":"test","version":"1.0"},"capabilities":{}}}'
+  -H "Accept: application/json, text/event-stream" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","clientInfo":{"name":"test","version":"1.0"},"capabilities":{}}}'
+
+# Response format:
+# HTTP/1.1 200 OK
+# mcp-session-id: <session-id>
+# content-type: text/event-stream
+#
+# event: message
+# data: {"result":{...},"jsonrpc":"2.0","id":1}
 
 # Save Mcp-Session-Id from response headers
+# Parse SSE: extract JSON from "data: " line
 
 # 2. Call a tool (with session)
 curl -s -X POST http://localhost:8002/mcp \
   -H "Content-Type: application/json" \
-  -H "Accept: application/json" \
+  -H "Accept: application/json, text/event-stream" \
   -H "Mcp-Session-Id: <session-id>" \
   -d '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"search_products","arguments":{"query":"shirt","limit":5}}}'
 
 # 3. Terminate session
 curl -s -X DELETE http://localhost:8002/mcp \
   -H "Mcp-Session-Id: <session-id>"
+```
+
+**Parsing SSE responses in JavaScript:**
+```javascript
+function parseSSE(text) {
+  const lines = text.split('\n');
+  for (const line of lines) {
+    if (line.startsWith('data: ')) {
+      return JSON.parse(line.slice(6));
+    }
+  }
+  throw new Error('No data line found in SSE response');
+}
 ```
 
 ## Directory Structure

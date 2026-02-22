@@ -34,8 +34,7 @@ export interface GetStorePoliciesResult {
 }
 
 export async function getStorePolicies(
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  input: GetStorePoliciesInput
+  _input: GetStorePoliciesInput
 ): Promise<GetStorePoliciesResult> {
   // In a production system, this would fetch from a database or CMS
   // For now, we return comprehensive policy text

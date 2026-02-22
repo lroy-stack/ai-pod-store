@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { formatPrice } from '@/lib/currency';
-import { Package, AlertCircle, ArrowLeft, RotateCcw } from 'lucide-react';
+import { Package, AlertCircle, ArrowLeft, RotateCcw, CreditCard, Coins, Download } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 
@@ -37,6 +37,7 @@ interface Order {
   tracking_url: string | null;
   carrier: string | null;
   customer_email: string | null;
+  payment_method: string | null;
   shipping_address: {
     full_name?: string;
     street_line1?: string;
@@ -74,6 +75,7 @@ export default function OrderDetailView({
   const [returnDialogOpen, setReturnDialogOpen] = useState(false);
   const [returnReason, setReturnReason] = useState('');
   const [submittingReturn, setSubmittingReturn] = useState(false);
+  const [downloadingInvoice, setDownloadingInvoice] = useState(false);
 
   useEffect(() => {
     if (!authLoading && authenticated) {
@@ -149,6 +151,93 @@ export default function OrderDetailView({
       toast.error(t('returnRequestFailed'));
     } finally {
       setSubmittingReturn(false);
+    }
+  };
+
+  const handleDownloadInvoice = async () => {
+    setDownloadingInvoice(true);
+    try {
+      const response = await fetch(`/api/orders/${orderId}/invoice`);
+
+      if (response.ok) {
+        const invoiceData = await response.json();
+
+        // Create a simple invoice HTML page and trigger download
+        // In production, you might want to open Stripe's hosted invoice URL
+        // or generate a proper PDF
+        const invoiceHTML = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Invoice ${invoiceData.order_number}</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; }
+    .header { border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 20px; }
+    .invoice-details { margin-bottom: 30px; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+    th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+    th { background-color: #f5f5f5; }
+    .total { font-size: 1.2em; font-weight: bold; text-align: right; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Invoice</h1>
+    <p>Order #${invoiceData.order_number}</p>
+    <p>Date: ${new Date(invoiceData.date).toLocaleDateString()}</p>
+  </div>
+  <div class="invoice-details">
+    <p><strong>Customer:</strong> ${invoiceData.customer_email}</p>
+    <p><strong>Status:</strong> ${invoiceData.status}</p>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>Description</th>
+        <th>Quantity</th>
+        <th>Unit Price</th>
+        <th>Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${invoiceData.line_items.map((item: any) => `
+        <tr>
+          <td>${item.description}</td>
+          <td>${item.quantity}</td>
+          <td>${(item.unit_price_cents / 100).toFixed(2)} ${invoiceData.currency}</td>
+          <td>${(item.total_cents / 100).toFixed(2)} ${invoiceData.currency}</td>
+        </tr>
+      `).join('')}
+    </tbody>
+  </table>
+  <div class="total">
+    Total: ${(invoiceData.total_cents / 100).toFixed(2)} ${invoiceData.currency}
+  </div>
+</body>
+</html>
+        `;
+
+        // Create blob and download
+        const blob = new Blob([invoiceHTML], { type: 'text/html' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `invoice-${invoiceData.order_number}.html`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+
+        toast.success(t('invoiceDownloaded'));
+      } else {
+        toast.error(t('invoiceDownloadFailed'));
+      }
+    } catch (err) {
+      console.error('Error downloading invoice:', err);
+      toast.error(t('invoiceDownloadFailed'));
+    } finally {
+      setDownloadingInvoice(false);
     }
   };
 
@@ -330,6 +419,14 @@ export default function OrderDetailView({
           <Badge variant={getStatusVariant(order.status)} className="self-start">
             {t(`status.${order.status}`)}
           </Badge>
+          <Button
+            variant="outline"
+            onClick={handleDownloadInvoice}
+            disabled={downloadingInvoice}
+          >
+            <Download className="size-4 mr-2" />
+            {downloadingInvoice ? t('downloading') : t('downloadInvoice')}
+          </Button>
           {canRequestReturn(order) && (
             <Dialog open={returnDialogOpen} onOpenChange={setReturnDialogOpen}>
               <DialogTrigger asChild>
@@ -511,6 +608,46 @@ export default function OrderDetailView({
                 {order.shipping_address.country_code && (
                   <p className="uppercase">{order.shipping_address.country_code}</p>
                 )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Payment Info */}
+          {order.payment_method && (
+            <Card>
+              <CardHeader>
+                <CardTitle>{t('paymentMethod')}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center gap-3">
+                  {order.payment_method === 'crypto' ? (
+                    <>
+                      <div className="flex size-10 items-center justify-center rounded-full bg-primary/10">
+                        <Coins className="size-5 text-primary" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-medium text-foreground">{t('cryptocurrency')}</p>
+                        <Badge variant="outline" className="mt-1 gap-1.5">
+                          <Coins className="size-3" />
+                          <span>{t('cryptoPayment')}</span>
+                        </Badge>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex size-10 items-center justify-center rounded-full bg-muted">
+                        <CreditCard className="size-5 text-muted-foreground" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-medium text-foreground">{t('creditCard')}</p>
+                        <Badge variant="secondary" className="mt-1 gap-1.5">
+                          <CreditCard className="size-3" />
+                          <span>{t('cardPayment')}</span>
+                        </Badge>
+                      </div>
+                    </>
+                  )}
+                </div>
               </CardContent>
             </Card>
           )}

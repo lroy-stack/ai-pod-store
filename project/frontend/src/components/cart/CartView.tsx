@@ -511,6 +511,29 @@ export default function CartView({ locale }: { locale: string }) {
                   <span className="text-lg font-bold text-foreground">{formatPrice(finalTotal, locale, userCurrency)}</span>
                 </div>
 
+                {/* Crypto acceptance badge */}
+                {process.env.NEXT_PUBLIC_STRIPE_CRYPTO_ENABLED === 'true' && (
+                  <div className="flex justify-center pt-2">
+                    <Badge variant="outline" className="gap-1.5 px-2.5 py-0.5 text-xs">
+                      <svg
+                        className="h-3 w-3"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                      </svg>
+                      {t('acceptsCrypto')}
+                    </Badge>
+                  </div>
+                )}
+
                 <div className="space-y-3 pt-2">
                   {authenticated ? (
                     <Button asChild className="w-full">

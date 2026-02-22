@@ -162,6 +162,8 @@ export function StorefrontHeader({ onToggleSidebar, isSidebarCollapsed, onToggle
             <Badge
               variant="destructive"
               className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
+              aria-live="polite"
+              aria-atomic="true"
             >
               {unreadCount}
             </Badge>
@@ -177,6 +179,8 @@ export function StorefrontHeader({ onToggleSidebar, isSidebarCollapsed, onToggle
               <Badge
                 variant="destructive"
                 className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
+                aria-live="polite"
+                aria-atomic="true"
               >
                 {itemCount}
               </Badge>

@@ -145,7 +145,10 @@ def _normalize_print_areas(
                 })
             return [{"variant_ids": variant_ids, "placeholders": placeholders}]
 
-    return raw_areas if isinstance(raw_areas, list) else []
+    if not isinstance(raw_areas, list):
+        logger.warning("normalize_print_areas_malformed", raw_type=type(raw_areas).__name__)
+        return []
+    return raw_areas
 
 
 def _raise_with_detail(resp: "httpx.Response", operation: str) -> None:

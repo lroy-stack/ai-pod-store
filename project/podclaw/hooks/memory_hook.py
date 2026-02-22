@@ -83,6 +83,26 @@ def memory_hook(memory_manager: MemoryManager, event_queue=None) -> Callable:
                         target_agent="cataloger",
                     ))
 
+        # Detect zombie products written by Finance to product_scorecard.md
+        if event_queue and agent_name == "finance" and tool_name == "Write":
+            file_path = tool_input.get("file_path", "")
+            if "product_scorecard" in file_path:
+                content = str(tool_input.get("content", ""))
+                if "ZOMBIE" in content:
+                    # Count zombie mentions for severity
+                    zombie_count = content.upper().count("ZOMBIE")
+                    from podclaw.event_queue import SystemEvent
+                    await event_queue.push(SystemEvent(
+                        source="finance",
+                        event_type="zombie_products_detected",
+                        payload={
+                            "trigger": "product_scorecard_zombies",
+                            "zombie_count": zombie_count,
+                        },
+                        created_at=datetime.now(timezone.utc),
+                        wake_mode="next-heartbeat",
+                    ))
+
         return {}
 
     return _hook

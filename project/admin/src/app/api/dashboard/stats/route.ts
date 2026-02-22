@@ -49,11 +49,46 @@ export async function GET() {
       ? ((completedOrders || 0) / ordersCount) * 100
       : 0;
 
+    // Subscription metrics
+    // Total active subscribers
+    const { count: activeSubscribers, error: subsError } = await supabaseAdmin
+      .from('users')
+      .select('*', { count: 'exact', head: true })
+      .eq('subscription_status', 'active');
+
+    if (subsError) {
+      console.error('Active subscribers error:', subsError);
+    }
+
+    // Monthly Recurring Revenue (MRR)
+    // Assuming Premium tier costs €9.99/month
+    const PREMIUM_MONTHLY_PRICE = 9.99;
+    const mrr = (activeSubscribers || 0) * PREMIUM_MONTHLY_PRICE;
+
+    // Churned subscribers this month
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+
+    const { count: churnedCount, error: churnError } = await supabaseAdmin
+      .from('users')
+      .select('*', { count: 'exact', head: true })
+      .eq('subscription_status', 'cancelled')
+      .gte('updated_at', startOfMonth.toISOString());
+
+    if (churnError) {
+      console.error('Churned subscribers error:', churnError);
+    }
+
     return NextResponse.json({
       revenue: totalRevenue / 100, // Convert cents to currency
       ordersCount: ordersCount || 0,
       productsCount: productsCount || 0,
       conversionRate: conversionRate.toFixed(1),
+      // Subscription metrics
+      activeSubscribers: activeSubscribers || 0,
+      mrr: mrr,
+      churnedThisMonth: churnedCount || 0,
     });
   } catch (error) {
     console.error('Dashboard stats error:', error);

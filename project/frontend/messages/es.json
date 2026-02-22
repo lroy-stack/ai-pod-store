@@ -4,7 +4,8 @@
     "loading": "Cargando...",
     "error": "Error",
     "success": "Éxito",
-    "welcome": "Bienvenido a la Tienda POD AI"
+    "welcome": "Bienvenido a la Tienda POD AI",
+    "skipToContent": "Saltar al contenido principal"
   },
   "navigation": {
     "home": "Inicio",
@@ -296,7 +297,30 @@
     "confirmDelete": "Sí, eliminar mi cuenta",
     "deleting": "Eliminando...",
     "accountDeletedSuccess": "Tu cuenta ha sido eliminada",
-    "accountDeleteError": "Error al eliminar la cuenta. Inténtalo de nuevo."
+    "accountDeleteError": "Error al eliminar la cuenta. Inténtalo de nuevo.",
+    "changePassword": "Cambiar Contraseña",
+    "changePasswordDescription": "Actualiza tu contraseña para mantener tu cuenta segura",
+    "currentPassword": "Contraseña Actual",
+    "currentPasswordPlaceholder": "Introduce tu contraseña actual",
+    "newPassword": "Nueva Contraseña",
+    "newPasswordPlaceholder": "Introduce tu nueva contraseña (mín. 8 caracteres)",
+    "confirmPassword": "Confirmar Nueva Contraseña",
+    "confirmPasswordPlaceholder": "Confirma tu nueva contraseña",
+    "passwordRequirement": "La contraseña debe tener al menos 8 caracteres",
+    "passwordsDoNotMatch": "Las contraseñas no coinciden",
+    "changingPassword": "Cambiando contraseña...",
+    "changePasswordButton": "Cambiar Contraseña",
+    "passwordChanged": "Contraseña cambiada exitosamente",
+    "errorChangingPassword": "Error al cambiar la contraseña",
+    "incorrectCurrentPassword": "La contraseña actual es incorrecta",
+    "paymentMethods": "Métodos de Pago",
+    "paymentMethodsDescription": "Administra tus métodos de pago guardados",
+    "noPaymentMethods": "Aún no hay métodos de pago guardados",
+    "addPaymentMethod": "Agregar Método de Pago",
+    "cardEndingIn": "Tarjeta terminada en {last4}",
+    "expiresOn": "Vence {month}/{year}",
+    "removeCard": "Eliminar",
+    "errorLoadingPaymentMethods": "Error al cargar métodos de pago"
   },
   "Cart": {
     "title": "Carrito de Compras",
@@ -347,7 +371,8 @@
     "shippingTo": "Envío a",
     "noShippingOptions": "No hay opciones de envío disponibles",
     "recommended": "Recomendado",
-    "freeShippingOver": "Envío gratis en pedidos superiores a"
+    "freeShippingOver": "Envío gratis en pedidos superiores a",
+    "acceptsCrypto": "Acepta criptomonedas"
   },
   "wishlist": {
     "title": "Mis Listas de Deseos",
@@ -515,7 +540,16 @@
       "rejected": "Rechazado",
       "processing": "Procesando Reembolso",
       "completed": "Reembolso Completado"
-    }
+    },
+    "paymentMethod": "Método de Pago",
+    "cryptocurrency": "Criptomoneda",
+    "creditCard": "Tarjeta de Crédito",
+    "cryptoPayment": "Cripto",
+    "cardPayment": "Tarjeta",
+    "downloadInvoice": "Descargar Factura",
+    "downloading": "Descargando...",
+    "invoiceDownloaded": "Factura descargada con éxito",
+    "invoiceDownloadFailed": "Error al descargar la factura. Inténtalo de nuevo."
   },
   "storefront": {
     "discover": "Descubrir",
@@ -748,7 +782,7 @@
       "benefit1": "Chatea con IA para crear diseños personalizados",
       "benefit2": "Explora productos únicos de print-on-demand",
       "benefit3": "Guarda listas de deseos, sigue pedidos, gana recompensas",
-      "subscriptionTeaser": "Premium: €9,99/mes — 500 chats, 30 diseños, soporte prioritario",
+      "subscriptionTeaser": "Premium: €9,99/mes — 100 chats/día, 50 diseños/mes, soporte prioritario",
       "signUp": "Crear cuenta gratis",
       "logIn": "Iniciar sesión",
       "continueGuest": "Continuar como invitado"
@@ -757,8 +791,8 @@
       "title": "Crea tu cuenta gratuita",
       "wallTitle": "Has usado tus {count} mensajes gratuitos de hoy",
       "wallSubtitle": "Crea una cuenta gratuita para seguir chateando",
-      "benefit1": "50 chats de IA al día",
-      "benefit2": "3 diseños personalizados con IA",
+      "benefit1": "30 chats de IA al día",
+      "benefit2": "5 diseños con IA al mes",
       "benefit3": "Guarda listas de deseos y sigue pedidos",
       "benefit4": "Mockups de productos en artículos reales",
       "benefit5": "Entrada por voz y subida de imágenes",
@@ -767,7 +801,7 @@
       "continueGuest": "Continuar como invitado",
       "continueBrowsing": "Seguir navegando",
       "premiumTeaser": "¿Necesitas más? Premium: €9,99/mes",
-      "premiumSummary": "500 chats · 30 diseños · créditos extra",
+      "premiumSummary": "100 chats/día · 50 diseños/mes · créditos extra",
       "seePremium": "Ver Premium"
     },
     "upgrade": {
@@ -775,12 +809,12 @@
       "freeBadge": "Gratis",
       "premiumBadge": "Premium",
       "price": "€9,99/mes",
-      "free1": "50 chats/día",
-      "free2": "3 diseños/día",
-      "free3": "5 mockups/día",
-      "premium1": "500 chats/día",
-      "premium2": "30 diseños/día",
-      "premium3": "50 mockups/día",
+      "free1": "30 chats/día",
+      "free2": "5 diseños/mes",
+      "free3": "10 mockups/mes",
+      "premium1": "100 chats/día",
+      "premium2": "50 diseños/mes",
+      "premium3": "100 mockups/mes",
       "premium4": "10 créditos extra/mes",
       "premium5": "Soporte prioritario",
       "upgradeNow": "Mejorar Ahora — €9,99/mes",
@@ -1011,5 +1045,29 @@
       "content": "Para preguntas sobre estos Términos de Servicio, contáctenos en: legal@podai.com. Responderemos a todas las consultas dentro de 5 días hábiles."
     },
     "footer": "Nos reservamos el derecho de modificar estos Términos de Servicio en cualquier momento. El uso continuado de nuestra plataforma constituye la aceptación de cualquier cambio."
+  },
+  "Billing": {
+    "title": "Facturación y Suscripción",
+    "description": "Gestiona tu suscripción, créditos y métodos de pago",
+    "currentPlan": "Plan Actual",
+    "tierFree": "Gratis",
+    "tierPremium": "Premium",
+    "premium": "Premium",
+    "status": "Estado",
+    "statusActive": "Activo",
+    "statusPastDue": "Pago Vencido",
+    "statusCancelled": "Cancelado",
+    "statusNone": "Sin Suscripción",
+    "upgradeToPremium": "Actualizar a Premium",
+    "credits": "Créditos",
+    "creditsAvailable": "Créditos disponibles",
+    "buyMoreCredits": "Comprar Más Créditos",
+    "manageBilling": "Gestionar Facturación",
+    "manageBillingDescription": "Actualiza tu método de pago, consulta facturas y gestiona tu suscripción a través de nuestro portal de facturación seguro.",
+    "openBillingPortal": "Abrir Portal de Facturación",
+    "loading": "Cargando...",
+    "fetchError": "Error al cargar información de facturación",
+    "portalError": "Error al abrir el portal de facturación",
+    "noProfile": "No se puede cargar tu perfil"
   }
 }

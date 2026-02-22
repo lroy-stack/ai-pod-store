@@ -30,8 +30,7 @@ export interface GetStoreInfoResult {
 }
 
 export async function getStoreInfo(
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  input: GetStoreInfoInput
+  _input: GetStoreInfoInput
 ): Promise<GetStoreInfoResult> {
   // Store information from environment or hardcoded defaults
   const storeName = process.env.STORE_NAME || 'POD AI Store';

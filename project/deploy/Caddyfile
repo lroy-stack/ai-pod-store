@@ -8,6 +8,12 @@
 # Set the DOMAIN environment variable, or it defaults to localhost.
 
 {$CADDY_SITE_ADDRESS:http://localhost} {
+	# Trust Cloudflare proxy IPs for X-Forwarded-For header
+	# Automatically fetches and updates Cloudflare IP ranges every 12h
+	trusted_proxies cloudflare {
+		interval 12h
+	}
+
 	# PodClaw Bridge API (internal, auth-protected)
 	# Matches /api/bridge/* and strips the prefix before proxying
 	handle /api/bridge/* {
@@ -19,6 +25,23 @@
 	# No strip needed: admin expects /panel/* paths
 	handle /panel* {
 		reverse_proxy admin:3001
+	}
+
+	# MCP Server — Model Context Protocol (AI assistant tools)
+	# In production: Cloudflare Worker proxy sits in front.
+	handle /mcp* {
+		reverse_proxy mcp-server:8002
+	}
+
+	# MCP OAuth 2.1 discovery + endpoints
+	handle /.well-known/oauth-authorization-server {
+		reverse_proxy mcp-server:8002
+	}
+	handle /.well-known/oauth-protected-resource {
+		reverse_proxy mcp-server:8002
+	}
+	handle /oauth/* {
+		reverse_proxy mcp-server:8002
 	}
 
 	# All other traffic goes to frontend (Next.js handles /api/* routes too)

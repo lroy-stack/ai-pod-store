@@ -3,17 +3,29 @@ import { createGoogleGenerativeAI } from '@ai-sdk/google'
 import { z } from 'zod'
 import { createClient } from '@supabase/supabase-js'
 import { STORE_DEFAULTS, SHIPPING_RATES, LOCALE_FORMAT } from '@/lib/store-config'
-import { chatLimiter, noFpChatLimiter } from '@/lib/rate-limit'
+import { chatLimiter, noFpChatLimiter, acquireSlot, releaseSlot } from '@/lib/rate-limit'
 import { generateDesign } from '@/lib/design-generation'
 import type { DesignIntent } from '@/lib/providers/router'
-import { checkAndIncrementUsage, decrementUsage, usageHeaders, UserTier, USAGE_TIERS } from '@/lib/usage-limiter'
-import { checkAnomaly, trackRateLimitHit } from '@/lib/anomaly-monitor'
+import { checkAndIncrementUsage, decrementUsage, usageHeaders, UserTier, USAGE_TIERS, checkTokenBudget, incrementTokenUsage } from '@/lib/usage-limiter'
+import { checkAnomaly, trackRateLimitHit, isBlocked, checkVelocity } from '@/lib/anomaly-monitor'
 import { checkPromptSafety } from '@/lib/content-safety'
 import { removeBackground } from '@/lib/providers/background-removal'
 import { normalizeCategory } from '@/lib/categories'
 import { sanitizeForLike, sanitizeForPostgrest } from '@/lib/query-sanitizer'
 
 export const maxDuration = 60
+
+/** Per-response output token cap by tier */
+const TOKEN_BUDGET: Record<UserTier, number> = {
+  anonymous: 2048,
+  free: 4096,
+  premium: 8192,
+}
+
+/** Maximum characters per user message */
+const MAX_MESSAGE_CHARS = 4000
+/** Maximum context messages in sliding window */
+const MAX_CONTEXT_MESSAGES = 40
 
 /** Format a raw product row into the shape returned by search/browse tools */
 function formatProduct(p: any) {
@@ -127,6 +139,31 @@ export async function POST(req: Request) {
     // Build identifier: prefer fingerprint for anonymous users, then IP
     const chatIdentifier = chatUserId || (fpId ? `fp:${fpId}` : `ip:${ip}`)
 
+    // Active block check (auto-blocked by anomaly monitor)
+    if (isBlocked(chatIdentifier)) {
+      return Response.json(
+        { error: 'Temporarily blocked due to suspicious activity. Try again later.', code: 'BLOCKED' },
+        { status: 429 }
+      )
+    }
+
+    // Velocity check (anti-bot: 5+ msgs in <3s)
+    if (!checkVelocity(chatIdentifier)) {
+      return Response.json(
+        { error: 'Too many requests too quickly. Try again later.', code: 'VELOCITY_BLOCK' },
+        { status: 429 }
+      )
+    }
+
+    // Concurrent request limit (max 2 streaming requests per identifier)
+    if (!acquireSlot(chatIdentifier, 2)) {
+      return Response.json(
+        { error: 'Too many concurrent requests. Please wait for the current response to finish.', code: 'CONCURRENT_LIMIT' },
+        { status: 429 }
+      )
+    }
+
+    try {
     // Per-tier daily usage check (conversations)
     const usageResult = await checkAndIncrementUsage(chatIdentifier, 'chat', chatUserTier, chatUserId || undefined)
     if (!usageResult.allowed) {
@@ -159,19 +196,54 @@ export async function POST(req: Request) {
     }
 
     // Anomaly detection: check if user is consuming too fast
-    const chatLimit = USAGE_TIERS[chatUserTier]?.['chat:messages'] ?? 0
-    if (chatLimit > 0) {
-      checkAnomaly(chatIdentifier, 'chat:messages', msgUsage.current, chatLimit).catch(() => {})
+    const chatLimitConfig = USAGE_TIERS[chatUserTier]?.['chat:messages']
+    const chatMsgLimit = chatLimitConfig ? chatLimitConfig.limit : 0
+    if (chatMsgLimit > 0) {
+      checkAnomaly(chatIdentifier, 'chat:messages', msgUsage.current, chatMsgLimit).catch(() => {})
+    }
+
+    // Daily token budget pre-check
+    const tokenBudget = await checkTokenBudget(chatIdentifier, chatUserTier)
+    if (!tokenBudget.allowed) {
+      trackRateLimitHit(chatIdentifier)
+      return Response.json(
+        {
+          error: 'Daily token budget exhausted. Try again tomorrow.',
+          code: 'TOKEN_LIMIT',
+        },
+        { status: 429 }
+      )
     }
 
     const body = await req.json()
-    const { messages } = body
+    let { messages } = body
 
     if (!messages || !Array.isArray(messages)) {
       return Response.json(
         { error: 'Invalid request: messages array required' },
         { status: 400 }
       )
+    }
+
+    // Input validation: max message length
+    const lastMsg = messages[messages.length - 1]
+    if (lastMsg?.role === 'user') {
+      const textContent = typeof lastMsg.content === 'string'
+        ? lastMsg.content
+        : Array.isArray(lastMsg.parts)
+          ? lastMsg.parts.filter((p: any) => p.type === 'text').map((p: any) => p.text).join(' ')
+          : ''
+      if (textContent.length > MAX_MESSAGE_CHARS) {
+        return Response.json(
+          { error: `Message too long (max ${MAX_MESSAGE_CHARS} characters)` },
+          { status: 400 }
+        )
+      }
+    }
+
+    // Sliding window: cap context to prevent input token inflation
+    if (messages.length > MAX_CONTEXT_MESSAGES) {
+      messages = [messages[0], ...messages.slice(-MAX_CONTEXT_MESSAGES + 1)]
     }
 
     // --- Conversation Persistence ---
@@ -1548,7 +1620,7 @@ Be friendly, helpful, and concise.`
                 success: false,
                 error: tier === 'anonymous'
                   ? 'Please sign up to generate designs.'
-                  : 'Daily design limit reached. Upgrade for more.',
+                  : 'Monthly design limit reached. Upgrade for more.',
                 requiresAuth: tier === 'anonymous',
                 requiresUpgrade: tier === 'free',
               }
@@ -1661,7 +1733,7 @@ Be friendly, helpful, and concise.`
                 success: false,
                 error: tier === 'anonymous'
                   ? 'Please sign up to generate designs.'
-                  : 'Daily design limit reached. Upgrade for more.',
+                  : 'Monthly design limit reached. Upgrade for more.',
                 requiresAuth: tier === 'anonymous',
                 requiresUpgrade: tier === 'free',
               }
@@ -2032,7 +2104,8 @@ Be friendly, helpful, and concise.`
       system: enhancedSystemPrompt,
       messages: convertedMessages,
       tools,
-      stopWhen: stepCountIs(5),
+      maxOutputTokens: TOKEN_BUDGET[chatUserTier],
+      stopWhen: stepCountIs(chatUserTier === 'premium' ? 5 : 3),
       onFinish: async ({ text, toolCalls, toolResults, usage }) => {
         // Persist assistant response
         try {
@@ -2057,6 +2130,27 @@ Be friendly, helpful, and concise.`
         } catch (err) {
           console.error('Assistant message save error (non-critical):', err)
         }
+
+        // Token budget tracking (best-effort, non-blocking)
+        const totalTokens = usage?.totalTokens || 0
+        if (totalTokens > 0) {
+          incrementTokenUsage(chatIdentifier, chatUserTier, totalTokens).catch(() => {})
+
+          // Cost alert for expensive responses
+          const inputTk = usage?.inputTokens || 0
+          const outputTk = usage?.outputTokens || 0
+          const estimatedCost = (inputTk * 0.30 + outputTk * 1.25) / 1_000_000
+          if (estimatedCost > 0.05) {
+            console.warn('[CostAlert] expensive_response', {
+              identifier: chatIdentifier.slice(0, 20),
+              tier: chatUserTier,
+              inputTokens: inputTk,
+              outputTokens: outputTk,
+              totalTokens,
+              estimatedCost: `$${estimatedCost.toFixed(4)}`,
+            })
+          }
+        }
       },
     })
 
@@ -2066,6 +2160,10 @@ Be friendly, helpful, and concise.`
         'x-conversation-id': conversationId,
       },
     })
+    } finally {
+      // Always release the concurrent slot
+      releaseSlot(chatIdentifier)
+    }
   } catch (error) {
     console.error('Chat API error:', error)
     console.error('Error details:', error instanceof Error ? error.message : String(error))

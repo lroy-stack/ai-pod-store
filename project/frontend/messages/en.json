@@ -4,7 +4,8 @@
     "loading": "Loading...",
     "error": "Error",
     "success": "Success",
-    "welcome": "Welcome to POD AI Store"
+    "welcome": "Welcome to POD AI Store",
+    "skipToContent": "Skip to main content"
   },
   "navigation": {
     "home": "Home",
@@ -296,7 +297,30 @@
     "confirmDelete": "Yes, delete my account",
     "deleting": "Deleting...",
     "accountDeletedSuccess": "Your account has been deleted",
-    "accountDeleteError": "Failed to delete account. Please try again."
+    "accountDeleteError": "Failed to delete account. Please try again.",
+    "changePassword": "Change Password",
+    "changePasswordDescription": "Update your password to keep your account secure",
+    "currentPassword": "Current Password",
+    "currentPasswordPlaceholder": "Enter your current password",
+    "newPassword": "New Password",
+    "newPasswordPlaceholder": "Enter your new password (min 8 characters)",
+    "confirmPassword": "Confirm New Password",
+    "confirmPasswordPlaceholder": "Confirm your new password",
+    "passwordRequirement": "Password must be at least 8 characters long",
+    "passwordsDoNotMatch": "Passwords do not match",
+    "changingPassword": "Changing password...",
+    "changePasswordButton": "Change Password",
+    "passwordChanged": "Password changed successfully",
+    "errorChangingPassword": "Failed to change password",
+    "incorrectCurrentPassword": "Current password is incorrect",
+    "paymentMethods": "Payment Methods",
+    "paymentMethodsDescription": "Manage your saved payment methods",
+    "noPaymentMethods": "No payment methods saved yet",
+    "addPaymentMethod": "Add Payment Method",
+    "cardEndingIn": "Card ending in {last4}",
+    "expiresOn": "Expires {month}/{year}",
+    "removeCard": "Remove",
+    "errorLoadingPaymentMethods": "Failed to load payment methods"
   },
   "Cart": {
     "title": "Shopping Cart",
@@ -347,7 +371,8 @@
     "shippingTo": "Shipping to",
     "noShippingOptions": "No shipping options available",
     "recommended": "Recommended",
-    "freeShippingOver": "Free shipping on orders over"
+    "freeShippingOver": "Free shipping on orders over",
+    "acceptsCrypto": "Accepts cryptocurrency"
   },
   "wishlist": {
     "title": "My Wishlists",
@@ -515,7 +540,16 @@
       "rejected": "Rejected",
       "processing": "Processing Refund",
       "completed": "Refund Completed"
-    }
+    },
+    "paymentMethod": "Payment Method",
+    "cryptocurrency": "Cryptocurrency",
+    "creditCard": "Credit Card",
+    "cryptoPayment": "Crypto",
+    "cardPayment": "Card",
+    "downloadInvoice": "Download Invoice",
+    "downloading": "Downloading...",
+    "invoiceDownloaded": "Invoice downloaded successfully",
+    "invoiceDownloadFailed": "Failed to download invoice. Please try again."
   },
   "storefront": {
     "discover": "Discover",
@@ -748,7 +782,7 @@
       "benefit1": "Chat with AI to create custom designs",
       "benefit2": "Browse unique print-on-demand products",
       "benefit3": "Save wishlists, track orders, earn rewards",
-      "subscriptionTeaser": "Premium: €9.99/mo — 500 chats, 30 designs, priority support",
+      "subscriptionTeaser": "Premium: €9.99/mo — 100 chats/day, 50 designs/month, priority support",
       "signUp": "Create Free Account",
       "logIn": "Log In",
       "continueGuest": "Continue as guest"
@@ -757,8 +791,8 @@
       "title": "Create your free account",
       "wallTitle": "You've used all {count} free messages today",
       "wallSubtitle": "Create a free account to keep chatting",
-      "benefit1": "50 AI chats per day",
-      "benefit2": "3 AI-generated custom designs",
+      "benefit1": "30 AI chats per day",
+      "benefit2": "5 AI designs per month",
       "benefit3": "Save wishlists & track orders",
       "benefit4": "Product mockups on real items",
       "benefit5": "Voice input & image upload",
@@ -767,7 +801,7 @@
       "continueGuest": "Continue as guest",
       "continueBrowsing": "Continue browsing",
       "premiumTeaser": "Need more power? Premium: €9.99/mo",
-      "premiumSummary": "500 chats · 30 designs · bonus credits",
+      "premiumSummary": "100 chats/day · 50 designs/month · bonus credits",
       "seePremium": "See Premium"
     },
     "upgrade": {
@@ -775,12 +809,12 @@
       "freeBadge": "Free",
       "premiumBadge": "Premium",
       "price": "€9.99/mo",
-      "free1": "50 chats/day",
-      "free2": "3 designs/day",
-      "free3": "5 mockups/day",
-      "premium1": "500 chats/day",
-      "premium2": "30 designs/day",
-      "premium3": "50 mockups/day",
+      "free1": "30 chats/day",
+      "free2": "5 designs/month",
+      "free3": "10 mockups/month",
+      "premium1": "100 chats/day",
+      "premium2": "50 designs/month",
+      "premium3": "100 mockups/month",
       "premium4": "10 bonus credits/month",
       "premium5": "Priority support",
       "upgradeNow": "Upgrade Now — €9.99/mo",
@@ -1011,5 +1045,29 @@
       "content": "For questions about these Terms of Service, please contact us at: legal@podai.com. We will respond to all inquiries within 5 business days."
     },
     "footer": "We reserve the right to modify these Terms of Service at any time. Continued use of our platform constitutes acceptance of any changes."
+  },
+  "Billing": {
+    "title": "Billing & Subscription",
+    "description": "Manage your subscription, credits, and payment methods",
+    "currentPlan": "Current Plan",
+    "tierFree": "Free",
+    "tierPremium": "Premium",
+    "premium": "Premium",
+    "status": "Status",
+    "statusActive": "Active",
+    "statusPastDue": "Past Due",
+    "statusCancelled": "Cancelled",
+    "statusNone": "No Subscription",
+    "upgradeToPremium": "Upgrade to Premium",
+    "credits": "Credits",
+    "creditsAvailable": "Available credits",
+    "buyMoreCredits": "Buy More Credits",
+    "manageBilling": "Manage Billing",
+    "manageBillingDescription": "Update your payment method, view invoices, and manage your subscription through our secure billing portal.",
+    "openBillingPortal": "Open Billing Portal",
+    "loading": "Loading...",
+    "fetchError": "Failed to load billing information",
+    "portalError": "Failed to open billing portal",
+    "noProfile": "Unable to load your profile"
   }
 }

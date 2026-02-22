@@ -1,7 +1,7 @@
 /**
  * Usage Limiter Module
  *
- * Tier-based daily usage limits for chat, design generation, and mockups.
+ * Hybrid tier-based usage limits: daily for chat, monthly for designs.
  * Uses Supabase as the sole persistent store (no Redis).
  * Fail-CLOSED: if Supabase fails, DENY the action (no silent pass-through).
  */
@@ -16,21 +16,46 @@ const supabase = createClient(
 )
 
 export type UserTier = 'anonymous' | 'free' | 'premium'
-export type UsageAction = 'chat' | 'chat:messages' | 'design:generate' | 'design:mockup' | 'design:save'
+export type UsageAction = 'chat' | 'chat:messages' | 'chat:tokens' | 'design:generate' | 'design:mockup' | 'design:save'
 
-export const USAGE_TIERS: Record<UserTier, Record<UsageAction, number>> = {
-  anonymous: { chat: 5, 'chat:messages': 20, 'design:generate': 0, 'design:mockup': 3, 'design:save': 0 },
-  free:      { chat: 50, 'chat:messages': 200, 'design:generate': 3, 'design:mockup': 5, 'design:save': 20 },
-  premium:   { chat: 500, 'chat:messages': -1, 'design:generate': 30, 'design:mockup': 50, 'design:save': -1 },
-} as const
+type PeriodType = 'daily' | 'monthly'
+type LimitConfig = { limit: number; period: PeriodType }
+
+export const USAGE_TIERS: Record<UserTier, Record<UsageAction, LimitConfig>> = {
+  anonymous: {
+    chat:              { limit: 5,   period: 'daily' },
+    'chat:messages':   { limit: 20,  period: 'daily' },
+    'chat:tokens':     { limit: 50_000, period: 'daily' },
+    'design:generate': { limit: 0,   period: 'monthly' },
+    'design:mockup':   { limit: 3,   period: 'daily' },
+    'design:save':     { limit: 0,   period: 'daily' },
+  },
+  free: {
+    chat:              { limit: 30,  period: 'daily' },
+    'chat:messages':   { limit: 200, period: 'daily' },
+    'chat:tokens':     { limit: 500_000, period: 'daily' },
+    'design:generate': { limit: 5,   period: 'monthly' },
+    'design:mockup':   { limit: 10,  period: 'monthly' },
+    'design:save':     { limit: 20,  period: 'daily' },
+  },
+  premium: {
+    chat:              { limit: 100, period: 'daily' },
+    'chat:messages':   { limit: -1,  period: 'daily' },
+    'chat:tokens':     { limit: 2_000_000, period: 'daily' },
+    'design:generate': { limit: 50,  period: 'monthly' },
+    'design:mockup':   { limit: 100, period: 'monthly' },
+    'design:save':     { limit: -1,  period: 'daily' },
+  },
+}
 
 export interface UsageResult {
   allowed: boolean
   current: number
   limit: number
   remaining: number
-  resetAt: string // ISO date string (midnight UTC)
-  source?: 'credits' | 'daily'
+  resetAt: string // ISO date string
+  periodType: PeriodType
+  source?: 'credits' | 'daily' | 'monthly'
   creditsRemaining?: number
 }
 
@@ -55,7 +80,15 @@ function todayPeriod(): string {
   return new Date().toISOString().slice(0, 10)
 }
 
-function getResetAt(): string {
+function monthPeriod(): string {
+  return new Date().toISOString().slice(0, 7) // "2026-02"
+}
+
+function getResetAt(periodType: PeriodType): string {
+  if (periodType === 'monthly') {
+    const now = new Date()
+    return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1)).toISOString()
+  }
   const tomorrow = new Date()
   tomorrow.setUTCDate(tomorrow.getUTCDate() + 1)
   tomorrow.setUTCHours(0, 0, 0, 0)
@@ -90,6 +123,35 @@ async function supabaseIncrement(
 }
 
 /**
+ * Supabase: increment usage by arbitrary amount (for token tracking).
+ */
+async function supabaseIncrementBy(
+  identifier: string,
+  action: string,
+  period: string,
+  amount: number,
+  limit: number
+): Promise<{ current: number; over: boolean } | null> {
+  try {
+    const { data, error } = await supabase.rpc('increment_usage_by', {
+      p_identifier: identifier,
+      p_action: action,
+      p_period: period,
+      p_amount: amount,
+      p_limit: limit,
+    })
+    if (error) {
+      console.error('[UsageLimiter] Supabase increment_by RPC error:', error.message)
+      return null
+    }
+    return data as { current: number; over: boolean }
+  } catch (err) {
+    console.error('[UsageLimiter] Supabase increment_by RPC exception:', err)
+    return null
+  }
+}
+
+/**
  * Supabase: get current count without incrementing.
  */
 async function supabaseGetCount(identifier: string, action: string, period: string): Promise<number> {
@@ -110,40 +172,32 @@ async function supabaseGetCount(identifier: string, action: string, period: stri
 }
 
 /**
- * Consume a credit from the user's balance (premium overflow).
+ * Consume a credit atomically from the user's balance (premium overflow).
+ * Uses Supabase RPC to prevent race conditions.
  */
 async function consumeCredit(userId: string, action: string): Promise<{ success: boolean; balance: number }> {
   try {
-    const { data: user, error: fetchError } = await supabase
-      .from('users')
-      .select('credit_balance')
-      .eq('id', userId)
-      .single()
+    const { data, error } = await supabase.rpc('consume_credit_atomic', {
+      p_user_id: userId,
+      p_action: action,
+    })
 
-    if (fetchError || !user || user.credit_balance <= 0) {
+    if (error) {
+      console.error('[UsageLimiter] consume_credit_atomic RPC error:', error.message)
       return { success: false, balance: 0 }
     }
 
-    const newBalance = user.credit_balance - 1
-
-    const { error: updateError } = await supabase
-      .from('users')
-      .update({ credit_balance: newBalance })
-      .eq('id', userId)
-
-    if (updateError) return { success: false, balance: user.credit_balance }
-
-    await supabase.from('credit_transactions').insert({
-      user_id: userId,
-      amount: -1,
-      reason: action,
-      balance_after: newBalance,
-    })
-
-    return { success: true, balance: newBalance }
+    return { success: data?.success ?? false, balance: data?.balance ?? 0 }
   } catch {
     return { success: false, balance: 0 }
   }
+}
+
+/**
+ * Resolve period string based on action's period type.
+ */
+function resolvePeriod(config: LimitConfig): string {
+  return config.period === 'monthly' ? monthPeriod() : todayPeriod()
 }
 
 /**
@@ -157,18 +211,20 @@ export async function checkAndIncrementUsage(
   userId?: string
 ): Promise<UsageResult> {
   const id = normalizeIdentifier(identifier)
-  const limit = USAGE_TIERS[tier]?.[action] ?? 0
-  const period = todayPeriod()
-  const resetAt = getResetAt()
+  const config = USAGE_TIERS[tier]?.[action] ?? { limit: 0, period: 'daily' as const }
+  const limit = config.limit
+  const period = resolvePeriod(config)
+  const resetAt = getResetAt(config.period)
+  const periodType = config.period
 
   // Unlimited (-1)
   if (limit < 0) {
-    return { allowed: true, current: 0, limit: -1, remaining: -1, resetAt, source: 'daily' }
+    return { allowed: true, current: 0, limit: -1, remaining: -1, resetAt, periodType, source: periodType === 'monthly' ? 'monthly' : 'daily' }
   }
 
   // Blocked (limit = 0): deny immediately
   if (limit === 0) {
-    return { allowed: false, current: 0, limit: 0, remaining: 0, resetAt }
+    return { allowed: false, current: 0, limit: 0, remaining: 0, resetAt, periodType }
   }
 
   // Supabase atomic increment + check
@@ -186,6 +242,7 @@ export async function checkAndIncrementUsage(
             limit,
             remaining: 0,
             resetAt,
+            periodType,
             source: 'credits',
             creditsRemaining: creditResult.balance,
           }
@@ -198,7 +255,8 @@ export async function checkAndIncrementUsage(
         limit,
         remaining: 0,
         resetAt,
-        source: 'daily',
+        periodType,
+        source: periodType === 'monthly' ? 'monthly' : 'daily',
       }
     }
 
@@ -208,7 +266,8 @@ export async function checkAndIncrementUsage(
       limit,
       remaining: Math.max(0, limit - result.current),
       resetAt,
-      source: 'daily',
+      periodType,
+      source: periodType === 'monthly' ? 'monthly' : 'daily',
     }
   }
 
@@ -227,7 +286,38 @@ export async function checkAndIncrementUsage(
     }),
   }).catch(() => {})
 
-  return { allowed: false, current: 0, limit, remaining: 0, resetAt, source: 'daily' }
+  return { allowed: false, current: 0, limit, remaining: 0, resetAt, periodType, source: periodType === 'monthly' ? 'monthly' : 'daily' }
+}
+
+/**
+ * Increment token usage (best-effort, non-blocking).
+ * Returns current token count or null on failure.
+ */
+export async function incrementTokenUsage(
+  identifier: string,
+  tier: UserTier,
+  tokens: number
+): Promise<{ current: number; over: boolean } | null> {
+  const id = normalizeIdentifier(identifier)
+  const config = USAGE_TIERS[tier]?.['chat:tokens'] ?? { limit: 50_000, period: 'daily' as const }
+  const period = resolvePeriod(config)
+  return supabaseIncrementBy(id, 'chat:tokens', period, tokens, config.limit)
+}
+
+/**
+ * Check if token budget is exhausted (pre-check before streaming).
+ */
+export async function checkTokenBudget(
+  identifier: string,
+  tier: UserTier
+): Promise<{ allowed: boolean; current: number; limit: number }> {
+  const id = normalizeIdentifier(identifier)
+  const config = USAGE_TIERS[tier]?.['chat:tokens'] ?? { limit: 50_000, period: 'daily' as const }
+  const limit = config.limit
+  if (limit < 0) return { allowed: true, current: 0, limit: -1 }
+  const period = resolvePeriod(config)
+  const current = await supabaseGetCount(id, 'chat:tokens', period)
+  return { allowed: current < limit, current, limit }
 }
 
 /**
@@ -235,10 +325,12 @@ export async function checkAndIncrementUsage(
  */
 export async function decrementUsage(
   identifier: string,
-  action: UsageAction
+  action: UsageAction,
+  tier: UserTier = 'free'
 ): Promise<void> {
   const id = normalizeIdentifier(identifier)
-  const period = todayPeriod()
+  const config = USAGE_TIERS[tier]?.[action] ?? { limit: 0, period: 'daily' as const }
+  const period = resolvePeriod(config)
 
   try {
     await supabase.rpc('decrement_usage', {
@@ -258,10 +350,11 @@ export async function getCurrentUsage(
   identifier: string,
   action: UsageAction,
   tier: UserTier = 'free'
-): Promise<{ used: number; limit: number; remaining: number }> {
+): Promise<{ used: number; limit: number; remaining: number; periodType: PeriodType }> {
   const id = normalizeIdentifier(identifier)
-  const limit = USAGE_TIERS[tier]?.[action] ?? 0
-  const period = todayPeriod()
+  const config = USAGE_TIERS[tier]?.[action] ?? { limit: 0, period: 'daily' as const }
+  const limit = config.limit
+  const period = resolvePeriod(config)
 
   const count = await supabaseGetCount(id, action, period)
 
@@ -269,6 +362,7 @@ export async function getCurrentUsage(
     used: count,
     limit,
     remaining: limit < 0 ? -1 : Math.max(0, limit - count),
+    periodType: config.period,
   }
 }
 
@@ -278,20 +372,23 @@ export async function getCurrentUsage(
 export async function getUsageForTier(
   identifier: string,
   tier: UserTier
-): Promise<Record<UsageAction, { used: number; limit: number; remaining: number }>> {
+): Promise<Record<UsageAction, { used: number; limit: number; remaining: number; periodType: PeriodType; resetAt: string }>> {
   const id = normalizeIdentifier(identifier)
-  const period = todayPeriod()
-  const actions: UsageAction[] = ['chat', 'chat:messages', 'design:generate', 'design:mockup', 'design:save']
-  const result = {} as Record<UsageAction, { used: number; limit: number; remaining: number }>
+  const actions: UsageAction[] = ['chat', 'chat:messages', 'chat:tokens', 'design:generate', 'design:mockup', 'design:save']
+  const result = {} as Record<UsageAction, { used: number; limit: number; remaining: number; periodType: PeriodType; resetAt: string }>
 
   for (const action of actions) {
-    const limit = USAGE_TIERS[tier]?.[action] ?? 0
+    const config = USAGE_TIERS[tier]?.[action] ?? { limit: 0, period: 'daily' as const }
+    const limit = config.limit
+    const period = resolvePeriod(config)
     const count = await supabaseGetCount(id, action, period)
 
     result[action] = {
       used: count,
       limit,
       remaining: limit < 0 ? -1 : Math.max(0, limit - count),
+      periodType: config.period,
+      resetAt: getResetAt(config.period),
     }
   }
 

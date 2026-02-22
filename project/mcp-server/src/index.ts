@@ -12,6 +12,8 @@ import { getStripeClient } from './lib/stripe.js';
 import { injectAuthInfo } from './auth/session.js';
 import { rateLimitMiddleware } from './middleware/rate-limit.js';
 import { withAuditLog } from './lib/audit-log.js';
+import { logger } from './lib/logger.js';
+import { getCompletions, type CompletionRequest } from './lib/completions.js';
 import {
   handleAuthorizationServerMetadata,
   handleProtectedResourceMetadata,
@@ -60,6 +62,11 @@ import {
   type GetOrderStatusInput,
 } from './tools/get-order-status.js';
 import {
+  trackShipmentSchema,
+  trackShipment,
+  type TrackShipmentInput,
+} from './tools/track-shipment.js';
+import {
   getCartSchema,
   getCart,
   type GetCartInput,
@@ -89,6 +96,16 @@ import {
   removeFromWishlist,
   type RemoveFromWishlistInput,
 } from './tools/remove-from-wishlist.js';
+import {
+  listCategoriesSchema,
+  listCategories,
+  type ListCategoriesInput,
+} from './tools/list-categories.js';
+import {
+  getProductReviewsSchema,
+  getProductReviews,
+  type GetProductReviewsInput,
+} from './tools/get-product-reviews.js';
 import { readProductsCatalog } from './resources/catalog.js';
 import { readStorePolicies } from './resources/policies.js';
 import {
@@ -110,7 +127,7 @@ const MCP_CORS_ORIGINS = (process.env.MCP_CORS_ORIGINS || 'https://claude.ai,htt
 const transports = new Map<string, StreamableHTTPServerTransport>();
 
 // Track tool count for health check
-const TOOL_COUNT = 14; // Increment as tools are added
+const TOOL_COUNT = 17; // Increment as tools are added
 
 // ===================================
 // MCP SERVER FACTORY
@@ -119,7 +136,7 @@ const TOOL_COUNT = 14; // Increment as tools are added
 function createMcpServer(): McpServer {
   const server = new McpServer(
     { name: '@pod-ai/mcp-server', version: '1.0.0' },
-    { capabilities: { tools: {}, resources: {}, prompts: {} } }
+    { capabilities: { tools: {}, resources: {}, prompts: {}, logging: {}, completions: {} } }
   );
 
   // Tool: search_products (PUBLIC — no auth required)
@@ -128,16 +145,19 @@ function createMcpServer(): McpServer {
     {
       description: 'Search for products in the store catalog by title, description, or category',
       inputSchema: searchProductsSchema,
+      title: 'Search Products',
       annotations: {
         readOnlyHint: true,
         idempotentHint: true,
         destructiveHint: false,
+        openWorldHint: true,
       },
     },
     withAuditLog('search_products', async (input: SearchProductsInput) => {
       const result = await searchProducts(input);
       return {
         content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }],
+        structuredContent: result,
         isError: !result.success,
       };
     })
@@ -149,16 +169,19 @@ function createMcpServer(): McpServer {
     {
       description: 'Get detailed information about a specific product, including variants, images, and pricing',
       inputSchema: getProductDetailsSchema,
+      title: 'Get Product Details',
       annotations: {
         readOnlyHint: true,
         idempotentHint: true,
         destructiveHint: false,
+        openWorldHint: true,
       },
     },
     withAuditLog('get_product_details', async (input: GetProductDetailsInput) => {
       const result = await getProductDetails(input);
       return {
         content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }],
+        structuredContent: result,
         isError: !result.success,
       };
     })
@@ -170,16 +193,19 @@ function createMcpServer(): McpServer {
     {
       description: 'Get general information about the store, including name, description, supported currencies, and features',
       inputSchema: getStoreInfoSchema,
+      title: 'Get Store Info',
       annotations: {
         readOnlyHint: true,
         idempotentHint: true,
         destructiveHint: false,
+        openWorldHint: true,
       },
     },
     withAuditLog('get_store_info', async (input: GetStoreInfoInput) => {
       const result = await getStoreInfo(input);
       return {
         content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }],
+        structuredContent: result,
         isError: !result.success,
       };
     })
@@ -191,16 +217,19 @@ function createMcpServer(): McpServer {
     {
       description: 'Get store policies including shipping, returns/refunds, and privacy information',
       inputSchema: getStorePoliciesSchema,
+      title: 'Get Store Policies',
       annotations: {
         readOnlyHint: true,
         idempotentHint: true,
         destructiveHint: false,
+        openWorldHint: true,
       },
     },
     withAuditLog('get_store_policies', async (input: GetStorePoliciesInput) => {
       const result = await getStorePolicies(input);
       return {
         content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }],
+        structuredContent: result,
         isError: !result.success,
       };
     })
@@ -212,16 +241,19 @@ function createMcpServer(): McpServer {
     {
       description: 'Get the authenticated user\'s profile information including name, email, locale, and currency preferences',
       inputSchema: getMyProfileSchema,
+      title: 'Get My Profile',
       annotations: {
         readOnlyHint: true,
         idempotentHint: true,
         destructiveHint: false,
+        openWorldHint: true,
       },
     },
     withAuditLog('get_my_profile', async (input: GetMyProfileInput, extra?: { authInfo?: AuthInfo }) => {
       const result = await getMyProfile(input, extra?.authInfo);
       return {
         content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }],
+        structuredContent: result,
         isError: !result.success,
       };
     })
@@ -233,16 +265,19 @@ function createMcpServer(): McpServer {
     {
       description: 'Update the authenticated user\'s profile information (name, locale). Uses context injection - userId comes from auth token.',
       inputSchema: updateMyProfileSchema,
+      title: 'Update My Profile',
       annotations: {
         readOnlyHint: false,
         idempotentHint: false,
         destructiveHint: true,
+        openWorldHint: true,
       },
     },
     withAuditLog('update_my_profile', async (input: UpdateMyProfileInput, extra?: { authInfo?: AuthInfo }) => {
       const result = await updateMyProfile(input, extra?.authInfo);
       return {
         content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }],
+        structuredContent: result,
         isError: !result.success,
       };
     })
@@ -254,16 +289,19 @@ function createMcpServer(): McpServer {
     {
       description: 'Get the authenticated user\'s order history with optional filters for status and limit',
       inputSchema: listMyOrdersSchema,
+      title: 'List My Orders',
       annotations: {
         readOnlyHint: true,
         idempotentHint: true,
         destructiveHint: false,
+        openWorldHint: true,
       },
     },
     withAuditLog('list_my_orders', async (input: ListMyOrdersInput, extra?: { authInfo?: AuthInfo }) => {
       const result = await listMyOrders(input, extra?.authInfo);
       return {
         content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }],
+        structuredContent: result,
         isError: !result.success,
       };
     })
@@ -275,16 +313,43 @@ function createMcpServer(): McpServer {
     {
       description: 'Get detailed information about a specific order by ID, including status and line items. Returns error if the order belongs to another user.',
       inputSchema: getOrderStatusSchema,
+      title: 'Get Order Status',
       annotations: {
         readOnlyHint: true,
         idempotentHint: true,
         destructiveHint: false,
+        openWorldHint: true,
       },
     },
     withAuditLog('get_order_status', async (input: GetOrderStatusInput, extra?: { authInfo?: AuthInfo }) => {
       const result = await getOrderStatus(input, extra?.authInfo);
       return {
         content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }],
+        structuredContent: result,
+        isError: !result.success,
+      };
+    })
+  );
+
+  // Tool: track_shipment (PROTECTED — authentication required)
+  server.registerTool(
+    'track_shipment',
+    {
+      description: 'Get shipment tracking information for a specific order by ID. Returns tracking number, carrier, estimated delivery, and shipping address. Returns error if the order belongs to another user.',
+      inputSchema: trackShipmentSchema,
+      title: 'Track Shipment',
+      annotations: {
+        readOnlyHint: true,
+        idempotentHint: true,
+        destructiveHint: false,
+        openWorldHint: true,
+      },
+    },
+    withAuditLog('track_shipment', async (input: TrackShipmentInput, extra?: { authInfo?: AuthInfo }) => {
+      const result = await trackShipment(input, extra?.authInfo);
+      return {
+        content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }],
+        structuredContent: result,
         isError: !result.success,
       };
     })
@@ -296,16 +361,19 @@ function createMcpServer(): McpServer {
     {
       description: 'Get the authenticated user\'s current shopping cart contents, including product details, quantities, and prices',
       inputSchema: getCartSchema,
+      title: 'Get Cart',
       annotations: {
         readOnlyHint: true,
         idempotentHint: true,
         destructiveHint: false,
+        openWorldHint: true,
       },
     },
     withAuditLog('get_cart', async (input: GetCartInput, extra?: { authInfo?: AuthInfo }) => {
       const result = await getCart(input, extra?.authInfo);
       return {
         content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }],
+        structuredContent: result,
         isError: !result.success,
       };
     })
@@ -317,16 +385,19 @@ function createMcpServer(): McpServer {
     {
       description: 'Add, update, or remove items from the shopping cart. Set quantity > 0 to add/update, or quantity = 0 to remove.',
       inputSchema: updateCartSchema,
+      title: 'Update Cart',
       annotations: {
         readOnlyHint: false,
         idempotentHint: false,
         destructiveHint: false, // Cart operations can be undone - not permanently destructive
+        openWorldHint: true,
       },
     },
     withAuditLog('update_cart', async (input: UpdateCartInput, extra?: { authInfo?: AuthInfo }) => {
       const result = await updateCart(input, extra?.authInfo);
       return {
         content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }],
+        structuredContent: result,
         isError: !result.success,
       };
     })
@@ -339,16 +410,19 @@ function createMcpServer(): McpServer {
     {
       description: 'Create a Stripe Checkout Session for cart items and return the checkout URL. NEVER processes payment directly - user completes payment on Stripe\'s hosted page.',
       inputSchema: createCheckoutSchema,
+      title: 'Create Checkout',
       annotations: {
         readOnlyHint: true, // Read-only from MCP perspective (Stripe processes payment externally)
         idempotentHint: false, // Creates a new session each time
         destructiveHint: false, // Does not modify data in our system
+        openWorldHint: true, // Interacts with Stripe API
       },
     },
     withAuditLog('create_checkout', async (input: CreateCheckoutInput, extra?: { authInfo?: AuthInfo }) => {
       const result = await createCheckout(input, extra?.authInfo);
       return {
         content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }],
+        structuredContent: result,
         isError: !result.success,
       };
     })
@@ -360,16 +434,19 @@ function createMcpServer(): McpServer {
     {
       description: 'List all items in the authenticated user\'s default wishlist with product details',
       inputSchema: listWishlistSchema,
+      title: 'List Wishlist',
       annotations: {
         readOnlyHint: true,
         idempotentHint: true,
         destructiveHint: false,
+        openWorldHint: true,
       },
     },
     withAuditLog('list_wishlist', async (input: ListWishlistInput, extra?: { authInfo?: AuthInfo }) => {
       const result = await listWishlist(input, extra?.authInfo);
       return {
         content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }],
+        structuredContent: result,
         isError: !result.success,
       };
     })
@@ -381,16 +458,19 @@ function createMcpServer(): McpServer {
     {
       description: 'Add a product (and optionally a variant) to the authenticated user\'s default wishlist',
       inputSchema: addToWishlistSchema,
+      title: 'Add to Wishlist',
       annotations: {
         readOnlyHint: false,
         idempotentHint: false, // Adding the same product twice may fail due to UNIQUE constraint
         destructiveHint: true,
+        openWorldHint: true,
       },
     },
     withAuditLog('add_to_wishlist', async (input: AddToWishlistInput, extra?: { authInfo?: AuthInfo }) => {
       const result = await addToWishlist(input, extra?.authInfo);
       return {
         content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }],
+        structuredContent: result,
         isError: !result.success,
       };
     })
@@ -402,16 +482,67 @@ function createMcpServer(): McpServer {
     {
       description: 'Remove a product (and optionally a variant) from the authenticated user\'s default wishlist',
       inputSchema: removeFromWishlistSchema,
+      title: 'Remove from Wishlist',
       annotations: {
         readOnlyHint: false,
         idempotentHint: true, // Removing the same product twice is safe
         destructiveHint: true,
+        openWorldHint: true,
       },
     },
     withAuditLog('remove_from_wishlist', async (input: RemoveFromWishlistInput, extra?: { authInfo?: AuthInfo }) => {
       const result = await removeFromWishlist(input, extra?.authInfo);
       return {
         content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }],
+        structuredContent: result,
+        isError: !result.success,
+      };
+    })
+  );
+
+  // Tool: list_categories (PUBLIC — no auth required)
+  server.registerTool(
+    'list_categories',
+    {
+      description: 'List all product categories with product counts. Useful for browsing the store without a search query.',
+      inputSchema: listCategoriesSchema,
+      title: 'List Categories',
+      annotations: {
+        readOnlyHint: true,
+        idempotentHint: true,
+        destructiveHint: false,
+        openWorldHint: true,
+      },
+    },
+    withAuditLog('list_categories', async (input: ListCategoriesInput) => {
+      const result = await listCategories(input);
+      return {
+        content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }],
+        structuredContent: result,
+        isError: !result.success,
+      };
+    })
+  );
+
+  // Tool: get_product_reviews (PUBLIC — no auth required)
+  server.registerTool(
+    'get_product_reviews',
+    {
+      description: 'Get reviews for a product. Returns paginated list of reviews with rating, text, and author name.',
+      inputSchema: getProductReviewsSchema,
+      title: 'Get Product Reviews',
+      annotations: {
+        readOnlyHint: true,
+        idempotentHint: true,
+        destructiveHint: false,
+        openWorldHint: true,
+      },
+    },
+    withAuditLog('get_product_reviews', async (input: GetProductReviewsInput) => {
+      const result = await getProductReviews(input);
+      return {
+        content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }],
+        structuredContent: result,
         isError: !result.success,
       };
     })
@@ -502,6 +633,71 @@ async function handleMcpPost(
   const body = await parseBody(req);
   const sessionId = req.headers['mcp-session-id'] as string | undefined;
 
+  // Handle logging/setLevel notification
+  if (
+    body &&
+    typeof body === 'object' &&
+    'method' in body &&
+    body.method === 'notifications/message'
+  ) {
+    const params = (body as any).params;
+    if (params?.method === 'logging/setLevel' && params?.params?.level) {
+      const level = params.params.level as 'debug' | 'info' | 'warning' | 'error';
+      try {
+        logger.setLevel(level);
+        logger.info('Log level changed via MCP notification', { newLevel: level });
+      } catch (err) {
+        logger.error('Failed to set log level', {
+          requestedLevel: level,
+          error: err instanceof Error ? err.message : String(err),
+        });
+      }
+      // Send empty response for notification
+      res.writeHead(204);
+      res.end();
+      return;
+    }
+  }
+
+  // Handle completion/complete request
+  if (
+    body &&
+    typeof body === 'object' &&
+    'method' in body &&
+    body.method === 'completion/complete'
+  ) {
+    try {
+      const params = (body as any).params as CompletionRequest;
+      const result = await getCompletions(params);
+
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(
+        JSON.stringify({
+          jsonrpc: '2.0',
+          id: (body as any).id,
+          result,
+        })
+      );
+      return;
+    } catch (err) {
+      logger.error('Completion request failed', {
+        error: err instanceof Error ? err.message : String(err),
+      });
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(
+        JSON.stringify({
+          jsonrpc: '2.0',
+          id: (body as any).id,
+          error: {
+            code: -32000,
+            message: 'Completion failed',
+          },
+        })
+      );
+      return;
+    }
+  }
+
   // Inject auth info from JWT (if Bearer token present)
   await injectAuthInfo(req);
 
@@ -590,7 +786,7 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  // Health check endpoint
+  // Health check endpoint (basic liveness check)
   if (req.method === 'GET' && req.url === '/health') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(
@@ -599,6 +795,76 @@ const server = http.createServer(async (req, res) => {
         version: '1.0.0',
         tools_count: TOOL_COUNT,
         active_sessions: transports.size,
+        timestamp: new Date().toISOString(),
+      })
+    );
+    return;
+  }
+
+  // Readiness check endpoint (verifies dependencies)
+  if (req.method === 'GET' && req.url === '/ready') {
+    const checks = {
+      supabase: { status: 'unknown', error: null as string | null },
+      redis: { status: 'unknown', error: null as string | null },
+      stripe: { status: 'unknown', error: null as string | null },
+    };
+
+    let overallStatus = 'ready';
+
+    // Check Supabase connectivity
+    try {
+      const supabase = getSupabaseClient();
+      const { error } = await supabase.from('users').select('id').limit(1);
+      if (error) {
+        checks.supabase.status = 'degraded';
+        checks.supabase.error = error.message;
+        overallStatus = 'degraded';
+      } else {
+        checks.supabase.status = 'ready';
+      }
+    } catch (err) {
+      checks.supabase.status = 'degraded';
+      checks.supabase.error = err instanceof Error ? err.message : 'Unknown error';
+      overallStatus = 'degraded';
+    }
+
+    // Check Redis connectivity (optional — not fatal if unavailable)
+    try {
+      const redis = getRedisClient();
+      if (redis && redis.status === 'ready') {
+        await redis.ping();
+        checks.redis.status = 'ready';
+      } else {
+        checks.redis.status = 'unavailable';
+        checks.redis.error = 'Redis not connected (graceful fallback enabled)';
+        // Don't mark overall as degraded - Redis is optional
+      }
+    } catch (err) {
+      checks.redis.status = 'unavailable';
+      checks.redis.error = err instanceof Error ? err.message : 'Unknown error';
+      // Don't mark overall as degraded - Redis is optional
+    }
+
+    // Check Stripe connectivity
+    try {
+      const stripe = getStripeClient();
+      // Simple check: list 1 product to verify API connectivity
+      await stripe.products.list({ limit: 1 });
+      checks.stripe.status = 'ready';
+    } catch (err) {
+      checks.stripe.status = 'degraded';
+      checks.stripe.error = err instanceof Error ? err.message : 'Unknown error';
+      overallStatus = 'degraded';
+    }
+
+    // Return 503 if any critical dependency is degraded
+    const statusCode = overallStatus === 'degraded' ? 503 : 200;
+
+    res.writeHead(statusCode, { 'Content-Type': 'application/json' });
+    res.end(
+      JSON.stringify({
+        status: overallStatus,
+        checks,
         timestamp: new Date().toISOString(),
       })
     );

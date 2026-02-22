@@ -16,7 +16,7 @@ class BrandManagerAgent(BaseAgent):
     model = "claude-sonnet-4-5-20250929"
     schedule = "weekly Monday 08:00 UTC"
     tools = ["supabase", "printify"]
-    context_files = ["brand_config.md", "store_config.md"]
+    context_files = ["brand_config.md", "store_config.md", "product_scorecard.md"]
     guardrails = {"max_product_updates": 50}
 
     def default_task(self) -> str:
@@ -30,7 +30,11 @@ class BrandManagerAgent(BaseAgent):
             "4. Verify packaging insert settings are enabled in store config\n"
             "5. Check gift message templates are active\n"
             "6. Report: products_audited, labels_applied, issues_found\n"
-            "7. Update brand_config.md with audit results"
+            "7. Update brand_config.md with audit results\n\n"
+            "QUALITY-SALES CORRELATION:\n"
+            "8. Read product_scorecard.md for conversion data\n"
+            "9. Cross-reference: products with low conversion + missing neck labels → priority fix\n"
+            "10. Flag products where brand inconsistency may be hurting sales"
         )
 
     def system_prompt_additions(self) -> str:

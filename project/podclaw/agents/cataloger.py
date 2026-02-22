@@ -16,7 +16,7 @@ class CatalogerAgent(BaseAgent):
     model = "claude-sonnet-4-5-20250929"
     schedule = "daily 10:00 + 14:00 + 18:00 UTC"
     tools = ["supabase", "printify", "gemini"]
-    context_files = ["best_sellers.md", "pricing_history.md"]
+    context_files = ["best_sellers.md", "pricing_history.md", "product_scorecard.md"]
     guardrails = {"max_creates": 50, "max_price_change_pct": 20}
 
     def default_task(self) -> str:
@@ -36,7 +36,11 @@ class CatalogerAgent(BaseAgent):
             "8. Update pricing_history.md with any changes\n\n"
             "Cycle 1 (10:00): New products from approved designs\n"
             "Cycle 2 (14:00): Sync + pricing adjustments\n"
-            "Cycle 3 (18:00): Trending items + peak preparation"
+            "Cycle 3 (18:00): Trending items + peak preparation\n\n"
+            "PERFORMANCE-INFORMED PRICING:\n"
+            "9. Read product_scorecard.md for conversion rate data\n"
+            "10. New products in high-performing niches: use similar pricing to top performers\n"
+            "11. Products flagged as zombies: consider price adjustments within ±20% limit"
         )
 
     def system_prompt_additions(self) -> str:
@@ -56,5 +60,9 @@ class CatalogerAgent(BaseAgent):
             "GUARDRAILS:\n"
             "- Max 50 product creates per cycle\n"
             "- All descriptions must be in en, es, de\n"
-            "- Verify Printify sync before publishing"
+            "- Verify Printify sync before publishing\n\n"
+            "PERFORMANCE FEEDBACK:\n"
+            "- product_scorecard.md has top/bottom performing products\n"
+            "- Use conversion data to inform pricing of new products\n"
+            "- Match pricing of new products to similar top performers"
         )

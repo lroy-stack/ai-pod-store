@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
     if (!usageResult.allowed) {
       return NextResponse.json(
         {
-          error: 'Daily design limit reached',
+          error: 'Design generation limit reached',
           usage: usageResult,
           code: 'LIMIT_REACHED',
         },

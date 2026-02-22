@@ -6,7 +6,7 @@ Infrastructure-level enforcement of PNG transparency for all generated images.
 
 Intercepts: gemini_generate_image, fal_generate
 After successful generation -> auto-removes background -> persists bg-removed version
-to Supabase Storage -> updates designs.bg_removed_url if the row exists.
+to Supabase Storage -> auto-upscales if below print target -> updates designs row.
 
 Requires: Docker rembg-sidecar on REMBG_URL (localhost:8090). No cloud fallback.
 
@@ -19,6 +19,7 @@ pending bg_removed_url values that were computed before the row existed.
 from __future__ import annotations
 
 import asyncio
+import io
 from typing import Any, Callable, Optional
 from urllib.parse import quote
 
@@ -38,8 +39,154 @@ logger = structlog.get_logger(__name__)
 # 3. reconcile_and_fix.py pass_d also backfills missing bg_removed_url
 _pending_bg_removals: dict[str, str] = {}
 
+# Minimum print width (px) — images below this get auto-upscaled
+_MIN_PRINT_WIDTH = 3000
+
 _MAX_UPDATE_RETRIES = 3
 _RETRY_DELAY_SECONDS = 5
+
+
+async def _auto_upscale(
+    fal_key: str,
+    supabase_url: str,
+    supabase_key: str,
+    image_url: str,
+) -> str | None:
+    """Auto-upscale a bg-removed image if it's below print resolution.
+
+    Downloads image, checks dimensions, upscales with ESRGAN if needed.
+    Returns new persisted URL or None if upscale not needed / failed.
+    """
+    try:
+        from PIL import Image
+        from podclaw.image_pipeline.dimensions import get_upscale_factor, DEFAULT_PRODUCT
+
+        # Download to check dimensions
+        async with httpx.AsyncClient(timeout=30) as client:
+            resp = await client.get(image_url)
+            if resp.status_code >= 400:
+                return None
+            image_bytes = resp.content
+
+        img = Image.open(io.BytesIO(image_bytes))
+        w, h = img.size
+
+        if max(w, h) >= _MIN_PRINT_WIDTH:
+            logger.debug("auto_upscale_skip", width=w, height=h, reason="already_large_enough")
+            return None
+
+        # Determine scale factor based on default product target
+        scale = get_upscale_factor(DEFAULT_PRODUCT)
+        has_alpha = img.mode == "RGBA"
+
+        headers = {
+            "Authorization": f"Key {fal_key}",
+            "Content-Type": "application/json",
+        }
+
+        if has_alpha:
+            # Split RGB and alpha, upscale separately, recombine
+            rgb = img.convert("RGB")
+            alpha = img.getchannel("A")
+
+            rgb_buf = io.BytesIO()
+            rgb.save(rgb_buf, format="PNG")
+
+            temp_url = await upload_to_storage(
+                supabase_url, supabase_key, source_bytes=rgb_buf.getvalue()
+            )
+            if not temp_url:
+                return None
+
+            async with httpx.AsyncClient(timeout=120) as client:
+                resp = await client.post(
+                    "https://fal.run/fal-ai/esrgan",
+                    headers=headers,
+                    json={"image_url": temp_url, "scale": scale},
+                )
+                if resp.status_code >= 400:
+                    logger.warning("auto_upscale_esrgan_fail", status=resp.status_code)
+                    return None
+                data = resp.json()
+
+            upscaled_rgb_url = data.get("image", {}).get("url") or data.get("image_url")
+            if not upscaled_rgb_url:
+                return None
+
+            async with httpx.AsyncClient(timeout=30) as client:
+                resp = await client.get(upscaled_rgb_url)
+                resp.raise_for_status()
+                upscaled_rgb = Image.open(io.BytesIO(resp.content)).convert("RGB")
+
+            new_w, new_h = upscaled_rgb.size
+            upscaled_alpha = alpha.resize((new_w, new_h), Image.BICUBIC)
+            r, g, b = upscaled_rgb.split()
+            final = Image.merge("RGBA", (r, g, b, upscaled_alpha))
+
+            final_buf = io.BytesIO()
+            final.save(final_buf, format="PNG")
+
+            persisted = await upload_to_storage(
+                supabase_url, supabase_key, source_bytes=final_buf.getvalue()
+            )
+        else:
+            # No alpha — direct ESRGAN
+            async with httpx.AsyncClient(timeout=120) as client:
+                resp = await client.post(
+                    "https://fal.run/fal-ai/esrgan",
+                    headers=headers,
+                    json={"image_url": image_url, "scale": scale},
+                )
+                if resp.status_code >= 400:
+                    logger.warning("auto_upscale_esrgan_fail", status=resp.status_code)
+                    return None
+                data = resp.json()
+
+            upscaled_url = data.get("image", {}).get("url") or data.get("image_url")
+            if not upscaled_url:
+                return None
+
+            persisted = await upload_to_storage(
+                supabase_url, supabase_key, source_url=upscaled_url
+            )
+            new_w = w * scale
+            new_h = h * scale
+
+        if persisted:
+            logger.info(
+                "auto_upscale_ok",
+                original=f"{w}x{h}",
+                result=f"{new_w}x{new_h}",
+                scale=scale,
+                has_alpha=has_alpha,
+            )
+        return persisted
+
+    except Exception as e:
+        logger.error(
+            "auto_upscale_error",
+            error=str(e),
+            image_url=image_url[:80],
+        )
+        # Mark design for retry — match on image_url (original, not bg_removed)
+        try:
+            encoded = quote(image_url, safe="")
+            async with httpx.AsyncClient(timeout=10) as mark_client:
+                resp = await mark_client.patch(
+                    f"{supabase_url}/rest/v1/designs?image_url=eq.{encoded}",
+                    headers={
+                        "apikey": supabase_key,
+                        "Authorization": f"Bearer {supabase_key}",
+                        "Content-Type": "application/json",
+                        "Prefer": "return=representation",
+                    },
+                    json={"needs_upscale": True},
+                )
+                if resp.status_code < 400 and resp.json():
+                    logger.info("auto_upscale_marked_for_retry", image_url=image_url[:60])
+        except Exception:
+            pass  # Best-effort — don't mask original error
+        return None
 
 
 async def _update_design_row(
@@ -122,13 +269,15 @@ def transparency_hook(
     supabase_url: str,
     supabase_key: str,
     rembg_url: str = "",
+    fal_key: str = "",
 ) -> Callable:
     """
     Factory: creates a PostToolUse hook that auto-removes backgrounds
-    from generated images using the local rembg Docker sidecar.
+    from generated images using the local rembg Docker sidecar,
+    then auto-upscales if below print resolution.
 
     Intercepts: gemini_generate_image, fal_generate
-    Pipeline: detect image -> remove bg (local rembg) -> persist to Storage -> update designs row
+    Pipeline: detect image -> remove bg (local rembg) -> auto-upscale -> persist to Storage -> update designs row
     """
     supabase_url = supabase_url.rstrip("/")
 
@@ -201,14 +350,15 @@ def transparency_hook(
                             original=image_url[:60],
                         )
 
-                # If cloud also failed, use the local result anyway (better than nothing)
+                # If cloud also failed, REJECT — do NOT persist garbage
                 if not persisted_url:
-                    logger.warning("transparency_cloud_fallback_failed", original=image_url[:60])
-                    persisted_url = await upload_to_storage(
-                        supabase_url, supabase_key,
-                        source_bytes=result["image_bytes"],
+                    logger.error(
+                        "transparency_bg_removal_rejected",
+                        reason="local_quality_fail_and_cloud_fallback_fail",
+                        quality_reason=quality.get("reason"),
+                        original=image_url[:60],
                     )
-                    provider = "local-rembg-low-quality"
+                    return {}
             else:
                 # Local result is good — persist it
                 persisted_url = await upload_to_storage(
@@ -237,6 +387,14 @@ def transparency_hook(
             provider=provider,
             url=persisted_url[:80],
         )
+
+        # Auto-upscale if below print resolution
+        if fal_key:
+            upscaled_url = await _auto_upscale(
+                fal_key, supabase_url, supabase_key, persisted_url
+            )
+            if upscaled_url:
+                persisted_url = upscaled_url
 
         # Wait briefly for the agent to insert the designs row
         await asyncio.sleep(5)

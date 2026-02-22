@@ -34,23 +34,6 @@ export function UpgradeModal({ open, onOpenChange, reason }: UpgradeModalProps) 
     }
   }
 
-  async function handleBuyCredits() {
-    setLoading(true)
-    try {
-      const res = await fetch('/api/credits/purchase', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ pack: 'small' }),
-      })
-      const data = await res.json()
-      if (data.url) {
-        window.location.href = data.url
-      }
-    } catch {
-      setLoading(false)
-    }
-  }
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
@@ -99,13 +82,6 @@ export function UpgradeModal({ open, onOpenChange, reason }: UpgradeModalProps) 
           <Button onClick={handleUpgrade} disabled={loading} className="w-full">
             {loading ? t('redirecting') : t('upgradeNow')}
           </Button>
-          <button
-            onClick={handleBuyCredits}
-            disabled={loading}
-            className="text-sm text-primary hover:underline text-center transition-colors"
-          >
-            {t('buyCredits')}
-          </button>
         </div>
       </DialogContent>
     </Dialog>

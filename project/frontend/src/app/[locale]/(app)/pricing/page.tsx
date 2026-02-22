@@ -1,12 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import { Check, Sparkles, Zap } from 'lucide-react'
+import { Check, Sparkles, Zap, CheckCircle2 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { cn } from '@/lib/utils'
 
@@ -17,9 +17,9 @@ const TIERS = [
     period: '',
     description: 'Get started with AI-powered shopping',
     features: [
-      '50 AI chats per day',
-      '3 AI designs per day',
-      '5 product mockups per day',
+      '30 AI chats per day',
+      '5 AI designs per month',
+      '10 product mockups per month',
       'Save wishlists',
       'Order tracking',
     ],
@@ -33,9 +33,9 @@ const TIERS = [
     period: '/mo',
     description: 'Unlimited creativity for power users',
     features: [
-      '500 AI chats per day',
-      '30 AI designs per day',
-      '50 product mockups per day',
+      '100 AI chats per day',
+      '50 AI designs per month',
+      '100 product mockups per month',
       '10 bonus credits per month',
       'Unlimited design saves',
       'Priority support',
@@ -56,9 +56,37 @@ export default function PricingPage() {
   const { user } = useAuth()
   const searchParams = useSearchParams()
   const [loading, setLoading] = useState<string | null>(null)
+  const [currentTier, setCurrentTier] = useState<'free' | 'premium' | null>(null)
+  const [subscriptionStatus, setSubscriptionStatus] = useState<string | null>(null)
 
   const success = searchParams.get('success')
   const creditsSuccess = searchParams.get('credits')
+
+  // Fetch user's current subscription tier and status
+  useEffect(() => {
+    if (!user) {
+      setCurrentTier(null)
+      setSubscriptionStatus(null)
+      return
+    }
+
+    async function fetchSubscription() {
+      try {
+        const res = await fetch('/api/subscription/usage')
+        if (res.ok) {
+          const data = await res.json()
+          setCurrentTier(data.tier || 'free')
+          setSubscriptionStatus(data.subscription_status || 'none')
+        }
+      } catch (error) {
+        console.error('Failed to fetch subscription:', error)
+        setCurrentTier('free') // Default to free on error
+        setSubscriptionStatus('none')
+      }
+    }
+
+    fetchSubscription()
+  }, [user])
 
   async function handleSubscribe() {
     if (!user) return
@@ -109,71 +137,131 @@ export default function PricingPage() {
           <p className="text-muted-foreground">
             Start free, upgrade when you need more
           </p>
+          {/* Crypto acceptance badge */}
+          {process.env.NEXT_PUBLIC_STRIPE_CRYPTO_ENABLED === 'true' && (
+            <div className="mt-4 flex justify-center">
+              <Badge variant="outline" className="gap-1.5 px-3 py-1">
+                <svg
+                  className="h-4 w-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                Accepts cryptocurrency
+              </Badge>
+            </div>
+          )}
         </div>
 
         {/* Tier Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-          {TIERS.map((tier) => (
-            <Card
-              key={tier.name}
-              className={cn(
-                'relative',
-                tier.highlighted && 'border-primary shadow-lg'
-              )}
-            >
-              {tier.highlighted && (
-                <Badge className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-primary">
-                  Most Popular
-                </Badge>
-              )}
-              <CardHeader className="pb-4">
-                <div className="flex items-center gap-2 mb-1">
-                  {tier.highlighted ? (
-                    <Sparkles className="h-5 w-5 text-primary" />
-                  ) : (
-                    <Zap className="h-5 w-5 text-muted-foreground" />
-                  )}
-                  <h2 className="text-xl font-semibold text-foreground">{tier.name}</h2>
-                </div>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-3xl font-bold text-foreground">
-                    {tier.price === '0' ? 'Free' : `\u20AC${tier.price}`}
-                  </span>
-                  {tier.period && (
-                    <span className="text-muted-foreground text-sm">{tier.period}</span>
-                  )}
-                </div>
-                <p className="text-sm text-muted-foreground">{tier.description}</p>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2.5 mb-6">
-                  {tier.features.map((feature) => (
-                    <li key={feature} className="flex items-center gap-2.5 text-sm">
-                      <Check className={cn(
-                        'h-4 w-4 flex-shrink-0',
-                        tier.highlighted ? 'text-primary' : 'text-muted-foreground'
-                      )} />
-                      <span className="text-foreground">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-                <Button
-                  variant={tier.ctaVariant}
-                  className="w-full"
-                  disabled={
-                    (!user && tier.highlighted) ||
-                    loading === 'subscription' ||
-                    (!tier.highlighted)
-                  }
-                  onClick={tier.highlighted ? handleSubscribe : undefined}
-                >
-                  {loading === 'subscription' && tier.highlighted
-                    ? 'Redirecting...'
-                    : tier.cta}
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
+          {TIERS.map((tier) => {
+            const tierKey = tier.name.toLowerCase() as 'free' | 'premium'
+            const isCurrentPlan = user && currentTier === tierKey && subscriptionStatus === 'active'
+            const isPremiumUser = currentTier === 'premium' && subscriptionStatus === 'active'
+            const isFreeUser = !currentTier || currentTier === 'free'
+            const isCancelled = subscriptionStatus === 'cancelled'
+
+            // Determine CTA text and behavior
+            let ctaText = tier.cta
+            let ctaDisabled = false
+            let ctaOnClick = tier.highlighted ? handleSubscribe : undefined
+
+            if (isCurrentPlan) {
+              ctaText = 'Current Plan'
+              ctaDisabled = true
+              ctaOnClick = undefined
+            } else if (tierKey === 'free' && isPremiumUser) {
+              // Active premium users can't downgrade via this button (use Billing Portal)
+              ctaText = 'Manage Plan'
+              ctaDisabled = false
+              ctaOnClick = () => {
+                window.location.href = '/en/settings/billing'
+              }
+            } else if (tierKey === 'premium' && isCancelled) {
+              // Cancelled users can reactivate their subscription
+              ctaText = 'Reactivate Subscription'
+              ctaDisabled = !user || loading === 'subscription'
+              ctaOnClick = handleSubscribe
+            } else if (tierKey === 'premium' && isFreeUser) {
+              ctaText = 'Upgrade Now'
+              ctaDisabled = !user || loading === 'subscription'
+              ctaOnClick = handleSubscribe
+            }
+
+            return (
+              <Card
+                key={tier.name}
+                className={cn(
+                  'relative',
+                  tier.highlighted && 'border-primary shadow-lg',
+                  isCurrentPlan && 'border-primary/50'
+                )}
+              >
+                {tier.highlighted && !isCurrentPlan && (
+                  <Badge className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-primary">
+                    Most Popular
+                  </Badge>
+                )}
+                {isCurrentPlan && (
+                  <Badge className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-primary">
+                    <CheckCircle2 className="h-3 w-3 mr-1" />
+                    Active Plan
+                  </Badge>
+                )}
+                <CardHeader className="pb-4">
+                  <div className="flex items-center gap-2 mb-1">
+                    {tier.highlighted ? (
+                      <Sparkles className="h-5 w-5 text-primary" />
+                    ) : (
+                      <Zap className="h-5 w-5 text-muted-foreground" />
+                    )}
+                    <h2 className="text-xl font-semibold text-foreground">{tier.name}</h2>
+                  </div>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-3xl font-bold text-foreground">
+                      {tier.price === '0' ? 'Free' : `\u20AC${tier.price}`}
+                    </span>
+                    {tier.period && (
+                      <span className="text-muted-foreground text-sm">{tier.period}</span>
+                    )}
+                  </div>
+                  <p className="text-sm text-muted-foreground">{tier.description}</p>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2.5 mb-6">
+                    {tier.features.map((feature) => (
+                      <li key={feature} className="flex items-center gap-2.5 text-sm">
+                        <Check className={cn(
+                          'h-4 w-4 flex-shrink-0',
+                          tier.highlighted || isCurrentPlan ? 'text-primary' : 'text-muted-foreground'
+                        )} />
+                        <span className="text-foreground">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <Button
+                    variant={isCurrentPlan ? 'outline' : tier.ctaVariant}
+                    className="w-full"
+                    disabled={ctaDisabled}
+                    onClick={ctaOnClick}
+                  >
+                    {loading === 'subscription' && tierKey === 'premium' && !isCurrentPlan
+                      ? 'Redirecting...'
+                      : ctaText}
+                  </Button>
+                </CardContent>
+              </Card>
+            )
+          })}
         </div>
 
         {/* Credit Packs */}
@@ -182,11 +270,11 @@ export default function PricingPage() {
         <div className="text-center mb-6">
           <h2 className="text-2xl font-bold text-foreground mb-1">Credit Packs</h2>
           <p className="text-sm text-muted-foreground">
-            Need more designs? Buy credits anytime.
+            Need more designs? Buy credits as a Premium subscriber.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           {CREDIT_PACKS.map((pack) => (
             <Card
               key={pack.id}

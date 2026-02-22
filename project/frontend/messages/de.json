@@ -4,7 +4,8 @@
     "loading": "Wird geladen...",
     "error": "Fehler",
     "success": "Erfolg",
-    "welcome": "Willkommen im POD AI Store"
+    "welcome": "Willkommen im POD AI Store",
+    "skipToContent": "Zum Hauptinhalt springen"
   },
   "navigation": {
     "home": "Startseite",
@@ -296,7 +297,30 @@
     "confirmDelete": "Ja, mein Konto löschen",
     "deleting": "Wird gelöscht...",
     "accountDeletedSuccess": "Ihr Konto wurde gelöscht",
-    "accountDeleteError": "Fehler beim Löschen des Kontos. Bitte versuchen Sie es erneut."
+    "accountDeleteError": "Fehler beim Löschen des Kontos. Bitte versuchen Sie es erneut.",
+    "changePassword": "Passwort Ändern",
+    "changePasswordDescription": "Aktualisieren Sie Ihr Passwort, um Ihr Konto sicher zu halten",
+    "currentPassword": "Aktuelles Passwort",
+    "currentPasswordPlaceholder": "Geben Sie Ihr aktuelles Passwort ein",
+    "newPassword": "Neues Passwort",
+    "newPasswordPlaceholder": "Geben Sie Ihr neues Passwort ein (min. 8 Zeichen)",
+    "confirmPassword": "Neues Passwort Bestätigen",
+    "confirmPasswordPlaceholder": "Bestätigen Sie Ihr neues Passwort",
+    "passwordRequirement": "Das Passwort muss mindestens 8 Zeichen lang sein",
+    "passwordsDoNotMatch": "Passwörter stimmen nicht überein",
+    "changingPassword": "Passwort wird geändert...",
+    "changePasswordButton": "Passwort Ändern",
+    "passwordChanged": "Passwort erfolgreich geändert",
+    "errorChangingPassword": "Fehler beim Ändern des Passworts",
+    "incorrectCurrentPassword": "Das aktuelle Passwort ist falsch",
+    "paymentMethods": "Zahlungsmethoden",
+    "paymentMethodsDescription": "Verwalten Sie Ihre gespeicherten Zahlungsmethoden",
+    "noPaymentMethods": "Noch keine Zahlungsmethoden gespeichert",
+    "addPaymentMethod": "Zahlungsmethode Hinzufügen",
+    "cardEndingIn": "Karte endet auf {last4}",
+    "expiresOn": "Läuft ab {month}/{year}",
+    "removeCard": "Entfernen",
+    "errorLoadingPaymentMethods": "Fehler beim Laden der Zahlungsmethoden"
   },
   "Cart": {
     "title": "Warenkorb",
@@ -347,7 +371,8 @@
     "shippingTo": "Versand nach",
     "noShippingOptions": "Keine Versandoptionen verfügbar",
     "recommended": "Empfohlen",
-    "freeShippingOver": "Kostenloser Versand bei Bestellungen über"
+    "freeShippingOver": "Kostenloser Versand bei Bestellungen über",
+    "acceptsCrypto": "Akzeptiert Kryptowährung"
   },
   "wishlist": {
     "title": "Meine Wunschlisten",
@@ -515,7 +540,16 @@
       "rejected": "Abgelehnt",
       "processing": "Erstattung Wird Bearbeitet",
       "completed": "Erstattung Abgeschlossen"
-    }
+    },
+    "paymentMethod": "Zahlungsmethode",
+    "cryptocurrency": "Kryptowährung",
+    "creditCard": "Kreditkarte",
+    "cryptoPayment": "Krypto",
+    "cardPayment": "Karte",
+    "downloadInvoice": "Rechnung Herunterladen",
+    "downloading": "Wird heruntergeladen...",
+    "invoiceDownloaded": "Rechnung erfolgreich heruntergeladen",
+    "invoiceDownloadFailed": "Fehler beim Herunterladen der Rechnung. Bitte versuchen Sie es erneut."
   },
   "storefront": {
     "discover": "Entdecken",
@@ -748,7 +782,7 @@
       "benefit1": "Chatte mit KI, um individuelle Designs zu erstellen",
       "benefit2": "Entdecke einzigartige Print-on-Demand-Produkte",
       "benefit3": "Wunschlisten speichern, Bestellungen verfolgen, Belohnungen verdienen",
-      "subscriptionTeaser": "Premium: €9,99/Monat — 500 Chats, 30 Designs, Prioritäts-Support",
+      "subscriptionTeaser": "Premium: €9,99/Monat — 100 Chats/Tag, 50 Designs/Monat, Prioritäts-Support",
       "signUp": "Kostenloses Konto erstellen",
       "logIn": "Anmelden",
       "continueGuest": "Als Gast fortfahren"
@@ -757,8 +791,8 @@
       "title": "Erstelle dein kostenloses Konto",
       "wallTitle": "Du hast alle {count} kostenlosen Nachrichten heute verbraucht",
       "wallSubtitle": "Erstelle ein kostenloses Konto, um weiterzuchatten",
-      "benefit1": "50 KI-Chats pro Tag",
-      "benefit2": "3 KI-generierte individuelle Designs",
+      "benefit1": "30 KI-Chats pro Tag",
+      "benefit2": "5 KI-Designs pro Monat",
       "benefit3": "Wunschlisten speichern & Bestellungen verfolgen",
       "benefit4": "Produkt-Mockups auf echten Artikeln",
       "benefit5": "Spracheingabe & Bild-Upload",
@@ -767,7 +801,7 @@
       "continueGuest": "Als Gast fortfahren",
       "continueBrowsing": "Weiter stöbern",
       "premiumTeaser": "Mehr Power? Premium: €9,99/Monat",
-      "premiumSummary": "500 Chats · 30 Designs · Bonusguthaben",
+      "premiumSummary": "100 Chats/Tag · 50 Designs/Monat · Bonusguthaben",
       "seePremium": "Premium ansehen"
     },
     "upgrade": {
@@ -775,12 +809,12 @@
       "freeBadge": "Kostenlos",
       "premiumBadge": "Premium",
       "price": "€9,99/Monat",
-      "free1": "50 Chats/Tag",
-      "free2": "3 Designs/Tag",
-      "free3": "5 Mockups/Tag",
-      "premium1": "500 Chats/Tag",
-      "premium2": "30 Designs/Tag",
-      "premium3": "50 Mockups/Tag",
+      "free1": "30 Chats/Tag",
+      "free2": "5 Designs/Monat",
+      "free3": "10 Mockups/Monat",
+      "premium1": "100 Chats/Tag",
+      "premium2": "50 Designs/Monat",
+      "premium3": "100 Mockups/Monat",
       "premium4": "10 Bonusguthaben/Monat",
       "premium5": "Prioritäts-Support",
       "upgradeNow": "Jetzt upgraden — €9,99/Monat",
@@ -1011,5 +1045,29 @@
       "content": "Bei Fragen zu diesen Nutzungsbedingungen kontaktieren Sie uns bitte unter: legal@podai.com. Wir werden alle Anfragen innerhalb von 5 Werktagen beantworten."
     },
     "footer": "Wir behalten uns das Recht vor, diese Nutzungsbedingungen jederzeit zu ändern. Die fortgesetzte Nutzung unserer Plattform stellt die Annahme von Änderungen dar."
+  },
+  "Billing": {
+    "title": "Abrechnung & Abonnement",
+    "description": "Verwalten Sie Ihr Abonnement, Credits und Zahlungsmethoden",
+    "currentPlan": "Aktueller Plan",
+    "tierFree": "Kostenlos",
+    "tierPremium": "Premium",
+    "premium": "Premium",
+    "status": "Status",
+    "statusActive": "Aktiv",
+    "statusPastDue": "Zahlung überfällig",
+    "statusCancelled": "Gekündigt",
+    "statusNone": "Kein Abonnement",
+    "upgradeToPremium": "Auf Premium upgraden",
+    "credits": "Credits",
+    "creditsAvailable": "Verfügbare Credits",
+    "buyMoreCredits": "Mehr Credits kaufen",
+    "manageBilling": "Abrechnung verwalten",
+    "manageBillingDescription": "Aktualisieren Sie Ihre Zahlungsmethode, sehen Sie Rechnungen ein und verwalten Sie Ihr Abonnement über unser sicheres Abrechnungsportal.",
+    "openBillingPortal": "Abrechnungsportal öffnen",
+    "loading": "Lädt...",
+    "fetchError": "Fehler beim Laden der Abrechnungsinformationen",
+    "portalError": "Fehler beim Öffnen des Abrechnungsportals",
+    "noProfile": "Ihr Profil kann nicht geladen werden"
   }
 }

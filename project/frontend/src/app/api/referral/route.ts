@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
     // Check if referrer exists
     const { data: referrer } = await supabase
       .from('users')
-      .select('id, credit_balance')
+      .select('id')
       .eq('id', referrerCode)
       .single()
 
@@ -73,30 +73,28 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Failed to register referral' }, { status: 500 })
     }
 
-    // Award credits to referrer
-    const referrerNewBalance = (referrer.credit_balance || 0) + REFERRAL_CREDITS
-    await supabase.from('users').update({ credit_balance: referrerNewBalance }).eq('id', referrer.id)
+    // Award credits to referrer (atomic)
+    const { data: referrerResult } = await supabase.rpc('add_credits', {
+      p_user_id: referrer.id,
+      p_amount: REFERRAL_CREDITS,
+    })
     await supabase.from('credit_transactions').insert({
       user_id: referrer.id,
       amount: REFERRAL_CREDITS,
       reason: 'referral_bonus',
-      balance_after: referrerNewBalance,
+      balance_after: referrerResult?.balance ?? 0,
     })
 
-    // Award credits to referred user
-    const { data: referredProfile } = await supabase
-      .from('users')
-      .select('credit_balance')
-      .eq('id', user.id)
-      .single()
-
-    const referredNewBalance = (referredProfile?.credit_balance || 0) + REFERRAL_CREDITS
-    await supabase.from('users').update({ credit_balance: referredNewBalance }).eq('id', user.id)
+    // Award credits to referred user (atomic)
+    const { data: referredResult } = await supabase.rpc('add_credits', {
+      p_user_id: user.id,
+      p_amount: REFERRAL_CREDITS,
+    })
     await supabase.from('credit_transactions').insert({
       user_id: user.id,
       amount: REFERRAL_CREDITS,
       reason: 'referral_welcome',
-      balance_after: referredNewBalance,
+      balance_after: referredResult?.balance ?? 0,
     })
 
     return NextResponse.json({

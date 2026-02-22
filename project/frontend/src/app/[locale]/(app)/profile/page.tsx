@@ -2,6 +2,8 @@ import { getTranslations } from 'next-intl/server';
 import { ProfileForm } from '@/components/profile/ProfileForm';
 import { ShippingAddressList } from '@/components/profile/ShippingAddressList';
 import { DeleteAccountSection } from '@/components/profile/DeleteAccountSection';
+import { ChangePasswordForm } from '@/components/profile/ChangePasswordForm';
+import { PaymentMethodsList } from '@/components/profile/PaymentMethodsList';
 
 import {
   Card,
@@ -48,6 +50,10 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
             <ShippingAddressList />
           </CardContent>
         </Card>
+
+        <PaymentMethodsList />
+
+        <ChangePasswordForm />
 
         <DeleteAccountSection />
       </div>

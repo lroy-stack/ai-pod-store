@@ -280,9 +280,16 @@ export async function POST(req: NextRequest) {
     const successUrl = `${baseUrl}/${locale}/checkout/success?session_id={CHECKOUT_SESSION_ID}`;
     const cancelUrl = `${baseUrl}/${locale}/checkout/cancel`;
 
+    // Build payment method types (conditionally include crypto)
+    const paymentMethodTypes: string[] = ['card'];
+    if (process.env.STRIPE_CRYPTO_ENABLED === 'true') {
+      paymentMethodTypes.push('crypto');
+    }
+
     // Create Stripe Checkout session
     const sessionConfig: any = {
       mode: 'payment',
+      payment_method_types: paymentMethodTypes,
       line_items: lineItems,
       success_url: successUrl,
       cancel_url: cancelUrl,

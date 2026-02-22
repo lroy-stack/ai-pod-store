@@ -100,19 +100,21 @@ def _build_hooks(event_store, memory_manager, event_queue=None) -> dict[str, lis
     from podclaw.hooks.sync_hook import sync_hook
     from podclaw.hooks.transparency_hook import transparency_hook, transparency_catchup_hook
     from podclaw.hooks.quality_gate_hook import quality_gate_hook
+    from podclaw.production_governor import production_governor_hook
     from podclaw import config
 
     return {
         "pre_tool_use": [
-            security_hook,
-            cost_guard_hook,
-            rate_limit_hook,
-            metrics_pre_hook,
+            security_hook,               # [0] deny — fail-closed
+            cost_guard_hook,             # [1] deny — fail-open
+            rate_limit_hook,             # [2] deny — fail-open
+            production_governor_hook,    # [3] deny — fail-safe
+            metrics_pre_hook,            # [4] observe
         ],
         "post_tool_use": [
             event_log_hook(event_store),
             memory_hook(memory_manager, event_queue=event_queue),
-            transparency_hook(config.SUPABASE_URL, config.SUPABASE_SERVICE_KEY, rembg_url=config.REMBG_URL),
+            transparency_hook(config.SUPABASE_URL, config.SUPABASE_SERVICE_KEY, rembg_url=config.REMBG_URL, fal_key=config.FAL_KEY),
             sync_hook(config.SUPABASE_URL, config.SUPABASE_SERVICE_KEY,
                       printify_token=config.PRINTIFY_API_TOKEN, shop_id=config.PRINTIFY_SHOP_ID,
                       event_queue=event_queue),
@@ -170,9 +172,11 @@ async def _run(args: argparse.Namespace) -> None:
         from podclaw.hooks.cost_guard_hook import init_cost_guard
         from podclaw.hooks.rate_limit_hook import init_rate_limit
         from podclaw.hooks.security_hook import init_security
+        from podclaw.production_governor import init_governor
         init_cost_guard(supabase_client)
         init_rate_limit(supabase_client)
         init_security(supabase_client)
+        await init_governor(state_store)
 
     # System event queue (inter-agent communication, Supabase-backed)
     event_queue = SystemEventQueue(supabase_client=supabase_client)
@@ -198,6 +202,7 @@ async def _run(args: argparse.Namespace) -> None:
     )
 
     scheduler = PodClawScheduler(orchestrator, workspace_root=workspace)
+    orchestrator.scheduler = scheduler  # Back-reference for deferred retries
 
     # Soul evolution (controlled SOUL.md mutation)
     soul_evolution = SoulEvolution(

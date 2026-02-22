@@ -16,7 +16,7 @@ class FinanceAgent(BaseAgent):
     model = "claude-sonnet-4-5-20250929"
     schedule = "daily 23:00 UTC + monthly"
     tools = ["supabase", "stripe"]
-    context_files = ["pricing_history.md", "store_config.md"]
+    context_files = ["pricing_history.md", "store_config.md", "product_scorecard.md"]
     guardrails = {"margin_alert_threshold_pct": 10, "stripe_read_only_except_approved_refunds": True}
 
     def default_task(self) -> str:
@@ -31,7 +31,15 @@ class FinanceAgent(BaseAgent):
             "7. Update pricing_history.md with today's metrics\n"
             "8. Alert via supabase notification if margin drops >10%\n"
             "9. Generate P&L summary for the day\n\n"
-            "Monthly: Full P&L, cash flow report, trend analysis"
+            "Monthly: Full P&L, cash flow report, trend analysis\n\n"
+            "PRODUCT SCORECARD (daily):\n"
+            "10. Query product_beliefs table for all active products\n"
+            "11. Rank by conversion rate (sales_total / views_total)\n"
+            "12. Write product_scorecard.md with:\n"
+            "    - TOP 10: highest conversion rate products (with revenue, margin)\n"
+            "    - BOTTOM 10: lowest conversion / zombie products (>30 days, 0 sales)\n"
+            "    - PORTFOLIO: total active, zombies, avg margin, exploration rate\n"
+            "13. Flag 'ZOMBIE' for products with >100 views and 0 sales after 14 days"
         )
 
     def system_prompt_additions(self) -> str:
@@ -56,5 +64,11 @@ class FinanceAgent(BaseAgent):
             "GUARDRAILS:\n"
             "- Read-only Stripe access (except human-approved refunds)\n"
             "- Never modify product prices directly (that's the cataloger's job)\n"
-            "- All reports stored in supabase for dashboard"
+            "- All reports stored in supabase for dashboard\n\n"
+            "PRODUCT SCORECARD:\n"
+            "- Read product_beliefs table (Bayesian conversion estimates)\n"
+            "- Top 10 products by conversion rate + revenue\n"
+            "- Bottom 10 / zombie products for lifecycle decisions\n"
+            "- Write product_scorecard.md for other agents to consume\n"
+            "- Use 'ZOMBIE' tag for products needing attention"
         )

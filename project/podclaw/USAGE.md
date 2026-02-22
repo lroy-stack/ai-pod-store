@@ -29,7 +29,7 @@ python3 -m podclaw.main --workspace ../..
 ```
 
 Esto arranca:
-- **Orchestrator**: coordina los 8 sub-agentes
+- **Orchestrator**: coordina los 10 agentes autónomos
 - **Scheduler**: APScheduler con crons (research 06:00, marketing 07:00, etc.)
 - **Heartbeat**: cada 30 min verifica salud de la tienda (Haiku, ~$0.04/dia)
 - **Bridge**: FastAPI en `http://localhost:8000` (admin dashboard)

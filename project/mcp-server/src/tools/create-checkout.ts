@@ -1,0 +1,191 @@
+import { z } from 'zod';
+import type { AuthInfo } from '@modelcontextprotocol/sdk/server/auth/types.js';
+import { createClient } from '@supabase/supabase-js';
+import Stripe from 'stripe';
+
+/**
+ * MCP Tool: create_checkout
+ *
+ * Create a Stripe Checkout Session and return the URL.
+ *
+ * CRITICAL SECURITY RULE:
+ * - This tool NEVER processes payments directly
+ * - It ONLY creates a Checkout Session and returns the URL
+ * - The user completes payment on Stripe's hosted checkout page
+ *
+ * This is a PROTECTED tool — authentication required.
+ * Returns 401 error if no valid Bearer token provided.
+ */
+
+export const createCheckoutSchema = z.object({
+  success_url: z.string().url().optional().describe('URL to redirect to after successful payment (default: store homepage)'),
+  cancel_url: z.string().url().optional().describe('URL to redirect to if user cancels (default: cart page)'),
+});
+
+export type CreateCheckoutInput = z.infer<typeof createCheckoutSchema>;
+
+export interface CreateCheckoutResult {
+  success: boolean;
+  error?: string;
+  checkout_url?: string;
+  session_id?: string;
+  expires_at?: string;
+}
+
+const SUPABASE_URL = process.env.SUPABASE_URL || '';
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY || '';
+const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || '';
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
+
+export async function createCheckout(
+  input: CreateCheckoutInput,
+  authInfo?: AuthInfo
+): Promise<CreateCheckoutResult> {
+  // Check authentication
+  if (!authInfo || !authInfo.extra?.userId) {
+    return {
+      success: false,
+      error: 'Authentication required. Please provide a valid Bearer token.',
+    };
+  }
+
+  const userId = authInfo.extra.userId as string;
+
+  try {
+    // Create Supabase client
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+    });
+
+    // Fetch user's cart items with product details
+    const { data: cartItems, error: cartError } = await supabase
+      .from('cart_items')
+      .select(
+        `
+        id,
+        product_id,
+        variant_id,
+        quantity,
+        products:product_id (
+          title,
+          base_price_cents,
+          currency,
+          images
+        ),
+        product_variants:variant_id (
+          title,
+          price_cents
+        )
+      `
+      )
+      .eq('user_id', userId);
+
+    if (cartError) {
+      console.error('[create_checkout] Cart query error:', cartError);
+      return {
+        success: false,
+        error: 'Failed to fetch cart items',
+      };
+    }
+
+    if (!cartItems || cartItems.length === 0) {
+      return {
+        success: false,
+        error: 'Cart is empty. Add items before creating checkout.',
+      };
+    }
+
+    // Get user email for Stripe
+    const { data: userData, error: userError } = await supabase
+      .from('users')
+      .select('email, locale')
+      .eq('id', userId)
+      .single();
+
+    if (userError || !userData) {
+      console.error('[create_checkout] User query error:', userError);
+      return {
+        success: false,
+        error: 'Failed to fetch user information',
+      };
+    }
+
+    // Create Stripe client
+    const stripe = new Stripe(STRIPE_SECRET_KEY, {
+      apiVersion: '2025-02-24.acacia',
+    });
+
+    // Build line items for Stripe Checkout
+    const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = cartItems.map((item: any) => {
+      const product = item.products;
+      const variant = item.product_variants;
+
+      // Use variant price if available, otherwise product base price
+      const unitPriceCents = variant?.price_cents || product?.base_price_cents || 0;
+      const productName = product?.title || 'Unknown Product';
+      const variantName = variant?.title ? ` (${variant.title})` : '';
+      const fullName = `${productName}${variantName}`;
+
+      // Get image URL (first image if available)
+      const images = product?.images;
+      const imageUrl = Array.isArray(images) && images.length > 0 ? images[0] : undefined;
+
+      return {
+        price_data: {
+          currency: product?.currency || 'usd',
+          product_data: {
+            name: fullName,
+            ...(imageUrl && { images: [imageUrl] }),
+          },
+          unit_amount: unitPriceCents,
+        },
+        quantity: item.quantity,
+      };
+    });
+
+    // Determine URLs
+    const locale = userData.locale || 'en';
+    const successUrl = input.success_url || `${FRONTEND_URL}/${locale}/orders`;
+    const cancelUrl = input.cancel_url || `${FRONTEND_URL}/${locale}/cart`;
+
+    // Create Stripe Checkout Session
+    const session = await stripe.checkout.sessions.create({
+      mode: 'payment',
+      customer_email: userData.email,
+      line_items: lineItems,
+      success_url: `${successUrl}?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: cancelUrl,
+      metadata: {
+        user_id: userId,
+        locale,
+      },
+      // Allow promo codes
+      allow_promotion_codes: true,
+      // Billing address collection
+      billing_address_collection: 'required',
+      // Shipping address collection
+      shipping_address_collection: {
+        allowed_countries: ['US', 'CA', 'GB', 'DE', 'FR', 'ES', 'IT', 'AU'],
+      },
+    });
+
+    // IMPORTANT: We NEVER process payment here
+    // We only return the checkout URL for the user to complete payment on Stripe
+
+    return {
+      success: true,
+      checkout_url: session.url!,
+      session_id: session.id,
+      expires_at: new Date(session.expires_at * 1000).toISOString(),
+    };
+  } catch (err: any) {
+    console.error('[create_checkout] Unexpected error:', err);
+    return {
+      success: false,
+      error: err.message || 'An unexpected error occurred',
+    };
+  }
+}

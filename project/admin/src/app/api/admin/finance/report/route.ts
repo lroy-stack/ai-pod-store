@@ -1,16 +1,24 @@
 import { createClient } from '@/lib/supabase-admin';
 import { NextResponse } from 'next/server';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const supabase = createClient();
+    const { searchParams } = new URL(request.url);
+    const paymentMethod = searchParams.get('paymentMethod');
 
     // Get all completed orders with items
-    const { data: orders, error: ordersError } = await supabase
+    let query = supabase
       .from('orders')
-      .select('id, total_cents, currency, created_at, status')
-      .in('status', ['paid', 'processing', 'shipped', 'delivered'])
-      .order('created_at', { ascending: true });
+      .select('id, total_cents, currency, created_at, status, payment_method')
+      .in('status', ['paid', 'processing', 'shipped', 'delivered']);
+
+    // Apply payment method filter if provided
+    if (paymentMethod && paymentMethod !== 'all') {
+      query = query.eq('payment_method', paymentMethod);
+    }
+
+    const { data: orders, error: ordersError } = await query.order('created_at', { ascending: true });
 
     if (ordersError) {
       console.error('Error fetching orders:', ordersError);

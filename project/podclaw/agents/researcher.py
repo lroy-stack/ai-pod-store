@@ -16,7 +16,7 @@ class ResearcherAgent(BaseAgent):
     model = "claude-haiku-4-5-20251001"
     schedule = "daily 06:00 UTC"
     tools = ["supabase", "web_search"]
-    context_files = ["best_sellers.md", "customer_insights.md"]
+    context_files = ["best_sellers.md", "customer_insights.md", "product_scorecard.md", "seasonal_calendar.md"]
     guardrails = {"max_searches": 20}
 
     def default_task(self) -> str:
@@ -28,7 +28,12 @@ class ResearcherAgent(BaseAgent):
             "4. Query supabase for our current best sellers and sales velocity\n"
             "5. Update best_sellers.md with top performing products and trends\n"
             "6. Update customer_insights.md with demand signals\n"
-            "Output a structured trend_report with actionable recommendations."
+            "Output a structured trend_report with actionable recommendations.\n\n"
+            "PERFORMANCE-INFORMED RESEARCH:\n"
+            "7. Read product_scorecard.md for current top/bottom performers\n"
+            "8. Focus research on niches where our products already perform well\n"
+            "9. Read seasonal_calendar.md — plan 4-6 weeks ahead for seasonal products\n"
+            "10. Include lead time considerations in trend recommendations"
         )
 
     def system_prompt_additions(self) -> str:
@@ -39,6 +44,10 @@ class ResearcherAgent(BaseAgent):
             "- Only READ from Supabase, never write product data\n"
             "- Focus on actionable insights, not general news\n"
             "- Prioritize niches where our store can compete\n"
-            "- Track seasonal trends 2-4 weeks ahead\n"
-            "- Max 20 web searches per cycle"
+            "- Track seasonal trends 4-6 weeks ahead (see seasonal_calendar.md)\n"
+            "- Max 20 web searches per cycle\n\n"
+            "FEEDBACK LOOP:\n"
+            "- product_scorecard.md has top/bottom performing products\n"
+            "- Prioritize niches where existing products convert well\n"
+            "- seasonal_calendar.md has POD-specific seasonal planning calendar"
         )

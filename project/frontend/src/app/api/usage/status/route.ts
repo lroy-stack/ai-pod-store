@@ -4,6 +4,7 @@
  * GET /api/usage/status
  * Returns current usage, limits, and subscription info for the requesting user.
  * Anonymous users get IP-based usage; authenticated users get user-based usage.
+ * Includes periodType per action (daily vs monthly) for frontend display.
  */
 
 import { NextRequest } from 'next/server'

@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { generateMockup } from '@/lib/mockup-generator'
 import { getAuthUser, getClientIP } from '@/lib/auth-guard'
 import { checkAndIncrementUsage, usageHeaders, UserTier } from '@/lib/usage-limiter'
+import { mockupGenerateLimiter } from '@/lib/rate-limit'
 
 const mockupRequestSchema = z.object({
   designUrl: z.string().url('Invalid design URL'),
@@ -17,13 +18,34 @@ export async function POST(req: NextRequest) {
     const tier: UserTier = user?.tier || 'anonymous'
     const identifier = user?.id || getClientIP(req)
 
+    // Burst rate limiting: 10 requests per minute per identifier
+    const rateLimitKey = `mockup:${identifier}`
+    const rateLimitResult = mockupGenerateLimiter.check(rateLimitKey)
+    if (!rateLimitResult.success) {
+      return NextResponse.json(
+        {
+          error: 'Rate limit exceeded',
+          message: 'Maximum 10 mockup generations per minute. Please wait and try again.',
+          code: 'RATE_LIMIT_EXCEEDED',
+        },
+        {
+          status: 429,
+          headers: {
+            'X-RateLimit-Limit': '10',
+            'X-RateLimit-Remaining': String(rateLimitResult.remaining),
+            'Retry-After': '60',
+          },
+        }
+      )
+    }
+
     const usageResult = await checkAndIncrementUsage(identifier, 'design:mockup', tier, user?.id)
     if (!usageResult.allowed) {
       return NextResponse.json(
         {
           error: user
-            ? 'Daily mockup limit reached. Upgrade for more.'
-            : 'Daily mockup limit reached. Sign up for more.',
+            ? 'Mockup limit reached. Upgrade for more.'
+            : 'Mockup limit reached. Sign up for more.',
           usage: usageResult,
           code: 'LIMIT_REACHED',
         },

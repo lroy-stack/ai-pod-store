@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Separator } from '@/components/ui/separator'
 import { supabase } from '@/lib/supabase'
+import { TurnstileWidget } from '@/components/auth/TurnstileWidget'
 
 export default function LoginForm({ locale }: { locale: string }) {
   const t = useTranslations('Auth')
@@ -27,6 +28,7 @@ export default function LoginForm({ locale }: { locale: string }) {
     email?: string
     password?: string
   }>({})
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
 
   const justRegistered = searchParams.get('registered') === 'true'
 
@@ -70,6 +72,7 @@ export default function LoginForm({ locale }: { locale: string }) {
         body: JSON.stringify({
           email: formData.email,
           password: formData.password,
+          turnstileToken: turnstileToken || undefined,
         }),
       })
 
@@ -262,6 +265,13 @@ export default function LoginForm({ locale }: { locale: string }) {
             {t('forgotPassword')}
           </Link>
         </div>
+
+        {/* Cloudflare Turnstile CAPTCHA */}
+        <TurnstileWidget
+          onVerify={(token) => setTurnstileToken(token)}
+          onExpire={() => setTurnstileToken(null)}
+          onError={() => setTurnstileToken(null)}
+        />
 
         <Button type="submit" className="w-full" disabled={loading}>
           {loading ? (

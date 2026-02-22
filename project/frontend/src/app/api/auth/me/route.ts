@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     // Fetch user profile from users table
     const { data: profile, error: profileError } = await supabaseAdmin
       .from('users')
-      .select('id, email, name, phone, avatar_url, locale, currency, notification_preferences, preferences, email_verified, created_at')
+      .select('id, email, name, phone, avatar_url, locale, currency, notification_preferences, preferences, email_verified, created_at, tier, credit_balance, subscription_status')
       .eq('id', user.id)
       .single()
 

@@ -64,6 +64,7 @@ export const noFpChatLimiter = new RateLimiter(5, 60 * 1000)        // 5 message
 export const couponLimiter = new RateLimiter(10, 5 * 60 * 1000)     // 10 attempts / 5 min
 export const apiLimiter = new RateLimiter(100, 60 * 1000)           // 100 requests / 1 min
 export const designGenerateLimiter = new RateLimiter(5, 60 * 1000)  // 5 requests / 1 min
+export const mockupGenerateLimiter = new RateLimiter(10, 60 * 1000) // 10 requests / 1 min
 export const newsletterLimiter = new RateLimiter(10, 60 * 1000)     // 10 requests / 1 min
 
 /**
@@ -91,4 +92,28 @@ export function getClientIP(req: Request): string {
   const cfIp = req.headers.get('cf-connecting-ip')
 
   return cfIp || realIp || forwarded?.split(',')[0] || 'unknown'
+}
+
+/**
+ * Concurrent request tracker (in-memory, per-instance).
+ * Prevents a single user from running multiple streaming requests simultaneously.
+ */
+const activeRequests = new Map<string, number>()
+
+export function acquireSlot(key: string, maxConcurrent: number = 2): boolean {
+  // Bypass for E2E tests
+  if (process.env.PLAYWRIGHT_TEST_BASE_URL || process.env.CI) {
+    return true
+  }
+
+  const current = activeRequests.get(key) || 0
+  if (current >= maxConcurrent) return false
+  activeRequests.set(key, current + 1)
+  return true
+}
+
+export function releaseSlot(key: string): void {
+  const current = activeRequests.get(key) || 0
+  if (current <= 1) activeRequests.delete(key)
+  else activeRequests.set(key, current - 1)
 }

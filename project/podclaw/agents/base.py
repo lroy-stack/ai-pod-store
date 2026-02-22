@@ -2,7 +2,7 @@
 PodClaw — Base Agent Interface
 ================================
 
-All 8 sub-agents inherit from BaseAgent. Each agent defines:
+All 10 autonomous agents inherit from BaseAgent. Each agent defines:
 - Its name, model, and schedule
 - Which MCP tools it needs
 - Which context files it reads

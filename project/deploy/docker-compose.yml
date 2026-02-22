@@ -2,12 +2,13 @@
 # =====================================================
 #
 # Services:
-#   frontend  — Next.js 16 storefront (port 3000)
-#   admin     — Next.js 16 admin panel (port 3001)
-#   podclaw   — Python agent system with FastAPI bridge (port 8000)
-#   rembg     — Background removal sidecar with u2net (port 8080)
-#   redis     — Session cache, rate limiting, queues (port 6379)
-#   caddy     — Reverse proxy with automatic HTTPS (ports 80, 443)
+#   frontend   — Next.js 16 storefront (port 3000)
+#   admin      — Next.js 16 admin panel (port 3001)
+#   podclaw    — Python agent system with FastAPI bridge (port 8000)
+#   mcp-server — MCP server for AI assistant tools (port 8002)
+#   rembg      — Background removal sidecar with u2net (port 8080)
+#   redis      — Session cache, rate limiting, queues (port 6379)
+#   caddy      — Reverse proxy with automatic HTTPS (ports 80, 443)
 #
 # Supabase is cloud-managed (NOT self-hosted).
 #
@@ -33,7 +34,7 @@ services:
     environment:
       NODE_ENV: production
       PORT: "3000"
-      REDIS_URL: redis://:${REDIS_PASSWORD:-changeme_in_production}@redis:6379
+      REDIS_URL: redis://:${REDIS_PASSWORD:?REDIS_PASSWORD must be set}@redis:6379
       REMBG_URL: http://rembg:8080
       PODCLAW_BRIDGE_URL: http://podclaw:8000
     depends_on:
@@ -105,7 +106,7 @@ services:
       - ../frontend/.env.local
     environment:
       REMBG_URL: http://rembg:8080
-      REDIS_URL: redis://:${REDIS_PASSWORD:-changeme_in_production}@redis:6379
+      REDIS_URL: redis://:${REDIS_PASSWORD:?REDIS_PASSWORD must be set}@redis:6379
     volumes:
       - podclaw-data:/app/podclaw/data
       - podclaw-memory:/app/podclaw/memory
@@ -158,28 +159,62 @@ services:
     image: redis:7-alpine
     # No external port in base — override in local/prod as needed
     environment:
-      - REDIS_PASSWORD=${REDIS_PASSWORD:-changeme_in_production}
+      - REDIS_PASSWORD=${REDIS_PASSWORD:?REDIS_PASSWORD must be set}
     volumes:
       - redis-data:/data
     command: >
       redis-server
-      --requirepass ${REDIS_PASSWORD:-changeme_in_production}
+      --requirepass ${REDIS_PASSWORD:?REDIS_PASSWORD must be set}
       --appendonly yes
-      --maxmemory 256mb
+      --maxmemory 512mb
       --maxmemory-policy allkeys-lru
     restart: unless-stopped
     deploy:
       resources:
         limits:
           cpus: '0.5'
-          memory: 256M
+          memory: 512M
         reservations:
-          memory: 128M
+          memory: 256M
     healthcheck:
-      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-changeme_in_production}", "ping"]
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:?REDIS_PASSWORD must be set}", "ping"]
       interval: 10s
       timeout: 5s
       start_period: 5s
+      retries: 3
+
+  # ---------------------------------------------------------------------------
+  # MCP Server — Model Context Protocol (AI assistant tools, port 8002)
+  # ---------------------------------------------------------------------------
+  mcp-server:
+    build:
+      context: ../mcp-server
+      dockerfile: Dockerfile
+    # No external ports in base — Caddy proxies /mcp → mcp-server:8002.
+    env_file:
+      - ../frontend/.env.local
+    environment:
+      NODE_ENV: production
+      PORT: "8002"
+      MCP_BASE_URL: "https://${DOMAIN:-localhost}/mcp"
+      MCP_CORS_ORIGINS: "https://claude.ai,https://chatgpt.com"
+      REDIS_URL: redis://:${REDIS_PASSWORD:?REDIS_PASSWORD must be set}@redis:6379
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          memory: 256M
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 15s
       retries: 3
 
   # ---------------------------------------------------------------------------
@@ -198,6 +233,8 @@ services:
       admin:
         condition: service_healthy
       podclaw:
+        condition: service_healthy
+      mcp-server:
         condition: service_healthy
     restart: unless-stopped
     deploy:

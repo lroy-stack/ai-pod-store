@@ -30,7 +30,7 @@ const TEMPLATES: Record<string, (email: string, unsubscribeUrl: string) => { htm
       <p>You can now:</p>
       <ul>
         <li>Chat with our AI assistant to find the perfect product</li>
-        <li>Generate up to 3 custom designs per day</li>
+        <li>Generate up to 5 custom designs per month</li>
         <li>Preview mockups on real products</li>
       </ul>
       <p><a href="${process.env.NEXT_PUBLIC_BASE_URL || 'https://podai.com'}">Start Designing →</a></p>
@@ -60,10 +60,10 @@ const TEMPLATES: Record<string, (email: string, unsubscribeUrl: string) => { htm
   }),
   credit_offer: (email, unsubscribeUrl) => ({
     html: `
-      <h1>Your 5 Free Design Credits</h1>
-      <p>Did you know? You received 5 free design credits when you signed up!</p>
-      <p>Each credit lets you generate one custom AI design. Use them to create unique products.</p>
-      <p><a href="${process.env.NEXT_PUBLIC_BASE_URL || 'https://podai.com'}">Use Your Credits →</a></p>
+      <h1>Unlock More Designs with Premium</h1>
+      <p>Want to create more? Upgrade to Premium for 50 designs/month, 100 mockups/month, and bonus credits.</p>
+      <p>Premium subscribers also get overflow credits for extra designs when they need them.</p>
+      <p><a href="${process.env.NEXT_PUBLIC_BASE_URL || 'https://podai.com'}/en/pricing">See Premium Plans →</a></p>
       <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
       <p style="font-size: 12px; color: #999; text-align: center;">
         You received this email because you signed up for POD AI Store.<br>

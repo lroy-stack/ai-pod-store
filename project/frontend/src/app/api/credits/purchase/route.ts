@@ -27,6 +27,15 @@ type PackSize = keyof typeof CREDIT_PACKS
 export async function POST(req: NextRequest) {
   try {
     const user = await requireAuth(req)
+
+    // Credits are overflow for Premium only — reject free users
+    if (user.tier !== 'premium') {
+      return Response.json(
+        { error: 'Credits are available for Premium subscribers only. Upgrade to Premium first.' },
+        { status: 403 }
+      )
+    }
+
     const body = await req.json()
     const { pack } = body as { pack: string }
 

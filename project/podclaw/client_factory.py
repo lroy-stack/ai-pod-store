@@ -30,6 +30,7 @@ from podclaw.config import (
     AGENT_CONTEXT_FILES,
     AGENT_CATALOG_FILES,
     MAX_TURNS_PER_AGENT,
+    MODEL_COMPLEX,
 )
 from podclaw.connector_adapter import connector_to_mcp_server
 from podclaw.hook_adapters import make_can_use_tool, make_sdk_hooks
@@ -158,7 +159,7 @@ class ClientFactory:
         Create a fully configured Claude SDK client for a sub-agent.
 
         Args:
-            agent_name: One of the 8 sub-agent names
+            agent_name: One of the 10 agent names
             session_id: Current session UUID for hook context
             resume_sdk_session: SDK session ID to resume (for session persistence)
 
@@ -169,12 +170,12 @@ class ClientFactory:
         system_prompt = self._build_system_prompt(agent_name)
         mcp_servers = self._build_mcp_servers(agent_name)
 
-        # Deny hooks: security, cost_guard, rate_limit (first 3 PreToolUse hooks)
+        # Deny hooks: security, cost_guard, rate_limit, production_governor (first 4 PreToolUse hooks)
         pre_hooks = self.hooks.get("pre_tool_use", [])
-        deny_hooks = pre_hooks[:3]
+        deny_hooks = pre_hooks[:4]
 
-        # Observation hooks: metrics_pre (4th PreToolUse hook, if present)
-        observe_pre_hooks = pre_hooks[3:4]
+        # Observation hooks: metrics_pre (5th PreToolUse hook, if present)
+        observe_pre_hooks = pre_hooks[4:5]
 
         can_use_tool = make_can_use_tool(
             pre_hooks=deny_hooks,
@@ -226,6 +227,10 @@ class ClientFactory:
             cwd=str(self.memory.workspace),
             sandbox=sandbox,
         )
+
+        # Fallback model for Sonnet agents: degrade to Haiku on overload/errors
+        if model == MODEL_COMPLEX:
+            options.fallback_model = "claude-haiku-4-5-20251001"
 
         # Session persistence: resume previous conversation
         if resume_sdk_session:

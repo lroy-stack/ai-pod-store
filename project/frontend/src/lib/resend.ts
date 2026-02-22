@@ -287,3 +287,148 @@ export async function sendOrderShippedEmail(params: {
     return { success: false, error }
   }
 }
+
+/**
+ * Send credit pack purchase confirmation email
+ */
+export async function sendCreditPurchaseEmail(params: {
+  to: string
+  credits: number
+  priceCents: number
+  currency: string
+  newBalance: number
+  locale: string
+}) {
+  const { to, credits, priceCents, currency, newBalance, locale } = params
+
+  const priceAmount = (priceCents / 100).toFixed(2)
+  const currencyCode = currency.toUpperCase()
+
+  // Locale-aware email content
+  const subjects = {
+    en: `Credit Purchase Confirmed — ${credits} Credits Added`,
+    es: `Compra de Créditos Confirmada — ${credits} Créditos Añadidos`,
+    de: `Kauf von Credits Bestätigt — ${credits} Credits Hinzugefügt`,
+  }
+
+  const headings = {
+    en: 'Credits added successfully! 🎉',
+    es: '¡Créditos añadidos con éxito! 🎉',
+    de: 'Credits erfolgreich hinzugefügt! 🎉',
+  }
+
+  const bodies = {
+    en: `Your purchase of ${credits} design credits has been confirmed. Your credits are ready to use!`,
+    es: `Tu compra de ${credits} créditos de diseño ha sido confirmada. ¡Tus créditos están listos para usar!`,
+    de: `Dein Kauf von ${credits} Design-Credits wurde bestätigt. Deine Credits sind bereit zur Nutzung!`,
+  }
+
+  const purchaseSummaryTexts = {
+    en: 'Purchase Summary',
+    es: 'Resumen de Compra',
+    de: 'Kaufzusammenfassung',
+  }
+
+  const creditsAddedTexts = {
+    en: 'Credits Added',
+    es: 'Créditos Añadidos',
+    de: 'Hinzugefügte Credits',
+  }
+
+  const newBalanceTexts = {
+    en: 'New Balance',
+    es: 'Nuevo Saldo',
+    de: 'Neuer Saldo',
+  }
+
+  const amountPaidTexts = {
+    en: 'Amount Paid',
+    es: 'Monto Pagado',
+    de: 'Gezahlter Betrag',
+  }
+
+  const useCreditsTexts = {
+    en: 'Start Creating',
+    es: 'Empezar a Crear',
+    de: 'Mit Erstellen Beginnen',
+  }
+
+  const footerTexts = {
+    en: 'Use your credits to generate AI-powered designs, product mockups, and more. Your credits never expire!',
+    es: 'Usa tus créditos para generar diseños impulsados por IA, maquetas de productos y más. ¡Tus créditos nunca caducan!',
+    de: 'Verwende deine Credits, um KI-gestützte Designs, Produktmockups und mehr zu generieren. Deine Credits verfallen nie!',
+  }
+
+  const subject = subjects[locale as keyof typeof subjects] || subjects.en
+  const heading = headings[locale as keyof typeof headings] || headings.en
+  const body = bodies[locale as keyof typeof bodies] || bodies.en
+  const purchaseSummaryText = purchaseSummaryTexts[locale as keyof typeof purchaseSummaryTexts] || purchaseSummaryTexts.en
+  const creditsAddedText = creditsAddedTexts[locale as keyof typeof creditsAddedTexts] || creditsAddedTexts.en
+  const newBalanceText = newBalanceTexts[locale as keyof typeof newBalanceTexts] || newBalanceTexts.en
+  const amountPaidText = amountPaidTexts[locale as keyof typeof amountPaidTexts] || amountPaidTexts.en
+  const useCreditsText = useCreditsTexts[locale as keyof typeof useCreditsTexts] || useCreditsTexts.en
+  const footerText = footerTexts[locale as keyof typeof footerTexts] || footerTexts.en
+
+  try {
+    const { data, error } = await resend.emails.send({
+      from: process.env.RESEND_FROM_EMAIL || 'POD AI <onboarding@resend.dev>',
+      to,
+      subject,
+      html: `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${subject}</title>
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: ${EMAIL_COLORS.bodyText}; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <div style="background: linear-gradient(135deg, ${EMAIL_COLORS.gradientStart} 0%, ${EMAIL_COLORS.gradientEnd} 100%); color: white; padding: 30px; border-radius: 8px 8px 0 0; text-align: center;">
+    <h1 style="margin: 0; font-size: 28px;">POD AI</h1>
+  </div>
+
+  <div style="background: ${EMAIL_COLORS.panelBg}; padding: 30px; border-radius: 0 0 8px 8px;">
+    <h2 style="color: ${EMAIL_COLORS.heading}; margin-top: 0;">${heading}</h2>
+
+    <p style="font-size: 16px; margin: 20px 0;">${body}</p>
+
+    <div style="background: white; border: 1px solid ${EMAIL_COLORS.cardBorder}; border-radius: 6px; padding: 20px; margin: 20px 0;">
+      <h3 style="margin: 0 0 15px 0; color: ${EMAIL_COLORS.heading};">${purchaseSummaryText}</h3>
+      <p style="margin: 0 0 10px 0;"><strong>${creditsAddedText}:</strong> ${credits} credits</p>
+      <p style="margin: 0 0 10px 0;"><strong>${newBalanceText}:</strong> ${newBalance} credits</p>
+      <p style="margin: 0; font-size: 18px; font-weight: bold; color: ${EMAIL_COLORS.heading};"><strong>${amountPaidText}:</strong> ${priceAmount} ${currencyCode}</p>
+    </div>
+
+    <div style="text-align: center; margin: 30px 0;">
+      <a href="${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/en/chat" style="display: inline-block; background: ${EMAIL_COLORS.ctaButton}; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: 600;">${useCreditsText}</a>
+    </div>
+
+    <p style="font-size: 14px; color: ${EMAIL_COLORS.mutedText}; margin-top: 20px; padding: 15px; background: ${EMAIL_COLORS.warningBg}; border-left: 4px solid ${EMAIL_COLORS.warningBorder}; border-radius: 4px;">
+      ${footerText}
+    </p>
+
+    <p style="font-size: 14px; color: ${EMAIL_COLORS.mutedText}; margin-top: 30px;">
+      ${locale === 'es' ? 'Gracias por tu compra' : locale === 'de' ? 'Vielen Dank für deinen Einkauf' : 'Thank you for your purchase'}!
+    </p>
+  </div>
+
+  <div style="text-align: center; margin-top: 20px; padding: 20px; font-size: 12px; color: ${EMAIL_COLORS.footerText};">
+    <p>POD AI ${locale === 'es' ? '— Tu tienda de impresión bajo demanda impulsada por IA' : locale === 'de' ? '— Dein KI-gesteuerter Print-on-Demand-Marktplatz' : '— Your AI-powered print-on-demand marketplace'}</p>
+  </div>
+</body>
+</html>
+      `,
+    })
+
+    if (error) {
+      console.error('Failed to send credit purchase email:', error)
+      return { success: false, error }
+    }
+
+    console.log('Credit purchase email sent:', data?.id)
+    return { success: true, messageId: data?.id }
+  } catch (error) {
+    console.error('Exception sending credit purchase email:', error)
+    return { success: false, error }
+  }
+}

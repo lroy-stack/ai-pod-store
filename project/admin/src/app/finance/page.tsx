@@ -10,8 +10,15 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { DollarSign, TrendingUp, ArrowUpRight, ArrowDownRight, RefreshCw, Download } from 'lucide-react';
+import { DollarSign, TrendingUp, ArrowUpRight, ArrowDownRight, RefreshCw, Download, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface FinanceReport {
   summary: {
@@ -57,15 +64,20 @@ interface FinanceReport {
 export default function FinancePage() {
   const [report, setReport] = useState<FinanceReport | null>(null);
   const [loading, setLoading] = useState(true);
+  const [paymentMethodFilter, setPaymentMethodFilter] = useState<string>('all');
 
   useEffect(() => {
     fetchReport();
-  }, []);
+  }, [paymentMethodFilter]);
 
   const fetchReport = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/admin/finance/report');
+      const url = new URL('/api/admin/finance/report', window.location.origin);
+      if (paymentMethodFilter && paymentMethodFilter !== 'all') {
+        url.searchParams.set('paymentMethod', paymentMethodFilter);
+      }
+      const response = await fetch(url.toString());
       if (response.ok) {
         const data = await response.json();
         setReport(data);
@@ -174,22 +186,37 @@ export default function FinancePage() {
       </div>
 
       {/* Header */}
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
           <h1 className="text-3xl font-bold">Finance Reports</h1>
           <p className="text-muted-foreground">
             Comprehensive financial overview and performance metrics
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button onClick={handleExport} variant="outline" disabled={!report}>
-            <Download className="mr-2 h-4 w-4" />
-            Export CSV
-          </Button>
-          <Button onClick={fetchReport} variant="outline">
-            <RefreshCw className="mr-2 h-4 w-4" />
-            Refresh
-          </Button>
+        <div className="flex flex-col gap-2 md:flex-row md:items-center">
+          <div className="flex items-center gap-2">
+            <Filter className="h-4 w-4 text-muted-foreground" />
+            <Select value={paymentMethodFilter} onValueChange={setPaymentMethodFilter}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Payment method" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All methods</SelectItem>
+                <SelectItem value="card">Card</SelectItem>
+                <SelectItem value="crypto">Crypto</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex gap-2">
+            <Button onClick={handleExport} variant="outline" disabled={!report}>
+              <Download className="mr-2 h-4 w-4" />
+              Export CSV
+            </Button>
+            <Button onClick={fetchReport} variant="outline">
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Refresh
+            </Button>
+          </div>
         </div>
       </div>
 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 import { registerLimiter } from '@/lib/rate-limit'
+import { verifyTurnstileToken } from '@/lib/turnstile'
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,7 +12,16 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { name, email, password } = body
+    const { name, email, password, turnstileToken } = body
+
+    // Verify Turnstile token (gracefully skips if TURNSTILE_SECRET_KEY not configured)
+    const turnstileValid = await verifyTurnstileToken(turnstileToken, ip)
+    if (!turnstileValid) {
+      return NextResponse.json(
+        { error: 'CAPTCHA verification failed. Please try again.' },
+        { status: 400 }
+      )
+    }
 
     // Validate required fields
     if (!name || !email || !password) {

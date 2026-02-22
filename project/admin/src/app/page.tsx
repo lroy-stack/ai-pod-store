@@ -12,7 +12,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { DollarSign, ShoppingCart, Package, TrendingUp } from 'lucide-react';
+import { DollarSign, ShoppingCart, Package, TrendingUp, Users, CreditCard, UserMinus } from 'lucide-react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import {
   LineChart,
@@ -31,6 +31,10 @@ interface DashboardStats {
   ordersCount: number;
   productsCount: number;
   conversionRate: string;
+  // Subscription metrics
+  activeSubscribers: number;
+  mrr: number;
+  churnedThisMonth: number;
 }
 
 interface RecentOrder {
@@ -211,6 +215,56 @@ export default function DashboardPage() {
             </p>
           </CardContent>
         </Card>
+      </div>
+
+      {/* Subscription Metrics Section */}
+      <div className="mt-6">
+        <h2 className="text-2xl font-bold mb-4">Subscription Analytics</h2>
+        <div className="grid gap-4 md:grid-cols-3">
+          {/* Active Subscribers */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Active Subscribers</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats?.activeSubscribers || 0}</div>
+              <p className="text-xs text-muted-foreground">
+                Premium tier users
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Monthly Recurring Revenue */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Monthly Recurring Revenue</CardTitle>
+              <CreditCard className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                €{stats?.mrr.toFixed(2) || '0.00'}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                From active subscriptions
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Churned This Month */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Churned This Month</CardTitle>
+              <UserMinus className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats?.churnedThisMonth || 0}</div>
+              <p className="text-xs text-muted-foreground">
+                Cancelled subscriptions
+              </p>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       {/* Charts Section */}

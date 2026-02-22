@@ -2,7 +2,7 @@
 PodClaw — Configuration Constants
 ===================================
 
-All tunables for the 9 sub-agents, budgets, rate limits, and models.
+All tunables for the 10 autonomous agents, budgets, rate limits, and models.
 Environment variables override defaults.
 """
 
@@ -55,6 +55,7 @@ RATE_LIMITS: dict[str, dict[str, int]] = {
     "designer": {
         "search_images": 30,           # FREE — primary source, highest limit
         "fal_remove_bg": 30,           # FREE with local rembg
+        "fal_upscale": 15,             # ~$0.003/image — auto-triggered post BG removal
         "gemini_check_image": 30,      # quality gate
         "printify_upload_image": 30, "supabase_upload_image": 30,
         "fal_generate": 10,            # PAID — secondary, reduced limit
@@ -112,6 +113,7 @@ TARGET_NET_MARGIN = float(os.environ.get("PODCLAW_TARGET_NET_MARGIN", "30.0"))
 # ---------------------------------------------------------------------------
 MAX_ACTIONS_PER_CYCLE = int(os.environ.get("PODCLAW_MAX_ACTIONS_PER_CYCLE", "50"))
 MAX_TURNS_PER_AGENT = int(os.environ.get("PODCLAW_MAX_TURNS_PER_AGENT", "200"))
+MAX_SESSION_DURATION_SECONDS = int(os.environ.get("PODCLAW_MAX_SESSION_DURATION", "900"))  # 15 min
 
 # ---------------------------------------------------------------------------
 # Memory Retention
@@ -146,9 +148,19 @@ BRIDGE_PORT = int(os.environ.get("PODCLAW_BRIDGE_PORT", "8000"))
 
 # ---------------------------------------------------------------------------
 # Bridge Authentication
+# CRITICAL: PODCLAW_BRIDGE_AUTH_TOKEN MUST be set when auth is enabled.
+# If empty + enabled, bridge returns 503 on all authenticated endpoints.
 # ---------------------------------------------------------------------------
 BRIDGE_AUTH_TOKEN = os.environ.get("PODCLAW_BRIDGE_AUTH_TOKEN", "")
 BRIDGE_AUTH_ENABLED = os.environ.get("PODCLAW_BRIDGE_AUTH_ENABLED", "true").lower() == "true"
+if BRIDGE_AUTH_ENABLED and not BRIDGE_AUTH_TOKEN:
+    import warnings
+    warnings.warn(
+        "PODCLAW_BRIDGE_AUTH_ENABLED=true but PODCLAW_BRIDGE_AUTH_TOKEN is empty. "
+        "Bridge API will reject all authenticated requests. "
+        "Set PODCLAW_BRIDGE_AUTH_TOKEN or disable auth with PODCLAW_BRIDGE_AUTH_ENABLED=false.",
+        stacklevel=1,
+    )
 BRIDGE_RATE_LIMIT_MAX = int(os.environ.get("PODCLAW_BRIDGE_RATE_LIMIT_MAX", "10"))
 BRIDGE_RATE_LIMIT_WINDOW = int(os.environ.get("PODCLAW_BRIDGE_RATE_LIMIT_WINDOW", "60"))
 
@@ -255,9 +267,13 @@ GEMINI_EMBEDDING_DIMENSIONS = 768
 GEMINI_IMAGE_MODEL = os.environ.get("GEMINI_IMAGE_MODEL", "gemini-3-pro-image-preview")
 
 # ---------------------------------------------------------------------------
-# Per-Session Budget (USD) — SDK max_budget_usd enforcement
+# Per-Session Budget — SDK max_budget_usd enforcement
+# IMPORTANT: These values are in USD (as required by Claude Agent SDK).
+# This is separate from AGENT_DAILY_BUDGETS which is in EUR.
+# SDK enforces this as a hard cap per individual session.
+# Daily budget (EUR) is enforced by cost_guard_hook via AGENT_DAILY_BUDGETS.
 # ---------------------------------------------------------------------------
-AGENT_BUDGETS: dict[str, float] = {
+AGENT_BUDGETS_USD: dict[str, float] = {
     "researcher": 0.60,        # Haiku, 10-15 tool calls
     "marketing": 1.00,         # Sonnet, content generation
     "designer": 1.50,          # Sonnet, fal.ai + product creation
@@ -269,6 +285,9 @@ AGENT_BUDGETS: dict[str, float] = {
     "qa_inspector": 0.15,      # Haiku, lightweight design/product verification
     "brand_manager": 0.80,      # Sonnet, weekly brand audit
 }
+
+# Backwards compat alias — client_factory.py uses AGENT_BUDGETS
+AGENT_BUDGETS = AGENT_BUDGETS_USD
 
 # ---------------------------------------------------------------------------
 # Allowed Built-in Tools per Agent (SDK allowed_tools)
@@ -338,16 +357,16 @@ AGENT_TOOLS: dict[str, list[str]] = {
 # Context Files per Agent
 # ---------------------------------------------------------------------------
 AGENT_CONTEXT_FILES: dict[str, list[str]] = {
-    "researcher": ["best_sellers.md", "customer_insights.md", "pricing_history.md"],
+    "researcher": ["best_sellers.md", "customer_insights.md", "pricing_history.md", "product_scorecard.md", "seasonal_calendar.md", "governor_report.md"],
     "marketing": ["best_sellers.md", "customer_insights.md", "design_library.md", "marketing_calendar.md"],
-    "designer": ["design_library.md", "best_sellers.md", "product_specs.md", "design_workflow.md", "qa_report.md"],
+    "designer": ["design_library.md", "best_sellers.md", "product_specs.md", "design_workflow.md", "qa_report.md", "governor_report.md"],
     "newsletter": ["customer_insights.md", "marketing_calendar.md", "newsletter_segments.md"],
-    "cataloger": ["best_sellers.md", "pricing_history.md", "product_specs.md", "product_workflow.md", "design_library.md", "qa_report.md"],
+    "cataloger": ["best_sellers.md", "pricing_history.md", "product_specs.md", "product_workflow.md", "design_library.md", "qa_report.md", "product_scorecard.md", "governor_report.md"],
     "customer_manager": ["customer_insights.md", "store_config.md"],
     "seo_manager": ["best_sellers.md"],
-    "finance": ["pricing_history.md", "store_config.md"],
-    "qa_inspector": ["design_library.md", "qa_report.md", "last_session_feedback.md"],
-    "brand_manager": ["brand_config.md", "store_config.md"],
+    "finance": ["pricing_history.md", "store_config.md", "product_scorecard.md", "governor_report.md"],
+    "qa_inspector": ["design_library.md", "qa_report.md", "last_session_feedback.md", "product_scorecard.md"],
+    "brand_manager": ["brand_config.md", "store_config.md", "product_scorecard.md"],
 }
 
 # ---------------------------------------------------------------------------

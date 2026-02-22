@@ -42,6 +42,12 @@ services:
       PODCLAW_CORS_ORIGINS: "http://localhost,http://localhost:3000,http://localhost:8080"
       PODCLAW_BRIDGE_AUTH_ENABLED: "false"
 
+  mcp-server:
+    ports:
+      - "8002:8002"  # Direct access for local dev/debugging
+    environment:
+      MCP_BASE_URL: "http://localhost:8002"
+
   redis:
     ports:
       - "6379:6379"  # Only exposed in local dev for debugging

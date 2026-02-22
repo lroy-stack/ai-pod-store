@@ -2,7 +2,7 @@
 PodClaw — Scheduler
 =====================
 
-APScheduler-based daily cycle for the 9 sub-agents.
+APScheduler-based daily cycle for the 10 autonomous agents.
 Follows the logical production order.
 
 Daily Cycle (UTC):
@@ -29,9 +29,13 @@ import json
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+import random
+
 import structlog
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
+from apscheduler.triggers.interval import IntervalTrigger
+from apscheduler.triggers.date import DateTrigger
 
 if TYPE_CHECKING:
     from podclaw.core import Orchestrator
@@ -180,6 +184,14 @@ class PodClawScheduler:
             except Exception as e:
                 logger.error("job_add_failed", agent=agent_name, error=str(e))
 
+        # Production governor: compute daily limits before agents start (05:55 UTC)
+        self.scheduler.add_job(
+            self._run_governor,
+            CronTrigger(hour=5, minute=55),
+            id="production_governor",
+            name="Production Governor",
+        )
+
         # Always add memory consolidation at 23:30 (with soul review on Sundays)
         self.scheduler.add_job(
             self._run_consolidation_with_soul,
@@ -188,15 +200,37 @@ class PodClawScheduler:
             name="Memory Consolidation",
         )
 
-        # Session reaper: daily at 01:00 UTC — clean up stuck sessions
+        # Session reaper: hourly — clean up stuck sessions (>24h in "running")
         self.scheduler.add_job(
             self._reap_stale_sessions,
-            CronTrigger(hour=1, minute=0),
+            IntervalTrigger(hours=1),
             id="session_reaper",
             name="Session Reaper",
         )
 
         logger.info("scheduler_configured", job_count=len(self.scheduler.get_jobs()))
+
+    async def _run_governor(self) -> None:
+        """Compute daily production limits based on market signals."""
+        try:
+            from podclaw.production_governor import compute_daily_decision, persist_decision
+            decision = await compute_daily_decision(
+                self.orchestrator.events._client,
+                self.orchestrator.state,
+            )
+            await persist_decision(
+                decision,
+                self.orchestrator.state,
+                self.orchestrator.memory.context_dir,
+            )
+            logger.info(
+                "governor_computed",
+                mode=decision.mode,
+                product_limit=decision.daily_product_limit,
+                design_limit=decision.daily_design_limit,
+            )
+        except Exception as e:
+            logger.error("governor_compute_failed", error=str(e))
 
     async def _run_consolidation_with_soul(self) -> None:
         """Run consolidation with optional soul evolution review."""
@@ -239,6 +273,39 @@ class PodClawScheduler:
         """Stop the scheduler gracefully."""
         self.scheduler.shutdown(wait=True)
         logger.info("scheduler_stopped")
+
+    def schedule_retry(self, agent_name: str, delay_minutes: int = 15) -> None:
+        """Schedule a one-shot deferred retry for an agent after all immediate retries are exhausted.
+
+        Adds random jitter of 0-300 seconds to avoid thundering-herd effects
+        when multiple agents fail around the same time.
+
+        Args:
+            agent_name: The agent to retry.
+            delay_minutes: Base delay before the retry fires (default 15 min).
+        """
+        from datetime import datetime, timedelta, timezone
+
+        jitter_seconds = random.randint(0, 300)
+        run_at = datetime.now(timezone.utc) + timedelta(minutes=delay_minutes, seconds=jitter_seconds)
+        job_id = f"{agent_name}_deferred_retry_{int(run_at.timestamp())}"
+
+        self.scheduler.add_job(
+            self.orchestrator.run_agent,
+            DateTrigger(run_date=run_at),
+            args=[agent_name],
+            id=job_id,
+            name=f"{agent_name.replace('_', ' ').title()} (deferred retry)",
+            misfire_grace_time=600,
+        )
+
+        logger.info(
+            "deferred_retry_scheduled",
+            agent=agent_name,
+            run_at=run_at.isoformat(),
+            jitter_seconds=jitter_seconds,
+            job_id=job_id,
+        )
 
     def get_jobs(self) -> list[dict]:
         """Return list of scheduled jobs with next run times."""
@@ -323,7 +390,7 @@ class PodClawScheduler:
 
         # Remove all existing agent jobs (keep memory consolidation and session_reaper)
         for job in list(self.scheduler.get_jobs()):
-            if job.id not in ("memory_consolidation", "session_reaper"):
+            if job.id not in ("memory_consolidation", "session_reaper", "production_governor"):
                 job.remove()
 
         # Update current schedule and re-add jobs
@@ -377,7 +444,7 @@ class PodClawScheduler:
 
         # Remove all existing agent jobs (keep system jobs)
         for job in list(self.scheduler.get_jobs()):
-            if job.id not in ("memory_consolidation", "session_reaper"):
+            if job.id not in ("memory_consolidation", "session_reaper", "production_governor"):
                 job.remove()
 
         # Re-add jobs with default schedules (same CYCLE_TASKS split logic as _setup_jobs)

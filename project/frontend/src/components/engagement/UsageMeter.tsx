@@ -4,9 +4,17 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { cn } from '@/lib/utils'
 
+interface UsageEntry {
+  used: number
+  limit: number
+  remaining: number
+  periodType: 'daily' | 'monthly'
+  resetAt: string
+}
+
 interface UsageData {
   tier: string
-  usage: Record<string, { used: number; limit: number; remaining: number }>
+  usage: Record<string, UsageEntry>
   credits?: { balance: number }
 }
 
@@ -41,19 +49,39 @@ export function UsageMeter() {
 
   const chatUsage = data.usage['chat']
   const designUsage = data.usage['design:generate']
+  const mockupUsage = data.usage['design:mockup']
 
   return (
     <div className="px-3 py-3 space-y-2">
       <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-        Today&apos;s usage
+        Usage
       </p>
 
       {chatUsage && chatUsage.limit > 0 && (
-        <UsageBar label="Chats" used={chatUsage.used} limit={chatUsage.limit} />
+        <UsageBar
+          label="Chats"
+          used={chatUsage.used}
+          limit={chatUsage.limit}
+          periodLabel={chatUsage.periodType === 'monthly' ? 'this month' : 'today'}
+        />
       )}
 
       {designUsage && designUsage.limit > 0 && (
-        <UsageBar label="Designs" used={designUsage.used} limit={designUsage.limit} />
+        <UsageBar
+          label="Designs"
+          used={designUsage.used}
+          limit={designUsage.limit}
+          periodLabel={designUsage.periodType === 'monthly' ? 'this month' : 'today'}
+        />
+      )}
+
+      {mockupUsage && mockupUsage.limit > 0 && (
+        <UsageBar
+          label="Mockups"
+          used={mockupUsage.used}
+          limit={mockupUsage.limit}
+          periodLabel={mockupUsage.periodType === 'monthly' ? 'this month' : 'today'}
+        />
       )}
 
       {data.credits && (
@@ -66,14 +94,14 @@ export function UsageMeter() {
   )
 }
 
-function UsageBar({ label, used, limit }: { label: string; used: number; limit: number }) {
+function UsageBar({ label, used, limit, periodLabel }: { label: string; used: number; limit: number; periodLabel: string }) {
   const pct = limit > 0 ? Math.min(100, (used / limit) * 100) : 0
   const isHigh = pct >= 80
 
   return (
     <div className="space-y-1">
       <div className="flex justify-between text-xs">
-        <span className="text-muted-foreground">{label}</span>
+        <span className="text-muted-foreground">{label} <span className="opacity-60">({periodLabel})</span></span>
         <span className={cn('tabular-nums', isHigh ? 'text-destructive' : 'text-muted-foreground')}>
           {used}/{limit}
         </span>

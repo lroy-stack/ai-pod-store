@@ -23,6 +23,8 @@ logger = structlog.get_logger(__name__)
 # Estimated cost per tool call (EUR) — conservative estimates
 TOOL_COSTS: dict[str, float] = {
     "fal_generate": 0.05,
+    "fal_upscale": 0.003,
+    "fal_remove_bg": 0.02,
     "gemini_embed_text": 0.0,
     "gemini_embed_batch": 0.0,
     "resend_send": 0.001,
@@ -221,6 +223,10 @@ async def cost_guard_hook(
 
         new_total = await _add_cost(agent_name, estimated_cost)
         logger.debug("cost_tracked", agent=agent_name, tool=tool_name, cost=estimated_cost, total=new_total)
+
+        budget_usage = new_total / budget
+        if budget_usage >= 0.80 and budget_usage < 0.85:  # only alert once in the 80-85% range
+            logger.warning("budget_80pct_warning", agent=agent_name, usage_pct=round(budget_usage * 100, 1))
 
     return {}
 

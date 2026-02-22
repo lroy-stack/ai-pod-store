@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Separator } from '@/components/ui/separator'
 import { supabase } from '@/lib/supabase'
+import { TurnstileWidget } from '@/components/auth/TurnstileWidget'
 
 function getPasswordStrength(password: string): 0 | 1 | 2 | 3 {
   if (!password) return 0
@@ -38,6 +39,7 @@ export default function RegisterForm({ locale }: { locale: string }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
   const [fieldErrors, setFieldErrors] = useState<{
     name?: string
     email?: string
@@ -104,6 +106,7 @@ export default function RegisterForm({ locale }: { locale: string }) {
           name: formData.name,
           email: formData.email,
           password: formData.password,
+          turnstileToken: turnstileToken || undefined,
         }),
       })
 
@@ -325,6 +328,13 @@ export default function RegisterForm({ locale }: { locale: string }) {
             </p>
           )}
         </div>
+
+        {/* Cloudflare Turnstile CAPTCHA */}
+        <TurnstileWidget
+          onVerify={(token) => setTurnstileToken(token)}
+          onExpire={() => setTurnstileToken(null)}
+          onError={() => setTurnstileToken(null)}
+        />
 
         <Button type="submit" className="w-full" disabled={loading || success}>
           {loading ? (

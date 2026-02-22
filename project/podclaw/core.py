@@ -2,7 +2,7 @@
 PodClaw — Orchestrator
 ========================
 
-Central orchestrator that routes tasks to the 8 sub-agents.
+Central orchestrator that routes tasks to the 10 autonomous agents.
 Manages agent lifecycle, session tracking, and error handling.
 """
 
@@ -17,7 +17,7 @@ import structlog
 
 from claude_agent_sdk import ResultMessage
 
-from podclaw.config import AGENT_MODELS, AGENT_TOOLS, MAX_ACTIONS_PER_CYCLE
+from podclaw.config import AGENT_MODELS, AGENT_TOOLS, MAX_ACTIONS_PER_CYCLE, MAX_SESSION_DURATION_SECONDS
 from podclaw.client_factory import ClientFactory
 from podclaw.event_store import EventStore
 from podclaw.memory_manager import MemoryManager
@@ -57,6 +57,7 @@ class Orchestrator:
         self.events = event_store
         self.memory = memory_manager
         self.state = state_store
+        self.scheduler = None  # Set by PodClawScheduler after construction
         self._active_sessions: dict[str, str] = {}  # agent_name → session_id
         self._last_sdk_sessions: dict[str, str] = {}  # agent_name → SDK session_id (for resume)
         self._running = False
@@ -123,15 +124,33 @@ class Orchestrator:
         Execute a sub-agent cycle.
 
         Args:
-            agent_name: One of the 8 sub-agent names
+            agent_name: One of the 10 agent names
             task: Optional specific task override (default: use SKILL.md task)
             force_fresh: If True, start a new SDK session instead of resuming
 
         Returns:
             Session result dict with events, duration, etc.
         """
+        # Pre-lock checks (no I/O inside the lock)
+        if agent_name not in AGENT_NAMES:
+            logger.error("unknown_agent", agent=agent_name)
+            return {"status": "error", "reason": f"unknown agent: {agent_name}"}
+
+        # Circuit breaker: DB query BEFORE lock — read-only, safe to race
+        if await self._check_circuit_breaker(agent_name):
+            logger.warning("circuit_breaker_blocked", agent=agent_name)
+            return {"status": "skipped", "reason": f"circuit breaker open for {agent_name} (>=3 errors in 24h)"}
+
         # Acquire lock for check-then-set of _active_sessions
-        async with self._session_lock:
+        # Timeout prevents deadlock if a previous holder is stuck
+        try:
+            async with asyncio.timeout(60):
+                await self._session_lock.acquire()
+        except TimeoutError:
+            logger.error("session_lock_timeout", agent=agent_name, timeout_s=60)
+            return {"status": "error", "reason": "session lock timeout after 60s"}
+
+        try:
             if not self._running:
                 logger.warning("orchestrator_not_running", agent=agent_name)
                 return {"status": "skipped", "reason": "orchestrator not running"}
@@ -140,23 +159,16 @@ class Orchestrator:
                 logger.warning("agent_already_running", agent=agent_name)
                 return {"status": "skipped", "reason": "already running"}
 
-            if agent_name not in AGENT_NAMES:
-                logger.error("unknown_agent", agent=agent_name)
-                return {"status": "error", "reason": f"unknown agent: {agent_name}"}
-
-            # Circuit breaker: block if agent has >= 3 errors in 24h
-            if await self._check_circuit_breaker(agent_name):
-                logger.warning("circuit_breaker_blocked", agent=agent_name)
-                return {"status": "skipped", "reason": f"circuit breaker open for {agent_name} (>=3 errors in 24h)"}
-
             # Reset rate limit counters for this agent's new session
             from podclaw.hooks.rate_limit_hook import reset_counters
             reset_counters(agent_name)
 
             session_id = str(uuid.uuid4())
             self._active_sessions[agent_name] = session_id
+        finally:
+            self._session_lock.release()
 
-        # Release lock — agent execution is long-running
+        # Lock released — agent execution is long-running
         start_time = datetime.now(timezone.utc)
 
         # Write session row to agent_sessions table
@@ -194,23 +206,33 @@ class Orchestrator:
 
             prompt = task or self._default_task(agent_name)
 
-            # SDK handles hooks (can_use_tool, PreToolUse, PostToolUse) natively
-            await client.query(prompt)
+            async def _run_sdk_session() -> None:
+                """Inner coroutine for SDK interaction, wrapped in wait_for."""
+                nonlocal tool_calls, response_text, result_message
+
+                # SDK handles hooks (can_use_tool, PreToolUse, PostToolUse) natively
+                await client.query(prompt)
+
+                async for msg in client.receive_response():
+                    if isinstance(msg, ResultMessage):
+                        result_message = msg
+                        break
+                    if hasattr(msg, "content"):
+                        for block in msg.content:
+                            block_type = type(block).__name__
+                            if block_type == "ToolUseBlock":
+                                tool_calls += 1
+                            elif block_type == "TextBlock":
+                                response_text += block.text
+
             tool_calls = 0
             response_text = ""
             result_message = None
 
-            async for msg in client.receive_response():
-                if isinstance(msg, ResultMessage):
-                    result_message = msg
-                    break
-                if hasattr(msg, "content"):
-                    for block in msg.content:
-                        block_type = type(block).__name__
-                        if block_type == "ToolUseBlock":
-                            tool_calls += 1
-                        elif block_type == "TextBlock":
-                            response_text += block.text
+            await asyncio.wait_for(
+                _run_sdk_session(),
+                timeout=MAX_SESSION_DURATION_SECONDS,
+            )
 
             # Use ResultMessage stats when available
             if result_message:
@@ -243,6 +265,23 @@ class Orchestrator:
                 f"Session {session_id[:8]}: {prompt[:100]}... → completed ({tool_calls} tool calls)"
             )
 
+        except asyncio.TimeoutError:
+            result["status"] = "error"
+            result["error"] = f"Session timed out after {MAX_SESSION_DURATION_SECONDS}s"
+            logger.critical(
+                "agent_session_timeout",
+                agent=agent_name,
+                timeout_seconds=MAX_SESSION_DURATION_SECONDS,
+                session_id=session_id,
+            )
+
+            await self.events.record(
+                agent_name=agent_name,
+                event_type="error",
+                payload={"error": f"Session timed out after {MAX_SESSION_DURATION_SECONDS}s"},
+                session_id=session_id,
+            )
+
         except Exception as e:
             result["status"] = "error"
             result["error"] = str(e)
@@ -266,8 +305,15 @@ class Orchestrator:
             end_time = datetime.now(timezone.utc)
             result["end_time"] = end_time.isoformat()
             result["duration_seconds"] = (end_time - start_time).total_seconds()
-            async with self._session_lock:
+            # Symmetric timeout with acquire — never block cleanup indefinitely
+            try:
+                async with asyncio.timeout(60):
+                    async with self._session_lock:
+                        self._active_sessions.pop(agent_name, None)
+            except TimeoutError:
+                # Force-remove without lock to prevent zombie session
                 self._active_sessions.pop(agent_name, None)
+                logger.error("session_cleanup_lock_timeout", agent=agent_name)
 
             await self.events.record(
                 agent_name=agent_name,
@@ -367,6 +413,19 @@ class Orchestrator:
                     error=result.get("error", "unknown"),
                 )
                 await asyncio.sleep(wait)
+
+        # All immediate retries exhausted — schedule a deferred one-shot retry
+        if result.get("status") == "error" and self.scheduler is not None:
+            try:
+                self.scheduler.schedule_retry(agent_name)
+                logger.info(
+                    "deferred_retry_requested",
+                    agent=agent_name,
+                    after_attempts=max_retries + 1,
+                )
+            except Exception as e:
+                logger.warning("deferred_retry_schedule_failed", agent=agent_name, error=str(e))
+
         return result
 
     def _default_task(self, agent_name: str) -> str:
@@ -539,11 +598,20 @@ class Orchestrator:
                 "Compare actual store prices against catalog margin targets.\n"
                 "Write MARGIN_LOW (OPEN) or NEGATIVE_MARGIN (URGENT) alerts to pricing_history.md.\n"
                 "Check chargebacks, refund rate (alert if > 5%), and agent daily costs.\n\n"
+                "PRODUCT SCORECARD (daily):\n"
+                "Query product_beliefs table for all active products.\n"
+                "Rank by conversion rate (sales_total / views_total).\n"
+                "Write product_scorecard.md with:\n"
+                "- TOP 10: highest conversion rate products (with revenue, margin)\n"
+                "- BOTTOM 10: lowest conversion / zombie products (>30 days, 0 sales)\n"
+                "- PORTFOLIO: total active, zombies, avg margin, exploration rate\n"
+                "Flag 'ZOMBIE' for products with >100 views and 0 sales after 14 days.\n\n"
                 "Before finishing, verify:\n"
                 "- Daily Margin Summary appended to pricing_history.md\n"
                 "- All products with margin < 40% have alerts written\n"
                 "- Stripe ↔ DB reconciliation complete\n"
-                "- Agent costs checked (agent_daily_costs table)"
+                "- Agent costs checked (agent_daily_costs table)\n"
+                "- product_scorecard.md written with today's date and top/bottom performers"
             ),
             "qa_inspector": (
                 "Verify quality and integrity of today's designs and products.\n"
@@ -565,6 +633,12 @@ class Orchestrator:
                 "CATALOG VALIDATION:\n"
                 "Cross-reference products against catalog/PRICING-MODEL.md.\n"
                 "Flag: (1) products not in catalog, (2) margins below catalog target, (3) wrong provider.\n\n"
+                "CONVERSION-QUALITY CORRELATION:\n"
+                "Read product_scorecard.md — identify products with high views but low conversion\n"
+                "(>100 views, <1% conversion). Cross-reference with quality_score:\n"
+                "- Low quality_score + low conversion = PRIORITY FIX (design needs rework)\n"
+                "- Good quality_score + low conversion = pricing or listing issue (flag for cataloger)\n"
+                "Add a 'Conversion Issues' section to qa_report.md with these findings.\n\n"
                 "Count products in Printify (printify_list_products) and Supabase (supabase_query).\n"
                 "If counts differ, write SYNC MISMATCH at the top of qa_report.md.\n\n"
                 "Write your full report to qa_report.md with:\n"
@@ -574,6 +648,7 @@ class Orchestrator:
                 "- Product count + issues found\n"
                 "- Variant status: N products with 0 variants, M products OK\n"
                 "- Translation status: N products missing translations\n"
+                "- Conversion issues: products with high views + low conversion\n"
                 "- Sync status (Printify count vs Supabase count)\n"
                 "- Action items for other agents"
             ),

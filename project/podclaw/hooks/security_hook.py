@@ -286,6 +286,85 @@ async def security_hook(
                     "Skip this product or use a different title."
                 )
 
+    # --- Quality gate: block printify_publish (FAIL-CLOSED) ---
+    # If ANY validation cannot complete, publish is DENIED.
+    if tool_name == "printify_publish":
+        product_id_printify = tool_input.get("product_id", "")
+
+        if not product_id_printify:
+            return _deny("Cannot publish: no product_id provided")
+
+        if not _supabase_client:
+            return _deny("Cannot publish: Supabase not initialized — quality gate cannot run")
+
+        try:
+            # Step 1: Product MUST exist in Supabase
+            product_result = await asyncio.to_thread(
+                lambda: _supabase_client.table("products")
+                .select("id,cost_cents,base_price_cents")
+                .eq("printify_id", product_id_printify)
+                .execute()
+            )
+            if not product_result.data:
+                return _deny(
+                    f"Cannot publish: product with printify_id={product_id_printify} "
+                    "not found in Supabase. Wait for sync_hook or create manually."
+                )
+
+            product_db_id = product_result.data[0]["id"]
+            cost = product_result.data[0].get("cost_cents")
+            price = product_result.data[0].get("base_price_cents")
+
+            # Step 2: Margin MUST be calculable and >= 35%
+            if not price or not cost or cost <= 0:
+                return _deny(
+                    f"Cannot publish: missing pricing data (price={price}, cost={cost}). "
+                    "Set base_price_cents and cost_cents before publishing."
+                )
+
+            margin = (price - cost) / price
+            if margin < 0.35:
+                return _deny(
+                    f"Cannot publish: margin {margin*100:.1f}% below 35% minimum. "
+                    f"Price EUR {price/100:.2f}, Cost EUR {cost/100:.2f}. "
+                    "Adjust price before publishing."
+                )
+
+            # Step 3: Designs MUST exist and ALL must have quality_score >= 6
+            design_result = await asyncio.to_thread(
+                lambda: _supabase_client.table("designs")
+                .select("id,quality_score")
+                .eq("product_id", product_db_id)
+                .execute()
+            )
+
+            if not design_result.data:
+                return _deny(
+                    f"Cannot publish: no designs linked to product {product_db_id[:12]}…. "
+                    "Create and score designs before publishing."
+                )
+
+            for design in design_result.data:
+                score = design.get("quality_score")
+                if score is None:
+                    return _deny(
+                        f"Cannot publish: design {design['id'][:12]}… has no quality_score. "
+                        "Run gemini_check_image before publishing."
+                    )
+                if score < 6:
+                    return _deny(
+                        f"Cannot publish: design {design['id'][:12]}… has quality_score={score} "
+                        f"(minimum 6 required). Run gemini_check_image to verify or replace design."
+                    )
+
+        except Exception as e:
+            # FAIL-CLOSED: if we can't validate, we DENY
+            logger.error("security_quality_check_failed_denying", error=str(e))
+            return _deny(
+                f"Cannot publish: quality gate validation failed ({e}). "
+                "Retry when Supabase is available."
+            )
+
     # --- Order write operations: audit + validation ---
     if tool_name == "printify_create_order":
         line_items = tool_input.get("line_items", [])

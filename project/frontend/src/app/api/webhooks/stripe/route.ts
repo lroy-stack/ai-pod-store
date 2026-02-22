@@ -9,7 +9,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { headers } from 'next/headers'
 import { stripe } from '@/lib/stripe'
 import { printify, buildPrintifyAddress } from '@/lib/printify'
-import { sendOrderConfirmationEmail } from '@/lib/resend'
+import { sendOrderConfirmationEmail, sendCreditPurchaseEmail } from '@/lib/resend'
 import { createClient } from '@supabase/supabase-js'
 import { triggerDripSequence } from '@/lib/email-drip'
 import Stripe from 'stripe'
@@ -103,9 +103,9 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
     const cartItems = JSON.parse(cartItemsStr)
     const giftMessage = session.metadata?.gift_message || null
 
-    // Get session details with line items
+    // Get session details with line items and payment method
     const fullSession = await stripe.checkout.sessions.retrieve(session.id, {
-      expand: ['line_items', 'payment_intent'],
+      expand: ['line_items', 'payment_intent', 'payment_intent.payment_method'],
     })
 
     const lineItems = fullSession.line_items?.data || []
@@ -127,11 +127,20 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
         }
       : null
 
-    // Get payment intent ID
+    // Get payment intent ID and payment method
     const paymentIntentId =
       typeof fullSession.payment_intent === 'string'
         ? fullSession.payment_intent
         : fullSession.payment_intent?.id
+
+    // Get payment method type (card, crypto, etc.)
+    let paymentMethodType: string | null = null
+    if (typeof fullSession.payment_intent !== 'string' && fullSession.payment_intent?.payment_method) {
+      const paymentMethod = fullSession.payment_intent.payment_method
+      if (typeof paymentMethod !== 'string') {
+        paymentMethodType = paymentMethod.type || null
+      }
+    }
 
     // Idempotency check: Check if order already exists for this session
     const { data: existingOrder } = await supabase
@@ -159,6 +168,7 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
         customer_email: customerEmail,
         locale,
         gift_message: giftMessage,
+        payment_method: paymentMethodType,
         paid_at: new Date().toISOString(),
       })
       .select()
@@ -496,15 +506,16 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
       return
     }
 
-    // Add monthly bonus credits on new subscription activation
+    // Add monthly bonus credits on new subscription activation (atomic)
     if (isActive) {
       const bonusCredits = 10
-      const newBalance = (user.credit_balance || 0) + bonusCredits
 
-      await supabase
-        .from('users')
-        .update({ credit_balance: newBalance })
-        .eq('id', user.id)
+      const { data: bonusResult } = await supabase.rpc('add_credits', {
+        p_user_id: user.id,
+        p_amount: bonusCredits,
+      })
+
+      const newBalance = bonusResult?.balance ?? 0
 
       await supabase.from('credit_transactions').insert({
         user_id: user.id,
@@ -566,40 +577,76 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
 
 /**
  * Handle credit pack purchase from checkout.session.completed
+ * Idempotent: uses UNIQUE(user_id, stripe_payment_id) to prevent double-crediting on webhook retries.
+ * Atomic: uses credit_balance = credit_balance + N (no SELECT-then-UPDATE).
  */
 async function handleCreditPackPurchase(session: Stripe.Checkout.Session) {
   try {
     const userId = session.metadata?.user_id
     const credits = parseInt(session.metadata?.credits || '0')
+    const paymentId = (session.payment_intent as string) || session.id
 
-    if (!userId || !credits) return
+    if (!userId || !credits || !paymentId) return
 
-    // Fetch current balance
-    const { data: user } = await supabase
-      .from('users')
-      .select('credit_balance')
-      .eq('id', userId)
-      .single()
-
-    const currentBalance = user?.credit_balance || 0
-    const newBalance = currentBalance + credits
-
-    // Update balance
-    await supabase
-      .from('users')
-      .update({ credit_balance: newBalance })
-      .eq('id', userId)
-
-    // Log transaction
-    await supabase.from('credit_transactions').insert({
+    // Idempotency: insert transaction first — UNIQUE(user_id, stripe_payment_id) rejects duplicates
+    // balance_after is set to 0 temporarily, updated after atomic increment
+    const { error: txError } = await supabase.from('credit_transactions').insert({
       user_id: userId,
       amount: credits,
       reason: 'purchase',
-      stripe_payment_id: session.payment_intent as string || session.id,
-      balance_after: newBalance,
+      stripe_payment_id: paymentId,
+      balance_after: 0,
     })
 
+    if (txError) {
+      // UNIQUE violation = already processed (idempotent)
+      if (txError.code === '23505') {
+        console.log(`Credit pack already processed for payment ${paymentId} — skipping (idempotent)`)
+        return
+      }
+      throw txError
+    }
+
+    // Atomic balance update via RPC: credit_balance = credit_balance + N (no race condition)
+    const { data: rpcResult } = await supabase.rpc('add_credits', {
+      p_user_id: userId,
+      p_amount: credits,
+    })
+
+    const newBalance = rpcResult?.balance ?? 0
+
+    // Backfill the correct balance_after in the transaction record
+    await supabase
+      .from('credit_transactions')
+      .update({ balance_after: newBalance })
+      .eq('user_id', userId)
+      .eq('stripe_payment_id', paymentId)
+
     console.log(`Added ${credits} credits for user ${userId} (new balance: ${newBalance})`)
+
+    // Fetch user for email
+    const { data: user } = await supabase
+      .from('users')
+      .select('email, locale')
+      .eq('id', userId)
+      .single()
+
+    // Send confirmation email
+    if (user?.email) {
+      try {
+        await sendCreditPurchaseEmail({
+          to: user.email,
+          credits,
+          priceCents: session.amount_total || 0,
+          currency: session.currency || 'eur',
+          newBalance,
+          locale: user.locale || 'en',
+        })
+        console.log(`Credit purchase email sent to: ${user.email}`)
+      } catch (emailError) {
+        console.error('Failed to send credit purchase email:', emailError)
+      }
+    }
   } catch (error) {
     console.error('Error handling credit pack purchase:', error)
   }

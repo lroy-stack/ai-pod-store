@@ -2,12 +2,14 @@
 PodClaw — fal.ai MCP Connector
 =================================
 
-AI image generation via FLUX.1 model + background removal for the designer agent.
+AI image generation via FLUX.1 model + background removal + upscaling for the designer agent.
 """
 
 from __future__ import annotations
 
+import io
 import os
+import uuid
 from typing import Any
 
 import httpx
@@ -22,7 +24,10 @@ _MODEL_ENDPOINTS = {
     "schnell": "fal-ai/flux/schnell",
     "dev": "fal-ai/flux/dev",
     "flux-pro": "fal-ai/flux-pro/v1.1",
+    "flux-2-pro": "fal-ai/flux-pro/v2",
 }
+
+_DEFAULT_MODEL = "flux-pro"
 
 
 class FalMCPConnector:
@@ -50,11 +55,13 @@ class FalMCPConnector:
                         "image_size": {"type": "string", "enum": ["square_hd", "landscape_4_3", "portrait_hd"]},
                         "num_images": {"type": "integer", "description": "Number of images (1-4)"},
                         "seed": {"type": "integer", "description": "Random seed for reproducibility"},
+                        "width": {"type": "integer", "description": "Image width in pixels (overrides image_size)"},
+                        "height": {"type": "integer", "description": "Image height in pixels (overrides image_size)"},
                         "model": {
                             "type": "string",
-                            "enum": ["schnell", "dev", "flux-pro"],
-                            "description": "FLUX model: schnell (fast draft $0.003), dev (balanced $0.025), flux-pro (best quality $0.05)",
-                            "default": "dev",
+                            "enum": ["schnell", "dev", "flux-pro", "flux-2-pro"],
+                            "description": "FLUX model: schnell (draft $0.003), flux-pro (production $0.04, commercial license), flux-2-pro (alt $0.03, commercial). dev is non-commercial — do NOT use for products.",
+                            "default": "flux-pro",
                         },
                     },
                     "required": ["prompt"],
@@ -71,7 +78,7 @@ class FalMCPConnector:
                             "type": "string",
                             "enum": ["schnell", "dev", "flux-pro"],
                             "description": "Model used for the original request (defaults to dev)",
-                            "default": "dev",
+                            "default": "flux-pro",
                         },
                     },
                     "required": ["request_id"],
@@ -97,15 +104,46 @@ class FalMCPConnector:
                 },
                 "handler": self._remove_bg,
             },
+            "fal_upscale": {
+                "description": (
+                    "Upscale an image using Real-ESRGAN (4x or 2x). "
+                    "Cost: ~$0.003/image. Preserves alpha channel for transparent PNGs. "
+                    "Use after bg removal to reach print-quality resolution (e.g. 4500px for t-shirts)."
+                ),
+                "input_schema": {
+                    "type": "object",
+                    "properties": {
+                        "image_url": {
+                            "type": "string",
+                            "description": "Public HTTPS URL of the image to upscale",
+                        },
+                        "scale": {
+                            "type": "integer",
+                            "enum": [2, 4],
+                            "description": "Upscale factor (2x or 4x). Default 4.",
+                            "default": 4,
+                        },
+                    },
+                    "required": ["image_url"],
+                },
+                "handler": self._upscale,
+            },
         }
 
     async def _generate(self, params: dict[str, Any]) -> dict[str, Any]:
-        model = params.get("model", "dev")
-        endpoint = _MODEL_ENDPOINTS.get(model, _MODEL_ENDPOINTS["dev"])
+        model = params.get("model", _DEFAULT_MODEL)
+        endpoint = _MODEL_ENDPOINTS.get(model, _MODEL_ENDPOINTS[_DEFAULT_MODEL])
         url = f"{FAL_API}/{endpoint}"
+
+        # width/height override image_size enum
+        if params.get("width") and params.get("height"):
+            image_size = {"width": params["width"], "height": params["height"]}
+        else:
+            image_size = params.get("image_size", "square_hd")
+
         body = {
             "prompt": params["prompt"],
-            "image_size": params.get("image_size", "square_hd"),
+            "image_size": image_size,
             "num_images": min(params.get("num_images", 1), 4),
         }
         if params.get("seed"):
@@ -159,13 +197,154 @@ class FalMCPConnector:
 
     async def _get_status(self, params: dict[str, Any]) -> dict[str, Any]:
         request_id = params["request_id"]
-        model = params.get("model", "dev")
-        endpoint = _MODEL_ENDPOINTS.get(model, _MODEL_ENDPOINTS["dev"])
+        model = params.get("model", _DEFAULT_MODEL)
+        endpoint = _MODEL_ENDPOINTS.get(model, _MODEL_ENDPOINTS[_DEFAULT_MODEL])
         url = f"{FAL_API}/{endpoint}/requests/{request_id}/status"
         async with httpx.AsyncClient() as client:
             resp = await client.get(url, headers=self._headers)
             resp.raise_for_status()
             return resp.json()
+
+    async def _call_fal_sync(self, endpoint: str, body: dict) -> dict[str, Any]:
+        """Call a fal.ai sync endpoint and return the JSON response."""
+        url = f"{FAL_SYNC_API}/{endpoint}"
+        async with httpx.AsyncClient(timeout=120) as client:
+            resp = await client.post(url, headers=self._headers, json=body)
+            resp.raise_for_status()
+            return resp.json()
+
+    async def _upscale(self, params: dict[str, Any]) -> dict[str, Any]:
+        """Upscale image with Real-ESRGAN. Preserves alpha channel for PNGs."""
+        from podclaw.bg_removal import upload_to_storage
+        from podclaw.config import SUPABASE_URL, SUPABASE_SERVICE_KEY
+
+        image_url = params["image_url"]
+        scale = params.get("scale", 4)
+
+        try:
+            # Download image to check for alpha channel
+            async with httpx.AsyncClient(timeout=30) as client:
+                resp = await client.get(image_url)
+                resp.raise_for_status()
+                image_bytes = resp.content
+
+            from PIL import Image
+
+            img = Image.open(io.BytesIO(image_bytes))
+            has_alpha = img.mode == "RGBA"
+            orig_w, orig_h = img.size
+
+            if has_alpha:
+                # Split channels: upscale RGB with ESRGAN, alpha with PIL bicubic
+                rgb = img.convert("RGB")
+                alpha = img.getchannel("A")
+
+                # Save RGB to buffer and upload temporarily
+                rgb_buf = io.BytesIO()
+                rgb.save(rgb_buf, format="PNG")
+                rgb_bytes = rgb_buf.getvalue()
+
+                if not (SUPABASE_URL and SUPABASE_SERVICE_KEY):
+                    return {"error": "Supabase credentials required for upscale with alpha"}
+
+                temp_url = await upload_to_storage(
+                    SUPABASE_URL, SUPABASE_SERVICE_KEY,
+                    source_bytes=rgb_bytes,
+                )
+                if not temp_url:
+                    return {"error": "Failed to upload temp RGB for upscale"}
+
+                # ESRGAN on RGB
+                result = await self._call_fal_sync(
+                    "fal-ai/esrgan", {"image_url": temp_url, "scale": scale}
+                )
+                upscaled_rgb_url = result.get("image", {}).get("url") or result.get("image_url")
+                if not upscaled_rgb_url:
+                    return {"error": "ESRGAN returned no image URL", "raw": result}
+
+                # Download upscaled RGB
+                async with httpx.AsyncClient(timeout=30) as client:
+                    resp = await client.get(upscaled_rgb_url)
+                    resp.raise_for_status()
+                    upscaled_rgb = Image.open(io.BytesIO(resp.content)).convert("RGB")
+
+                # Upscale alpha with PIL bicubic
+                new_w, new_h = upscaled_rgb.size
+                upscaled_alpha = alpha.resize((new_w, new_h), Image.BICUBIC)
+
+                # Recombine RGBA
+                r, g, b = upscaled_rgb.split()
+                final = Image.merge("RGBA", (r, g, b, upscaled_alpha))
+
+                final_buf = io.BytesIO()
+                final.save(final_buf, format="PNG")
+                final_bytes = final_buf.getvalue()
+
+                # Upload final to Storage
+                public_url = await upload_to_storage(
+                    SUPABASE_URL, SUPABASE_SERVICE_KEY,
+                    source_bytes=final_bytes,
+                )
+                if not public_url:
+                    return {"error": "Failed to upload upscaled RGBA image"}
+
+                logger.info(
+                    "fal_upscale_ok",
+                    has_alpha=True,
+                    scale=scale,
+                    original=f"{orig_w}x{orig_h}",
+                    result=f"{new_w}x{new_h}",
+                )
+                return {
+                    "image_url": public_url,
+                    "width": new_w,
+                    "height": new_h,
+                    "scale": scale,
+                    "has_alpha": True,
+                    "cost_usd": 0.003,
+                }
+            else:
+                # No alpha — straightforward ESRGAN
+                result = await self._call_fal_sync(
+                    "fal-ai/esrgan", {"image_url": image_url, "scale": scale}
+                )
+                upscaled_url = result.get("image", {}).get("url") or result.get("image_url")
+                if not upscaled_url:
+                    return {"error": "ESRGAN returned no image URL", "raw": result}
+
+                # Persist to Storage
+                if SUPABASE_URL and SUPABASE_SERVICE_KEY:
+                    public_url = await upload_to_storage(
+                        SUPABASE_URL, SUPABASE_SERVICE_KEY,
+                        source_url=upscaled_url,
+                    )
+                    if public_url:
+                        upscaled_url = public_url
+
+                new_w = orig_w * scale
+                new_h = orig_h * scale
+                logger.info(
+                    "fal_upscale_ok",
+                    has_alpha=False,
+                    scale=scale,
+                    original=f"{orig_w}x{orig_h}",
+                    result=f"{new_w}x{new_h}",
+                )
+                return {
+                    "image_url": upscaled_url,
+                    "width": new_w,
+                    "height": new_h,
+                    "scale": scale,
+                    "has_alpha": False,
+                    "cost_usd": 0.003,
+                }
+
+        except httpx.HTTPStatusError as e:
+            logger.error("fal_upscale_http_error", status=e.response.status_code, detail=e.response.text[:200])
+            return {"error": f"Upscale HTTP error ({e.response.status_code}): {e.response.text[:200]}"}
+        except Exception as e:
+            logger.error("fal_upscale_exception", error=str(e))
+            return {"error": f"Upscale error: {e}"}
 
     async def _remove_bg(self, params: dict[str, Any]) -> dict[str, Any]:
         """Remove background using shared utility (local rembg → fal.ai fallback)."""

@@ -24,7 +24,7 @@ export const DRIP_SEQUENCES: Record<string, DripStep[]> = {
   welcome: [
     { delay_hours: 1, template: 'welcome', subject: 'Welcome to POD AI — Your AI Design Studio' },
     { delay_hours: 72, template: 'tips', subject: '3 Ways to Create Amazing Designs with AI' },
-    { delay_hours: 168, template: 'credit_offer', subject: 'Your 5 Free Design Credits Are Waiting' },
+    { delay_hours: 168, template: 'credit_offer', subject: 'Unlock More Designs — Upgrade to Premium' },
   ],
 }
 

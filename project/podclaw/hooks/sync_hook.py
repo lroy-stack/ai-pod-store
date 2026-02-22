@@ -21,6 +21,8 @@ import math
 from datetime import datetime, timezone
 from typing import Any, Callable, Optional
 
+import asyncio
+
 import httpx
 import structlog
 
@@ -29,6 +31,46 @@ from podclaw.hooks._parse_output import parse_tool_output
 from podclaw.pricing import engagement_price as _engagement_price_canonical
 
 logger = structlog.get_logger(__name__)
+
+_MAX_RETRIES = 3
+_RETRY_BACKOFF = 1.0  # seconds
+
+
+async def _with_retry(
+    fn,
+    *args,
+    max_retries: int = _MAX_RETRIES,
+    backoff: float = _RETRY_BACKOFF,
+    context_msg: str = "sync_hook",
+    **kwargs,
+) -> httpx.Response | None:
+    """Retry an async HTTP operation with exponential backoff.
+
+    Returns the response on success, or None after all retries exhausted.
+    Only retries on network errors and 5xx status codes.
+    """
+    last_error = None
+    for attempt in range(max_retries):
+        try:
+            resp = await fn(*args, **kwargs)
+            if resp.status_code < 500:
+                return resp
+            last_error = f"HTTP {resp.status_code}: {resp.text[:200]}"
+        except (httpx.ConnectError, httpx.TimeoutException, httpx.ReadError) as e:
+            last_error = str(e)
+        if attempt < max_retries - 1:
+            delay = backoff * (2 ** attempt)
+            logger.warning(
+                f"{context_msg}_retry",
+                attempt=attempt + 1,
+                max=max_retries,
+                delay=delay,
+                error=last_error,
+            )
+            await asyncio.sleep(delay)
+    logger.error(f"{context_msg}_retries_exhausted", attempts=max_retries, error=last_error)
+    return None
+
 
 # Child tables with product_id FK → products(id)
 # NOTE: designs are NOT deleted — they cost money and are preserved in Storage.
@@ -296,11 +338,16 @@ async def _sync_printify_create(
             "Prefer": "resolution=merge-duplicates,return=representation",
         }
         async with httpx.AsyncClient(timeout=15) as client:
-            resp = await client.post(
+            resp = await _with_retry(
+                client.post,
                 f"{supabase_url}/rest/v1/products",
                 headers=upsert_headers,
                 json=row,
+                context_msg="sync_create_upsert",
             )
+            if resp is None:
+                logger.error("sync_hook_create_upsert_all_retries_failed", printify_id=printify_id)
+                return
             if resp.status_code < 400:
                 rows = resp.json()
                 product_db_id = rows[0]["id"] if rows else None
@@ -395,11 +442,16 @@ async def _sync_printify_update(
 
     try:
         async with httpx.AsyncClient(timeout=15) as client:
-            resp = await client.patch(
+            resp = await _with_retry(
+                client.patch,
                 f"{supabase_url}/rest/v1/products?printify_id=eq.{printify_id}",
                 headers=headers,
                 json=patch,
+                context_msg="sync_update_patch",
             )
+            if resp is None:
+                logger.error("sync_hook_update_all_retries_failed", printify_id=printify_id)
+                return
             if resp.status_code < 400:
                 logger.info(
                     "sync_hook_product_auto_patched",
