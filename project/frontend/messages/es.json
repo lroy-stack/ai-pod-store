@@ -796,5 +796,30 @@
       "exhausted": "Sin mensajes gratis",
       "cta": "Regístrate"
     }
+  },
+  "cookieConsent": {
+    "title": "Valoramos tu privacidad",
+    "description": "Utilizamos cookies para mejorar tu experiencia de navegación, ofrecer contenido personalizado y analizar nuestro tráfico. Al hacer clic en 'Aceptar Todo', aceptas nuestro uso de cookies.",
+    "acceptAll": "Aceptar Todo",
+    "rejectAll": "Rechazar No Esenciales",
+    "customize": "Personalizar",
+    "customizeTitle": "Preferencias de Cookies",
+    "customizeDescription": "Elige qué tipos de cookies deseas permitir. Puedes cambiar tus preferencias en cualquier momento.",
+    "savePreferences": "Guardar Preferencias",
+    "cancel": "Cancelar",
+    "categories": {
+      "necessary": {
+        "title": "Cookies Necesarias",
+        "description": "Esenciales para que el sitio web funcione correctamente. No se pueden desactivar."
+      },
+      "analytics": {
+        "title": "Cookies de Análisis",
+        "description": "Nos ayudan a comprender cómo los visitantes interactúan con nuestro sitio web recopilando información de forma anónima."
+      },
+      "marketing": {
+        "title": "Cookies de Marketing",
+        "description": "Se utilizan para rastrear visitantes en sitios web y mostrar anuncios relevantes y atractivos."
+      }
+    }
   }
 }

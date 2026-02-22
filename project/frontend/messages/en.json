@@ -796,5 +796,30 @@
       "exhausted": "No free messages left",
       "cta": "Sign up"
     }
+  },
+  "cookieConsent": {
+    "title": "We value your privacy",
+    "description": "We use cookies to enhance your browsing experience, serve personalized content, and analyze our traffic. By clicking 'Accept All', you consent to our use of cookies.",
+    "acceptAll": "Accept All",
+    "rejectAll": "Reject Non-Essential",
+    "customize": "Customize",
+    "customizeTitle": "Cookie Preferences",
+    "customizeDescription": "Choose which types of cookies you want to allow. You can change your preferences at any time.",
+    "savePreferences": "Save Preferences",
+    "cancel": "Cancel",
+    "categories": {
+      "necessary": {
+        "title": "Necessary Cookies",
+        "description": "Essential for the website to function properly. These cannot be disabled."
+      },
+      "analytics": {
+        "title": "Analytics Cookies",
+        "description": "Help us understand how visitors interact with our website by collecting and reporting information anonymously."
+      },
+      "marketing": {
+        "title": "Marketing Cookies",
+        "description": "Used to track visitors across websites to display relevant and engaging advertisements."
+      }
+    }
   }
 }

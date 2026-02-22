@@ -796,5 +796,30 @@
       "exhausted": "Keine freien Nachrichten",
       "cta": "Registrieren"
     }
+  },
+  "cookieConsent": {
+    "title": "Wir schätzen Ihre Privatsphäre",
+    "description": "Wir verwenden Cookies, um Ihr Browsing-Erlebnis zu verbessern, personalisierte Inhalte bereitzustellen und unseren Datenverkehr zu analysieren. Durch Klicken auf 'Alle Akzeptieren' stimmen Sie der Verwendung von Cookies zu.",
+    "acceptAll": "Alle Akzeptieren",
+    "rejectAll": "Nicht Essenzielle Ablehnen",
+    "customize": "Anpassen",
+    "customizeTitle": "Cookie-Einstellungen",
+    "customizeDescription": "Wählen Sie, welche Arten von Cookies Sie zulassen möchten. Sie können Ihre Einstellungen jederzeit ändern.",
+    "savePreferences": "Einstellungen Speichern",
+    "cancel": "Abbrechen",
+    "categories": {
+      "necessary": {
+        "title": "Notwendige Cookies",
+        "description": "Unerlässlich für das ordnungsgemäße Funktionieren der Website. Diese können nicht deaktiviert werden."
+      },
+      "analytics": {
+        "title": "Analyse-Cookies",
+        "description": "Helfen uns zu verstehen, wie Besucher mit unserer Website interagieren, indem Informationen anonym gesammelt und gemeldet werden."
+      },
+      "marketing": {
+        "title": "Marketing-Cookies",
+        "description": "Werden verwendet, um Besucher über Websites hinweg zu verfolgen und relevante und ansprechende Werbung anzuzeigen."
+      }
+    }
   }
 }

@@ -9,6 +9,7 @@ import { WishlistProvider } from '@/hooks/useWishlist'
 import { CommandPalette } from '@/components/CommandPalette'
 import { ServiceWorkerRegistration } from '@/components/ServiceWorkerRegistration'
 import { ThemeLoader } from '@/components/ThemeLoader'
+import { CookieConsent } from '@/components/gdpr/CookieConsent'
 
 const locales = ['en', 'es', 'de']
 
@@ -43,6 +44,7 @@ async function ProvidersContent({
             {children}
             <Toaster />
             <CommandPalette />
+            <CookieConsent />
           </WishlistProvider>
         </CartProvider>
       </ThemeProvider>
