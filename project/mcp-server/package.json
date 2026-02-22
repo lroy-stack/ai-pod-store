@@ -1,0 +1,37 @@
+{
+  "name": "@pod-ai/mcp-server",
+  "version": "1.0.0",
+  "description": "MCP (Model Context Protocol) server for POD AI Store ecommerce platform",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "ecommerce",
+    "ai-assistant"
+  ],
+  "author": "POD AI Team",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "@supabase/supabase-js": "^2.47.10",
+    "stripe": "^17.5.0",
+    "ioredis": "^5.4.2",
+    "jose": "^5.9.6",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}
