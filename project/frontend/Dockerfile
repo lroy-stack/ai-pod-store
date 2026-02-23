@@ -13,6 +13,9 @@ FROM node:22-alpine AS deps
 
 WORKDIR /app
 
+# Native build tools for canvas (node-gyp needs python3, make, g++)
+RUN apk add --no-cache python3 make g++ pkgconf cairo-dev pango-dev jpeg-dev giflib-dev
+
 # Copy only package manifests for better layer caching
 COPY package.json package-lock.json ./
 
