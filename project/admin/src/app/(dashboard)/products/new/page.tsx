@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { adminFetch } from '@/lib/admin-api';
-import { DashboardLayout } from '@/components/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -48,8 +47,7 @@ export default function NewProductPage() {
   }
 
   return (
-    <DashboardLayout>
-      <main className="min-h-screen p-8">
+    <main className="min-h-screen p-8">
         <div className="max-w-2xl">
           <h1 className="text-3xl font-bold mb-6">Create Product</h1>
 
@@ -136,6 +134,5 @@ export default function NewProductPage() {
           </Card>
         </div>
       </main>
-    </DashboardLayout>
   );
 }

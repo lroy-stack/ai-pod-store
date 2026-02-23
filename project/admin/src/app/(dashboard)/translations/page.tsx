@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { DashboardLayout } from '@/components/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Table,
@@ -137,7 +136,7 @@ export default function TranslationsPage() {
 
   if (loading) {
     return (
-      <DashboardLayout>
+      <>
         <h1 className="text-3xl font-bold mb-6">Translation Management</h1>
         <Card>
           <CardContent className="pt-6">
@@ -148,13 +147,12 @@ export default function TranslationsPage() {
             </div>
           </CardContent>
         </Card>
-      </DashboardLayout>
+      </>
     );
   }
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold">Translation Management</h1>
           <p className="text-muted-foreground">
@@ -268,6 +266,5 @@ export default function TranslationsPage() {
           </CardContent>
         </Card>
       </div>
-    </DashboardLayout>
   );
 }

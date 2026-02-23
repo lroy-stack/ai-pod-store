@@ -2,7 +2,35 @@
 
 > **Autor**: Claude Opus 4.6 | **Fecha**: 2026-02-23
 > **Objetivo**: Transformar Skapara de una tienda POD con personalización básica en una experiencia interactiva de diseño impulsada por IA.
-> **Estado**: Documento de arquitectura listo para traducir a `app_spec.txt` + `feature_list.json`.
+> **Estado**: Traducido a `app_spec.txt` Sections 15-17 + `feature_list.json` (IDs 244-286).
+
+---
+
+## SEPARACIÓN V1 / V2
+
+| Fase | Scope | app_spec | Prioridad | Estado |
+|------|-------|----------|-----------|--------|
+| **V1 Comercial** | Pipeline E2E + Design Studio básico + Producción sólida | Section 15 (38h) + Section 16 (50h) | P1 MVP | Definido en app_spec |
+| **V2 Inteligencia** | Embeddings, RAG, preferencias implícitas, queue distribuida | Section 17 (40h) | P3 VISION | Placeholder solo |
+
+**V1 = Revenue Enabler** — lo que vende: "Diseña tu producto en 10 segundos y se imprime exactamente como lo ves."
+**V2 = Optimización futura** — mejora la experiencia después de que V1 esté generando revenue.
+
+### Qué es V1 (implementar ahora):
+- Fix pipeline roto (Fases 1-2 de este doc → Section 15)
+- AI Design Studio con 3 tabs, 8 presets, composición, producción (Fases 2-6 parciales → Section 16)
+- Historial simple (últimos 10 diseños)
+- Chat integration básica (2 tools nuevos)
+- Cost guard server-side
+
+### Qué es V2 (implementar después de 1000+ pedidos/mes):
+- Embeddings de preferencias (768-dim)
+- RAG personalizado para recomendaciones
+- Aprendizaje implícito automático
+- Queue distribuida con Realtime
+- Cache avanzada (Redis)
+- Cancellation multi-worker
+- A/B testing de presets
 
 ---
 

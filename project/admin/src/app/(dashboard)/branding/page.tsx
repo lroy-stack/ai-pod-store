@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { adminFetch } from '@/lib/admin-api';
-import { DashboardLayout } from '@/components/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -87,8 +86,7 @@ export default function BrandingPage() {
   }
 
   return (
-    <DashboardLayout>
-      <div className="p-6 md:p-8">
+    <div className="p-6 md:p-8">
         {/* Header */}
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-8">
           <div>
@@ -242,6 +240,5 @@ export default function BrandingPage() {
           </Card>
         )}
       </div>
-    </DashboardLayout>
   );
 }

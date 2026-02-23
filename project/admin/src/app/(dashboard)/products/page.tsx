@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { adminFetch } from '@/lib/admin-api';
-import { DashboardLayout } from '@/components/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Table,
@@ -99,8 +98,7 @@ export default function ProductsPage() {
   }
 
   return (
-    <DashboardLayout>
-      <main className="min-h-screen p-8">
+    <main className="min-h-screen p-8">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-3xl font-bold">Products</h1>
           <Button asChild>
@@ -259,6 +257,5 @@ export default function ProductsPage() {
           </CardContent>
         </Card>
       </main>
-    </DashboardLayout>
   );
 }

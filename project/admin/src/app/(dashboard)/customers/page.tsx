@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { adminFetch } from '@/lib/admin-api';
-import { DashboardLayout } from '@/components/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Table,
@@ -158,7 +157,7 @@ export default function CustomersPage() {
   };
 
   return (
-    <DashboardLayout>
+    <>
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold">Customers</h1>
@@ -401,6 +400,6 @@ export default function CustomersPage() {
           )}
         </DialogContent>
       </Dialog>
-    </DashboardLayout>
+    </>
   );
 }

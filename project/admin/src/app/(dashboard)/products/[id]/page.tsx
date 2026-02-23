@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { adminFetch } from '@/lib/admin-api';
-import { DashboardLayout } from '@/components/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -80,8 +79,7 @@ export default function EditProductPage() {
 
   if (loading) {
     return (
-      <DashboardLayout>
-        <main className="min-h-screen p-8">
+      <main className="min-h-screen p-8">
           <div className="max-w-2xl">
             <div className="h-8 w-48 bg-muted rounded animate-pulse mb-6" />
             <Card>
@@ -98,23 +96,19 @@ export default function EditProductPage() {
             </Card>
           </div>
         </main>
-      </DashboardLayout>
     );
   }
 
   if (!product) {
     return (
-      <DashboardLayout>
-        <main className="min-h-screen p-8">
+      <main className="min-h-screen p-8">
           <p>Product not found</p>
         </main>
-      </DashboardLayout>
     );
   }
 
   return (
-    <DashboardLayout>
-      <main className="min-h-screen p-8">
+    <main className="min-h-screen p-8">
         <div className="max-w-2xl">
           <h1 className="text-3xl font-bold mb-6">Edit Product</h1>
 
@@ -201,6 +195,5 @@ export default function EditProductPage() {
           </Card>
         </div>
       </main>
-    </DashboardLayout>
   );
 }
