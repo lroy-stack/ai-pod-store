@@ -1,135 +1,101 @@
-# Claude Progress — POD AI Store
+# POD AI Evolution — Progress Log
+# Started: 2026-02-23
+# Spec: app_spec.txt (14 hardening/evolution modules, ~2792 lines, ~501.5h estimated effort)
+# Features: 118 tests generated across 15 sections (0-14)
 
-## Session 146 — 2026-02-15 19:50 UTC
+## Session 1 — Initializer
+- Audited existing codebase across all 3 pillars (Frontend, Admin, PodClaw)
+- Read full evolution spec (app_spec.txt, 2792 lines in 4 chunks)
+- Read design standards (project/CLAUDE.md)
+- Generated feature_list.json with 118 testable features
+- All features start as "passes": false
 
-### Features Implemented This Session: +2
+## Audit Findings
 
-**Total Progress: 550/599 (91.8%)**
+### Frontend (project/frontend/)
+- 125 API routes in src/app/api/
+- 111 components in src/components/ (19 directories + 11 standalone files)
+- 56 production dependencies, 20 dev dependencies
+- Next.js 16.1.6, React 19.2, Tailwind v4, AI SDK 6
+- TypeScript: 5 minor compilation errors (subscription route types, test configs)
+- Route groups: (landing), (app), (focused) + (storefront), profile, test-mockup
+- PWA configured with Serwist
+- .env.local exists with all API keys
 
-### Work Completed
+### Admin (project/admin/)
+- 69 API routes in src/app/api/
+- 44 components in src/components/
+- 18 main page sections (dashboard, products, orders, customers, designs, etc.)
+- basePath via ADMIN_BASE_PATH env variable (=/panel in production)
+- adminFetch() and apiUrl() patterns in src/lib/admin-api.ts
+- Auth: custom bcrypt, admin-session cookie (currently unsigned JSON — SECURITY RISK)
+- Middleware excludes ALL /api/* routes (SECURITY RISK — 66 unprotected endpoints)
+- React Query installed but only used on 1/34 pages
+- Zero tests exist
 
-**Feature #407: Telegram /start command responds with welcome ✅**
+### PodClaw (project/podclaw/)
+- 10 agents: brand_manager, cataloger, customer_manager, designer, finance, marketing, newsletter, qa_inspector, researcher, seo_manager
+- 10 skills (one per agent with SKILL.md)
+- 11 connectors: crawl4ai, delegate, fal, gemini, memory, printify, resend, stripe, supabase, telegram, whatsapp
+- Bridge API: 2 files (api.py 38KB, auth.py 3.1KB)
+- Models: Haiku 4.5 for research, Sonnet 4.5 for complex tasks
+- Daily budget: EUR 30.15 total across all agents
+- Rate limits and costs stored in memory (lost on restart — needs Redis migration)
+- 21 existing test files, but critical paths untested (77KB: production_governor, chat_session, soul_evolution)
 
-Implemented Telegram bot webhook handler with /start command support:
+### Infrastructure
+- Docker Compose: 9 services (frontend, admin, podclaw, rembg, redis, mcp-server, caddy, podclaw-data, podclaw-memory)
+- 3 compose overlays: base, local, prod
+- start.sh orchestration script (8.5KB)
+- 98 database migrations in supabase/migrations/
+- Supabase Cloud (PostgreSQL 16 + pgvector 768-dim)
 
-**Implementation:**
-1. Created `telegram_messages` and `whatsapp_messages` tables via migration
-2. Implemented webhook handler at `/api/webhooks/telegram`
-3. Added message storage in database
-4. Implemented /start and /help commands for customer mode
-5. Created test endpoint to verify command handling
+### Critical Security Issues Identified in Spec
+1. Admin: /api/admin/setup-rbac is PUBLIC (creates admin accounts!)
+2. Admin: Cookie is unsigned JSON (trivially forgeable)
+3. Admin: 66/69 API routes without requireAuth()
+4. Admin: middleware.ts excludes ALL /api/* routes
+5. MCP: JWT decode without signature verification (session.ts:68-92)
+6. Printify: HMAC uses === instead of timingSafeEqual()
+7. Database: 25+ tables without RLS, USING(true) on messaging
+8. Frontend: Telegram webhook has fallback secret
+9. Frontend: ThemeLoader uses dangerouslySetInnerHTML for CSS
 
-**Verification:**
-- ✅ Migration pushed to remote Supabase (20260215195323)
-- ✅ telegram_messages table exists and stores messages
-- ✅ /start command returns: "👋 Welcome to POD AI! I can help you browse products, track orders, and more."
-- ✅ Test endpoint: GET /api/telegram/test-command
-- ✅ Database query shows stored messages with user_id, chat_id, text
+## Feature List Summary (118 features)
 
-**Database Evidence:**
-```json
-{
-  "success": true,
-  "command": "/start",
-  "messageStored": true,
-  "botResponse": "👋 Welcome to POD AI! I can help you browse products, track orders, and more. Type /help to see available commands."
-}
-```
+### By Section:
+- Section 0  (System Invariants):           13 features
+- Section 1  (Security & Authentication):   13 features  [P0]
+- Section 2  (Admin Dashboard):             11 features  [P0]
+- Section 3  (Database Schema):              5 features  [P0]
+- Section 4  (Frontend Ecommerce):          10 features  [P1]
+- Section 5  (Categories System):            5 features  [P1]
+- Section 6  (PodClaw Governance):           8 features  [P1]
+- Section 7  (MCP Server Hardening):         5 features  [P1]
+- Section 8  (Testing & CI/CD):              4 features  [P0]
+- Section 9  (Observability Stack):          3 features  [P2]
+- Section 10 (Growth & Engagement):          8 features  [P2]
+- Section 11 (Multi-Tenant):                 9 features  [P3]
+- Section 12 (Documentation):               3 features  [P2]
+- Section 13 (Printify Integration):        11 features  [P1]
+- Section 14 (Brand Identity/Skapara):      10 features  [P1]
 
----
+### By Pillar:
+- Frontend:  ~48 features (Sections 0,1,4,5 partial,10,13,14)
+- Admin:     ~30 features (Sections 1,2,5 partial,8)
+- PodClaw:   ~18 features (Sections 6,9)
+- Cross-cutting: ~22 features (Sections 0,3,7,11,12)
 
-**Feature #408: Telegram /status admin command returns PodClaw status ✅**
+### Execution Priority (from spec):
+P0 BLOQUEANTE: Sections 1 → 2,3,8 (in parallel after 1)
+P1 MVP:        Sections 4,5,6,7,13,14 (after P0 complete)
+P2 DIFERENCIADOR: Sections 9,10,12 (after P1 complete)
+P3 VISION:     Section 11 (last)
 
-Implemented admin command routing with PodClaw bridge integration:
-
-**Implementation:**
-1. Added admin detection via `user_messaging_links` table
-2. Implemented 6 admin commands: /status, /agents, /run, /pause, /orders, /revenue
-3. Created bridge API integration for agent status
-4. Added verified column to user_messaging_links table
-5. Separate help menus for admin vs customer mode
-
-**Verification:**
-- ✅ Admin user created and linked to Telegram user_id
-- ✅ user_messaging_links table with verified=true
-- ✅ PodClaw bridge online and returning status
-- ✅ /status command returns: "📊 PodClaw Status\n\nStatus: ✅ Running\nActive sessions: 0\nAgents: 8/8"
-- ✅ Test endpoint: GET /api/telegram/test-admin-status
-
-**PodClaw Bridge Response:**
-```json
-{
-  "running": true,
-  "active_sessions": {},
-  "agent_count": 8,
-  "agents": ["researcher", "marketing", "designer", "newsletter", "cataloger", "customer_manager", "seo_manager", "finance"]
-}
-```
-
----
-
-### Files Created This Session
-
-**Migrations:**
-- `supabase/migrations/20260215195323_telegram_whatsapp_messages_only.sql` — Message tables
-- `supabase/migrations/20260215195832_add_verified_column_to_user_messaging_links.sql` — Add verified column
-
-**API Routes:**
-- `frontend/src/app/api/webhooks/telegram/route.ts` — Webhook handler (updated)
-- `frontend/src/app/api/telegram/test-command/route.ts` — Test customer commands
-- `frontend/src/app/api/telegram/test-admin-status/route.ts` — Test admin commands
-
----
-
-### Database Tables Created
-
-**telegram_messages:**
-- id (UUID, PK)
-- update_id, message_id (BIGINT)
-- user_id, chat_id (TEXT) — Telegram IDs
-- username, first_name, last_name, text
-- created_at (TIMESTAMPTZ)
-
-**whatsapp_messages:**
-- id (UUID, PK)
-- message_id (TEXT, UNIQUE)
-- from_number, from_name, text
-- media_url, media_type
-- created_at (TIMESTAMPTZ)
-
-**user_messaging_links (updated):**
-- Added: verified (BOOLEAN, default false)
-- Existing: user_id (FK), platform, platform_user_id, platform_username, linked_at
-
----
-
-### Session Summary
-
-- **Features this session:** +2 (Telegram integration)
-- **Total passing:** 550/599 (91.8%)
-- **Newly passing:** #407, #408
-- **Duration:** ~60 minutes
-- **Commits:** 2 feature commits
-
-**Telegram Integration Status:**
-- ✅ Webhook handler (POST /api/webhooks/telegram)
-- ✅ Message storage in telegram_messages table
-- ✅ Customer commands: /start, /help, /link
-- ✅ Admin commands: /status, /agents, /run, /pause, /orders, /revenue
-- ✅ Admin detection via user_messaging_links table
-- ✅ PodClaw bridge integration for agent status
-- ✅ Separate help menus for admin vs customer mode
-
-**Next Session Priority:**
-- Continue with remaining Telegram features (#409-421)
-  - #409: /agents command lists 8 agents
-  - #410: /run command triggers agent
-  - #411: /pause command pauses agent
-  - #412-#421: Customer mode + conversation storage
-- OR skip to other failing features if Telegram credentials not available
-
----
-
-## Session 145 — 2026-02-15 17:30 UTC
-
-(Previous session notes preserved...)
+## Notes for Coding Sessions
+- ALWAYS read CLAUDE.md before UI changes
+- Admin: use adminFetch() for all API calls, apiUrl() for SSE
+- Never modify existing migration files — create new ones
+- Never modify .env files — they have real API keys
+- Redis is optional everywhere — graceful fallback required
+- Test users: e2e-test@example.com / testpass123456 (frontend), admin@podstore.local / admin123 (admin)
