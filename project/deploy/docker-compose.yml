@@ -269,7 +269,7 @@ services:
   # Caddy — Reverse Proxy with Automatic HTTPS
   # ---------------------------------------------------------------------------
   caddy:
-    image: caddy:2-alpine
+    image: caddy:2.9-alpine
     # Ports defined in override files (local: 8080, prod: 80+443)
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile
