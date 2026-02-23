@@ -1,30 +1,20 @@
-'use client'
-
-import { useState, useEffect, useCallback } from 'react'
-import { useParams, useSearchParams } from 'next/navigation'
-import { useTranslations } from 'next-intl'
-import { Search, X, ChevronLeft, ChevronRight } from 'lucide-react'
-import { ProductGrid } from '@/components/products/ProductGrid'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-
-import { cn } from '@/lib/utils'
-
-type SortOption = 'featured' | 'priceLowToHigh' | 'priceHighToLow' | 'newest' | 'topRated'
+import { Metadata } from 'next'
+import { getTranslations } from 'next-intl/server'
+import { createClient } from '@supabase/supabase-js'
+import { ShopPageClient } from '@/components/shop/ShopPageClient'
 
 interface Product {
   id: string
   title: string
   description: string
-  price: number
+  base_price_cents: number
   currency: string
-  image: string
-  rating: number
-  reviewCount: number
+  avg_rating: number
+  review_count: number
   category: string
-  inStock: boolean
-  createdAt: string
+  status: string
+  created_at: string
+  images: Array<{ src: string; alt: string }>
   variants?: {
     sizes?: string[]
     colors?: string[]
@@ -32,295 +22,217 @@ interface Product {
   }
 }
 
-const PRODUCTS_PER_PAGE = 20
-
-// Map frontend sort keys to API sort params
-const sortMap: Record<SortOption, string | undefined> = {
-  featured: undefined,
-  priceLowToHigh: 'priceLowToHigh',
-  priceHighToLow: 'priceHighToLow',
-  newest: 'newest',
-  topRated: 'topRated',
+interface ShopPageProps {
+  params: Promise<{ locale: string }>
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }
 
-export default function ShopPage() {
-  const params = useParams()
-  const searchParams = useSearchParams()
-  const locale = params?.locale as string || 'en'
-  const t = useTranslations('shop')
-  const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '')
-  const [selectedCategory, setSelectedCategory] = useState<string>(searchParams.get('category') || 'all')
-  const [sortBy, setSortBy] = useState<SortOption>(() => {
-    const s = searchParams.get('sort') as SortOption | null
-    return s && s in sortMap ? s : 'featured'
-  })
-  const [showNewArrivals, setShowNewArrivals] = useState(searchParams.get('newArrivals') === 'true')
-  const [currentPage, setCurrentPage] = useState(1)
-  const [isLoading, setIsLoading] = useState(true)
+type SortOption = 'featured' | 'priceLowToHigh' | 'priceHighToLow' | 'newest' | 'topRated'
 
-  // Sync state from URL when searchParams change (e.g. sidebar navigation)
-  useEffect(() => {
-    setSearchQuery(searchParams.get('q') || '')
-    setSelectedCategory(searchParams.get('category') || 'all')
-    const s = searchParams.get('sort') as SortOption | null
-    setSortBy(s && s in sortMap ? s : 'featured')
-    setShowNewArrivals(searchParams.get('newArrivals') === 'true')
-    setCurrentPage(1)
-  }, [searchParams])
-  const [products, setProducts] = useState<Product[]>([])
-  const [totalProducts, setTotalProducts] = useState(0)
-  const [categories, setCategories] = useState<string[]>(['all'])
-  const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({})
+const PRODUCTS_PER_PAGE = 20
 
-  // Collapsible category chips — show first VISIBLE_COUNT, expand with "+N" button
-  const VISIBLE_COUNT = 6
-  const [showAllCategories, setShowAllCategories] = useState(false)
-  const visibleCategories = showAllCategories ? categories : categories.slice(0, VISIBLE_COUNT)
-  const hiddenCount = categories.length - VISIBLE_COUNT
+// Server Component - generates metadata for SEO
+export async function generateMetadata({ params, searchParams }: ShopPageProps): Promise<Metadata> {
+  const { locale } = await params
+  const search = await searchParams
+  const t = await getTranslations({ locale, namespace: 'shop' })
 
-  const fetchProducts = useCallback(async () => {
-    setIsLoading(true)
-    try {
-      const urlParams = new URLSearchParams()
-      urlParams.set('page', currentPage.toString())
-      urlParams.set('limit', PRODUCTS_PER_PAGE.toString())
-      urlParams.set('locale', locale)
-      if (selectedCategory !== 'all') urlParams.set('category', selectedCategory)
-      if (searchQuery.trim()) urlParams.set('q', searchQuery.trim())
-      if (showNewArrivals) urlParams.set('newArrivals', 'true')
-      const sortParam = sortMap[sortBy]
-      if (sortParam) urlParams.set('sort', sortParam)
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://podai.com'
+  const siteName = process.env.NEXT_PUBLIC_SITE_NAME || 'POD AI'
 
-      const res = await fetch(`/api/products?${urlParams.toString()}`, { cache: 'no-store' })
-      const data = await res.json()
+  const query = search.q as string | undefined
+  const category = search.category as string | undefined
 
-      if (data.success) {
-        setProducts(data.items || [])
-        setTotalProducts(data.total || 0)
-      }
-    } catch (error) {
-      console.error('Error fetching products:', error)
-    } finally {
-      setIsLoading(false)
+  let title = `${t('title')} - ${siteName}`
+  let description = t('subtitle')
+
+  if (query) {
+    title = `Search: ${query} - ${siteName}`
+    description = `Search results for "${query}" in our custom print-on-demand products`
+  } else if (category && category !== 'all') {
+    const categoryName = t.has(`category.${category}`) ? t(`category.${category}`) : category
+    title = `${categoryName} - ${siteName}`
+    description = `Browse our collection of ${categoryName} products`
+  }
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      url: `${baseUrl}/${locale}/shop`,
+      siteName,
+      locale,
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+    },
+    alternates: {
+      canonical: `${baseUrl}/${locale}/shop`,
+      languages: {
+        'en': `${baseUrl}/en/shop`,
+        'es': `${baseUrl}/es/shop`,
+        'de': `${baseUrl}/de/shop`,
+      },
+    },
+  }
+}
+
+// Server Component - fetches data and renders
+export default async function ShopPage({ params, searchParams }: ShopPageProps) {
+  const { locale } = await params
+  const search = await searchParams
+
+  // Extract search parameters
+  const query = search.q as string | undefined
+  const category = (search.category as string) || 'all'
+  const sort = (search.sort as SortOption) || 'featured'
+  const newArrivals = search.newArrivals === 'true'
+
+  // Fetch products on the server (using anon key for public data)
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
+
+  // Build query
+  let productsQuery = supabase
+    .from('products')
+    .select('id, title, description, base_price_cents, currency, avg_rating, review_count, category, status, created_at, images, variants', { count: 'exact' })
+    .eq('status', 'active')
+
+  // Apply filters
+  if (category && category !== 'all') {
+    productsQuery = productsQuery.eq('category', category)
+  }
+
+  if (query && query.trim()) {
+    productsQuery = productsQuery.or(`title.ilike.%${query}%,description.ilike.%${query}%`)
+  }
+
+  if (newArrivals) {
+    const thirtyDaysAgo = new Date()
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+    productsQuery = productsQuery.gte('created_at', thirtyDaysAgo.toISOString())
+  }
+
+  // Apply sorting
+  switch (sort) {
+    case 'priceLowToHigh':
+      productsQuery = productsQuery.order('base_price_cents', { ascending: true })
+      break
+    case 'priceHighToLow':
+      productsQuery = productsQuery.order('base_price_cents', { ascending: false })
+      break
+    case 'newest':
+      productsQuery = productsQuery.order('created_at', { ascending: false })
+      break
+    case 'topRated':
+      productsQuery = productsQuery.order('avg_rating', { ascending: false })
+      break
+    case 'featured':
+    default:
+      productsQuery = productsQuery.order('created_at', { ascending: false })
+      break
+  }
+
+  // Paginate
+  productsQuery = productsQuery.range(0, PRODUCTS_PER_PAGE - 1)
+
+  const { data: productsData, count: totalCount } = await productsQuery
+
+  // Fetch all categories for filters
+  const { data: allProductsData } = await supabase
+    .from('products')
+    .select('category')
+    .eq('status', 'active')
+
+  // Calculate category counts
+  const categoryCounts: Record<string, number> = { all: totalCount || 0 }
+  if (allProductsData) {
+    for (const p of allProductsData) {
+      const cat = p.category || 'other'
+      categoryCounts[cat] = (categoryCounts[cat] || 0) + 1
     }
-  }, [currentPage, locale, selectedCategory, searchQuery, sortBy, showNewArrivals])
-
-  // Fetch all products once to extract categories
-  useEffect(() => {
-    async function fetchCategories() {
-      try {
-        const res = await fetch(`/api/products?limit=100&locale=${locale}`, { cache: 'no-store' })
-        const data = await res.json()
-        if (data.success && data.items) {
-          const counts: Record<string, number> = {}
-          for (const p of data.items as Product[]) {
-            const cat = p.category || 'other'
-            counts[cat] = (counts[cat] || 0) + 1
-          }
-          const cats = Object.keys(counts).filter(Boolean)
-          setCategories(['all', ...cats])
-          setCategoryCounts({ all: data.items.length, ...counts })
-        }
-      } catch (error) {
-        console.error('Error fetching categories:', error)
-      }
-    }
-    fetchCategories()
-  }, [locale])
-
-  // Fetch products when filters change
-  useEffect(() => {
-    fetchProducts()
-  }, [fetchProducts])
-
-  const totalPages = Math.ceil(totalProducts / PRODUCTS_PER_PAGE)
-
-  const getCategoryCount = (category: string) => categoryCounts[category] ?? 0
-
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    setCurrentPage(1)
   }
 
-  const clearSearch = () => {
-    setSearchQuery('')
-    setCurrentPage(1)
-  }
+  const categories = ['all', ...Object.keys(categoryCounts).filter(c => c !== 'all')]
 
-  const handleCategoryChange = (category: string) => {
-    setSelectedCategory(category)
-    setCurrentPage(1)
-  }
+  // Transform products for client component
+  const products = (productsData || []).map((p: Product) => ({
+    id: p.id,
+    title: p.title,
+    description: p.description,
+    price: p.base_price_cents / 100, // Convert cents to currency units
+    currency: p.currency || 'EUR',
+    rating: p.avg_rating || 0,
+    reviewCount: p.review_count || 0,
+    category: p.category,
+    inStock: p.status === 'active',
+    createdAt: p.created_at,
+    image: p.images?.[0]?.src || '',
+    variants: p.variants,
+  }))
 
-  const handleSortChange = (value: SortOption) => {
-    setSortBy(value)
-    setCurrentPage(1)
-  }
+  // Get translations for JSON-LD
+  const t = await getTranslations({ locale, namespace: 'shop' })
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://podai.com'
+  const siteName = process.env.NEXT_PUBLIC_SITE_NAME || 'POD AI'
 
-  const goToPage = (page: number) => {
-    setCurrentPage(page)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+  // JSON-LD structured data for SEO - ItemList schema
+  const itemListSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: t('title'),
+    description: t('subtitle'),
+    numberOfItems: totalCount || 0,
+    itemListElement: products.slice(0, 10).map((product, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      item: {
+        '@type': 'Product',
+        '@id': `${baseUrl}/${locale}/products/${product.id}`,
+        name: product.title,
+        description: product.description,
+        image: product.image,
+        offers: {
+          '@type': 'Offer',
+          price: product.price,
+          priceCurrency: product.currency,
+          availability: product.inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+          url: `${baseUrl}/${locale}/products/${product.id}`,
+        },
+        aggregateRating: product.rating > 0 ? {
+          '@type': 'AggregateRating',
+          ratingValue: product.rating,
+          reviewCount: product.reviewCount,
+        } : undefined,
+      },
+    })),
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold tracking-tight mb-2">{t('title')}</h1>
-        <p className="text-lg text-muted-foreground">{t('subtitle')}</p>
-        <p className="text-sm text-muted-foreground mt-2">
-          {t('totalProducts', { count: totalProducts })}
-        </p>
-      </div>
-
-      {/* Search Bar */}
-      <form onSubmit={handleSearchSubmit} className="mb-8">
-        <div className="relative max-w-2xl">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-5 text-muted-foreground" />
-          <Input
-            type="text"
-            placeholder={t('searchPlaceholder')}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 pr-10"
-          />
-          {searchQuery && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={clearSearch}
-              className="absolute right-1 top-1/2 -translate-y-1/2 size-8"
-            >
-              <X className="size-4" />
-            </Button>
-          )}
-        </div>
-      </form>
-
-      {/* Category Filters and Sort */}
-      <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-        {/* Collapsible category chips */}
-        <div className="flex flex-wrap gap-1.5">
-          {visibleCategories.map((category) => (
-            <Button
-              key={category}
-              variant={selectedCategory === category ? 'default' : 'outline'}
-              size="sm"
-              className="rounded-full"
-              onClick={() => handleCategoryChange(category)}
-            >
-              {t.has(`category.${category}`) ? t(`category.${category}`) : category.charAt(0).toUpperCase() + category.slice(1)}
-              <span className="ml-1 opacity-60">{getCategoryCount(category)}</span>
-            </Button>
-          ))}
-          {hiddenCount > 0 && !showAllCategories && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="rounded-full border-dashed"
-              onClick={() => setShowAllCategories(true)}
-            >
-              +{hiddenCount}
-            </Button>
-          )}
-          {showAllCategories && hiddenCount > 0 && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="rounded-full size-8"
-              onClick={() => setShowAllCategories(false)}
-            >
-              <X className="size-3.5" />
-            </Button>
-          )}
-        </div>
-
-        {/* Sort selector */}
-        <div className="flex items-center gap-2 shrink-0">
-          <label htmlFor="sort" className="text-sm font-medium whitespace-nowrap">
-            {t('sortBy')}:
-          </label>
-          <Select value={sortBy} onValueChange={(value) => handleSortChange(value as SortOption)}>
-            <SelectTrigger id="sort" className="w-[200px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="featured">{t('sort.featured')}</SelectItem>
-              <SelectItem value="priceLowToHigh">{t('sort.priceLowToHigh')}</SelectItem>
-              <SelectItem value="priceHighToLow">{t('sort.priceHighToLow')}</SelectItem>
-              <SelectItem value="newest">{t('sort.newest')}</SelectItem>
-              <SelectItem value="topRated">{t('sort.topRated')}</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      {/* Results count */}
-      {(searchQuery || selectedCategory !== 'all') && (
-        <div className="mb-4">
-          <p className="text-sm text-muted-foreground">
-            {searchQuery
-              ? t('searchResults', { count: totalProducts, query: searchQuery })
-              : t('categoryResults', { count: totalProducts })}
-          </p>
-        </div>
-      )}
-
-      <ProductGrid
-        products={products}
-        isLoading={isLoading}
-        emptyMessage={
-          searchQuery
-            ? t('noResults', { query: searchQuery })
-            : selectedCategory !== 'all'
-              ? t('noCategoryResults', { category: t(`category.${selectedCategory}`) })
-              : t('noProducts')
-        }
-        skeletonCount={PRODUCTS_PER_PAGE}
+    <>
+      {/* JSON-LD structured data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListSchema) }}
       />
 
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="mt-8 flex items-center justify-center gap-2">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => goToPage(currentPage - 1)}
-            disabled={currentPage === 1}
-            aria-label="Previous page"
-          >
-            <ChevronLeft className="size-4" />
-          </Button>
-
-          <div className="flex gap-1">
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-              <Button
-                key={page}
-                variant={currentPage === page ? 'default' : 'outline'}
-                size="icon"
-                onClick={() => goToPage(page)}
-                className={cn(
-                  'size-10',
-                  currentPage === page && 'bg-primary text-primary-foreground'
-                )}
-              >
-                {page}
-              </Button>
-            ))}
-          </div>
-
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => goToPage(currentPage + 1)}
-            disabled={currentPage === totalPages}
-            aria-label="Next page"
-          >
-            <ChevronRight className="size-4" />
-          </Button>
-        </div>
-      )}
-
-    </div>
+      <ShopPageClient
+        locale={locale}
+        initialProducts={products}
+        initialTotal={totalCount || 0}
+        initialCategories={categories}
+        initialCategoryCounts={categoryCounts}
+        searchQuery={query}
+        category={category}
+        sort={sort}
+      />
+    </>
   )
 }
