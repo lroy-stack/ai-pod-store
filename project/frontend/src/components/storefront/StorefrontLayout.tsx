@@ -23,7 +23,7 @@ import { StorefrontSidebar } from './StorefrontSidebar'
 import { StorefrontHeader } from './StorefrontHeader'
 import { DetailPanel } from './DetailPanel'
 import { Footer } from '@/components/Footer'
-import { Sheet, SheetContent } from '@/components/ui/sheet'
+import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
 import { useSidebarCollapsed } from '@/hooks/useSidebarCollapsed'
 import { cn } from '@/lib/utils'
 import { OfflineBanner } from '@/components/OfflineBanner'
@@ -92,6 +92,7 @@ function StorefrontShell({ children }: { children: React.ReactNode }) {
       {/* Left Sidebar - Mobile (Sheet drawer) */}
       <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
         <SheetContent side="left" className="w-60 p-0">
+          <SheetTitle className="sr-only">{t('navigation')}</SheetTitle>
           <StorefrontSidebar onNavigate={() => setIsSidebarOpen(false)} />
         </SheetContent>
       </Sheet>

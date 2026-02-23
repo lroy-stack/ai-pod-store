@@ -1959,3 +1959,57 @@ Both categories API endpoints were already fully implemented. This session verif
 - Total: 48/321 (15.0%)
 - Next target: ID 49 — Shop page filters by category using category_id FK
 
+
+
+### Feature #49: Sidebar shows category navigation
+
+**Status:** ✅ PASSING
+
+**What was implemented:**
+Added category navigation to StorefrontSidebar with icons, product counts, and mobile responsiveness. Fixed two accessibility issues found during testing.
+
+**Files modified:**
+1. `frontend/src/components/storefront/StorefrontSidebar.tsx` — Added category section
+2. `frontend/src/components/storefront/StorefrontLayout.tsx` — Added SheetTitle for accessibility
+3. `frontend/messages/en.json` — Added "categories" translation
+4. `frontend/messages/es.json` — Added "Categorías" translation
+5. `frontend/messages/de.json` — Added "Kategorien" translation
+
+**Implementation details:**
+- **Category fetching**: Fetches from `/api/categories?locale={locale}` on mount
+- **Icon mapping**: Uses Lucide React icons mapped from database icon names (shirt → Shirt, coffee → Coffee, etc.)
+- **Filtering**: Shows only top-level categories (`parent_id === null`) in sidebar
+- **Collapsible**: Section can be collapsed/expanded with chevron toggle
+- **Navigation**: Uses path-based routing `/shop/category/[slug]` (not query params)
+- **Active state**: Matches pathname to highlight active category with `bg-primary/10 text-primary`
+- **Product counts**: Displays badge with count only if `product_count > 0`
+- **Responsive**: Works on desktop and mobile Sheet drawer
+
+**Accessibility fixes (from browser testing):**
+1. **Touch target size**: Changed `py-2` → `py-3` for 44px minimum (was 36px)
+2. **Screen reader support**: Added `<SheetTitle className="sr-only">` to mobile Sheet for ARIA compliance
+
+**Browser testing results:**
+✅ Step 1: Categories section visible with 8 categories
+✅ Step 2: Each category has Lucide icon + name + product count badge
+✅ Step 3: Click navigation works → /en/shop/category/apparel loads correctly
+✅ Step 4: Active category highlighted in blue (`bg-primary/10 text-primary`)
+✅ Step 5: Mobile responsive - Sheet opens, categories tappable, 44px touch targets
+
+**Categories displayed (8 total):**
+- Apparel (Shirt icon, 3 products)
+- Accessories (ShoppingBag icon, 0 products)
+- Drinkware (Coffee icon, 5 products)
+- Home Decor (Home icon, 4 products)
+- Kitchen (Utensils icon, 0 products)
+- Kids (Baby icon, 0 products)
+- Games (Gamepad icon, 0 products)
+- Stationery (Pencil icon, 0 products)
+
+**Commit:** (to be created)
+
+### Progress Update
+- Features this session: +3 (IDs 47 verification, 48 verification, 49 implementation)
+- Total: 49/321 (15.3%)
+- Next target: ID 50 — Shop page filters by category
+

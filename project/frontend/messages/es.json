@@ -558,6 +558,8 @@
     "newArrivals": "Nuevos Productos",
     "favorites": "Favoritos",
     "orders": "Pedidos",
+    "categories": "Categorías",
+    "allCategories": "Todas las Categorías",
     "recommended": "Recomendados",
     "popularToday": "Popular Hoy",
     "lastDesignGenerated": "Último diseño hace 2m",
@@ -676,7 +678,8 @@
     "itemsInCartCount": "{count} {count, plural, one {artículo} other {artículos}} en el carrito",
     "errorLoadingResults": "Error al cargar resultados",
     "collapseSidebar": "Contraer barra lateral",
-    "podclawActive": "Gestor de tienda IA activo"
+    "podclawActive": "Gestor de tienda IA activo",
+    "categories": "Categorías"
   },
   "commandPalette": {
     "searchPlaceholder": "Buscar páginas, productos o acciones...",

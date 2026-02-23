@@ -558,6 +558,8 @@
     "newArrivals": "Neuheiten",
     "favorites": "Favoriten",
     "orders": "Bestellungen",
+    "categories": "Kategorien",
+    "allCategories": "Alle Kategorien",
     "recommended": "Empfohlen",
     "popularToday": "Heute Beliebt",
     "lastDesignGenerated": "Letztes Design vor 2m",
@@ -676,7 +678,8 @@
     "itemsInCartCount": "{count} {count, plural, one {Artikel} other {Artikel}} im Warenkorb",
     "errorLoadingResults": "Fehler beim Laden der Ergebnisse",
     "collapseSidebar": "Seitenleiste einklappen",
-    "podclawActive": "KI-Shop-Manager aktiv"
+    "podclawActive": "KI-Shop-Manager aktiv",
+    "categories": "Kategorien"
   },
   "commandPalette": {
     "searchPlaceholder": "Seiten, Produkte oder Aktionen suchen...",
