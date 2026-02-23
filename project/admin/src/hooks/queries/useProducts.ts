@@ -13,30 +13,35 @@ export interface Product {
 
 interface ProductsResponse {
   products: Product[];
-  total?: number;
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
 }
 
 interface UseProductsOptions {
+  page?: number;
   limit?: number;
-  offset?: number;
   status?: string;
   category?: string;
+  search?: string;
 }
 
 export function useProducts(
   options: UseProductsOptions = {},
   queryOptions?: Omit<UseQueryOptions<ProductsResponse>, 'queryKey' | 'queryFn'>
 ) {
-  const { limit = 50, offset = 0, status, category } = options;
+  const { page = 1, limit = 20, status, category, search } = options;
 
   return useQuery<ProductsResponse>({
-    queryKey: ['products', { limit, offset, status, category }],
+    queryKey: ['products', { page, limit, status, category, search }],
     queryFn: async () => {
       const params = new URLSearchParams();
+      params.append('page', page.toString());
       params.append('limit', limit.toString());
-      if (offset) params.append('offset', offset.toString());
       if (status) params.append('status', status);
       if (category) params.append('category', category);
+      if (search) params.append('search', search);
 
       const res = await adminFetch(`/api/products?${params.toString()}`);
 

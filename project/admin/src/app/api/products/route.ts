@@ -7,13 +7,26 @@ import { logCreate } from '@/lib/audit';
 export const GET = withPermission('products', 'read', async (req: NextRequest) => {
   try {
     const { searchParams } = new URL(req.url);
-    const limit = parseInt(searchParams.get('limit') || '50');
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '20');
+    const search = searchParams.get('search') || '';
+    const offset = (page - 1) * limit;
 
-    const { data: products, error } = await supabaseAdmin
+    // Build query
+    let query = supabaseAdmin
       .from('products')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(limit);
+      .select('*', { count: 'exact' })
+      .order('created_at', { ascending: false });
+
+    // Add search filter if provided
+    if (search) {
+      query = query.or(`title.ilike.%${search}%,category.ilike.%${search}%`);
+    }
+
+    // Add pagination
+    query = query.range(offset, offset + limit - 1);
+
+    const { data: products, error, count } = await query;
 
     if (error) {
       console.error('Products fetch error:', error);
@@ -23,7 +36,16 @@ export const GET = withPermission('products', 'read', async (req: NextRequest) =
       );
     }
 
-    return NextResponse.json({ products: products || [] });
+    const total = count || 0;
+    const totalPages = Math.ceil(total / limit);
+
+    return NextResponse.json({
+      products: products || [],
+      total,
+      page,
+      limit,
+      totalPages,
+    });
   } catch (error) {
     console.error('Products error:', error);
     return NextResponse.json(

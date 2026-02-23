@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase-admin';
 import { NextResponse } from 'next/server';
 import { getAdminSession } from '@/lib/rbac';
 
-export async function GET() {
+export async function GET(req: Request) {
   // Require authentication
   const session = await getAdminSession();
   if (!session) {
@@ -13,6 +13,11 @@ export async function GET() {
   }
 
   try {
+    const { searchParams } = new URL(req.url);
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '20');
+    const search = searchParams.get('search') || '';
+
     const supabase = createClient();
 
     // Get all orders with user information
@@ -56,10 +61,32 @@ export async function GET() {
     });
 
     // Convert to array and sort by total spent
-    const customers = Array.from(customerMap.values())
+    let customers = Array.from(customerMap.values())
       .sort((a, b) => b.totalSpent - a.totalSpent);
 
-    return NextResponse.json(customers);
+    // Apply search filter
+    if (search) {
+      const query = search.toLowerCase();
+      customers = customers.filter(
+        (c) =>
+          c.email.toLowerCase().includes(query) ||
+          c.name.toLowerCase().includes(query)
+      );
+    }
+
+    // Calculate pagination
+    const total = customers.length;
+    const totalPages = Math.ceil(total / limit);
+    const offset = (page - 1) * limit;
+    const paginatedCustomers = customers.slice(offset, offset + limit);
+
+    return NextResponse.json({
+      customers: paginatedCustomers,
+      total,
+      page,
+      limit,
+      totalPages,
+    });
   } catch (error) {
     console.error('Error in customers API:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

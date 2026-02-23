@@ -1,30 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { cookies } from 'next/headers'
-
-// Admin auth check
-async function checkAdminAuth() {
-  const cookieStore = await cookies()
-  const sessionCookie = cookieStore.get('admin-session')
-
-  if (!sessionCookie) {
-    return null
-  }
-
-  try {
-    const session = JSON.parse(sessionCookie.value)
-    if (session.role !== 'admin') {
-      return null
-    }
-    return session
-  } catch {
-    return null
-  }
-}
+import { getAdminSession } from '@/lib/rbac'
 
 export async function GET(request: NextRequest) {
   // Check admin authentication
-  const session = await checkAdminAuth()
+  const session = await getAdminSession()
   if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
@@ -45,19 +25,30 @@ export async function GET(request: NextRequest) {
     // Get query params for filtering
     const { searchParams } = new URL(request.url)
     const status = searchParams.get('status')
+    const page = parseInt(searchParams.get('page') || '1')
+    const limit = parseInt(searchParams.get('limit') || '20')
+    const search = searchParams.get('search') || ''
+    const offset = (page - 1) * limit
 
     let query = supabase
       .from('designs')
-      .select('*')
+      .select('*', { count: 'exact' })
       .order('created_at', { ascending: false })
-      .limit(100)
 
     // Filter by status if provided
     if (status && ['pending', 'approved', 'rejected'].includes(status)) {
       query = query.eq('moderation_status', status)
     }
 
-    const { data, error } = await query
+    // Filter by search if provided
+    if (search) {
+      query = query.or(`prompt.ilike.%${search}%,style.ilike.%${search}%`)
+    }
+
+    // Add pagination
+    query = query.range(offset, offset + limit - 1)
+
+    const { data, error, count } = await query
 
     if (error) {
       console.error('Supabase error:', error)
@@ -67,7 +58,16 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    return NextResponse.json({ designs: data || [] })
+    const total = count || 0
+    const totalPages = Math.ceil(total / limit)
+
+    return NextResponse.json({
+      designs: data || [],
+      total,
+      page,
+      limit,
+      totalPages,
+    })
   } catch (error) {
     console.error('Error fetching designs:', error)
     return NextResponse.json(

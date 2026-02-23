@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { adminFetch } from '@/lib/admin-api'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -11,48 +11,27 @@ import { Textarea } from '@/components/ui/textarea'
 import { CheckCircle, XCircle, Clock, Loader2, Eye } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
-
-interface Design {
-  id: string
-  prompt: string
-  style: string | null
-  model: string | null
-  image_url: string | null
-  thumbnail_url: string | null
-  width: number | null
-  height: number | null
-  moderation_status: 'pending' | 'approved' | 'rejected'
-  moderation_notes: string | null
-  created_at: string
-  user_id: string | null
-}
+import { useDesigns } from '@/hooks/queries/useDesigns'
 
 export default function DesignsPage() {
-  const [designs, setDesigns] = useState<Design[]>([])
-  const [loading, setLoading] = useState(true)
+  const [page, setPage] = useState(1)
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all')
   const [actionLoading, setActionLoading] = useState<string | null>(null)
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false)
   const [rejectingDesignId, setRejectingDesignId] = useState<string | null>(null)
   const [rejectionNotes, setRejectionNotes] = useState('')
 
-  useEffect(() => {
-    fetchDesigns()
-  }, [])
+  // React Query hook for data fetching
+  const { data, isLoading, refetch } = useDesigns({
+    page,
+    limit: 20,
+    status: filter === 'all' ? undefined : filter,
+  })
 
-  const fetchDesigns = async () => {
-    try {
-      setLoading(true)
-      const response = await adminFetch('/api/designs')
-      if (!response.ok) throw new Error('Failed to fetch designs')
-      const data = await response.json()
-      setDesigns(data.designs || [])
-    } catch (error) {
-      console.error('Error fetching designs:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
+  const designs = data?.designs || []
+  const loading = isLoading
+  const total = data?.total || 0
+  const totalPages = data?.totalPages || 1
 
   const handleApprove = async (designId: string) => {
     try {
@@ -64,10 +43,9 @@ export default function DesignsPage() {
       })
       if (!response.ok) throw new Error('Failed to approve design')
 
-      // Update local state
-      setDesigns(prev => prev.map(d =>
-        d.id === designId ? { ...d, moderation_status: 'approved' } : d
-      ))
+      // Refetch data
+      await refetch()
+      toast.success('Design approved successfully')
     } catch (error) {
       console.error('Error approving design:', error)
       toast.error('Failed to approve design')
@@ -97,10 +75,9 @@ export default function DesignsPage() {
       })
       if (!response.ok) throw new Error('Failed to reject design')
 
-      // Update local state
-      setDesigns(prev => prev.map(d =>
-        d.id === rejectingDesignId ? { ...d, moderation_status: 'rejected', moderation_notes: rejectionNotes || null } : d
-      ))
+      // Refetch data
+      await refetch()
+      toast.success('Design rejected')
 
       setRejectDialogOpen(false)
       setRejectingDesignId(null)
@@ -113,15 +90,9 @@ export default function DesignsPage() {
     }
   }
 
-  const filteredDesigns = filter === 'all'
-    ? designs
-    : designs.filter(d => d.moderation_status === filter)
-
-  const statusCounts = {
-    all: designs.length,
-    pending: designs.filter(d => d.moderation_status === 'pending').length,
-    approved: designs.filter(d => d.moderation_status === 'approved').length,
-    rejected: designs.filter(d => d.moderation_status === 'rejected').length,
+  const handleFilterChange = (newFilter: 'all' | 'pending' | 'approved' | 'rejected') => {
+    setFilter(newFilter)
+    setPage(1) // Reset to first page on filter change
   }
 
   return (
@@ -133,12 +104,12 @@ export default function DesignsPage() {
         </p>
       </div>
 
-      <Tabs value={filter} onValueChange={(v) => setFilter(v as typeof filter)}>
+      <Tabs value={filter} onValueChange={(v) => handleFilterChange(v as typeof filter)}>
         <TabsList>
-          <TabsTrigger value="all">All ({statusCounts.all})</TabsTrigger>
-          <TabsTrigger value="pending">Pending ({statusCounts.pending})</TabsTrigger>
-          <TabsTrigger value="approved">Approved ({statusCounts.approved})</TabsTrigger>
-          <TabsTrigger value="rejected">Rejected ({statusCounts.rejected})</TabsTrigger>
+          <TabsTrigger value="all">All</TabsTrigger>
+          <TabsTrigger value="pending">Pending</TabsTrigger>
+          <TabsTrigger value="approved">Approved</TabsTrigger>
+          <TabsTrigger value="rejected">Rejected</TabsTrigger>
         </TabsList>
 
         <TabsContent value={filter} className="mt-6">
@@ -146,13 +117,14 @@ export default function DesignsPage() {
             <div className="flex items-center justify-center py-12">
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
-          ) : filteredDesigns.length === 0 ? (
+          ) : designs.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               No designs found for this filter
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {filteredDesigns.map((design) => (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {designs.map((design) => (
                 <Card key={design.id} className="overflow-hidden">
                   <div className="relative aspect-square bg-muted">
                     {design.image_url ? (
@@ -241,7 +213,38 @@ export default function DesignsPage() {
                   </CardContent>
                 </Card>
               ))}
-            </div>
+              </div>
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="mt-6 flex items-center justify-between">
+                  <p className="text-sm text-muted-foreground">
+                    Showing {designs.length} of {total} designs
+                  </p>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setPage(page - 1)}
+                      disabled={page === 1}
+                    >
+                      Previous
+                    </Button>
+                    <span className="px-4 py-2 text-sm">
+                      Page {page} of {totalPages}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setPage(page + 1)}
+                      disabled={page === totalPages}
+                    >
+                      Next
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </TabsContent>
       </Tabs>

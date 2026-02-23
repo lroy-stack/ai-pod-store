@@ -12,9 +12,11 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { Search } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
+import { useCustomers } from '@/hooks/queries/useCustomers';
 
 interface Customer {
   email: string;
@@ -57,48 +59,35 @@ interface CustomerProfile {
 }
 
 export default function CustomersPage() {
-  const [customers, setCustomers] = useState<Customer[]>([]);
-  const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [customerProfile, setCustomerProfile] = useState<CustomerProfile | null>(null);
   const [customerOrders, setCustomerOrders] = useState<Order[]>([]);
   const [loadingDetails, setLoadingDetails] = useState(false);
 
+  // Debounce search input
   useEffect(() => {
-    fetchCustomers();
-  }, []);
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+      setPage(1); // Reset to first page on search
+    }, 500);
 
-  useEffect(() => {
-    if (searchQuery.trim() === '') {
-      setFilteredCustomers(customers);
-    } else {
-      const query = searchQuery.toLowerCase();
-      setFilteredCustomers(
-        customers.filter(
-          (c) =>
-            c.email.toLowerCase().includes(query) ||
-            c.name.toLowerCase().includes(query)
-        )
-      );
-    }
-  }, [searchQuery, customers]);
+    return () => clearTimeout(timer);
+  }, [search]);
 
-  const fetchCustomers = async () => {
-    try {
-      const response = await adminFetch('/api/customers');
-      if (response.ok) {
-        const data = await response.json();
-        setCustomers(data);
-        setFilteredCustomers(data);
-      }
-    } catch (error) {
-      console.error('Error fetching customers:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // React Query hook for data fetching
+  const { data, isLoading } = useCustomers({
+    page,
+    limit: 20,
+    search: debouncedSearch || undefined,
+  });
+
+  const customers = data?.customers || [];
+  const loading = isLoading;
+  const total = data?.total || 0;
+  const totalPages = data?.totalPages || 1;
 
   const handleCustomerClick = async (customer: Customer) => {
     setSelectedCustomer(customer);
@@ -171,8 +160,8 @@ export default function CustomersPage() {
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   placeholder="Search by name or email..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
                   className="pl-10"
                 />
               </div>
@@ -180,8 +169,12 @@ export default function CustomersPage() {
           </CardHeader>
           <CardContent>
             {loading ? (
-              <p className="text-center py-8 text-muted-foreground">Loading customers...</p>
-            ) : filteredCustomers.length === 0 ? (
+              <div className="space-y-2">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <div key={i} className="h-12 bg-muted rounded animate-pulse" />
+                ))}
+              </div>
+            ) : customers.length === 0 ? (
               <p className="text-center py-8 text-muted-foreground">No customers found</p>
             ) : (
               <>
@@ -197,7 +190,7 @@ export default function CustomersPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filteredCustomers.map((customer) => (
+                      {customers.map((customer) => (
                         <TableRow
                           key={customer.email}
                           onClick={() => handleCustomerClick(customer)}
@@ -217,7 +210,7 @@ export default function CustomersPage() {
 
                 {/* Mobile Card View */}
                 <div className="block md:hidden space-y-4">
-                  {filteredCustomers.map((customer) => (
+                  {customers.map((customer) => (
                     <button
                       key={customer.email}
                       onClick={() => handleCustomerClick(customer)}
@@ -242,6 +235,36 @@ export default function CustomersPage() {
                     </button>
                   ))}
                 </div>
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div className="mt-6 flex items-center justify-between border-t pt-4">
+                    <p className="text-sm text-muted-foreground">
+                      Showing {customers.length} of {total} customers
+                    </p>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPage(page - 1)}
+                        disabled={page === 1}
+                      >
+                        Previous
+                      </Button>
+                      <span className="px-4 py-2 text-sm">
+                        Page {page} of {totalPages}
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPage(page + 1)}
+                        disabled={page === totalPages}
+                      >
+                        Next
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </>
             )}
           </CardContent>
