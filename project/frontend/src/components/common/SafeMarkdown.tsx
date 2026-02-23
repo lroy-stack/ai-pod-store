@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import ReactMarkdown from 'react-markdown'
+import ReactMarkdown, { Components } from 'react-markdown'
 import DOMPurify from 'dompurify'
 
 /**
@@ -13,15 +13,20 @@ import DOMPurify from 'dompurify'
  * @example
  * ```tsx
  * <SafeMarkdown>{userGeneratedContent}</SafeMarkdown>
+ * // With custom components for styling:
+ * <SafeMarkdown components={{ h1: (props) => <h1 className="..." {...props} /> }}>
+ *   {content}
+ * </SafeMarkdown>
  * ```
  */
 
 interface SafeMarkdownProps {
   children: string
   className?: string
+  components?: Components
 }
 
-export function SafeMarkdown({ children, className }: SafeMarkdownProps) {
+export function SafeMarkdown({ children, className, components }: SafeMarkdownProps) {
   // SECURITY: Sanitize markdown content to prevent XSS
   const sanitized = React.useMemo(() => {
     return DOMPurify.sanitize(children, {
@@ -39,7 +44,7 @@ export function SafeMarkdown({ children, className }: SafeMarkdownProps) {
   }, [children])
 
   return (
-    <ReactMarkdown className={className}>
+    <ReactMarkdown className={className} components={components}>
       {sanitized}
     </ReactMarkdown>
   )
