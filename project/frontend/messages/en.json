@@ -1189,13 +1189,10 @@
     "howToMeasure": "How to Measure",
     "howToMeasureDesc": "For the most accurate measurements, use a soft measuring tape and measure over bare skin or light clothing. Keep the tape snug but not tight, and make sure it's parallel to the floor.",
     "tshirts": "T-Shirts & Tops",
-    "tshirtsDesc": "Unisex sizing — measurements in inches",
     "hoodies": "Hoodies & Sweatshirts",
-    "hoodiesDesc": "Unisex sizing — measurements in inches",
     "phoneCases": "Phone Cases",
     "phoneCasesDesc": "Compatible device models",
     "posters": "Posters & Prints",
-    "postersDesc": "Available sizes — measurements in inches",
     "size": "Size",
     "chestWidth": "Chest Width",
     "bodyLength": "Body Length",
@@ -1217,6 +1214,10 @@
     "unsureTitle": "Still unsure about sizing?",
     "unsureDesc": "If you're between sizes, we recommend sizing up for a more comfortable fit. For specific product measurements or sizing questions, please",
     "contactLink": "contact our support team",
-    "unsureSuffix": "We're here to help!"
+    "unsureSuffix": "We're here to help!",
+    "toggleUnit": "Switch between inches and centimeters",
+    "unisexSizing": "Unisex sizing",
+    "measurementsIn": "measurements in",
+    "availableSizes": "Available sizes"
   }
 }

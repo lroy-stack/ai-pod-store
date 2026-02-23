@@ -1189,13 +1189,10 @@
     "howToMeasure": "Cómo Medir",
     "howToMeasureDesc": "Para mediciones más precisas, usa una cinta métrica flexible y mide sobre la piel desnuda o ropa ligera. Mantén la cinta ajustada pero sin apretar, y asegúrate de que esté paralela al suelo.",
     "tshirts": "Camisetas",
-    "tshirtsDesc": "Tallas unisex — medidas en centímetros",
     "hoodies": "Sudaderas con Capucha",
-    "hoodiesDesc": "Tallas unisex — medidas en centímetros",
     "phoneCases": "Fundas de Teléfono",
     "phoneCasesDesc": "Modelos compatibles",
     "posters": "Pósters e Impresiones",
-    "postersDesc": "Tamaños disponibles — medidas en centímetros",
     "size": "Talla",
     "chestWidth": "Ancho de Pecho",
     "bodyLength": "Largo del Cuerpo",
@@ -1217,6 +1214,10 @@
     "unsureTitle": "¿No estás seguro de tu talla?",
     "unsureDesc": "Si estás entre dos tallas, recomendamos elegir la talla más grande para mayor comodidad. Para medidas específicas de productos o preguntas sobre tallas,",
     "contactLink": "contacta a nuestro equipo de soporte",
-    "unsureSuffix": "¡Estamos aquí para ayudarte!"
+    "unsureSuffix": "¡Estamos aquí para ayudarte!",
+    "toggleUnit": "Cambiar entre pulgadas y centímetros",
+    "unisexSizing": "Tallas unisex",
+    "measurementsIn": "medidas en",
+    "availableSizes": "Tamaños disponibles"
   }
 }

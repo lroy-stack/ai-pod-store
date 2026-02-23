@@ -1189,13 +1189,10 @@
     "howToMeasure": "Richtig Messen",
     "howToMeasureDesc": "Für die genauesten Messungen verwenden Sie ein weiches Maßband und messen Sie über nackter Haut oder leichter Kleidung. Halten Sie das Band eng aber nicht straff, und stellen Sie sicher, dass es parallel zum Boden verläuft.",
     "tshirts": "T-Shirts & Oberteile",
-    "tshirtsDesc": "Unisex-Größen — Maße in Zentimetern",
     "hoodies": "Hoodies & Sweatshirts",
-    "hoodiesDesc": "Unisex-Größen — Maße in Zentimetern",
     "phoneCases": "Handyhüllen",
     "phoneCasesDesc": "Kompatible Gerätemodelle",
     "posters": "Poster & Drucke",
-    "postersDesc": "Verfügbare Größen — Maße in Zentimetern",
     "size": "Größe",
     "chestWidth": "Brustbreite",
     "bodyLength": "Körperlänge",
@@ -1217,6 +1214,10 @@
     "unsureTitle": "Noch unsicher bei der Größe?",
     "unsureDesc": "Wenn Sie zwischen zwei Größen liegen, empfehlen wir die größere Größe für mehr Komfort. Für spezifische Produktmaße oder Fragen zur Größe,",
     "contactLink": "kontaktieren Sie unser Support-Team",
-    "unsureSuffix": "Wir helfen Ihnen gerne!"
+    "unsureSuffix": "Wir helfen Ihnen gerne!",
+    "toggleUnit": "Zwischen Zoll und Zentimetern wechseln",
+    "unisexSizing": "Unisex-Größen",
+    "measurementsIn": "Maße in",
+    "availableSizes": "Verfügbare Größen"
   }
 }
