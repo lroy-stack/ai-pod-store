@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import { withAuth } from '@/lib/auth-middleware';
 
-export async function GET() {
+export const GET = withAuth(async () => {
   try {
     // Fetch the 5 most recent orders
     const { data: orders, error } = await supabaseAdmin
@@ -40,4 +41,4 @@ export async function GET() {
       { status: 500 }
     );
   }
-}
+});
