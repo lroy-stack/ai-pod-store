@@ -720,6 +720,7 @@
     "terms": "Nutzungsbedingungen",
     "returns": "Rückgabe & Erstattung",
     "shipping": "Versandrichtlinien",
+    "cookieSettings": "Cookie-Einstellungen",
     "language": "Sprache",
     "copyright": "© {year} {storeName}. Alle Rechte vorbehalten.",
     "powered": "Powered by AI • Mit Sorgfalt gestaltet"
@@ -835,6 +836,7 @@
   "cookieConsent": {
     "title": "Wir schätzen Ihre Privatsphäre",
     "description": "Wir verwenden Cookies, um Ihr Browsing-Erlebnis zu verbessern, personalisierte Inhalte bereitzustellen und unseren Datenverkehr zu analysieren. Durch Klicken auf 'Alle Akzeptieren' stimmen Sie der Verwendung von Cookies zu.",
+    "learnMore": "Mehr erfahren",
     "acceptAll": "Alle Akzeptieren",
     "rejectAll": "Nicht Essenzielle Ablehnen",
     "customize": "Anpassen",
@@ -1070,5 +1072,115 @@
     "fetchError": "Fehler beim Laden der Abrechnungsinformationen",
     "portalError": "Fehler beim Öffnen des Abrechnungsportals",
     "noProfile": "Ihr Profil kann nicht geladen werden"
+  },
+  "cookiePolicy": {
+    "title": "Cookie-Richtlinie",
+    "description": "Erfahren Sie, wie wir Cookies verwenden und verwalten Sie Ihre Einstellungen",
+    "managePreferences": {
+      "title": "Cookie-Einstellungen verwalten",
+      "description": "Klicken Sie auf die Schaltfläche, um anzupassen, welche Cookies wir verwenden dürfen"
+    },
+    "whatAreCookies": {
+      "title": "Was sind Cookies?",
+      "description": "Cookies sind kleine Textdateien, die auf Ihrem Gerät gespeichert werden, wenn Sie unsere Website besuchen. Sie helfen uns, Ihr Browsing-Erlebnis zu verbessern, Ihre Präferenzen zu speichern und personalisierte Inhalte bereitzustellen. Cookies enthalten keine persönlich identifizierbaren Informationen, es sei denn, Sie haben diese ausdrücklich bereitgestellt."
+    },
+    "categories": {
+      "title": "Cookie-Kategorien",
+      "necessary": {
+        "title": "Notwendige Cookies",
+        "description": "Diese Cookies sind für das ordnungsgemäße Funktionieren der Website unerlässlich. Sie ermöglichen Kernfunktionen wie Sicherheit, Netzwerkverwaltung und Barrierefreiheit. Sie können notwendige Cookies nicht deaktivieren."
+      },
+      "analytics": {
+        "title": "Analyse-Cookies",
+        "description": "Diese Cookies helfen uns zu verstehen, wie Besucher mit unserer Website interagieren, indem sie Informationen anonym sammeln und berichten. Dies hilft uns, die Leistung und Benutzererfahrung unserer Website zu verbessern."
+      },
+      "marketing": {
+        "title": "Marketing-Cookies",
+        "description": "Diese Cookies werden verwendet, um Besucher über Websites hinweg zu verfolgen und personalisierte Anzeigen anzuzeigen, die für Sie relevant sind. Sie helfen auch dabei, die Wirksamkeit unserer Werbekampagnen zu messen."
+      }
+    },
+    "table": {
+      "name": "Cookie-Name",
+      "purpose": "Zweck",
+      "duration": "Dauer"
+    },
+    "cookies": {
+      "cookie_consent": {
+        "purpose": "Speichert Ihre Cookie-Einwilligungspräferenzen",
+        "duration": "1 Jahr"
+      },
+      "session_id": {
+        "purpose": "Verwaltet Ihre Sitzung und Authentifizierungsstatus",
+        "duration": "Sitzung"
+      },
+      "locale": {
+        "purpose": "Merkt sich Ihre Sprachpräferenz",
+        "duration": "1 Jahr"
+      },
+      "_ga": {
+        "purpose": "Google Analytics - unterscheidet Benutzer",
+        "duration": "2 Jahre"
+      },
+      "_ga_id": {
+        "purpose": "Google Analytics - behält Sitzungszustand bei",
+        "duration": "2 Jahre"
+      },
+      "_fbp": {
+        "purpose": "Facebook Pixel - verfolgt Konversionen und Remarketing",
+        "duration": "90 Tage"
+      },
+      "_gcl_au": {
+        "purpose": "Google Ads - Conversion-Tracking",
+        "duration": "90 Tage"
+      }
+    },
+    "thirdParty": {
+      "title": "Drittanbieter-Cookies",
+      "description": "Wir verwenden Cookies von vertrauenswürdigen Drittanbieterdiensten, um Ihr Erlebnis zu verbessern:",
+      "providers": {
+        "googleAnalytics": "Analyse und Leistungsüberwachung",
+        "stripe": "Zahlungsabwicklung und Betrugsprävention",
+        "supabase": "Authentifizierung und sichere Datenspeicherung"
+      }
+    },
+    "howToManage": {
+      "title": "Wie Sie Cookies verwalten",
+      "description": "Sie haben mehrere Optionen, um zu kontrollieren oder zu begrenzen, wie wir und unsere Partner Cookies verwenden:",
+      "methods": {
+        "settings": "Verwenden Sie die Schaltfläche 'Anpassen' oben auf dieser Seite, um Ihre Einstellungen zu ändern",
+        "browser": "Konfigurieren Sie Ihre Browsereinstellungen, um Cookies zu blockieren oder zu löschen (dies kann die Funktionalität der Website beeinträchtigen)",
+        "optOut": "Opt-out von gezielter Werbung über branchenspezifische Opt-out-Tools wie die Digital Advertising Alliance"
+      }
+    },
+    "footer": "Diese Cookie-Richtlinie wurde zuletzt am 22. Februar 2026 aktualisiert. Wir können diese Richtlinie von Zeit zu Zeit aktualisieren. Bitte überprüfen Sie sie regelmäßig auf Änderungen."
+  },
+  "legalNotice": {
+    "title": "Impressum",
+    "description": "Unternehmensinformationen und rechtliche Details gemäß gesetzlicher Anforderung",
+    "sections": {
+      "company": {
+        "title": "Unternehmensinformationen",
+        "companyName": "Firmenname",
+        "address": "Adresse",
+        "contact": "E-Mail"
+      },
+      "registration": {
+        "title": "Steuer- und Registerangaben",
+        "taxId": "Steueridentifikationsnummer",
+        "tradeRegister": "Handelsregister",
+        "registerNumber": "Registernummer"
+      },
+      "dpo": {
+        "title": "Datenschutzbeauftragter",
+        "name": "Name",
+        "contact": "E-Mail"
+      },
+      "disputeResolution": {
+        "title": "EU-Online-Streitbeilegung",
+        "description": "Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) für Verbraucher bereit. Sie finden diese unter:"
+      }
+    },
+    "footer": "Für Fragen zu Datenschutz und Datensicherheit siehe unsere",
+    "privacyPolicyLink": "Datenschutzerklärung"
   }
 }

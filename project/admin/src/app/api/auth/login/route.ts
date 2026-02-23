@@ -59,9 +59,13 @@ export async function POST(req: NextRequest) {
     );
 
     // Set httpOnly cookie with session data
+    // Secure flag only when actually behind HTTPS (not just NODE_ENV=production,
+    // since Docker runs production mode even for local HTTP dev)
+    const isHttps = req.headers.get('x-forwarded-proto') === 'https'
+      || req.nextUrl.protocol === 'https:';
     response.cookies.set('admin-session', JSON.stringify(sessionData), {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: isHttps,
       sameSite: 'lax',
       maxAge: 60 * 60 * 24 * 7, // 7 days
       path: '/',

@@ -112,7 +112,7 @@ APScheduler cron trigger
 ### Naming Conventions
 
 - Agent names: `snake_case` (e.g., `customer_manager`)
-- MCP connector names: `snake_case` (e.g., `web_search`)
+- MCP connector names: `snake_case` (e.g., `crawl4ai`)
 - MCP tool names: `snake_case` (e.g., `stripe_create_refund`)
 - SDK tool names: `PascalCase` for builtins (e.g., `Read`, `Grep`, `Glob`)
 - MCP tool refs in SDK: `mcp__{connector}__{tool_name}`

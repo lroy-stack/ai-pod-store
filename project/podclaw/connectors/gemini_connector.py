@@ -92,7 +92,7 @@ class GeminiMCPConnector:
             "gemini_generate_image": {
                 "description": (
                     "EXPENSIVE — LAST RESORT. Cost: ~$0.13/image. "
-                    "Only use AFTER exhausting free sourced images (search_images). "
+                    "Only use AFTER exhausting free sourced images (crawl_url on image sites). "
                     "Generate an image using Gemini 3 Pro Image. "
                     "Auto-persisted to Supabase Storage — you receive image_url (public URL). "
                     "POD RULES: NEVER mention product types (t-shirt, mug, poster) in the prompt — "

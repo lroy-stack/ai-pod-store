@@ -46,11 +46,16 @@ DO NOT skip Step 2. If you generate AI images without sourcing first, you are vi
 - `supabase_vector_search` — Find similar existing designs
 - `supabase_upload_image` — Upload image (base64 or URL) to Storage → returns public URL
 
-### Jina AI (Image Sourcing — FREE, USE FIRST)
-- `search_images` — **FREE. Your #1 tool.** Search billions of images.
-  **For transparent PNGs (BEST)**: append `transparent png site:pngimg.com OR site:cleanpng.com OR site:stickpng.com OR site:pngwing.com OR site:freepik.com`
-  **For photos (fallback)**: append `site:unsplash.com OR site:pexels.com OR site:pixabay.com`
-  Use `image_url` field (direct file), NOT `url` (landing page). Prefer URLs ending in `.png`.
+### Crawl4AI (Image Sourcing — FREE, USE FIRST)
+- `crawl_url` — **FREE. Your #1 tool.** Crawl image source sites with directed URLs.
+  **For transparent PNGs (BEST)**: Crawl these URLs directly:
+  - `https://pngimg.com/search/?q={theme}` — transparent PNGs, no bg removal needed
+  - `https://www.cleanpng.com/free/{theme}.html` — transparent PNGs
+  - `https://www.stickpng.com/search?q={theme}` — transparent PNGs
+  **For photos (fallback)**: Crawl these URLs, then use `fal_remove_bg`:
+  - `https://unsplash.com/s/photos/{theme}` — royalty-free photos
+  - `https://www.pexels.com/search/{theme}/` — royalty-free photos
+  Extract image URLs from the crawl results. Prefer URLs ending in `.png`.
 
 ### fal.ai (Background Removal + Generation + Upscaling)
 - `fal_remove_bg` — Remove background from image (FREE with local rembg)
@@ -84,8 +89,8 @@ Check print area specs in product_specs.md.
 Full data available via Read tool. Summaries in your prompt.
 
 ## Key Constraints
-- **FREE FIRST**: Always exhaust `search_images` before any paid generation
-- **Sourcing ratio**: ≥60% sourced (Jina image search), ≤40% AI-generated. Target 80%+ sourced.
+- **FREE FIRST**: Always exhaust `crawl_url` on image source sites before any paid generation
+- **Sourcing ratio**: ≥60% sourced (crawl4ai directed crawling), ≤40% AI-generated. Target 80%+ sourced.
 - For sourced images: use `image_url` field (direct URL), NOT `url` field (landing page)
 - ALL designs must pass `gemini_check_image` (score >= 6)
 - For sourced images: if already transparent PNG → skip bg removal. Otherwise call `fal_remove_bg`

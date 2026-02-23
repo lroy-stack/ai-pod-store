@@ -20,28 +20,50 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    // Fetch recent notifications from database
-    // In production, this would query a notifications table
-    // For now, return sample data
-    const { data: notifications, error } = await supabaseAdmin
-      .from('notifications')
-      .select('*')
-      .eq('recipient_type', 'admin')
-      .order('created_at', { ascending: false })
-      .limit(20);
+    // Fetch admin user to get notifications for admin user_id
+    const { data: adminUser } = await supabaseAdmin
+      .from('users')
+      .select('id')
+      .eq('email', 'admin@podstore.local')
+      .single();
 
-    if (error) {
-      // If notifications table doesn't exist yet, return empty array
+    if (!adminUser) {
       return NextResponse.json({
         notifications: [],
         unread_count: 0,
       });
     }
 
-    const unreadCount = notifications?.filter((n) => !n.read).length || 0;
+    // Fetch recent notifications for admin user
+    const { data: rawNotifications, error } = await supabaseAdmin
+      .from('notifications')
+      .select('*')
+      .eq('user_id', adminUser.id)
+      .order('created_at', { ascending: false })
+      .limit(20);
+
+    if (error) {
+      console.error('Failed to fetch notifications:', error);
+      return NextResponse.json({
+        notifications: [],
+        unread_count: 0,
+      });
+    }
+
+    // Transform to match TopBar expected format
+    const notifications = (rawNotifications || []).map((n: any) => ({
+      id: n.id,
+      title: n.title,
+      message: n.body || '',
+      timestamp: n.created_at,
+      read: n.is_read,
+      type: n.type || 'info',
+    }));
+
+    const unreadCount = notifications.filter((n) => !n.read).length;
 
     return NextResponse.json({
-      notifications: notifications || [],
+      notifications,
       unread_count: unreadCount,
     });
   } catch (error) {

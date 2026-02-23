@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
+import { fetchLegalSettings, resolvePlaceholders } from '@/lib/legal-utils'
 import JSZip from 'jszip'
 
 export async function GET(request: NextRequest) {
@@ -75,6 +76,9 @@ export async function GET(request: NextRequest) {
       supabaseAdmin.from('shipping_addresses').select('*').eq('user_id', user.id),
     ])
 
+    // Fetch legal settings for dynamic company info
+    const legalSettings = await fetchLegalSettings()
+
     // Create ZIP file
     const zip = new JSZip()
 
@@ -88,8 +92,8 @@ export async function GET(request: NextRequest) {
     zip.file('notifications.json', JSON.stringify(notifications.data || [], null, 2))
     zip.file('shipping_addresses.json', JSON.stringify(shippingAddresses.data || [], null, 2))
 
-    // Add README
-    const readme = `# Your POD AI Data Export
+    // Add README with dynamic company info
+    const readmeTemplate = `# Your {{company_name}} Data Export
 Generated: ${new Date().toISOString()}
 User ID: ${user.id}
 
@@ -109,8 +113,11 @@ User ID: ${user.id}
 This export is provided in compliance with GDPR Article 20 (Right to Data Portability).
 All data is provided in JSON format for easy import into other systems.
 
-If you have questions about your data, please contact: support@podai.com
+If you have questions about your data, please contact: {{company_email}}
 `
+
+    // Resolve placeholders with actual legal settings
+    const readme = resolvePlaceholders(readmeTemplate, legalSettings)
 
     zip.file('README.txt', readme)
 
@@ -129,7 +136,7 @@ If you have questions about your data, please contact: support@podai.com
       .eq('id', user.id)
 
     // Return ZIP file
-    const response = new NextResponse(zipBuffer, {
+    const response = new NextResponse(new Uint8Array(zipBuffer), {
       status: 200,
       headers: {
         'Content-Type': 'application/zip',

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -9,9 +10,12 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { hasConsent, acceptAll, rejectAll, saveConsent, getConsent } from '@/lib/cookie-consent';
 import { cn } from '@/lib/utils';
+import { useParams } from 'next/navigation';
 
 export function CookieConsent() {
   const t = useTranslations('cookieConsent');
+  const params = useParams();
+  const locale = params.locale as string || 'en';
   const [isVisible, setIsVisible] = useState(false);
   const [showCustomize, setShowCustomize] = useState(false);
   const [preferences, setPreferences] = useState({
@@ -70,7 +74,13 @@ export function CookieConsent() {
           <CardHeader className="pb-3">
             <CardTitle className="text-lg md:text-xl">{t('title')}</CardTitle>
             <CardDescription className="text-sm md:text-base">
-              {t('description')}
+              {t('description')}{' '}
+              <Link
+                href={`/${locale}/cookies`}
+                className="underline hover:text-foreground transition-colors"
+              >
+                {t('learnMore')}
+              </Link>
             </CardDescription>
           </CardHeader>
           <CardFooter className="flex flex-col gap-3 md:flex-row md:justify-end md:gap-3 pt-0">

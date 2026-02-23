@@ -3,12 +3,8 @@ import { NextRequest, NextResponse } from 'next/server';
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  console.log('[MIDDLEWARE] Request:', pathname);
-
-  // Allow access to login page and all API routes without middleware
-  // (API routes will handle their own auth if needed)
+  // Allow access to login page and all API routes without auth check
   if (pathname === '/login' || pathname.startsWith('/api/')) {
-    console.log('[MIDDLEWARE] Allowing access to:', pathname);
     return NextResponse.next();
   }
 
@@ -16,31 +12,25 @@ export function middleware(request: NextRequest) {
   const sessionCookie = request.cookies.get('admin-session');
 
   if (!sessionCookie) {
-    // No session, redirect to login
-    console.log('[MIDDLEWARE] No session, redirecting to login');
-    const loginUrl = new URL('/login', request.url);
+    // nextUrl already includes basePath — safe for redirect
+    const loginUrl = request.nextUrl.clone();
+    loginUrl.pathname = '/login';
     return NextResponse.redirect(loginUrl);
   }
 
   try {
-    // Verify session data
     const sessionData = JSON.parse(sessionCookie.value);
 
-    // Check if user has admin role
     if (sessionData.role !== 'admin') {
-      // Not an admin, redirect to login
-      console.log('[MIDDLEWARE] Not admin, redirecting');
-      const loginUrl = new URL('/login', request.url);
+      const loginUrl = request.nextUrl.clone();
+      loginUrl.pathname = '/login';
       return NextResponse.redirect(loginUrl);
     }
 
-    // Valid admin session, allow access
-    console.log('[MIDDLEWARE] Valid admin session, allowing access');
     return NextResponse.next();
-  } catch (error) {
-    // Invalid session data, redirect to login
-    console.log('[MIDDLEWARE] Invalid session data, redirecting');
-    const loginUrl = new URL('/login', request.url);
+  } catch {
+    const loginUrl = request.nextUrl.clone();
+    loginUrl.pathname = '/login';
     return NextResponse.redirect(loginUrl);
   }
 }
@@ -53,7 +43,11 @@ export const config = {
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      * - public folder
+     *
+     * The root path '/' must be listed explicitly because the regex
+     * pattern does not match an empty string (basePath root).
      */
+    '/',
     '/((?!_next/static|_next/image|favicon.ico).*)',
   ],
 };

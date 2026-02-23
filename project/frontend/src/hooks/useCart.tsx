@@ -26,6 +26,7 @@ interface CartItem {
     fontSize?: string
     position?: string
     preview?: string | null
+    surcharge?: number | null
   }
 }
 

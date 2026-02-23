@@ -8,11 +8,8 @@
 # Set the DOMAIN environment variable, or it defaults to localhost.
 
 {$CADDY_SITE_ADDRESS:http://localhost} {
-	# Trust Cloudflare proxy IPs for X-Forwarded-For header
-	# Automatically fetches and updates Cloudflare IP ranges every 12h
-	trusted_proxies cloudflare {
-		interval 12h
-	}
+	# NOTE: For production behind Cloudflare, use a custom Caddy image with
+	# caddy-cloudflare plugin and add: trusted_proxies cloudflare
 
 	# PodClaw Bridge API (internal, auth-protected)
 	# Matches /api/bridge/* and strips the prefix before proxying

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -32,6 +33,8 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Search, Filter } from 'lucide-react';
+import { useRowNavigation } from '@/hooks/useKeyboardShortcuts';
+import { KeyboardShortcutsHelp } from '@/components/KeyboardShortcutsHelp';
 
 interface Order {
   id: string;
@@ -66,6 +69,7 @@ const statusColors: Record<string, 'default' | 'secondary' | 'destructive' | 'ou
 };
 
 export default function OrdersPage() {
+  const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -80,9 +84,26 @@ export default function OrdersPage() {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [bulkLoading, setBulkLoading] = useState(false);
 
+  // Keyboard navigation
+  const { selectedIndex, setSelectedIndex } = useRowNavigation({
+    rowCount: orders.length,
+    enabled: !showConfirmDialog && !loading,
+    onOpen: (index) => {
+      const order = orders[index];
+      if (order) {
+        router.push(`/orders/${order.id}`);
+      }
+    },
+  });
+
   useEffect(() => {
     fetchOrders();
   }, [page, statusFilter]);
+
+  // Reset selected index when orders change
+  useEffect(() => {
+    setSelectedIndex(-1);
+  }, [orders, setSelectedIndex]);
 
   const fetchOrders = async () => {
     try {
@@ -327,66 +348,126 @@ export default function OrdersPage() {
             </div>
           ) : (
             <>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[50px]">
-                      <Checkbox
-                        checked={isAllSelected}
-                        onCheckedChange={handleSelectAll}
-                        aria-label="Select all orders"
-                      />
-                    </TableHead>
-                    <TableHead>Order ID</TableHead>
-                    <TableHead>Customer</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead className="text-right">Total</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {orders.map((order) => (
-                    <TableRow key={order.id}>
-                      <TableCell>
+              {/* Desktop Table View */}
+              <div className="hidden md:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[50px]">
                         <Checkbox
-                          checked={selectedOrders.has(order.id)}
-                          onCheckedChange={(checked) =>
-                            handleSelectOrder(order.id, checked as boolean)
-                          }
-                          aria-label={`Select order ${order.id}`}
+                          checked={isAllSelected}
+                          onCheckedChange={handleSelectAll}
+                          aria-label="Select all orders"
                         />
-                      </TableCell>
-                      <TableCell className="font-mono text-sm">
-                        <Link
-                          href={`/orders/${order.id}`}
-                          className="text-primary hover:underline"
-                        >
-                          {order.id.substring(0, 8)}...
-                        </Link>
-                      </TableCell>
-                      <TableCell>
-                        {order.user?.email || order.customer_email || 'Guest'}
-                        {order.user?.name && (
-                          <div className="text-sm text-muted-foreground">
-                            {order.user.name}
+                      </TableHead>
+                      <TableHead>Order ID</TableHead>
+                      <TableHead>Customer</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead className="text-right">Total</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {orders.map((order, index) => (
+                      <TableRow
+                        key={order.id}
+                        className={selectedIndex === index ? 'bg-muted/50 ring-2 ring-primary ring-inset' : ''}
+                      >
+                        <TableCell>
+                          <Checkbox
+                            checked={selectedOrders.has(order.id)}
+                            onCheckedChange={(checked) =>
+                              handleSelectOrder(order.id, checked as boolean)
+                            }
+                            aria-label={`Select order ${order.id}`}
+                          />
+                        </TableCell>
+                        <TableCell className="font-mono text-sm">
+                          <Link
+                            href={`/orders/${order.id}`}
+                            className="text-primary hover:underline"
+                          >
+                            {order.id.substring(0, 8)}...
+                          </Link>
+                        </TableCell>
+                        <TableCell>
+                          {order.user?.email || order.customer_email || 'Guest'}
+                          {order.user?.name && (
+                            <div className="text-sm text-muted-foreground">
+                              {order.user.name}
+                            </div>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={statusColors[order.status] || 'default'}>
+                            {order.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {formatDate(order.created_at)}
+                        </TableCell>
+                        <TableCell className="text-right font-medium">
+                          {formatCurrency(order.total_cents, order.currency)}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Mobile Card View */}
+              <div className="block md:hidden">
+                <div className="p-4 space-y-4">
+                  {orders.map((order, index) => (
+                    <div
+                      key={order.id}
+                      className={`border rounded-lg p-4 space-y-3 ${
+                        selectedIndex === index ? 'bg-muted/50 ring-2 ring-primary' : ''
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-start gap-3 flex-1 min-h-[44px]">
+                          <Checkbox
+                            checked={selectedOrders.has(order.id)}
+                            onCheckedChange={(checked) =>
+                              handleSelectOrder(order.id, checked as boolean)
+                            }
+                            aria-label={`Select order ${order.id}`}
+                            className="mt-1"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <Link
+                              href={`/orders/${order.id}`}
+                              className="font-mono text-sm text-primary hover:underline inline-block min-h-[44px] flex items-center"
+                            >
+                              {order.id.substring(0, 8)}...
+                            </Link>
+                            <p className="text-sm text-muted-foreground truncate">
+                              {order.user?.email || order.customer_email || 'Guest'}
+                            </p>
+                            {order.user?.name && (
+                              <p className="text-sm text-muted-foreground">
+                                {order.user.name}
+                              </p>
+                            )}
                           </div>
-                        )}
-                      </TableCell>
-                      <TableCell>
+                        </div>
                         <Badge variant={statusColors[order.status] || 'default'}>
                           {order.status}
                         </Badge>
-                      </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
-                        {formatDate(order.created_at)}
-                      </TableCell>
-                      <TableCell className="text-right font-medium">
-                        {formatCurrency(order.total_cents, order.currency)}
-                      </TableCell>
-                    </TableRow>
+                      </div>
+                      <div className="flex items-center justify-between text-sm pt-2 border-t">
+                        <span className="text-muted-foreground">
+                          {formatDate(order.created_at)}
+                        </span>
+                        <span className="font-medium">
+                          {formatCurrency(order.total_cents, order.currency)}
+                        </span>
+                      </div>
+                    </div>
                   ))}
-                </TableBody>
-              </Table>
+                </div>
+              </div>
 
               {/* Pagination */}
               {totalPages > 1 && (
@@ -420,6 +501,16 @@ export default function OrdersPage() {
             </>
           )}
         </div>
+
+        {/* Keyboard Shortcuts Hint */}
+        <div className="mt-4 text-center">
+          <p className="text-xs text-muted-foreground">
+            Tip: Use <kbd className="px-1 py-0.5 text-xs bg-muted border rounded">j</kbd>/<kbd className="px-1 py-0.5 text-xs bg-muted border rounded">k</kbd> to navigate, <kbd className="px-1 py-0.5 text-xs bg-muted border rounded">Enter</kbd> to open, <kbd className="px-1 py-0.5 text-xs bg-muted border rounded">?</kbd> for help
+          </p>
+        </div>
+
+        {/* Keyboard Shortcuts Help Dialog */}
+        <KeyboardShortcutsHelp />
 
         {/* Confirmation Dialog */}
         <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>

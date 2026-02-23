@@ -4,7 +4,7 @@ PodClaw — SEO Manager Agent
 
 Model: Haiku (cost-effective for SEO tasks)
 Schedule: Weekly (Sunday 16:00 UTC)
-Tools: supabase (read/write), web_search
+Tools: supabase (read/write), crawl4ai
 Guardrails: Max 15 web searches per cycle
 """
 
@@ -15,7 +15,7 @@ class SeoManagerAgent(BaseAgent):
     name = "seo_manager"
     model = "claude-haiku-4-5-20251001"
     schedule = "weekly Sunday 16:00 UTC"
-    tools = ["supabase", "web_search"]
+    tools = ["supabase", "crawl4ai"]
     context_files = ["best_sellers.md"]
     guardrails = {"max_searches": 15}
 

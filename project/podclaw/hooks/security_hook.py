@@ -6,7 +6,7 @@ Validates tool inputs and blocks destructive operations.
 Separate from the coding harness security.py — this protects STORE operations.
 
 High-risk actions requiring approval:
-- Refunds > $100 (Stripe)
+- Refunds > EUR 25 (Stripe)
 - Price changes > ±20% (Supabase) — fetches current price autonomously
 - Bulk product deletions > 10 items
 - Design moderation failures → quarantine
@@ -23,12 +23,74 @@ import re
 
 from podclaw.config import (
     REFUND_APPROVAL_THRESHOLD,
+    DAILY_REFUND_LIMIT_EUR,
     PRICE_CHANGE_MAX_PERCENT,
     BULK_DELETE_THRESHOLD,
     MINIMUM_MARKUP_MULTIPLIER,
 )
 
+from datetime import date, timezone
+from datetime import datetime as _dt
+
 logger = structlog.get_logger(__name__)
+
+# ---------------------------------------------------------------------------
+# Daily Refund Accumulator (module-level state)
+# ---------------------------------------------------------------------------
+_daily_refund_total: float = 0.0
+_daily_refund_date: date | None = None
+_refund_lock = asyncio.Lock()
+
+
+async def _check_daily_refund_limit(amount_cents: int) -> str | None:
+    """Check if adding this refund would exceed DAILY_REFUND_LIMIT_EUR.
+
+    Returns deny reason if exceeded, None if OK.
+    Must be called under _refund_lock.
+    """
+    global _daily_refund_total, _daily_refund_date
+    today = _dt.now(timezone.utc).date()
+    if _daily_refund_date != today:
+        _daily_refund_total = 0.0
+        _daily_refund_date = today
+    amount_eur = amount_cents / 100
+    if _daily_refund_total + amount_eur > DAILY_REFUND_LIMIT_EUR:
+        return (
+            f"Daily refund limit exceeded: EUR {_daily_refund_total:.2f} + EUR {amount_eur:.2f} "
+            f"> EUR {DAILY_REFUND_LIMIT_EUR:.2f} daily cap. Requires human approval."
+        )
+    return None
+
+
+async def _record_refund(amount_cents: int) -> None:
+    """Record a refund in the daily accumulator. Must be called under _refund_lock."""
+    global _daily_refund_total
+    _daily_refund_total += amount_cents / 100
+
+
+# ---------------------------------------------------------------------------
+# Read-Only Mode (emergency kill-switch for all writes)
+# ---------------------------------------------------------------------------
+_read_only_mode: bool = False
+
+
+def enable_readonly() -> None:
+    """Enable read-only mode — blocks all write operations."""
+    global _read_only_mode
+    _read_only_mode = True
+    logger.critical("readonly_mode_enabled")
+
+
+def disable_readonly() -> None:
+    """Disable read-only mode — restores normal operation."""
+    global _read_only_mode
+    _read_only_mode = False
+    logger.warning("readonly_mode_disabled")
+
+
+def is_readonly() -> bool:
+    """Check if read-only mode is active."""
+    return _read_only_mode
 
 # Approved RPC functions (from Supabase migrations)
 ALLOWED_RPC_FUNCTIONS = frozenset({
@@ -77,16 +139,13 @@ READONLY_TOOLS = frozenset({
     "printify_get_shop",
     "printify_list_webhooks",
     "printify_list_uploads",
-    "web_search",
-    "read_url",
-    "search_images",
-    "expand_query",
-    "deduplicate_strings",
-    "parallel_search_web",
+    "crawl_url",
+    "crawl_batch",
+    "extract_article",
+    "crawl_site",
     "capture_screenshot",
     "gemini_embed_text",
     "gemini_embed_batch",
-    "jina_rerank",
 })
 
 # Tools that are always blocked
@@ -161,6 +220,10 @@ async def security_hook(
     tool_name = input_data.get("tool_name", "")
     tool_input = input_data.get("tool_input", {})
 
+    # Read-only mode: block all non-read tools
+    if _read_only_mode and tool_name not in READONLY_TOOLS:
+        return _deny(f"Read-only mode active — tool '{tool_name}' blocked")
+
     # Always allow read-only tools
     if tool_name in READONLY_TOOLS:
         return {}
@@ -179,9 +242,15 @@ async def security_hook(
             )
         if amount > REFUND_APPROVAL_THRESHOLD * 100:  # Stripe uses cents
             return _deny(
-                f"Refund ${amount / 100:.2f} exceeds ${REFUND_APPROVAL_THRESHOLD} threshold. "
+                f"Refund EUR {amount / 100:.2f} exceeds EUR {REFUND_APPROVAL_THRESHOLD} threshold. "
                 "Requires human approval."
             )
+        # Daily refund accumulator (atomic under lock)
+        async with _refund_lock:
+            deny_reason = await _check_daily_refund_limit(amount)
+            if deny_reason:
+                return _deny(deny_reason)
+            await _record_refund(amount)
 
     # --- Price change checks ---
     if tool_name == "supabase_update":

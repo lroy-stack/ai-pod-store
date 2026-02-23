@@ -132,67 +132,128 @@ export default function ProductsPage() {
             ) : products.length === 0 ? (
               <p className="text-muted-foreground text-center py-8">No products found</p>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-12">
-                      <input type="checkbox" className="rounded" />
-                    </TableHead>
-                    <TableHead>Title</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Price</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
+              <>
+                {/* Desktop Table View */}
+                <div className="hidden md:block">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-12">
+                          <input type="checkbox" className="rounded" />
+                        </TableHead>
+                        <TableHead>Title</TableHead>
+                        <TableHead>Category</TableHead>
+                        <TableHead>Price</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {products.map((product) => (
+                        <TableRow key={product.id}>
+                          <TableCell>
+                            <input
+                              type="checkbox"
+                              className="rounded"
+                              checked={selectedIds.has(product.id)}
+                              onChange={() => toggleSelect(product.id)}
+                            />
+                          </TableCell>
+                          <TableCell className="font-medium">{product.title}</TableCell>
+                          <TableCell className="capitalize">{product.category}</TableCell>
+                          <TableCell>
+                            {product.currency === 'eur' ? '€' : '$'}
+                            {(product.base_price_cents / 100).toFixed(2)}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={product.status === 'active' ? 'default' : 'secondary'}>
+                              {product.status === 'active' ? 'Active' : 'Archived'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                asChild
+                              >
+                                <a href={`/products/${product.id}`}>
+                                  <Pencil className="h-4 w-4" />
+                                </a>
+                              </Button>
+                              {product.status === 'active' && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => archiveProduct(product.id)}
+                                >
+                                  <Archive className="h-4 w-4" />
+                                </Button>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+
+                {/* Mobile Card View */}
+                <div className="block md:hidden space-y-4">
                   {products.map((product) => (
-                    <TableRow key={product.id}>
-                      <TableCell>
+                    <div key={product.id} className="border rounded-lg p-4 space-y-3">
+                      <div className="flex items-start gap-3">
                         <input
                           type="checkbox"
-                          className="rounded"
+                          className="rounded mt-1"
                           checked={selectedIds.has(product.id)}
                           onChange={() => toggleSelect(product.id)}
                         />
-                      </TableCell>
-                      <TableCell className="font-medium">{product.title}</TableCell>
-                      <TableCell className="capitalize">{product.category}</TableCell>
-                      <TableCell>
-                        {product.currency === 'eur' ? '€' : '$'}
-                        {(product.base_price_cents / 100).toFixed(2)}
-                      </TableCell>
-                      <TableCell>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-medium text-base leading-tight mb-1 break-words">
+                            {product.title}
+                          </h3>
+                          <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+                            <span className="capitalize">{product.category}</span>
+                            <span>•</span>
+                            <span className="font-medium">
+                              {product.currency === 'eur' ? '€' : '$'}
+                              {(product.base_price_cents / 100).toFixed(2)}
+                            </span>
+                          </div>
+                        </div>
                         <Badge variant={product.status === 'active' ? 'default' : 'secondary'}>
                           {product.status === 'active' ? 'Active' : 'Archived'}
                         </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
+                      </div>
+                      <div className="flex gap-2 pt-2 border-t">
+                        <Button
+                          variant="outline"
+                          size="default"
+                          asChild
+                          className="flex-1 min-h-[44px]"
+                        >
+                          <a href={`/products/${product.id}`}>
+                            <Pencil className="h-4 w-4 mr-2" />
+                            Edit
+                          </a>
+                        </Button>
+                        {product.status === 'active' && (
                           <Button
-                            variant="ghost"
-                            size="sm"
-                            asChild
+                            variant="outline"
+                            size="default"
+                            onClick={() => archiveProduct(product.id)}
+                            className="flex-1 min-h-[44px]"
                           >
-                            <a href={`/products/${product.id}`}>
-                              <Pencil className="h-4 w-4" />
-                            </a>
+                            <Archive className="h-4 w-4 mr-2" />
+                            Archive
                           </Button>
-                          {product.status === 'active' && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => archiveProduct(product.id)}
-                            >
-                              <Archive className="h-4 w-4" />
-                            </Button>
-                          )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
+                        )}
+                      </div>
+                    </div>
                   ))}
-                </TableBody>
-              </Table>
+                </div>
+              </>
             )}
           </CardContent>
         </Card>

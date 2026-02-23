@@ -60,6 +60,7 @@ class Orchestrator:
         self.scheduler = None  # Set by PodClawScheduler after construction
         self._active_sessions: dict[str, str] = {}  # agent_name → session_id
         self._last_sdk_sessions: dict[str, str] = {}  # agent_name → SDK session_id (for resume)
+        self._disabled_agents: set[str] = set()
         self._running = False
         self._session_lock = asyncio.Lock()
 
@@ -70,6 +71,7 @@ class Orchestrator:
     def start(self) -> None:
         self._running = True
         asyncio.create_task(self._restore_sdk_sessions())
+        asyncio.create_task(self._restore_disabled_agents())
         logger.info("orchestrator_started")
 
     async def _restore_sdk_sessions(self) -> None:
@@ -80,6 +82,29 @@ class Orchestrator:
         if sessions:
             self._last_sdk_sessions.update(sessions)
             logger.info("sdk_sessions_restored", count=len(sessions))
+
+    async def _restore_disabled_agents(self) -> None:
+        """Restore disabled agents set from local SQLite state store."""
+        if not self.state:
+            return
+        disabled = await self.state.get("disabled_agents", [])
+        if disabled:
+            self._disabled_agents = set(disabled)
+            logger.info("disabled_agents_restored", agents=list(self._disabled_agents))
+
+    async def disable_agent(self, agent_name: str) -> None:
+        """Disable an agent (kill-switch). Persists across restarts."""
+        self._disabled_agents.add(agent_name)
+        if self.state:
+            await self.state.set("disabled_agents", list(self._disabled_agents))
+        logger.critical("agent_disabled", agent=agent_name)
+
+    async def enable_agent(self, agent_name: str) -> None:
+        """Re-enable a previously disabled agent. Persists across restarts."""
+        self._disabled_agents.discard(agent_name)
+        if self.state:
+            await self.state.set("disabled_agents", list(self._disabled_agents))
+        logger.warning("agent_enabled", agent=agent_name)
 
     def stop(self) -> None:
         self._running = False
@@ -135,6 +160,11 @@ class Orchestrator:
         if agent_name not in AGENT_NAMES:
             logger.error("unknown_agent", agent=agent_name)
             return {"status": "error", "reason": f"unknown agent: {agent_name}"}
+
+        # Kill-switch check
+        if agent_name in self._disabled_agents:
+            logger.warning("agent_disabled_skipped", agent=agent_name)
+            return {"status": "skipped", "reason": f"agent '{agent_name}' is disabled"}
 
         # Circuit breaker: DB query BEFORE lock — read-only, safe to race
         if await self._check_circuit_breaker(agent_name):
@@ -213,17 +243,26 @@ class Orchestrator:
                 # SDK handles hooks (can_use_tool, PreToolUse, PostToolUse) natively
                 await client.query(prompt)
 
-                async for msg in client.receive_response():
-                    if isinstance(msg, ResultMessage):
-                        result_message = msg
-                        break
-                    if hasattr(msg, "content"):
+                try:
+                    async for msg in client.receive_response():
+                        if isinstance(msg, ResultMessage):
+                            result_message = msg
+                            break
+                        if not hasattr(msg, "content"):
+                            continue  # Skip SDK internal events (rate_limit_event, etc.)
                         for block in msg.content:
                             block_type = type(block).__name__
                             if block_type == "ToolUseBlock":
                                 tool_calls += 1
                             elif block_type == "TextBlock":
                                 response_text += block.text
+                except Exception as e:
+                    # SDK may raise on unknown message types (e.g. rate_limit_event).
+                    # If we already collected response data, treat as success.
+                    if response_text or tool_calls > 0:
+                        logger.warning("sdk_stream_interrupted", error=str(e), tool_calls=tool_calls)
+                    else:
+                        raise
 
             tool_calls = 0
             response_text = ""
@@ -477,10 +516,11 @@ class Orchestrator:
                 "AI generation costs real money ($0.003-$0.13 per image). Do NOT generate when you can source.\n\n"
                 "1. Read best_sellers.md — check 'Stock Needs for Designer' for what products need designs\n"
                 "2. Read product_specs.md — check Product Priorities (banned products, aspect ratios per tier)\n"
-                "3. Search for TRANSPARENT PNG images FIRST:\n"
-                "   - Call search_images with '{theme} transparent png site:pngimg.com OR site:cleanpng.com OR site:stickpng.com OR site:pngwing.com'\n"
+                "3. Search for TRANSPARENT PNG images FIRST (directed crawling):\n"
+                "   - Call crawl_url on 'https://pngimg.com/search/?q={theme}' to find transparent PNGs\n"
+                "   - Also crawl: 'https://www.cleanpng.com/free/{theme}.html', 'https://www.stickpng.com/search?q={theme}'\n"
                 "   - These already have transparent backgrounds — NO bg removal needed!\n"
-                "   - Fallback: search_images with '{theme} site:unsplash.com OR site:pexels.com' + fal_remove_bg\n"
+                "   - Fallback: crawl_url on 'https://unsplash.com/s/photos/{theme}' or 'https://www.pexels.com/search/{theme}/' + fal_remove_bg\n"
                 "4. For each: use image_url (NOT url), upload → if NOT already transparent: fal_remove_bg → gemini_check_image → insert\n"
                 "5. ONLY if sourced < 5 approved: use fal_generate (cheap) or gemini_generate_image (expensive, last resort)\n"
                 "6. ALWAYS specify aspect_ratio matching intended product type:\n"
@@ -570,7 +610,7 @@ class Orchestrator:
             "customer_manager": (
                 "Handle customer support: refunds, reviews, and retention.\n"
                 "You MUST call tools — do NOT answer from memory.\n\n"
-                "Process pending return requests (auto-approve ≤ EUR 100, escalate > EUR 100).\n"
+                "Process pending return requests (auto-approve ≤ EUR 25, escalate > EUR 25).\n"
                 "Respond to unanswered product reviews in the customer's language.\n"
                 "Send retention emails to at-risk RFM segments. Never log customer PII.\n\n"
                 "Before finishing, verify:\n"
@@ -828,4 +868,5 @@ class Orchestrator:
             "session_id": self._active_sessions.get(agent_name),
             "model": AGENT_MODELS.get(agent_name),
             "tools": AGENT_TOOLS.get(agent_name, []),
+            "disabled": agent_name in self._disabled_agents,
         }

@@ -42,6 +42,10 @@ Endpoints:
   GET  /soul/proposals      — Pending soul proposals
   POST /soul/proposals/{id}/approve — Approve proposal
   POST /soul/proposals/{id}/reject  — Reject proposal
+  POST /chat/stream               — SSE streaming chat with PodClaw
+  GET  /chat/conversations        — List admin chat conversations
+  GET  /chat/conversations/{id}   — Get conversation with messages
+  DELETE /chat/conversations/{id} — Delete a conversation
 """
 
 from __future__ import annotations
@@ -52,8 +56,9 @@ import uuid
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Any
 
-from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Query
+from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 import structlog
@@ -69,6 +74,11 @@ class TaskRequest(BaseModel):
 
 class AgentRunRequest(BaseModel):
     task: str | None = None
+
+
+class ChatStreamRequest(BaseModel):
+    message: str = Field(..., min_length=1, max_length=10000)
+    conversation_id: str | None = None
 
 
 class QueuePushRequest(BaseModel):
@@ -131,6 +141,8 @@ def create_app(
     event_queue: "SystemEventQueue | None" = None,
     soul_evolution: "SoulEvolution | None" = None,
     state_store: "StateStore | None" = None,
+    connectors: dict[str, Any] | None = None,
+    delegation_registry: Any | None = None,
 ) -> FastAPI:
     """Create the FastAPI application with all routes."""
 
@@ -721,6 +733,161 @@ def create_app(
         if not success:
             raise HTTPException(404, f"Proposal not found: {proposal_id}")
         return {"status": "rejected", "proposal_id": proposal_id}
+
+    # ----- Chat (Conversational SSE) -----
+
+    # Store connectors and MCP servers for chat sessions
+    _connectors: dict[str, Any] = dict(connectors or {})
+    _chat_mcp_servers: dict[str, Any] = {}
+
+    # Extract memory_store from memory connector for chat session flush
+    _memory_store = None
+    _mem_conn = _connectors.get("memory")
+    if _mem_conn and hasattr(_mem_conn, "_store"):
+        _memory_store = _mem_conn._store
+
+    @app.on_event("startup")
+    async def _build_chat_mcp():
+        from podclaw.connector_adapter import connector_to_mcp_server
+        from podclaw.config import AGENT_TOOLS
+        all_connector_names = set()
+        for tools in AGENT_TOOLS.values():
+            all_connector_names.update(tools)
+        for name in all_connector_names:
+            conn = _connectors.get(name)
+            if conn:
+                try:
+                    _chat_mcp_servers[name] = connector_to_mcp_server(name, conn)
+                except Exception as e:
+                    logger.warning("chat_mcp_build_failed", connector=name, error=str(e))
+
+        # Always include memory search for chat (local cognitive memory)
+        memory_conn = _connectors.get("memory")
+        if memory_conn and "memory" not in _chat_mcp_servers:
+            try:
+                _chat_mcp_servers["memory"] = connector_to_mcp_server("memory", memory_conn)
+            except Exception as e:
+                logger.warning("memory_mcp_chat_failed", error=str(e))
+
+    @app.post("/chat/stream", dependencies=[Depends(require_auth)])
+    async def chat_stream(body: ChatStreamRequest):
+        """SSE streaming chat with PodClaw.
+
+        Returns a text/event-stream with events:
+        - text_delta: streamed text content
+        - tool_start: tool invocation started
+        - tool_result: tool invocation completed
+        - thinking: extended thinking content
+        - done: conversation turn complete
+        - error: error occurred
+        """
+        from podclaw.chat_session import ChatSession
+        from podclaw.connectors.delegate_connector import DelegateMCPConnector
+        from podclaw.connector_adapter import connector_to_mcp_server
+
+        conversation_id = body.conversation_id or str(uuid.uuid4())
+
+        # Build per-conversation MCP servers
+        chat_mcp = dict(_chat_mcp_servers)
+
+        # Per-conversation delegate connector (async mode when registry available)
+        delegate_conn = DelegateMCPConnector(
+            orchestrator,
+            delegation_registry=delegation_registry,
+            conversation_id=conversation_id,
+        )
+        chat_mcp["delegate"] = connector_to_mcp_server("delegate", delegate_conn)
+
+        # Build connectors dict with per-conversation delegate
+        chat_connectors = dict(_connectors)
+        chat_connectors["delegate"] = delegate_conn
+
+        session = ChatSession(
+            conversation_id=conversation_id,
+            mcp_servers=chat_mcp,
+            memory_manager=memory_manager,
+            event_store=event_store,
+            hooks={
+                "pre_tool_use": list(orchestrator.factory.hooks.get("pre_tool_use", [])),
+                "post_tool_use": list(orchestrator.factory.hooks.get("post_tool_use", [])),
+            },
+            connectors=chat_connectors,
+            state_store=state_store,
+            memory_store=_memory_store,
+            delegation_registry=delegation_registry,
+        )
+
+        return StreamingResponse(
+            session.stream_response(body.message),
+            media_type="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache",
+                "Connection": "keep-alive",
+                "X-Accel-Buffering": "no",
+            },
+        )
+
+    @app.get("/chat/conversations", dependencies=[Depends(require_auth)])
+    async def get_chat_conversations(limit: int = Query(default=50, le=100)):
+        """List recent admin chat conversations."""
+        from podclaw.chat_session import list_conversations
+        conversations = await list_conversations(event_store, limit=limit)
+        return {"conversations": conversations, "count": len(conversations)}
+
+    @app.get("/chat/conversations/{conversation_id}", dependencies=[Depends(require_auth)])
+    async def get_chat_conversation(conversation_id: str):
+        """Get a conversation with its messages."""
+        from podclaw.chat_session import get_conversation
+        conv = await get_conversation(event_store, conversation_id)
+        if not conv:
+            raise HTTPException(404, f"Conversation not found: {conversation_id}")
+        return conv
+
+    @app.delete("/chat/conversations/{conversation_id}", dependencies=[Depends(require_auth)])
+    async def delete_chat_conversation(conversation_id: str):
+        """Delete a conversation and its messages."""
+        from podclaw.chat_session import delete_conversation
+        success = await delete_conversation(event_store, conversation_id)
+        if not success:
+            raise HTTPException(500, "Failed to delete conversation")
+        return {"status": "deleted", "conversation_id": conversation_id}
+
+    # ----- Agent Kill-Switch -----
+
+    @app.post("/agents/{name}/disable", dependencies=[Depends(require_auth)])
+    async def disable_agent(name: str):
+        from podclaw.core import AGENT_NAMES
+        if name not in AGENT_NAMES:
+            raise HTTPException(404, f"Unknown agent: {name}")
+        await orchestrator.disable_agent(name)
+        return {"status": "disabled", "agent": name}
+
+    @app.post("/agents/{name}/enable", dependencies=[Depends(require_auth)])
+    async def enable_agent(name: str):
+        from podclaw.core import AGENT_NAMES
+        if name not in AGENT_NAMES:
+            raise HTTPException(404, f"Unknown agent: {name}")
+        await orchestrator.enable_agent(name)
+        return {"status": "enabled", "agent": name}
+
+    # ----- Read-Only Mode -----
+
+    @app.post("/readonly/enable", dependencies=[Depends(require_auth)])
+    async def enable_readonly_mode():
+        from podclaw.hooks.security_hook import enable_readonly
+        enable_readonly()
+        return {"status": "enabled", "readonly": True}
+
+    @app.post("/readonly/disable", dependencies=[Depends(require_auth)])
+    async def disable_readonly_mode():
+        from podclaw.hooks.security_hook import disable_readonly
+        disable_readonly()
+        return {"status": "disabled", "readonly": False}
+
+    @app.get("/readonly", dependencies=[Depends(require_auth)])
+    async def get_readonly_status():
+        from podclaw.hooks.security_hook import is_readonly
+        return {"readonly": is_readonly()}
 
     # ----- Health -----
 

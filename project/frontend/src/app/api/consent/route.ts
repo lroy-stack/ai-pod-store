@@ -25,12 +25,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get user session (if authenticated)
-    const { user } = await createServerClient(request);
+    // Get user session from cookies (browser requests)
+    const accessToken = request.cookies.get('sb-access-token')?.value;
 
-    if (!user) {
+    if (!accessToken) {
       // For anonymous users, we can't record consent in the database
       // Consent is tracked in cookies/localStorage only
+      return NextResponse.json({
+        success: true,
+        message: 'Consent saved (anonymous)',
+      });
+    }
+
+    // Verify the access token and get user
+    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(accessToken);
+
+    if (authError || !user) {
+      // Invalid token - treat as anonymous
       return NextResponse.json({
         success: true,
         message: 'Consent saved (anonymous)',

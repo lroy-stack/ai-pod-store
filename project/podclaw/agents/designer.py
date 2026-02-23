@@ -15,7 +15,7 @@ class DesignerAgent(BaseAgent):
     name = "designer"
     model = "claude-sonnet-4-5-20250929"
     schedule = "daily 08:00 UTC + on-demand"
-    tools = ["supabase", "fal", "printify", "jina", "gemini"]
+    tools = ["supabase", "fal", "printify", "crawl4ai", "gemini"]
     context_files = ["design_library.md", "best_sellers.md"]
     guardrails = {"max_generations": 30, "moderation": True}
 
@@ -32,8 +32,10 @@ class DesignerAgent(BaseAgent):
             "1. Read best_sellers.md + design_library.md for trending themes\n"
             "2. Query supabase for product gaps (categories without recent designs)\n\n"
             "MANDATORY FIRST PASS — FREE SOURCED DESIGNS (target 7-10):\n"
-            "3. Call search_images 7-10 times. ALWAYS append "
-            "\"site:unsplash.com OR site:pexels.com OR site:pixabay.com\" to queries.\n"
+            "3. Call crawl_url 7-10 times on image source sites. Use directed URLs:\n"
+            "   - https://pngimg.com/search/?q={theme}\n"
+            "   - https://unsplash.com/s/photos/{theme}\n"
+            "   - https://www.pexels.com/search/{theme}/\n"
             "4. Use image_url (direct file URL), NOT url (landing page).\n"
             "5. For each: supabase_upload_image -> fal_remove_bg -> supabase_upload_image "
             "-> gemini_check_image (>=6) -> printify_upload_image\n"

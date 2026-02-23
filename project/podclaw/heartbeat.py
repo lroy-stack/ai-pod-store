@@ -36,6 +36,7 @@ if TYPE_CHECKING:
     from podclaw.event_store import EventStore
     from podclaw.event_queue import SystemEventQueue
     from podclaw.memory_manager import MemoryManager
+    from podclaw.agent.core import PodClawAgent
 
 logger = structlog.get_logger(__name__)
 
@@ -78,8 +79,10 @@ class HeartbeatRunner:
         workspace: Any,
         interval_minutes: int = 30,
         active_hours: tuple[int, int] = (5, 23),
+        agent: "PodClawAgent | None" = None,
     ):
         self.orchestrator = orchestrator
+        self._agent = agent
         self.event_store = event_store
         self.memory = memory_manager
         self.event_queue = event_queue
@@ -441,7 +444,11 @@ class HeartbeatRunner:
             logger.debug("heartbeat_dedup_cleanup", removed=len(stale), remaining=len(self._seen_alerts))
 
     async def _dispatch_agent(self, agent_name: str, task: str) -> None:
-        """Dispatch an agent via the orchestrator with circuit breaker, validation, and event tracking."""
+        """Dispatch an agent via PodClawAgent (or orchestrator fallback).
+
+        Validation and circuit breaker are handled by orchestrator.run_agent()
+        which is called by handle_event() internally.
+        """
         from podclaw.core import AGENT_NAMES
         if agent_name not in AGENT_NAMES:
             logger.error("heartbeat_dispatch_rejected_invalid_agent", agent=agent_name)
@@ -456,7 +463,16 @@ class HeartbeatRunner:
 
         try:
             logger.info("heartbeat_dispatching_agent", agent=agent_name, task=task[:100])
-            result = await self.orchestrator.run_agent(agent_name, task)
+            # Route through PodClawAgent when available (cognitive enrichment)
+            if self._agent:
+                result = await self._agent.enqueue_event(
+                    source=f"heartbeat:{agent_name}",
+                    message=task,
+                )
+            else:
+                # Fallback: direct orchestrator (backward compat)
+                result = await self.orchestrator.run_agent(agent_name, task)
+
             if result.get("status") == "error":
                 logger.error("heartbeat_dispatch_agent_error", agent=agent_name, reason=result.get("reason"))
                 await self._record_event("dispatch_failed", 2, agent_name, result.get("reason", "unknown"))

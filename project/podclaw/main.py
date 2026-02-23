@@ -48,19 +48,28 @@ def _parse_args() -> argparse.Namespace:
 
 
 def _load_env(workspace: Path) -> None:
-    """Load environment variables from .env files."""
-    # Try harness config first
-    harness_env = workspace.parent / "config" / ".env.required"
-    if harness_env.exists():
-        load_dotenv(harness_env)
+    """Load environment variables from .env files.
 
-    # Then frontend .env.local (has all the real keys)
-    frontend_env = workspace / "project" / "frontend" / ".env.local"
-    if frontend_env.exists():
-        load_dotenv(frontend_env, override=True)
+    Priority (highest wins):
+    1. podclaw/.env          — PodClaw-specific config (canonical source)
+    2. frontend/.env.local   — fallback for shared secrets (legacy compat)
+    """
+    # PodClaw's own .env (canonical source)
+    podclaw_env = Path(__file__).parent / ".env"
+    if podclaw_env.exists():
+        load_dotenv(podclaw_env)
+    else:
+        # Fallback: frontend/.env.local (legacy, for backward compat)
+        frontend_env = workspace / "project" / "frontend" / ".env.local"
+        if frontend_env.exists():
+            load_dotenv(frontend_env)
+
+    # Clear CLAUDECODE to prevent SDK anti-nesting block.
+    # PodClaw is a standalone app that spawns Claude sessions — not a nested session.
+    os.environ.pop("CLAUDECODE", None)
 
 
-def _build_connectors() -> dict:
+def _build_connectors(memory_store=None, state_store=None) -> dict:
     """Initialize all MCP connectors."""
     from podclaw.connectors.supabase_connector import SupabaseMCPConnector
     from podclaw.connectors.stripe_connector import StripeMCPConnector
@@ -84,6 +93,11 @@ def _build_connectors() -> dict:
         "telegram": TelegramMCPConnector(config.TELEGRAM_BOT_TOKEN),
         "whatsapp": WhatsAppMCPConnector(config.WHATSAPP_PHONE_NUMBER_ID, config.WHATSAPP_ACCESS_TOKEN),
     }
+
+    # Memory search (local SQLite cognitive memory)
+    if memory_store:
+        from podclaw.connectors.memory_connector import MemoryMCPConnector
+        connectors["memory"] = MemoryMCPConnector(memory_store, state_store=state_store)
 
     logger.info("connectors_initialized", count=len(connectors))
     return connectors
@@ -181,7 +195,24 @@ async def _run(args: argparse.Namespace) -> None:
     # System event queue (inter-agent communication, Supabase-backed)
     event_queue = SystemEventQueue(supabase_client=supabase_client)
 
-    connectors = _build_connectors()
+    # Initialize local memory store (SQLite cognitive memory + Gemini embeddings)
+    memory_store = None
+    try:
+        from podclaw.services.embedding_service import (
+            GeminiEmbeddingProvider,
+            CachedEmbeddingService,
+        )
+        from podclaw.memory.store import MemoryStore
+
+        memory_db_path = Path(__file__).parent / "memory" / "memory.db"
+        gemini_provider = GeminiEmbeddingProvider(api_key=_cfg.GEMINI_API_KEY)
+        embedding_service = CachedEmbeddingService(provider=gemini_provider, db_path=memory_db_path)
+        memory_store = MemoryStore(db_path=memory_db_path, embedding_service=embedding_service, state_store=state_store)
+        logger.info("memory_store_initialized")
+    except Exception as e:
+        logger.warning("memory_store_init_failed", error=str(e))
+
+    connectors = _build_connectors(memory_store=memory_store, state_store=state_store)
     hooks = _build_hooks(event_store, memory_manager, event_queue=event_queue)
 
     skills_dir = Path(__file__).parent / "skills"
@@ -201,8 +232,31 @@ async def _run(args: argparse.Namespace) -> None:
         state_store=state_store,
     )
 
-    scheduler = PodClawScheduler(orchestrator, workspace_root=workspace)
+    # Delegation subsystem (async sub-agent execution from chat)
+    from podclaw.delegation import DelegationRegistry, DelegationWorker
+    delegation_registry = DelegationRegistry(state_store)
+    delegation_worker = DelegationWorker(
+        registry=delegation_registry,
+        orchestrator=orchestrator,
+        event_store=event_store,
+        memory_manager=memory_manager,
+    )
+
+    # Unified cognitive agent (FASE 2)
+    from podclaw.agent.core import PodClawAgent
+    podclaw_agent = PodClawAgent(
+        orchestrator=orchestrator,
+        memory_manager=memory_manager,
+        state_store=state_store,
+        delegation_registry=delegation_registry,
+    )
+
+    scheduler = PodClawScheduler(orchestrator, workspace_root=workspace, agent=podclaw_agent)
     orchestrator.scheduler = scheduler  # Back-reference for deferred retries
+
+    # Delegate connector (needs orchestrator — late binding after construction)
+    from podclaw.connectors.delegate_connector import DelegateMCPConnector
+    connectors["delegate"] = DelegateMCPConnector(orchestrator)
 
     # Soul evolution (controlled SOUL.md mutation)
     soul_evolution = SoulEvolution(
@@ -210,6 +264,8 @@ async def _run(args: argparse.Namespace) -> None:
         state_store=state_store,
     )
     scheduler.set_soul_evolution(soul_evolution)
+    if memory_store:
+        scheduler.set_memory_store(memory_store)
 
     # Heartbeat runner
     heartbeat_runner = HeartbeatRunner(
@@ -220,6 +276,7 @@ async def _run(args: argparse.Namespace) -> None:
         workspace=workspace,
         interval_minutes=_cfg.HEARTBEAT_INTERVAL_MINUTES,
         active_hours=(_cfg.HEARTBEAT_ACTIVE_HOURS_START, _cfg.HEARTBEAT_ACTIVE_HOURS_END),
+        agent=podclaw_agent,
     )
 
     if args.dry_run:
@@ -244,11 +301,26 @@ async def _run(args: argparse.Namespace) -> None:
 
     # Start orchestrator
     orchestrator.start()
+    podclaw_agent.start()
+    delegation_worker.start()
     scheduler.start()
 
     # Start heartbeat
     if _cfg.HEARTBEAT_ENABLED:
         heartbeat_runner.start()
+
+    # Index memory files in background (controlled by ENABLE_MEMORY_INDEX_ON_BOOT)
+    if memory_store and _cfg.ENABLE_MEMORY_INDEX_ON_BOOT:
+        async def _index_memory():
+            try:
+                result = await memory_store.sync_files(memory_manager)
+                logger.info("memory_indexed", **result)
+            except Exception as e:
+                logger.warning("memory_index_failed", error=str(e))
+
+        asyncio.create_task(_index_memory())
+    elif memory_store:
+        logger.info("memory_index_skipped", reason="ENABLE_MEMORY_INDEX_ON_BOOT=false")
 
     # Start FastAPI bridge
     if not args.no_bridge:
@@ -262,6 +334,8 @@ async def _run(args: argparse.Namespace) -> None:
             event_queue=event_queue,
             soul_evolution=soul_evolution,
             state_store=state_store,
+            connectors=connectors,
+            delegation_registry=delegation_registry,
         )
 
         config = uvicorn.Config(
@@ -276,7 +350,9 @@ async def _run(args: argparse.Namespace) -> None:
             loop.add_signal_handler(
                 sig,
                 lambda: asyncio.create_task(
-                    _shutdown(scheduler, orchestrator, server, heartbeat_runner)
+                    _shutdown(scheduler, orchestrator, server, heartbeat_runner,
+                              delegation_worker=delegation_worker,
+                              agent=podclaw_agent)
                 ),
             )
 
@@ -310,14 +386,20 @@ async def _run(args: argparse.Namespace) -> None:
             loop.add_signal_handler(sig, stop_event.set)
 
         await stop_event.wait()
+        delegation_worker.stop()
+        podclaw_agent.stop()
         heartbeat_runner.stop()
         scheduler.stop()
         orchestrator.stop()
 
 
-async def _shutdown(scheduler, orchestrator, server, heartbeat=None) -> None:
+async def _shutdown(scheduler, orchestrator, server, heartbeat=None, delegation_worker=None, agent=None) -> None:
     """Graceful shutdown — allow active sessions up to 30s to complete."""
     logger.info("shutdown_initiated")
+    if delegation_worker:
+        delegation_worker.stop()
+    if agent:
+        agent.stop()
     if heartbeat:
         heartbeat.stop()
     scheduler.stop()

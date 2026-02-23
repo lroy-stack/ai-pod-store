@@ -1,15 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY!;
+import { supabaseAdmin } from '@/lib/supabase';
 
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
     const period = searchParams.get('period') || '7d'; // 7d, 30d, or 90d
-
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Calculate date range
     const daysMap: Record<string, number> = {
@@ -22,11 +17,11 @@ export async function GET(request: NextRequest) {
     startDate.setDate(startDate.getDate() - days);
 
     // Fetch orders grouped by date
-    const { data: orders, error } = await supabase
+    const { data: orders, error } = await supabaseAdmin
       .from('orders')
       .select('created_at, total_cents, currency')
       .gte('created_at', startDate.toISOString())
-      .in('status', ['paid', 'processing', 'shipped', 'delivered'])
+      .in('status', ['completed', 'paid', 'processing', 'shipped', 'delivered'])
       .order('created_at', { ascending: true });
 
     if (error) {
@@ -34,16 +29,18 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to fetch revenue trend' }, { status: 500 });
     }
 
-    // Group by date and calculate revenue
+    // Group by date and calculate revenue + orders count
     const revenueByDate: Record<string, number> = {};
+    const ordersByDate: Record<string, number> = {};
     orders?.forEach((order) => {
       const date = new Date(order.created_at).toISOString().split('T')[0];
       const revenueEur = order.total_cents / 100; // Convert cents to euros
       revenueByDate[date] = (revenueByDate[date] || 0) + revenueEur;
+      ordersByDate[date] = (ordersByDate[date] || 0) + 1;
     });
 
     // Fill in missing dates with 0
-    const chartData: { date: string; revenue: number }[] = [];
+    const chartData: { date: string; revenue: number; orders: number }[] = [];
     for (let i = days - 1; i >= 0; i--) {
       const date = new Date();
       date.setDate(date.getDate() - i);
@@ -51,6 +48,7 @@ export async function GET(request: NextRequest) {
       chartData.push({
         date: dateStr,
         revenue: revenueByDate[dateStr] || 0,
+        orders: ordersByDate[dateStr] || 0,
       });
     }
 

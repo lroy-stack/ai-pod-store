@@ -46,5 +46,17 @@
     "description": "Daily financial reconciliation",
     "model": "sonnet",
     "enabled": true
+  },
+  "qa_inspector": {
+    "schedule": "0 10 * * *",
+    "description": "Verify designs and products quality",
+    "model": "haiku",
+    "enabled": true
+  },
+  "brand_manager": {
+    "schedule": "0 8 * * 1",
+    "description": "Weekly brand audit and label management",
+    "model": "sonnet",
+    "enabled": true
   }
 }

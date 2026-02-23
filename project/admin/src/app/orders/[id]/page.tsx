@@ -204,7 +204,7 @@ export default function OrderDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen p-4 md:p-8">
+      <div className="min-h-screen">
         <div className="max-w-4xl mx-auto">
           <p className="text-muted-foreground">Loading order details...</p>
         </div>
@@ -214,12 +214,9 @@ export default function OrderDetailPage() {
 
   if (error || !order) {
     return (
-      <div className="min-h-screen p-4 md:p-8">
+      <div className="min-h-screen">
         <div className="max-w-4xl mx-auto">
           <p className="text-destructive">Error: {error || 'Order not found'}</p>
-          <Button onClick={() => router.push('/orders')} variant="outline" className="mt-4">
-            Back to Orders
-          </Button>
         </div>
       </div>
     );
@@ -228,18 +225,10 @@ export default function OrderDetailPage() {
   const timelineEvents = generateTimelineEvents(order);
 
   return (
-    <div className="min-h-screen p-4 md:p-8">
+    <div className="min-h-screen">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-6">
-          <Button
-            onClick={() => router.push('/orders')}
-            variant="ghost"
-            className="mb-4"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Orders
-          </Button>
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold">Order Details</h1>

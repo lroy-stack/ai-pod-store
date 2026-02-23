@@ -7,7 +7,9 @@ Full CRUD for the cataloger agent: products, blueprints, mockups, orders.
 
 from __future__ import annotations
 
+import ipaddress
 import re
+import socket
 from typing import Any
 
 import httpx
@@ -69,6 +71,26 @@ def _clamp_page(raw: Any) -> int:
     return max(1, val)
 
 
+def _resolve_and_check_ssrf(hostname: str) -> None:
+    """Resolve hostname to IP and block private/reserved addresses (SSRF protection).
+
+    Blocks: RFC1918, loopback, link-local (169.254.x — cloud metadata!),
+    IPv6 loopback (::1), IPv6 link-local (fe80::), and other reserved ranges.
+    """
+    try:
+        infos = socket.getaddrinfo(hostname, None, socket.AF_UNSPEC, socket.SOCK_STREAM)
+    except socket.gaierror as e:
+        raise ValueError(f"DNS resolution failed for '{hostname}': {e}")
+
+    for info in infos:
+        ip_str = info[4][0]
+        ip = ipaddress.ip_address(ip_str)
+        if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved:
+            raise ValueError(
+                f"SSRF blocked: '{hostname}' resolves to private/reserved IP {ip_str}"
+            )
+
+
 def _validate_image_url(url: str) -> None:
     """Validate that the image URL is HTTPS and from an allowed host."""
     parsed = urlparse(url)
@@ -76,6 +98,8 @@ def _validate_image_url(url: str) -> None:
         raise ValueError(f"Only HTTPS URLs allowed, got: {parsed.scheme}")
     if parsed.hostname and parsed.hostname not in _ALLOWED_IMAGE_HOSTS:
         raise ValueError(f"Image host not allowed: {parsed.hostname}")
+    if parsed.hostname:
+        _resolve_and_check_ssrf(parsed.hostname)
 
 
 def _validate_webhook_url(url: str) -> None:
@@ -95,6 +119,9 @@ def _validate_webhook_url(url: str) -> None:
             f"Webhook host not allowed: {parsed.hostname}. "
             f"Allowed: {', '.join(sorted(allowed))}"
         )
+    # SSRF check (skip for localhost — dev only)
+    if parsed.hostname and parsed.hostname != "localhost":
+        _resolve_and_check_ssrf(parsed.hostname)
 
 PRINTIFY_API = "https://api.printify.com/v1"
 

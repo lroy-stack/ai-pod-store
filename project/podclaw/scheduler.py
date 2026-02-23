@@ -39,6 +39,7 @@ from apscheduler.triggers.date import DateTrigger
 
 if TYPE_CHECKING:
     from podclaw.core import Orchestrator
+    from podclaw.agent.core import PodClawAgent
 
 logger = structlog.get_logger(__name__)
 
@@ -71,8 +72,14 @@ DEFAULT_SCHEDULE = {
 class PodClawScheduler:
     """Manages the daily agent execution cycle."""
 
-    def __init__(self, orchestrator: "Orchestrator", workspace_root: Path | None = None):
+    def __init__(
+        self,
+        orchestrator: "Orchestrator",
+        workspace_root: Path | None = None,
+        agent: "PodClawAgent | None" = None,
+    ):
         self.orchestrator = orchestrator
+        self._agent = agent
         self.scheduler = AsyncIOScheduler(
             timezone="UTC",
             job_defaults={"misfire_grace_time": 3600, "coalesce": True},
@@ -81,11 +88,50 @@ class PodClawScheduler:
         self.schedule_file = self.workspace_root / "podclaw_schedule.json"
         self.current_schedule = self._load_schedule()
         self._soul_evolution = None
+        self._memory_store = None
         self._setup_jobs()
+
+    def set_agent(self, agent: "PodClawAgent") -> None:
+        """Set the PodClawAgent reference (late binding after construction)."""
+        self._agent = agent
+
+    def _job_target(self, agent_name: str, task_key: str | None = None) -> tuple:
+        """Return (callable, args, kwargs) for a scheduled job.
+
+        If PodClawAgent is available, routes through handle_event().
+        Otherwise falls back to orchestrator.run_agent() (backward compat).
+        """
+        if self._agent:
+            if task_key and task_key != agent_name:
+                # e.g. "cataloger_pricing" → source="cron:cataloger:pricing"
+                suffix = task_key[len(agent_name) + 1:]  # strip "cataloger_"
+                source = f"cron:{agent_name}:{suffix}"
+            else:
+                source = f"cron:{agent_name}"
+            return (self._agent.enqueue_event, [source], {})
+
+        # Fallback: direct run_agent (backward compat for tests without agent)
+        if task_key and task_key != agent_name:
+            cycle_task = self._get_cycle_task_prompt(agent_name, task_key)
+            kwargs = {"task": cycle_task} if cycle_task else {}
+        else:
+            kwargs = {}
+        return (self.orchestrator.run_agent, [agent_name], kwargs)
+
+    def _get_cycle_task_prompt(self, agent_name: str, task_key: str) -> str | None:
+        """Get the full task prompt for a cycle-specific task_key."""
+        if task_key == agent_name:
+            return None
+        from podclaw.core import Orchestrator
+        return Orchestrator._default_task(self.orchestrator, task_key)
 
     def set_soul_evolution(self, soul_evolution) -> None:
         """Set the soul evolution reference for consolidation jobs."""
         self._soul_evolution = soul_evolution
+
+    def set_memory_store(self, memory_store) -> None:
+        """Set the memory store reference for decay/pruning jobs."""
+        self._memory_store = memory_store
 
     def _load_schedule(self) -> dict:
         """Load schedule from file or return defaults."""
@@ -128,14 +174,12 @@ class PodClawScheduler:
         Returns the task prompt from core.py._default_task() for the given
         task_key, or None if the agent has no cycle-specific mapping (in which
         case the orchestrator uses the default task for that agent_name).
+
+        Used by fallback path (when PodClawAgent is not available).
         """
         task_key = CYCLE_TASKS.get(agent_name, {}).get(hour)
         if task_key and task_key != agent_name:
-            # Import here to avoid circular dependency at module level
-            from podclaw.core import Orchestrator
-            # Build a temporary orchestrator just to call _default_task
-            # (it's a pure function with no side effects)
-            return Orchestrator._default_task(self.orchestrator, task_key)
+            return self._get_cycle_task_prompt(agent_name, task_key)
         return None
 
     def _setup_jobs(self) -> None:
@@ -160,12 +204,12 @@ class PodClawScheduler:
                         hour = int(hour_str)
                         single_cron = schedule_str.replace(hours_field, hour_str)
                         trigger = self._parse_cron(single_cron)
-                        cycle_task = self._get_cycle_task(agent_name, hour)
-                        kwargs = {"task": cycle_task} if cycle_task else {}
+                        task_key = CYCLE_TASKS.get(agent_name, {}).get(hour, agent_name)
+                        fn, args, kwargs = self._job_target(agent_name, task_key)
                         self.scheduler.add_job(
-                            self.orchestrator.run_agent,
+                            fn,
                             trigger,
-                            args=[agent_name],
+                            args=args,
                             kwargs=kwargs,
                             id=f"{agent_name}_h{hour_str}_scheduled",
                             name=f"{agent_name.replace('_', ' ').title()} ({hour_str}:00)",
@@ -173,10 +217,12 @@ class PodClawScheduler:
                         logger.debug("job_added", agent=agent_name, schedule=single_cron, hour=hour)
                 else:
                     trigger = self._parse_cron(schedule_str)
+                    fn, args, kwargs = self._job_target(agent_name)
                     self.scheduler.add_job(
-                        self.orchestrator.run_agent,
+                        fn,
                         trigger,
-                        args=[agent_name],
+                        args=args,
+                        kwargs=kwargs,
                         id=f"{agent_name}_scheduled",
                         name=f"{agent_name.replace('_', ' ').title()}",
                     )
@@ -208,6 +254,30 @@ class PodClawScheduler:
             name="Session Reaper",
         )
 
+        # Memory decay + pruning: 04:00 UTC daily (before agents start)
+        self.scheduler.add_job(
+            self._run_memory_decay,
+            CronTrigger(hour=4, minute=0),
+            id="memory_decay",
+            name="Memory Decay & Pruning",
+        )
+
+        # Memory health check: 04:10 UTC daily (after decay at 04:00, diagnostic only)
+        self.scheduler.add_job(
+            self._run_memory_health_check,
+            CronTrigger(hour=4, minute=10),
+            id="memory_health_check",
+            name="Memory Health Check",
+        )
+
+        # Memory telemetry snapshot: Sunday 05:00 UTC (observe, no mutations)
+        self.scheduler.add_job(
+            self._run_memory_snapshot,
+            CronTrigger(hour=5, minute=0, day_of_week="sun"),
+            id="memory_snapshot",
+            name="Memory Telemetry Snapshot",
+        )
+
         logger.info("scheduler_configured", job_count=len(self.scheduler.get_jobs()))
 
     async def _run_governor(self) -> None:
@@ -237,6 +307,68 @@ class PodClawScheduler:
         await self.orchestrator.run_consolidation(
             soul_evolution=self._soul_evolution,
         )
+
+    async def _run_memory_decay(self) -> None:
+        """Apply memory decay and pruning to conversation memories."""
+        if not self._memory_store:
+            return
+        try:
+            decay_result = await self._memory_store.apply_decay()
+            prune_result = await self._memory_store.apply_pruning()
+            logger.info(
+                "memory_maintenance_complete",
+                decayed=decay_result.get("decayed", 0),
+                pruned=prune_result.get("pruned", 0),
+            )
+        except Exception as e:
+            logger.error("memory_maintenance_failed", error=str(e))
+
+    async def _run_memory_health_check(self) -> None:
+        """Daily cognitive health evaluation (diagnostic, no mutations)."""
+        if not self._memory_store:
+            return
+        try:
+            result = await self._memory_store.evaluate_memory_health()
+            status = result.get("status", "unknown")
+            if status == "critical":
+                logger.warning(
+                    "memory_health_critical",
+                    flags=result.get("flags", []),
+                    summary=result.get("summary", ""),
+                    action=result.get("recommended_action", ""),
+                    **result.get("metrics", {}),
+                )
+            elif status == "warning":
+                logger.info(
+                    "memory_health_warning",
+                    flags=result.get("flags", []),
+                    summary=result.get("summary", ""),
+                    action=result.get("recommended_action", ""),
+                )
+            # healthy → silent (no log)
+        except Exception as e:
+            logger.error("memory_health_check_failed", error=str(e))
+
+    async def _run_memory_snapshot(self) -> None:
+        """Log weekly memory telemetry snapshot (read-only, no mutations)."""
+        if not self._memory_store:
+            return
+        try:
+            stats = await self._memory_store.get_memory_stats()
+            growth = await self._memory_store.get_memory_growth(days=7)
+            logger.info(
+                "memory_snapshot",
+                total_chunks=stats.get("total_chunks", 0),
+                conversation_memory=stats.get("total_conversation_memory", 0),
+                by_type=stats.get("by_memory_type", {}),
+                by_importance=stats.get("by_importance_range", {}),
+                avg_importance=stats.get("avg_importance", 0),
+                avg_access=stats.get("avg_access_count", 0),
+                zero_access_pct=stats.get("zero_access_pct", 0),
+                created_last_7d=growth.get("total_created_in_period", 0),
+            )
+        except Exception as e:
+            logger.error("memory_snapshot_failed", error=str(e))
 
     async def _reap_stale_sessions(self) -> None:
         """Mark sessions stuck in 'running' > 24h as 'error'."""
@@ -290,10 +422,12 @@ class PodClawScheduler:
         run_at = datetime.now(timezone.utc) + timedelta(minutes=delay_minutes, seconds=jitter_seconds)
         job_id = f"{agent_name}_deferred_retry_{int(run_at.timestamp())}"
 
+        fn, args, kwargs = self._job_target(agent_name)
         self.scheduler.add_job(
-            self.orchestrator.run_agent,
+            fn,
             DateTrigger(run_date=run_at),
-            args=[agent_name],
+            args=args,
+            kwargs=kwargs,
             id=job_id,
             name=f"{agent_name.replace('_', ' ').title()} (deferred retry)",
             misfire_grace_time=600,
@@ -390,7 +524,7 @@ class PodClawScheduler:
 
         # Remove all existing agent jobs (keep memory consolidation and session_reaper)
         for job in list(self.scheduler.get_jobs()):
-            if job.id not in ("memory_consolidation", "session_reaper", "production_governor"):
+            if job.id not in ("memory_consolidation", "session_reaper", "production_governor", "memory_decay", "memory_health_check", "memory_snapshot"):
                 job.remove()
 
         # Update current schedule and re-add jobs
@@ -412,22 +546,24 @@ class PodClawScheduler:
                         hour = int(hour_str)
                         single_cron = schedule_str.replace(hours_field, hour_str)
                         trigger = self._parse_cron(single_cron)
-                        cycle_task = self._get_cycle_task(agent_name, hour)
-                        kwargs = {"task": cycle_task} if cycle_task else {}
+                        task_key = CYCLE_TASKS.get(agent_name, {}).get(hour, agent_name)
+                        fn, args, kwargs = self._job_target(agent_name, task_key)
                         self.scheduler.add_job(
-                            self.orchestrator.run_agent,
+                            fn,
                             trigger,
-                            args=[agent_name],
+                            args=args,
                             kwargs=kwargs,
                             id=f"{agent_name}_h{hour_str}_scheduled",
                             name=f"{agent_name.replace('_', ' ').title()} ({hour_str}:00)",
                         )
                 else:
                     trigger = self._parse_cron(schedule_str)
+                    fn, args, kwargs = self._job_target(agent_name)
                     self.scheduler.add_job(
-                        self.orchestrator.run_agent,
+                        fn,
                         trigger,
-                        args=[agent_name],
+                        args=args,
+                        kwargs=kwargs,
                         id=f"{agent_name}_scheduled",
                         name=f"{agent_name.replace('_', ' ').title()}",
                     )
@@ -444,7 +580,7 @@ class PodClawScheduler:
 
         # Remove all existing agent jobs (keep system jobs)
         for job in list(self.scheduler.get_jobs()):
-            if job.id not in ("memory_consolidation", "session_reaper", "production_governor"):
+            if job.id not in ("memory_consolidation", "session_reaper", "production_governor", "memory_decay", "memory_health_check", "memory_snapshot"):
                 job.remove()
 
         # Re-add jobs with default schedules (same CYCLE_TASKS split logic as _setup_jobs)
@@ -462,22 +598,24 @@ class PodClawScheduler:
                         hour = int(hour_str)
                         single_cron = schedule_str.replace(hours_field, hour_str)
                         trigger = self._parse_cron(single_cron)
-                        cycle_task = self._get_cycle_task(agent_name, hour)
-                        kwargs = {"task": cycle_task} if cycle_task else {}
+                        task_key = CYCLE_TASKS.get(agent_name, {}).get(hour, agent_name)
+                        fn, args, kwargs = self._job_target(agent_name, task_key)
                         self.scheduler.add_job(
-                            self.orchestrator.run_agent,
+                            fn,
                             trigger,
-                            args=[agent_name],
+                            args=args,
                             kwargs=kwargs,
                             id=f"{agent_name}_h{hour_str}_scheduled",
                             name=f"{agent_name.replace('_', ' ').title()} ({hour_str}:00)",
                         )
                 else:
                     trigger = self._parse_cron(schedule_str)
+                    fn, args, kwargs = self._job_target(agent_name)
                     self.scheduler.add_job(
-                        self.orchestrator.run_agent,
+                        fn,
                         trigger,
-                        args=[agent_name],
+                        args=args,
+                        kwargs=kwargs,
                         id=f"{agent_name}_scheduled",
                         name=f"{agent_name.replace('_', ' ').title()}",
                     )

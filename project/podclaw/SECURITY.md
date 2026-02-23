@@ -93,10 +93,10 @@ Per-session tool call limits prevent runaway agents:
 
 | Agent | Tool | Max/Session |
 |-------|------|-------------|
-| researcher | web_search | 20 |
+| researcher | crawl_url | 20 |
 | marketing | resend_send | 30 |
 | marketing | telegram_send, telegram_broadcast, whatsapp_send | 50 each |
-| designer | search_images | 30 |
+| designer | crawl_url | 10 |
 | designer | fal_generate | 10 |
 | designer | gemini_generate_image | 2 |
 | newsletter | resend_send | 500 |
@@ -104,7 +104,7 @@ Per-session tool call limits prevent runaway agents:
 | cataloger | printify_delete_product | 10 |
 | customer_manager | resend_send, telegram_send, whatsapp_send | 100 each |
 | customer_manager | stripe_create_refund | 10 |
-| seo_manager | web_search | 15 |
+| seo_manager | crawl_url | 10 |
 | finance | stripe_create_refund | 5 |
 | qa_inspector | gemini_check_image | 20 |
 | qa_inspector | printify_get_product | 10 |

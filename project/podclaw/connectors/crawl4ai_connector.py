@@ -2,15 +2,20 @@
 PodClaw — Crawl4AI MCP Connector
 =================================
 
-Web crawling with JavaScript rendering via Crawl4AI service.
-Used by researcher, seo_manager, and marketing agents for competitive analysis
-and content research.
+Web crawling with JavaScript rendering via Crawl4AI service (v0.7+).
+Uses the official built-in REST API on port 11235.
+
+Real endpoints:
+  POST /crawl          — Crawl one or more URLs (main endpoint)
+  POST /screenshot     — Capture screenshot (alias, uses /crawl internally)
+  GET  /monitor/health — Health check
 """
 
 from __future__ import annotations
 
 import asyncio
 from typing import Any
+from urllib.parse import urlparse
 
 import httpx
 import structlog
@@ -24,17 +29,9 @@ MAX_RETRY_DELAY = 10.0  # seconds
 
 
 class CrawlForAIMCPConnector:
-    """In-process MCP connector for Crawl4AI web crawler."""
+    """In-process MCP connector for Crawl4AI web crawler (v0.7+ REST API)."""
 
     def __init__(self, base_url: str, max_retries: int = MAX_RETRIES, max_concurrent: int = 1):
-        """
-        Initialize the Crawl4AI connector.
-
-        Args:
-            base_url: Base URL of the Crawl4AI service (e.g., "http://crawl4ai:11235")
-            max_retries: Maximum number of retry attempts for failed requests
-            max_concurrent: Maximum concurrent requests to prevent memory spikes (default: 1)
-        """
         if not base_url:
             raise ValueError("CRAWL4AI_URL must be configured")
 
@@ -55,24 +52,7 @@ class CrawlForAIMCPConnector:
         timeout: float = 60.0,
         **kwargs: Any,
     ) -> dict[str, Any]:
-        """
-        Make an HTTP request with exponential backoff retry logic and concurrency control.
-
-        Args:
-            method: HTTP method (GET, POST, etc.)
-            url: Full URL to request
-            timeout: Request timeout in seconds
-            **kwargs: Additional arguments to pass to the request
-
-        Returns:
-            Response JSON as dict
-
-        Raises:
-            httpx.HTTPStatusError: If all retries fail with HTTP error
-            httpx.TimeoutException: If all retries timeout
-            Exception: If all retries fail with other errors
-        """
-        # Use semaphore to limit concurrent requests
+        """HTTP request with exponential backoff and concurrency control."""
         async with self._semaphore:
             last_error = None
             retry_delay = INITIAL_RETRY_DELAY
@@ -92,7 +72,6 @@ class CrawlForAIMCPConnector:
 
                 except httpx.HTTPStatusError as e:
                     last_error = e
-                    # Don't retry 4xx client errors (except 429 Too Many Requests)
                     if 400 <= e.response.status_code < 500 and e.response.status_code != 429:
                         logger.error(
                             "crawl4ai_client_error",
@@ -130,13 +109,10 @@ class CrawlForAIMCPConnector:
                         max_retries=self._max_retries,
                     )
 
-                # Sleep before retry (except on last attempt)
                 if attempt < self._max_retries - 1:
                     await asyncio.sleep(retry_delay)
-                    # Exponential backoff with jitter
                     retry_delay = min(retry_delay * 2, MAX_RETRY_DELAY)
 
-            # All retries exhausted
             logger.error(
                 "crawl4ai_all_retries_failed",
                 url=url,
@@ -144,17 +120,120 @@ class CrawlForAIMCPConnector:
                 last_error=str(last_error),
             )
 
-            # Re-raise the last error
             if last_error:
                 raise last_error
             else:
                 raise Exception("All retry attempts failed")
 
+    # ------------------------------------------------------------------
+    # Internal: call POST /crawl (the one real endpoint)
+    # ------------------------------------------------------------------
+
+    async def _post_crawl(
+        self,
+        urls: list[str],
+        *,
+        timeout: float = 60.0,
+        screenshot: bool = False,
+        wait_for: str | None = None,
+        css_selector: str | None = None,
+        word_count_threshold: int = 10,
+        cache_mode: str = "bypass",
+    ) -> dict[str, Any]:
+        """
+        Core method — POST /crawl with Crawl4AI v0.7+ payload format.
+
+        Args:
+            urls: List of URLs to crawl.
+            screenshot: Capture screenshot per page.
+            wait_for: CSS selector to wait for before extraction.
+            css_selector: Extract only content matching this selector.
+            word_count_threshold: Minimum words per block to keep.
+            cache_mode: "bypass", "enabled", "disabled", "read_only", "write_only".
+
+        Returns:
+            Raw response dict from Crawl4AI server.
+        """
+        crawler_params: dict[str, Any] = {
+            "cache_mode": cache_mode,
+            "word_count_threshold": word_count_threshold,
+        }
+        if screenshot:
+            crawler_params["screenshot"] = True
+        if wait_for:
+            crawler_params["wait_for"] = f"css:{wait_for}"
+        if css_selector:
+            crawler_params["css_selector"] = css_selector
+
+        payload: dict[str, Any] = {
+            "urls": urls[0] if len(urls) == 1 else urls,
+            "browser_config": {
+                "type": "BrowserConfig",
+                "params": {
+                    "headless": True,
+                    "viewport_width": 1280,
+                    "viewport_height": 720,
+                },
+            },
+            "crawler_config": {
+                "type": "CrawlerRunConfig",
+                "params": crawler_params,
+            },
+        }
+
+        return await self._request_with_retry(
+            "POST",
+            f"{self._base_url}/crawl",
+            timeout=timeout,
+            json=payload,
+        )
+
+    @staticmethod
+    def _parse_result(result: dict[str, Any]) -> dict[str, Any]:
+        """Normalize a single crawl result into our tool output format."""
+        markdown_data = result.get("markdown", {})
+        if isinstance(markdown_data, str):
+            content = markdown_data
+        else:
+            content = (
+                markdown_data.get("fit_markdown")
+                or markdown_data.get("raw_markdown")
+                or ""
+            )
+
+        links = result.get("links", {})
+        internal = links.get("internal", []) if isinstance(links, dict) else []
+        external = links.get("external", []) if isinstance(links, dict) else []
+
+        media = result.get("media", {})
+        images = media.get("images", []) if isinstance(media, dict) else []
+
+        return {
+            "url": result.get("url", ""),
+            "title": (result.get("metadata", {}) or {}).get("title", ""),
+            "content": content[:15000],  # Cap to avoid token explosion
+            "links": {
+                "internal": [l.get("href", "") for l in internal[:50]],
+                "external": [l.get("href", "") for l in external[:50]],
+            },
+            "images": [
+                {"src": img.get("src", ""), "alt": img.get("alt", "")}
+                for img in images[:30]
+            ],
+            "metadata": result.get("metadata", {}),
+            "success": result.get("success", False),
+            "status_code": result.get("status_code", 0),
+        }
+
+    # ------------------------------------------------------------------
+    # Tool definitions
+    # ------------------------------------------------------------------
+
     def get_tools(self) -> dict[str, dict[str, Any]]:
         """Return tool definitions for Crawl4AI operations."""
         return {
             "crawl_url": {
-                "description": "Crawl a single URL with JavaScript rendering and extract content",
+                "description": "Crawl a single URL with JavaScript rendering and extract content as markdown",
                 "input_schema": {
                     "type": "object",
                     "properties": {
@@ -203,7 +282,7 @@ class CrawlForAIMCPConnector:
                 "handler": self._crawl_batch,
             },
             "extract_article": {
-                "description": "Extract article content from a URL using content extraction heuristics",
+                "description": "Extract article content from a URL (title, author, body as clean markdown)",
                 "input_schema": {
                     "type": "object",
                     "properties": {
@@ -217,7 +296,7 @@ class CrawlForAIMCPConnector:
                 "handler": self._extract_article,
             },
             "crawl_site": {
-                "description": "Recursively crawl a website up to max_depth and max_pages (respects robots.txt)",
+                "description": "Crawl a website starting from a URL, following internal links up to max_depth/max_pages",
                 "input_schema": {
                     "type": "object",
                     "properties": {
@@ -227,15 +306,15 @@ class CrawlForAIMCPConnector:
                         },
                         "max_depth": {
                             "type": "integer",
-                            "description": "Maximum depth to crawl (1-4, default: 2)",
+                            "description": "Maximum link-follow depth (1-3, default: 2)",
                             "minimum": 1,
-                            "maximum": 4,
+                            "maximum": 3,
                         },
                         "max_pages": {
                             "type": "integer",
-                            "description": "Maximum number of pages to crawl (1-100, default: 20)",
+                            "description": "Maximum number of pages to crawl (1-20, default: 10)",
                             "minimum": 1,
-                            "maximum": 100,
+                            "maximum": 20,
                         },
                     },
                     "required": ["url"],
@@ -251,14 +330,6 @@ class CrawlForAIMCPConnector:
                             "type": "string",
                             "description": "The URL to screenshot",
                         },
-                        "viewport": {
-                            "type": "object",
-                            "description": "Viewport size (default: 1280x720)",
-                            "properties": {
-                                "width": {"type": "integer"},
-                                "height": {"type": "integer"},
-                            },
-                        },
                         "full_page": {
                             "type": "boolean",
                             "description": "Capture full page scroll (default: false)",
@@ -270,93 +341,61 @@ class CrawlForAIMCPConnector:
             },
         }
 
+    # ------------------------------------------------------------------
+    # Tool handlers
+    # ------------------------------------------------------------------
+
     async def _crawl_url(self, params: dict[str, Any]) -> dict[str, Any]:
-        """
-        Crawl a single URL and return extracted content.
-
-        Args:
-            params: Contains url, wait_for, screenshot, extract_links, extract_metadata
-
-        Returns:
-            Dict containing: url, title, content, links, metadata, screenshot_url
-        """
+        """Crawl a single URL via POST /crawl."""
         url = params["url"]
-
-        # Validate URL
         if not url.startswith(("http://", "https://")):
             return {"error": "Invalid URL: must start with http:// or https://"}
 
-        payload = {
-            "url": url,
-            "wait_for": params.get("wait_for"),
-            "screenshot": params.get("screenshot", False),
-            "extract_links": params.get("extract_links", True),
-            "extract_metadata": params.get("extract_metadata", True),
-        }
-
         try:
-            data = await self._request_with_retry(
-                "POST",
-                f"{self._base_url}/crawl",
-                timeout=60.0,
-                json=payload,
+            data = await self._post_crawl(
+                [url],
+                screenshot=params.get("screenshot", False),
+                wait_for=params.get("wait_for"),
             )
 
+            results = data.get("results", [])
+            if not results:
+                return {"error": "No results returned", "url": url}
+
+            parsed = self._parse_result(results[0])
             logger.info(
                 "crawl_url_success",
                 url=url,
-                title=data.get("title", "")[:50],
-                content_length=len(data.get("content", "")),
+                title=parsed.get("title", "")[:50],
+                content_length=len(parsed.get("content", "")),
             )
-
-            return data
+            return parsed
 
         except httpx.HTTPStatusError as e:
-            error_msg = f"HTTP {e.response.status_code}"
-            try:
-                error_detail = e.response.text[:200]
-                error_msg += f": {error_detail}"
-            except:
-                pass
-            return {"error": error_msg, "url": url}
-
+            return {"error": f"HTTP {e.response.status_code}", "url": url}
         except httpx.TimeoutException:
             return {"error": "Request timeout after 60s", "url": url}
-
         except Exception as e:
             return {"error": f"Crawl failed: {str(e)}", "url": url}
 
     async def _crawl_batch(self, params: dict[str, Any]) -> dict[str, Any]:
-        """
-        Crawl multiple URLs in parallel.
-
-        Args:
-            params: Contains urls (list of strings), extract_links
-
-        Returns:
-            Dict containing: results (list of crawl results), success_count, error_count
-        """
-        urls = params["urls"][:10]  # Limit to 10 URLs max
-
+        """Crawl multiple URLs via single POST /crawl with urls array."""
+        urls = params["urls"][:10]
         if not urls:
             return {"error": "No URLs provided"}
 
-        payload = {
-            "urls": urls,
-            "extract_links": params.get("extract_links", False),
-        }
+        # Validate all URLs
+        for u in urls:
+            if not u.startswith(("http://", "https://")):
+                return {"error": f"Invalid URL: {u}"}
 
         try:
-            data = await self._request_with_retry(
-                "POST",
-                f"{self._base_url}/crawl/batch",
-                timeout=120.0,
-                json=payload,
-            )
+            data = await self._post_crawl(urls, timeout=120.0)
 
             results = data.get("results", [])
-            success_count = sum(1 for r in results if not r.get("error"))
-            error_count = len(results) - success_count
+            parsed = [self._parse_result(r) for r in results]
+            success_count = sum(1 for r in parsed if r.get("success"))
+            error_count = len(parsed) - success_count
 
             logger.info(
                 "crawl_batch_complete",
@@ -366,195 +405,194 @@ class CrawlForAIMCPConnector:
             )
 
             return {
-                "results": results,
+                "results": parsed,
                 "success_count": success_count,
                 "error_count": error_count,
                 "total": len(urls),
             }
 
         except httpx.HTTPStatusError as e:
-            error_msg = f"HTTP {e.response.status_code}"
-            try:
-                error_msg += f": {e.response.text[:200]}"
-            except:
-                pass
-            return {"error": error_msg}
-
+            return {"error": f"HTTP {e.response.status_code}"}
         except httpx.TimeoutException:
             return {"error": "Request timeout after 120s"}
-
         except Exception as e:
             return {"error": f"Batch crawl failed: {str(e)}"}
 
     async def _extract_article(self, params: dict[str, Any]) -> dict[str, Any]:
-        """
-        Extract article content using content extraction heuristics.
-
-        Args:
-            params: Contains url
-
-        Returns:
-            Dict containing: url, title, author, published_date, content, excerpt
-        """
+        """Extract article content via POST /crawl with content-focused params."""
         url = params["url"]
-
         if not url.startswith(("http://", "https://")):
             return {"error": "Invalid URL: must start with http:// or https://"}
 
         try:
-            data = await self._request_with_retry(
-                "POST",
-                f"{self._base_url}/extract/article",
-                timeout=60.0,
-                json={"url": url},
+            # Use article-focused selectors
+            data = await self._post_crawl(
+                [url],
+                css_selector="article, [role='article'], .post-content, .article-body, main",
+                word_count_threshold=20,
             )
+
+            results = data.get("results", [])
+            if not results:
+                return {"error": "No results returned", "url": url}
+
+            result = results[0]
+            metadata = result.get("metadata", {}) or {}
+
+            markdown_data = result.get("markdown", {})
+            if isinstance(markdown_data, str):
+                content = markdown_data
+            else:
+                content = (
+                    markdown_data.get("fit_markdown")
+                    or markdown_data.get("raw_markdown")
+                    or ""
+                )
+
+            article = {
+                "url": url,
+                "title": metadata.get("title", ""),
+                "author": metadata.get("author", ""),
+                "published_date": metadata.get("published_date", metadata.get("date", "")),
+                "content": content[:15000],
+                "excerpt": content[:500] if content else "",
+                "success": result.get("success", False),
+            }
 
             logger.info(
                 "extract_article_success",
                 url=url,
-                title=data.get("title", "")[:50],
-                author=data.get("author", ""),
+                title=article["title"][:50],
+                author=article["author"],
             )
-
-            return data
+            return article
 
         except httpx.HTTPStatusError as e:
-            error_msg = f"HTTP {e.response.status_code}"
-            try:
-                error_msg += f": {e.response.text[:200]}"
-            except:
-                pass
-            return {"error": error_msg, "url": url}
-
+            return {"error": f"HTTP {e.response.status_code}", "url": url}
         except httpx.TimeoutException:
             return {"error": "Request timeout after 60s", "url": url}
-
         except Exception as e:
             return {"error": f"Article extraction failed: {str(e)}", "url": url}
 
     async def _crawl_site(self, params: dict[str, Any]) -> dict[str, Any]:
         """
-        Recursively crawl a website up to max_depth and max_pages.
+        Crawl a website by following internal links.
 
-        Args:
-            params: Contains url, max_depth (1-4), max_pages (1-100)
-
-        Returns:
-            Dict containing: pages (list of {url, markdown}), total_pages, depth_reached
+        Implemented client-side: crawl start URL, extract internal links,
+        crawl next level, repeat up to max_depth/max_pages.
         """
-        url = params["url"]
-
-        if not url.startswith(("http://", "https://")):
+        start_url = params["url"]
+        if not start_url.startswith(("http://", "https://")):
             return {"error": "Invalid URL: must start with http:// or https://"}
 
-        # Enforce limits
-        max_depth = min(max(params.get("max_depth", 2), 1), 4)
-        max_pages = min(max(params.get("max_pages", 20), 1), 100)
+        max_depth = min(max(params.get("max_depth", 2), 1), 3)
+        max_pages = min(max(params.get("max_pages", 10), 1), 20)
 
-        payload = {
-            "url": url,
-            "max_depth": max_depth,
-            "max_pages": max_pages,
-        }
+        parsed_start = urlparse(start_url)
+        base_domain = parsed_start.netloc
+
+        visited: set[str] = set()
+        pages: list[dict[str, Any]] = []
+        current_urls = [start_url]
 
         try:
-            # Site crawls can take longer
-            data = await self._request_with_retry(
-                "POST",
-                f"{self._base_url}/crawl/site",
-                timeout=300.0,  # 5 minutes for full site crawls
-                json=payload,
-            )
+            for depth in range(max_depth):
+                if not current_urls or len(pages) >= max_pages:
+                    break
 
-            pages = data.get("pages", [])
+                # Crawl current level (batch)
+                batch = [u for u in current_urls if u not in visited][:max_pages - len(pages)]
+                if not batch:
+                    break
+
+                visited.update(batch)
+
+                data = await self._post_crawl(
+                    batch,
+                    timeout=120.0,
+                )
+
+                results = data.get("results", [])
+                next_urls: list[str] = []
+
+                for result in results:
+                    if not result.get("success"):
+                        continue
+
+                    parsed = self._parse_result(result)
+                    pages.append({
+                        "url": parsed["url"],
+                        "title": parsed["title"],
+                        "content": parsed["content"][:5000],  # Shorter for site crawl
+                        "depth": depth,
+                    })
+
+                    # Collect internal links for next depth
+                    for link in parsed.get("links", {}).get("internal", []):
+                        if link and link not in visited:
+                            link_parsed = urlparse(link)
+                            if link_parsed.netloc == base_domain:
+                                next_urls.append(link)
+
+                current_urls = next_urls[:max_pages]
 
             logger.info(
                 "crawl_site_success",
-                url=url,
+                url=start_url,
                 total_pages=len(pages),
                 max_depth=max_depth,
-                max_pages=max_pages,
             )
 
             return {
                 "pages": pages,
                 "total_pages": len(pages),
-                "depth_reached": data.get("depth_reached", max_depth),
-                "url": url,
+                "max_depth_used": max_depth,
+                "url": start_url,
             }
 
         except httpx.HTTPStatusError as e:
-            error_msg = f"HTTP {e.response.status_code}"
-            try:
-                error_msg += f": {e.response.text[:200]}"
-            except:
-                pass
-            return {"error": error_msg, "url": url}
-
+            return {"error": f"HTTP {e.response.status_code}", "url": start_url}
         except httpx.TimeoutException:
-            return {"error": "Site crawl timeout after 5 minutes", "url": url}
-
+            return {"error": "Site crawl timeout", "url": start_url}
         except Exception as e:
-            return {"error": f"Site crawl failed: {str(e)}", "url": url}
+            return {"error": f"Site crawl failed: {str(e)}", "url": start_url}
 
     async def _capture_screenshot(self, params: dict[str, Any]) -> dict[str, Any]:
-        """
-        Capture a screenshot of a webpage.
-
-        Args:
-            params: Contains url, viewport (optional), full_page (optional)
-
-        Returns:
-            Dict containing: url, screenshot (base64 PNG string), viewport
-        """
+        """Capture screenshot via POST /crawl with screenshot=True."""
         url = params["url"]
-
         if not url.startswith(("http://", "https://")):
             return {"error": "Invalid URL: must start with http:// or https://"}
 
-        viewport = params.get("viewport", {"width": 1280, "height": 720})
-        full_page = params.get("full_page", False)
-
-        payload = {
-            "url": url,
-            "viewport": viewport,
-            "full_page": full_page,
-        }
-
         try:
-            data = await self._request_with_retry(
-                "POST",
-                f"{self._base_url}/screenshot",
+            data = await self._post_crawl(
+                [url],
+                screenshot=True,
                 timeout=60.0,
-                json=payload,
             )
+
+            results = data.get("results", [])
+            if not results:
+                return {"error": "No results returned", "url": url}
+
+            result = results[0]
+            screenshot_data = result.get("screenshot", "")
 
             logger.info(
                 "capture_screenshot_success",
                 url=url,
-                viewport=viewport,
-                full_page=full_page,
+                has_data=bool(screenshot_data),
             )
 
-            # Return base64 string directly in response
             return {
                 "url": url,
-                "screenshot": data.get("screenshot", ""),
-                "viewport": viewport,
+                "screenshot": screenshot_data,
                 "format": "png",
                 "encoding": "base64",
             }
 
         except httpx.HTTPStatusError as e:
-            error_msg = f"HTTP {e.response.status_code}"
-            try:
-                error_msg += f": {e.response.text[:200]}"
-            except:
-                pass
-            return {"error": error_msg, "url": url}
-
+            return {"error": f"HTTP {e.response.status_code}", "url": url}
         except httpx.TimeoutException:
             return {"error": "Screenshot timeout after 60s", "url": url}
-
         except Exception as e:
             return {"error": f"Screenshot failed: {str(e)}", "url": url}

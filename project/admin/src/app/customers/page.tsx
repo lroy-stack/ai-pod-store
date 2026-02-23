@@ -184,32 +184,65 @@ export default function CustomersPage() {
             ) : filteredCustomers.length === 0 ? (
               <p className="text-center py-8 text-muted-foreground">No customers found</p>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Orders</TableHead>
-                    <TableHead>Total Spent</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
+              <>
+                {/* Desktop Table View */}
+                <div className="hidden md:block">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Orders</TableHead>
+                        <TableHead>Total Spent</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredCustomers.map((customer) => (
+                        <TableRow
+                          key={customer.email}
+                          onClick={() => handleCustomerClick(customer)}
+                          className="cursor-pointer hover:bg-muted/50"
+                        >
+                          <TableCell className="font-medium">{customer.name}</TableCell>
+                          <TableCell>{customer.email}</TableCell>
+                          <TableCell>{customer.orderCount}</TableCell>
+                          <TableCell>
+                            {formatCurrency(customer.totalSpent, customer.currency)}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+
+                {/* Mobile Card View */}
+                <div className="block md:hidden space-y-4">
                   {filteredCustomers.map((customer) => (
-                    <TableRow
+                    <button
                       key={customer.email}
                       onClick={() => handleCustomerClick(customer)}
-                      className="cursor-pointer hover:bg-muted/50"
+                      className="w-full text-left border rounded-lg p-4 space-y-3 hover:bg-muted/50 transition-colors min-h-[88px]"
                     >
-                      <TableCell className="font-medium">{customer.name}</TableCell>
-                      <TableCell>{customer.email}</TableCell>
-                      <TableCell>{customer.orderCount}</TableCell>
-                      <TableCell>
-                        {formatCurrency(customer.totalSpent, customer.currency)}
-                      </TableCell>
-                    </TableRow>
+                      <div>
+                        <h3 className="font-medium text-base leading-tight mb-1">
+                          {customer.name}
+                        </h3>
+                        <p className="text-sm text-muted-foreground truncate">
+                          {customer.email}
+                        </p>
+                      </div>
+                      <div className="flex items-center justify-between text-sm pt-2 border-t">
+                        <span className="text-muted-foreground">
+                          {customer.orderCount} {customer.orderCount === 1 ? 'order' : 'orders'}
+                        </span>
+                        <span className="font-medium">
+                          {formatCurrency(customer.totalSpent, customer.currency)}
+                        </span>
+                      </div>
+                    </button>
                   ))}
-                </TableBody>
-              </Table>
+                </div>
+              </>
             )}
           </CardContent>
         </Card>

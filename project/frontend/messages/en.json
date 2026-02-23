@@ -720,6 +720,7 @@
     "terms": "Terms of Service",
     "returns": "Returns & Refunds",
     "shipping": "Shipping Policy",
+    "cookieSettings": "Cookie Settings",
     "language": "Language",
     "copyright": "© {year} {storeName}. All rights reserved.",
     "powered": "Powered by AI • Designed with care"
@@ -835,6 +836,7 @@
   "cookieConsent": {
     "title": "We value your privacy",
     "description": "We use cookies to enhance your browsing experience, serve personalized content, and analyze our traffic. By clicking 'Accept All', you consent to our use of cookies.",
+    "learnMore": "Learn more",
     "acceptAll": "Accept All",
     "rejectAll": "Reject Non-Essential",
     "customize": "Customize",
@@ -1070,5 +1072,115 @@
     "fetchError": "Failed to load billing information",
     "portalError": "Failed to open billing portal",
     "noProfile": "Unable to load your profile"
+  },
+  "cookiePolicy": {
+    "title": "Cookie Policy",
+    "description": "Learn about how we use cookies and manage your preferences",
+    "managePreferences": {
+      "title": "Manage Your Cookie Preferences",
+      "description": "Click the button to customize which cookies we can use"
+    },
+    "whatAreCookies": {
+      "title": "What Are Cookies?",
+      "description": "Cookies are small text files that are placed on your device when you visit our website. They help us improve your browsing experience, remember your preferences, and provide personalized content. Cookies do not contain any personally identifiable information unless you have explicitly provided it."
+    },
+    "categories": {
+      "title": "Cookie Categories",
+      "necessary": {
+        "title": "Necessary Cookies",
+        "description": "These cookies are essential for the website to function properly. They enable core functionality such as security, network management, and accessibility. You cannot opt-out of necessary cookies."
+      },
+      "analytics": {
+        "title": "Analytics Cookies",
+        "description": "These cookies help us understand how visitors interact with our website by collecting and reporting information anonymously. This helps us improve our website's performance and user experience."
+      },
+      "marketing": {
+        "title": "Marketing Cookies",
+        "description": "These cookies are used to track visitors across websites and display personalized ads that are relevant to you. They also help measure the effectiveness of our advertising campaigns."
+      }
+    },
+    "table": {
+      "name": "Cookie Name",
+      "purpose": "Purpose",
+      "duration": "Duration"
+    },
+    "cookies": {
+      "cookie_consent": {
+        "purpose": "Stores your cookie consent preferences",
+        "duration": "1 year"
+      },
+      "session_id": {
+        "purpose": "Maintains your session and authentication state",
+        "duration": "Session"
+      },
+      "locale": {
+        "purpose": "Remembers your language preference",
+        "duration": "1 year"
+      },
+      "_ga": {
+        "purpose": "Google Analytics - distinguishes users",
+        "duration": "2 years"
+      },
+      "_ga_id": {
+        "purpose": "Google Analytics - maintains session state",
+        "duration": "2 years"
+      },
+      "_fbp": {
+        "purpose": "Facebook Pixel - tracks conversions and remarketing",
+        "duration": "90 days"
+      },
+      "_gcl_au": {
+        "purpose": "Google Ads - conversion tracking",
+        "duration": "90 days"
+      }
+    },
+    "thirdParty": {
+      "title": "Third-Party Cookies",
+      "description": "We use cookies from trusted third-party services to enhance your experience:",
+      "providers": {
+        "googleAnalytics": "Analytics and performance monitoring",
+        "stripe": "Payment processing and fraud prevention",
+        "supabase": "Authentication and secure data storage"
+      }
+    },
+    "howToManage": {
+      "title": "How to Manage Cookies",
+      "description": "You have several options to control or limit how we and our partners use cookies:",
+      "methods": {
+        "settings": "Use the 'Cookie Settings' button at the top of this page to change your preferences",
+        "browser": "Configure your browser settings to block or delete cookies (this may affect website functionality)",
+        "optOut": "Opt-out of targeted advertising through industry opt-out tools like the Digital Advertising Alliance"
+      }
+    },
+    "footer": "This cookie policy was last updated on February 22, 2026. We may update this policy from time to time. Please review it periodically for changes."
+  },
+  "legalNotice": {
+    "title": "Legal Notice / Imprint",
+    "description": "Company information and legal details as required by law",
+    "sections": {
+      "company": {
+        "title": "Company Information",
+        "companyName": "Company Name",
+        "address": "Address",
+        "contact": "Email"
+      },
+      "registration": {
+        "title": "Tax and Registration",
+        "taxId": "Tax Identification Number",
+        "tradeRegister": "Trade Register",
+        "registerNumber": "Registration Number"
+      },
+      "dpo": {
+        "title": "Data Protection Officer",
+        "name": "Name",
+        "contact": "Email"
+      },
+      "disputeResolution": {
+        "title": "EU Online Dispute Resolution",
+        "description": "The European Commission provides a platform for online dispute resolution (ODR) for consumers. You can find it at:"
+      }
+    },
+    "footer": "For questions about privacy and data protection, please see our",
+    "privacyPolicyLink": "Privacy Policy"
   }
 }

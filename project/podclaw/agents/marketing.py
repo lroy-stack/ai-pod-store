@@ -4,7 +4,7 @@ PodClaw — Marketing Agent (NEW)
 
 Model: Sonnet (creative content generation)
 Schedule: Daily 07:00 + 15:00 UTC
-Tools: supabase, web_search, resend
+Tools: supabase, crawl4ai, resend
 Guardrails: Max 30 posts/cycle, brand voice from SOUL.md
 """
 
@@ -15,7 +15,7 @@ class MarketingAgent(BaseAgent):
     name = "marketing"
     model = "claude-sonnet-4-5-20250929"
     schedule = "daily 07:00 + 15:00 UTC"
-    tools = ["supabase", "web_search", "resend"]
+    tools = ["supabase", "crawl4ai", "resend"]
     context_files = ["best_sellers.md", "customer_insights.md", "design_library.md", "marketing_calendar.md"]
     guardrails = {"max_posts_per_cycle": 30, "brand_voice": True}
 
@@ -23,8 +23,9 @@ class MarketingAgent(BaseAgent):
         return (
             "Execute the marketing cycle. You MUST call tools — do NOT answer from memory.\n"
             "1. Call supabase_query to SELECT top 5 products by review_count DESC for promotion\n"
-            "2. Call web_search at least 5 times for trending hashtags: print-on-demand fashion, "
-            "custom t-shirts, sustainable apparel, POD design trends. Extract platform-specific tags\n"
+            "2. Call crawl_url on trending hashtag sources: "
+            "'https://trends.google.com/trending?geo=DE', 'https://www.instagram.com/explore/tags/printonddemand/', "
+            "'https://www.tiktok.com/tag/customtshirts'. Extract platform-specific tags\n"
             "3. Generate social media content for top 3 products (Instagram 2200, Twitter 280, Pinterest 500)\n"
             "4. Call supabase_insert to store EACH content piece in marketing_content table\n"
             "5. Draft promotional email content for top 3 products\n"

@@ -183,7 +183,7 @@ export default function PricingPage() {
               // Active premium users can't downgrade via this button (use Billing Portal)
               ctaText = 'Manage Plan'
               ctaDisabled = false
-              ctaOnClick = () => {
+              ctaOnClick = async () => {
                 window.location.href = '/en/settings/billing'
               }
             } else if (tierKey === 'premium' && isCancelled) {

@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
@@ -12,11 +13,15 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { DollarSign, ShoppingCart, Package, TrendingUp, Users, CreditCard, UserMinus } from 'lucide-react';
+import { DollarSign, ShoppingCart, Package, TrendingUp, TrendingDown, Users, CreditCard, UserMinus, ArrowUp, ArrowDown } from 'lucide-react';
 import { DashboardLayout } from '@/components/DashboardLayout';
+import { ActivityFeed } from '@/components/ActivityFeed';
+import { QuickActions } from '@/components/QuickActions';
 import {
   LineChart,
   Line,
+  AreaChart,
+  Area,
   BarChart,
   Bar,
   XAxis,
@@ -28,9 +33,13 @@ import {
 
 interface DashboardStats {
   revenue: number;
+  revenueTrend: number;
   ordersCount: number;
+  ordersTrend: number;
   productsCount: number;
+  productsTrend: number;
   conversionRate: string;
+  conversionRateTrend: number;
   // Subscription metrics
   activeSubscribers: number;
   mrr: number;
@@ -47,86 +56,81 @@ interface RecentOrder {
   customerEmail: string;
 }
 
+// Trend indicator component
+function TrendIndicator({ value }: { value: number }) {
+  if (value === 0) {
+    return <span className="text-xs text-muted-foreground">No change</span>;
+  }
+
+  const isPositive = value > 0;
+  const Icon = isPositive ? ArrowUp : ArrowDown;
+  const colorClass = isPositive ? 'text-green-600' : 'text-red-600';
+
+  return (
+    <span className={`flex items-center gap-1 text-xs font-medium ${colorClass}`}>
+      <Icon className="h-3 w-3" />
+      {Math.abs(value).toFixed(1)}%
+    </span>
+  );
+}
+
 export default function DashboardPage() {
-  const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [ordersLoading, setOrdersLoading] = useState(true);
-
   // Chart data state
-  const [revenuePeriod, setRevenuePeriod] = useState<'7d' | '30d' | '90d'>('7d');
-  const [revenueData, setRevenueData] = useState<any[]>([]);
-  const [topProductsData, setTopProductsData] = useState<any[]>([]);
-  const [customerAcquisitionData, setCustomerAcquisitionData] = useState<any[]>([]);
-  const [chartsLoading, setChartsLoading] = useState(true);
+  const [revenuePeriod, setRevenuePeriod] = useState<'7d' | '30d' | '90d'>('30d'); // Default to 30d for this feature
+  const [revenueChartView, setRevenueChartView] = useState<'revenue' | 'orders'>('revenue');
 
-  useEffect(() => {
-    async function fetchStats() {
-      try {
-        const res = await fetch('/api/dashboard/stats');
-        if (res.ok) {
-          const data = await res.json();
-          setStats(data);
-        }
-      } catch (error) {
-        console.error('Failed to fetch stats:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
+  // Fetch dashboard stats
+  const { data: stats, isLoading: loading } = useQuery({
+    queryKey: ['dashboard-stats'],
+    queryFn: async () => {
+      const res = await fetch('/api/dashboard/stats');
+      if (!res.ok) throw new Error('Failed to fetch stats');
+      return res.json() as Promise<DashboardStats>;
+    },
+  });
 
-    async function fetchRecentOrders() {
-      try {
-        const res = await fetch('/api/dashboard/recent-orders');
-        if (res.ok) {
-          const data = await res.json();
-          setRecentOrders(data);
-        }
-      } catch (error) {
-        console.error('Failed to fetch recent orders:', error);
-      } finally {
-        setOrdersLoading(false);
-      }
-    }
+  // Fetch recent orders
+  const { data: recentOrders = [], isLoading: ordersLoading } = useQuery({
+    queryKey: ['dashboard-recent-orders'],
+    queryFn: async () => {
+      const res = await fetch('/api/dashboard/recent-orders');
+      if (!res.ok) throw new Error('Failed to fetch recent orders');
+      return res.json() as Promise<RecentOrder[]>;
+    },
+  });
 
-    fetchStats();
-    fetchRecentOrders();
-  }, []);
+  // Fetch revenue trend (depends on period)
+  const { data: revenueData = [], isLoading: revenueLoading } = useQuery({
+    queryKey: ['dashboard-revenue-trend', revenuePeriod],
+    queryFn: async () => {
+      const res = await fetch(`/api/dashboard/revenue-trend?period=${revenuePeriod}`);
+      if (!res.ok) throw new Error('Failed to fetch revenue trend');
+      return res.json() as Promise<any[]>;
+    },
+  });
 
-  useEffect(() => {
-    async function fetchChartData() {
-      try {
-        setChartsLoading(true);
+  // Fetch top products
+  const { data: topProductsData = [], isLoading: topProductsLoading } = useQuery({
+    queryKey: ['dashboard-top-products'],
+    queryFn: async () => {
+      const res = await fetch('/api/dashboard/top-products');
+      if (!res.ok) throw new Error('Failed to fetch top products');
+      return res.json() as Promise<any[]>;
+    },
+  });
 
-        // Fetch revenue trend
-        const revenueRes = await fetch(`/api/dashboard/revenue-trend?period=${revenuePeriod}`);
-        if (revenueRes.ok) {
-          const data = await revenueRes.json();
-          setRevenueData(data);
-        }
+  // Fetch customer acquisition
+  const { data: customerAcquisitionData = [], isLoading: customerAcquisitionLoading } = useQuery({
+    queryKey: ['dashboard-customer-acquisition'],
+    queryFn: async () => {
+      const res = await fetch('/api/dashboard/customer-acquisition');
+      if (!res.ok) throw new Error('Failed to fetch customer acquisition');
+      return res.json() as Promise<any[]>;
+    },
+  });
 
-        // Fetch top products
-        const productsRes = await fetch('/api/dashboard/top-products');
-        if (productsRes.ok) {
-          const data = await productsRes.json();
-          setTopProductsData(data);
-        }
-
-        // Fetch customer acquisition
-        const customersRes = await fetch('/api/dashboard/customer-acquisition');
-        if (customersRes.ok) {
-          const data = await customersRes.json();
-          setCustomerAcquisitionData(data);
-        }
-      } catch (error) {
-        console.error('Failed to fetch chart data:', error);
-      } finally {
-        setChartsLoading(false);
-      }
-    }
-
-    fetchChartData();
-  }, [revenuePeriod]);
+  // Combine chart loading states
+  const chartsLoading = revenueLoading || topProductsLoading || customerAcquisitionLoading;
 
   if (loading) {
     return (
@@ -168,9 +172,12 @@ export default function DashboardPage() {
             <div className="text-2xl font-bold">
               €{stats?.revenue.toFixed(2) || '0.00'}
             </div>
-            <p className="text-xs text-muted-foreground">
-              From all completed orders
-            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-xs text-muted-foreground">
+                Last 30 days
+              </p>
+              {stats && <TrendIndicator value={stats.revenueTrend} />}
+            </div>
           </CardContent>
         </Card>
 
@@ -182,9 +189,12 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats?.ordersCount || 0}</div>
-            <p className="text-xs text-muted-foreground">
-              All time orders
-            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-xs text-muted-foreground">
+                Last 30 days
+              </p>
+              {stats && <TrendIndicator value={stats.ordersTrend} />}
+            </div>
           </CardContent>
         </Card>
 
@@ -196,9 +206,12 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats?.productsCount || 0}</div>
-            <p className="text-xs text-muted-foreground">
-              Currently listed
-            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-xs text-muted-foreground">
+                Currently listed
+              </p>
+              {stats && <TrendIndicator value={stats.productsTrend} />}
+            </div>
           </CardContent>
         </Card>
 
@@ -210,11 +223,20 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats?.conversionRate || '0.0'}%</div>
-            <p className="text-xs text-muted-foreground">
-              Completed orders ratio
-            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-xs text-muted-foreground">
+                Last 30 days
+              </p>
+              {stats && <TrendIndicator value={stats.conversionRateTrend} />}
+            </div>
           </CardContent>
         </Card>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="mt-6">
+        <h2 className="text-2xl font-bold mb-4">Quick Actions</h2>
+        <QuickActions />
       </div>
 
       {/* Subscription Metrics Section */}
@@ -272,53 +294,70 @@ export default function DashboardPage() {
         {/* Revenue Trend Chart */}
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>Revenue Trend</CardTitle>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <CardTitle>30-Day Trend</CardTitle>
               <div className="flex gap-2">
                 <Button
-                  variant={revenuePeriod === '7d' ? 'default' : 'outline'}
+                  variant={revenueChartView === 'revenue' ? 'default' : 'outline'}
                   size="sm"
-                  onClick={() => setRevenuePeriod('7d')}
+                  onClick={() => setRevenueChartView('revenue')}
                 >
-                  7d
+                  Revenue
                 </Button>
                 <Button
-                  variant={revenuePeriod === '30d' ? 'default' : 'outline'}
+                  variant={revenueChartView === 'orders' ? 'default' : 'outline'}
                   size="sm"
-                  onClick={() => setRevenuePeriod('30d')}
+                  onClick={() => setRevenueChartView('orders')}
                 >
-                  30d
-                </Button>
-                <Button
-                  variant={revenuePeriod === '90d' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setRevenuePeriod('90d')}
-                >
-                  90d
+                  Orders
                 </Button>
               </div>
             </div>
           </CardHeader>
           <CardContent>
             {chartsLoading ? (
-              <div className="h-[300px] flex items-center justify-center">
+              <div className="h-[200px] md:h-[300px] flex items-center justify-center">
                 <p className="text-muted-foreground">Loading chart...</p>
               </div>
             ) : (
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={revenueData}>
-                  <CartesianGrid strokeDasharray="3 3" />
+              <ResponsiveContainer width="100%" height={300} className="h-[200px] md:h-[300px]">
+                <AreaChart data={revenueData}>
+                  <defs>
+                    <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                   <XAxis
                     dataKey="date"
                     tickFormatter={(value) => new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    tick={{ fontSize: 12 }}
                   />
-                  <YAxis />
+                  <YAxis tick={{ fontSize: 12 }} />
                   <Tooltip
-                    formatter={(value: number) => [`€${value.toFixed(2)}`, 'Revenue']}
+                    formatter={(value: number) =>
+                      revenueChartView === 'revenue'
+                        ? [`€${value.toFixed(2)}`, 'Revenue']
+                        : [value, 'Orders']
+                    }
                     labelFormatter={(label) => new Date(label).toLocaleDateString()}
+                    contentStyle={{
+                      backgroundColor: 'hsl(var(--card))',
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '6px',
+                      padding: '8px 12px',
+                    }}
                   />
-                  <Line type="monotone" dataKey="revenue" stroke="hsl(var(--primary))" strokeWidth={2} />
-                </LineChart>
+                  <Area
+                    type="monotone"
+                    dataKey={revenueChartView}
+                    stroke="hsl(var(--primary))"
+                    strokeWidth={2}
+                    fillOpacity={1}
+                    fill="url(#colorRevenue)"
+                  />
+                </AreaChart>
               </ResponsiveContainer>
             )}
           </CardContent>
@@ -379,72 +418,78 @@ export default function DashboardPage() {
         </CardContent>
       </Card>
 
-      {/* Recent Orders Table */}
-      <Card className="mt-6">
-        <CardHeader>
-          <CardTitle>Recent Orders</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {ordersLoading ? (
-            <div className="space-y-2">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className="h-12 bg-muted rounded animate-pulse" />
-              ))}
-            </div>
-          ) : recentOrders.length === 0 ? (
-            <p className="text-muted-foreground text-center py-8">No recent orders</p>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Order ID</TableHead>
-                  <TableHead>Customer</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Total</TableHead>
-                  <TableHead>Date</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {recentOrders.map((order) => (
-                  <TableRow key={order.id}>
-                    <TableCell className="font-mono text-xs">
-                      {order.id.slice(0, 8)}...
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-col">
-                        <span className="font-medium">{order.customerName}</span>
-                        <span className="text-xs text-muted-foreground">
-                          {order.customerEmail}
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={
-                          order.status === 'completed'
-                            ? 'default'
-                            : order.status === 'pending'
-                            ? 'secondary'
-                            : 'outline'
-                        }
-                      >
-                        {order.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      {order.currency === 'EUR' ? '€' : '$'}
-                      {order.total.toFixed(2)}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {new Date(order.createdAt).toLocaleDateString()}
-                    </TableCell>
-                  </TableRow>
+      {/* Recent Orders and Activity Feed */}
+      <div className="grid gap-6 md:grid-cols-2 mt-6">
+        {/* Recent Orders Table */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Orders</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {ordersLoading ? (
+              <div className="space-y-2">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <div key={i} className="h-12 bg-muted rounded animate-pulse" />
                 ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+              </div>
+            ) : recentOrders.length === 0 ? (
+              <p className="text-muted-foreground text-center py-8">No recent orders</p>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Order ID</TableHead>
+                    <TableHead>Customer</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Total</TableHead>
+                    <TableHead>Date</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {recentOrders.map((order) => (
+                    <TableRow key={order.id}>
+                      <TableCell className="font-mono text-xs">
+                        {order.id.slice(0, 8)}...
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-col">
+                          <span className="font-medium">{order.customerName}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {order.customerEmail}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={
+                            order.status === 'completed'
+                              ? 'default'
+                              : order.status === 'pending'
+                              ? 'secondary'
+                              : 'outline'
+                          }
+                        >
+                          {order.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        {order.currency === 'EUR' ? '€' : '$'}
+                        {order.total.toFixed(2)}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {new Date(order.createdAt).toLocaleDateString()}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Activity Feed */}
+        <ActivityFeed />
+      </div>
     </main>
     </DashboardLayout>
   );

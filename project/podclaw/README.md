@@ -64,7 +64,7 @@ Key variables: `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `STRIPE_SECRET_KEY`, `PRI
   ┌────────▼──────────────────────────────────────┐
   │              MCP Connectors (11)               │
   │  supabase │ stripe │ printify │ fal │ gemini  │
-  │  resend │ jina │ web_search │ telegram │ wa   │
+  │  resend │ crawl4ai │ telegram │ wa           │
   └───────────────────────────────────────────────┘
 ```
 
@@ -72,13 +72,13 @@ Key variables: `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `STRIPE_SECRET_KEY`, `PRI
 
 | Agent | Model | Schedule | Budget/Session | Key Tools |
 |-------|-------|----------|----------------|-----------|
-| researcher | Haiku | 06:00 UTC | $0.30 | web_search, supabase |
+| researcher | Haiku | 06:00 UTC | $0.30 | crawl4ai, supabase |
 | marketing | Sonnet | 07:00, 15:00 UTC | $0.50 | resend, telegram, whatsapp, supabase |
 | designer | Sonnet | 07:30 UTC | $0.80 | fal, printify, supabase |
 | newsletter | Sonnet | 09:00, 15:30 UTC | $0.40 | resend, gemini, supabase |
 | cataloger | Sonnet | 09:30, 18:00 UTC | $0.50 | printify, gemini, supabase |
 | customer_manager | Sonnet | 12:00, 22:00 UTC | $0.50 | resend, stripe, telegram, whatsapp |
-| seo_manager | Haiku | 10:00 UTC | $0.20 | web_search, supabase |
+| seo_manager | Haiku | 10:00 UTC | $0.20 | crawl4ai, supabase |
 | finance | Sonnet | 22:30 UTC | $0.40 | stripe, supabase |
 
 ## Security

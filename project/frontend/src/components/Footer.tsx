@@ -26,6 +26,7 @@ import { Separator } from '@/components/ui/separator'
 import { Facebook, Twitter, Instagram, Linkedin, Sun, Moon } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { STORE_DEFAULTS } from '@/lib/store-config'
+import { clearConsent } from '@/lib/cookie-consent'
 
 const LOCALES = [
   { code: 'en', name: 'English' },
@@ -136,6 +137,15 @@ export function Footer() {
               <Link href={`/${locale}/shipping`} className="text-muted-foreground hover:text-foreground transition-colors">
                 {t('shipping')}
               </Link>
+              <button
+                onClick={() => {
+                  clearConsent();
+                  window.location.reload();
+                }}
+                className="text-left text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {t('cookieSettings')}
+              </button>
             </nav>
 
             {/* Language Selector */}

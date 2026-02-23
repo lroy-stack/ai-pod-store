@@ -3,17 +3,17 @@
 ## Prerequisitos
 
 ```bash
-# Activar siempre el venv antes de cualquier comando PodClaw
-cd /Users/lr0y/POD-AI-PDR/pod-agent-harness
-source venv/bin/activate
+# Activar siempre el venv dedicado de PodClaw antes de cualquier comando
+cd project/podclaw
+source .venv/bin/activate
 ```
 
 Las variables de entorno se cargan automaticamente desde:
 1. `config/.env.required` (credenciales maestras)
-2. `pod_workspace/project/frontend/.env.local` (override con claves reales)
+2. `project/frontend/.env.local` (override con claves reales)
 
 Variables criticas: `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `STRIPE_SECRET_KEY`,
-`PRINTIFY_API_TOKEN`, `PRINTIFY_SHOP_ID`, `FAL_KEY`, `GEMINI_API_KEY`, `JINA_API_KEY`,
+`PRINTIFY_API_TOKEN`, `PRINTIFY_SHOP_ID`, `FAL_KEY`, `GEMINI_API_KEY`,
 `RESEND_API_KEY`, `TELEGRAM_BOT_TOKEN`.
 
 ---
@@ -23,9 +23,9 @@ Variables criticas: `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `STRIPE_SECRET_KEY`,
 Inicia el orchestrator + scheduler + heartbeat + bridge FastAPI en puerto 8000.
 
 ```bash
-cd /Users/lr0y/POD-AI-PDR/pod-agent-harness/pod_workspace/project
-source ../../venv/bin/activate
-python3 -m podclaw.main --workspace ../..
+cd project/podclaw
+source .venv/bin/activate
+python -m podclaw.main --workspace ../..
 ```
 
 Esto arranca:
@@ -73,15 +73,14 @@ Inicializa todo (env, connectors, hooks, scheduler) pero NO arranca nada.
 Util para verificar que la configuracion es correcta.
 
 ```bash
-cd /Users/lr0y/POD-AI-PDR/pod-agent-harness/pod_workspace/project
-source ../../venv/bin/activate
-python3 -m podclaw.main --workspace ../.. --dry-run
+cd project/podclaw
+source .venv/bin/activate
+python -m podclaw.main --workspace ../.. --dry-run
 ```
 
 Salida esperada:
 ```
 ✓ PodClaw initialized successfully
-  Workspace: /Users/lr0y/POD-AI-PDR/pod-agent-harness/pod_workspace
   Agents: 8
   Scheduled jobs: N
   SOUL.md: found
@@ -97,9 +96,9 @@ Arranca orchestrator + scheduler + heartbeat, pero sin el servidor FastAPI.
 Util si no necesitas el admin dashboard o el puerto 8000 esta ocupado.
 
 ```bash
-cd /Users/lr0y/POD-AI-PDR/pod-agent-harness/pod_workspace/project
-source ../../venv/bin/activate
-python3 -m podclaw.main --workspace ../.. --no-bridge
+cd project/podclaw
+source .venv/bin/activate
+python -m podclaw.main --workspace ../.. --no-bridge
 ```
 
 ---
@@ -111,9 +110,9 @@ python3 -m podclaw.main --workspace ../.. --no-bridge
 Ejecuta el ciclo COMPLETO de gestion de catalogo con escrituras reales a Printify y Supabase.
 
 ```bash
-cd /Users/lr0y/POD-AI-PDR/pod-agent-harness/pod_workspace/project
-source ../../venv/bin/activate
-python3 -m podclaw.test_e2e_pipeline
+cd project
+source podclaw/.venv/bin/activate
+python -m podclaw.test_e2e_pipeline
 ```
 
 **Que hace (5 fases):**
@@ -133,7 +132,7 @@ python3 -m podclaw.test_e2e_pipeline
 **Verificaciones**: 30+ checks automaticos (precios, margenes, i18n, imagenes, etc.)
 
 **Prerequisitos del test:**
-- El directorio `img_test/` en la raiz del harness con imagenes de prueba (flame.png, skully.png, backk.png, fusion.png, stats.png)
+- El directorio `img_test/` en la raiz del workspace con imagenes de prueba (flame.png, skully.png, backk.png, fusion.png, stats.png)
 - Si no existe, el test salta el upload de imagenes pero sigue funcionando
 
 **Salida**: Log detallado por fase + FINAL VERDICT con todos los checks PASS/FAIL
@@ -143,9 +142,9 @@ python3 -m podclaw.test_e2e_pipeline
 Prueba solo el agente cataloger con una tarea simple.
 
 ```bash
-cd /Users/lr0y/POD-AI-PDR/pod-agent-harness/pod_workspace/project
-source ../../venv/bin/activate
-python3 -m podclaw.test_cataloger
+cd project
+source podclaw/.venv/bin/activate
+python -m podclaw.test_cataloger
 ```
 
 ### 4c. Test Multi-Agent (2 agentes)
@@ -153,9 +152,9 @@ python3 -m podclaw.test_cataloger
 Secuencia researcher → cataloger.
 
 ```bash
-cd /Users/lr0y/POD-AI-PDR/pod-agent-harness/pod_workspace/project
-source ../../venv/bin/activate
-python3 -m podclaw.test_multiagent
+cd project
+source podclaw/.venv/bin/activate
+python -m podclaw.test_multiagent
 ```
 
 ### 4d. Test Orchestrator Full
@@ -163,9 +162,9 @@ python3 -m podclaw.test_multiagent
 Prueba completa del orchestrator con todos los agentes.
 
 ```bash
-cd /Users/lr0y/POD-AI-PDR/pod-agent-harness/pod_workspace/project
-source ../../venv/bin/activate
-python3 -m podclaw.test_orchestrator_full
+cd project
+source podclaw/.venv/bin/activate
+python -m podclaw.test_orchestrator_full
 ```
 
 ---
@@ -215,13 +214,13 @@ PodClaw usa structlog a stdout. No hay archivo de log dedicado — la salida va 
 Para capturar a archivo:
 
 ```bash
-python3 -m podclaw.main --workspace ../.. 2>&1 | tee podclaw.log
+python -m podclaw.main --workspace ../.. 2>&1 | tee podclaw.log
 ```
 
 Para logs en formato JSON (parseable):
 
 ```bash
-PODCLAW_JSON_LOGS=true python3 -m podclaw.main --workspace ../..
+PODCLAW_JSON_LOGS=true python -m podclaw.main --workspace ../..
 ```
 
 ### Archivos de memoria
@@ -251,6 +250,7 @@ podclaw/memory/
 | **Herramientas** | Bash, Write, Edit, Playwright | MCP connectors (Supabase, Stripe, etc.) |
 | **Ejecucion** | Sesiones manuales | 24/7 con scheduler + heartbeat |
 | **Puerto** | — | 8000 (FastAPI bridge) |
+| **venv** | `pod-agent-harness-v2/venv/` | `project/podclaw/.venv/` |
 
 **Nunca corren simultaneamente.** El harness crea PodClaw; PodClaw opera la tienda.
 
@@ -266,17 +266,18 @@ lsof -i :8000  # verificar que el puerto se libero
 ```
 
 ### "ModuleNotFoundError: No module named 'podclaw'"
-Estas ejecutando desde el directorio incorrecto. Debes estar en `pod_workspace/project/`:
+Estas ejecutando desde el directorio incorrecto o con el venv equivocado:
 ```bash
-cd /Users/lr0y/POD-AI-PDR/pod-agent-harness/pod_workspace/project
-source ../../venv/bin/activate
+cd project
+source podclaw/.venv/bin/activate
+python -m podclaw.main --workspace ..
 ```
 
 ### "FATAL: Missing environment variables"
 Verifica que existan los archivos .env:
 ```bash
-ls -la ../../config/.env.required
-ls -la frontend/.env.local
+ls -la config/.env.required
+ls -la project/frontend/.env.local
 ```
 
 ### Heartbeat corriendo pero `last_run: null`

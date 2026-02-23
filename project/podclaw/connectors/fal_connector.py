@@ -44,7 +44,7 @@ class FalMCPConnector:
         return {
             "fal_generate": {
                 "description": (
-                    "PAID — use only after exhausting free sourced images (search_images). "
+                    "PAID — use only after exhausting free sourced images (crawl_url on image sites). "
                     "Generate an image using fal.ai FLUX.1 model. "
                     "Cost: $0.003-$0.05 per image depending on model."
                 ),

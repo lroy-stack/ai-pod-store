@@ -20,7 +20,7 @@ interface SafeHTMLProps {
   html: string
   className?: string
   /** Custom tag to render (default: 'div') */
-  tag?: keyof JSX.IntrinsicElements
+  tag?: keyof React.JSX.IntrinsicElements
 }
 
 export function SafeHTML({ html, className, tag = 'div' }: SafeHTMLProps) {

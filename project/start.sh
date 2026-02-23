@@ -114,7 +114,7 @@ ensure_env() {
     echo ""
     echo "  Required variables:"
     echo "    SUPABASE_URL, SUPABASE_SERVICE_KEY, SUPABASE_ANON_KEY"
-    echo "    STRIPE_SECRET_KEY, ANTHROPIC_API_KEY"
+    echo "    STRIPE_SECRET_KEY, FAL_KEY"
     echo "    REDIS_PASSWORD (generate: openssl rand -hex 32)"
     echo "    PODCLAW_BRIDGE_AUTH_TOKEN (generate: openssl rand -hex 32)"
     echo ""
@@ -146,7 +146,6 @@ validate_env() {
     SUPABASE_ANON_KEY
     REDIS_PASSWORD
     STRIPE_SECRET_KEY
-    ANTHROPIC_API_KEY
     FAL_KEY
     GEMINI_API_KEY
     RESEND_API_KEY

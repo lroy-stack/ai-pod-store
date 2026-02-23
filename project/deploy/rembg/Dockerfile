@@ -21,10 +21,15 @@ RUN python -c "from rembg import new_session; new_session('u2net')"
 
 COPY server.py .
 
-# Run as non-root user
-RUN addgroup --system rembg && adduser --system --ingroup rembg rembg \
+# Run as non-root user with writable home for model cache + numba
+RUN addgroup --system rembg && adduser --system --home /app/home --ingroup rembg rembg \
+    && mkdir -p /app/home/.u2net /app/home/.cache/numba \
+    && cp -r /root/.u2net/* /app/home/.u2net/ 2>/dev/null || true \
     && chown -R rembg:rembg /app
 USER rembg
+
+ENV HOME=/app/home
+ENV NUMBA_CACHE_DIR=/app/home/.cache/numba
 
 EXPOSE 8080
 

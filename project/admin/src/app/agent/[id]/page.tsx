@@ -5,8 +5,10 @@ import { useParams, useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, Clock, CheckCircle, XCircle, AlertCircle, Play, Pause, WifiOff } from 'lucide-react'
+import { ArrowLeft, Clock, CheckCircle, XCircle, AlertCircle, Play, Pause, WifiOff, BarChart3, List } from 'lucide-react'
 import { formatDistanceToNow, format } from 'date-fns'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { WaterfallTimeline } from '@/components/agent/WaterfallTimeline'
 
 interface BridgeAgent {
   agent: string
@@ -60,6 +62,7 @@ export default function AgentDetailPage() {
   const [loading, setLoading] = useState(true)
   const [offline, setOffline] = useState(false)
   const [replayingSession, setReplayingSession] = useState<string | null>(null)
+  const [timelineView, setTimelineView] = useState<'list' | 'waterfall'>('waterfall')
 
   useEffect(() => {
     fetchAgentDetail()
@@ -289,70 +292,91 @@ export default function AgentDetailPage() {
         {selectedSessionId && events.length > 0 && (
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                 <div>
                   <CardTitle>Event Timeline</CardTitle>
                   <CardDescription>
                     Replaying session ({events.length} events in chronological order)
                   </CardDescription>
                 </div>
-                <Button size="sm" variant="outline" onClick={handleClearReplay}>
-                  Clear Replay
-                </Button>
+                <div className="flex gap-2">
+                  <Tabs value={timelineView} onValueChange={(v) => setTimelineView(v as 'list' | 'waterfall')}>
+                    <TabsList>
+                      <TabsTrigger value="waterfall" className="text-xs">
+                        <BarChart3 className="h-3 w-3 mr-1" />
+                        Waterfall
+                      </TabsTrigger>
+                      <TabsTrigger value="list" className="text-xs">
+                        <List className="h-3 w-3 mr-1" />
+                        List
+                      </TabsTrigger>
+                    </TabsList>
+                  </Tabs>
+                  <Button size="sm" variant="outline" onClick={handleClearReplay}>
+                    Clear Replay
+                  </Button>
+                </div>
               </div>
             </CardHeader>
             <CardContent>
-              <div className="relative space-y-4">
-                {/* Timeline line */}
-                <div className="absolute left-[19px] top-2 bottom-2 w-px bg-border" />
+              {timelineView === 'waterfall' ? (
+                <WaterfallTimeline
+                  events={events}
+                  sessionStartTime={sessions.find(s => s.id === selectedSessionId)?.started_at}
+                />
+              ) : (
+                <div className="relative space-y-4">
+                  {/* Timeline line */}
+                  <div className="absolute left-[19px] top-2 bottom-2 w-px bg-border" />
 
-                {events.map((event) => {
-                  const eventColor = eventTypeColors[event.event_type] || 'bg-muted'
+                  {events.map((event) => {
+                    const eventColor = eventTypeColors[event.event_type] || 'bg-muted'
 
-                  return (
-                    <div key={event.id} className="relative flex gap-4">
-                      {/* Timeline dot */}
-                      <div
-                        className={`relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-4 border-background ${eventColor}`}
-                      >
-                        <div className="h-2 w-2 rounded-full bg-current" />
-                      </div>
+                    return (
+                      <div key={event.id} className="relative flex gap-4">
+                        {/* Timeline dot */}
+                        <div
+                          className={`relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-4 border-background ${eventColor}`}
+                        >
+                          <div className="h-2 w-2 rounded-full bg-current" />
+                        </div>
 
-                      {/* Event content */}
-                      <div className="flex-1 pb-8">
-                        <div className="rounded-lg border border-border p-4">
-                          <div className="flex items-start justify-between gap-4">
-                            <div className="flex-1 space-y-1">
-                              <div className="flex items-center gap-2">
-                                <Badge variant="outline" className={eventColor}>
-                                  {event.event_type}
-                                </Badge>
-                                <span className="text-xs text-muted-foreground">
-                                  {format(new Date(event.created_at), 'HH:mm:ss')}
-                                </span>
+                        {/* Event content */}
+                        <div className="flex-1 pb-8">
+                          <div className="rounded-lg border border-border p-4">
+                            <div className="flex items-start justify-between gap-4">
+                              <div className="flex-1 space-y-1">
+                                <div className="flex items-center gap-2">
+                                  <Badge variant="outline" className={eventColor}>
+                                    {event.event_type}
+                                  </Badge>
+                                  <span className="text-xs text-muted-foreground">
+                                    {format(new Date(event.created_at), 'HH:mm:ss')}
+                                  </span>
+                                </div>
+
+                                {Object.keys(event.payload || {}).length > 0 && (
+                                  <div className="mt-2 rounded-md bg-muted/50 p-3">
+                                    <pre className="text-xs text-muted-foreground whitespace-pre-wrap">
+                                      {JSON.stringify(event.payload, null, 2)}
+                                    </pre>
+                                  </div>
+                                )}
                               </div>
 
-                              {Object.keys(event.payload || {}).length > 0 && (
-                                <div className="mt-2 rounded-md bg-muted/50 p-3">
-                                  <pre className="text-xs text-muted-foreground whitespace-pre-wrap">
-                                    {JSON.stringify(event.payload, null, 2)}
-                                  </pre>
-                                </div>
-                              )}
+                              <span className="text-xs text-muted-foreground shrink-0">
+                                {formatDistanceToNow(new Date(event.created_at), {
+                                  addSuffix: true,
+                                })}
+                              </span>
                             </div>
-
-                            <span className="text-xs text-muted-foreground shrink-0">
-                              {formatDistanceToNow(new Date(event.created_at), {
-                                addSuffix: true,
-                              })}
-                            </span>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  )
-                })}
-              </div>
+                    )
+                  })}
+                </div>
+              )}
             </CardContent>
           </Card>
         )}
@@ -560,7 +584,7 @@ export default function AgentDetailPage() {
       {/* Event Timeline */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
             <div>
               <CardTitle>Event Timeline</CardTitle>
               <CardDescription>
@@ -569,11 +593,25 @@ export default function AgentDetailPage() {
                   : `${events.length} recent event${events.length !== 1 ? 's' : ''} from bridge /events`}
               </CardDescription>
             </div>
-            {selectedSessionId && (
-              <Button size="sm" variant="outline" onClick={handleClearReplay}>
-                Clear Replay
-              </Button>
-            )}
+            <div className="flex gap-2">
+              <Tabs value={timelineView} onValueChange={(v) => setTimelineView(v as 'list' | 'waterfall')}>
+                <TabsList>
+                  <TabsTrigger value="waterfall" className="text-xs">
+                    <BarChart3 className="h-3 w-3 mr-1" />
+                    Waterfall
+                  </TabsTrigger>
+                  <TabsTrigger value="list" className="text-xs">
+                    <List className="h-3 w-3 mr-1" />
+                    List
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+              {selectedSessionId && (
+                <Button size="sm" variant="outline" onClick={handleClearReplay}>
+                  Clear Replay
+                </Button>
+              )}
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -585,6 +623,15 @@ export default function AgentDetailPage() {
                 Events will appear after the agent runs
               </p>
             </div>
+          ) : timelineView === 'waterfall' ? (
+            <WaterfallTimeline
+              events={events}
+              sessionStartTime={
+                selectedSessionId
+                  ? sessions.find(s => s.id === selectedSessionId)?.started_at
+                  : undefined
+              }
+            />
           ) : (
             <div className="relative space-y-4">
               {/* Timeline line */}

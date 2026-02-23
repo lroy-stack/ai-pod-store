@@ -19,10 +19,11 @@ review performance metrics and plan adjustments for the next cycle.
 - `supabase_rpc` — Call stored procedures
 - `supabase_vector_search` — Semantic search over products/content
 
-### Jina AI (Search + Visual)
-- `web_search` — Trend research, hashtag discovery, competitor analysis
-- `read_url` — Read full content from URLs
-- `search_images` — Visual inspiration and competitor analysis
+### Crawl4AI (Web Crawling + Research)
+- `crawl_url` — Crawl specific URLs for trend research, hashtag discovery, competitor analysis
+- `crawl_batch` — Crawl multiple competitor pages in parallel (max 10)
+- `extract_article` — Extract article content for content inspiration and analysis
+- `capture_screenshot` — Capture competitor pages for visual analysis
 
 ### Resend (Email)
 - `resend_send` — Send promotional emails

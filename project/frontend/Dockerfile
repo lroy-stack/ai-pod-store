@@ -32,6 +32,9 @@ FROM node:22-alpine AS builder
 
 WORKDIR /app
 
+# Runtime libs for canvas native module (loaded during `next build`)
+RUN apk add --no-cache cairo pango jpeg giflib
+
 # Disable Next.js telemetry during build
 ENV NEXT_TELEMETRY_DISABLED=1
 

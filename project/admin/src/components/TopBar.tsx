@@ -1,24 +1,16 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Bell } from 'lucide-react';
+import { Bell, Search } from 'lucide-react';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
 import { ThemeToggle } from './ThemeToggle';
-
-interface Notification {
-  id: string;
-  title: string;
-  message: string;
-  timestamp: string;
-  read: boolean;
-  type: 'order' | 'agent' | 'alert' | 'info';
-}
+import { KeyboardShortcutsButton } from './KeyboardShortcutsHelp';
+import { useNotifications } from '@/contexts/NotificationsContext';
 
 export function TopBar() {
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [unreadCount, setUnreadCount] = useState(0);
+  const { notifications, unreadCount, markAllRead } = useNotifications();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -36,40 +28,15 @@ export function TopBar() {
     }
   }, [dropdownOpen]);
 
-  useEffect(() => {
-    // Fetch notifications from API
-    async function fetchNotifications() {
-      try {
-        const res = await fetch('/api/admin/notifications');
-        if (res.ok) {
-          const data = await res.json();
-          setNotifications(data.notifications || []);
-          setUnreadCount(data.unread_count || 0);
-        }
-      } catch (error) {
-        console.error('Failed to fetch notifications:', error);
-      }
-    }
-
-    fetchNotifications();
-
-    // Poll for new notifications every 30 seconds
-    const interval = setInterval(fetchNotifications, 30000);
-
-    return () => clearInterval(interval);
-  }, []);
-
   const handleMarkAllRead = async () => {
-    try {
-      await fetch('/api/admin/notifications/mark-all-read', {
-        method: 'POST',
-      });
-      setNotifications((prev) =>
-        prev.map((n) => ({ ...n, read: true }))
-      );
-      setUnreadCount(0);
-    } catch (error) {
-      console.error('Failed to mark all as read:', error);
+    await markAllRead();
+  };
+
+  const handleSearchClick = () => {
+    // Trigger the command palette
+    const trigger = document.getElementById('command-palette-trigger');
+    if (trigger) {
+      trigger.click();
     }
   };
 
@@ -79,6 +46,20 @@ export function TopBar() {
         <div className="flex-1" />
 
         <div className="flex items-center gap-4">
+          {/* Search Button (Mobile) */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="p-3 md:hidden min-h-[44px] min-w-[44px]"
+            onClick={handleSearchClick}
+            aria-label="Open search"
+          >
+            <Search className="h-5 w-5" />
+          </Button>
+
+          {/* Keyboard Shortcuts Help */}
+          <KeyboardShortcutsButton />
+
           {/* Theme Toggle */}
           <ThemeToggle />
 
@@ -87,7 +68,7 @@ export function TopBar() {
             <Button
               variant="ghost"
               size="sm"
-              className="relative p-2"
+              className="relative p-3 min-h-[44px] min-w-[44px]"
               onClick={() => setDropdownOpen(!dropdownOpen)}
             >
               <Bell className="h-5 w-5" />
@@ -124,24 +105,46 @@ export function TopBar() {
                       No notifications
                     </div>
                   ) : (
-                    notifications.map((notification) => (
-                      <div
-                        key={notification.id}
-                        className={`flex flex-col items-start p-3 border-b last:border-0 cursor-pointer hover:bg-muted/50 ${
-                          !notification.read ? 'bg-muted/30' : ''
-                        }`}
-                      >
-                        <div className="font-medium text-sm">
-                          {notification.title}
-                        </div>
-                        <div className="text-xs text-muted-foreground mt-1">
-                          {notification.message}
-                        </div>
-                        <div className="text-xs text-muted-foreground mt-1">
-                          {new Date(notification.timestamp).toLocaleString()}
-                        </div>
-                      </div>
-                    ))
+                    <>
+                      {/* Group notifications by type */}
+                      {(['order', 'agent', 'alert', 'info'] as const).map((type) => {
+                        const typeNotifications = notifications.filter((n) => n.type === type);
+                        if (typeNotifications.length === 0) return null;
+
+                        const typeLabels = {
+                          order: 'Orders',
+                          agent: 'Agent Updates',
+                          alert: 'Alerts',
+                          info: 'Info',
+                        };
+
+                        return (
+                          <div key={type}>
+                            <div className="px-3 py-2 bg-muted/50 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                              {typeLabels[type]} ({typeNotifications.length})
+                            </div>
+                            {typeNotifications.map((notification) => (
+                              <div
+                                key={notification.id}
+                                className={`flex flex-col items-start p-3 border-b last:border-0 cursor-pointer hover:bg-muted/50 ${
+                                  !notification.read ? 'bg-muted/30' : ''
+                                }`}
+                              >
+                                <div className="font-medium text-sm">
+                                  {notification.title}
+                                </div>
+                                <div className="text-xs text-muted-foreground mt-1">
+                                  {notification.message}
+                                </div>
+                                <div className="text-xs text-muted-foreground mt-1">
+                                  {new Date(notification.timestamp).toLocaleString()}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        );
+                      })}
+                    </>
                   )}
                 </div>
               </Card>

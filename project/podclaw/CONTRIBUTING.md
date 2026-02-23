@@ -33,7 +33,7 @@ podclaw/
 │   ├── fal_connector.py
 │   ├── gemini_connector.py
 │   ├── resend_connector.py
-│   ├── jina_connector.py         # Unified: web search, read_url, images, rerank, dedup, screenshot
+│   ├── crawl4ai_connector.py     # Web crawling with JS rendering via Crawl4AI service
 │   ├── telegram_connector.py
 │   └── whatsapp_connector.py
 ├── skills/
@@ -105,13 +105,13 @@ AGENT_BUDGETS["my_agent"] = 0.30
 
 # Tools
 AGENT_ALLOWED_BUILTINS["my_agent"] = ["Read", "Grep", "Glob"]
-AGENT_TOOLS["my_agent"] = ["supabase", "web_search"]
+AGENT_TOOLS["my_agent"] = ["supabase", "crawl4ai"]
 
 # Context
 AGENT_CONTEXT_FILES["my_agent"] = ["relevant_file.md"]
 
 # Rate limits
-RATE_LIMITS["my_agent"] = {"web_search": 10}
+RATE_LIMITS["my_agent"] = {"crawl_url": 10}
 ```
 
 ### 3. Register in core.py

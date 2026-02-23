@@ -4,7 +4,7 @@ PodClaw — Researcher Agent
 
 Model: Haiku (cost-effective for search tasks)
 Schedule: Daily 06:00 UTC
-Tools: web_search, supabase (read-only)
+Tools: crawl4ai, supabase (read-only)
 Guardrails: Max 20 searches per cycle
 """
 
@@ -15,7 +15,7 @@ class ResearcherAgent(BaseAgent):
     name = "researcher"
     model = "claude-haiku-4-5-20251001"
     schedule = "daily 06:00 UTC"
-    tools = ["supabase", "web_search"]
+    tools = ["supabase", "crawl4ai"]
     context_files = ["best_sellers.md", "customer_insights.md", "product_scorecard.md", "seasonal_calendar.md"]
     guardrails = {"max_searches": 20}
 

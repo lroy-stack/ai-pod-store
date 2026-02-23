@@ -16,7 +16,7 @@ from typing import Any, Optional
 
 import structlog
 
-from podclaw.config import AGENT_DAILY_BUDGETS, DEFAULT_DAILY_BUDGET, PRINTIFY_USD_TO_EUR_RATE
+from podclaw.config import AGENT_DAILY_BUDGETS, DEFAULT_DAILY_BUDGET, GLOBAL_DAILY_SPEND_LIMIT_EUR, PRINTIFY_USD_TO_EUR_RATE
 
 logger = structlog.get_logger(__name__)
 
@@ -29,12 +29,6 @@ TOOL_COSTS: dict[str, float] = {
     "gemini_embed_batch": 0.0,
     "resend_send": 0.001,
     "resend_send_batch": 0.005,
-    "web_search": 0.005,
-    "read_url": 0.005,
-    "search_images": 0.005,
-    "expand_query": 0.005,
-    "deduplicate_strings": 0.01,
-    "parallel_search_web": 0.025,
     "crawl_url": 0.0,
     "crawl_batch": 0.0,
     "extract_article": 0.0,
@@ -208,6 +202,24 @@ async def cost_guard_hook(
 
     # Atomic check-and-increment under lock
     async with _cost_lock:
+        # Global daily spend limit (sum of all agents)
+        today = _today_key()
+        all_costs = _daily_costs.get(today, {})
+        global_total = sum(all_costs.values())
+        if global_total + estimated_cost > GLOBAL_DAILY_SPEND_LIMIT_EUR:
+            reason = (
+                f"Global daily spend limit exceeded: "
+                f"€{global_total:.4f} + €{estimated_cost:.4f} > €{GLOBAL_DAILY_SPEND_LIMIT_EUR:.2f} global cap"
+            )
+            logger.critical("global_spend_limit_denied", total=global_total, limit=GLOBAL_DAILY_SPEND_LIMIT_EUR)
+            return {
+                "hookSpecificOutput": {
+                    "hookEventName": "PreToolUse",
+                    "permissionDecision": "deny",
+                    "permissionDecisionReason": reason,
+                }
+            }
+
         current_cost = await _get_agent_cost(agent_name)
 
         if current_cost + estimated_cost > budget:

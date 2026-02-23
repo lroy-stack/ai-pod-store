@@ -205,7 +205,7 @@ See [`.env.example`](.env.example) for the complete variable list with `[REQUIRE
 | `STRIPE_SECRET_KEY` | frontend, podclaw | Stripe secret key |
 | `STRIPE_WEBHOOK_SECRET` | frontend | Stripe webhook signing secret |
 | `PRINTIFY_API_TOKEN` | podclaw | Printify API token |
-| `ANTHROPIC_API_KEY` | podclaw | Claude API key for agents |
+| ~~ANTHROPIC_API_KEY~~ | — | Not needed: PodClaw uses Claude SDK OAuth (Max Plan) |
 | `GEMINI_API_KEY` | podclaw | Google Gemini API key |
 | `FAL_KEY` | podclaw | fal.ai API key (design generation) |
 | `RESEND_API_KEY` | frontend, podclaw | Resend email API key |

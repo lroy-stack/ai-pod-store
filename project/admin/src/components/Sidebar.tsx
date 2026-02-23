@@ -32,7 +32,9 @@ import {
   TooltipTrigger,
 } from './ui/tooltip';
 import { Button } from './ui/button';
+import { Badge } from './ui/badge';
 import { useSidebarCollapsed } from '@/hooks/useSidebarCollapsed';
+import { useNotifications } from '@/contexts/NotificationsContext';
 
 interface NavItem {
   name: string;
@@ -83,6 +85,7 @@ const navigationSections: NavSection[] = [
     label: 'Settings',
     items: [
       { name: 'Audit Log', href: '/audit', icon: FileText },
+      { name: 'Legal Pages', href: '/legal', icon: FileText },
       { name: 'Returns', href: '/returns', icon: RotateCcw },
       { name: 'Settings', href: '/settings', icon: Settings },
     ],
@@ -92,6 +95,7 @@ const navigationSections: NavSection[] = [
 export function Sidebar() {
   const pathname = usePathname();
   const { collapsed, toggleCollapsed } = useSidebarCollapsed();
+  const { unreadByType } = useNotifications();
 
   return (
     <TooltipProvider delayDuration={0}>
@@ -132,12 +136,16 @@ export function Sidebar() {
                       const isActive = pathname === item.href;
                       const Icon = item.icon;
 
+                      // Show badge for Orders if there are unread order notifications
+                      const showBadge = item.name === 'Orders' && unreadByType.order > 0;
+                      const badgeCount = unreadByType.order || 0;
+
                       const linkContent = (
                         <Link
                           key={item.name}
                           href={item.href}
                           className={cn(
-                            'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                            'flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium transition-colors relative min-h-[44px]',
                             isActive
                               ? 'bg-primary text-primary-foreground'
                               : 'text-muted-foreground hover:bg-muted hover:text-foreground',
@@ -145,7 +153,27 @@ export function Sidebar() {
                           )}
                         >
                           <Icon className="h-5 w-5 shrink-0" />
-                          {!collapsed && item.name}
+                          {!collapsed && (
+                            <>
+                              <span className="flex-1">{item.name}</span>
+                              {showBadge && (
+                                <Badge
+                                  variant="destructive"
+                                  className="h-5 min-w-[20px] flex items-center justify-center px-1 text-xs"
+                                >
+                                  {badgeCount > 9 ? '9+' : badgeCount}
+                                </Badge>
+                              )}
+                            </>
+                          )}
+                          {collapsed && showBadge && (
+                            <Badge
+                              variant="destructive"
+                              className="absolute -top-1 -right-1 h-4 w-4 flex items-center justify-center p-0 text-[10px]"
+                            >
+                              {badgeCount > 9 ? '9' : badgeCount}
+                            </Badge>
+                          )}
                         </Link>
                       );
 

@@ -46,6 +46,10 @@ services:
     environment:
       MCP_BASE_URL: "http://localhost:8002"
 
+  crawl4ai:
+    ports:
+      - "127.0.0.1:11235:11235"
+
   redis:
     ports:
       - "127.0.0.1:6379:6379"

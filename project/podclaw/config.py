@@ -32,6 +32,7 @@ AGENT_MODELS: dict[str, str] = {
 # Daily Budget (EUR) per agent
 # ---------------------------------------------------------------------------
 DEFAULT_DAILY_BUDGET = float(os.environ.get("PODCLAW_DAILY_BUDGET", "5.0"))
+GLOBAL_DAILY_SPEND_LIMIT_EUR = float(os.environ.get("PODCLAW_GLOBAL_DAILY_SPEND_LIMIT", "30.0"))
 
 AGENT_DAILY_BUDGETS: dict[str, float] = {
     "researcher": 1.50,        # Haiku, 2-3 sessions/day
@@ -92,7 +93,8 @@ RATE_LIMITS: dict[str, dict[str, int]] = {
 # ---------------------------------------------------------------------------
 # High-Risk Thresholds (require human approval)
 # ---------------------------------------------------------------------------
-REFUND_APPROVAL_THRESHOLD = float(os.environ.get("PODCLAW_REFUND_THRESHOLD", "100.0"))
+REFUND_APPROVAL_THRESHOLD = float(os.environ.get("PODCLAW_REFUND_THRESHOLD", "25.0"))
+DAILY_REFUND_LIMIT_EUR = float(os.environ.get("PODCLAW_DAILY_REFUND_LIMIT", "150.0"))
 PRICE_CHANGE_MAX_PERCENT = float(os.environ.get("PODCLAW_PRICE_CHANGE_MAX", "20.0"))
 BULK_DELETE_THRESHOLD = int(os.environ.get("PODCLAW_BULK_DELETE_THRESHOLD", "10"))
 
@@ -157,15 +159,15 @@ BRIDGE_PORT = int(os.environ.get("PODCLAW_BRIDGE_PORT", "8000"))
 # If empty + enabled, bridge returns 503 on all authenticated endpoints.
 # ---------------------------------------------------------------------------
 BRIDGE_AUTH_TOKEN = os.environ.get("PODCLAW_BRIDGE_AUTH_TOKEN", "")
-BRIDGE_AUTH_ENABLED = os.environ.get("PODCLAW_BRIDGE_AUTH_ENABLED", "true").lower() == "true"
+BRIDGE_AUTH_ENABLED = os.environ.get("PODCLAW_BRIDGE_AUTH_ENABLED", "false").lower() == "true"
 if BRIDGE_AUTH_ENABLED and not BRIDGE_AUTH_TOKEN:
-    import warnings
-    warnings.warn(
-        "PODCLAW_BRIDGE_AUTH_ENABLED=true but PODCLAW_BRIDGE_AUTH_TOKEN is empty. "
-        "Bridge API will reject all authenticated requests. "
+    import sys
+    print(
+        "FATAL: PODCLAW_BRIDGE_AUTH_ENABLED=true but PODCLAW_BRIDGE_AUTH_TOKEN is empty. "
         "Set PODCLAW_BRIDGE_AUTH_TOKEN or disable auth with PODCLAW_BRIDGE_AUTH_ENABLED=false.",
-        stacklevel=1,
+        file=sys.stderr,
     )
+    sys.exit(1)
 BRIDGE_RATE_LIMIT_MAX = int(os.environ.get("PODCLAW_BRIDGE_RATE_LIMIT_MAX", "10"))
 BRIDGE_RATE_LIMIT_WINDOW = int(os.environ.get("PODCLAW_BRIDGE_RATE_LIMIT_WINDOW", "60"))
 
@@ -264,6 +266,39 @@ STORE_SENDER_NAME = os.environ.get("STORE_SENDER_NAME", "POD AI Store")
 # ---------------------------------------------------------------------------
 GEMINI_EMBEDDING_MODEL = "text-embedding-004"
 GEMINI_EMBEDDING_DIMENSIONS = 768
+
+# ---------------------------------------------------------------------------
+# Memory Index (local SQLite cognitive memory)
+# ---------------------------------------------------------------------------
+ENABLE_MEMORY_INDEX_ON_BOOT = os.environ.get("ENABLE_MEMORY_INDEX_ON_BOOT", "true").lower() in ("true", "1", "yes")
+
+# ---------------------------------------------------------------------------
+# Pre-Compaction Memory Flush (chat sessions)
+# ---------------------------------------------------------------------------
+COMPACT_MAX_MESSAGES = int(os.environ.get("PODCLAW_COMPACT_MAX_MESSAGES", "40"))
+COMPACT_MAX_TOKENS = int(os.environ.get("PODCLAW_COMPACT_MAX_TOKENS", "80000"))
+COMPACT_MIN_MESSAGES = 10
+COMPACT_COOLDOWN_MINUTES = 10
+COMPACT_MAX_MEMORIES = 10
+
+# ---------------------------------------------------------------------------
+# Memory Importance Scoring
+# ---------------------------------------------------------------------------
+MEMORY_TYPE_WEIGHTS: dict[str, float] = {
+    "preference": 0.3,
+    "constraint": 0.35,
+    "decision": 0.25,
+    "business_rule": 0.4,
+    "insight": 0.2,
+    "general": 0.1,
+}
+MEMORY_IMPORTANCE_THRESHOLD = float(os.environ.get("PODCLAW_MEMORY_IMPORTANCE_THRESHOLD", "0.65"))
+MAX_CONVERSATION_MEMORY_CHUNKS = int(os.environ.get("PODCLAW_MAX_CONV_MEMORY_CHUNKS", "1000"))
+MEMORY_DECAY_DAYS = int(os.environ.get("PODCLAW_MEMORY_DECAY_DAYS", "30"))
+MEMORY_DECAY_AMOUNT = float(os.environ.get("PODCLAW_MEMORY_DECAY_AMOUNT", "0.1"))
+MEMORY_PRUNE_THRESHOLD = float(os.environ.get("PODCLAW_MEMORY_PRUNE_THRESHOLD", "0.3"))
+MEMORY_ACCESS_BOOST = float(os.environ.get("PODCLAW_MEMORY_ACCESS_BOOST", "0.02"))
+VALID_MEMORY_TYPES = set(MEMORY_TYPE_WEIGHTS.keys())
 
 # ---------------------------------------------------------------------------
 # Gemini Image Generation (Designer fallback)

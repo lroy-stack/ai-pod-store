@@ -4,7 +4,7 @@
 
 | Method | Cost per image | Quality | Speed |
 |--------|---------------|---------|-------|
-| **search_images** (Jina) | **$0 FREE** | High (real photos) | Instant |
+| **crawl_url** (Crawl4AI) | **$0 FREE** | High (real photos) | ~5s |
 | fal_generate (schnell) | $0.003 | Draft quality | ~2s |
 | fal_generate (dev) | $0.025 | Good | ~8s |
 | fal_generate (flux-pro) | $0.05 | Best AI | ~12s |
@@ -19,24 +19,22 @@ Attempt sourced designs BEFORE AI generation for every theme. The internet has b
 ### Step 1: Search for TRANSPARENT PNG images FIRST
 
 **Priority 1 — Transparent PNGs (NO bg removal needed):**
-Call `search_images` with queries like:
-- `"{theme} transparent png"`
-- `"{theme} png transparent background"`
-- `"{theme} clipart transparent"`
-Add: `"site:pngimg.com OR site:cleanpng.com OR site:stickpng.com OR site:pngwing.com OR site:freepik.com"`
+Call `crawl_url` on these directed URLs:
+- `https://pngimg.com/search/?q={theme}` — transparent PNGs
+- `https://www.cleanpng.com/free/{theme}.html` — transparent PNGs
+- `https://www.stickpng.com/search?q={theme}` — transparent PNGs
 
 **Priority 2 — Photos (NEED bg removal, use as fallback):**
-- `"{theme} minimalist isolated white background"`
-- `"{theme} product photo clean background"`
-Add: `"site:unsplash.com OR site:pexels.com OR site:pixabay.com"` for royalty-free
+Call `crawl_url` on these sites, then use `fal_remove_bg`:
+- `https://unsplash.com/s/photos/{theme}` — royalty-free photos
+- `https://www.pexels.com/search/{theme}/` — royalty-free photos
 
 ### Step 2: Extract the correct URL
 
-**CRITICAL**: `search_images` returns TWO URL fields:
-- `url` = landing page (HTML) — **DO NOT USE for download**
-- `image_url` = **DIRECT FILE URL** — **USE THIS for supabase_upload_image**
-
-Prefer URLs ending in `.png` — they're more likely to have transparency.
+**CRITICAL**: `crawl_url` returns page content with image URLs in the `images` array.
+- Each image has `src` (direct URL) and `alt` (description)
+- **USE the `src` field** for `supabase_upload_image`
+- Prefer URLs ending in `.png` — they're more likely to have transparency.
 
 ### Step 3: Evaluate candidates
 
@@ -93,7 +91,7 @@ Use `gemini_generate_image` ($0.13) ONLY as absolute last resort.
 
 **EVERY image MUST pass this pipeline before Printify upload:**
 
-1. **Generate/Source**: `fal_generate` (primary) OR `gemini_generate_image` (fallback) OR `search_images` (sourced)
+1. **Generate/Source**: `fal_generate` (primary) OR `gemini_generate_image` (fallback) OR `crawl_url` (sourced)
 2. **Background Removal**: Auto-handled by `transparency_hook` for generated images.
    For SOURCED images, you MUST call `fal_remove_bg` manually.
 3. **Store**: `supabase_upload_image` → returns public URL

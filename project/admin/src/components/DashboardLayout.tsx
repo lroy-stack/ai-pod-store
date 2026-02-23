@@ -39,7 +39,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                 variant="ghost"
                 size="sm"
                 onClick={() => setMobileMenuOpen(true)}
-                className="p-2"
+                className="p-3 min-h-[44px] min-w-[44px]"
               >
                 <Menu className="h-5 w-5" />
                 <span className="sr-only">Open menu</span>
