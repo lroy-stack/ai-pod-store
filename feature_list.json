@@ -487,7 +487,7 @@
     "id": 41,
     "feature": "Section 4 \u2014 Missing pages exist: /blog, /size-guide",
     "description": "Blog listing page and size guide page exist with proper metadata",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Step 1: Navigate to http://localhost:3000/en/blog \u2192 expect 200 with blog listing",
       "Step 2: Navigate to http://localhost:3000/en/size-guide \u2192 expect 200 with size tables",

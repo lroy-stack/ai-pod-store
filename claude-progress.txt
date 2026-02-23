@@ -1161,3 +1161,161 @@ Landing page at `frontend/src/app/[locale]/(landing)/page.tsx` is already a Serv
   * Needs to be split into server component (data fetching, metadata) + client component (UI, interactions)
   * This is a complex refactor deferred to next session due to context usage
 
+
+
+## Session 20 — 2026-02-23
+
+### Feature #39: Shop page SSR with generateMetadata and JSON-LD ItemList schema
+
+**Status:** ✅ PASSING
+
+**What was implemented:**
+Refactored the shop page from a Client Component to a Server Component with SSR metadata and JSON-LD structured data.
+
+**Files created:**
+- `frontend/src/components/shop/ShopPageClient.tsx` — Client component with all interactive UI (search, filters, pagination, state management)
+
+**Files modified:**
+- `frontend/src/app/[locale]/(app)/shop/page.tsx` — Converted to Server Component with:
+  - `generateMetadata()` export for SEO
+  - Server-side data fetching using Supabase
+  - JSON-LD ItemList schema for search engines
+  - Passes initial data to ShopPageClient
+
+**Implementation pattern (matching landing page):**
+1. **Server Component (page.tsx):**
+   - NO 'use client' directive
+   - Export `generateMetadata()` for dynamic SEO metadata
+   - Fetch products server-side using Supabase anon key
+   - Calculate category counts and totals
+   - Render JSON-LD ItemList schema in <script> tag
+   - Pass initial data as props to Client Component
+
+2. **Client Component (ShopPageClient.tsx):**
+   - 'use client' directive
+   - Receives initialProducts, initialTotal, initialCategories, etc. as props
+   - Handles all interactive UI: search, filtering, sorting, pagination
+   - useState/useEffect for client-side state management
+   - Fetches updated data when filters change
+
+**JSON-LD ItemList schema includes:**
+- @context: "https://schema.org"
+- @type: "ItemList"
+- name, description, numberOfItems
+- itemListElement: array of ListItem objects with Product schema
+- Each product includes: name, description, image, offers (price, currency, availability), aggregateRating
+
+**Browser testing verification:**
+✅ Step 1: Navigated to http://localhost:3000/en/shop → page loaded successfully
+✅ Step 2: Verified NO 'use client' directive in page.tsx (first lines are imports)
+✅ Step 3: Verified `generateMetadata()` exported (line 35 in page.tsx)
+✅ Step 4: Checked page source via curl → `<title>Shop - POD AI</title>` is SSR'd
+✅ Step 5: Verified JSON-LD schema in page source:
+   ```json
+   {
+     "@context": "https://schema.org",
+     "@type": "ItemList",
+     "name": "Shop",
+     "description": "Discover our collection of custom products",
+     "numberOfItems": 0,
+     "itemListElement": []
+   }
+   ```
+
+**TypeScript compilation:** ✅ No new errors (pre-existing test errors unrelated)
+
+**Commits:**
+- 9e612a4: feat: implement feature #39 — shop page SSR with generateMetadata and JSON-LD ItemList schema
+- b09763d: chore: mark feature #39 as passing
+
+### Progress Update
+- Features this session: +1 (ID 39)
+- Total: 39/321 (12.1%)
+- Next target: ID 40 — Three essential pages exist in (focused) route group with proper metadata (/about, /contact, /faq)
+
+### Notes
+- The refactor splits client and server concerns cleanly
+- Server Component handles SEO, metadata, and initial data fetching
+- Client Component handles all interactivity and state management
+- This pattern can be reused for other pages that need SSR + client interactivity
+- JSON-LD schema improves SEO by providing structured data to search engines
+- The shop page now follows the same pattern as the landing page (Feature #38)
+
+
+
+## Session 20 (continued) — 2026-02-24
+
+### Feature #40: Three essential pages exist in (focused) route group with proper metadata
+
+**Status:** ✅ PASSING
+
+**What was implemented:**
+Created three essential informational pages (/about, /contact, /faq) in the (focused) route group with Server Components, generateMetadata(), and shadcn/ui components.
+
+**Files created:**
+1. `frontend/src/app/[locale]/(focused)/about/page.tsx` — About Us page with:
+   - generateMetadata() for SEO
+   - Company mission and story
+   - Four feature cards (AI-Powered Design, Custom Products, Fast Fulfillment, Community First)
+   - Why Choose POD AI section with benefits list
+   - All content using shadcn/ui Card components and semantic tokens
+
+2. `frontend/src/app/[locale]/(focused)/contact/page.tsx` — Contact page with:
+   - generateMetadata() for SEO
+   - Three info cards (Email, Live Chat, Response Time)
+   - Contact form embedded via ContactForm component
+   - Email addresses for general inquiries and support
+
+3. `frontend/src/app/[locale]/(focused)/faq/page.tsx` — FAQ page with:
+   - generateMetadata() for SEO
+   - Five FAQ categories (General, Orders & Shipping, Products & Customization, Pricing & Payments, Returns & Refunds)
+   - 17 total questions in accordion format
+   - "Still have questions?" call-to-action linking to contact page
+
+4. `frontend/src/components/contact/ContactForm.tsx` — Client component with:
+   - Form fields: name, email, subject (dropdown), message (textarea)
+   - Form validation (required fields)
+   - Async submission to /api/contact endpoint
+   - Toast notifications for success/error
+   - Loading states with spinner icon
+
+5. `frontend/src/components/faq/FAQAccordion.tsx` — Client component with:
+   - shadcn/ui Accordion implementation
+   - Collapsible question/answer pairs
+   - Single-open accordion behavior
+
+**Design patterns:**
+- All pages are Server Components (NO 'use client')
+- Export generateMetadata() for SEO with title, description, OpenGraph, Twitter, alternates
+- Use shadcn/ui components: Card, CardHeader, CardTitle, CardDescription, CardContent, Button, Input, Textarea, Select, Accordion
+- Semantic tokens only: bg-primary, text-muted-foreground, etc. (NO raw Tailwind colors)
+- Mobile-first responsive design with grid layouts
+- Lucide React icons: Sparkles, Palette, Zap, Users, Mail, MessageSquare, Clock, Loader2
+
+**Browser testing verification:**
+✅ Step 1: http://localhost:3000/en/about → 200 with full page content (mission, features, story, benefits)
+✅ Step 2: Page title "About Us - POD AI" confirms generateMetadata() is SSR'd
+✅ Step 3: http://localhost:3000/en/contact → 200 with contact form and info cards
+✅ Step 4: http://localhost:3000/en/faq → 200 with FAQ accordion (5 categories, 17 questions)
+✅ Step 5: Accordion functionality tested - clicking "What is POD AI?" expands answer correctly
+✅ Step 6: All pages use shadcn/ui components (Card, Button, Input, Textarea, Select, Accordion)
+✅ Step 7: All pages use semantic tokens (bg-primary/10, text-muted-foreground, etc.)
+
+**TypeScript compilation:** ✅ No new errors (pre-existing test errors unrelated)
+
+**Commit:** 13fe819
+
+### Progress Update
+- Features this session: +2 (IDs 39, 40)
+- Total: 40/321 (12.5%)
+- Next target: ID 41 — Blog listing page and size guide page exist with proper metadata
+
+### Notes
+- Contact form submits to /api/contact (endpoint not yet implemented - will return error)
+- FAQ content is hardcoded in English (no i18n translations available for these pages)
+- All three pages follow the same SSR pattern as landing and shop pages
+- Pages are in (focused) route group, which provides minimal layout (no sidebar/chat)
+- About page showcases the platform's value proposition and key features
+- Contact page provides multiple contact methods (email, chat, form)
+- FAQ page covers 5 common support topics with collapsible answers
+
