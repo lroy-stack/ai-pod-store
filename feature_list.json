@@ -474,7 +474,7 @@
     "id": 40,
     "feature": "Section 4 \u2014 Missing pages exist: /about, /contact, /faq",
     "description": "Three essential pages exist in (focused) route group with proper metadata",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Step 1: Navigate to http://localhost:3000/en/about \u2192 expect 200 with page content",
       "Step 2: Verify /about has generateMetadata() (check page source for <title>)",
