@@ -12,7 +12,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { createHmac } from 'crypto'
+import { createHmac, timingSafeEqual } from 'crypto'
 import { createClient } from '@supabase/supabase-js'
 import { sendOrderShippedEmail } from '@/lib/resend'
 import { printify } from '@/lib/printify'
@@ -23,11 +23,27 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_KEY!
 )
 
+/**
+ * Verifies Printify webhook HMAC signature using constant-time comparison.
+ * Uses timingSafeEqual() to prevent timing attacks.
+ */
 function verifyPrintifyWebhook(body: string, signature: string, secret: string): boolean {
   const hmac = createHmac('sha256', secret)
   hmac.update(body)
   const expected = hmac.digest('base64')
-  return signature === expected
+
+  // Check length first (fast fail for obviously wrong signatures)
+  if (signature.length !== expected.length) {
+    return false
+  }
+
+  // Use constant-time comparison to prevent timing attacks
+  try {
+    return timingSafeEqual(Buffer.from(signature), Buffer.from(expected))
+  } catch {
+    // timingSafeEqual throws if buffer lengths don't match
+    return false
+  }
 }
 
 export async function POST(req: NextRequest) {
