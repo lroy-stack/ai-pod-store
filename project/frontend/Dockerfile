@@ -20,6 +20,9 @@ RUN apk add --no-cache python3 make g++ pkgconf cairo-dev pango-dev jpeg-dev gif
 COPY package.json package-lock.json ./
 
 # Install dependencies (npm install tolerates minor peer dep mismatches)
+# PUPPETEER_SKIP_DOWNLOAD: puppeteer is a devDep used only for testing,
+# skip Chrome download to avoid failure on Alpine
+ENV PUPPETEER_SKIP_DOWNLOAD=true
 RUN npm install --ignore-scripts=false
 
 # ---------------------------------------------------------------------------
