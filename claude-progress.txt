@@ -1319,3 +1319,78 @@ Created three essential informational pages (/about, /contact, /faq) in the (foc
 - Contact page provides multiple contact methods (email, chat, form)
 - FAQ page covers 5 common support topics with collapsible answers
 
+
+
+### Feature #41: Blog listing and size guide pages exist with proper metadata
+
+**Status:** ✅ PASSING
+
+**What was implemented:**
+Created two additional informational pages (/blog, /size-guide) in the (focused) route group with Server Components, generateMetadata(), and shadcn/ui components.
+
+**Files created:**
+1. `frontend/src/app/[locale]/(focused)/blog/page.tsx` — Blog listing page with:
+   - generateMetadata() for SEO
+   - 6 sample blog posts with categories (Tutorial, Business, Design, Sustainability, Trends, Marketing)
+   - Category filter badges (All, Tutorial, Business, etc.)
+   - Blog post cards with: title, excerpt, category badge, date, read time, featured image placeholder
+   - Pagination controls (Previous/Next with page numbers)
+   - Grid layout (1 column mobile, 2 columns tablet, 3 columns desktop)
+
+2. `frontend/src/app/[locale]/(focused)/size-guide/page.tsx` — Size guide page with:
+   - generateMetadata() for SEO
+   - "How to Measure" info card with measurement tips
+   - 4 product category size tables:
+     * T-Shirts & Tops (7 sizes: XS to 3XL with chest width, body length, sleeve length)
+     * Hoodies & Sweatshirts (6 sizes: S to 3XL)
+     * Phone Cases (5 device models with dimensions)
+     * Posters & Prints (5 sizes from 8"×10" to 24"×36")
+   - shadcn/ui Table component for all size charts
+   - "Still unsure?" CTA card linking to contact page
+
+**Design patterns:**
+- Both pages are Server Components (NO 'use client')
+- Export generateMetadata() for SEO
+- Use shadcn/ui components: Card, Table, Badge, Button
+- Semantic tokens only (bg-primary/10, text-muted-foreground, etc.)
+- Mobile-first responsive with overflow-x-auto for tables
+- Lucide React icons: Calendar, Clock, ArrowRight, Ruler, Info
+
+**Browser testing verification:**
+✅ Step 1: http://localhost:3000/en/blog → 200 with blog listing (6 posts, category filters, pagination)
+✅ Step 2: http://localhost:3000/en/size-guide → 200 with size tables (4 product categories)
+✅ Step 3: Both pages have generateMetadata() - page titles are "Blog - POD AI" and "Size Guide - POD AI"
+✅ Step 4: Both pages use shadcn/ui components and semantic tokens
+
+**Note on development:**
+- Initial server error due to Next.js dev server needing restart after creating new route groups
+- Resolved by killing Node processes and restarting dev server cleanly
+- Blog posts are hardcoded sample data (in production would come from CMS or database)
+- Size tables use industry-standard measurements for common POD products
+
+**Commit:** acbb917
+
+### Session 20 Summary — 2026-02-24
+
+**Features implemented:** 3 (IDs 39, 40, 41)
+**Starting progress:** 38/321 (11.8%)
+**Ending progress:** 41/321 (12.8%)
+
+**Achievements:**
+1. Refactored shop page from Client Component to Server Component with SSR metadata and JSON-LD ItemList schema
+2. Created 3 essential informational pages: /about, /contact, /faq with forms and accordions
+3. Created 2 additional pages: /blog listing and /size-guide with tables
+
+**Files created:** 10
+- 2 Client Components (ShopPageClient, ContactForm, FAQAccordion)
+- 5 Server Component pages (about, contact, faq, blog, size-guide)
+
+**Technical highlights:**
+- All pages follow Server Component + generateMetadata() pattern for SEO
+- Consistent use of shadcn/ui components across all pages
+- Semantic token system for theming (no raw Tailwind colors)
+- Mobile-first responsive design
+- JSON-LD structured data for shop page (ItemList schema with products)
+
+**Next target:** ID 42 — (details not yet retrieved)
+
