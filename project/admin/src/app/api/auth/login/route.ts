@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs';
 import { getIronSession } from 'iron-session';
 import { sessionOptions, SessionData } from '@/lib/session';
 import { cookies } from 'next/headers';
+import { adminLoginLimiter, getClientIP } from '@/lib/rate-limit';
 
 export async function POST(req: NextRequest) {
   try {
@@ -13,6 +14,26 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         { error: 'Email and password are required' },
         { status: 400 }
+      );
+    }
+
+    // Rate limiting by IP address
+    const clientIP = getClientIP(req);
+    const rateLimitResult = adminLoginLimiter.check(clientIP);
+
+    if (!rateLimitResult.success) {
+      const retryAfterSeconds = Math.ceil((rateLimitResult.resetAt - Date.now()) / 1000);
+      return NextResponse.json(
+        {
+          error: 'Too many login attempts. Please try again later.',
+          retryAfter: retryAfterSeconds
+        },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': retryAfterSeconds.toString()
+          }
+        }
       );
     }
 
@@ -46,6 +67,9 @@ export async function POST(req: NextRequest) {
         { status: 401 }
       );
     }
+
+    // Reset rate limit on successful login
+    adminLoginLimiter.reset(clientIP);
 
     // Create encrypted session using iron-session
     const session = await getIronSession<SessionData>(await cookies(), sessionOptions);
