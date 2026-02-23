@@ -34,10 +34,10 @@ const actorIcons = {
 }
 
 const actorColors = {
-  admin: 'bg-blue-500/10 text-blue-700 dark:text-blue-400',
+  admin: 'bg-primary/10 text-primary',
   ai_agent: 'bg-purple-500/10 text-purple-700 dark:text-purple-400',
-  system: 'bg-gray-500/10 text-gray-700 dark:text-gray-400',
-  webhook: 'bg-green-500/10 text-green-700 dark:text-green-400',
+  system: 'bg-muted text-muted-foreground',
+  webhook: 'bg-success/10 text-success',
 }
 
 export default function AuditLogPage() {

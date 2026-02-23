@@ -298,7 +298,7 @@ export default function SoulEvolutionPage() {
                             variant="default"
                             onClick={() => handleApprove(proposal.id)}
                             disabled={actionInProgress}
-                            className="bg-green-600 hover:bg-green-700"
+                            className="bg-success hover:bg-success/90"
                           >
                             <Check className="h-4 w-4 mr-1" />
                             Approve
@@ -363,9 +363,9 @@ export default function SoulEvolutionPage() {
                         key={idx}
                         className={
                           line.type === 'add'
-                            ? 'bg-green-500/10 text-green-600 dark:text-green-400 px-4 py-0.5'
+                            ? 'bg-success/10 text-success px-4 py-0.5'
                             : line.type === 'remove'
-                            ? 'bg-red-500/10 text-red-600 dark:text-red-400 px-4 py-0.5'
+                            ? 'bg-destructive/10 text-destructive px-4 py-0.5'
                             : 'px-4 py-0.5'
                         }
                       >
@@ -393,7 +393,7 @@ export default function SoulEvolutionPage() {
                     handleApprove(selectedProposal.id)
                   }}
                   disabled={actionInProgress}
-                  className="bg-green-600 hover:bg-green-700"
+                  className="bg-success hover:bg-success/90"
                 >
                   <Check className="h-4 w-4 mr-1" />
                   Approve

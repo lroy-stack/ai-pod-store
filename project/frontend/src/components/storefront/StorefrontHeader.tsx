@@ -118,7 +118,7 @@ export function StorefrontHeader({ onToggleSidebar, isSidebarCollapsed, onToggle
             size="sm"
             asChild
             className={cn(
-              'text-muted-foreground hover:text-foreground',
+              'text-muted-foreground hover:bg-muted hover:text-foreground',
               isChatPage && 'text-foreground bg-muted'
             )}
           >
@@ -129,7 +129,7 @@ export function StorefrontHeader({ onToggleSidebar, isSidebarCollapsed, onToggle
             size="sm"
             asChild
             className={cn(
-              'text-muted-foreground hover:text-foreground',
+              'text-muted-foreground hover:bg-muted hover:text-foreground',
               isShopPage && 'text-foreground bg-muted'
             )}
           >

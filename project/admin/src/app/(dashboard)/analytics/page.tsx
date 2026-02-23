@@ -257,18 +257,18 @@ export default function AnalyticsPage() {
                 <p className="text-2xl font-bold">{rfmData.segments.loyal}</p>
                 <p className="text-xs text-muted-foreground mt-1">High F, M</p>
               </div>
-              <div className="bg-blue-500/10 rounded-lg p-4 border border-blue-500/20">
-                <p className="text-xs font-medium text-blue-600 mb-1">Potential</p>
+              <div className="bg-accent/10 rounded-lg p-4 border border-accent/20">
+                <p className="text-xs font-medium text-accent-foreground mb-1">Potential</p>
                 <p className="text-2xl font-bold">{rfmData.segments.potential}</p>
                 <p className="text-xs text-muted-foreground mt-1">High R, low F</p>
               </div>
-              <div className="bg-yellow-500/10 rounded-lg p-4 border border-yellow-500/20">
-                <p className="text-xs font-medium text-yellow-600 mb-1">At Risk</p>
+              <div className="bg-warning/10 rounded-lg p-4 border border-warning/20">
+                <p className="text-xs font-medium text-warning mb-1">At Risk</p>
                 <p className="text-2xl font-bold">{rfmData.segments.atRisk}</p>
                 <p className="text-xs text-muted-foreground mt-1">Low R, high F, M</p>
               </div>
-              <div className="bg-orange-500/10 rounded-lg p-4 border border-orange-500/20">
-                <p className="text-xs font-medium text-orange-600 mb-1">Hibernating</p>
+              <div className="bg-muted rounded-lg p-4 border border-border">
+                <p className="text-xs font-medium text-muted-foreground mb-1">Hibernating</p>
                 <p className="text-2xl font-bold">{rfmData.segments.hibernating}</p>
                 <p className="text-xs text-muted-foreground mt-1">Low R, F, M</p>
               </div>

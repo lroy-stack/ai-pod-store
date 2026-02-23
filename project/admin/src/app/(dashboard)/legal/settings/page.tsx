@@ -174,8 +174,8 @@ export default function LegalSettingsPage() {
         <div
           className={`flex items-center gap-2 p-4 rounded-lg ${
             message.type === 'success'
-              ? 'bg-green-50 dark:bg-green-950 text-green-900 dark:text-green-100'
-              : 'bg-red-50 dark:bg-red-950 text-red-900 dark:text-red-100'
+              ? 'bg-success/10 text-success'
+              : 'bg-destructive/10 text-destructive'
           }`}
         >
           {message.type === 'success' ? (

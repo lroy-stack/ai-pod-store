@@ -32,12 +32,12 @@ interface WaterfallTimelineProps {
 
 // Event type colors
 const EVENT_COLORS: Record<string, string> = {
-  session_start: 'bg-blue-500',
-  session_end: 'bg-green-500',
+  session_start: 'bg-primary',
+  session_end: 'bg-success',
   tool_use: 'bg-purple-500',
-  error: 'bg-red-500',
-  rate_limit_exceeded: 'bg-yellow-500',
-  default: 'bg-gray-500',
+  error: 'bg-destructive',
+  rate_limit_exceeded: 'bg-warning',
+  default: 'bg-muted',
 }
 
 export function WaterfallTimeline({ events, sessionStartTime }: WaterfallTimelineProps) {
