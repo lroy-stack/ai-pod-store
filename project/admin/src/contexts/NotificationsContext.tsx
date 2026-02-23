@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { adminFetch, apiUrl } from '@/lib/admin-api';
 
 interface Notification {
   id: string;
@@ -44,7 +45,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
 
   const markAllRead = async () => {
     try {
-      await fetch('/api/admin/notifications/mark-all-read', {
+      await adminFetch('/api/admin/notifications/mark-all-read', {
         method: 'POST',
       });
       setNotifications((prev) =>
@@ -60,7 +61,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     async function fetchNotifications() {
       try {
-        const res = await fetch('/api/admin/notifications');
+        const res = await adminFetch('/api/admin/notifications');
         if (res.ok) {
           const data = await res.json();
           setNotifications(data.notifications || []);
@@ -74,7 +75,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
     fetchNotifications();
 
     // Connect to SSE stream for real-time updates
-    const eventSource = new EventSource('/api/events/stream');
+    const eventSource = new EventSource(apiUrl('/api/events/stream'));
 
     eventSource.addEventListener('connected', () => {
       console.log('[SSE] Connected to notification stream');

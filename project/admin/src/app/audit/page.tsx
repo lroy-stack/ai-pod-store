@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/select'
 import { ScrollText, User, Bot, Settings, Webhook } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
+import { adminFetch } from '@/lib/admin-api'
 
 interface AuditLog {
   id: string
@@ -56,7 +57,7 @@ export default function AuditLogPage() {
         actor_type: actorFilter,
         limit: '100',
       })
-      const res = await fetch(`/api/audit?${params}`)
+      const res = await adminFetch(`/api/audit?${params}`)
       if (res.ok) {
         const data = await res.json()
         setLogs(data.logs || [])

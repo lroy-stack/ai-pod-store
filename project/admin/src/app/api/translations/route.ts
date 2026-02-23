@@ -1,8 +1,13 @@
 import { NextResponse } from 'next/server';
 import fs from 'fs/promises';
+import { existsSync } from 'fs';
 import path from 'path';
 
-const MESSAGES_DIR = path.join(process.cwd(), '../frontend/messages');
+// Docker: messages copied into /app/frontend-messages/ at build time
+// Dev: messages live at ../frontend/messages/ relative to admin root
+const dockerPath = path.join(process.cwd(), 'frontend-messages');
+const devPath = path.join(process.cwd(), '../frontend/messages');
+const MESSAGES_DIR = existsSync(dockerPath) ? dockerPath : devPath;
 
 export async function GET() {
   try {

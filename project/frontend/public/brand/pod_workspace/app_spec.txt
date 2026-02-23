@@ -1,0 +1,2789 @@
+<evolution_specification>
+  <project_name>POD AI Store — Production Hardening & Evolution Spec</project_name>
+  <version>4.0 — Hardening (Feb 2026)</version>
+
+  <overview>
+    This specification defines 14 HARDENING AND EVOLUTION MODULES for an EXISTING
+    Print-on-Demand AI ecommerce platform. The platform is already built with ~91.8%
+    feature completeness (550/599 tests passing in v2 harness) and needs security hardening,
+    architectural fixes, performance optimization, compliance, and new capabilities.
+
+    YOU ARE NOT BUILDING FROM SCRATCH. The project already exists at ./project/
+    with a fully functional Next.js frontend, admin panel, PodClaw autonomous agent system,
+    MCP server, and Docker deployment stack.
+
+    Read project/CLAUDE.md before making ANY UI changes — it defines mandatory design standards.
+
+    DIRECTORY STRUCTURE (6 separate sub-projects under project/):
+    - project/frontend/   → Next.js 16 storefront (port 3000) — 125 API routes, 111 components, 30 pages
+    - project/admin/      → Next.js 16 admin panel (port 3001) — 69 API routes, 42 components, 34 pages
+    - project/podclaw/    → Python autonomous agent (port 8000) — 10 agents, 11 connectors, 48 bridge endpoints
+    - project/mcp-server/ → TypeScript MCP server (port 8002) — 17 tools, OAuth 2.1
+    - project/supabase/   → Database migrations — 98 migration files, 64 tables
+    - project/deploy/     → Docker support files — Caddyfile, Dockerfiles
+
+    Docker Compose files live at PROJECT ROOT (not deploy/):
+    - project/docker-compose.yml           → Base (8 services)
+    - project/docker-compose.local.yml     → Local dev override (127.0.0.1 ports)
+    - project/docker-compose.prod.yml      → Production override (80/443)
+    - project/start.sh                     → Orchestration script
+
+    IMPORTANT: frontend/ and admin/ are SEPARATE Next.js projects with their own
+    package.json, node_modules, and .env.local files. They do NOT share code.
+
+    This spec covers 14 hardening modules derived from a validated 360° audit:
+
+    PRIORITY P0 — BLOQUEANTE (must complete before production):
+      1. Security & Authentication (40h)
+      2. Admin Dashboard Architecture (33h)
+      3. Database Schema & Performance (28h)
+      8. Testing Strategy & CI/CD (36h)
+
+    PRIORITY P1 — MVP COMPETITIVO (first 30 days post-security):
+      4. Frontend Ecommerce & Storefront (37h)
+      5. Relational Categories System (26h)
+      6. PodClaw Governance & Observability (36h)
+      7. MCP Server Hardening (22h)
+      13. Printify Integration Hardening (41h)
+      14. Brand Identity & Skapara Rebrand (25h, assets pre-completed)
+
+    PRIORITY P2 — DIFERENCIADOR (months 2-3):
+      9. Observability Stack (26h)
+      10. Growth & Engagement (44h)
+      12. Documentation & ADRs (18.5h)
+
+    PRIORITY P3 — VISION (months 4-6):
+      11. Multi-Tenant Architecture (86h)
+
+    EXECUTION ORDER:
+      Section 1 (Security) → FIRST (blocks everything)
+      Sections 2,3,8 → parallel after Section 1
+      Sections 4,5,6,7,13,14 → after P0 complete
+      Sections 9,10,12 → after P1 complete
+      Section 11 → last
+
+    Total estimated effort: ~501.5 hours across all 14 modules.
+  </overview>
+
+  <!-- ================================================================== -->
+  <!-- EXISTING ARCHITECTURE (from validated codebase audit 2026-02-23)    -->
+  <!-- ================================================================== -->
+
+  <existing_architecture>
+    <frontend>
+      <framework>Next.js 16.1.6 (App Router, TypeScript, Turbopack, React Compiler)</framework>
+      <react>React 19.2</react>
+      <styling>Tailwind CSS v4 (@theme directive in globals.css, oklch color space)</styling>
+      <ui>shadcn/ui components (24 installed) at src/components/ui/</ui>
+      <i18n>next-intl (en/es/de) — messages at messages/{locale}.json, 28 namespaces</i18n>
+      <chat>AI SDK 6 (ToolLoopAgent, 22 tools, Google Gemini backend, RAG via pgvector)</chat>
+      <auth>Supabase Auth (JWT) — middleware validates on protected routes</auth>
+      <pwa>Serwist (Service Worker at src/app/sw.ts)</pwa>
+      <port>3000</port>
+      <path>project/frontend/</path>
+      <output>standalone (Docker-friendly)</output>
+      <stats>125 API routes, 111 components, 30 pages, 3 locales</stats>
+      <key_deps>
+        next 16.1.6, react 19.2, @ai-sdk/google 3.x, ai 6.x,
+        @supabase/supabase-js 2.45, stripe 20.3, next-intl 4.x,
+        tailwindcss 4.x, @serwist/next 9.x, dompurify 3.3, zod 3.23,
+        sonner 2.x, embla-carousel-react 8.6, resend 6.9, web-push 3.6,
+        canvas 3.2, sharp 0.34, @playwright/test 1.58
+      </key_deps>
+    </frontend>
+
+    <admin>
+      <framework>Next.js 16.1.6 (separate project, English-only)</framework>
+      <react>React 19.1</react>
+      <ui>shadcn/ui (21 installed) + Recharts + TanStack Table + Mermaid</ui>
+      <data>React Query (@tanstack/react-query 5.75) — installed but only used on 1/34 pages</data>
+      <auth>Custom bcrypt auth (NOT Supabase Auth) — admin-session httpOnly cookie, 7-day expiry</auth>
+      <basePath>process.env.ADMIN_BASE_PATH || "" (=/panel in production behind Caddy)</basePath>
+      <api_pattern>adminFetch() from @/lib/admin-api.ts — MANDATORY for all client-side API calls</api_pattern>
+      <sse>SSEProvider subscribes to /api/events/stream (new_order, agent_cycle, error_alert, heartbeat)</sse>
+      <port>3001</port>
+      <path>project/admin/</path>
+      <output>standalone</output>
+      <stats>69 API routes, 42 components, 34 pages</stats>
+      <key_deps>
+        next 16.1.6, react 19.1, @supabase/supabase-js 2.49,
+        @tanstack/react-query 5.75, @tanstack/react-table 8.21,
+        recharts 2.15, mermaid 11.12, bcryptjs 3.0, stripe 20.3,
+        xlsx 0.18, react-markdown 10.1, sonner 2.0, cmdk 1.1
+      </key_deps>
+    </admin>
+
+    <podclaw>
+      <name>PodClaw — Autonomous AI Store Manager</name>
+      <runtime>Python 3.11, Claude Agent SDK (claude-agent-sdk >=0.1.0)</runtime>
+      <bridge>FastAPI on port 8000 (48 endpoints, 959 lines)</bridge>
+      <agents>10 autonomous agents with individual budgets, schedules, and tools</agents>
+      <connectors>11 MCP connectors (Supabase, Stripe, Printify, fal.ai, Gemini, Resend, Crawl4AI, Telegram, WhatsApp, Memory, Delegate)</connectors>
+      <scheduler>APScheduler (AsyncIOScheduler) with CronTrigger — 16+ recurring jobs</scheduler>
+      <memory>3-tier consolidation: daily logs → weekly summaries → MEMORY.md (LLM-assisted)</memory>
+      <security>Fail-closed security hook, dual budget defense (SDK max_budget_usd + cost_guard_hook), rate limits per tool</security>
+      <budget>EUR 30.15/day total across all agents</budget>
+      <path>project/podclaw/</path>
+      <key_deps>
+        claude-agent-sdk, fastapi, uvicorn, pydantic, structlog,
+        apscheduler, httpx, aiofiles, supabase, python-dotenv
+      </key_deps>
+    </podclaw>
+
+    <mcp_server>
+      <framework>TypeScript, Node.js, Streamable HTTP</framework>
+      <tools>17 MCP tools (6 public read, 11 protected read/write)</tools>
+      <auth>OAuth 2.1 with PKCE (S256), MCP-issued JWT (HS256)</auth>
+      <rate_limit>Sliding window Redis+fallback, 60/120 req/min global (NO per-tool limits)</rate_limit>
+      <sessions>Map&lt;string, Transport&gt; in memory (lost on restart)</sessions>
+      <port>8002</port>
+      <path>project/mcp-server/</path>
+    </mcp_server>
+
+    <database>
+      <provider>Supabase Cloud (PostgreSQL 16 + pgvector 768-dim)</provider>
+      <tables>64 tables</tables>
+      <indexes>99 indexes</indexes>
+      <rls_policies>93 RLS policies (35/64 tables have RLS = 54.7%)</rls_policies>
+      <functions>19 database functions</functions>
+      <extensions>uuid-ossp, vector</extensions>
+      <migrations>98 migration files in supabase/migrations/</migrations>
+      <auth>Supabase Auth for customer users, custom bcrypt for admin</auth>
+      <path>project/supabase/</path>
+    </database>
+
+    <docker>
+      <services>8 services in docker-compose.yml at project root</services>
+      <networks>3: proxy, data, ai-services</networks>
+      <volumes>6 named volumes</volumes>
+      <memory_budget>~3.15GB peak (fits 4GB VPS)</memory_budget>
+      <startup>3-phase via start.sh: infrastructure → applications → reverse proxy</startup>
+      <security>cap_drop ALL on all services, non-root users, no env_file, log rotation (10MB x 3)</security>
+      <path>project/deploy/ (Caddyfile, Dockerfiles)</path>
+    </docker>
+
+    <route_groups>
+      IMMUTABLE — do NOT restructure these route groups:
+      [locale]/layout.tsx → Providers (i18n, CartProvider, Toaster)
+        (landing)/layout.tsx → Minimal layout (bg-background, NO StorefrontLayout)
+          page.tsx           → Landing page (/[locale]/ — hero, carousel, CTA, Footer)
+        (app)/layout.tsx     → StorefrontLayout (sidebar + header + detail panel)
+          chat/page.tsx      → Renders null (ChatArea lives in StorefrontLayout CSS toggle)
+          shop/              → Product grid
+          cart/              → Cart view
+          orders/            → Order list
+          profile/           → User profile
+          wishlist/          → Wishlists
+          designs/           → AI design gallery
+          ⚠ NO page.tsx here → (app) has NO root page — NEVER create one
+        (focused)/layout.tsx → Minimal wrapper (no sidebar)
+          auth/              → Login, register, verify-email, forgot/reset password
+          checkout/          → Checkout flow (page, success, cancel)
+          legal/             → Terms, privacy, cookies, shipping, returns
+    </route_groups>
+
+    <supabase_client_patterns>
+      Three Supabase client patterns in frontend:
+      - frontend/src/lib/supabase/supabase.ts → Client-side (browser), uses ANON_KEY
+      - frontend/src/lib/supabase/supabase-admin.ts → Server-side, uses SERVICE_KEY (full permissions)
+      - frontend/src/lib/supabase/supabase-server.ts → Server-only (edge-compatible), for middleware
+    </supabase_client_patterns>
+  </existing_architecture>
+
+  <!-- ================================================================== -->
+  <!-- EXISTING DATABASE TABLES (56 verified from audit)                   -->
+  <!-- ================================================================== -->
+
+  <existing_database_tables>
+    Tables already in Supabase (DO NOT recreate — only add new tables or columns via migrations):
+
+    CORE:
+      users, products, product_variants, designs, orders, order_items,
+      shipping_addresses, conversations, messages, cart_items
+
+    FEATURE:
+      wishlists, wishlist_items, product_reviews, notifications, translations,
+      coupons, shipping_zones, personalizations
+
+    AGENT:
+      agent_sessions, agent_events, agent_daily_costs, heartbeat_events, soul_change_log
+
+    ANALYTICS:
+      customer_segments, demand_forecasts, price_history, association_rules,
+      ab_experiments, ab_events, product_beliefs, product_daily_metrics,
+      product_lifecycle_decisions, daily_portfolio_metrics
+
+    MARKETING:
+      marketing_content, newsletter_campaigns, newsletter_subscribers,
+      drip_queue, referrals
+
+    MESSAGING:
+      messaging_channels, user_messaging_links, telegram_messages,
+      whatsapp_messages, messaging_conversations
+
+    USAGE:
+      user_usage, credit_transactions, push_subscriptions
+
+    LEGAL:
+      user_consents, legal_settings, legal_pages, legal_page_versions
+
+    CONFIG:
+      brand_config, store_themes
+
+    INFRA:
+      audit_log, error_logs, documents, system_events
+
+    AUTH:
+      admin_roles, user_roles
+  </existing_database_tables>
+
+  <!-- ================================================================== -->
+  <!-- EXISTING API ROUTES (from validated audit)                          -->
+  <!-- ================================================================== -->
+
+  <existing_api_routes>
+    Frontend API routes (project/frontend/src/app/api/) — 125 total:
+
+    AUTH (10):
+      POST /api/auth/login, POST /api/auth/register, GET /api/auth/logout,
+      GET /api/auth/session, GET /api/auth/me, GET /api/auth/verify-email,
+      GET /api/auth/forgot-password, GET /api/auth/reset-password,
+      GET /api/auth/providers, POST /api/captcha/verify
+
+    PRODUCTS (4):
+      GET /api/products, GET /api/products/[id],
+      GET /api/storefront/theme, GET /api/storefront/personalization-surcharge
+
+    DESIGNS (7):
+      GET,POST /api/designs, POST /api/designs/generate, POST /api/designs/remove-bg,
+      POST /api/designs/estimate, POST /api/designs/mockup,
+      POST /api/designs/personalize, POST /api/designs/preview-text,
+      POST /api/designs/[id]/create-product
+
+    CART &amp; CHECKOUT (4):
+      GET,POST,PATCH,DELETE /api/cart, POST /api/cart/shipping-estimate,
+      POST /api/checkout/create-session, POST /api/checkout/calculate-tax
+
+    ORDERS (5):
+      GET /api/orders, GET /api/orders/[id], GET /api/orders/[id]/invoice,
+      POST /api/orders/[id]/reorder, POST /api/orders/[id]/returns
+
+    USER (6):
+      GET /api/user/profile, POST /api/profile/change-password,
+      POST /api/profile/delete, POST /api/profile/export,
+      GET /api/profile/payment-methods, POST /api/session/migrate
+
+    SHIPPING: GET,POST /api/shipping-addresses, GET,DELETE /api/shipping-addresses/[id]
+
+    WISHLISTS (5):
+      GET,POST /api/wishlist, GET /api/wishlist/items, POST /api/wishlist/sync,
+      POST /api/wishlist/share, GET /api/wishlist/shared/[token]
+
+    REVIEWS: GET,POST /api/reviews
+
+    CHAT: POST /api/chat (streaming, Gemini, 22 tools, RAG)
+
+    CONVERSATIONS: GET /api/conversations, GET /api/conversations/[id]
+
+    NOTIFICATIONS (5):
+      GET /api/notifications, GET /api/notifications/count,
+      GET /api/notifications/unread-count, POST /api/notifications/[id]/read,
+      POST /api/notifications/read-all
+
+    PUSH: POST /api/push/subscribe, POST /api/push/send
+
+    SUBSCRIPTIONS (4):
+      POST /api/subscription/create, GET /api/subscription/usage,
+      GET /api/usage/status, POST /api/credits/purchase
+
+    BILLING: POST /api/billing/portal
+    COUPONS: POST /api/coupons/validate
+    CONSENT: GET,POST /api/consent
+    POLICIES: GET /api/policies
+    REFERRAL: POST /api/referral
+
+    WEBHOOKS (4):
+      POST /api/webhooks/stripe (HMAC-SHA256 verified)
+      POST /api/webhooks/printify (HMAC-SHA256 verified)
+      POST,GET /api/webhooks/telegram (secret token verified)
+      GET,POST /api/webhooks/whatsapp (token verified)
+
+    CRON (7):
+      GET /api/cron/drip (email drip processor, 15-30min)
+      GET /api/cron/sync-printify (product sync, 2h cycle)
+      GET /api/cron/retry-printify-orders (failed order retry, hourly)
+      GET /api/cron/cleanup (GDPR data retention, daily)
+      GET /api/cron/cleanup-personal (deletion grace period, daily)
+      GET /api/cron/hard-delete-accounts (permanent deletion, daily)
+      GET /api/cron/product-metrics (daily ETL metrics)
+
+    RAG (10):
+      POST /api/rag/search, POST /api/rag/add-documents, GET /api/rag/seed-embeddings,
+      GET /api/rag/seed-products, GET /api/rag/seed-faqs-policies, GET /api/rag/list-all,
+      GET /api/rag/stats, GET /api/rag/index, GET /api/rag/test-vector, GET /api/rag/verify-schema
+
+    ADMIN (10):
+      GET /api/admin/orders, GET /api/admin/returns, GET,POST /api/admin/returns/[id],
+      GET /api/admin/designs/moderate, GET /api/admin/alert,
+      GET /api/admin/sitemap, GET /api/admin/translations,
+      GET /api/admin/migrate, GET /api/admin/fix-publishing
+
+    A/B TESTING: GET,POST /api/ab-test/experiments, GET,PUT,DELETE /api/ab-test/experiments/[id], GET,POST /api/ab-test/events
+    ANALYTICS: GET /api/analytics/[type]
+    MARKETING: GET /api/marketing/content, GET /api/marketing/test-ad-copy
+    NEWSLETTER (10+): GET,POST /api/newsletter/campaigns, GET /api/newsletter/unsubscribe, plus 8 test endpoints
+    SITEMAPS: GET /api/sitemap-{en,es,de}.xml
+    MISC: GET /api/health, GET /api/ping, GET /api/seo/[locale], POST /api/errors/report, POST /api/translations/cache
+
+    Admin API routes (project/admin/src/app/api/) — 63 total:
+
+    AUTH: POST /api/auth/login (bcrypt, sets admin-session httpOnly cookie)
+    DASHBOARD (6): /api/dashboard/{stats,recent-orders,revenue-trend,top-products,customer-acquisition,activity-feed}
+    PRODUCTS (3): GET,POST /api/products, GET,PATCH,DELETE /api/products/[id], PATCH /api/products/bulk
+    ORDERS (4): GET /api/orders, GET,PATCH /api/orders/[id], POST /api/admin/orders/[id]/retry, POST /api/admin/orders/bulk
+    CUSTOMERS (3): GET /api/customers, GET /api/customers/[email]/profile, GET /api/customers/[email]/orders
+    DESIGNS (3): GET /api/designs, GET /api/designs/[id], PUT /api/designs/[id]/moderate
+    RETURNS (3): GET /api/returns, POST /api/returns/[id]/approve, POST /api/returns/[id]/reject
+    REVIEWS (2): GET /api/reviews, GET,DELETE /api/reviews/[id]
+    AGENT (9): GET /api/agent/[...path] (proxy), POST /api/agent/chat/stream, GET,POST /api/agent/chat/conversations,
+              GET /api/agent/chat/conversations/[id], GET /api/agent/memory, GET /api/agent/metrics,
+              GET,PUT /api/agent/schedule, GET /api/agent/sessions, GET /api/agent/sessions/[id]/events
+    ANALYTICS (2): GET /api/analytics/demand, GET /api/analytics/rfm
+    ADMIN MISC: POST /api/admin/setup-rbac (VULNERABILITY — public endpoint creates admin accounts),
+                GET,PUT /api/admin/seo, GET /api/admin/sitemap, GET /api/admin/subscribers
+    A/B TESTS (3): GET,POST /api/ab-tests, POST /api/ab-tests/[id]/start, POST /api/ab-tests/[id]/stop
+    BRANDING: GET,PUT /api/admin/brand-config
+    THEMES (3): GET,POST /api/admin/themes, GET,PUT,DELETE /api/admin/themes/[id], POST /api/admin/themes/[id]/activate
+    LEGAL (5): GET,POST /api/admin/legal-pages, GET,PUT,DELETE /api/admin/legal-pages/[slug],
+              GET /api/admin/legal-pages/[slug]/versions, GET,PUT /api/admin/legal-settings, GET /api/admin/legal/consents
+    FINANCE: GET /api/admin/finance/report, POST /api/admin/finance/export, POST /api/admin/analytics/export
+    NOTIFICATIONS (2): GET /api/admin/notifications, POST /api/admin/notifications/mark-all-read
+    MESSAGING: GET,PUT /api/messaging/config
+    MONITORING: GET /api/monitoring/errors
+    TRANSLATIONS (2): GET,POST /api/translations, POST /api/translations/auto-translate
+    SEARCH: GET /api/search
+    EVENTS: GET /api/events/stream (SSE), GET /api/test-sse (dev only — should be removed)
+    HEALTH: GET /api/health
+    SOUL: GET /api/admin/agent/soul
+    CREDITS: POST /api/admin/credits/adjust
+    AUDIT: GET /api/audit
+
+    PodClaw Bridge API (project/podclaw/bridge/api.py) — 48 total:
+
+    TASKS: POST /task, GET /task/{id}, GET /tasks
+    ORCHESTRATOR: POST /start, GET /status, POST /stop
+    AGENTS (6): GET /agents, GET /agents/{name}, POST /agents/{name}/run, POST /agents/{name}/pause,
+               POST /agents/{name}/resume, POST /agents/{name}/disable, POST /agents/{name}/enable
+    EVENTS: GET /events, GET /sessions, GET /sessions/{id}/events
+    METRICS: GET /metrics, GET /costs
+    SKILLS: GET /skills
+    SCHEDULE (4): GET /schedule, PUT /schedule, PUT /schedule/{name}, POST /schedule
+    MEMORY (7): GET /memory, GET /memory/daily, GET /memory/context/{filename}, GET /memory/soul,
+               POST /memory/consolidate, PUT /memory/heartbeat, GET /memory/heartbeat
+    HEARTBEAT (5): GET /heartbeat/status, POST /heartbeat/trigger, POST /heartbeat/pause,
+                  POST /heartbeat/resume, GET /heartbeat/alerts
+    QUEUE: GET /queue, POST /queue/push
+    SOUL (4): GET /soul, GET /soul/proposals, POST /soul/proposals/{id}/approve, POST /soul/proposals/{id}/reject
+    CHAT (4): POST /chat/stream (SSE), GET /chat/conversations, GET /chat/conversations/{id}, DELETE /chat/conversations/{id}
+    READONLY (3): POST /readonly/enable, POST /readonly/disable, GET /readonly
+    HEALTH: GET /health, GET /api/health (deep check)
+  </existing_api_routes>
+
+  <!-- ================================================================== -->
+  <!-- SECTION 0: SYSTEM INVARIANTS & CONCURRENCY MODEL                   -->
+  <!-- Priority: FOUNDATIONAL — Cross-cutting rules for all 15 modules    -->
+  <!-- Must be implemented BEFORE any other section begins                -->
+  <!-- ================================================================== -->
+
+  <section_0_system_invariants>
+    <purpose>
+      Define formal invariants, concurrency controls, and idempotency guarantees
+      that apply across ALL modules. These rules are NOT optional — they are
+      architectural constraints that every implementation must satisfy.
+      Section 0 infrastructure (tables, functions, modules) must be deployed
+      as the first migration of the hardening phase.
+    </purpose>
+
+    <system_invariants>
+      INV-01: SINGLE REFUND PER ORDER
+        Description: An order can have AT MOST one successful Stripe refund.
+        Risk if violated: Customer refunded twice. Direct financial loss.
+        Enforcement:
+          - Column orders.stripe_refund_id VARCHAR(255) UNIQUE
+          - Column orders.refunded_at TIMESTAMPTZ (NULL = not refunded)
+          - PostgreSQL function issue_refund_atomic(order_id, stripe_refund_id, amount, reason)
+            uses SELECT ... FOR UPDATE on the order row, checks refunded_at IS NULL,
+            then atomically sets status='refunded' + refunded_at=now() + stripe_refund_id.
+          - All refund paths (webhook cancel, cron 24h review, order:failed, admin manual)
+            MUST call issue_refund_atomic(). If it returns FALSE, the Stripe refund must be reversed.
+        Affected code:
+          - frontend/src/app/api/webhooks/printify/route.ts (handleOrderCancelled, handleOrderFailed)
+          - frontend/src/app/api/cron/retry-printify-orders/route.ts (requires_review 24h timeout)
+          - admin order management (manual cancel+refund)
+
+      INV-02: WEBHOOK EXACTLY-ONCE PROCESSING
+        Description: A webhook event produces side effects at most once, regardless of redelivery.
+        Risk if violated: Duplicate orders, duplicate refunds, duplicate status transitions.
+        Enforcement:
+          - Table processed_events (provider VARCHAR(50), event_id VARCHAR(255), event_type VARCHAR(100),
+            processed_at TIMESTAMPTZ, UNIQUE(provider, event_id))
+          - Pattern: INSERT INTO processed_events ... ON CONFLICT DO NOTHING RETURNING id.
+            If RETURNING is empty → event already processed → return 200 OK without side effects.
+          - For order-specific webhooks: additionally acquire pg_advisory_xact_lock(hashtext('order:' || order_id))
+            to prevent two different event types racing on the same order.
+        Affected code: All 4 webhook routes (Stripe, Printify, Telegram, WhatsApp).
+        Event ID extraction:
+          - Stripe: event.id (evt_xxxx)
+          - Printify: request body .id or X-Printify-Event-Id header
+          - Telegram: update_id
+          - WhatsApp: messages[0].id
+
+      INV-03: CRON MUTUAL EXCLUSION
+        Description: A cron job instance must not overlap with another instance of itself.
+        Risk if violated: Variant sync race conditions, duplicate emails, data corruption.
+        Enforcement:
+          - pg_try_advisory_xact_lock(hashtext('cron:' || cron_name)) at handler start.
+            If returns FALSE → another instance running → return 200 OK (skip).
+          - Record every execution in cron_runs table (cron_name, started_at, finished_at, status, duration_ms).
+          - Rolling deploy safety: pg_advisory_lock is cluster-wide, so old+new instances sharing
+            the same DB connection cannot overlap.
+        Process death recovery: Advisory locks are released when the connection drops.
+          cron_runs entry stays 'running' — ZombieReaper marks it 'failed' after 2x max_duration.
+        Affected code: All 10 cron routes in frontend/src/app/api/cron/*/route.ts
+
+      INV-04: VALID STATE TRANSITIONS ONLY
+        Description: State changes must follow the defined transition matrix. All others are rejected.
+        Risk if violated: Orders jump states (pending→delivered), products skip review.
+        Enforcement:
+          - All UPDATE ... SET status = :new_status queries include WHERE status = :expected_current_status.
+          - If rows_affected = 0 → transition rejected → log to error_logs + alert admin.
+          - StateTransitionValidator module validates (entity_type, current_state, target_state)
+            against the hardcoded transition matrix before executing the UPDATE.
+        Affected code: Every status update in webhooks, crons, admin actions, and API routes.
+
+      INV-05: NO INDEFINITE ZOMBIE STATES
+        Description: Every intermediate (non-terminal) state has a maximum TTL and automatic corrective action.
+        Risk if violated: Orders stuck in 'paid' forever, products stuck in 'publishing', agent sessions never complete.
+        Enforcement:
+          - ZombieReaper cron runs every 15 minutes.
+          - Queries each entity/state pair against the zombie_prevention table (see below).
+          - Executes defined auto-action for expired states.
+          - Sends escalation alert per defined tier.
+
+      INV-06: ATOMIC FINANCIAL OPERATIONS
+        Description: Operations involving money (credits, refunds, payments) must be atomic.
+        Risk if violated: Partial credit deduction, lost refund record, inconsistent balance.
+        Enforcement:
+          - All financial mutations use SECURITY DEFINER PostgreSQL functions
+            with explicit row-level locking (FOR UPDATE).
+          - No application-level SELECT-then-UPDATE for money fields.
+          - Functions: issue_refund_atomic(), consume_credit_atomic(), increment_usage_by(), add_credits().
+
+      INV-07: AGENT SINGLETON EXECUTION
+        Description: Only one instance of a given agent can be in 'running' state at any time.
+        Risk if violated: Duplicate cataloging, conflicting marketing, budget overconsumption (2x).
+        Enforcement:
+          - Redis: SET NX podclaw:running:{agent_name} with TTL = 20min (max session time).
+          - If SET NX fails → agent already running → return 409 Conflict.
+          - On session completion/error → DEL podclaw:running:{agent_name}.
+          - Fallback without Redis: check agent_sessions WHERE agent_name=:name AND status='running'.
+
+      INV-08: AUDIT COMPLETENESS
+        Description: Every admin mutation and every webhook event has an audit record.
+        Risk if violated: No accountability, no debugging capability, GDPR compliance failure.
+        Enforcement:
+          - withAuth() middleware auto-logs to audit_log (synchronous INSERT before response).
+          - Webhook handlers log to processed_events (request metadata) on receipt.
+          - Agent actions logged to agent_events.
+
+      INV-09: PII BOUNDARY
+        Description: PII (email, name, address, phone) must never appear in logs, marketing content, or agent prompts.
+        Risk if violated: GDPR violation, fines up to 4% annual revenue (EUR 20M minimum).
+        Enforcement:
+          - [DATA]...[/DATA] markers for all agent-processed user data.
+          - structlog processors strip PII fields from log output.
+          - marketing_content table has no PII columns — only product/brand data.
+
+      INV-10: FAIL-CLOSED SECURITY
+        Description: All security checks (auth, RLS, HMAC, CSRF) DENY on error, never ALLOW.
+        Risk if violated: Unauthorized access during transient errors.
+        Enforcement:
+          - Every auth/verification function: catch block returns DENY/reject, never continues.
+          - Pattern: if (error) return NextResponse.json({error}, {status: 401}), NOT if (error) log(error).
+          - HMAC: if timingSafeEqual throws → REJECT webhook.
+          - RLS: if Supabase RPC returns null → DENY request.
+    </system_invariants>
+
+    <concurrency_model>
+      <cron_execution_model>
+        MECHANISM: pg_try_advisory_xact_lock + cron_runs table
+
+        Pattern for ALL cron handlers (frontend/src/app/api/cron/*/route.ts):
+          1. const lockAcquired = await supabase.rpc('try_cron_lock', { name: cronName });
+             — Calls: SELECT pg_try_advisory_xact_lock(hashtext('cron:' || $1))
+          2. If !lockAcquired → return NextResponse.json({skipped: true}, {status: 200})
+          3. INSERT INTO cron_runs (cron_name, status) VALUES (:name, 'running')
+          4. Execute cron logic
+          5. UPDATE cron_runs SET status='completed', finished_at=now(), duration_ms=:ms WHERE id=:id
+          6. On error: UPDATE cron_runs SET status='failed', error_message=:err
+
+        New table (migration YYYYMMDD_system_invariants.sql):
+          CREATE TABLE cron_runs (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            cron_name VARCHAR(100) NOT NULL,
+            started_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+            finished_at TIMESTAMPTZ,
+            status VARCHAR(20) DEFAULT 'running' CHECK (status IN ('running','completed','failed','skipped')),
+            duration_ms INTEGER,
+            error_message TEXT,
+            rows_affected INTEGER
+          );
+          CREATE INDEX idx_cron_runs_name_started ON cron_runs (cron_name, started_at DESC);
+
+        New function (same migration):
+          CREATE OR REPLACE FUNCTION try_cron_lock(cron_name TEXT) RETURNS BOOLEAN AS $$
+            SELECT pg_try_advisory_xact_lock(hashtext('cron:' || cron_name));
+          $$ LANGUAGE sql;
+
+        Cron registry (expected vs max durations):
+          | Cron                    | Interval | Expected | Max Duration |
+          |-------------------------|----------|----------|--------------|
+          | sync-printify           | 30min    | 5min     | 25min        |
+          | retry-printify-orders   | 30min    | 2min     | 10min        |
+          | cleanup-temp-products   | 24h      | 1min     | 5min         |
+          | drip                    | 15min    | 1min     | 5min         |
+          | cleanup (GDPR)          | 24h      | 2min     | 10min        |
+          | cleanup-personal        | 24h      | 1min     | 5min         |
+          | hard-delete-accounts    | 24h      | 1min     | 5min         |
+          | product-metrics         | 24h      | 3min     | 15min        |
+          | zombie-reaper           | 15min    | 30s      | 2min         |
+          | abandoned-cart-recovery | 1h       | 2min     | 10min        |
+      </cron_execution_model>
+
+      <webhook_processing_model>
+        MECHANISM: processed_events table + atomic INSERT + per-order advisory lock
+
+        New table (migration YYYYMMDD_system_invariants.sql):
+          CREATE TABLE processed_events (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            provider VARCHAR(50) NOT NULL,
+            event_id VARCHAR(255) NOT NULL,
+            event_type VARCHAR(100) NOT NULL,
+            processed_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+            status_code INTEGER DEFAULT 200,
+            UNIQUE(provider, event_id)
+          );
+          CREATE INDEX idx_processed_events_provider ON processed_events (provider, processed_at DESC);
+
+        Pattern for ALL webhook handlers:
+          1. Extract event_id: Stripe=event.id, Printify=body.id, Telegram=update_id, WhatsApp=messages[0].id
+          2. const { data } = await supabase.from('processed_events')
+               .insert({ provider, event_id, event_type })
+               .select('id').single();
+             — If error code = '23505' (unique violation) → already processed → return 200 OK
+          3. For order-affecting events: acquire pg_advisory_xact_lock(hashtext('order:' || orderId))
+          4. Process event logic
+          5. On error: update processed_events SET status_code = 500
+
+        Retry behavior from provider:
+          - Our handler returns 200 on INSERT (acknowledges receipt)
+          - If processing fails, we handle internally via RetryManager, not provider retry
+          - Stripe retries for 3 days; Printify for 24h — our 200 stops their retries
+      </webhook_processing_model>
+
+      <retry_model>
+        All retryable operations follow this formal model.
+
+        Retry parameters per operation:
+          | Operation                      | Max Attempts | Backoff        | Final Action                    |
+          |--------------------------------|-------------|----------------|----------------------------------|
+          | Printify order creation         | 3           | 2s, 4s, 8s    | Auto-refund via RefundGuard      |
+          | Printify order submission       | 3           | 2s, 4s, 8s    | Mark requires_review             |
+          | Printify API call (read)        | 3           | 2s, 4s, 8s    | Return cached/stale data         |
+          | Printify API call (write)       | 3           | 2s, 4s, 8s    | Circuit break 60s + alert        |
+          | Stripe API call                 | 3           | 1s, 2s, 4s    | Log + alert admin                |
+          | fal.ai API call                 | 2           | 3s, 6s        | Return error to user             |
+          | Email delivery (Resend)         | 3           | 5s, 30s, 5min | Log + retry next drip cycle      |
+          | Agent session                   | 2           | 60s + jitter   | Mark failed_final + alert        |
+
+        Backoff formula: delay = base_delay * (2 ^ attempt) + random(0, base_delay * 0.5)
+        Jitter prevents thundering herd on recovery after outage.
+
+        After final attempt failure:
+          - Financial operations → auto-refund if applicable, alert L2
+          - Non-financial → log to error_logs with severity='critical', alert L1
+          - Agent sessions → mark failed_final, do NOT retry infinitely
+
+        Dead-letter handling:
+          Operations failing all retries logged to error_logs:
+            {severity: 'critical', context: {operation, attempts, last_error, entity_id, timestamp}}
+          EscalationManager sends L2 alert (Telegram + email) within 2 minutes.
+      </retry_model>
+
+      <refund_atomic_model>
+        MECHANISM: issue_refund_atomic() PostgreSQL function + UNIQUE constraint
+
+        New columns on orders table (migration YYYYMMDD_system_invariants.sql):
+          ALTER TABLE orders ADD COLUMN IF NOT EXISTS stripe_refund_id VARCHAR(255) UNIQUE;
+          ALTER TABLE orders ADD COLUMN IF NOT EXISTS refunded_at TIMESTAMPTZ;
+          ALTER TABLE orders ADD COLUMN IF NOT EXISTS refund_amount_cents INTEGER;
+          ALTER TABLE orders ADD COLUMN IF NOT EXISTS refund_reason VARCHAR(100);
+          ALTER TABLE orders ADD COLUMN IF NOT EXISTS retry_count INTEGER DEFAULT 0;
+
+        New function (same migration):
+          CREATE OR REPLACE FUNCTION issue_refund_atomic(
+            p_order_id UUID,
+            p_stripe_refund_id VARCHAR,
+            p_amount_cents INTEGER,
+            p_reason VARCHAR
+          ) RETURNS BOOLEAN AS $$
+          DECLARE
+            v_current_status VARCHAR;
+            v_already_refunded BOOLEAN;
+          BEGIN
+            SELECT status, (refunded_at IS NOT NULL)
+            INTO v_current_status, v_already_refunded
+            FROM orders WHERE id = p_order_id FOR UPDATE;
+
+            IF v_already_refunded THEN RETURN FALSE; END IF;
+            IF v_current_status NOT IN ('cancelled','requires_review','paid') THEN RETURN FALSE; END IF;
+
+            UPDATE orders SET
+              status = 'refunded',
+              stripe_refund_id = p_stripe_refund_id,
+              refunded_at = now(),
+              refund_amount_cents = p_amount_cents,
+              refund_reason = p_reason
+            WHERE id = p_order_id;
+            RETURN TRUE;
+          END;
+          $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+        Application usage (ALL refund paths):
+          1. const refund = await stripe.refunds.create({payment_intent, amount});
+          2. const success = await supabase.rpc('issue_refund_atomic', {
+               p_order_id: orderId,
+               p_stripe_refund_id: refund.id,
+               p_amount_cents: amount,
+               p_reason: reason
+             });
+          3. If success=false → Stripe refund was created but DB says already refunded
+             → Cancel the Stripe refund: await stripe.refunds.cancel(refund.id)
+          4. If success=true → send notification + log to audit_log
+
+        This guarantees: webhook cancel + cron 24h + order:failed firing simultaneously →
+        only ONE succeeds at DB level. Others get FALSE and handle gracefully.
+      </refund_atomic_model>
+    </concurrency_model>
+
+    <zombie_prevention>
+      Every intermediate state has a defined max TTL and automatic corrective action.
+      ZombieReaper cron runs every 15 minutes and enforces these limits.
+
+      | Entity  | State              | Max TTL  | Detection                                              | Auto-Action                           | Escalation |
+      |---------|--------------------|----------|--------------------------------------------------------|---------------------------------------|------------|
+      | Order   | pending            | 1h       | status='pending' AND created_at &lt; now()-interval '1h'  | Alert admin (payment may have failed) | L1         |
+      | Order   | paid               | 30min    | status='paid' AND retry_count &lt; 3 AND updated_at &lt; now()-interval '30min' | Retry Printify submission | L1 |
+      | Order   | paid (exhausted)   | 2h       | status='paid' AND retry_count >= 3                     | Auto-refund via issue_refund_atomic() | L2         |
+      | Order   | submitted          | 7d       | status='submitted' AND updated_at &lt; now()-interval '7d' | Alert admin (check Printify)         | L1         |
+      | Order   | in_production      | 14d      | status='in_production' AND updated_at &lt; now()-interval '14d' | Alert admin                    | L1         |
+      | Order   | requires_review    | 24h      | status='requires_review' AND updated_at &lt; now()-interval '24h' | Auto-refund                  | L2         |
+      | Order   | shipped            | 30d      | status='shipped' AND updated_at &lt; now()-interval '30d' | Auto-confirm delivery                | L1         |
+      | Product | publishing         | 1h       | status='publishing' AND updated_at &lt; now()-interval '1h' | Revert to 'draft' + alert          | L1         |
+      | Product | pending_review     | 7d       | status='pending_review' AND updated_at &lt; now()-interval '7d' | Alert admin                   | L1         |
+      | User    | registered (72h)   | 72h      | email_verified_at IS NULL AND created_at &lt; now()-interval '72h' | Send verification reminder   | None       |
+      | User    | registered (30d)   | 30d      | email_verified_at IS NULL AND created_at &lt; now()-interval '30d' | Soft-delete unverified       | None       |
+      | Agent   | queued             | 30min    | status='queued' AND created_at &lt; now()-interval '30min' | Mark error + reschedule with jitter | L1         |
+      | Agent   | running            | 20min    | status='running' AND started_at &lt; now()-interval '20min' | Force-kill + mark error            | L1         |
+      | Cron    | running            | 2x max   | cron_runs.status='running' AND duration > 2x max_duration | Mark failed + alert              | L1         |
+      | Return  | return_requested   | 7d       | status='return_requested' AND updated_at &lt; now()-interval '7d' | Alert admin                  | L1         |
+      | Return  | return_approved    | 14d      | status='return_approved' AND updated_at &lt; now()-interval '14d' | Expire return               | L1         |
+      | Return  | item_shipped       | 30d      | status='item_shipped' AND updated_at &lt; now()-interval '30d' | Expire return                 | L1         |
+      | Return  | item_received      | 1h       | status='item_received' AND updated_at &lt; now()-interval '1h' | Auto-refund                    | L2         |
+
+      Escalation tiers:
+        L1: Telegram message to admin bot (within 2min of detection)
+        L2: Telegram + email to admin (within 2min)
+        L3: Telegram + email + SSE dashboard alert + pause related operations (within 5min)
+        Human: If auto-action fails or entity still stuck after correction, requires manual intervention.
+    </zombie_prevention>
+
+    <reliability_modules>
+      Mandatory infrastructure modules. Must be implemented in the first sprint.
+
+      Location:
+        - frontend/src/lib/reliability/ (TypeScript — for webhooks, crons, state transitions)
+        - podclaw/reliability/ (Python — for agent lifecycle, retry)
+
+      MODULE 1: CronLockManager
+        Responsibility: Prevent overlapping cron executions (INV-03)
+        Interface: acquireLock(cronName) → boolean, recordRun(cronName, status, duration) → void
+        Dependencies: Supabase (pg_advisory_lock, cron_runs table)
+        File: frontend/src/lib/reliability/cron-lock.ts
+
+      MODULE 2: WebhookProcessor
+        Responsibility: Deduplicate webhooks, ensure exactly-once processing (INV-02)
+        Interface: processEvent(provider, eventId, eventType, handler) → {processed: boolean}
+        Dependencies: Supabase (processed_events table)
+        File: frontend/src/lib/reliability/webhook-processor.ts
+
+      MODULE 3: RefundGuard
+        Responsibility: Ensure single refund per order (INV-01, INV-06)
+        Interface: issueRefund(orderId, paymentIntentId, amount, reason) → {success, refundId?}
+        Dependencies: Stripe SDK, Supabase (issue_refund_atomic function)
+        File: frontend/src/lib/reliability/refund-guard.ts
+
+      MODULE 4: StateTransitionValidator
+        Responsibility: Enforce valid state transitions (INV-04)
+        Interface: transition(table, id, fromState, toState) → {success: boolean}
+        Dependencies: Supabase, transition matrix config
+        File: frontend/src/lib/reliability/state-transition.ts
+
+      MODULE 5: ZombieReaper
+        Responsibility: Detect and act on expired intermediate states (INV-05)
+        Interface: reap() → Array of {entity, id, action, result}
+        Dependencies: Supabase, EscalationManager, zombie_prevention config
+        File: frontend/src/app/api/cron/zombie-reaper/route.ts (NEW cron, runs every 15min)
+
+      MODULE 6: RetryManager
+        Responsibility: Execute operations with exponential backoff + jitter
+        Interface: withRetry(operation, fn, opts) → T | throws after max attempts
+        Dependencies: Timer, error_logs table
+        File: frontend/src/lib/reliability/retry-manager.ts + podclaw/reliability/retry.py
+
+      MODULE 7: EscalationManager
+        Responsibility: Route alerts to correct channels based on severity tier
+        Interface: escalate(level: L1|L2|L3, message, context) → void
+        Dependencies: Telegram bot API, Resend email, SSE stream
+        File: frontend/src/lib/reliability/escalation.ts + podclaw/reliability/escalation.py
+
+      MODULE 8: DivergenceDetector
+        Responsibility: Detect inconsistencies between Printify catalog and local DB
+        Interface: detectDivergence() → Array of {productId, field, localValue, remoteValue}
+        Dependencies: Printify API, Supabase products/variants tables
+        File: frontend/src/lib/reliability/divergence-detector.ts
+        Runs as part of sync-printify cron. Reports divergences to admin via L1 alert.
+    </reliability_modules>
+
+    <infrastructure_requirements>
+      Section 0 requires these new database objects in a SINGLE migration:
+      File: supabase/migrations/YYYYMMDD_000_system_invariants.sql
+
+      NEW TABLES:
+        - processed_events (webhook deduplication — schema defined above)
+        - cron_runs (cron execution tracking — schema defined above)
+        - returns (return lifecycle — schema defined in return_lifecycle state machine)
+
+      NEW COLUMNS on orders:
+        - stripe_refund_id VARCHAR(255) UNIQUE
+        - refunded_at TIMESTAMPTZ
+        - refund_amount_cents INTEGER
+        - refund_reason VARCHAR(100)
+        - retry_count INTEGER DEFAULT 0
+
+      NEW FUNCTIONS:
+        - try_cron_lock(cron_name TEXT) → BOOLEAN
+        - issue_refund_atomic(order_id, stripe_refund_id, amount, reason) → BOOLEAN
+
+      EXECUTION ORDER:
+        This migration MUST be the first of the hardening phase.
+        Sections 1-13 depend on these tables and functions existing.
+
+      VALIDATION:
+        V0-1. processed_events table exists with UNIQUE(provider, event_id)
+        V0-2. cron_runs table exists with status CHECK constraint
+        V0-3. returns table exists with status column
+        V0-4. orders.stripe_refund_id column exists with UNIQUE constraint
+        V0-5. issue_refund_atomic() function returns FALSE for already-refunded order
+        V0-6. try_cron_lock() returns FALSE when lock already held
+        V0-7. ZombieReaper cron executes every 15min
+        V0-8. WebhookProcessor rejects duplicate event_id (returns 200 without processing)
+    </infrastructure_requirements>
+  </section_0_system_invariants>
+
+  <!-- ================================================================== -->
+  <!-- STATE MACHINES — FORMAL (transition matrices, timeouts, zombies)    -->
+  <!-- Governed by Section 0 invariants INV-01 through INV-05             -->
+  <!-- ================================================================== -->
+
+  <state_machines>
+    <!-- ============================================================ -->
+    <!-- FSM 1: ORDER LIFECYCLE                                        -->
+    <!-- Invariants: INV-01 (single refund), INV-04 (valid transitions),
+         INV-05 (no zombies), INV-06 (atomic financials)               -->
+    <!-- ============================================================ -->
+    <order_state_machine>
+      <states>
+        INITIAL:   pending
+        TERMINAL:  delivered, refunded
+        INTERMEDIATE: paid, submitted, in_production, requires_review, shipped, cancelled, disputed
+        PROHIBITED: deleted (orders are NEVER deleted, only terminal-stated)
+      </states>
+
+      <transition_matrix>
+        | From              | To                | Trigger                                           | Guard                                     |
+        |-------------------|-------------------|---------------------------------------------------|-------------------------------------------|
+        | pending           | paid              | Stripe checkout.session.completed webhook         | stripe_session_id matches, amount > 0     |
+        | paid              | submitted         | Printify createOrder() + submitOrderForProduction()| printify_order_id returned, retry_count reset |
+        | paid              | requires_review   | Printify submission fails (API error, OOS)        | retry_count >= 3 OR non-retryable error   |
+        | paid              | cancelled         | Admin manual cancel via admin panel               | withAuth() + role=admin, order not shipped |
+        | submitted         | in_production     | Printify order:updated webhook (status=production)| printify_order_id matches                 |
+        | submitted         | shipped           | Printify order:shipped webhook                    | tracking_number present in shipments[]    |
+        | submitted         | requires_review   | Printify order:requires_review webhook            | printify_order_id matches                 |
+        | submitted         | cancelled         | Printify order:cancelled webhook                  | printify_order_id matches                 |
+        | in_production     | shipped           | Printify order:shipped webhook                    | tracking_number present                   |
+        | in_production     | cancelled         | Printify order:cancelled webhook                  | printify_order_id matches                 |
+        | shipped           | delivered         | Printify order:delivered webhook                  | all shipments have tracking               |
+        | cancelled         | refunded          | RefundGuard.issueRefund() → issue_refund_atomic() | INV-01: refunded_at IS NULL               |
+        | requires_review   | refunded          | ZombieReaper after 24h OR admin manual            | INV-01: refunded_at IS NULL               |
+        | requires_review   | submitted         | Admin retries submission manually                 | retry_count reset, Printify API available |
+        | paid              | refunded          | order:failed webhook OR exhausted retries (2h)    | INV-01: refunded_at IS NULL               |
+        | any               | disputed          | Stripe charge.dispute.created webhook             | dispute.payment_intent matches order      |
+        | disputed          | refunded          | Dispute resolved in customer's favor              | INV-01: refunded_at IS NULL               |
+        | disputed          | (previous state)  | Dispute resolved in merchant's favor              | Restore pre-dispute status                |
+      </transition_matrix>
+
+      <zombie_timeouts>
+        | State           | Max TTL | Auto-Action                              | Escalation |
+        |-----------------|---------|------------------------------------------|------------|
+        | pending         | 1h      | Alert admin (payment may have failed)    | L1         |
+        | paid            | 30min   | Retry Printify submission (if retries left)| L1       |
+        | paid (exhausted)| 2h      | Auto-refund via issue_refund_atomic()    | L2         |
+        | submitted       | 7d      | Alert admin (check Printify dashboard)   | L1         |
+        | in_production   | 14d     | Alert admin                              | L1         |
+        | requires_review | 24h     | Auto-refund via issue_refund_atomic()    | L2         |
+        | shipped         | 30d     | Auto-confirm delivery                    | L1         |
+        | disputed        | 45d     | Alert admin (Stripe deadline approaching)| L2         |
+      </zombie_timeouts>
+
+      <key_files>
+        - frontend/src/app/api/webhooks/stripe/route.ts (pending→paid, disputed)
+        - frontend/src/app/api/webhooks/printify/route.ts (all Printify transitions)
+        - frontend/src/app/api/cron/retry-printify-orders/route.ts (paid→submitted retry)
+        - frontend/src/app/api/cron/zombie-reaper/route.ts (timeout enforcement)
+        - frontend/src/lib/reliability/refund-guard.ts (all →refunded transitions)
+        - frontend/src/lib/reliability/state-transition.ts (matrix enforcement)
+      </key_files>
+    </order_state_machine>
+
+    <!-- ============================================================ -->
+    <!-- FSM 2: PRODUCT LIFECYCLE                                      -->
+    <!-- Invariants: INV-04 (valid transitions), INV-05 (no zombies)   -->
+    <!-- ============================================================ -->
+    <product_state_machine>
+      <states>
+        INITIAL:   draft
+        TERMINAL:  deleted (soft — deleted_at IS NOT NULL)
+        INTERMEDIATE: pending_review, publishing, active, archived
+        PROHIBITED: hard-deleted rows (use soft delete ALWAYS)
+      </states>
+
+      <transition_matrix>
+        | From           | To              | Trigger                                  | Guard                                     |
+        |----------------|-----------------|------------------------------------------|-------------------------------------------|
+        | (new)          | draft           | PodClaw cataloger creates product in DB  | DEDUP check: title similarity &lt; 0.8       |
+        | draft          | pending_review  | PodClaw QA score 6-7 (borderline)        | qa_score BETWEEN 6 AND 7                  |
+        | draft          | publishing      | PodClaw QA score >= 8 (auto-publish)     | qa_score >= 8, Printify publish API called|
+        | pending_review | publishing      | Admin approves from approval queue        | withAuth() + role=admin                   |
+        | pending_review | draft           | Admin rejects with feedback              | withAuth() + role=admin, feedback required|
+        | pending_review | deleted         | Admin rejects permanently                | withAuth() + role=admin                   |
+        | publishing     | active          | Printify product:published webhook       | printify_product_id matches               |
+        | publishing     | draft           | Publishing fails (Printify API error)    | After 1h timeout (ZombieReaper)           |
+        | active         | archived        | Admin unpublishes OR product discontinued| withAuth() OR Printify webhook            |
+        | active         | deleted         | Admin deletes (soft delete)              | SET deleted_at=now(), deleted_by=admin_id |
+        | archived       | active          | Admin re-publishes                       | Printify publish API called               |
+        | archived       | deleted         | Admin deletes from archive               | SET deleted_at=now(), deleted_by=admin_id |
+        | draft          | deleted         | Cleanup of failed/abandoned products     | Cron: no activity > 30d OR manual         |
+      </transition_matrix>
+
+      <admin_edit_protection>
+        Column: products.admin_edited_at TIMESTAMPTZ
+        Rule: During Printify sync, if admin_edited_at > last_synced_at → preserve admin values for:
+          title, description, tags, seo_title, seo_description
+        Printify sync ALWAYS updates: price, variants, images, availability
+        Implementation: syncProducts() checks admin_edited_at per field before overwriting
+      </admin_edit_protection>
+
+      <zombie_timeouts>
+        | State          | Max TTL | Auto-Action                    | Escalation |
+        |----------------|---------|--------------------------------|------------|
+        | publishing     | 1h      | Revert to draft + alert admin  | L1         |
+        | pending_review | 7d      | Alert admin (approval needed)  | L1         |
+      </zombie_timeouts>
+
+      <key_files>
+        - podclaw/connectors/printify_mcp_connector.py (create, publish, delete)
+        - frontend/src/app/api/webhooks/printify/route.ts (published, updated, deleted)
+        - frontend/src/app/api/cron/sync-printify/route.ts (30min sync cycle)
+        - frontend/src/lib/printify-sync.ts (syncVariants with UPSERT, admin_edited_at check)
+        - admin/src/app/products/page.tsx (approval queue, manual transitions)
+      </key_files>
+    </product_state_machine>
+
+    <!-- ============================================================ -->
+    <!-- FSM 3: RETURN LIFECYCLE (NEW — not yet implemented)           -->
+    <!-- Invariants: INV-01 (single refund), INV-04, INV-05, INV-06   -->
+    <!-- ============================================================ -->
+    <return_lifecycle>
+      <states>
+        INITIAL:   return_requested
+        TERMINAL:  return_completed, rejected, expired
+        INTERMEDIATE: return_approved, item_shipped, item_received
+      </states>
+
+      <transition_matrix>
+        | From              | To                | Trigger                                 | Guard                                      |
+        |-------------------|-------------------|-----------------------------------------|--------------------------------------------|
+        | (none)            | return_requested  | Customer requests return via storefront  | Order status=delivered, within 30d window  |
+        | return_requested  | return_approved   | Admin approves return request            | withAuth() + role=admin                    |
+        | return_requested  | rejected          | Admin rejects return request             | withAuth() + role=admin, reason required   |
+        | return_requested  | expired           | ZombieReaper after 7d no admin action    | Notify customer of expiration              |
+        | return_approved   | item_shipped      | Customer provides return tracking number | tracking_number NOT NULL                   |
+        | return_approved   | expired           | ZombieReaper after 14d no shipment       | Notify customer, close return              |
+        | item_shipped      | item_received     | Admin confirms item receipt              | withAuth() + role=admin                    |
+        | item_shipped      | expired           | ZombieReaper after 30d no receipt        | Alert admin for investigation              |
+        | item_received     | return_completed  | RefundGuard.issueRefund() succeeds       | INV-01: order.refunded_at IS NULL          |
+      </transition_matrix>
+
+      <table_schema>
+        CREATE TABLE returns (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          order_id UUID NOT NULL REFERENCES orders(id),
+          customer_id UUID NOT NULL REFERENCES users(id),
+          status VARCHAR(30) NOT NULL DEFAULT 'return_requested'
+            CHECK (status IN ('return_requested','return_approved','item_shipped',
+                              'item_received','return_completed','rejected','expired')),
+          reason VARCHAR(500) NOT NULL,
+          admin_notes TEXT,
+          return_tracking_number VARCHAR(255),
+          refund_amount_cents INTEGER,
+          created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+          updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+          resolved_at TIMESTAMPTZ,
+          resolved_by UUID REFERENCES admin_users(id)
+        );
+        CREATE INDEX idx_returns_order ON returns (order_id);
+        CREATE INDEX idx_returns_status ON returns (status, updated_at);
+      </table_schema>
+
+      <zombie_timeouts>
+        | State            | Max TTL | Auto-Action                      | Escalation |
+        |------------------|---------|----------------------------------|------------|
+        | return_requested | 7d      | Expire + notify customer         | L1         |
+        | return_approved  | 14d     | Expire + notify customer         | L1         |
+        | item_shipped     | 30d     | Alert admin (investigate)        | L1         |
+        | item_received    | 1h      | Auto-refund via RefundGuard      | L2         |
+      </zombie_timeouts>
+
+      <key_files>
+        - frontend/src/app/api/returns/route.ts (NEW — create return request)
+        - frontend/src/app/api/returns/[id]/route.ts (NEW — update return status)
+        - admin/src/app/returns/page.tsx (return management queue)
+        - frontend/src/lib/reliability/refund-guard.ts (item_received→return_completed)
+      </key_files>
+    </return_lifecycle>
+
+    <!-- ============================================================ -->
+    <!-- FSM 4: USER LIFECYCLE                                         -->
+    <!-- Invariants: INV-04, INV-05, INV-09 (PII boundary)            -->
+    <!-- ============================================================ -->
+    <user_lifecycle>
+      <states>
+        INITIAL:   anonymous
+        TERMINAL:  deleted
+        INTERMEDIATE: registered, verified, active, suspended, deletion_requested
+        PROHIBITED: unregistered (once registered, cannot revert to anonymous)
+      </states>
+
+      <transition_matrix>
+        | From               | To                  | Trigger                                   | Guard                                   |
+        |--------------------|---------------------|-------------------------------------------|-----------------------------------------|
+        | anonymous          | registered          | POST /api/auth/register (Supabase Auth)   | Valid email format, password >= 8 chars  |
+        | registered         | verified            | Email verification link clicked           | Token valid, not expired                 |
+        | registered         | deleted             | ZombieReaper after 30d unverified         | Soft-delete, no PII retained             |
+        | verified           | active              | First login after verification            | Supabase Auth session created            |
+        | active             | suspended           | Admin suspends account (abuse, fraud)     | withAuth() + role=admin, reason required |
+        | suspended          | active              | Admin lifts suspension                    | withAuth() + role=admin                  |
+        | active             | deletion_requested  | POST /api/profile/delete (30d grace)      | User authenticated, confirmation prompt  |
+        | deletion_requested | active              | User cancels deletion within grace period | User re-authenticates                    |
+        | deletion_requested | deleted             | Cron hard-delete-accounts after 30d       | GDPR: anonymize PII, retain order stubs  |
+      </transition_matrix>
+
+      <zombie_timeouts>
+        | State              | Max TTL | Auto-Action                      | Escalation |
+        |--------------------|---------|----------------------------------|------------|
+        | registered         | 72h     | Send verification reminder email | None       |
+        | registered         | 30d     | Soft-delete unverified account   | None       |
+        | deletion_requested | 30d     | Execute hard-delete (GDPR)       | None       |
+        | suspended          | 90d     | Alert admin (review suspension)  | L1         |
+      </zombie_timeouts>
+
+      <key_files>
+        - frontend/src/app/api/auth/register/route.ts
+        - frontend/src/app/api/profile/delete/route.ts
+        - frontend/src/app/api/cron/cleanup-personal/route.ts (PII anonymization)
+        - frontend/src/app/api/cron/hard-delete-accounts/route.ts (final deletion)
+        - admin/src/app/customers/page.tsx (suspend/unsuspend)
+      </key_files>
+    </user_lifecycle>
+
+    <!-- ============================================================ -->
+    <!-- FSM 5: AGENT SESSION LIFECYCLE                                -->
+    <!-- Invariants: INV-04, INV-05, INV-07 (singleton execution)      -->
+    <!-- ============================================================ -->
+    <agent_session_lifecycle>
+      <states>
+        INITIAL:   queued
+        TERMINAL:  completed, failed_final
+        INTERMEDIATE: running, error
+        PROHIBITED: running with another instance (INV-07 singleton)
+      </states>
+
+      <transition_matrix>
+        | From        | To           | Trigger                                    | Guard                                     |
+        |-------------|--------------|--------------------------------------------|--------------------------------------------|
+        | (scheduled) | queued       | APScheduler triggers at cron time          | Agent not already running (Redis NX check)|
+        | queued      | running      | Orchestrator picks up, Claude SDK session  | Redis SET NX succeeds (INV-07)            |
+        | running     | completed    | Session finishes within budget/time limits | Budget remaining > 0, time &lt; 15min        |
+        | running     | error        | Timeout >15min, budget exceeded, exception | Error logged to agent_events              |
+        | error       | queued       | Retry with DateTrigger + jitter (0-300s)   | retry_count &lt; 2 (max 2 retries)           |
+        | error       | failed_final | retry_count >= 2 (retries exhausted)       | Alert L1, do NOT retry again              |
+        | queued      | error        | ZombieReaper: queued >30min without start  | Reschedule with jitter                    |
+        | running     | error        | ZombieReaper: running >20min (stuck)       | Force-kill process, release Redis lock    |
+      </transition_matrix>
+
+      <zombie_timeouts>
+        | State   | Max TTL | Auto-Action                               | Escalation |
+        |---------|---------|-------------------------------------------|------------|
+        | queued  | 30min   | Mark error + reschedule with jitter       | L1         |
+        | running | 20min   | Force-kill + mark error + release lock    | L1         |
+      </zombie_timeouts>
+
+      <key_files>
+        - podclaw/scheduler.py (job management, cron triggers)
+        - podclaw/core.py (Orchestrator, session execution, budget check)
+        - podclaw/bridge/api.py (API triggers, status queries)
+        - podclaw/reliability/retry.py (RetryManager for agent retries)
+      </key_files>
+    </agent_session_lifecycle>
+  </state_machines>
+
+  <!-- ================================================================== -->
+  <!-- SECTION 1: SECURITY & AUTHENTICATION                                -->
+  <!-- Priority: P0 — BLOQUEANTE | Effort: 40h | Dependencies: None       -->
+  <!-- ================================================================== -->
+
+  <section_1_security>
+    <purpose>
+      Close all unauthorized access vectors. Make the platform safe for handling real
+      customer data (PII, payments, designs). The admin panel currently has a 3-step
+      attack chain for total control:
+      1. POST /api/admin/setup-rbac → Create admin account (public endpoint!)
+      2. Forge cookie admin-session={"role":"admin","email":"..."} (unsigned JSON)
+      3. Access 66 unprotected API endpoints → PII, finances, agents
+    </purpose>
+
+    <current_scores>
+      Admin Auth: 2/10 — unsigned JSON cookie, trivially forgeable
+      Admin Middleware: 0/10 — middleware.ts:7 excludes ALL /api/* routes
+      Admin APIs: 1/10 — 66 of 69 routes without requireAuth()
+      Setup-RBAC: 0/10 — public endpoint creates admin accounts
+      DB RLS: 3/10 — 25+ tables without RLS, USING(true) on messaging
+      Auth Sync: 2/10 — public.users not linked to auth.users, no trigger
+      MCP JWT: 3/10 — decode without signature verification in session.ts:68-92
+      CSRF: 0/10 — no CSRF protection on any mutation
+      Printify HMAC: 5/10 — === instead of timingSafeEqual()
+      Rate Limiting Admin: 0/10 — no rate limiter on admin login
+    </current_scores>
+
+    <implementation>
+      BLOCK A — Critical Patches (8h):
+        A1. DELETE endpoint /api/admin/setup-rbac entirely
+            File: admin/src/app/api/admin/setup-rbac/route.ts → DELETE FILE
+        A2. Remove fallback secret in Telegram webhook
+            File: frontend/src/app/api/webhooks/telegram/route.ts:32
+        A3. Fix admin middleware: protect /api/* routes (except /api/auth/login and /api/health)
+            File: admin/src/middleware.ts
+        A4. Install iron-session, replace unsigned JSON cookie with signed+encrypted session
+            Files: admin/package.json, NEW admin/src/lib/session.ts, admin/src/app/api/auth/login/route.ts
+        A5. Update getAdminSession() to verify iron-session signature
+            File: admin/src/lib/rbac.ts
+        A6. Add rate limiter to admin login (5 attempts/15min per IP)
+            File: admin/src/app/api/auth/login/route.ts
+        A7. Increase minimum password to 12 characters
+            File: admin/src/app/api/auth/login/route.ts
+
+      BLOCK B — Admin API Protection (6h):
+        B1. Create withAuth() wrapper middleware
+            File: NEW admin/src/lib/auth-middleware.ts
+        B2. Apply withAuth() to all 66 unprotected API routes
+            Files: admin/src/app/api/**/*.ts (66 files)
+        B3. Create withValidation(schema) wrapper with Zod
+            File: NEW admin/src/lib/validation.ts
+        B4. Zod schemas for top 10 mutations (products, orders, designs)
+            Files: NEW admin/src/lib/schemas/*.ts
+
+      BLOCK C — RLS &amp; Database Security (12h):
+        C1. Create trigger handle_new_user() syncing auth.users → public.users
+            File: NEW supabase/migrations/YYYYMMDD_auth_sync_trigger.sql
+        C2. ALTER TABLE public.users ADD CONSTRAINT fk_auth REFERENCES auth.users(id)
+            File: same migration or new
+        C3. ENABLE RLS on 25+ tables without RLS
+            File: NEW supabase/migrations/YYYYMMDD_enable_rls_all.sql
+        C4. Create policies for user tables: orders, designs, cart_items, wishlists, etc.
+            File: same migration
+        C5. Fix messaging: replace USING(true) with proper policies
+            File: same migration
+        C6. Policies for internal tables (agent_events, agent_sessions) → service_role only
+            File: same migration
+        C7. Policies for newsletter_subscribers (PII protection)
+            File: same migration
+
+      BLOCK D — Webhook &amp; API Hardening (6h):
+        D1. Replace === with timingSafeEqual() in Printify HMAC verification
+            File: frontend/src/app/api/webhooks/printify/route.ts
+        D2. Add CSRF token validation for all frontend mutations
+            Files: frontend/src/middleware.ts, frontend/src/lib/csrf.ts
+        D3. Fix WhatsApp webhook: fail-closed when env var missing
+            File: frontend/src/app/api/webhooks/whatsapp/route.ts
+        D4. Sanitize theme CSS injection (replace dangerouslySetInnerHTML)
+            File: frontend/src/components/ThemeLoader.tsx
+
+      BLOCK E — MFA &amp; Secrets (8h):
+        E1. Add TOTP-based MFA for admin accounts
+            Files: admin/src/app/api/auth/mfa/*, admin/src/app/login/page.tsx
+        E2. Secrets rotation documentation + automated checks
+            File: NEW docs/security/secrets-rotation.md
+        E3. Implement Content Security Policy headers for admin
+            File: admin/next.config.ts (already has CSP, verify completeness)
+    </implementation>
+
+    <validation>
+      V1. POST /api/admin/setup-rbac returns 404
+      V2. Forged cookie admin-session={"role":"admin"} → rejected by iron-session
+      V3. All 69 admin API routes return 401 without valid session
+      V4. Admin login rate-limited after 5 failed attempts
+      V5. Printify webhook uses timingSafeEqual()
+      V6. All 64 tables have RLS enabled
+      V7. handle_new_user() trigger fires on auth.signUp()
+    </validation>
+  </section_1_security>
+
+  <!-- ================================================================== -->
+  <!-- SECTION 2: ADMIN DASHBOARD ARCHITECTURE                             -->
+  <!-- Priority: P0 — BLOQUEANTE | Effort: 33h | Depends: Section 1 A+B  -->
+  <!-- ================================================================== -->
+
+  <section_2_admin_dashboard>
+    <purpose>
+      Transform admin panel from a collection of independent pages to a cohesive,
+      maintainable dashboard. Currently 27/34 pages import DashboardLayout manually,
+      33/34 pages use useEffect+fetch instead of React Query, 62 color token violations,
+      24 native alert()/prompt() calls, and the settings page is a stub (setTimeout fake save).
+    </purpose>
+
+    <current_scores>
+      Layout: 3/10 — 27/34 pages without sidebar (manual DashboardLayout import)
+      Data Fetching: 2/10 — 33/34 pages use useEffect+fetch (only Dashboard uses React Query)
+      UI Consistency: 4/10 — 62 color token violations, 24 alert()/prompt() natives
+      Error Handling: 1/10 — no error.tsx, no not-found.tsx, no error boundaries
+      Accessibility: 2/10 — only 2 alt attributes, 6 aria-labels in entire admin
+      ReactMarkdown: 3/10 — 4 pages without DOMPurify (legal editor, soul, memory, chat)
+    </current_scores>
+
+    <implementation>
+      BLOCK A — Layout Architecture (8h):
+        A1. Create route group (dashboard)/ with shared layout
+            File: NEW admin/src/app/(dashboard)/layout.tsx
+            Pattern: Sidebar + Header + main content + Breadcrumbs
+        A2. Move 27 pages without sidebar into the route group
+            Files: admin/src/app/(dashboard)/*/page.tsx (move from admin/src/app/*/page.tsx)
+        A3. Create autonomous Sidebar component with dynamic nav items
+            File: admin/src/components/Sidebar.tsx (refactor existing, 5 nav groups)
+            Groups: Operations (5), Content (4), AI &amp; Agents (2), Marketing (2), Settings (4)
+        A4. Create Header with breadcrumbs + user menu + command palette trigger
+            File: NEW admin/src/components/layout/Header.tsx
+        A5. Create error.tsx and not-found.tsx for (dashboard) group
+            Files: NEW admin/src/app/(dashboard)/error.tsx, not-found.tsx
+        A6. Delete manual DashboardLayout component (replaced by route group)
+            File: admin/src/components/DashboardLayout.tsx → DELETE
+
+      BLOCK B — React Query Migration (10h):
+        B1. Configure QueryClientProvider in root layout
+            File: admin/src/app/layout.tsx (already has QueryProvider — verify wiring)
+        B2. Create typed query hooks: useProducts(), useOrders(), useCustomers(), etc.
+            Files: NEW admin/src/hooks/queries/*.ts
+        B3. Create typed mutation hooks: useCreateProduct(), useUpdateOrder(), etc.
+            Files: NEW admin/src/hooks/mutations/*.ts
+        B4. Migrate top 10 most-used pages to React Query
+            Order: products, orders, customers, designs, analytics, finance, reviews, returns
+        B5. Migrate remaining 23 pages (mechanical after pattern established)
+
+      BLOCK C — UI Consistency (8h):
+        C1. Fix 62 color token violations (bg-blue→bg-primary, bg-gray→bg-muted, etc.)
+            Files: 11 files with violations
+        C2. Replace 24 alert()/prompt() with toast() from sonner + Dialog from shadcn
+            Files: 12 files with native dialogs
+        C3. Replace ReactMarkdown with SafeMarkdown in 4 admin pages
+            Files: legal/[slug], soul, memory, ChatMessage component
+        C4. Wire ThemeProvider for functional dark mode
+            Files: admin/src/app/layout.tsx, admin/src/components/ThemeToggle.tsx
+        C5. Add aria-labels, alt text, semantic roles across interactive components
+        C6. Delete test-sse/route.ts (dev-only endpoint in production)
+            File: admin/src/app/api/test-sse/route.ts → DELETE
+        C7. Fix settings page: connect to real API (replace setTimeout stub)
+            File: admin/src/app/settings/page.tsx → wire to /api/admin/settings
+
+      BLOCK D — Pagination &amp; Performance (7h):
+        D1. Add server-side pagination to all list pages (products, orders, customers, designs)
+            Pattern: ?page=1&amp;limit=20&amp;sort=created_at&amp;order=desc
+        D2. Add search with debounce (300ms) to list pages
+        D3. Add loading states (Skeleton components) for all data-fetching pages
+        D4. SSE optimization: batch events, debounce toast notifications
+            File: admin/src/components/providers/SSEProvider.tsx
+    </implementation>
+
+    <validation>
+      V1. All 34 pages render sidebar without manual import
+      V2. Zero useEffect+fetch patterns remain (all migrated to React Query)
+      V3. Zero bg-blue/bg-gray/bg-white color tokens remain
+      V4. Zero alert()/prompt() calls remain
+      V5. Dark mode toggle works across all pages
+      V6. Settings page persists changes to database
+      V7. Error boundaries catch and display errors with recovery option
+    </validation>
+  </section_2_admin_dashboard>
+
+  <!-- ================================================================== -->
+  <!-- SECTION 3: DATABASE SCHEMA & PERFORMANCE                            -->
+  <!-- Priority: P0 — BLOQUEANTE | Effort: 28h | Depends: Section 1 C    -->
+  <!-- ================================================================== -->
+
+  <section_3_database>
+    <purpose>
+      Stabilize the database schema: reconcile auth, optimize queries for 1,000+ customers,
+      migrate pgvector from IVFFlat to HNSW, add missing compound indexes, partition
+      high-growth tables, and clean test data from production migrations.
+    </purpose>
+
+    <current_scores>
+      Schema Design: 6/10 — 56 well-structured tables, but categories not normalized
+      Auth Sync: 2/10 — public.users.id generated with gen_random_uuid(), no FK to auth.users
+      Indexes: 5/10 — basic indexes exist, missing compound indexes for frequent queries
+      pgvector: 4/10 — IVFFlat instead of HNSW (inefficient for less than 10K rows)
+      Migrations: 5/10 — 98 migrations, test/seed data embedded in production
+      Partitioning: 0/10 — no partitions on high-growth tables
+    </current_scores>
+
+    <implementation>
+      BLOCK A — Auth Reconciliation (4h):
+        A1. Create trigger handle_new_user() copying auth.users → public.users on signup
+            Migration: supabase/migrations/YYYYMMDD_auth_sync.sql
+            SQL pattern:
+              CREATE OR REPLACE FUNCTION public.handle_new_user()
+              RETURNS TRIGGER AS $$
+              BEGIN
+                INSERT INTO public.users (id, email, created_at)
+                VALUES (NEW.id, NEW.email, NEW.created_at)
+                ON CONFLICT (id) DO NOTHING;
+                RETURN NEW;
+              END;
+              $$ LANGUAGE plpgsql SECURITY DEFINER;
+              CREATE TRIGGER on_auth_user_created
+                AFTER INSERT ON auth.users
+                FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+        A2. Add FK: ALTER TABLE public.users ADD CONSTRAINT fk_auth REFERENCES auth.users(id) ON DELETE CASCADE
+        A3. Reconciliation script: sync existing UUIDs between auth.users and public.users
+        A4. Verify RLS policies work post-reconciliation
+
+      BLOCK B — Missing Indexes (6h):
+        All in single migration: supabase/migrations/YYYYMMDD_compound_indexes.sql
+        B1.  CREATE INDEX idx_orders_status_created ON orders (status, created_at DESC);
+        B2.  CREATE INDEX idx_orders_user_created ON orders (user_id, created_at DESC);
+        B3.  CREATE INDEX idx_products_category_status ON products (category, status);
+        B4.  CREATE INDEX idx_designs_user_status_created ON designs (user_id, status, created_at DESC);
+        B5.  CREATE INDEX idx_documents_content_fts ON documents USING GIN (to_tsvector('english', content));
+        B6.  CREATE INDEX idx_variants_product_active ON product_variants (product_id, is_active);
+        B7.  CREATE INDEX idx_agent_events_agent_created ON agent_events (agent_name, created_at DESC);
+        B8.  CREATE INDEX idx_messages_conversation_created ON messages (conversation_id, created_at);
+        B9.  CREATE INDEX idx_cart_items_session ON cart_items (session_id);
+        B10. CREATE INDEX idx_newsletter_status_locale ON newsletter_subscribers (status, locale);
+        B11. CREATE INDEX idx_audit_entity_created ON audit_log (entity_type, entity_id, created_at DESC);
+
+      BLOCK C — Migration Cleanup (4h):
+        C1. Identify test/seed data in production migrations
+        C2. Create supabase/seed.sql with test data separated
+        C3. Create migration to delete test data from production tables
+        C4. Document convention: migrations = DDL only, data goes in seed.sql
+
+      BLOCK D — pgvector Optimization (3h):
+        D1. DROP INDEX on documents.embedding (IVFFlat)
+        D2. CREATE INDEX USING hnsw ON documents (embedding vector_cosine_ops)
+        D3. Verify performance: 768-dim vector queries with HNSW vs IVFFlat
+        D4. Tune ef_construction and m parameters for recall/speed balance
+
+      BLOCK E — Table Partitioning (8h):
+        E1. Design range partitioning schema by month for 3 tables
+        E2. Convert agent_events to partitioned table (by created_at month)
+        E3. Convert messages to partitioned table
+        E4. Convert audit_log to partitioned table
+        E5. Create cron for auto-creating future partitions (3 months ahead)
+
+      BLOCK F — Connection Pooling (3h):
+        F1. Configure Supabase connection pooler (pgBouncer)
+        F2. Update frontend/admin/.env.local with pooler connection strings
+        F3. Verify all Supabase clients use pooled connections
+    </implementation>
+
+    <validation>
+      V1. handle_new_user() trigger fires on auth.signUp() → row created in public.users
+      V2. FK constraint prevents orphaned records in public.users
+      V3. EXPLAIN ANALYZE on frequent queries shows index scan (not seq scan)
+      V4. pgvector search latency less than 50ms for 768-dim queries
+      V5. Partition pruning visible in EXPLAIN for agent_events queries
+      V6. Zero test data in production tables
+    </validation>
+  </section_3_database>
+
+  <!-- ================================================================== -->
+  <!-- SECTION 4: FRONTEND ECOMMERCE & STOREFRONT                         -->
+  <!-- Priority: P1 | Effort: 37h | Depends: None                        -->
+  <!-- ================================================================== -->
+
+  <section_4_frontend_ecommerce>
+    <purpose>
+      Convert the storefront from MVP to competitive ecommerce: SSR for SEO (homepage and
+      shop are 100% client-side — Google sees blank pages), missing critical pages (/about,
+      /contact, /faq, /blog, /size-guide), broken footer links (3 pages 404), dynamic sitemap
+      with products, loading states, error boundaries, and XSS fix in legal pages.
+    </purpose>
+
+    <current_scores>
+      Homepage SSR: 0/10 — (landing)/page.tsx is 'use client', no generateMetadata, no JSON-LD
+      Shop SSR: 0/10 — (app)/shop/page.tsx is 'use client', no metadata
+      Product Detail: 8/10 — SSR with generateMetadata, JSON-LD, OG tags (correct)
+      Missing pages: 0/10 — /about, /contact, /faq, /blog, /size-guide, /shop/category/[slug] all 404
+      Sitemap: 2/10 — only 9 static URLs, no dynamic products
+      Loading states: 4/10 — only 4 loading.tsx files
+      Legal pages XSS: 3/10 — 4 pages use ReactMarkdown raw instead of SafeMarkdown with DOMPurify
+    </current_scores>
+
+    <implementation>
+      BLOCK A — SEO Critical: Homepage &amp; Shop SSR (10h):
+        A1. Split homepage into server wrapper + LandingClient
+            File: frontend/src/app/[locale]/(landing)/page.tsx → Server Component with generateMetadata()
+            File: NEW frontend/src/components/landing/LandingClient.tsx → Client interactive parts
+        A2. Add JSON-LD Organization + WebSite schema to homepage server component
+        A3. Split shop page into server wrapper + ShopClient
+            File: frontend/src/app/[locale]/(app)/shop/page.tsx → Server with generateMetadata()
+            File: NEW frontend/src/components/shop/ShopClient.tsx → Client filters/pagination
+        A4. Add JSON-LD ItemList schema to shop page
+        A5. Add ISR revalidate: 3600 to product detail pages
+            File: frontend/src/app/[locale]/(app)/shop/[id]/page.tsx
+        A6. Gate MetaballsBackground on mobile (disable canvas &lt;768px or no WebGL)
+            File: frontend/src/components/landing/MetaballsBackground.tsx
+
+      BLOCK B — Dynamic Sitemap (3h):
+        B1. Refactor sitemap.ts for sitemap index with per-locale references
+        B2. Create dynamic sitemap-[locale].xml including ALL products from Supabase
+        B3. Include static pages in sitemaps (/about, /contact, /faq, /privacy, /terms, etc.)
+
+      BLOCK C — Missing Pages (8h):
+        C1. /about — brand story, mission, team with generateMetadata()
+            File: NEW frontend/src/app/[locale]/(focused)/about/page.tsx
+        C2. /contact — contact form with validation, support info
+            File: NEW frontend/src/app/[locale]/(focused)/contact/page.tsx
+        C3. /faq — accordion with search, categories
+            File: NEW frontend/src/app/[locale]/(focused)/faq/page.tsx
+        C4. /blog — post listing placeholder (structure for future CMS)
+            File: NEW frontend/src/app/[locale]/(focused)/blog/page.tsx
+        C5. /size-guide — standalone size tables by product type
+            File: NEW frontend/src/app/[locale]/(focused)/size-guide/page.tsx
+        C6. /shop/category/[slug] — category landing with generateMetadata() + JSON-LD
+            File: NEW frontend/src/app/[locale]/(app)/shop/category/[slug]/page.tsx
+
+      BLOCK D — Loading States &amp; Error Boundaries (5h):
+        D1-D4. Create loading.tsx for orders, wishlist, designs, new pages
+        D5-D7. Create error.tsx for (app), (focused), (landing) route groups
+        D8-D9. Add Suspense boundaries for streaming in homepage and shop
+
+      BLOCK E — Broken Links &amp; Navigation (4h):
+        E1. Fix footer links to point to real pages (about, contact, faq)
+            File: frontend/src/components/Footer.tsx
+        E2. Replace generic social URLs with real brand links or hide
+        E3. Add breadcrumbs to shop and product detail pages
+            File: frontend/src/app/[locale]/(app)/shop/[id]/page.tsx
+        E4. Fix profile/notifications route collision (outside route group)
+
+      BLOCK F — Security &amp; Performance (7h):
+        F1. Replace ReactMarkdown with SafeMarkdown in 4 legal pages (terms, privacy, returns, shipping)
+            SafeMarkdown already exists at: frontend/src/components/common/SafeMarkdown.tsx
+        F2. Add structured data (JSON-LD) for BreadcrumbList on all pages
+        F3. Optimize image loading: priority for above-fold, lazy for below-fold
+        F4. Add robots.txt with proper sitemap references
+    </implementation>
+
+    <validation>
+      V1. Homepage passes Google Structured Data Testing Tool (Organization + WebSite)
+      V2. Shop page has generateMetadata() — visible in view-source
+      V3. /about, /contact, /faq return 200 with correct metadata
+      V4. Dynamic sitemap includes all products with lastmod dates
+      V5. All route groups have error.tsx and loading.tsx
+      V6. Zero ReactMarkdown imports without DOMPurify remain
+      V7. Footer links resolve (no 404s)
+    </validation>
+  </section_4_frontend_ecommerce>
+
+  <!-- ================================================================== -->
+  <!-- SECTION 5: RELATIONAL CATEGORIES SYSTEM                             -->
+  <!-- Priority: P1 | Effort: 26h | Depends: Section 3                   -->
+  <!-- ================================================================== -->
+
+  <section_5_categories>
+    <purpose>
+      Replace VARCHAR-based categories with a relational table. Currently products.category
+      is VARCHAR(100) free text — no FK, no dedicated table, no API. The shop page fetches
+      100 products and counts categories in JavaScript (O(n), unsustainable at 1000+ products).
+      18 canonical categories exist in frontend/src/lib/categories.ts as client-side mapping.
+    </purpose>
+
+    <current_data>
+      18 canonical categories in frontend/src/lib/categories.ts:
+        apparel, accessories, drinkware, t-shirts, hoodies, stickers, phone-cases,
+        posters, bags, hats, mugs, wall-art, stationery, sweatshirts, kitchen,
+        kids, games, home-decor
+      6 normalization aliases (home &amp; living, home and living, clothing, etc.)
+      i18n keys: 18 categories + "all" + "uncategorized" in all 3 locales
+      Index exists: idx_products_category_status ON products (category, status) — on VARCHAR
+    </current_data>
+
+    <implementation>
+      BLOCK A — SQL Migration (5h):
+        A1. Create categories table
+            Migration: supabase/migrations/YYYYMMDD_create_categories.sql
+            Schema:
+              CREATE TABLE categories (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                slug VARCHAR(100) UNIQUE NOT NULL,
+                parent_id UUID REFERENCES categories(id) ON DELETE SET NULL,
+                name_en VARCHAR(200) NOT NULL,
+                name_es VARCHAR(200),
+                name_de VARCHAR(200),
+                description_en TEXT,
+                description_es TEXT,
+                description_de TEXT,
+                icon VARCHAR(50),
+                image_url TEXT,
+                sort_order INT DEFAULT 0,
+                is_active BOOLEAN DEFAULT true,
+                metadata JSONB DEFAULT '{}',
+                created_at TIMESTAMPTZ DEFAULT now(),
+                updated_at TIMESTAMPTZ DEFAULT now()
+              );
+        A2. Seed 18 existing categories with translations
+        A3. ALTER products ADD COLUMN category_id UUID REFERENCES categories(id)
+        A4. Data migration: UPDATE products SET category_id = matched by VARCHAR → slug
+        A5. RLS: SELECT public for active categories, ALL for service_role
+        A6. Indexes: slug, parent_id, is_active+sort_order, products.category_id
+
+      BLOCK B — Frontend API (4h):
+        B1. Create GET /api/categories — returns categories with product counts
+            File: NEW frontend/src/app/api/categories/route.ts
+            Response: [{id, slug, name_{locale}, icon, product_count, parent_id}]
+        B2. Create GET /api/categories/[slug] — category detail with metadata
+            File: NEW frontend/src/app/api/categories/[slug]/route.ts
+        B3. Refactor shop page to use /api/categories instead of deriving from products
+            File: frontend/src/app/[locale]/(app)/shop/page.tsx
+
+      BLOCK C — Category Landing Pages (5h):
+        C1. Create /shop/category/[slug] with generateMetadata() + JSON-LD ItemList
+            File: frontend/src/app/[locale]/(app)/shop/category/[slug]/page.tsx
+            SSR: fetch category + products server-side
+        C2. Add breadcrumbs: Home → Shop → Category Name
+        C3. Include category landing pages in dynamic sitemap
+
+      BLOCK D — Sidebar Navigation (4h):
+        D1. Add category navigation to StorefrontSidebar
+            File: frontend/src/components/storefront/StorefrontSidebar.tsx
+            Pattern: collapsible category list with icons and product counts
+        D2. Active category highlighting when browsing /shop/category/[slug]
+        D3. Mobile: category chips in Sheet sidebar
+
+      BLOCK E — Admin CRUD (5h):
+        E1. Create admin categories management page
+            File: NEW admin/src/app/(dashboard)/categories/page.tsx
+            Features: list, create, edit, reorder (drag), activate/deactivate
+        E2. Admin API routes for category CRUD
+            Files: NEW admin/src/app/api/categories/route.ts (GET, POST)
+            NEW admin/src/app/api/categories/[id]/route.ts (GET, PATCH, DELETE)
+        E3. Category selector in product create/edit forms
+
+      BLOCK F — PodClaw Integration (3h):
+        F1. Update Printify sync to use category_id instead of VARCHAR
+            File: frontend/src/lib/printify-sync.ts
+        F2. Update PodClaw cataloger to reference categories table
+        F3. Deprecate frontend/src/lib/categories.ts (client-side mapping)
+    </implementation>
+
+    <validation>
+      V1. GET /api/categories returns 18 categories with correct product counts
+      V2. /shop/category/apparel shows filtered products with correct metadata
+      V3. Sidebar shows category navigation with active highlighting
+      V4. Admin can create, edit, reorder, and deactivate categories
+      V5. Printify sync assigns correct category_id to new products
+      V6. frontend/src/lib/categories.ts is no longer imported anywhere
+    </validation>
+  </section_5_categories>
+
+  <!-- ================================================================== -->
+  <!-- SECTION 6: PODCLAW GOVERNANCE & OBSERVABILITY                       -->
+  <!-- Priority: P1 | Effort: 36h | Depends: Section 3                   -->
+  <!-- ================================================================== -->
+
+  <section_6_podclaw_governance>
+    <purpose>
+      Make PodClaw resilient to restarts, observable in real-time, and non-blocking.
+      Currently: rate limits in memory (_counters dict — lost on restart), cost tracking
+      in memory, POST /agents/{name}/run blocks the FastAPI process (5-15 min sessions),
+      and 77KB of critical business logic has ZERO tests (production_governor.py 27KB,
+      chat_session.py 34KB, soul_evolution.py 16KB).
+    </purpose>
+
+    <agent_inventory>
+      | Agent            | Model              | Budget/day | Schedule        |
+      |------------------|--------------------|------------|-----------------|
+      | researcher       | haiku-4.5          | EUR 1.50   | 06:00 daily     |
+      | marketing        | sonnet-4.5         | EUR 2.00   | 07:00, 15:00    |
+      | designer         | sonnet-4.5         | EUR 3.00   | 07:00 daily     |
+      | newsletter       | sonnet-4.5         | EUR 1.50   | 09:00, 17:00    |
+      | cataloger        | sonnet-4.5         | EUR 15.00  | 08:00, 14:00, 18:00 |
+      | customer_manager | sonnet-4.5         | EUR 2.00   | 12:00, 22:00    |
+      | seo_manager      | haiku-4.5          | EUR 1.00   | 16:00 Sun only  |
+      | finance          | sonnet-4.5         | EUR 2.50   | 23:00 daily     |
+      | qa_inspector     | haiku-4.5          | EUR 0.15   | 10:00 daily     |
+      | brand_manager    | sonnet-4.5         | EUR 1.50   | 08:00 Mon only  |
+      Global total: EUR 30.15/day
+    </agent_inventory>
+
+    <implementation>
+      BLOCK A — Redis State Backend (6h):
+        A1. Create podclaw/redis_store.py — async wrapper with incr_with_ttl(), hset/hget(), set_with_ttl()
+        A2. Refactor rate_limit_hook.py: _counters dict → Redis HASH podclaw:rate:{agent}:{date} with TTL 24h
+            File: podclaw/hooks/rate_limit_hook.py
+        A3. Refactor cost_guard_hook.py: _daily_costs → Redis key podclaw:cost:{agent}:{date} with INCRBYFLOAT
+            File: podclaw/hooks/cost_guard_hook.py
+        A4. Persist _disabled_agents in Redis SET podclaw:disabled_agents
+            File: podclaw/core.py
+        A5. Persist refund tracking in Redis key podclaw:refunds:{date}
+
+      BLOCK B — Bridge API Non-Blocking (5h):
+        B1. Refactor POST /agents/{name}/run to use BackgroundTasks (fire-and-forget + polling)
+            File: podclaw/bridge/api.py
+            Pattern: same as existing POST /task (already uses BackgroundTasks at line 300)
+        B2. Add task status tracking for manual agent runs
+        B3. Add WebSocket option for real-time session streaming (optional, SSE fallback)
+
+      BLOCK C — Prometheus Metrics (6h):
+        C1. Install prometheus-fastapi-instrumentator for automatic endpoint metrics
+            File: podclaw/bridge/api.py
+        C2. Add custom metrics: agent_session_duration_seconds (Histogram),
+            agent_daily_cost_eur (Gauge), agent_tool_calls_total (Counter),
+            agent_errors_total (Counter per agent)
+        C3. Expose GET /metrics in Prometheus text format (replacing current JSON)
+        C4. Add cAdvisor metrics collection for container resources
+
+      BLOCK D — Health &amp; Cleanup (4h):
+        D1. Add TTL cleanup for agent_events (90 days) and heartbeat_events (30 days)
+            File: NEW podclaw/cleanup.py + scheduler integration
+        D2. Enhance /api/health with Redis connectivity check
+        D3. Add graceful shutdown: drain running sessions, persist state to Redis
+
+      BLOCK E — Critical Path Tests (8h):
+        E1. Tests for production_governor.py: budget enforcement, kill switches, escalation
+            File: NEW podclaw/tests/test_production_governor.py
+        E2. Tests for chat_session.py: message handling, streaming, tool routing
+            File: NEW podclaw/tests/test_chat_session.py
+        E3. Tests for soul_evolution.py: proposal generation, constraint validation, merge
+            File: NEW podclaw/tests/test_soul_evolution.py
+
+      BLOCK F — Event Queue Hardening (3h):
+        F1. Replace in-memory event queue with Redis LIST
+        F2. Add dead-letter queue for failed events
+        F3. Event persistence: survive restarts without data loss
+
+      BLOCK G — Admin Panel Integration (4h):
+        G1. Wire admin /agent page to real Bridge API data (verify all 9 agent API routes work)
+        G2. Add cost dashboard in admin: daily/weekly/monthly spend per agent
+        G3. Add session timeline visualization using WaterfallTimeline component
+    </implementation>
+
+    <validation>
+      V1. Agent rate limits survive PodClaw restart (persist in Redis)
+      V2. POST /agents/{name}/run returns immediately (non-blocking)
+      V3. GET /metrics returns Prometheus text format with custom gauges
+      V4. All 3 critical files have >80% test coverage
+      V5. Agent events older than 90 days are automatically cleaned up
+      V6. Admin /agent page shows real-time agent costs and session history
+    </validation>
+  </section_6_podclaw_governance>
+
+  <!-- ================================================================== -->
+  <!-- SECTION 7: MCP SERVER HARDENING                                     -->
+  <!-- Priority: P1 | Effort: 22h | Depends: Section 1                   -->
+  <!-- ================================================================== -->
+
+  <section_7_mcp_server>
+    <purpose>
+      Convert MCP server from functional-but-insecure to production-ready.
+      Critical: JWT Supabase fallback in session.ts:68-92 decodes WITHOUT verifying
+      signature — any forged JWT with iss containing "supabase.co" is accepted.
+      Zero tests exist. Sessions lost on restart. No per-tool rate limits (client
+      can create 120 Stripe checkout sessions per minute).
+    </purpose>
+
+    <tool_inventory>
+      PUBLIC (6): search_products, get_product_details, get_store_info, get_store_policies, list_categories, get_product_reviews
+      PROTECTED READ (5): get_my_profile, list_my_orders, get_order_status, track_shipment, get_cart, list_wishlist
+      PROTECTED WRITE (4): update_my_profile, update_cart, create_checkout (CRITICAL — creates Stripe sessions), add_to_wishlist, remove_from_wishlist
+    </tool_inventory>
+
+    <implementation>
+      BLOCK A — JWT Security Fix (3h):
+        A1. REMOVE Supabase JWT fallback entirely (not fix — REMOVE)
+            File: mcp-server/src/session.ts:68-92 → delete the Supabase decode path
+            Rationale: MCP server issues its own JWTs via OAuth 2.1 — that is the correct flow.
+            The Supabase fallback decodes WITHOUT signature verification, creating a forgery vector.
+            There is NO valid use case for Supabase JWT in MCP — OAuth 2.1 is the sole auth path.
+        A2. Audit all JWT validation paths for completeness
+
+      BLOCK B — Per-Tool Rate Limiting (4h):
+        B1. Extend existing rate limiter to accept toolName parameter
+            File: mcp-server/src/middleware/rate-limit.ts
+        B2. Define per-tool limits by tier:
+            | Tool             | Anon  | Auth  | Premium |
+            |------------------|-------|-------|---------|
+            | search_products  | 30/min| 60/min| 120/min |
+            | create_checkout  | 0     | 5/min | 20/min  |
+            | update_cart      | 10/min| 30/min| 60/min  |
+            | update_my_profile| 5/min | 10/min| 20/min  |
+            | (default read)   | 30/min| 60/min| 120/min |
+        B3. Return X-RateLimit-* headers on tool responses
+
+      BLOCK C — Test Infrastructure (8h):
+        C1. Configure Vitest in mcp-server (vitest.config.ts, test scripts)
+        C2. Tests for OAuth 2.1 flow: authorize, token, revoke, PKCE validation
+        C3. Tests for 5 main tools: search-products, get-cart, create-checkout, get-order-status, get-my-profile
+        C4. Tests for session management: create, resume, expire
+        C5. Tests for rate limiting: per-tool limits, tier enforcement
+
+      BLOCK D — Session Persistence (3h):
+        D1. Store session metadata in Redis (session_id, user_id, created_at, last_used)
+            Keep Transport objects local (cannot be serialized)
+        D2. On reconnect: restore session from Redis + create new Transport
+        D3. Session cleanup: expire unused sessions after 1h
+
+      BLOCK E — Error Handling &amp; CORS (4h):
+        E1. Standardize JSON-RPC error codes with descriptive messages
+        E2. Add input length limits to all Zod schemas (max 1000 chars for text fields)
+        E3. Make CORS origins configurable via environment variable
+            File: mcp-server/src/index.ts (currently hardcoded claude.ai, chatgpt.com, localhost:3000)
+        E4. Add Zod validation error details in responses
+    </implementation>
+
+    <validation>
+      V1. Forged Supabase JWT rejected → 401 Unauthorized
+      V2. create_checkout limited to 5/min for authenticated users
+      V3. Vitest test suite passes with >70% coverage
+      V4. Session survives MCP server restart (metadata from Redis)
+      V5. CORS origins configurable via MCP_CORS_ORIGINS env var
+    </validation>
+  </section_7_mcp_server>
+
+  <!-- ================================================================== -->
+  <!-- SECTION 8: TESTING STRATEGY & CI/CD                                 -->
+  <!-- Priority: P0 — BLOQUEANTE | Effort: 36h | Depends: Section 1 partial -->
+  <!-- ================================================================== -->
+
+  <section_8_testing_cicd>
+    <purpose>
+      Establish CI/CD pipeline that blocks merges with regressions, and testing strategy
+      covering critical components. Current state: PodClaw has 21 test files, Playwright
+      has 36 E2E specs, but admin (34 pages, 69 APIs) and MCP server (17 tools) have
+      ZERO tests. The CI workflow (ci.yml) exists but needs verification.
+    </purpose>
+
+    <current_coverage>
+      PodClaw unit tests: 21 files (conftest, connector mocks)
+      Frontend E2E: 36 Playwright specs (auth, cart, chat, shop)
+      Admin tests: 0 (zero unit, zero E2E)
+      MCP Server tests: 0 (zero unit, zero integration)
+      Frontend unit tests: 0 (no vitest configured)
+      CI/CD: 1 workflow (ci.yml) — needs content audit
+      PodClaw critical untested: production_governor.py (27KB), chat_session.py (34KB), soul_evolution.py (16KB)
+    </current_coverage>
+
+    <implementation>
+      BLOCK A — CI/CD Pipeline (6h):
+        A1. Audit existing ci.yml — verify what stages exist
+            File: .github/workflows/ci.yml
+        A2. Stage 1: Lint + TypeScript (eslint + tsc --noEmit for frontend + admin)
+        A3. Stage 2: Unit tests (vitest run for frontend + admin, pytest for PodClaw)
+        A4. Stage 3: Integration tests (MCP tools, admin APIs)
+        A5. Stage 4: Docker build smoke test (docker compose build)
+        A6. Branch protection: require CI pass for merge to main
+
+      BLOCK B — Admin API Tests (10h):
+        B1. Configure Vitest in admin (vitest.config.ts, scripts in package.json)
+        B2. Test helper: mock iron-session, mock Supabase client
+        B3. Auth tests: login success, fail, session expired, rate limit
+        B4. CRUD products tests: create, read, update, delete with auth
+        B5. Orders tests: list, detail, status update with auth
+        B6. Designs tests: list, moderate, delete with auth
+        B7. Settings/branding tests: save, load with auth
+
+      BLOCK C — MCP Server Tests (6h):
+        (Covered in Section 7 Block C — reference only, do not duplicate)
+
+      BLOCK D — PodClaw Critical Path Tests (6h):
+        (Covered in Section 6 Block E — reference only, do not duplicate)
+
+      BLOCK E — Frontend Unit Tests (4h):
+        E1. Configure Vitest in frontend
+        E2. Test Zod schemas (chat input, checkout, profile update)
+        E3. Test utility functions (price formatting, date helpers, i18n helpers)
+        E4. Test SafeMarkdown sanitization
+
+      BLOCK F — E2E Enhancements (4h):
+        F1. Add Playwright specs for admin panel (login, product CRUD, order management)
+        F2. Add Playwright specs for checkout flow (guest + authenticated)
+        F3. Add Playwright specs for i18n (verify content in en/es/de)
+        F4. Update existing 36 specs for any breaking changes from other sections
+    </implementation>
+
+    <validation>
+      V1. CI pipeline runs on every push and blocks merge on failure
+      V2. Admin test suite covers auth + top 4 CRUD operations
+      V3. MCP test suite covers OAuth flow + 5 main tools
+      V4. PodClaw critical files have >80% coverage
+      V5. Playwright suite passes for auth, shopping, admin, and i18n flows
+    </validation>
+  </section_8_testing_cicd>
+
+  <!-- ================================================================== -->
+  <!-- SECTION 9: OBSERVABILITY STACK                                      -->
+  <!-- Priority: P2 | Effort: 26h | Depends: Sections 6, Docker stack    -->
+  <!-- ================================================================== -->
+
+  <section_9_observability>
+    <purpose>
+      Add end-to-end observability to the Docker stack: Prometheus metrics, Grafana
+      dashboards, Loki log aggregation, and automated alerts. Currently zero historic
+      visibility — no way to answer "what was PodClaw's error rate yesterday?" or
+      "how much RAM did frontend use in the last hour?".
+    </purpose>
+
+    <current_scores>
+      System metrics: 0/10 — no Prometheus, no node_exporter, no cAdvisor
+      App metrics: 2/10 — PodClaw /metrics returns JSON (not Prometheus format)
+      Frontend metrics: 0/10 — /api/health measures latencies but doesn't expose /metrics
+      Log aggregation: 0/10 — json-file driver with rotation, no Loki/ELK
+      Alerts: 0/10 — no Alertmanager, no PagerDuty, no webhook alerts
+      Health checks: 7/10 — 8/8 services with Docker healthcheck
+    </current_scores>
+
+    <implementation>
+      BLOCK A — Docker Infrastructure (6h):
+        A1. Add Prometheus service to docker-compose.yml
+            Config: deploy/prometheus/prometheus.yml (scrape targets: all services /metrics)
+        A2. Add Grafana service with pre-built dashboards
+            Config: deploy/grafana/provisioning/ (datasources + dashboards)
+        A3. Add Loki service for log aggregation
+            Config: deploy/loki/loki.yml
+        A4. Add cAdvisor for container metrics
+        A5. Configure Docker logging driver to Loki for all services
+
+      BLOCK B — Application Metrics Endpoints (8h):
+        B1. PodClaw: convert /metrics from JSON to Prometheus text format
+            Using prometheus-fastapi-instrumentator (3 lines of code)
+            File: podclaw/bridge/api.py
+        B2. Frontend: add /api/metrics endpoint with prom-client
+            Metrics: request count, latency, Supabase/Stripe/Printify call counts
+            File: NEW frontend/src/app/api/metrics/route.ts
+        B3. Admin: add /api/metrics endpoint with prom-client
+            File: NEW admin/src/app/api/metrics/route.ts
+        B4. MCP Server: add /metrics endpoint
+            File: mcp-server/src/index.ts
+
+      BLOCK C — Grafana Dashboards (6h):
+        C1. System dashboard: CPU, RAM, network per container (cAdvisor data)
+        C2. PodClaw dashboard: agent costs, session duration, tool calls, errors
+        C3. Ecommerce dashboard: orders/day, revenue, conversion rate
+        C4. Infrastructure dashboard: Supabase latency, Redis ops, Caddy requests
+
+      BLOCK D — Alerting (6h):
+        D1. Configure Grafana alerting with Telegram contact point (reuse PodClaw bot)
+        D2. Alert rules:
+            - Service down > 5 min
+            - PodClaw agent budget > 90% of daily limit
+            - Error rate > 5% on any service
+            - Memory usage > 85% on any container
+            - Supabase latency > 2s
+            - Order stuck in 'paid' > 30 min
+        D3. Alert silence/mute rules for maintenance windows
+    </implementation>
+
+    <validation>
+      V1. Prometheus scrapes all 4 application services successfully
+      V2. Grafana dashboards show real-time container and application metrics
+      V3. Loki indexes logs from all 8 Docker services
+      V4. Telegram alert fires when PodClaw agent exceeds 90% budget
+      V5. Total RAM increase from observability stack less than 768MB
+    </validation>
+  </section_9_observability>
+
+  <!-- ================================================================== -->
+  <!-- SECTION 10: GROWTH & ENGAGEMENT                                     -->
+  <!-- Priority: P2 | Effort: 44h | Depends: Sections 4, 5              -->
+  <!-- ================================================================== -->
+
+  <section_10_growth_engagement>
+    <purpose>
+      Transform storefront from functional to conversion-optimized: social proof on homepage,
+      photo reviews, cross-sell by co-purchase analysis, abandoned cart recovery, email marketing
+      with double opt-in (LEGALLY REQUIRED for Germany — UWG Sec. 7, fines up to EUR 300K),
+      blog system, real social links, referral program UI, and funnel analytics.
+    </purpose>
+
+    <current_scores>
+      Social proof on homepage: 0/10 — no reviews, trust signals, or counters
+      Newsletter capture: 0/10 — no email form on landing or footer
+      Reviews: 4/10 — ReviewForm.tsx exists but no photos, uses mockUserId
+      Cross-sell: 0/10 — relatedProducts by same category, not co-purchase
+      Abandoned cart: 0/10 — no tracking, no recovery emails
+      Double opt-in: 0/10 — NON-COMPLIANT for Germany (UWG Sec. 7)
+      Email drip: 5/10 — 3 steps, English-only templates
+      Blog: 0/10 — no system exists
+      Social links: 1/10 — footer links to generic facebook.com, twitter.com
+      Referral: 3/10 — /api/referral exists (3 credits) but no UI
+    </current_scores>
+
+    <implementation>
+      BLOCK A — Double Opt-in Newsletter (LEGAL PRIORITY) (6h):
+        A1. Add columns to newsletter_subscribers: confirmed_at, confirmation_token
+            Migration: supabase/migrations/YYYYMMDD_double_optin.sql
+        A2. Create POST /api/newsletter/subscribe with confirmation email flow
+            Flow: form → INSERT confirmed=false → send email with token → click → confirmed_at=now()
+        A3. Create GET /api/newsletter/confirm/[token] endpoint
+        A4. Update drip cron: only process subscribers with confirmed_at IS NOT NULL
+        A5. Add newsletter signup form to footer and landing page
+            Files: frontend/src/components/Footer.tsx, landing page
+
+      BLOCK B — Social Proof (6h):
+        B1. Create Testimonials component for homepage (SSR for SEO)
+            File: NEW frontend/src/components/landing/Testimonials.tsx
+        B2. Add trust signals section (order count, rating average, shipping countries)
+        B3. Create "As seen on" logos section (placeholder for press mentions)
+        B4. Wire to Supabase: aggregate review data for real numbers
+
+      BLOCK C — Photo Reviews (6h):
+        C1. Add image_urls JSONB column to product_reviews table
+        C2. Update ReviewForm.tsx: photo upload (max 3 images, 5MB each)
+        C3. Add verified purchase badge (check order_items for reviewer's orders)
+        C4. Replace mockUserId with real auth.uid() from session
+        C5. Admin moderation: approve/reject reviews with photos
+
+      BLOCK D — Cross-Sell &amp; Recently Viewed (6h):
+        D1. Implement co-purchase analysis using association_rules table
+        D2. Create "Customers also bought" component using real order data
+        D3. Add "Recently viewed" tracking (localStorage, max 20 products)
+        D4. "Save for later" from cart to wishlist
+
+      BLOCK E — Abandoned Cart Recovery (6h):
+        E1. Track cart abandonment in Supabase table abandoned_carts
+            (user_id, cart_snapshot JSONB, abandoned_at, email_1_sent_at, email_2_sent_at, recovered_at)
+            Rationale: Redis TTL loses data on restart. Supabase is persistent and queryable.
+        E2. Cron job (abandoned-cart-recovery, every 1h): find carts with items, no checkout in 1h → send recovery email
+        E3. Second email at 24h if still abandoned
+        E4. Recovery emails localized (en/es/de) with direct cart link
+
+      BLOCK F — Blog System (5h):
+        F1. Create blog_posts table: id, slug, title_{en,es,de}, content_{en,es,de}, status, author, published_at
+        F2. Admin blog editor page (reuse legal page editor pattern with tabs EN/ES/DE)
+        F3. Frontend /blog page: SSR post listing with generateMetadata()
+        F4. Frontend /blog/[slug] page: SSR post detail with JSON-LD Article
+
+      BLOCK G — Referral &amp; Social (5h):
+        G1. Create referral program UI page: invite friends, track referrals, see credits
+            File: NEW frontend/src/app/[locale]/(app)/referrals/page.tsx
+        G2. Share buttons on product pages (native Web Share API + fallback links)
+        G3. Replace generic social URLs with configurable brand links from brand_config
+        G4. Create OG image generation for shared products
+
+      BLOCK H — Funnel Analytics (4h):
+        H1. Create analytics_events table: event_name, user_id, session_id, properties JSONB, created_at
+        H2. Client-side event tracker: view_product, add_to_cart, begin_checkout, purchase
+        H3. Admin funnel dashboard: conversion rates at each step
+    </implementation>
+
+    <validation>
+      V1. Newsletter signup requires email confirmation (double opt-in flow)
+      V2. Homepage shows testimonials section with real review data
+      V3. Product reviews support photo upload with verified purchase badge
+      V4. Abandoned cart email sent 1h after cart inactivity
+      V5. Blog posts render with correct SEO metadata
+      V6. Referral page shows user's referral stats and invite link
+      V7. Drip emails send in correct locale (en/es/de)
+    </validation>
+  </section_10_growth_engagement>
+
+  <!-- ================================================================== -->
+  <!-- SECTION 11: MULTI-TENANT ARCHITECTURE                               -->
+  <!-- Priority: P3 — VISION | Effort: 86h | Depends: Sections 1, 3     -->
+  <!-- ================================================================== -->
+
+  <section_11_multi_tenant>
+    <purpose>
+      Transform POD AI from single-brand to multi-tenant SaaS where each tenant (store)
+      has isolated data, independent configuration, own agents, and separate billing.
+      This is the terminal plan — depends on all P0 and P1 work being complete.
+      Target: support 10+ independent stores on single infrastructure with zero cross-tenant data leakage.
+    </purpose>
+
+    <current_state>
+      Tenant model: 0/10 — no tenant_id in any table
+      brand_config: singleton (1 row global)
+      store_themes: UNIQUE constraint on is_active=true (1 active theme globally)
+      legal_settings: singleton (1 row JSONB)
+      PodClaw: global config.py (same budgets/tools for everything)
+      Billing: single Stripe merchant account
+      Custom domains: Caddy with 1 DOMAIN
+      Storage isolation: 0/10 (images via external URLs)
+      PII encryption: 0/10 (no pgsodium)
+      64 tables need tenant_id
+    </current_state>
+
+    <architectural_decisions>
+      ISOLATION MODEL: Row-Level Security (RLS) with tenant_id column
+        - Every query automatically filtered by tenant_id via RLS policies
+        - No separate schemas per tenant (too complex for 10-50 tenants)
+        - Supabase handles RLS enforcement at database level
+
+      TENANT RESOLUTION: Domain-based
+        - Primary: custom domain (e.g., store.example.com) → tenants.domain lookup
+        - Fallback: subdomain (e.g., tenant-slug.podai.com) → tenants.slug lookup
+        - Resolution cached in Redis for 5min, falls back to DB query
+
+      STRIPE MODEL: Stripe Connect (Standard)
+        - Platform account collects platform fees
+        - Each tenant has own Stripe connected account
+        - Direct charges with application_fee_amount
+
+      AGENT ISOLATION: Configuration-based (NOT separate processes)
+        - Single PodClaw instance serves all tenants
+        - tenant_configs table replaces global config.py values
+        - Agent sessions include tenant_id, RLS prevents cross-tenant queries
+        - Budget limits per-tenant (not global)
+    </architectural_decisions>
+
+    <implementation>
+      BLOCK A — Tenant Model &amp; Schema (12h):
+        A1. Create tenants table:
+            id UUID PK, slug VARCHAR(50) UNIQUE, name VARCHAR(255),
+            domain VARCHAR(255) UNIQUE, plan VARCHAR(20) DEFAULT 'starter',
+            status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active','suspended','cancelled')),
+            settings JSONB DEFAULT '{}', created_at, updated_at
+        A2. Create tenant_configs table:
+            id UUID PK, tenant_id UUID FK→tenants, key VARCHAR(100), value JSONB,
+            UNIQUE(tenant_id, key)
+            Replaces: brand_config singleton, legal_settings singleton, agent budgets
+        A3. Add tenant_id UUID NOT NULL column to ALL 64 tables
+            Migration strategy: 3 phases
+              Phase 1: ADD COLUMN tenant_id UUID (nullable) + default to 'first_tenant_id'
+              Phase 2: UPDATE all rows SET tenant_id = 'first_tenant_id' WHERE tenant_id IS NULL
+              Phase 3: ALTER COLUMN tenant_id SET NOT NULL + ADD FK REFERENCES tenants(id)
+            CRITICAL: Each phase is a separate migration. Phase 2 uses batched updates (1000 rows/batch)
+            to avoid locking production tables.
+        A4. Update ALL RLS policies to include tenant_id dimension:
+            Pattern: USING (tenant_id = (auth.jwt() ->> 'tenant_id')::uuid AND ...)
+            Every existing policy gets an additional AND tenant_id = ... clause
+        A5. Supabase Auth hook: inject tenant_id into JWT claims
+            File: supabase/functions/custom-access-token/index.ts
+            Pattern: Map user → tenant via user_tenants junction table (supports multi-tenant users)
+
+      BLOCK B — Data Isolation (16h):
+        B1. Convert brand_config from singleton to tenant-scoped:
+            Move all brand_config columns to tenant_configs entries
+            Delete brand_config table after migration
+        B2. Convert store_themes UNIQUE constraint:
+            From: UNIQUE(is_active) WHERE is_active=true (global)
+            To: UNIQUE(tenant_id, is_active) WHERE is_active=true (per-tenant)
+        B3. Convert legal_settings to per-tenant:
+            Each tenant has own legal pages, privacy policy, terms, cookie settings
+            Stored in tenant_configs with key prefix 'legal:'
+        B4. Scope coupons by tenant:
+            Add tenant_id to coupons table
+            UNIQUE(tenant_id, code) instead of UNIQUE(code) — prevents cross-tenant code collisions
+        B5. Scope shipping_zones by tenant:
+            Each tenant configures own shipping rates and zones
+        B6. PII encryption with pgsodium:
+            Encrypt: users.email, users.name, orders.shipping_address, orders.billing_address
+            Key rotation: per-tenant encryption key, rotated quarterly
+            Pattern: pgsodium.crypto_aead_det_encrypt(data, nonce, key_id)
+        B7. Storage isolation:
+            Supabase storage buckets: one bucket per tenant (tenant-{slug})
+            RLS on storage.objects filters by tenant bucket
+            Product images URL pattern: /storage/v1/object/public/tenant-{slug}/products/{id}/
+
+      BLOCK C — Agent Isolation (16h):
+        C1. Per-tenant PodClaw configuration:
+            tenant_configs keys: 'agent:daily_budget_eur', 'agent:allowed_tools', 'agent:model',
+            'agent:max_sessions_per_day', 'agent:cron_schedule'
+            Bridge API resolves config from tenant_configs instead of global config.py
+        C2. Per-tenant Printify shop mapping:
+            tenant_configs key: 'printify:shop_id', 'printify:api_token'
+            Connector resolves per-tenant credentials from tenant_configs
+        C3. Per-tenant Stripe account (Connect Standard):
+            tenant_configs key: 'stripe:connected_account_id'
+            Checkout creates PaymentIntent with transfer_data.destination = tenant's connected account
+            Platform takes application_fee_percent (configured per plan)
+        C4. Per-tenant SMTP:
+            tenant_configs key: 'email:resend_api_key' OR 'email:smtp_host/port/user/pass'
+            Fallback: platform default Resend account (for starter plan)
+        C5. Cross-tenant query safety pattern:
+            ALL Supabase client instances initialized with tenant_id in JWT
+            Bridge API: extract tenant_id from request, inject into all DB queries
+            Cron jobs: iterate tenants, process each with tenant-scoped client
+            PROHIBITED: Any DB query without tenant_id filter (enforced by RLS, verified by tests)
+
+      BLOCK D — Custom Domains &amp; Routing (12h):
+        D1. Caddy on-demand TLS:
+            Caddyfile: on_demand_tls { ask http://frontend:3000/api/verify-domain }
+            /api/verify-domain checks tenants.domain, returns 200 if valid
+            Automatic ACME certificate issuance per tenant domain
+        D2. Tenant resolution middleware:
+            File: frontend/src/middleware.ts
+            Priority: 1) Custom domain → tenants.domain lookup
+                      2) Subdomain → tenants.slug lookup
+                      3) No match → 404 tenant not found
+            Sets x-tenant-id header for all downstream requests
+            Caches resolution in Redis (5min TTL) for performance
+        D3. Frontend tenant-aware theme loading:
+            Read tenant theme from tenant_configs on first request
+            CSS variables set at :root level per tenant
+            Logo, favicon, brand colors from tenant_configs
+        D4. Admin tenant switcher:
+            Platform admin can switch between tenants
+            Regular tenant admin sees only their tenant
+            URL pattern: /panel?tenant={slug} OR separate admin subdomain per tenant
+
+      BLOCK E — Billing &amp; Plans (14h):
+        E1. Stripe Connect onboarding:
+            Tenant creation triggers Stripe Connect account link
+            Standard account type (tenant manages own Stripe dashboard)
+            Platform receives application_fee on every transaction
+        E2. Platform plans with feature gates:
+            | Feature              | Free    | Starter (€29/mo) | Pro (€99/mo) |
+            |----------------------|---------|-------------------|--------------|
+            | Products             | 10      | 100               | Unlimited    |
+            | Agent sessions/day   | 2       | 10                | 50           |
+            | Custom domain        | No      | Yes               | Yes          |
+            | PII encryption       | No      | No                | Yes          |
+            | API rate limit       | 100/min | 500/min           | 2000/min     |
+            | Storage              | 1GB     | 10GB              | 100GB        |
+        E3. Usage-based billing:
+            Track: API calls, agent sessions, storage GB, emails sent
+            Monthly invoice via Stripe Billing with usage records
+            Overage charges: defined per plan in tenant_configs
+        E4. Tenant admin billing page:
+            Current plan, usage meters, upcoming invoice
+            Plan upgrade/downgrade with proration
+            Payment method management (Stripe Customer Portal)
+
+      BLOCK F — Migration &amp; Onboarding (16h):
+        F1. Tenant creation wizard:
+            Step 1: Name, slug, domain (availability check)
+            Step 2: Branding (logo, colors, description)
+            Step 3: Stripe Connect onboarding (OAuth redirect)
+            Step 4: Printify shop connection (API key input)
+            Step 5: Plan selection + payment
+        F2. Data migration script (single-tenant → first tenant):
+            Creates 'default' tenant record
+            Backfills tenant_id on all 64 tables
+            Migrates brand_config → tenant_configs
+            Migrates legal_settings → tenant_configs
+            MUST be idempotent (safe to re-run)
+        F3. Tenant health dashboard:
+            Per-tenant metrics: orders/day, revenue, agent cost, storage used
+            Cross-tenant overview for platform admin
+            Alert if any tenant exceeds plan limits
+        F4. Documentation:
+            ADR: "Why RLS-based multi-tenancy" (vs schema-per-tenant vs DB-per-tenant)
+            Runbook: "Adding a new tenant"
+            Runbook: "Tenant suspension and data export"
+    </implementation>
+
+    <validation>
+      V1. Two tenants coexist with isolated products, orders, and configurations
+      V2. Tenant A cannot access Tenant B's data via ANY API (including admin, bridge, MCP)
+      V3. Each tenant has independent theme, branding, and legal pages
+      V4. PodClaw agents run with per-tenant budgets and API keys
+      V5. Custom domain resolves to correct tenant with automatic TLS
+      V6. PII encrypted at rest with pgsodium (Pro plan)
+      V7. Cross-tenant query test: 100 random queries verified to return only own-tenant data
+      V8. Tenant creation wizard completes end-to-end (name→Stripe→Printify→live)
+      V9. Platform admin can switch between tenants without re-authentication
+      V10. Data migration script successfully converts existing data to first tenant
+      V11. Plan feature gates enforced (free tenant cannot exceed 10 products)
+    </validation>
+  </section_11_multi_tenant>
+
+  <!-- ================================================================== -->
+  <!-- SECTION 12: DOCUMENTATION & ADRs                                    -->
+  <!-- Priority: P2 | Effort: 18.5h | Depends: None                      -->
+  <!-- ================================================================== -->
+
+  <section_12_documentation>
+    <purpose>
+      Establish sustainable documentation: ADRs (Architecture Decision Records),
+      consolidated API reference, unified onboarding guide, operational runbooks,
+      database ERD, and CHANGELOG. PodClaw docs are excellent (9/10) but the rest
+      of the system lacks formal documentation. Bus factor = 1.
+    </purpose>
+
+    <existing_docs>
+      COMPLETE: CLAUDE.md, podclaw/README.md, AGENTS.md, SECURITY.md, SOUL.md, MEMORY.md,
+               TOOLS.md, CONTRIBUTING.md, USAGE.md, 10x SKILL.md, mcp-server/CLAUDE.md,
+               deploy/README.md, deploy/BACKUP.md, deploy/CLOUDFLARE-*.md
+      MISSING: ADRs, consolidated API reference, onboarding guide, deployment runbook,
+              incident response playbook, database ERD, CHANGELOG
+    </existing_docs>
+
+    <implementation>
+      BLOCK A — ADR System (4h):
+        A1. Create ADR template and directory structure
+            Directory: docs/adr/
+            Format: NNNN-title-kebab-case.md (Michael Nygard lightweight format)
+        A2. Write ADRs for existing critical decisions:
+            - ADR-0001: iron-session over Supabase Auth for admin
+            - ADR-0002: Three route groups (landing/app/focused)
+            - ADR-0003: PodClaw dual budget defense
+            - ADR-0004: Supabase Cloud (not self-hosted)
+            - ADR-0005: Redis optional everywhere
+            - ADR-0006: Two auth systems (Supabase vs bcrypt)
+
+      BLOCK B — API Reference (5h):
+        B1. Expose FastAPI auto-generated OpenAPI docs for Bridge API
+            File: podclaw/bridge/api.py (FastAPI has built-in /docs)
+        B2. Generate OpenAPI spec for admin API routes
+        B3. Document MCP server tools with input/output schemas
+        B4. Create unified API reference page in docs/
+
+      BLOCK C — Onboarding &amp; Runbooks (5h):
+        C1. Unified onboarding guide: "zero to running" in docs/ONBOARDING.md
+        C2. Deployment runbook: troubleshooting, rollback, scaling
+            File: docs/runbooks/deployment.md
+        C3. Incident response playbook
+            File: docs/runbooks/incident-response.md
+        C4. PodClaw operator guide: monitoring, budget adjustment, agent management
+
+      BLOCK D — Database &amp; Changelog (4.5h):
+        D1. Generate database ERD (use pg_dump + visualization tool)
+            File: docs/database-erd.md (or .svg)
+        D2. Table descriptions with column semantics
+        D3. Initialize CHANGELOG.md with current state
+            File: CHANGELOG.md at project root
+        D4. Document CLAUDE.md maintenance strategy
+    </implementation>
+
+    <validation>
+      V1. docs/adr/ contains at least 6 ADR files
+      V2. Bridge API has accessible OpenAPI docs at /docs
+      V3. docs/ONBOARDING.md enables a new developer to run the stack from scratch
+      V4. CHANGELOG.md tracks all changes from this hardening phase
+      V5. Database ERD visualizes all 64 tables with relationships
+    </validation>
+  </section_12_documentation>
+
+  <!-- ================================================================== -->
+  <!-- SECTION 13: PRINTIFY INTEGRATION HARDENING                          -->
+  <!-- Priority: P1 | Effort: 41h | Depends: Sections 1, 3              -->
+  <!-- ================================================================== -->
+
+  <section_13_printify_integration>
+    <purpose>
+      Fix 22 findings from the Printify integration audit: eliminate race conditions in
+      variant sync, implement automatic retry for stuck orders, automatic refunds on
+      Printify cancellation, cleanup orphaned temp products, and protect admin edits
+      from being overwritten by sync. Current integration score: 6.5/10 → target: 8.5/10.
+    </purpose>
+
+    <current_scores>
+      Stock/Availability: 6/10 — checkout validation OK but 2h sync window, no real-time check
+      Product Lifecycle: 5/10 — functional but race conditions, admin edits overwritten
+      Checkout/Orders: 6/10 — idempotency OK, HMAC OK, but no retry scheduler for stuck orders
+      Reconciliation: 7/10 — cron 2h sync + finance daily, but wide window
+    </current_scores>
+
+    <printify_connector_inventory>
+      File: podclaw/connectors/printify_mcp_connector.py (~2000 lines, 24 tools)
+      Tools: list_products, get_product, create, update, publish, unpublish, delete_product,
+             get_blueprints, get_blueprint_detail, get_gpsr, get_providers, get_variants,
+             upload_image, get_mockup, list_shops, get_shop, create_order, send_to_production,
+             cancel_order, list_uploads, get_orders, get_order_costs, get_shipping_profiles,
+             list_webhooks, create_webhook, delete_webhook
+    </printify_connector_inventory>
+
+    <implementation>
+      BLOCK A — Order Reliability (13h):
+        A1. Extend retry cron: add path for orders WITHOUT printify_order_id → recreate order
+            File: frontend/src/app/api/cron/retry-printify-orders/route.ts
+            Add: createOrder() + submitOrderForProduction() for orders stuck in 'paid'
+            Add: exponential backoff (2s, 4s, 8s, max 3 attempts)
+        A2. Automatic refund on Printify cancellation
+            File: frontend/src/app/api/webhooks/printify/route.ts (handleOrderCancelled)
+            Add: stripe.refunds.create() + update orders.status='refunded' + notify customer
+        A3. Auto-refund for requires_review after 24h
+            File: frontend/src/app/api/cron/retry-printify-orders/route.ts
+            Add: check orders in 'requires_review' > 24h → refund + notify admin
+        A4. Delivery notification email
+            File: frontend/src/app/api/webhooks/printify/route.ts (handleOrderDelivered)
+            Add: sendOrderDeliveredEmail() via Resend
+        A5. Multiple shipments support: iterate shipments[] array, notification per package
+        A6. Handle order:updated + order:failed Printify events
+            File: frontend/src/app/api/webhooks/printify/route.ts
+            Add: handlers that update printify_status; order:failed → auto-refund + notify
+        A7. Handle charge.dispute.created (Stripe chargeback)
+            File: frontend/src/app/api/webhooks/stripe/route.ts
+            Add: mark order as disputed, alert admin, pause fulfillment
+
+      BLOCK B — Variant Sync Fix (6h):
+        B1. Replace DELETE+INSERT with UPSERT for variants
+            File: frontend/src/lib/printify-sync.ts (syncVariants function)
+            SQL: ON CONFLICT (product_id, printify_variant_id) DO UPDATE
+        B2. Add unique constraint: (product_id, printify_variant_id)
+            Migration: supabase/migrations/YYYYMMDD_variant_upsert.sql
+        B3. Add admin_edited_at column to products table
+            Sync hook: skip fields where admin_edited_at > last_synced_at
+        B4. Soft delete: add deleted_at, deleted_by columns to products
+            File: deleteProductCascade() uses SET deleted_at instead of DELETE
+
+      BLOCK C — Connector Resilience (6h):
+        C1. Exponential backoff for 429/5xx responses in PrintifyMCPConnector
+            File: podclaw/connectors/printify_mcp_connector.py
+            Pattern: 3 attempts, wait 2s/4s/8s
+        C2. Circuit breaker: after 5 consecutive failures, open circuit for 60s
+            Log + alert admin
+        C3. Parse Retry-After header on 429 responses
+        C4. Dynamic timeouts: 30s reads, 60s writes, 120s uploads
+
+      BLOCK D — Cleanup &amp; Consistency (6h):
+        D1. Temp product cleanup cron: delete orphaned Printify temp products >24h without order
+            File: NEW frontend/src/app/api/cron/cleanup-temp-products/route.ts
+        D2. Reduce sync-printify cron interval from 2h to 30min
+            File: frontend/src/app/api/cron/sync-printify/route.ts
+        D3. Cart validation: re-validate product availability when opening cart
+            File: frontend/src/components/storefront/StorefrontSidebar.tsx (or cart component)
+        D4. Audit log on product deletion: record actor, reason, timestamp in audit_log
+
+      BLOCK E — Governance (6h):
+        E1. Deduplication check before creating products in Printify
+            Query: Supabase by similar title (Levenshtein < 3 or trigram > 0.8)
+            File: podclaw/connectors/printify_mcp_connector.py
+        E2. Admin approval queue: products with score 6-7 → status 'pending_review'
+            File: admin/src/app/products/page.tsx (add pending_review filter + approve/reject)
+        E3. Auto-unpublish: if QA detects problem post-publish (0 sales + report) → unpublish
+
+      BLOCK F — Tests (4h):
+        F1. Test retry scheduler: mock Printify API failure → verify retry + eventual refund
+        F2. Test UPSERT variants: concurrent sync → no data loss
+        F3. Test refund on cancellation: mock Printify cancel webhook → verify Stripe refund
+        F4. Test temp product cleanup: verify orphans deleted after 24h
+    </implementation>
+
+    <validation>
+      V1. Order stuck in 'paid' → retried within 30min → success or refund
+      V2. Printify cancels order → Stripe refund created automatically within 5min
+      V3. Two concurrent variant syncs → zero variants lost (UPSERT)
+      V4. Admin edits product title → sync runs → title preserved
+      V5. Product soft deleted → deleted_at set, recoverable
+      V6. Printify 429 → retry after backoff → eventual success
+      V7. Temp product >24h without order → deleted from Printify
+      V8. Duplicate product title → blocked before creation
+    </validation>
+  </section_13_printify_integration>
+
+  <!-- ================================================================== -->
+  <!-- SECTION 14 — BRAND IDENTITY & SKAPARA REBRAND                      -->
+  <!-- ================================================================== -->
+
+  <section_14_brand_identity>
+    <purpose>
+      Replace all customer-visible "POD AI" hardcodes with the real commercial brand "Skapara".
+      Extend brand_config DB table with identity fields (brand_name, logos, SEO, emails).
+      Make brand identity editable from admin /branding page.
+      PodClaw is internal infrastructure — it does NOT get renamed.
+      Estimated effort: 25 hours across 6 phases (Block B pre-completed).
+    </purpose>
+
+    <current_state>
+      brand_config table EXISTS but only has: neck_label, packaging, gift_messages, colors, font.
+      MISSING: brand_name, tagline, logo_urls, favicon_url, og_image_url, support_email, social_links, copyright_text, seo_titles, seo_descriptions.
+      22+ hardcodes of "POD AI" across frontend (sidebar, layout, emails, manifest, i18n) and admin (login, sidebar, layout).
+      theme-server.ts uses unstable_cache + supabaseAdmin — exact pattern to follow for brand-config-server.ts.
+
+      PRE-COMPLETED (Block B — Brand Assets):
+        All brand assets already generated and deployed to frontend/public/brand/:
+          SVGs: skapara-mark-dark.svg, skapara-mark-white.svg, skapara-mark-color.svg (gradient), skapara-wordmark-dark.svg
+          PWA icons: icon-192.png (192x192), icon-512.png (512x512) — REAL images, NOT placeholders
+          Favicon: favicon-32.png, favicon-16.png, favicon.ico (multi-res 16+32)
+          Apple: apple-touch-icon.png (180x180, light bg variant)
+          Logo PNGs: logo-mark-dark.png (200w), logo-mark-white.png (200w)
+          Social: og-image.png (1200x630, white S on #0F172A background)
+        Root public/ replacements already done:
+          icon-192.png, icon-512.png → real 192/512px icons (were 1x1px placeholders)
+          icon.svg → Skapara S mark on dark rounded rect (was blue square + "POD AI" text)
+          favicon.ico → multi-res ICO (did not exist before)
+          apple-touch-icon.png → 180x180 (did not exist before)
+        DO NOT regenerate, resize, or process any logo/icon assets — they are final.
+    </current_state>
+
+    <current_scores>
+      Brand Consistency: 2/10 (wrong name everywhere in code, but assets are ready)
+      Asset Quality: 9/10 (all icons, favicons, OG image, SVGs deployed — DONE)
+      Admin Editability: 3/10 (branding page only handles themes, not identity)
+      SEO Brand Alignment: 2/10 (meta titles say "POD AI", not "Skapara")
+    </current_scores>
+
+    <implementation>
+      BLOCK A — Database Migration (2h):
+        A1. Create migration: supabase/migrations/YYYYMMDDHHMMSS_brand_identity.sql
+            ALTER TABLE brand_config ADD COLUMN IF NOT EXISTS:
+              brand_name VARCHAR(100) DEFAULT 'Skapara',
+              brand_tagline TEXT DEFAULT 'AI-Powered Fashion, European Quality',
+              brand_description TEXT DEFAULT 'Create custom designs with AI and get them printed on premium products.',
+              logo_light_url TEXT,
+              logo_dark_url TEXT,
+              logo_icon_url TEXT,
+              favicon_url TEXT,
+              og_image_url TEXT,
+              support_email VARCHAR(255) DEFAULT 'support@skapara.com',
+              noreply_email VARCHAR(255) DEFAULT 'noreply@skapara.com',
+              social_links JSONB DEFAULT '{}',
+              copyright_text VARCHAR(255) DEFAULT '© 2026 Skapara. All rights reserved.',
+              seo_titles JSONB DEFAULT '{"en":"Skapara — AI-Powered Print on Demand Store","es":"Skapara — Tienda de Impresion bajo Demanda con IA","de":"Skapara — KI-gestuetzter Print-on-Demand-Shop"}',
+              seo_descriptions JSONB DEFAULT '{"en":"Create custom designs with AI and get them printed on premium products.","es":"Crea disenos personalizados con IA e imprimelos en productos premium.","de":"Erstelle individuelle Designs mit KI und lass sie auf Premium-Produkte drucken."}'
+        A2. UPDATE existing active row with Skapara defaults WHERE brand_name IS NULL
+        A3. Run: supabase db push
+
+      BLOCK B — Brand Assets — ✅ PRE-COMPLETED (0h remaining):
+        ALL DONE. Do NOT modify, regenerate, or resize any files in frontend/public/brand/.
+        Do NOT modify frontend/public/icon.svg, icon-192.png, icon-512.png, favicon.ico, or apple-touch-icon.png.
+        These assets were professionally processed (potrace vectorization + ImageMagick) and are final.
+        Available assets for use in code:
+          - frontend/public/brand/logo-mark-dark.png → sidebar/header logo on light bg
+          - frontend/public/brand/logo-mark-white.png → sidebar/header logo on dark bg
+          - frontend/public/brand/skapara-mark-dark.svg → S mark SVG (dark, for <Image> or inline)
+          - frontend/public/brand/skapara-mark-white.svg → S mark SVG (white)
+          - frontend/public/brand/skapara-mark-color.svg → S mark SVG (gradient)
+          - frontend/public/brand/og-image.png → for OpenGraph metadata
+          - frontend/public/favicon.ico → already at root
+          - frontend/public/apple-touch-icon.png → already at root
+
+      BLOCK C — Server-Side Brand Config (4h):
+        C1. NEW FILE: frontend/src/lib/brand-config-server.ts
+            Follow exact pattern of theme-server.ts (unstable_cache + supabaseAdmin):
+              - Interface BrandConfig with all new columns
+              - FALLBACK_BRAND constant (Skapara defaults, never null)
+              - getBrandConfig() with unstable_cache, revalidate: 300, tags: ['brand-config']
+            File: frontend/src/lib/theme-server.ts (reference pattern, lines 49-85)
+        C2. NEW FILE: frontend/src/app/api/storefront/brand-config/route.ts
+            Public GET, cache 5min. Returns subset: brand_name, brand_tagline, logo_light_url,
+            logo_dark_url, support_email, social_links. For client component consumption.
+        C3. Update frontend/src/lib/store-config.ts:
+            Keep STORE_DEFAULTS.platformName as static fallback.
+            SSR consumers use getBrandConfig() instead.
+            Client consumers use API route or receive brand as prop from layout.
+
+      BLOCK D — Frontend Hardcode Cleanup (8h):
+        D1. frontend/src/app/[locale]/layout.tsx (SEO — CRITICAL):
+            Import getBrandConfig from brand-config-server.ts.
+            generateMetadata() reads brand.seo_titles[locale] and brand.seo_descriptions[locale].
+            OpenGraph siteName = brand.brand_name.
+            Pass brand to layout for children if needed.
+        D2. frontend/src/app/layout.tsx (root):
+            title: 'POD AI Store' → title: 'Skapara' (or dynamic via brand config).
+            Add favicon links: <link rel="icon" href="/favicon.ico" /> (file already exists at root)
+            Add: <link rel="apple-touch-icon" href="/apple-touch-icon.png" /> (file already exists)
+        D3. frontend/src/components/storefront/StorefrontSidebar.tsx:
+            Lines 148-153: Replace gradient div with "P" letter → <Image src="/brand/logo-mark-dark.png"> (or logo-mark-white.png for dark mode).
+            "POD AI" text → brandName prop from layout, or STORE_DEFAULTS.platformName fallback.
+            Logo images already exist at frontend/public/brand/ — just reference them.
+        D4. Create frontend/src/app/manifest.ts (Next.js dynamic manifest):
+            Reads getBrandConfig() → returns manifest with brand_name, icons, theme_color.
+            DELETE frontend/public/manifest.json (replaced by dynamic manifest.ts).
+        D5. frontend/src/lib/resend.ts:
+            from: field → process.env.EMAIL_FROM || brand.noreply_email.
+            Email heading <h1>POD AI</h1> → <h1>${brandName}</h1>.
+            Footer tagline → ${brandName} — ${brand.brand_tagline}.
+            Function receives brandName as parameter (caller gets from getBrandConfig or env).
+        D6. frontend/messages/en.json, es.json, de.json (i18n — ~11 keys per locale):
+            Replace "POD AI" with {brandName} interpolation in:
+              common.appName, Auth.loginDescription, Auth.registerDescription,
+              storefront.welcomeTitle, storefront.welcomeSubtitle,
+              engagement.welcome.title, engagement.welcome.description,
+              footer.copyright (verify uses {storeName} template),
+              Legal texts (privacy, terms): "POD AI Store" → "{brandName}".
+            Strategy: use next-intl interpolation t('key', { brandName }).
+        D7. frontend/src/lib/push-notifications.ts:
+            VAPID_SUBJECT = 'mailto:push@podai.com' → process.env.VAPID_SUBJECT || 'mailto:push@skapara.com'
+        D8. Email routes (drip, newsletter): update from: field in all sendEmail calls to use env/brand_config.
+
+      BLOCK E — Admin Hardcode Cleanup (4h):
+        E1. admin/src/app/login/page.tsx:
+            <h1>POD AI Admin</h1> → <h1>{brandName} Admin</h1>
+            Use process.env.NEXT_PUBLIC_BRAND_NAME || 'Skapara'.
+        E2. admin/src/components/Sidebar.tsx:
+            <h1>POD AI</h1> → <h1>{process.env.NEXT_PUBLIC_BRAND_NAME || 'Skapara'}</h1>
+        E3. admin/src/app/layout.tsx:
+            Metadata title: "POD AI Admin" → "${process.env.NEXT_PUBLIC_BRAND_NAME || 'Skapara'} Admin"
+        E4. admin/src/app/settings/page.tsx:
+            storeName: 'POD AI' → read from brand_config API.
+        E5. admin/src/app/seo/page.tsx:
+            Hardcoded SEO titles → read from brand_config.seo_titles/seo_descriptions.
+        E6. Add NEXT_PUBLIC_BRAND_NAME=Skapara to admin/.env.local and .env.example.
+
+      BLOCK F — Admin Branding Page Expansion (6h):
+        F1. Expand admin/src/app/branding/page.tsx:
+            Current page ONLY handles themes. Add "Store Identity" section above themes:
+              Fields: brand_name, brand_tagline, copyright_text, support_email, social_links.
+              Logo upload (light, dark, icon) → save to Supabase Storage or as URL.
+              Preview: show how header/sidebar/email look with current values.
+            Use shadcn/ui: Card, Input, Label, Tabs (separate "Identity" and "Themes").
+        F2. Expand admin/src/app/api/admin/brand-config/route.ts:
+            GET: return ALL columns (including new brand identity fields).
+            PUT: accept ALL new fields, validate with Zod.
+            Invalidate cache on save: revalidateTag('brand-config').
+
+      BLOCK G — PodClaw Context Update (1h):
+        G1. Update podclaw/context/brand_config.md:
+            "Store Name: POD AI Store" → "Store Name: Skapara"
+            "Tagline: AI-Powered Fashion, European Quality" → keep (already correct).
+    </implementation>
+
+    <validation>
+      V1. grep -r "POD AI" frontend/src/ admin/src/ → 0 matches in customer-visible code
+      V2. Sidebar shows "Skapara" text + real logo image (not gradient placeholder with "P")
+      V3. <title> on all pages contains "Skapara" (not "POD AI")
+      V4. Admin login page shows "Skapara Admin" (not "POD AI Admin")
+      V5. PWA manifest: name contains "Skapara", icons reference /brand/icon-192.png and /brand/icon-512.png
+      V6. brand_config table has brand_name, seo_titles, logo URLs columns populated
+      V7. Admin /branding page shows editable "Store Identity" section with brand fields
+      V8. Email templates use brand_name from brand_config (not hardcoded "POD AI")
+      V9. i18n files use {brandName} interpolation instead of hardcoded "POD AI"
+    </validation>
+  </section_14_brand_identity>
+
+  <!-- ================================================================== -->
+  <!-- DESIGN SYSTEM RULES                                                 -->
+  <!-- ================================================================== -->
+
+  <design_system_rules>
+    These rules are defined in project/CLAUDE.md and MUST be followed for all UI work.
+
+    1. COMPONENTS: Use shadcn/ui components exclusively (Button, Input, Card, Dialog, Select,
+       Label, Textarea, Checkbox, Switch, Badge, Separator, DropdownMenu, Tabs, Avatar, Sheet).
+       NEVER use raw HTML elements for interactive UI.
+
+    2. TOKENS: Use semantic tokens only (bg-primary, text-foreground, border-border, bg-card,
+       bg-muted, text-muted-foreground, bg-accent, bg-destructive, bg-success, bg-warning).
+       NEVER use raw Tailwind colors (bg-blue-600, bg-gray-100, text-gray-500, bg-white as surface).
+
+    3. RESPONSIVE: Mobile-first. Base styles for 375px, md: for 768px, lg: for 1024px+.
+       Grids: grid-cols-1 md:grid-cols-2 lg:grid-cols-3.
+       Touch targets: minimum p-3 (44px).
+
+    4. UTILITIES: Use cn() from @/lib/utils for conditional class merging.
+
+    5. ROUTE GROUPS: (landing), (app), (focused) are IMMUTABLE. Never restructure.
+       New pages go in the appropriate existing group.
+
+    6. i18n: All frontend UI strings via useTranslations(). Keys in messages/en.json, es.json, de.json.
+       Admin is English-only (no i18n).
+
+    7. ADMIN API: Always use adminFetch() from @/lib/admin-api.ts for client-side API calls.
+       Use apiUrl() for EventSource/SSE connections.
+
+    8. SUPABASE: Use the correct client for context:
+       - Browser: frontend/src/lib/supabase/supabase.ts (ANON_KEY)
+       - Server/API: frontend/src/lib/supabase/supabase-admin.ts (SERVICE_KEY)
+       - Middleware: frontend/src/lib/supabase/supabase-server.ts
+
+    9. MIGRATIONS: Always create NEW migration files. Never edit existing migrations.
+       Name pattern: YYYYMMDDHHMMSS_description.sql
+       Use: supabase migration new &amp;&amp; edit SQL &amp;&amp; supabase db push
+
+    10. PODCLAW: Before modifying any agent, read:
+        - podclaw/AGENTS.md (agent overview)
+        - podclaw/skills/{agent}/SKILL.md (specific skill docs)
+        - podclaw/config.py (budgets, rate limits, tool mappings)
+        - podclaw/SECURITY.md (security model)
+  </design_system_rules>
+
+  <!-- ================================================================== -->
+  <!-- RELIABILITY RULES                                                   -->
+  <!-- ================================================================== -->
+
+  <reliability_rules>
+    Cross-cutting reliability rules for all 15 modules (0-14).
+    Each rule references its enforcement mechanism from Section 0.
+
+    RULE 1 — FAIL-CLOSED (INV-10)
+      Enforced by: Application-level pattern (every auth/verify function)
+      Specification: Security checks (auth, RLS, HMAC, CSRF) MUST deny on error, never allow.
+        - if (error) → return DENY/reject, NOT log-and-continue
+        - Supabase RPC returns null → DENY request (not "assume allowed")
+        - HMAC timingSafeEqual throws → REJECT webhook (not "skip verification")
+        - RLS query returns zero rows → DENY access (not "return empty array")
+      Monitoring: EscalationManager L2 alert on any auth bypass detection
+
+    RULE 2 — EXACTLY-ONCE PROCESSING (INV-02)
+      Enforced by: WebhookProcessor module (Module 2)
+      Specification: All webhook handlers and cron jobs produce side effects at most once.
+        - Webhooks: INSERT INTO processed_events ON CONFLICT DO NOTHING
+        - Crons: pg_try_advisory_xact_lock via CronLockManager (Module 1)
+        - Order mutations: additional pg_advisory_xact_lock(hashtext('order:' || order_id))
+        - DB constraints: orders.stripe_session_id UNIQUE, orders.stripe_refund_id UNIQUE
+      Monitoring: processed_events duplicates counted in DivergenceDetector (Module 8)
+
+    RULE 3 — GRACEFUL DEGRADATION
+      Enforced by: Application startup + runtime checks
+      Specification: Redis is OPTIONAL everywhere — services MUST start and function without it.
+        - Rate limiting: falls back to in-memory Map with 5min TTL
+        - Agent singleton (INV-07): falls back to agent_sessions DB query
+        - Caching: degrades to no-cache (direct DB query)
+        - Startup: NEVER block waiting for Redis connection
+      Monitoring: Redis connection status exposed in /api/health deep check
+
+    RULE 4 — ATOMIC FINANCIALS (INV-01, INV-06)
+      Enforced by: RefundGuard module (Module 3) + PostgreSQL SECURITY DEFINER functions
+      Specification: Operations involving money use atomic DB functions with row-level locking.
+        - Refunds: issue_refund_atomic() — SELECT FOR UPDATE → check → UPDATE
+        - Credits: consume_credit_atomic(), add_credits() — same pattern
+        - Usage: increment_usage_by() — atomic increment
+        - PROHIBITED: Application-level SELECT-then-UPDATE for ANY money field
+      Monitoring: EscalationManager L2 alert on any refund function returning FALSE
+
+    RULE 5 — EXPONENTIAL BACKOFF WITH JITTER
+      Enforced by: RetryManager module (Module 6)
+      Specification: All external API calls have retry with backoff on 429/5xx.
+        - Formula: delay = base_delay * (2^attempt) + random(0, base_delay * 0.5)
+        - Printify: 3 attempts, 2s/4s/8s + jitter. Respect Retry-After header on 429.
+        - Stripe: 3 attempts, 1s/2s/4s + jitter.
+        - fal.ai: 2 attempts, 3s/6s + jitter.
+        - Resend email: 3 attempts, 5s/30s/5min.
+        - After final failure: dead-letter to error_logs + EscalationManager alert
+      Monitoring: RetryManager logs attempt counts to cron_runs.rows_affected or error_logs
+
+    RULE 6 — BUDGET DEFENSE (dual-layer, NEVER single-layer)
+      Enforced by: PodClaw config.py + Claude Agent SDK
+      Specification: PodClaw agents have TWO independent budget protections:
+        - Layer 1: SDK max_budget_usd per session (hard stop by SDK itself)
+        - Layer 2: cost_guard_hook daily EUR limit (cumulative across sessions)
+        - Thresholds: 80% warning (L1 alert) → 90% critical (L1 alert) → 100% hard stop
+        - PROHIBITED: Disabling either layer "because the other exists"
+      Monitoring: Budget usage exposed via GET /metrics (Prometheus format)
+
+    RULE 7 — PII BOUNDARIES (INV-09)
+      Enforced by: PodClaw security hook + structlog processors
+      Specification: PII (email, name, address, phone) NEVER appears in:
+        - Agent prompts or marketing content (use [DATA]...[/DATA] markers)
+        - Log output (structlog processors strip PII fields)
+        - Error messages returned to clients (generic errors only)
+        - marketing_content table (no PII columns exist by design)
+      Monitoring: Compliance audit cron scans agent_events for PII patterns weekly
+
+    RULE 8 — COMPLETE AUDIT TRAIL (INV-08)
+      Enforced by: withAuth() middleware + WebhookProcessor + agent_events
+      Specification: Every state-changing operation has an immutable audit record.
+        - Admin mutations: withAuth() auto-inserts to audit_log BEFORE response
+        - Webhook events: WebhookProcessor logs to processed_events on receipt
+        - Agent actions: agent_events table (action, result, cost, duration)
+        - Product deletions: audit_log with actor, reason, timestamp, recoverable=true
+      Monitoring: DivergenceDetector (Module 8) flags orders without audit trail
+
+    RULE 9 — VALID STATE TRANSITIONS ONLY (INV-04)
+      Enforced by: StateTransitionValidator module (Module 4)
+      Specification: State changes follow the transition matrices defined in <state_machines>.
+        - Every UPDATE SET status=:new includes WHERE status=:expected_current
+        - rows_affected=0 → transition rejected → log to error_logs + L1 alert
+        - StateTransitionValidator.transition() validates BEFORE executing the UPDATE
+        - PROHIBITED: Direct UPDATE without checking current state
+      Monitoring: Rejected transitions counted and exposed in Prometheus metrics
+
+    RULE 10 — NO ZOMBIE STATES (INV-05)
+      Enforced by: ZombieReaper module (Module 5)
+      Specification: Every intermediate state has a max TTL (defined in zombie_prevention table).
+        - ZombieReaper cron runs every 15min
+        - Executes auto-action for expired states (retry, refund, alert, expire)
+        - Sends escalation per defined tier (L1/L2/L3)
+        - If auto-action fails → escalate to next tier
+      Monitoring: ZombieReaper execution results logged to cron_runs
+  </reliability_rules>
+
+  <!-- ================================================================== -->
+  <!-- SLA TARGETS                                                         -->
+  <!-- ================================================================== -->
+
+  <sla_enforcement_model>
+    SLA enforcement for production deployment (1,000+ monthly orders).
+    Each SLA has: metric, data source, check frequency, threshold, auto-action on breach, escalation tier.
+
+    | #  | Metric                        | Source                    | Frequency  | Threshold           | Auto-Action on Breach                  | Escalation |
+    |----|-------------------------------|---------------------------|------------|---------------------|----------------------------------------|------------|
+    | S1 | Uptime (all services)         | /api/health deep check    | 1min       | 99.5% monthly       | Restart unhealthy container            | L2 if >5min down |
+    | S2 | API response time (p95)       | Caddy access log          | 5min agg   | &lt; 500ms             | Log slow endpoints, alert if sustained | L1         |
+    | S3 | Webhook processing latency    | processed_events table    | Per event  | &lt; 5s per event      | Log + alert if queue backing up        | L1         |
+    | S4 | Order submission to Printify  | orders.paid→submitted     | ZombieReaper 15min | &lt; 30min after payment | Retry via RetryManager                | L2 if >2h  |
+    | S5 | Stuck order recovery          | ZombieReaper scan         | 15min      | 0 orders stuck >30min (with retries left) | Auto-retry, auto-refund if exhausted | L2 |
+    | S6 | Refund on cancellation        | RefundGuard execution     | Per event  | &lt; 5min from cancel   | RefundGuard auto-processes             | L2 if fails|
+    | S7 | PodClaw session duration      | agent_sessions.duration   | Per session| &lt; 15min per session  | Force-kill via ZombieReaper at 20min   | L1         |
+    | S8 | Database query (p95)          | pg_stat_statements        | 5min agg   | &lt; 100ms             | EXPLAIN ANALYZE on slow queries, alert | L1         |
+    | S9 | Vector search (768-dim)       | pg_stat_statements        | 5min agg   | &lt; 50ms              | Check HNSW index health                | L1         |
+    | S10| Printify catalog sync         | cron_runs table           | Per cron   | Every 30min ±5min   | Alert if 2 consecutive misses          | L1         |
+    | S11| GDPR data export              | Manual trigger            | On request | &lt; 24h from request  | Queue export job, notify on completion | L1         |
+    | S12| GDPR account deletion         | hard-delete-accounts cron | Daily      | 30d grace then permanent | Cron enforces automatically         | None       |
+    | S13| Container memory (total stack) | docker stats              | 1min       | &lt; 3.5GB total       | Alert admin, check for memory leaks    | L1         |
+    | S14| Alert delivery latency        | EscalationManager log     | Per alert  | &lt; 2min from trigger  | Fallback channel if primary fails      | L2         |
+    | S15| PodClaw daily budget          | cost_guard_hook           | Per session| EUR 30.15 max/day   | 80% warn, 90% critical, 100% hard stop| L1→L2→L3   |
+    | S16| Cron execution overlap        | CronLockManager           | Per cron   | 0 overlapping runs   | pg_advisory_lock prevents at DB level  | L1 if lock stuck |
+    | S17| Webhook dedup effectiveness   | processed_events dupes    | Daily agg  | &lt; 0.1% duplicate processing | Alert if dedup failing            | L2         |
+    | S18| Zombie state count            | ZombieReaper report       | 15min      | 0 zombies beyond TTL| Auto-correct per zombie_prevention table| Per-entity |
+
+    Budget alert thresholds (unified across all cost-bearing operations):
+      80% of limit → L1 warning (Telegram)
+      90% of limit → L2 critical (Telegram + email)
+      100% of limit → L3 hard stop (pause operations + Telegram + email + SSE dashboard)
+
+    Service down escalation:
+      0-2min → auto-restart attempt
+      2-5min → L1 alert (Telegram)
+      5min+  → L2 alert (Telegram + email to admin)
+
+    Data retention for SLA metrics:
+      - cron_runs: 90 days (then archive to cold storage)
+      - processed_events: 90 days
+      - error_logs: 365 days
+      - audit_log: indefinite (GDPR requirement)
+      - agent_events: 90 days (summarized monthly)
+  </sla_enforcement_model>
+
+  <!-- ================================================================== -->
+  <!-- SUCCESS CRITERIA                                                    -->
+  <!-- ================================================================== -->
+
+  <success_criteria>
+    The hardening evolution is complete when:
+
+    SYSTEM INVARIANTS (Section 0 — FOUNDATIONAL):
+    0a. processed_events table exists with UNIQUE(provider, event_id) constraint
+    0b. cron_runs table exists with status CHECK constraint
+    0c. returns table exists with full lifecycle columns
+    0d. orders.stripe_refund_id column exists with UNIQUE constraint
+    0e. issue_refund_atomic() function returns FALSE for already-refunded order
+    0f. try_cron_lock() function returns FALSE when lock already held by another session
+    0g. ZombieReaper cron executes every 15min, detects and corrects expired states
+    0h. WebhookProcessor rejects duplicate event_id (returns 200 without processing)
+    0i. StateTransitionValidator rejects invalid transitions (rows_affected=0 → alert)
+    0j. All 8 reliability modules exist at frontend/src/lib/reliability/ and podclaw/reliability/
+    0k. EscalationManager sends L1/L2/L3 alerts to correct channels
+
+    SECURITY (Section 1):
+    1. Zero public admin endpoints without authentication
+    2. All 64 database tables have RLS enabled with proper policies
+    3. Admin session uses iron-session with signed+encrypted cookies
+    4. Printify HMAC uses timingSafeEqual()
+    5. MCP server rejects forged Supabase JWTs (fallback REMOVED, not fixed)
+
+    ADMIN (Section 2):
+    6. All 34 admin pages use shared layout via route group (no manual DashboardLayout)
+    7. All pages use React Query for data fetching (zero useEffect+fetch patterns)
+    8. Zero color token violations (no bg-blue, bg-gray, etc.)
+    9. Settings page persists to real database (no setTimeout stub)
+
+    DATABASE (Section 3):
+    10. Auth sync trigger fires on every new user registration
+    11. All 11 compound indexes created and verified with EXPLAIN ANALYZE
+    12. pgvector uses HNSW index (IVFFlat removed)
+    13. High-growth tables partitioned by month
+
+    FRONTEND (Section 4):
+    14. Homepage and shop have generateMetadata() (SSR, not client-only)
+    15. All 6 missing pages (/about, /contact, /faq, /blog, /size-guide, /shop/category) exist
+    16. Dynamic sitemap includes all products
+    17. All legal pages use SafeMarkdown (no raw ReactMarkdown)
+
+    CATEGORIES (Section 5):
+    18. categories table exists with 18 seeded categories
+    19. /shop/category/[slug] renders with correct SEO metadata
+    20. Sidebar shows category navigation with product counts
+
+    PODCLAW (Section 6):
+    21. Rate limits and costs persist in Redis (survive restart)
+    22. POST /agents/{name}/run is non-blocking
+    23. GET /metrics returns Prometheus text format
+    24. production_governor.py, chat_session.py, soul_evolution.py have tests
+
+    MCP SERVER (Section 7):
+    25. Supabase JWT fallback REMOVED from session.ts (not fixed — REMOVED)
+    26. Per-tool rate limits enforced (create_checkout limited to 5/min)
+    27. Vitest test suite covers OAuth + main tools
+
+    TESTING (Section 8):
+    28. CI pipeline runs on every push with 4 stages
+    29. Admin API test suite covers auth + CRUD operations
+    30. Branch protection requires CI pass for merge
+
+    OBSERVABILITY (Section 9):
+    31. Prometheus scrapes all application services
+    32. Grafana dashboards show container and business metrics
+    33. Alerts fire on budget overrun, service down, high error rate
+
+    GROWTH (Section 10):
+    34. Double opt-in newsletter (legally compliant for Germany)
+    35. Abandoned cart recovery emails sent within 1h (tracked in Supabase, NOT Redis)
+    36. Photo reviews with verified purchase badge
+
+    MULTI-TENANT (Section 11):
+    37. Two tenants coexist with complete data isolation (RLS enforced)
+    38. Per-tenant branding, themes, and legal pages
+    39. PII encrypted at rest with pgsodium (Pro plan)
+    40. Cross-tenant query test: zero data leakage across all APIs
+    41. Tenant creation wizard completes end-to-end
+    42. Plan feature gates enforced (product limits, API rate limits)
+
+    DOCUMENTATION (Section 12):
+    43. At least 6 ADR files documenting key architecture decisions
+    44. Unified onboarding guide enables new developer setup
+    45. CHANGELOG tracks all changes from this hardening phase
+
+    PRINTIFY (Section 13):
+    46. Stuck orders retried automatically within 30min
+    47. Cancellations trigger automatic Stripe refund via RefundGuard
+    48. Variant sync uses UPSERT (no race conditions, no DELETE+INSERT)
+    49. Admin product edits preserved during Printify sync (admin_edited_at flag)
+    50. Temp products cleaned up after 24h
+    51. Return lifecycle functional (request→approve→ship→receive→refund)
+
+    BRAND IDENTITY (Section 14):
+    52. Zero "POD AI" hardcodes in customer-visible frontend and admin code
+    53. brand_config table has brand_name, seo_titles, logo URLs, support_email columns
+    54. Sidebar and header display "Skapara" with real logo (not placeholder)
+    55. PWA manifest uses dynamic brand_name, icons reference /brand/ assets (pre-deployed)
+    56. Admin /branding page has editable "Store Identity" section
+    57. Email templates use brand_name from brand_config (not hardcoded)
+    58. i18n files use {brandName} interpolation for all brand references
+    59. SEO metadata (title, description, OG) reads from brand_config per locale
+    60. favicon.ico and og-image.png verified present (pre-deployed in frontend/public/)
+  </success_criteria>
+
+</evolution_specification>

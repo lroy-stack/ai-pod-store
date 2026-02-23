@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { ArrowLeft, Save, AlertCircle, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
+import { adminFetch } from '@/lib/admin-api';
 
 interface LegalSettings {
   company_name: string;
@@ -54,7 +55,7 @@ export default function LegalSettingsPage() {
   useEffect(() => {
     async function loadSettings() {
       try {
-        const res = await fetch('/api/admin/legal-settings');
+        const res = await adminFetch('/api/admin/legal-settings');
         if (res.ok) {
           const data = await res.json();
           if (data.settings) {
@@ -105,7 +106,7 @@ export default function LegalSettingsPage() {
     setMessage(null);
 
     try {
-      const res = await fetch('/api/admin/legal-settings', {
+      const res = await adminFetch('/api/admin/legal-settings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ settings }),

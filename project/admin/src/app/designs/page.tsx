@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { adminFetch } from '@/lib/admin-api'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -36,7 +37,7 @@ export default function DesignsPage() {
   const fetchDesigns = async () => {
     try {
       setLoading(true)
-      const response = await fetch('/api/designs')
+      const response = await adminFetch('/api/designs')
       if (!response.ok) throw new Error('Failed to fetch designs')
       const data = await response.json()
       setDesigns(data.designs || [])
@@ -50,7 +51,7 @@ export default function DesignsPage() {
   const handleApprove = async (designId: string) => {
     try {
       setActionLoading(designId)
-      const response = await fetch(`/api/designs/${designId}/moderate`, {
+      const response = await adminFetch(`/api/designs/${designId}/moderate`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: 'approved' })
@@ -74,7 +75,7 @@ export default function DesignsPage() {
       setActionLoading(designId)
       const notes = prompt('Rejection reason (optional):')
 
-      const response = await fetch(`/api/designs/${designId}/moderate`, {
+      const response = await adminFetch(`/api/designs/${designId}/moderate`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -9,6 +9,7 @@ import { ChevronLeft, FileText, Calendar, Brain, Sparkles } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import { adminFetch } from '@/lib/admin-api'
 
 interface FileListItem {
   name: string
@@ -45,28 +46,28 @@ export default function MemoryExplorerPage() {
     setLoading(true)
     try {
       // Load context files list
-      const contextRes = await fetch('/api/agent/memory?type=context')
+      const contextRes = await adminFetch('/api/agent/memory?type=context')
       if (contextRes.ok) {
         const data = await contextRes.json()
         setContextFiles(data.files.map((f: string) => ({ name: f, selected: false })))
       }
 
       // Load daily logs list
-      const logsRes = await fetch('/api/agent/memory?type=logs')
+      const logsRes = await adminFetch('/api/agent/memory?type=logs')
       if (logsRes.ok) {
         const data = await logsRes.json()
         setDailyLogs(data.files.map((f: string) => ({ name: f, selected: false })))
       }
 
       // Load MEMORY.md
-      const memoryRes = await fetch('/api/agent/memory?type=memory.md')
+      const memoryRes = await adminFetch('/api/agent/memory?type=memory.md')
       if (memoryRes.ok) {
         const data = await memoryRes.json()
         setMemoryContent(data.content || '# MEMORY.md\n\nNo content.')
       }
 
       // Load SOUL.md
-      const soulRes = await fetch('/api/agent/memory?type=soul.md')
+      const soulRes = await adminFetch('/api/agent/memory?type=soul.md')
       if (soulRes.ok) {
         const data = await soulRes.json()
         setSoulContent(data.content || '# SOUL.md\n\nNo content.')
@@ -80,7 +81,7 @@ export default function MemoryExplorerPage() {
 
   async function loadContextFile(filename: string) {
     try {
-      const res = await fetch(`/api/agent/memory?type=context&file=${encodeURIComponent(filename)}`)
+      const res = await adminFetch(`/api/agent/memory?type=context&file=${encodeURIComponent(filename)}`)
       if (res.ok) {
         const data = await res.json()
         setContextContent(data.content || '')
@@ -93,7 +94,7 @@ export default function MemoryExplorerPage() {
 
   async function loadDailyLog(filename: string) {
     try {
-      const res = await fetch(`/api/agent/memory?type=logs&file=${encodeURIComponent(filename)}`)
+      const res = await adminFetch(`/api/agent/memory?type=logs&file=${encodeURIComponent(filename)}`)
       if (res.ok) {
         const data = await res.json()
         setLogContent(data.content || '')

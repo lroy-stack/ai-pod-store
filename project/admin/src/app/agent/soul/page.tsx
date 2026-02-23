@@ -18,6 +18,7 @@ import { ChevronLeft, Sparkles, Check, X, FileText, AlertCircle } from 'lucide-r
 import { useRouter } from 'next/navigation'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import { adminFetch } from '@/lib/admin-api'
 
 interface SoulProposal {
   id: string
@@ -53,7 +54,7 @@ export default function SoulEvolutionPage() {
   async function loadData() {
     setLoading(true)
     try {
-      const res = await fetch('/api/admin/agent/soul')
+      const res = await adminFetch('/api/admin/agent/soul')
       if (res.ok) {
         const data = await res.json()
         setSoulContent(data.soul || '# SOUL.md\n\nNo content.')
@@ -69,7 +70,7 @@ export default function SoulEvolutionPage() {
   async function handleApprove(proposalId: string) {
     setActionInProgress(true)
     try {
-      const res = await fetch('/api/admin/agent/soul', {
+      const res = await adminFetch('/api/admin/agent/soul', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -98,7 +99,7 @@ export default function SoulEvolutionPage() {
   async function handleReject(proposalId: string, reason: string) {
     setActionInProgress(true)
     try {
-      const res = await fetch('/api/admin/agent/soul', {
+      const res = await adminFetch('/api/admin/agent/soul', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

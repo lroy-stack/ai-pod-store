@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { adminFetch } from '@/lib/admin-api';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -87,7 +88,7 @@ export default function CustomersPage() {
 
   const fetchCustomers = async () => {
     try {
-      const response = await fetch('/api/customers');
+      const response = await adminFetch('/api/customers');
       if (response.ok) {
         const data = await response.json();
         setCustomers(data);
@@ -106,8 +107,8 @@ export default function CustomersPage() {
     try {
       // Fetch both profile and orders in parallel
       const [profileResponse, ordersResponse] = await Promise.all([
-        fetch(`/api/customers/${encodeURIComponent(customer.email)}/profile`),
-        fetch(`/api/customers/${encodeURIComponent(customer.email)}/orders`),
+        adminFetch(`/api/customers/${encodeURIComponent(customer.email)}/profile`),
+        adminFetch(`/api/customers/${encodeURIComponent(customer.email)}/orders`),
       ]);
 
       if (profileResponse.ok) {

@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Bot, Play, Square, Clock, CheckCircle, XCircle, AlertCircle, ChevronRight, Zap, Brain, Eye, Calendar, WifiOff, TrendingUp, Activity, Database, Heart, CalendarClock, Inbox } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { Sparkline } from '@/components/ui/sparkline'
+import { adminFetch } from '@/lib/admin-api'
 
 interface BridgeAgent {
   agent: string
@@ -72,10 +73,10 @@ export default function AgentsPage() {
     setOffline(false)
     try {
       const [statusRes, agentsRes, metricsRes, healthRes] = await Promise.all([
-        fetch('/api/agent/status'),
-        fetch('/api/agent/agents'),
-        fetch('/api/agent/metrics'),
-        fetch('/api/agent/api/health'),
+        adminFetch('/api/agent/status'),
+        adminFetch('/api/agent/agents'),
+        adminFetch('/api/agent/metrics'),
+        adminFetch('/api/agent/api/health'),
       ])
 
       // Always try to get metrics (they come from database, not PodClaw bridge)
@@ -107,7 +108,7 @@ export default function AgentsPage() {
 
   async function handleStop() {
     try {
-      await fetch('/api/agent/stop', { method: 'POST' })
+      await adminFetch('/api/agent/stop', { method: 'POST' })
       await fetchAll()
     } catch {
       console.error('Failed to stop agents')
@@ -117,7 +118,7 @@ export default function AgentsPage() {
   async function handleTriggerAgent(agentName: string) {
     setTriggeringAgent(agentName)
     try {
-      await fetch(`/api/agent/agents/${agentName}/run`, { method: 'POST' })
+      await adminFetch(`/api/agent/agents/${agentName}/run`, { method: 'POST' })
       await fetchAll()
     } catch {
       console.error('Failed to trigger agent:', agentName)
@@ -128,7 +129,7 @@ export default function AgentsPage() {
 
   async function handlePause(agentName: string) {
     try {
-      await fetch(`/api/agent/agents/${agentName}/pause`, { method: 'POST' })
+      await adminFetch(`/api/agent/agents/${agentName}/pause`, { method: 'POST' })
     } catch {
       console.error('Failed to pause agent:', agentName)
     }
@@ -136,7 +137,7 @@ export default function AgentsPage() {
 
   async function handleResume(agentName: string) {
     try {
-      await fetch(`/api/agent/agents/${agentName}/resume`, { method: 'POST' })
+      await adminFetch(`/api/agent/agents/${agentName}/resume`, { method: 'POST' })
     } catch {
       console.error('Failed to resume agent:', agentName)
     }
@@ -144,7 +145,7 @@ export default function AgentsPage() {
 
   async function fetchSoulMemory() {
     try {
-      const res = await fetch('/api/agent/memory/soul')
+      const res = await adminFetch('/api/agent/memory/soul')
       if (res.ok) {
         const data = await res.json()
         setSoulMemory(data.content || 'No SOUL.md found')
@@ -159,7 +160,7 @@ export default function AgentsPage() {
   async function handleTriggerHeartbeat() {
     setTriggeringHeartbeat(true)
     try {
-      await fetch('/api/agent/heartbeat/trigger', { method: 'POST' })
+      await adminFetch('/api/agent/heartbeat/trigger', { method: 'POST' })
       // Refresh health status after triggering
       await fetchAll()
     } catch {

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { adminFetch } from '@/lib/admin-api';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -83,7 +84,7 @@ export default function DashboardPage() {
   const { data: stats, isLoading: loading } = useQuery({
     queryKey: ['dashboard-stats'],
     queryFn: async () => {
-      const res = await fetch('/api/dashboard/stats');
+      const res = await adminFetch('/api/dashboard/stats');
       if (!res.ok) throw new Error('Failed to fetch stats');
       return res.json() as Promise<DashboardStats>;
     },
@@ -93,7 +94,7 @@ export default function DashboardPage() {
   const { data: recentOrders = [], isLoading: ordersLoading } = useQuery({
     queryKey: ['dashboard-recent-orders'],
     queryFn: async () => {
-      const res = await fetch('/api/dashboard/recent-orders');
+      const res = await adminFetch('/api/dashboard/recent-orders');
       if (!res.ok) throw new Error('Failed to fetch recent orders');
       return res.json() as Promise<RecentOrder[]>;
     },
@@ -103,7 +104,7 @@ export default function DashboardPage() {
   const { data: revenueData = [], isLoading: revenueLoading } = useQuery({
     queryKey: ['dashboard-revenue-trend', revenuePeriod],
     queryFn: async () => {
-      const res = await fetch(`/api/dashboard/revenue-trend?period=${revenuePeriod}`);
+      const res = await adminFetch(`/api/dashboard/revenue-trend?period=${revenuePeriod}`);
       if (!res.ok) throw new Error('Failed to fetch revenue trend');
       return res.json() as Promise<any[]>;
     },
@@ -113,7 +114,7 @@ export default function DashboardPage() {
   const { data: topProductsData = [], isLoading: topProductsLoading } = useQuery({
     queryKey: ['dashboard-top-products'],
     queryFn: async () => {
-      const res = await fetch('/api/dashboard/top-products');
+      const res = await adminFetch('/api/dashboard/top-products');
       if (!res.ok) throw new Error('Failed to fetch top products');
       return res.json() as Promise<any[]>;
     },
@@ -123,7 +124,7 @@ export default function DashboardPage() {
   const { data: customerAcquisitionData = [], isLoading: customerAcquisitionLoading } = useQuery({
     queryKey: ['dashboard-customer-acquisition'],
     queryFn: async () => {
-      const res = await fetch('/api/dashboard/customer-acquisition');
+      const res = await adminFetch('/api/dashboard/customer-acquisition');
       if (!res.ok) throw new Error('Failed to fetch customer acquisition');
       return res.json() as Promise<any[]>;
     },

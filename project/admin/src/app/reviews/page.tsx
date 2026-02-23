@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { adminFetch } from '@/lib/admin-api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -56,7 +57,7 @@ export default function ReviewModerationPage() {
   const fetchReviews = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/reviews?status=${statusFilter}&limit=100`);
+      const res = await adminFetch(`/api/reviews?status=${statusFilter}&limit=100`);
       if (!res.ok) throw new Error('Failed to fetch reviews');
       const data = await res.json();
       setReviews(data.reviews || []);
@@ -69,7 +70,7 @@ export default function ReviewModerationPage() {
 
   const moderateReview = async (reviewId: string, status: 'approved' | 'rejected', notes?: string) => {
     try {
-      const res = await fetch(`/api/reviews/${reviewId}`, {
+      const res = await adminFetch(`/api/reviews/${reviewId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

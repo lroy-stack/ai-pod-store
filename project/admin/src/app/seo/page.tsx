@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { Search, Globe, FileText, CheckCircle, AlertCircle } from 'lucide-react'
 import { toast } from 'sonner'
+import { adminFetch } from '@/lib/admin-api'
 
 interface MetaTags {
   en: { title: string; description: string; keywords: string }
@@ -47,7 +48,7 @@ export default function SEOPage() {
 
   const fetchMetaTags = async () => {
     try {
-      const response = await fetch('/api/admin/seo')
+      const response = await adminFetch('/api/admin/seo')
       if (response.ok) {
         const data = await response.json()
         setMetaTags(data)
@@ -65,17 +66,17 @@ export default function SEOPage() {
     try {
       // Save all three locales
       await Promise.all([
-        fetch('/api/admin/seo', {
+        adminFetch('/api/admin/seo', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ locale: 'en', ...metaTags.en }),
         }),
-        fetch('/api/admin/seo', {
+        adminFetch('/api/admin/seo', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ locale: 'es', ...metaTags.es }),
         }),
-        fetch('/api/admin/seo', {
+        adminFetch('/api/admin/seo', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ locale: 'de', ...metaTags.de }),
@@ -92,7 +93,7 @@ export default function SEOPage() {
   const handleGenerateSitemap = async () => {
     setGenerating(true)
     try {
-      const response = await fetch('/api/admin/sitemap', {
+      const response = await adminFetch('/api/admin/sitemap', {
         method: 'POST',
       })
 

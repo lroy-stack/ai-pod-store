@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ArrowLeft, Save, Eye, History } from 'lucide-react';
+import { adminFetch } from '@/lib/admin-api';
 
 interface LegalPage {
   id: string;
@@ -60,7 +61,7 @@ export default function LegalPageEditorPage({
   useEffect(() => {
     async function loadPage() {
       try {
-        const res = await fetch(`/api/admin/legal-pages/${slug}`);
+        const res = await adminFetch(`/api/admin/legal-pages/${slug}`);
         if (res.ok) {
           const data = await res.json();
           setPage(data);
@@ -82,7 +83,7 @@ export default function LegalPageEditorPage({
 
   async function loadVersions() {
     try {
-      const res = await fetch(`/api/admin/legal-pages/${slug}/versions`);
+      const res = await adminFetch(`/api/admin/legal-pages/${slug}/versions`);
       if (res.ok) {
         const data = await res.json();
         setVersions(data);
@@ -96,7 +97,7 @@ export default function LegalPageEditorPage({
   async function handleSave() {
     setSaving(true);
     try {
-      const res = await fetch(`/api/admin/legal-pages/${slug}`, {
+      const res = await adminFetch(`/api/admin/legal-pages/${slug}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Textarea } from '@/components/ui/textarea'
 import { FlaskConical, Plus, Play, Square, TrendingUp, RefreshCw } from 'lucide-react'
 import { toast } from 'sonner'
+import { adminFetch } from '@/lib/admin-api'
 
 interface Experiment {
   id: string
@@ -65,7 +66,7 @@ export default function ABTestsPage() {
   const fetchExperiments = async () => {
     setLoading(true)
     try {
-      const response = await fetch('/api/ab-tests')
+      const response = await adminFetch('/api/ab-tests')
       if (!response.ok) throw new Error('Failed to fetch experiments')
       const data = await response.json()
       setExperiments(data)
@@ -89,7 +90,7 @@ export default function ABTestsPage() {
 
     setCreating(true)
     try {
-      const response = await fetch('/api/ab-tests', {
+      const response = await adminFetch('/api/ab-tests', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -132,7 +133,7 @@ export default function ABTestsPage() {
 
   const handleStatusChange = async (id: string, action: 'start' | 'stop') => {
     try {
-      const response = await fetch(`/api/ab-tests/${id}/${action}`, {
+      const response = await adminFetch(`/api/ab-tests/${id}/${action}`, {
         method: 'POST'
       })
 

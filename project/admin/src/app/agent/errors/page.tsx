@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { AlertCircle, RefreshCw, WifiOff, ArrowLeft } from 'lucide-react'
 import { formatDistanceToNow, format } from 'date-fns'
+import { adminFetch } from '@/lib/admin-api'
 
 interface AgentError {
   id: string
@@ -35,7 +36,7 @@ export default function AgentErrorsPage() {
     setLoading(true)
     setOffline(false)
     try {
-      const res = await fetch('/api/agent/events?event_type=error&limit=100')
+      const res = await adminFetch('/api/agent/events?event_type=error&limit=100')
 
       if (res.status === 503) {
         setOffline(true)

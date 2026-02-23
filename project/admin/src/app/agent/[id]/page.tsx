@@ -9,6 +9,7 @@ import { ArrowLeft, Clock, CheckCircle, XCircle, AlertCircle, Play, Pause, WifiO
 import { formatDistanceToNow, format } from 'date-fns'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { WaterfallTimeline } from '@/components/agent/WaterfallTimeline'
+import { adminFetch } from '@/lib/admin-api'
 
 interface BridgeAgent {
   agent: string
@@ -73,9 +74,9 @@ export default function AgentDetailPage() {
     setOffline(false)
     try {
       const [agentRes, eventsRes, sessionsRes] = await Promise.all([
-        fetch(`/api/agent/agents/${agentName}`),
-        fetch(`/api/agent/events?agent=${agentName}&limit=50`),
-        fetch(`/api/agent/sessions?agent=${agentName}&limit=10`),
+        adminFetch(`/api/agent/agents/${agentName}`),
+        adminFetch(`/api/agent/events?agent=${agentName}&limit=50`),
+        adminFetch(`/api/agent/sessions?agent=${agentName}&limit=10`),
       ])
 
       // Sessions are from Supabase, not bridge - always fetch them
@@ -109,7 +110,7 @@ export default function AgentDetailPage() {
     setReplayingSession(sessionId)
     setSelectedSessionId(sessionId)
     try {
-      const res = await fetch(`/api/agent/sessions/${sessionId}/events`)
+      const res = await adminFetch(`/api/agent/sessions/${sessionId}/events`)
       if (res.ok) {
         const data = await res.json()
         setEvents(data.events ?? [])
@@ -128,7 +129,7 @@ export default function AgentDetailPage() {
 
   async function handleRun() {
     try {
-      await fetch(`/api/agent/agents/${agentName}/run`, { method: 'POST' })
+      await adminFetch(`/api/agent/agents/${agentName}/run`, { method: 'POST' })
       await fetchAgentDetail()
     } catch {
       console.error('Failed to run agent')
@@ -137,7 +138,7 @@ export default function AgentDetailPage() {
 
   async function handlePause() {
     try {
-      await fetch(`/api/agent/agents/${agentName}/pause`, { method: 'POST' })
+      await adminFetch(`/api/agent/agents/${agentName}/pause`, { method: 'POST' })
     } catch {
       console.error('Failed to pause agent')
     }
@@ -145,7 +146,7 @@ export default function AgentDetailPage() {
 
   async function handleResume() {
     try {
-      await fetch(`/api/agent/agents/${agentName}/resume`, { method: 'POST' })
+      await adminFetch(`/api/agent/agents/${agentName}/resume`, { method: 'POST' })
     } catch {
       console.error('Failed to resume agent')
     }

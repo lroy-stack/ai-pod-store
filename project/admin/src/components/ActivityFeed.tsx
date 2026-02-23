@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { apiUrl } from '@/lib/admin-api';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   ShoppingCart,
@@ -119,7 +120,7 @@ export function ActivityFeed() {
 
     try {
       // Connect to SSE endpoint
-      eventSource = new EventSource('/api/dashboard/activity-feed');
+      eventSource = new EventSource(apiUrl('/api/dashboard/activity-feed'));
 
       eventSource.onopen = () => {
         console.log('[ActivityFeed] SSE connection opened');

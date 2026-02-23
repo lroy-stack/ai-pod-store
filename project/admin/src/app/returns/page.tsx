@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { adminFetch } from '@/lib/admin-api'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -51,7 +52,7 @@ export default function ReturnsPage() {
   const fetchReturns = async () => {
     try {
       setLoading(true)
-      const response = await fetch('/api/returns')
+      const response = await adminFetch('/api/returns')
       if (!response.ok) throw new Error('Failed to fetch returns')
       const data = await response.json()
       setReturns(data.returns || [])
@@ -74,7 +75,7 @@ export default function ReturnsPage() {
     try {
       setActionLoading(selectedReturn.id)
 
-      const response = await fetch(`/api/returns/${selectedReturn.id}/approve`, {
+      const response = await adminFetch(`/api/returns/${selectedReturn.id}/approve`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ admin_notes: adminNotes || undefined })
@@ -113,7 +114,7 @@ export default function ReturnsPage() {
     try {
       setActionLoading(returnRequest.id)
 
-      const response = await fetch(`/api/returns/${returnRequest.id}/reject`, {
+      const response = await adminFetch(`/api/returns/${returnRequest.id}/reject`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ admin_notes: notes })

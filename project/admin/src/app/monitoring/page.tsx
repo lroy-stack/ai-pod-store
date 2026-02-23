@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { adminFetch } from '@/lib/admin-api';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -48,7 +49,7 @@ export default function MonitoringPage() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/monitoring/errors?days=${days}&limit=50`);
+      const response = await adminFetch(`/api/monitoring/errors?days=${days}&limit=50`);
       if (!response.ok) {
         throw new Error('Failed to fetch error data');
       }

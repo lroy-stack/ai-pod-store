@@ -9,6 +9,7 @@ import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
 import { MessageSquare, Save, RefreshCw, Send } from 'lucide-react'
 import { toast } from 'sonner'
+import { adminFetch } from '@/lib/admin-api'
 
 export default function MessagingPage() {
   const [loading, setLoading] = useState(false)
@@ -30,7 +31,7 @@ export default function MessagingPage() {
   useEffect(() => {
     const loadConfig = async () => {
       try {
-        const response = await fetch('/api/messaging/config')
+        const response = await adminFetch('/api/messaging/config')
         if (response.ok) {
           const data = await response.json()
           if (data.telegram) {
@@ -51,7 +52,7 @@ export default function MessagingPage() {
     setLoading(true)
     try {
       // Save to database via API
-      const response = await fetch('/api/messaging/config', {
+      const response = await adminFetch('/api/messaging/config', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ telegram, whatsapp }),
@@ -71,7 +72,7 @@ export default function MessagingPage() {
 
   const testTelegram = async () => {
     try {
-      const response = await fetch('/api/messaging/telegram/test', {
+      const response = await adminFetch('/api/messaging/telegram/test', {
         method: 'POST',
       })
       if (response.ok) {
@@ -86,7 +87,7 @@ export default function MessagingPage() {
 
   const testWhatsApp = async () => {
     try {
-      const response = await fetch('/api/messaging/whatsapp/test', {
+      const response = await adminFetch('/api/messaging/whatsapp/test', {
         method: 'POST',
       })
       if (response.ok) {

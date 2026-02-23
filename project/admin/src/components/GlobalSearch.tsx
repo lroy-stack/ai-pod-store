@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { adminFetch } from '@/lib/admin-api';
 import {
   CommandDialog,
   CommandEmpty,
@@ -61,7 +62,7 @@ export function GlobalSearch() {
     const timeoutId = setTimeout(async () => {
       setLoading(true);
       try {
-        const response = await fetch(`/api/search?q=${encodeURIComponent(search)}`);
+        const response = await adminFetch(`/api/search?q=${encodeURIComponent(search)}`);
         if (response.ok) {
           const data = await response.json();
           setResults(data.results || { products: [], orders: [], customers: [] });

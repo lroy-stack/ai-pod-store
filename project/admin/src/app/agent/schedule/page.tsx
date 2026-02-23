@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { Switch } from '@/components/ui/switch';
+import { adminFetch } from '@/lib/admin-api';
 
 interface AgentSchedule {
   name: string;
@@ -40,7 +41,7 @@ export default function AgentSchedulePage() {
     try {
       setIsLoading(true);
       setOffline(false);
-      const response = await fetch('/api/agent/schedule');
+      const response = await adminFetch('/api/agent/schedule');
 
       if (response.status === 503) {
         setOffline(true);
@@ -74,7 +75,7 @@ export default function AgentSchedulePage() {
     try {
       setIsSaving(true);
 
-      const response = await fetch('/api/agent/schedule', {
+      const response = await adminFetch('/api/agent/schedule', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ schedule: editedSchedule }),
@@ -107,7 +108,7 @@ export default function AgentSchedulePage() {
     try {
       setIsSaving(true);
 
-      const response = await fetch('/api/agent/schedule', {
+      const response = await adminFetch('/api/agent/schedule', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'reset' }),

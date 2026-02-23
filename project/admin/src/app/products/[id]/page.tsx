@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { adminFetch } from '@/lib/admin-api';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -33,7 +34,7 @@ export default function EditProductPage() {
 
   async function fetchProduct() {
     try {
-      const res = await fetch(`/api/products/${id}`);
+      const res = await adminFetch(`/api/products/${id}`);
       if (res.ok) {
         const data = await res.json();
         setProduct(data.product);
@@ -52,7 +53,7 @@ export default function EditProductPage() {
     setSaving(true);
 
     try {
-      const res = await fetch(`/api/products/${id}`, {
+      const res = await adminFetch(`/api/products/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

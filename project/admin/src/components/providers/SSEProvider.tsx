@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react'
 import { toast } from 'sonner'
+import { apiUrl } from '@/lib/admin-api'
 
 interface SSEEvent {
   type: 'new_order' | 'agent_cycle' | 'error' | 'alert'
@@ -14,7 +15,7 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
     // Only connect if admin session cookie exists
     if (!document.cookie.includes('admin-session')) return
 
-    const eventSource = new EventSource('/api/events/stream')
+    const eventSource = new EventSource(apiUrl('/api/events/stream'))
 
     eventSource.addEventListener('connected', () => {
       console.log('[SSE] Connected to admin event stream')

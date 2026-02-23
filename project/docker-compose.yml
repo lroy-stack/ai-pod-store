@@ -95,6 +95,8 @@ services:
     build:
       context: ./admin
       dockerfile: Dockerfile
+      additional_contexts:
+        frontend-messages: ./frontend/messages
       args:
         ADMIN_BASE_PATH: "/panel"
         SUPABASE_URL: ${SUPABASE_URL}

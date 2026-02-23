@@ -42,6 +42,9 @@ COPY --from=deps /app/node_modules ./node_modules
 
 COPY . .
 
+# Copy frontend translation files (injected via additional_contexts)
+COPY --from=frontend-messages . ./frontend-messages/
+
 # Ensure public/ exists (admin has no static assets yet)
 RUN mkdir -p public
 
@@ -69,6 +72,9 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+# Frontend translations for the translations management API
+COPY --from=builder /app/frontend-messages ./frontend-messages/
 
 USER nextjs
 

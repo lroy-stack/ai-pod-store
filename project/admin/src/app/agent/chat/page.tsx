@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/sheet'
 import { ChatMessage } from '@/components/agent/ChatMessage'
 import { usePodClawChat } from '@/hooks/usePodClawChat'
+import { adminFetch } from '@/lib/admin-api'
 
 interface Conversation {
   id: string
@@ -61,7 +62,7 @@ export default function AgentChatPage() {
   // Fetch conversations list
   const fetchConversations = useCallback(async () => {
     try {
-      const res = await fetch('/api/agent/chat/conversations')
+      const res = await adminFetch('/api/agent/chat/conversations')
       if (res.ok) {
         const data = await res.json()
         setConversations(data.conversations || [])
@@ -112,7 +113,7 @@ export default function AgentChatPage() {
   async function handleDeleteConversation(id: string, e: React.MouseEvent) {
     e.stopPropagation()
     try {
-      await fetch(`/api/agent/chat/conversations/${id}`, { method: 'DELETE' })
+      await adminFetch(`/api/agent/chat/conversations/${id}`, { method: 'DELETE' })
       setConversations(prev => prev.filter(c => c.id !== id))
       if (conversationId === id) {
         newConversation()

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { adminFetch } from '@/lib/admin-api';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -40,7 +41,7 @@ export default function BrandingPage() {
 
   async function fetchThemes() {
     try {
-      const res = await fetch('/api/admin/themes');
+      const res = await adminFetch('/api/admin/themes');
       if (res.ok) {
         const data = await res.json();
         setThemes(data || []);
@@ -55,7 +56,7 @@ export default function BrandingPage() {
   async function activateTheme(id: string) {
     setActivatingId(id);
     try {
-      const res = await fetch(`/api/admin/themes/${id}/activate`, {
+      const res = await adminFetch(`/api/admin/themes/${id}/activate`, {
         method: 'POST',
       });
 

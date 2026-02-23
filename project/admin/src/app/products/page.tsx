@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { adminFetch } from '@/lib/admin-api';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -37,7 +38,7 @@ export default function ProductsPage() {
 
   async function fetchProducts() {
     try {
-      const res = await fetch('/api/products?limit=50');
+      const res = await adminFetch('/api/products?limit=50');
       if (res.ok) {
         const data = await res.json();
         setProducts(data.products || []);
@@ -63,7 +64,7 @@ export default function ProductsPage() {
     if (selectedIds.size === 0) return;
 
     try {
-      const res = await fetch('/api/products/bulk', {
+      const res = await adminFetch('/api/products/bulk', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -83,7 +84,7 @@ export default function ProductsPage() {
 
   async function archiveProduct(id: string) {
     try {
-      const res = await fetch(`/api/products/${id}`, {
+      const res = await adminFetch(`/api/products/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: 'archived' }),

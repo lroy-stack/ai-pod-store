@@ -21,6 +21,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Download, CheckCircle2, XCircle, Calendar } from 'lucide-react';
+import { adminFetch } from '@/lib/admin-api';
 
 interface ConsentRecord {
   id: string;
@@ -77,7 +78,7 @@ export default function ConsentRecordsPage() {
       if (startDate) params.append('start_date', startDate);
       if (endDate) params.append('end_date', endDate);
 
-      const res = await fetch(`/api/admin/legal/consents?${params}`);
+      const res = await adminFetch(`/api/admin/legal/consents?${params}`);
       if (res.ok) {
         const data = await res.json();
         setRecords(data.records || []);
@@ -99,7 +100,7 @@ export default function ConsentRecordsPage() {
       if (startDate) params.append('start_date', startDate);
       if (endDate) params.append('end_date', endDate);
 
-      const res = await fetch(`/api/admin/legal/consents?${params}`);
+      const res = await adminFetch(`/api/admin/legal/consents?${params}`);
       if (res.ok) {
         const data = await res.json();
         const csvData = convertToCSV(data.records || []);

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { adminFetch } from '@/lib/admin-api';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -121,7 +122,7 @@ export default function OrdersPage() {
         params.append('status', statusFilter);
       }
 
-      const response = await fetch(`/api/orders?${params.toString()}`);
+      const response = await adminFetch(`/api/orders?${params.toString()}`);
       const data: OrdersResponse = await response.json();
 
       setOrders(data.orders || []);
@@ -190,7 +191,7 @@ export default function OrdersPage() {
 
     try {
       setBulkLoading(true);
-      const response = await fetch('/api/admin/orders/bulk', {
+      const response = await adminFetch('/api/admin/orders/bulk', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

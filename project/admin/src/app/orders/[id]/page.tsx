@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { adminFetch } from '@/lib/admin-api';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Package, Truck, CheckCircle, Clock, RefreshCw, Paintbrush, ShoppingCart, CreditCard, Send } from 'lucide-react';
@@ -144,7 +145,7 @@ export default function OrderDetailPage() {
   const fetchOrderDetail = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/orders/${orderId}`);
+      const response = await adminFetch(`/api/orders/${orderId}`);
 
       if (!response.ok) {
         throw new Error('Failed to fetch order details');
@@ -182,7 +183,7 @@ export default function OrderDetailPage() {
 
     setRetrying(true);
     try {
-      const response = await fetch(`/api/admin/orders/${order.id}/retry`, {
+      const response = await adminFetch(`/api/admin/orders/${order.id}/retry`, {
         method: 'POST',
       });
 

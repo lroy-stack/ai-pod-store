@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { adminFetch } from '@/lib/admin-api';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import {
   Table,
@@ -77,7 +78,7 @@ export default function FinancePage() {
       if (paymentMethodFilter && paymentMethodFilter !== 'all') {
         url.searchParams.set('paymentMethod', paymentMethodFilter);
       }
-      const response = await fetch(url.toString());
+      const response = await adminFetch(url.toString());
       if (response.ok) {
         const data = await response.json();
         setReport(data);
@@ -97,7 +98,7 @@ export default function FinancePage() {
 
   const handleExport = async () => {
     try {
-      const response = await fetch('/api/admin/finance/export', {
+      const response = await adminFetch('/api/admin/finance/export', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

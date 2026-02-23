@@ -13,6 +13,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { FileText, Pencil, Settings, Shield } from 'lucide-react';
+import { adminFetch } from '@/lib/admin-api';
 
 interface LegalPage {
   id: string;
@@ -31,7 +32,7 @@ export default function LegalPagesListPage() {
   useEffect(() => {
     async function loadPages() {
       try {
-        const res = await fetch('/api/admin/legal-pages');
+        const res = await adminFetch('/api/admin/legal-pages');
         if (res.ok) {
           const data = await res.json();
           setPages(data);

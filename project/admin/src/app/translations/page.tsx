@@ -14,6 +14,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Languages, Save, Sparkles } from 'lucide-react';
+import { adminFetch } from '@/lib/admin-api';
 
 interface Translation {
   namespace: string;
@@ -41,7 +42,7 @@ export default function TranslationsPage() {
 
   async function fetchTranslations() {
     try {
-      const res = await fetch('/api/translations');
+      const res = await adminFetch('/api/translations');
       if (res.ok) {
         const data = await res.json();
         setTranslations(data);
@@ -56,7 +57,7 @@ export default function TranslationsPage() {
   async function handleSave(key: string, locale: string, value: string) {
     setSaving(true);
     try {
-      const res = await fetch('/api/translations', {
+      const res = await adminFetch('/api/translations', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ key, locale, value }),
@@ -90,7 +91,7 @@ export default function TranslationsPage() {
       const targetLocales = ['en', 'es', 'de'].filter((l) => l !== sourceLocale);
 
       for (const targetLocale of targetLocales) {
-        const res = await fetch('/api/translations/auto-translate', {
+        const res = await adminFetch('/api/translations/auto-translate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -105,7 +106,7 @@ export default function TranslationsPage() {
           const { translatedText } = await res.json();
 
           // Save the translation
-          await fetch('/api/translations', {
+          await adminFetch('/api/translations', {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ key, locale: targetLocale, value: translatedText }),

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import { adminFetch } from '@/lib/admin-api'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -75,7 +76,7 @@ export default function DesignDetailPage() {
   const fetchDesign = async () => {
     try {
       setLoading(true)
-      const response = await fetch(`/api/designs/${designId}`)
+      const response = await adminFetch(`/api/designs/${designId}`)
       if (!response.ok) throw new Error('Failed to fetch design')
       const data = await response.json()
       setDesign(data.design)
@@ -92,7 +93,7 @@ export default function DesignDetailPage() {
     try {
       setCreating(true)
 
-      const response = await fetch('/api/products', {
+      const response = await adminFetch('/api/products', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -115,7 +116,7 @@ export default function DesignDetailPage() {
       const { product } = await response.json()
 
       // Update design with product_id
-      await fetch(`/api/designs/${design.id}`, {
+      await adminFetch(`/api/designs/${design.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ product_id: product.id })

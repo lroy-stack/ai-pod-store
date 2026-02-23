@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/table';
 import { TrendingUp, DollarSign, ShoppingCart, Package, Users, Target, RefreshCw, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { adminFetch } from '@/lib/admin-api';
 
 interface FinanceReport {
   summary: {
@@ -113,7 +114,7 @@ export default function AnalyticsPage() {
 
   const fetchReport = async () => {
     try {
-      const response = await fetch('/api/admin/finance/report');
+      const response = await adminFetch('/api/admin/finance/report');
       if (response.ok) {
         const data = await response.json();
         setReport(data);
@@ -125,7 +126,7 @@ export default function AnalyticsPage() {
 
   const fetchRFM = async () => {
     try {
-      const response = await fetch('/api/analytics/rfm');
+      const response = await adminFetch('/api/analytics/rfm');
       if (response.ok) {
         const data = await response.json();
         setRfmData(data);
@@ -137,7 +138,7 @@ export default function AnalyticsPage() {
 
   const fetchDemand = async () => {
     try {
-      const response = await fetch('/api/analytics/demand');
+      const response = await adminFetch('/api/analytics/demand');
       if (response.ok) {
         const data = await response.json();
         setDemandData(data);
@@ -156,7 +157,7 @@ export default function AnalyticsPage() {
 
   const handleExport = async () => {
     try {
-      const response = await fetch('/api/admin/analytics/export', {
+      const response = await adminFetch('/api/admin/analytics/export', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

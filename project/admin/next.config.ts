@@ -5,6 +5,32 @@ const nextConfig: NextConfig = {
   output: "standalone",
   // basePath for Caddy reverse proxy routing (/panel → admin:3001)
   basePath: process.env.ADMIN_BASE_PATH || "",
+  // Expose basePath to client bundles so fetch() and EventSource can prepend it.
+  // Inlined at build time by webpack — single source of truth from ADMIN_BASE_PATH.
+  env: {
+    NEXT_PUBLIC_ADMIN_BASE_PATH: process.env.ADMIN_BASE_PATH || "",
+  },
+  async redirects() {
+    // When basePath="/panel", anything outside /panel/* is a 404.
+    // Redirect stray requests (e.g. "/", "/dashboard") to the basePath root
+    // so users always land on the app instead of a blank 404.
+    const bp = process.env.ADMIN_BASE_PATH
+    if (!bp) return []
+    return [
+      {
+        source: '/',
+        destination: bp,
+        basePath: false,
+        permanent: false,
+      },
+      {
+        source: '/:path((?!panel|_next|api).*)',
+        destination: bp,
+        basePath: false,
+        permanent: false,
+      },
+    ]
+  },
   async headers() {
     const securityHeaders = [
       { key: 'X-Content-Type-Options', value: 'nosniff' },

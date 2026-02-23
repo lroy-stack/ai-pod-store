@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback } from 'react'
+import { adminFetch } from '@/lib/admin-api'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -112,7 +113,7 @@ export function usePodClawChat(): UsePodClawChatReturn {
     const controller = new AbortController()
     abortControllerRef.current = controller
 
-    fetch('/api/agent/chat/stream', {
+    adminFetch('/api/agent/chat/stream', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -297,7 +298,7 @@ export function usePodClawChat(): UsePodClawChatReturn {
 
   const loadConversation = useCallback(async (id: string) => {
     try {
-      const res = await fetch(`/api/agent/chat/conversations/${id}`)
+      const res = await adminFetch(`/api/agent/chat/conversations/${id}`)
       if (!res.ok) return
       const data = await res.json()
 

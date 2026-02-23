@@ -8,6 +8,7 @@ import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, R
 import { TrendingUp, DollarSign, Zap, Calendar, ChevronLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useRouter } from 'next/navigation'
+import { adminFetch } from '@/lib/admin-api'
 
 interface AgentMetrics {
   agent_name: string
@@ -60,7 +61,7 @@ export default function AgentMetricsPage() {
       }
       params.set('range', dateRange)
 
-      const res = await fetch(`/api/agent/metrics?${params.toString()}`, {
+      const res = await adminFetch(`/api/agent/metrics?${params.toString()}`, {
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json'
