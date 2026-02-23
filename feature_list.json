@@ -437,7 +437,7 @@
     "id": 37,
     "feature": "Section 3 \u2014 Migration cleanup (no test data in production)",
     "description": "Test/seed data separated from production migrations into supabase/seed.sql",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Step 1: Verify file exists: supabase/seed.sql",
       "Step 2: grep production migrations for INSERT with test data \u2014 should be minimal or zero",
