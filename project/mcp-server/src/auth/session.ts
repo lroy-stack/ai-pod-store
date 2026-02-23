@@ -4,9 +4,10 @@ import type { IncomingMessage } from 'node:http';
 import { getRedisClient } from '../lib/redis.js';
 import { revokedTokens } from './oauth-provider.js';
 
-const MCP_JWT_SECRET = new TextEncoder().encode(
-  process.env.MCP_JWT_SECRET || 'dev-secret-change-me-in-production'
-);
+if (!process.env.MCP_JWT_SECRET) {
+  throw new Error('MCP_JWT_SECRET environment variable is required');
+}
+const MCP_JWT_SECRET = new TextEncoder().encode(process.env.MCP_JWT_SECRET);
 const MCP_BASE_URL = process.env.MCP_BASE_URL || 'http://localhost:8002';
 
 /**

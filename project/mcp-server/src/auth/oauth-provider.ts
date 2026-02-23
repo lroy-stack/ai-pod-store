@@ -6,9 +6,10 @@ import { SignJWT } from 'jose';
 
 const MCP_BASE_URL = process.env.MCP_BASE_URL || 'http://localhost:8002';
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
-const MCP_JWT_SECRET = new TextEncoder().encode(
-  process.env.MCP_JWT_SECRET || 'dev-secret-change-me-in-production'
-);
+if (!process.env.MCP_JWT_SECRET) {
+  throw new Error('MCP_JWT_SECRET environment variable is required');
+}
+const MCP_JWT_SECRET = new TextEncoder().encode(process.env.MCP_JWT_SECRET);
 
 // In-memory fallback for auth requests (if Redis unavailable)
 const authRequests = new Map<
