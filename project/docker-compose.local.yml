@@ -2,13 +2,13 @@
 # =====================================================
 #
 # Usage:
-#   docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.local.yml up -d
+#   docker compose -f docker-compose.yml -f docker-compose.local.yml up -d
+#   ./start.sh --local
 #
 # This override:
+#   - All debug ports bound to 127.0.0.1 (not exposed to network)
 #   - Caddy serves on localhost only (HTTP, no HTTPS)
 #   - PodClaw bridge auth disabled for easier local testing
-#   - Redis and rembg ports exposed for local debugging
-#   - NEXT_PUBLIC_BASE_URL set to localhost
 
 services:
   caddy:
@@ -16,27 +16,25 @@ services:
       CADDY_SITE_ADDRESS: "http://localhost"
     ports:
       - "127.0.0.1:8080:80"
-      # No 443 binding for local dev — HTTP only
 
   frontend:
     ports:
-      - "3000:3000"  # Direct access for local dev/debugging
+      - "127.0.0.1:3000:3000"
     environment:
-      NODE_ENV: production
       NEXT_TELEMETRY_DISABLED: "1"
       NEXT_PUBLIC_BASE_URL: http://localhost:3000
 
   admin:
     ports:
-      - "3001:3001"  # Direct access for local dev/debugging
+      - "127.0.0.1:3001:3001"
 
   rembg:
     ports:
-      - "8090:8080"  # Debug access: host 8090 → container 8080
+      - "127.0.0.1:8090:8080"
 
   podclaw:
     ports:
-      - "8000:8000"  # Direct access for local dev/debugging
+      - "127.0.0.1:8000:8000"
     environment:
       PODCLAW_JSON_LOGS: "true"
       PODCLAW_CORS_ORIGINS: "http://localhost,http://localhost:3000,http://localhost:8080"
@@ -44,10 +42,10 @@ services:
 
   mcp-server:
     ports:
-      - "8002:8002"  # Direct access for local dev/debugging
+      - "127.0.0.1:8002:8002"
     environment:
       MCP_BASE_URL: "http://localhost:8002"
 
   redis:
     ports:
-      - "6379:6379"  # Only exposed in local dev for debugging
+      - "127.0.0.1:6379:6379"
