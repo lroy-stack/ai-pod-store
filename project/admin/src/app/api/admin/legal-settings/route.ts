@@ -7,6 +7,9 @@
 
 import { createClient } from '@/lib/supabase-admin';
 import { NextRequest, NextResponse } from 'next/server';
+import { getIronSession } from 'iron-session';
+import { sessionOptions, SessionData } from '@/lib/session';
+import { cookies } from 'next/headers';
 
 /**
  * GET /api/admin/legal-settings
@@ -70,22 +73,20 @@ export async function GET() {
  */
 export async function PUT(request: NextRequest) {
   try {
-    // Check admin session
-    const sessionCookie = request.cookies.get('admin-session');
-    if (!sessionCookie) {
+    // Validate encrypted session using iron-session
+    const session = await getIronSession<SessionData>(await cookies(), sessionOptions);
+
+    // Check if user is logged in
+    if (!session.isLoggedIn || !session.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    let adminId: string;
-    try {
-      const sessionData = JSON.parse(sessionCookie.value);
-      if (sessionData.role !== 'admin') {
-        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-      }
-      adminId = sessionData.id || sessionData.user?.id || 'unknown';
-    } catch {
-      return NextResponse.json({ error: 'Invalid session' }, { status: 401 });
+    // Check if user has admin role
+    if (session.role !== 'admin') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
+
+    const adminId = session.id;
 
     // Parse request body
     const body = await request.json();

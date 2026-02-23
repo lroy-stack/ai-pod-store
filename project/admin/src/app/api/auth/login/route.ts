@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import bcrypt from 'bcryptjs';
+import { getIronSession } from 'iron-session';
+import { sessionOptions, SessionData } from '@/lib/session';
+import { cookies } from 'next/headers';
 
 export async function POST(req: NextRequest) {
   try {
@@ -44,8 +47,17 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Create session token (simple JWT-like approach or use Supabase Auth)
-    // For now, we'll use a simple session approach with httpOnly cookie
+    // Create encrypted session using iron-session
+    const session = await getIronSession<SessionData>(await cookies(), sessionOptions);
+
+    session.id = user.id;
+    session.email = user.email;
+    session.role = user.role;
+    session.name = user.name;
+    session.isLoggedIn = true;
+
+    await session.save();
+
     const sessionData = {
       id: user.id,
       email: user.email,
@@ -53,25 +65,10 @@ export async function POST(req: NextRequest) {
       name: user.name,
     };
 
-    const response = NextResponse.json(
+    return NextResponse.json(
       { success: true, user: sessionData },
       { status: 200 }
     );
-
-    // Set httpOnly cookie with session data
-    // Secure flag only when actually behind HTTPS (not just NODE_ENV=production,
-    // since Docker runs production mode even for local HTTP dev)
-    const isHttps = req.headers.get('x-forwarded-proto') === 'https'
-      || req.nextUrl.protocol === 'https:';
-    response.cookies.set('admin-session', JSON.stringify(sessionData), {
-      httpOnly: true,
-      secure: isHttps,
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7, // 7 days
-      path: '/',
-    });
-
-    return response;
   } catch (error) {
     console.error('Login error:', error);
     return NextResponse.json(

@@ -9,6 +9,9 @@ export function middleware(request: NextRequest) {
   }
 
   // Check for admin session cookie
+  // Note: With iron-session, the cookie is encrypted and cannot be read in Edge middleware.
+  // We only check for its existence here. Actual session validation happens in API routes
+  // and server components using getIronSession() which can decrypt the cookie.
   const sessionCookie = request.cookies.get('admin-session');
 
   if (!sessionCookie) {
@@ -18,21 +21,8 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  try {
-    const sessionData = JSON.parse(sessionCookie.value);
-
-    if (sessionData.role !== 'admin') {
-      const loginUrl = request.nextUrl.clone();
-      loginUrl.pathname = '/login';
-      return NextResponse.redirect(loginUrl);
-    }
-
-    return NextResponse.next();
-  } catch {
-    const loginUrl = request.nextUrl.clone();
-    loginUrl.pathname = '/login';
-    return NextResponse.redirect(loginUrl);
-  }
+  // Cookie exists - let it through. API routes will validate the encrypted content.
+  return NextResponse.next();
 }
 
 export const config = {
