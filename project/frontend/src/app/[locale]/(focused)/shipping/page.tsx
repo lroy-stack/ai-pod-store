@@ -1,7 +1,8 @@
 import { Card, CardContent } from '@/components/ui/card'
 import { resolvePlaceholders, fetchLegalSettings } from '@/lib/legal-utils'
 import { notFound } from 'next/navigation'
-import ReactMarkdown from 'react-markdown'
+import { SafeMarkdown } from '@/components/common/SafeMarkdown'
+import { createClient } from '@supabase/supabase-js'
 
 interface LegalPage {
   id: string
@@ -18,26 +19,33 @@ interface LegalPage {
 
 async function getLegalPage(slug: string): Promise<LegalPage | null> {
   try {
-    const adminUrl = process.env.NEXT_PUBLIC_ADMIN_URL ?? 'http://localhost:3001'
-    const response = await fetch(`${adminUrl}/api/admin/legal-pages`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      // Cache for 5 minutes
-      // @ts-ignore - Next.js specific fetch extension
-      next: { revalidate: 300 },
-    })
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-    if (!response.ok) {
-      console.warn('[shipping-page] Failed to fetch legal pages:', response.status)
+    if (!supabaseUrl || !supabaseAnonKey) {
+      console.error('[shipping-page] Missing Supabase environment variables')
       return null
     }
 
-    const pages: LegalPage[] = await response.json()
-    const page = pages.find((p) => p.slug === slug && p.is_active)
+    // Create Supabase client for public data access
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      auth: { persistSession: false },
+    })
 
-    return page ?? null
+    // Fetch legal page from database
+    const { data, error } = await supabase
+      .from('legal_pages')
+      .select('*')
+      .eq('slug', slug)
+      .eq('is_active', true)
+      .single()
+
+    if (error) {
+      console.warn('[shipping-page] Failed to fetch legal page:', error.message)
+      return null
+    }
+
+    return data as LegalPage
   } catch (error) {
     console.error('[shipping-page] Error fetching legal page:', error)
     return null
@@ -81,7 +89,7 @@ export default async function ShippingPolicyPage({ params }: { params: Promise<{
         {/* Content */}
         <Card className="mb-6">
           <CardContent className="pt-6 prose prose-sm md:prose-base lg:prose-lg max-w-none dark:prose-invert">
-            <ReactMarkdown
+            <SafeMarkdown
               components={{
                 // Custom component styling for markdown
                 h1: ({ ...props }) => (
@@ -132,7 +140,7 @@ export default async function ShippingPolicyPage({ params }: { params: Promise<{
               }}
             >
               {content}
-            </ReactMarkdown>
+            </SafeMarkdown>
           </CardContent>
         </Card>
 
