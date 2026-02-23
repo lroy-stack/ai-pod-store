@@ -3,6 +3,7 @@ FROM python:3.12-slim
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
     libgl1 \
     libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
@@ -20,9 +21,14 @@ RUN python -c "from rembg import new_session; new_session('u2net')"
 
 COPY server.py .
 
+# Run as non-root user
+RUN addgroup --system rembg && adduser --system --ingroup rembg rembg \
+    && chown -R rembg:rembg /app
+USER rembg
+
 EXPOSE 8080
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')"
+    CMD curl -f http://localhost:8080/health
 
 CMD ["uvicorn", "server:app", "--host", "0.0.0.0", "--port", "8080"]

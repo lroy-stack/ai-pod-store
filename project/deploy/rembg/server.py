@@ -35,7 +35,7 @@ async def remove_background(req: RemoveRequest) -> Response:
     # Download image
     try:
         headers = {"User-Agent": "rembg-sidecar/1.0"}
-        async with httpx.AsyncClient(timeout=30, follow_redirects=True) as client:
+        async with httpx.AsyncClient(timeout=30, follow_redirects=False) as client:
             resp = await client.get(req.image_url, headers=headers)
             if resp.status_code >= 400:
                 raise HTTPException(502, f"Failed to download image: {resp.status_code}")
