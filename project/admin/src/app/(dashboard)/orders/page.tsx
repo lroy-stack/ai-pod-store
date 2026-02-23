@@ -25,6 +25,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { toast } from 'sonner';
 import {
   Table,
   TableBody,
@@ -168,7 +169,7 @@ export default function OrdersPage() {
       setShowConfirmDialog(false);
     } catch (error) {
       console.error('Failed to execute bulk action:', error);
-      alert('Failed to execute bulk action. Please try again.');
+      toast.error('Failed to execute bulk action. Please try again.');
     } finally {
       setBulkLoading(false);
     }

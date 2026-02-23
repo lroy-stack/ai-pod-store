@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useParams, useRouter, usePathname } from 'next/navigation'
 import { useTranslations } from 'next-intl'
@@ -70,8 +70,10 @@ export function StorefrontHeader({ onToggleSidebar, isSidebarCollapsed, onToggle
       : '?'
 
   const [searchQuery, setSearchQuery] = useState('')
-  const isShopPage = pathname.includes('/shop')
-  const isChatPage = pathname === `/${locale}/chat` || pathname === `/${locale}/chat/`
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
+  const isShopPage = mounted && pathname.includes('/shop')
+  const isChatPage = mounted && (pathname === `/${locale}/chat` || pathname === `/${locale}/chat/`)
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()

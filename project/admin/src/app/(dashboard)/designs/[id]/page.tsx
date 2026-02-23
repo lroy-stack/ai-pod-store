@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/dialog'
 import { CheckCircle, XCircle, Clock, Loader2, PackagePlus, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
+import { toast } from 'sonner'
 
 interface Design {
   id: string
@@ -122,12 +123,12 @@ export default function DesignDetailPage() {
         body: JSON.stringify({ product_id: product.id })
       })
 
-      alert('Product created successfully!')
+      toast.success('Product created successfully!')
       setShowCreateDialog(false)
       router.push(`/products/${product.id}`)
     } catch (error) {
       console.error('Error creating product:', error)
-      alert(error instanceof Error ? error.message : 'Failed to create product')
+      toast.error(error instanceof Error ? error.message : 'Failed to create product')
     } finally {
       setCreating(false)
     }

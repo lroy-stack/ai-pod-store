@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Star, Check, X, MessageSquare, ShieldCheck } from 'lucide-react';
+import { toast } from 'sonner';
 
 type Review = {
   id: string;
@@ -88,7 +89,7 @@ export default function ReviewModerationPage() {
       setModerationNotes('');
     } catch (error) {
       console.error('Error moderating review:', error);
-      alert('Failed to moderate review');
+      toast.error('Failed to moderate review');
     }
   };
 

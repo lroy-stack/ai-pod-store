@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { toast } from 'sonner';
 
 export default function NewProductPage() {
   const router = useRouter();
@@ -36,11 +37,11 @@ export default function NewProductPage() {
       if (res.ok) {
         router.push('/products');
       } else {
-        alert('Failed to create product');
+        toast.error('Failed to create product');
       }
     } catch (error) {
       console.error('Create product error:', error);
-      alert('Failed to create product');
+      toast.error('Failed to create product');
     } finally {
       setLoading(false);
     }

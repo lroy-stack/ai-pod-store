@@ -19,6 +19,7 @@ import { useRouter } from 'next/navigation'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { adminFetch } from '@/lib/admin-api'
+import { toast } from 'sonner'
 
 interface SoulProposal {
   id: string
@@ -86,11 +87,11 @@ export default function SoulEvolutionPage() {
         setShowDiff(false)
       } else {
         const error = await res.json()
-        alert(`Failed to approve proposal: ${error.error || 'Unknown error'}`)
+        toast.error(`Failed to approve proposal: ${error.error || 'Unknown error'}`)
       }
     } catch (error) {
       console.error('Failed to approve proposal:', error)
-      alert('Failed to approve proposal')
+      toast.error('Failed to approve proposal')
     } finally {
       setActionInProgress(false)
     }
@@ -118,11 +119,11 @@ export default function SoulEvolutionPage() {
         setRejectReason('')
       } else {
         const error = await res.json()
-        alert(`Failed to reject proposal: ${error.error || 'Unknown error'}`)
+        toast.error(`Failed to reject proposal: ${error.error || 'Unknown error'}`)
       }
     } catch (error) {
       console.error('Failed to reject proposal:', error)
-      alert('Failed to reject proposal')
+      toast.error('Failed to reject proposal')
     } finally {
       setActionInProgress(false)
     }

@@ -18,6 +18,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { CheckCircle, XCircle, Clock, Loader2, DollarSign, Package } from 'lucide-react'
 import Link from 'next/link'
+import { toast } from 'sonner'
 
 interface ReturnRequest {
   id: string
@@ -42,8 +43,10 @@ export default function ReturnsPage() {
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected' | 'completed'>('all')
   const [actionLoading, setActionLoading] = useState<string | null>(null)
   const [showNotesDialog, setShowNotesDialog] = useState(false)
+  const [showRejectDialog, setShowRejectDialog] = useState(false)
   const [selectedReturn, setSelectedReturn] = useState<ReturnRequest | null>(null)
   const [adminNotes, setAdminNotes] = useState('')
+  const [rejectionNotes, setRejectionNotes] = useState('')
 
   useEffect(() => {
     fetchReturns()
@@ -93,31 +96,38 @@ export default function ReturnsPage() {
         r.id === selectedReturn.id ? updated : r
       ))
 
-      alert('Return approved and refund processed successfully!')
+      toast.success('Return approved and refund processed successfully!')
       setShowNotesDialog(false)
       setSelectedReturn(null)
     } catch (error) {
       console.error('Error approving return:', error)
-      alert(error instanceof Error ? error.message : 'Failed to approve return')
+      toast.error(error instanceof Error ? error.message : 'Failed to approve return')
     } finally {
       setActionLoading(null)
     }
   }
 
-  const handleReject = async (returnRequest: ReturnRequest) => {
-    const notes = prompt('Rejection reason (required):')
-    if (!notes) {
-      alert('Please provide a rejection reason')
+  const openRejectDialog = (returnRequest: ReturnRequest) => {
+    setSelectedReturn(returnRequest)
+    setRejectionNotes('')
+    setShowRejectDialog(true)
+  }
+
+  const handleReject = async () => {
+    if (!selectedReturn) return
+
+    if (!rejectionNotes.trim()) {
+      toast.error('Please provide a rejection reason')
       return
     }
 
     try {
-      setActionLoading(returnRequest.id)
+      setActionLoading(selectedReturn.id)
 
-      const response = await adminFetch(`/api/returns/${returnRequest.id}/reject`, {
+      const response = await adminFetch(`/api/returns/${selectedReturn.id}/reject`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ admin_notes: notes })
+        body: JSON.stringify({ admin_notes: rejectionNotes })
       })
 
       if (!response.ok) {
@@ -129,13 +139,16 @@ export default function ReturnsPage() {
 
       // Update local state
       setReturns(prev => prev.map(r =>
-        r.id === returnRequest.id ? updated : r
+        r.id === selectedReturn.id ? updated : r
       ))
 
-      alert('Return rejected')
+      toast.success('Return rejected')
+      setShowRejectDialog(false)
+      setSelectedReturn(null)
+      setRejectionNotes('')
     } catch (error) {
       console.error('Error rejecting return:', error)
-      alert(error instanceof Error ? error.message : 'Failed to reject return')
+      toast.error(error instanceof Error ? error.message : 'Failed to reject return')
     } finally {
       setActionLoading(null)
     }
@@ -269,7 +282,7 @@ export default function ReturnsPage() {
                         <Button
                           variant="destructive"
                           size="sm"
-                          onClick={() => handleReject(returnRequest)}
+                          onClick={() => openRejectDialog(returnRequest)}
                           disabled={actionLoading === returnRequest.id}
                         >
                           {actionLoading === returnRequest.id ? (
@@ -334,6 +347,56 @@ export default function ReturnsPage() {
                 <>
                   <CheckCircle className="h-4 w-4 mr-2" />
                   Approve & Refund
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reject Return Request</DialogTitle>
+            <DialogDescription>
+              Provide a reason for rejecting this return request.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div>
+              <Label htmlFor="rejectionNotes">Rejection Reason (Required)</Label>
+              <Textarea
+                id="rejectionNotes"
+                value={rejectionNotes}
+                onChange={(e) => setRejectionNotes(e.target.value)}
+                placeholder="Explain why this return is being rejected..."
+                rows={4}
+              />
+            </div>
+
+            {selectedReturn && (
+              <div className="rounded-lg bg-muted p-4 space-y-2 text-sm">
+                <p><strong>Order ID:</strong> {selectedReturn.order_id.substring(0, 8)}</p>
+                <p><strong>Reason:</strong> {selectedReturn.reason}</p>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowRejectDialog(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleReject} disabled={actionLoading !== null || !rejectionNotes.trim()}>
+              {actionLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <XCircle className="h-4 w-4 mr-2" />
+                  Reject Return
                 </>
               )}
             </Button>

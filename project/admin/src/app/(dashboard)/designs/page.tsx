@@ -6,8 +6,11 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Textarea } from '@/components/ui/textarea'
 import { CheckCircle, XCircle, Clock, Loader2, Eye } from 'lucide-react'
 import Link from 'next/link'
+import { toast } from 'sonner'
 
 interface Design {
   id: string
@@ -29,6 +32,9 @@ export default function DesignsPage() {
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all')
   const [actionLoading, setActionLoading] = useState<string | null>(null)
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false)
+  const [rejectingDesignId, setRejectingDesignId] = useState<string | null>(null)
+  const [rejectionNotes, setRejectionNotes] = useState('')
 
   useEffect(() => {
     fetchDesigns()
@@ -64,34 +70,44 @@ export default function DesignsPage() {
       ))
     } catch (error) {
       console.error('Error approving design:', error)
-      alert('Failed to approve design')
+      toast.error('Failed to approve design')
     } finally {
       setActionLoading(null)
     }
   }
 
-  const handleReject = async (designId: string) => {
-    try {
-      setActionLoading(designId)
-      const notes = prompt('Rejection reason (optional):')
+  const openRejectDialog = (designId: string) => {
+    setRejectingDesignId(designId)
+    setRejectionNotes('')
+    setRejectDialogOpen(true)
+  }
 
-      const response = await adminFetch(`/api/designs/${designId}/moderate`, {
+  const handleReject = async () => {
+    if (!rejectingDesignId) return
+
+    try {
+      setActionLoading(rejectingDesignId)
+      const response = await adminFetch(`/api/designs/${rejectingDesignId}/moderate`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           status: 'rejected',
-          notes: notes || undefined
+          notes: rejectionNotes || undefined
         })
       })
       if (!response.ok) throw new Error('Failed to reject design')
 
       // Update local state
       setDesigns(prev => prev.map(d =>
-        d.id === designId ? { ...d, moderation_status: 'rejected', moderation_notes: notes || null } : d
+        d.id === rejectingDesignId ? { ...d, moderation_status: 'rejected', moderation_notes: rejectionNotes || null } : d
       ))
+
+      setRejectDialogOpen(false)
+      setRejectingDesignId(null)
+      setRejectionNotes('')
     } catch (error) {
       console.error('Error rejecting design:', error)
-      alert('Failed to reject design')
+      toast.error('Failed to reject design')
     } finally {
       setActionLoading(null)
     }
@@ -196,7 +212,7 @@ export default function DesignsPage() {
                           size="sm"
                           variant="destructive"
                           className="flex-1"
-                          onClick={() => handleReject(design.id)}
+                          onClick={() => openRejectDialog(design.id)}
                           disabled={actionLoading === design.id}
                         >
                           {actionLoading === design.id ? (
@@ -229,6 +245,34 @@ export default function DesignsPage() {
           )}
         </TabsContent>
       </Tabs>
+
+      <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reject Design</DialogTitle>
+            <DialogDescription>
+              Optionally provide a reason for rejecting this design.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <Textarea
+              value={rejectionNotes}
+              onChange={(e) => setRejectionNotes(e.target.value)}
+              placeholder="Rejection reason (optional)..."
+              rows={4}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRejectDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleReject} disabled={!!actionLoading}>
+              {actionLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+              Reject Design
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

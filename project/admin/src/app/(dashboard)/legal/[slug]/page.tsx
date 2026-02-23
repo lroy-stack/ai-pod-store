@@ -12,6 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ArrowLeft, Save, Eye, History } from 'lucide-react';
 import { adminFetch } from '@/lib/admin-api';
+import { toast } from 'sonner';
 
 interface LegalPage {
   id: string;
@@ -113,15 +114,15 @@ export default function LegalPageEditorPage({
 
       if (res.ok) {
         const data = await res.json();
-        alert(`Saved successfully! Version ${data.version} created.`);
+        toast.success(`Saved successfully! Version ${data.version} created.`);
         setPage(data.page);
       } else {
         const error = await res.json();
-        alert(`Error: ${error.error}`);
+        toast.error(`Error: ${error.error}`);
       }
     } catch (error) {
       console.error('Error saving page:', error);
-      alert('Failed to save page');
+      toast.error('Failed to save page');
     } finally {
       setSaving(false);
     }

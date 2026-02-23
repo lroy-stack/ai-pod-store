@@ -9,6 +9,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { Switch } from '@/components/ui/switch';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { adminFetch } from '@/lib/admin-api';
 
 interface AgentSchedule {
@@ -32,6 +42,7 @@ export default function AgentSchedulePage() {
   const [editedSchedule, setEditedSchedule] = useState<AgentSchedule[]>([]);
   const [hasChanges, setHasChanges] = useState(false);
   const [offline, setOffline] = useState(false);
+  const [showResetDialog, setShowResetDialog] = useState(false);
 
   useEffect(() => {
     fetchSchedule();
@@ -101,12 +112,9 @@ export default function AgentSchedulePage() {
   };
 
   const handleReset = async () => {
-    if (!confirm('Reset to default schedule? This will discard all custom changes.')) {
-      return;
-    }
-
     try {
       setIsSaving(true);
+      setShowResetDialog(false);
 
       const response = await adminFetch('/api/agent/schedule', {
         method: 'POST',
@@ -208,7 +216,7 @@ export default function AgentSchedulePage() {
           <Button
             variant="outline"
             size="sm"
-            onClick={handleReset}
+            onClick={() => setShowResetDialog(true)}
             disabled={isSaving}
           >
             <RotateCcw className="h-4 w-4 mr-2" />
@@ -310,6 +318,24 @@ export default function AgentSchedulePage() {
           </div>
         </CardContent>
       </Card>
+
+      <AlertDialog open={showResetDialog} onOpenChange={setShowResetDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reset to Default Schedule?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will discard all custom changes and restore the default agent schedule.
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleReset} disabled={isSaving}>
+              {isSaving ? 'Resetting...' : 'Reset Schedule'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
