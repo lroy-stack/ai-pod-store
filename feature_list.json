@@ -448,7 +448,7 @@
     "id": 38,
     "feature": "Section 4 \u2014 Homepage SSR with generateMetadata",
     "description": "Landing page is a Server Component with generateMetadata(), JSON-LD Organization+WebSite schema",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Step 1: Read frontend/src/app/[locale]/(landing)/page.tsx \u2192 verify NO 'use client' directive at top",
       "Step 2: Verify generateMetadata() function is exported",
