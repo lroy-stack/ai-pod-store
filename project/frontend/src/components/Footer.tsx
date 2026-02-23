@@ -61,8 +61,9 @@ export function Footer() {
             <p className="text-sm text-muted-foreground">
               {t('description')}
             </p>
-            {/* Social Links */}
-            <div className="flex items-center gap-2">
+            {/* Social Links - Hidden until real brand URLs are configured */}
+            {/* TODO: Add real brand social media URLs to STORE_DEFAULTS in lib/store-config.ts */}
+            {/* <div className="flex items-center gap-2">
               <Button variant="ghost" size="icon" asChild>
                 <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
                   <Facebook className="h-5 w-5" />
@@ -83,7 +84,7 @@ export function Footer() {
                   <Linkedin className="h-5 w-5" />
                 </a>
               </Button>
-            </div>
+            </div> */}
           </div>
 
           {/* Shop Links */}
