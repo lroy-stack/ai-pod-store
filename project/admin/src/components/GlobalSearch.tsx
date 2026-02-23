@@ -104,13 +104,13 @@ export function GlobalSearch() {
     results.customers.length > 0;
 
   return (
-    <CommandDialog open={open} onOpenChange={setOpen}>
+    <CommandDialog open={open} onOpenChange={setOpen} shouldFilter={false}>
       <CommandInput
         placeholder="Search products, orders, customers..."
         value={search}
         onValueChange={setSearch}
       />
-      <CommandList shouldFilter={false}>
+      <CommandList>
         {!loading && !hasResults && search.trim().length > 0 && (
           <CommandEmpty>No results found.</CommandEmpty>
         )}
