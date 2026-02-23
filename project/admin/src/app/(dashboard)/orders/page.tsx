@@ -36,29 +36,7 @@ import {
 import { Search, Filter } from 'lucide-react';
 import { useRowNavigation } from '@/hooks/useKeyboardShortcuts';
 import { KeyboardShortcutsHelp } from '@/components/KeyboardShortcutsHelp';
-
-interface Order {
-  id: string;
-  user_id: string | null;
-  status: string;
-  total_cents: number;
-  currency: string;
-  created_at: string;
-  customer_email?: string;
-  user?: {
-    id: string;
-    email: string;
-    name: string | null;
-  };
-}
-
-interface OrdersResponse {
-  orders: Order[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-}
+import { useOrders } from '@/hooks/queries/useOrders';
 
 const statusColors: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
   pending: 'secondary',
@@ -71,13 +49,22 @@ const statusColors: Record<string, 'default' | 'secondary' | 'destructive' | 'ou
 
 export default function OrdersPage() {
   const router = useRouter();
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [total, setTotal] = useState(0);
+
+  // React Query for data fetching
+  const { data, isLoading, error } = useOrders({
+    page,
+    limit: 50,
+    status: statusFilter || undefined,
+    search: search || undefined,
+  });
+
+  const orders = data?.orders || [];
+  const loading = isLoading;
+  const totalPages = data?.totalPages || 1;
+  const total = data?.total || 0;
 
   // Bulk operations state
   const [selectedOrders, setSelectedOrders] = useState<Set<string>>(new Set());
@@ -97,48 +84,17 @@ export default function OrdersPage() {
     },
   });
 
-  useEffect(() => {
-    fetchOrders();
-  }, [page, statusFilter]);
-
   // Reset selected index when orders change
   useEffect(() => {
     setSelectedIndex(-1);
   }, [orders, setSelectedIndex]);
 
-  const fetchOrders = async () => {
-    try {
-      setLoading(true);
-      const params = new URLSearchParams({
-        page: page.toString(),
-        limit: '50',
-      });
-
-      if (search) {
-        params.append('search', search);
-      }
-
-      if (statusFilter) {
-        params.append('status', statusFilter);
-      }
-
-      const response = await adminFetch(`/api/orders?${params.toString()}`);
-      const data: OrdersResponse = await response.json();
-
-      setOrders(data.orders || []);
-      setTotal(data.total || 0);
-      setTotalPages(data.totalPages || 1);
-    } catch (error) {
-      console.error('Failed to fetch orders:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // fetchOrders removed - React Query handles data fetching automatically via useOrders hook
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setPage(1);
-    fetchOrders();
+    // React Query will automatically refetch when page/search changes
   };
 
   const formatCurrency = (cents: number, currency: string) => {
@@ -206,8 +162,7 @@ export default function OrdersPage() {
         throw new Error('Bulk action failed');
       }
 
-      // Refresh orders and clear selection
-      await fetchOrders();
+      // Clear selection (React Query will automatically refetch)
       setSelectedOrders(new Set());
       setBulkAction('');
       setShowConfirmDialog(false);

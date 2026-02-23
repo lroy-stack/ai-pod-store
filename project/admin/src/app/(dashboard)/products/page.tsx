@@ -1,7 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { adminFetch } from '@/lib/admin-api';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Table,
@@ -15,39 +14,19 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Plus, Pencil, Archive, Eye } from 'lucide-react';
-
-interface Product {
-  id: string;
-  title: string;
-  base_price_cents: number;
-  currency: string;
-  status: string;
-  category: string;
-  created_at: string;
-}
+import { useProducts } from '@/hooks/queries/useProducts';
+import { useBulkUpdateProducts, useArchiveProduct } from '@/hooks/mutations/useProductMutations';
 
 export default function ProductsPage() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
-  useEffect(() => {
-    fetchProducts();
-  }, []);
+  // React Query hooks for data fetching and mutations
+  const { data, isLoading, error } = useProducts({ limit: 50 });
+  const bulkUpdateMutation = useBulkUpdateProducts();
+  const archiveProductMutation = useArchiveProduct();
 
-  async function fetchProducts() {
-    try {
-      const res = await adminFetch('/api/products?limit=50');
-      if (res.ok) {
-        const data = await res.json();
-        setProducts(data.products || []);
-      }
-    } catch (error) {
-      console.error('Failed to fetch products:', error);
-    } finally {
-      setLoading(false);
-    }
-  }
+  const products = data?.products || [];
+  const loading = isLoading;
 
   function toggleSelect(id: string) {
     const newSelected = new Set(selectedIds);
@@ -59,42 +38,31 @@ export default function ProductsPage() {
     setSelectedIds(newSelected);
   }
 
-  async function bulkPublish() {
+  function bulkPublish() {
     if (selectedIds.size === 0) return;
 
-    try {
-      const res = await adminFetch('/api/products/bulk', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ids: Array.from(selectedIds),
-          status: 'active',
-        }),
-      });
-
-      if (res.ok) {
-        await fetchProducts();
-        setSelectedIds(new Set());
+    bulkUpdateMutation.mutate(
+      {
+        ids: Array.from(selectedIds),
+        status: 'active',
+      },
+      {
+        onSuccess: () => {
+          setSelectedIds(new Set());
+        },
+        onError: (error) => {
+          console.error('Bulk publish failed:', error);
+        },
       }
-    } catch (error) {
-      console.error('Bulk publish failed:', error);
-    }
+    );
   }
 
-  async function archiveProduct(id: string) {
-    try {
-      const res = await adminFetch(`/api/products/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'archived' }),
-      });
-
-      if (res.ok) {
-        await fetchProducts();
-      }
-    } catch (error) {
-      console.error('Archive failed:', error);
-    }
+  function archiveProduct(id: string) {
+    archiveProductMutation.mutate(id, {
+      onError: (error) => {
+        console.error('Archive failed:', error);
+      },
+    });
   }
 
   return (
