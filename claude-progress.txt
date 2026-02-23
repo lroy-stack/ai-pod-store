@@ -1097,3 +1097,67 @@ This session focused on security (XSS protection), cleanup (dev endpoints), and 
 
 All features tested and verified through browser and database.
 
+
+
+## Session 19 — 2026-02-23
+
+### Feature #37: Test data separated into seed.sql
+
+**Status:** ✅ PASSING
+
+**What was verified/completed:**
+- Added test themes (Forest Eco, Midnight Tech) to supabase/seed.sql
+- seed.sql now contains 405 lines of comprehensive test data
+- Includes: test users, mock products, test orders, notifications, and themes
+
+**Files modified:**
+- `supabase/seed.sql` — Added 131 lines (2 test themes with full configuration)
+
+**Verification:**
+✅ seed.sql exists (11KB file)
+✅ Contains INSERT statements for 6 tables: users, products, orders, order_items, notifications, store_themes
+✅ Includes testuser@podstore.local, fixed UUID products, test themes
+
+**Commit:** ed3c5e4
+
+---
+
+### Feature #38: Landing page SSR with generateMetadata
+
+**Status:** ✅ PASSING (already implemented)
+
+**What was verified:**
+Landing page at `frontend/src/app/[locale]/(landing)/page.tsx` is already a Server Component with all required features.
+
+**Implementation details (already present):**
+1. ✅ NO 'use client' directive — page is a Server Component
+2. ✅ generateMetadata() exported (lines 21-53)
+3. ✅ Server-side data fetching via Supabase (lines 60-96)
+4. ✅ JSON-LD schemas present:
+   - Organization schema (lines 104-114)
+   - WebSite schema (lines 116-130)
+5. ✅ Client interactivity delegated to LandingPageClient component
+
+**Browser verification:**
+✅ Navigated to http://localhost:3000/en
+✅ Page title: "POD AI - Design anything. Print everything." (SSR confirmed)
+✅ JSON-LD Organization schema in source: `@type":"Organization","name":"POD AI"`
+✅ JSON-LD WebSite schema in source: `@type":"WebSite","name":"POD AI"`
+
+**No code changes needed** — feature was already implemented in a previous session.
+
+---
+
+### Progress Update
+- Features this session: +2 (IDs 37, 38)
+- Total: 38/321 (11.8%)
+- Next target: ID 39 — Shop page SSR with generateMetadata and JSON-LD ItemList
+
+### Notes
+- Feature 37 required adding test themes to seed.sql (minor addition)
+- Feature 38 was already complete — verified through browser testing
+- Feature 39 (shop page SSR) requires significant refactor (Client Component → Server Component split)
+  * Current shop page uses 'use client' with useState/useEffect
+  * Needs to be split into server component (data fetching, metadata) + client component (UI, interactions)
+  * This is a complex refactor deferred to next session due to context usage
+
