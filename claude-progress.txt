@@ -1916,3 +1916,46 @@ This session focused on verifying Feature #47 was already implemented:
 - All i18n names present (English, Spanish, German)
 - RLS properly configured and tested
 - Integration with products API already working
+
+
+### Feature #48: Categories API with product counts (Verification)
+
+**Status:** ✅ PASSING (already implemented)
+
+**What was discovered:**
+Both categories API endpoints were already fully implemented. This session verified they work correctly and marked the feature as passing.
+
+**Endpoints implemented:**
+1. `GET /api/categories` — Returns all active categories with product counts
+2. `GET /api/categories/[slug]` — Returns individual category details
+
+**Implementation details:**
+- Localization support via `?locale=en|es|de` query parameter
+- Product counts calculated by querying products table
+- CORS headers included for cross-origin requests
+- Falls back to English if invalid locale provided
+- Returns all required fields: id, slug, name (localized), icon, image_url, parent_id, product_count, sort_order
+
+**Verification results:**
+✅ Step 1: GET /api/categories → 200 OK, returns JSON array of 18 categories
+✅ Step 2: Each category has all required fields (id, slug, name, icon, product_count)
+✅ Step 3: Product counts are accurate (calculated from products.category)
+✅ Step 4: GET /api/categories/apparel → 200 OK, returns category detail
+
+**Test results:**
+- 18 categories returned in correct sort order
+- Localized names work correctly (tested with locale=es: "Ropa", "Camisetas", "Sudaderas con Capucha")
+- Product counts accurate for current database state (minimal products in dev)
+- Individual category endpoint returns same format as list endpoint
+
+**Files:**
+- `frontend/src/app/api/categories/route.ts` (already exists)
+- `frontend/src/app/api/categories/[slug]/route.ts` (already exists)
+
+**Commit:** (to be created - verification only)
+
+### Progress Update
+- Features this session: +2 verifications (IDs 47, 48)
+- Total: 48/321 (15.0%)
+- Next target: ID 49 — Shop page filters by category using category_id FK
+
