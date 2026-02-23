@@ -2,6 +2,14 @@ import createMiddleware from 'next-intl/middleware'
 import { routing } from './i18n/routing'
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
+import {
+  generateCSRFToken,
+  validateCSRFToken,
+  requiresCSRFProtection,
+  CSRF_COOKIE_NAME,
+  CSRF_HEADER_NAME,
+  CSRF_COOKIE_OPTIONS,
+} from './lib/csrf'
 
 // Protected routes that require authentication
 // Note: /cart and /checkout allow guest access for guest checkout feature
@@ -25,8 +33,12 @@ function simpleHash(str: string): number {
 }
 
 export default async function middleware(request: NextRequest) {
-  // First, run the i18n middleware
-  const response = intlMiddleware(request)
+  // Get the pathname early for routing decisions
+  const pathname = request.nextUrl.pathname
+
+  // Skip i18n middleware for API routes (they don't have locale prefixes)
+  const isApiRoute = pathname.startsWith('/api')
+  const response = isApiRoute ? NextResponse.next() : intlMiddleware(request)
 
   // --- A/B Testing: Variant Assignment ---
   // Get or create visitor ID for deterministic variant assignment
@@ -84,8 +96,30 @@ export default async function middleware(request: NextRequest) {
   }
   // --- End A/B Testing ---
 
-  // Get the pathname from the request
-  const pathname = request.nextUrl.pathname
+  // --- CSRF Protection ---
+  // Generate CSRF token if it doesn't exist
+  let csrfToken = request.cookies.get(CSRF_COOKIE_NAME)?.value
+  if (!csrfToken) {
+    csrfToken = generateCSRFToken()
+    response.cookies.set(CSRF_COOKIE_NAME, csrfToken, CSRF_COOKIE_OPTIONS)
+  }
+
+  // Validate CSRF token for mutation requests to API routes
+  if (pathname.startsWith('/api') && requiresCSRFProtection(request.method)) {
+    const headerToken = request.headers.get(CSRF_HEADER_NAME)
+    const cookieToken = request.cookies.get(CSRF_COOKIE_NAME)?.value
+
+    if (!validateCSRFToken(cookieToken, headerToken)) {
+      return NextResponse.json(
+        {
+          error: 'CSRF token validation failed',
+          message: 'Invalid or missing CSRF token. Please refresh the page and try again.',
+        },
+        { status: 403 }
+      )
+    }
+  }
+  // --- End CSRF Protection ---
 
   // Check if this is a protected route
   const isProtectedRoute = protectedRoutes.some((route) => {
@@ -144,5 +178,6 @@ export default async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/', '/(de|en|es)/:path*', '/((?!api|_next|_vercel|.*\\..*).*)'],
+  // Include /api routes for CSRF protection, exclude _next, _vercel, and static files
+  matcher: ['/', '/api/:path*', '/(de|en|es)/:path*', '/((?!_next|_vercel|.*\\..*).*)'],
 }
