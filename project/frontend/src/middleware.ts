@@ -105,7 +105,9 @@ export default async function middleware(request: NextRequest) {
   }
 
   // Validate CSRF token for mutation requests to API routes
-  if (pathname.startsWith('/api') && requiresCSRFProtection(request.method)) {
+  // Skip CSRF for webhooks (they have their own auth mechanisms)
+  const isWebhook = pathname.startsWith('/api/webhooks/')
+  if (pathname.startsWith('/api') && requiresCSRFProtection(request.method) && !isWebhook) {
     const headerToken = request.headers.get(CSRF_HEADER_NAME)
     const cookieToken = request.cookies.get(CSRF_COOKIE_NAME)?.value
 

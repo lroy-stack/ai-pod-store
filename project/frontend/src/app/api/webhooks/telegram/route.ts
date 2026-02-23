@@ -29,7 +29,16 @@ export async function POST(request: NextRequest) {
   try {
     // Verify secret token (required security measure)
     const secretToken = request.headers.get('x-telegram-bot-api-secret-token');
-    const expectedToken = process.env.TELEGRAM_WEBHOOK_SECRET || 'default_secret_change_in_production';
+    const expectedToken = process.env.TELEGRAM_WEBHOOK_SECRET;
+
+    // Fail-closed: reject if env var not configured
+    if (!expectedToken) {
+      console.error('TELEGRAM_WEBHOOK_SECRET not configured');
+      return NextResponse.json(
+        { ok: false, error: 'Service configuration error' },
+        { status: 500 }
+      );
+    }
 
     // ALWAYS validate the token (fail-secure)
     if (secretToken !== expectedToken) {
