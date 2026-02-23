@@ -1862,3 +1862,57 @@ Enhanced SafeMarkdown component to support custom styling components, then migra
 - All changes tested via curl and TypeScript compilation
 - No breaking changes, all pages functional
 
+
+
+## Session 25 — 2026-02-24
+
+### Feature #47: Categories table with 18 seeded categories (Verification)
+
+**Status:** ✅ PASSING (already implemented)
+
+**What was discovered:**
+This feature was already fully implemented in commit e681734 (previous session) using 8 separate migration files, but wasn't marked as passing in feature_list.json. This session verified the implementation and marked it as passing.
+
+**Migration files (already applied):**
+1. `20260223233624_create_categories_table.sql` — Table schema
+2. `20260223233715_add_categories_indexes_and_rls.sql` — Indexes
+3. `20260223233733_add_categories_active_index.sql` — Active index
+4. `20260223233733_add_categories_parent_index.sql` — Parent index
+5. `20260223233733_enable_rls_on_categories.sql` — Enable RLS
+6. `20260223233747_add_categories_public_read_policy.sql` — Public read policy
+7. `20260223233748_add_categories_service_role_policy.sql` — Service role policy
+8. `20260223233806_seed_18_categories.sql` — Seed 18 categories
+
+**Verification results:**
+✅ Step 1: Table exists with 18 rows (confirmed via `supabase inspect db table-sizes`)
+✅ Step 2: All required columns present (id, slug, parent_id, name_en, name_es, name_de, icon, image_url, sort_order, is_active)
+✅ Step 3: All 18 required slugs exist:
+  - Top-level (8): apparel, accessories, drinkware, home-decor, kitchen, kids, games, stationery
+  - Sub-categories (10): t-shirts, hoodies, sweatshirts, bags, hats, phone-cases, stickers, mugs, posters, wall-art
+✅ Step 4: RLS policies working (public read for active categories, service_role full access)
+
+**Browser testing (via Playwright):**
+- Direct Supabase REST API query confirmed 18 categories accessible with anon key
+- RLS policy "Public can view active categories" verified working
+- Category hierarchy verified (parent_id relationships)
+- i18n names verified for all three locales (en/es/de)
+
+**Commit:** e6b6bb3
+
+### Progress Update
+- Features this session: +1 verification (ID 47)
+- Total: 47/321 (14.6%)
+- Next target: ID 48 — GET /api/categories returns all active categories with accurate product counts per category
+
+### Session Summary
+This session focused on verifying Feature #47 was already implemented:
+- Discovered complete implementation from commit e681734
+- Verified via browser testing that all 4 requirements pass
+- Marked feature as passing in feature_list.json (not tracked in git)
+- No new migrations needed - existing 8-file implementation is correct
+
+**Key findings:**
+- Categories table fully functional with hierarchical support
+- All i18n names present (English, Spanish, German)
+- RLS properly configured and tested
+- Integration with products API already working
