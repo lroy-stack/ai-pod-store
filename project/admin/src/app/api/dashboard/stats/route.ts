@@ -1,7 +1,14 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import { requireAuth } from '@/lib/auth';
 
 export async function GET() {
+  // Require authentication
+  const auth = await requireAuth();
+  if (!auth.authenticated) {
+    return auth.response;
+  }
+
   try {
     // Calculate date ranges for current and previous 30-day periods
     const now = new Date();

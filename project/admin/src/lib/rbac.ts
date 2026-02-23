@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import { getIronSession } from 'iron-session';
+import { cookies } from 'next/headers';
+import { sessionOptions, SessionData } from './session';
 
 /**
  * RBAC (Role-Based Access Control) Middleware
  * Checks user permissions before allowing admin API actions
+ * Updated to use iron-session for secure, encrypted session cookies
  */
 
 export interface AdminSession {
@@ -19,34 +23,25 @@ export interface Permission {
 }
 
 /**
- * Extract and verify admin session from request cookie
+ * Extract and verify admin session from iron-session encrypted cookie
+ * Updated to use iron-session instead of plain JSON cookies
  */
-export async function getAdminSession(req: NextRequest): Promise<AdminSession | null> {
+export async function getAdminSession(req?: NextRequest): Promise<AdminSession | null> {
   try {
-    const sessionCookie = req.cookies.get('admin-session');
+    const session = await getIronSession<SessionData>(await cookies(), sessionOptions);
 
-    if (!sessionCookie) {
-      return null;
-    }
-
-    const sessionData = JSON.parse(sessionCookie.value);
-
-    // Support both "id" and "userId" field names for backwards compatibility
-    const userId = sessionData.userId || sessionData.id;
-
-    // Basic validation
-    if (!userId || !sessionData.email) {
+    if (!session.isLoggedIn || !session.id) {
       return null;
     }
 
     return {
-      userId,
-      email: sessionData.email,
-      role: sessionData.role,
-      name: sessionData.name,
+      userId: session.id,
+      email: session.email,
+      role: session.role,
+      name: session.name,
     };
   } catch (error) {
-    console.error('[RBAC] Session parse error:', error);
+    console.error('[RBAC] Session retrieval error:', error);
     return null;
   }
 }

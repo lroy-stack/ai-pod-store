@@ -1,10 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { getAdminSession } from '@/lib/rbac'
 
 const supabaseUrl = process.env.SUPABASE_URL!
 const supabaseKey = process.env.SUPABASE_SERVICE_KEY!
 
 export async function GET(request: NextRequest) {
+  // Require authentication
+  const session = await getAdminSession();
+  if (!session) {
+    return NextResponse.json(
+      { error: 'Unauthorized - admin session required' },
+      { status: 401 }
+    );
+  }
+
   try {
     const supabase = createClient(supabaseUrl, supabaseKey)
     const { searchParams } = new URL(request.url)

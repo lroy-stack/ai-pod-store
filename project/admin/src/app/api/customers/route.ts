@@ -1,7 +1,17 @@
 import { createClient } from '@/lib/supabase-admin';
 import { NextResponse } from 'next/server';
+import { getAdminSession } from '@/lib/rbac';
 
 export async function GET() {
+  // Require authentication
+  const session = await getAdminSession();
+  if (!session) {
+    return NextResponse.json(
+      { error: 'Unauthorized - admin session required' },
+      { status: 401 }
+    );
+  }
+
   try {
     const supabase = createClient();
 
