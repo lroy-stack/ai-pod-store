@@ -50,6 +50,9 @@ services:
           memory: 384M
         reservations:
           memory: 256M
+    networks:
+      - proxy
+      - data
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
       interval: 30s
@@ -87,6 +90,8 @@ services:
           memory: 256M
         reservations:
           memory: 128M
+    networks:
+      - proxy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3001/panel/api/health"]
       interval: 30s
@@ -123,6 +128,10 @@ services:
           memory: 512M
         reservations:
           memory: 256M
+    networks:
+      - proxy
+      - data
+      - ai-services
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
@@ -145,6 +154,8 @@ services:
           memory: 512M
         reservations:
           memory: 384M
+    networks:
+      - ai-services
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 30s
@@ -176,6 +187,8 @@ services:
           memory: 256M
         reservations:
           memory: 128M
+    networks:
+      - data
     healthcheck:
       test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:?REDIS_PASSWORD must be set}", "ping"]
       interval: 10s
@@ -187,15 +200,11 @@ services:
   # Crawl4AI — Lightweight web crawler with JavaScript rendering (port 11235)
   # ---------------------------------------------------------------------------
   crawl4ai:
-    build:
-      context: ../crawl4ai
-      dockerfile: Dockerfile
-    # No external port in base — internal service only
-    # Port 11235 is exposed for internal API access
+    image: unclecode/crawl4ai:latest
+    # Internal service only — no external port exposure
     environment:
       MAX_CONCURRENT_TASKS: "1"
-      PLAYWRIGHT_BROWSERS_PATH: /opt/playwright
-      CHROMIUM_EXECUTABLE_PATH: /usr/bin/chromium
+      CRAWL4AI_API_TOKEN: ""
     volumes:
       - crawl4ai-output:/app/output
     restart: unless-stopped
@@ -207,8 +216,10 @@ services:
         reservations:
           memory: 384M
     shm_size: 512m
+    networks:
+      - ai-services
     healthcheck:
-      test: ["CMD", "python", "-c", "import crawl4ai; print('OK')"]
+      test: ["CMD", "curl", "-sf", "http://localhost:11235/monitor/health"]
       interval: 30s
       timeout: 10s
       start_period: 60s
@@ -241,6 +252,9 @@ services:
           memory: 256M
         reservations:
           memory: 128M
+    networks:
+      - proxy
+      - data
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
       interval: 30s
@@ -275,6 +289,8 @@ services:
           memory: 64M
         reservations:
           memory: 32M
+    networks:
+      - proxy
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/"]
       interval: 30s
@@ -292,3 +308,17 @@ volumes:
   crawl4ai-output:   # Crawl4AI scraped data and cache
   caddy-data:        # TLS certificates
   caddy-config:      # Caddy runtime config
+
+# ---------------------------------------------------------------------------
+# Networks — Segmented for isolation
+# ---------------------------------------------------------------------------
+#   proxy:       Caddy ↔ frontend, admin, podclaw, mcp-server
+#   data:        frontend, podclaw, mcp-server ↔ Redis
+#   ai-services: podclaw ↔ rembg, crawl4ai (untrusted workloads isolated)
+networks:
+  proxy:
+    driver: bridge
+  data:
+    driver: bridge
+  ai-services:
+    driver: bridge
