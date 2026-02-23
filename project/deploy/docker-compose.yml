@@ -35,7 +35,6 @@ services:
       NODE_ENV: production
       PORT: "3000"
       REDIS_URL: redis://:${REDIS_PASSWORD:?REDIS_PASSWORD must be set}@redis:6379
-      REMBG_URL: http://rembg:8080
       PODCLAW_BRIDGE_URL: http://podclaw:8000
     depends_on:
       redis:
@@ -78,8 +77,6 @@ services:
       ADMIN_BASE_PATH: "/panel"
       PODCLAW_BRIDGE_URL: http://podclaw:8000
     depends_on:
-      redis:
-        condition: service_healthy
       podclaw:
         condition: service_healthy
     restart: unless-stopped
@@ -119,6 +116,8 @@ services:
       redis:
         condition: service_healthy
       rembg:
+        condition: service_healthy
+      crawl4ai:
         condition: service_healthy
     restart: unless-stopped
     deploy:
