@@ -31,6 +31,8 @@ export async function GET() {
       { path: '', priority: '1.0', changefreq: 'daily' },
       { path: '/shop', priority: '0.9', changefreq: 'daily' },
       { path: '/about', priority: '0.5', changefreq: 'monthly' },
+      { path: '/contact', priority: '0.5', changefreq: 'monthly' },
+      { path: '/faq', priority: '0.5', changefreq: 'monthly' },
       { path: '/privacy', priority: '0.3', changefreq: 'monthly' },
       { path: '/terms', priority: '0.3', changefreq: 'monthly' },
       { path: '/shipping', priority: '0.4', changefreq: 'monthly' },
@@ -44,6 +46,38 @@ export async function GET() {
     <lastmod>${new Date().toISOString()}</lastmod>
     <changefreq>${page.changefreq}</changefreq>
     <priority>${page.priority}</priority>
+  </url>`)
+    })
+
+    // Add category landing pages
+    const categories = [
+      'apparel',
+      'home-decor',
+      'drinkware',
+      'accessories',
+      't-shirts',
+      'hoodies',
+      'stickers',
+      'phone-cases',
+      'posters',
+      'bags',
+      'hats',
+      'mugs',
+      'wall-art',
+      'stationery',
+      'sweatshirts',
+      'kitchen',
+      'kids',
+      'games',
+    ]
+
+    categories.forEach((category) => {
+      urls.push(`
+  <url>
+    <loc>${baseUrl}/${locale}/shop/category/${category}</loc>
+    <lastmod>${new Date().toISOString()}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
   </url>`)
     })
 

@@ -499,7 +499,7 @@
     "id": 42,
     "feature": "Section 4 \u2014 Category landing page /shop/category/[slug]",
     "description": "Category-specific shop page with SSR, generateMetadata(), and JSON-LD ItemList",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Step 1: Verify file exists: frontend/src/app/[locale]/(app)/shop/category/[slug]/page.tsx",
       "Step 2: Navigate to http://localhost:3000/en/shop/category/apparel \u2192 expect 200",
@@ -512,7 +512,7 @@
     "id": 43,
     "feature": "Section 4 \u2014 Dynamic sitemap includes products",
     "description": "Sitemap includes all products with lastmod dates and category landing pages",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Step 1: curl http://localhost:3000/api/sitemap-en.xml \u2192 verify product URLs included",
       "Step 2: Verify product URLs include lastmod dates",
