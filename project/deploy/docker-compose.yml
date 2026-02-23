@@ -203,7 +203,7 @@ services:
   # Crawl4AI — Lightweight web crawler with JavaScript rendering (port 11235)
   # ---------------------------------------------------------------------------
   crawl4ai:
-    image: unclecode/crawl4ai:latest
+    image: unclecode/crawl4ai:0.8.0
     # Internal service only — no external port exposure
     environment:
       MAX_CONCURRENT_TASKS: "1"
