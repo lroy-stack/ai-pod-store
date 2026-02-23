@@ -1,9 +1,9 @@
 [
   {
     "id": 1,
-    "feature": "Section 0 — processed_events table exists",
+    "feature": "Section 0 \u2014 processed_events table exists",
     "description": "Webhook deduplication table with UNIQUE(provider, event_id) constraint, provider/event_id/event_type columns, and proper indexes",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Step 1: Run SQL query via Supabase: SELECT column_name, data_type FROM information_schema.columns WHERE table_name='processed_events'",
       "Step 2: Verify columns exist: id (uuid), provider (varchar), event_id (varchar), event_type (varchar), processed_at (timestamptz), status_code (integer)",
@@ -13,9 +13,9 @@
   },
   {
     "id": 2,
-    "feature": "Section 0 — cron_runs table exists",
+    "feature": "Section 0 \u2014 cron_runs table exists",
     "description": "Cron execution tracking table with status CHECK constraint and proper schema for mutual exclusion tracking",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Step 1: Run SQL query: SELECT column_name, data_type FROM information_schema.columns WHERE table_name='cron_runs'",
       "Step 2: Verify columns: id (uuid), cron_name (varchar), started_at (timestamptz), finished_at (timestamptz), status (varchar), duration_ms (integer), error_message (text), rows_affected (integer)",
@@ -25,9 +25,9 @@
   },
   {
     "id": 3,
-    "feature": "Section 0 — returns table exists",
+    "feature": "Section 0 \u2014 returns table exists",
     "description": "Return lifecycle table with full status lifecycle columns and proper foreign keys",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Step 1: Run SQL: SELECT column_name, data_type FROM information_schema.columns WHERE table_name='returns'",
       "Step 2: Verify columns: id, order_id, customer_id, status, reason, admin_notes, return_tracking_number, refund_amount_cents, created_at, updated_at, resolved_at, resolved_by",
@@ -38,9 +38,9 @@
   },
   {
     "id": 4,
-    "feature": "Section 0 — orders refund columns exist",
+    "feature": "Section 0 \u2014 orders refund columns exist",
     "description": "Orders table has stripe_refund_id (UNIQUE), refunded_at, refund_amount_cents, refund_reason, retry_count columns",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Step 1: Run SQL: SELECT column_name, data_type FROM information_schema.columns WHERE table_name='orders' AND column_name IN ('stripe_refund_id','refunded_at','refund_amount_cents','refund_reason','retry_count')",
       "Step 2: Verify all 5 columns exist with correct types",
@@ -50,44 +50,44 @@
   },
   {
     "id": 5,
-    "feature": "Section 0 — issue_refund_atomic() function works",
+    "feature": "Section 0 \u2014 issue_refund_atomic() function works",
     "description": "PostgreSQL function atomically processes refunds and returns FALSE for already-refunded orders",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Step 1: Verify function exists: SELECT proname FROM pg_proc WHERE proname='issue_refund_atomic'",
       "Step 2: Verify function is SECURITY DEFINER",
-      "Step 3: Test: Call with a valid order → returns TRUE, sets refunded_at",
-      "Step 4: Test: Call again on same order → returns FALSE (already refunded)"
+      "Step 3: Test: Call with a valid order \u2192 returns TRUE, sets refunded_at",
+      "Step 4: Test: Call again on same order \u2192 returns FALSE (already refunded)"
     ]
   },
   {
     "id": 6,
-    "feature": "Section 0 — try_cron_lock() function works",
+    "feature": "Section 0 \u2014 try_cron_lock() function works",
     "description": "PostgreSQL function returns BOOLEAN for advisory lock acquisition, FALSE when lock held by another session",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Step 1: Verify function exists: SELECT proname FROM pg_proc WHERE proname='try_cron_lock'",
-      "Step 2: Test: Call try_cron_lock('test_cron') → returns TRUE",
+      "Step 2: Test: Call try_cron_lock('test_cron') \u2192 returns TRUE",
       "Step 3: Test: In same transaction, verify lock prevents second acquisition"
     ]
   },
   {
     "id": 7,
-    "feature": "Section 0 — ZombieReaper cron endpoint exists",
+    "feature": "Section 0 \u2014 ZombieReaper cron endpoint exists",
     "description": "New cron route at /api/cron/zombie-reaper that detects and corrects expired intermediate states",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Step 1: Verify file exists: frontend/src/app/api/cron/zombie-reaper/route.ts",
-      "Step 2: curl GET http://localhost:3000/api/cron/zombie-reaper → returns 200",
+      "Step 2: curl GET http://localhost:3000/api/cron/zombie-reaper \u2192 returns 200",
       "Step 3: Verify response includes detection results for order/product/agent/return zombie states",
       "Step 4: Verify cron_runs table gets a new entry after execution"
     ]
   },
   {
     "id": 8,
-    "feature": "Section 0 — WebhookProcessor deduplication module",
+    "feature": "Section 0 \u2014 WebhookProcessor deduplication module",
     "description": "Reliability module at frontend/src/lib/reliability/webhook-processor.ts that deduplicates webhook events",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Step 1: Verify file exists: frontend/src/lib/reliability/webhook-processor.ts",
       "Step 2: Verify exports processEvent(provider, eventId, eventType, handler) function",
@@ -97,9 +97,9 @@
   },
   {
     "id": 9,
-    "feature": "Section 0 — CronLockManager module",
+    "feature": "Section 0 \u2014 CronLockManager module",
     "description": "Reliability module at frontend/src/lib/reliability/cron-lock.ts for preventing overlapping cron executions",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Step 1: Verify file exists: frontend/src/lib/reliability/cron-lock.ts",
       "Step 2: Verify exports acquireLock(cronName) and recordRun(cronName, status, duration) functions",
@@ -108,9 +108,9 @@
   },
   {
     "id": 10,
-    "feature": "Section 0 — RefundGuard module",
+    "feature": "Section 0 \u2014 RefundGuard module",
     "description": "Reliability module at frontend/src/lib/reliability/refund-guard.ts ensuring single refund per order via issue_refund_atomic",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Step 1: Verify file exists: frontend/src/lib/reliability/refund-guard.ts",
       "Step 2: Verify exports issueRefund(orderId, paymentIntentId, amount, reason) function",
@@ -120,9 +120,9 @@
   },
   {
     "id": 11,
-    "feature": "Section 0 — StateTransitionValidator module",
+    "feature": "Section 0 \u2014 StateTransitionValidator module",
     "description": "Reliability module at frontend/src/lib/reliability/state-transition.ts enforcing valid state transitions per matrix",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Step 1: Verify file exists: frontend/src/lib/reliability/state-transition.ts",
       "Step 2: Verify exports transition(table, id, fromState, toState) function",
@@ -132,9 +132,9 @@
   },
   {
     "id": 12,
-    "feature": "Section 0 — RetryManager and EscalationManager modules",
+    "feature": "Section 0 \u2014 RetryManager and EscalationManager modules",
     "description": "RetryManager at frontend/src/lib/reliability/retry-manager.ts and EscalationManager at frontend/src/lib/reliability/escalation.ts",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Step 1: Verify file exists: frontend/src/lib/reliability/retry-manager.ts",
       "Step 2: Verify RetryManager exports withRetry(operation, fn, opts) with exponential backoff + jitter",
@@ -145,9 +145,9 @@
   },
   {
     "id": 13,
-    "feature": "Section 0 — DivergenceDetector module",
+    "feature": "Section 0 \u2014 DivergenceDetector module",
     "description": "Reliability module at frontend/src/lib/reliability/divergence-detector.ts detecting Printify catalog vs local DB inconsistencies",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Step 1: Verify file exists: frontend/src/lib/reliability/divergence-detector.ts",
       "Step 2: Verify exports detectDivergence() returning Array of {productId, field, localValue, remoteValue}",
@@ -156,58 +156,58 @@
   },
   {
     "id": 14,
-    "feature": "Section 1 — setup-rbac endpoint removed",
+    "feature": "Section 1 \u2014 setup-rbac endpoint removed",
     "description": "The public endpoint POST /api/admin/setup-rbac that allows creating admin accounts must return 404",
-    "passes": false,
+    "passes": true,
     "steps": [
-      "Step 1: curl -X POST http://localhost:3001/api/admin/setup-rbac → expect 404 Not Found",
+      "Step 1: curl -X POST http://localhost:3001/api/admin/setup-rbac \u2192 expect 404 Not Found",
       "Step 2: Verify the file admin/src/app/api/admin/setup-rbac/route.ts does NOT exist",
       "Step 3: Verify no other endpoint allows public admin account creation"
     ]
   },
   {
     "id": 15,
-    "feature": "Section 1 — Admin session uses iron-session",
+    "feature": "Section 1 \u2014 Admin session uses iron-session",
     "description": "Admin authentication uses iron-session with signed+encrypted cookies instead of unsigned JSON",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Step 1: Verify iron-session is in admin/package.json dependencies",
       "Step 2: Verify admin/src/lib/session.ts exists with iron-session configuration",
       "Step 3: Navigate to http://localhost:3001/login and login with admin@podstore.local / admin123",
       "Step 4: Verify the admin-session cookie is encrypted (not readable JSON)",
-      "Step 5: Manually forge a cookie admin-session={\"role\":\"admin\"} → verify it's rejected (401)"
+      "Step 5: Manually forge a cookie admin-session={\"role\":\"admin\"} \u2192 verify it's rejected (401)"
     ]
   },
   {
     "id": 16,
-    "feature": "Section 1 — All admin API routes require authentication",
+    "feature": "Section 1 \u2014 All admin API routes require authentication",
     "description": "All 69 admin API routes (except /api/auth/login and /api/health) return 401 without valid session",
-    "passes": false,
+    "passes": true,
     "steps": [
-      "Step 1: curl http://localhost:3001/api/dashboard/stats without auth → expect 401",
-      "Step 2: curl http://localhost:3001/api/products without auth → expect 401",
-      "Step 3: curl http://localhost:3001/api/orders without auth → expect 401",
-      "Step 4: curl http://localhost:3001/api/customers without auth → expect 401",
-      "Step 5: curl http://localhost:3001/api/agent/sessions without auth → expect 401",
-      "Step 6: curl http://localhost:3001/api/auth/login → expect 200 (public endpoint)"
+      "Step 1: curl http://localhost:3001/api/dashboard/stats without auth \u2192 expect 401",
+      "Step 2: curl http://localhost:3001/api/products without auth \u2192 expect 401",
+      "Step 3: curl http://localhost:3001/api/orders without auth \u2192 expect 401",
+      "Step 4: curl http://localhost:3001/api/customers without auth \u2192 expect 401",
+      "Step 5: curl http://localhost:3001/api/agent/sessions without auth \u2192 expect 401",
+      "Step 6: curl http://localhost:3001/api/auth/login \u2192 expect 200 (public endpoint)"
     ]
   },
   {
     "id": 17,
-    "feature": "Section 1 — Admin login rate-limited",
+    "feature": "Section 1 \u2014 Admin login rate-limited",
     "description": "Admin login endpoint rate-limited to 5 attempts per 15 minutes per IP",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Step 1: Send 5 failed login attempts to POST /api/auth/login with wrong password",
-      "Step 2: Send 6th attempt → expect 429 Too Many Requests",
+      "Step 2: Send 6th attempt \u2192 expect 429 Too Many Requests",
       "Step 3: Verify rate limit response includes retry-after header"
     ]
   },
   {
     "id": 18,
-    "feature": "Section 1 — Printify webhook uses timingSafeEqual",
+    "feature": "Section 1 \u2014 Printify webhook uses timingSafeEqual",
     "description": "Printify webhook HMAC verification uses crypto.timingSafeEqual() instead of === for constant-time comparison",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Step 1: Read frontend/src/app/api/webhooks/printify/route.ts",
       "Step 2: Verify HMAC comparison uses timingSafeEqual() from 'crypto' module",
@@ -216,9 +216,9 @@
   },
   {
     "id": 19,
-    "feature": "Section 1 — All database tables have RLS enabled",
+    "feature": "Section 1 \u2014 All database tables have RLS enabled",
     "description": "All 64+ database tables have Row Level Security enabled with proper policies",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Step 1: Run SQL: SELECT tablename, rowsecurity FROM pg_tables WHERE schemaname='public'",
       "Step 2: Verify all tables have rowsecurity=true",
@@ -228,9 +228,9 @@
   },
   {
     "id": 20,
-    "feature": "Section 1 — Auth sync trigger exists",
+    "feature": "Section 1 \u2014 Auth sync trigger exists",
     "description": "handle_new_user() trigger fires on auth.users INSERT and creates corresponding row in public.users",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Step 1: Verify trigger exists: SELECT tgname FROM pg_trigger WHERE tgname='on_auth_user_created'",
       "Step 2: Verify function exists: SELECT proname FROM pg_proc WHERE proname='handle_new_user'",
@@ -239,32 +239,32 @@
   },
   {
     "id": 21,
-    "feature": "Section 1 — CSRF protection on frontend mutations",
+    "feature": "Section 1 \u2014 CSRF protection on frontend mutations",
     "description": "Frontend mutations are protected by CSRF token validation",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Step 1: Verify frontend/src/lib/csrf.ts exists with CSRF token generation and validation",
       "Step 2: Verify frontend/src/middleware.ts includes CSRF token check for POST/PUT/PATCH/DELETE",
-      "Step 3: curl POST to a mutation endpoint without CSRF token → expect 403"
+      "Step 3: curl POST to a mutation endpoint without CSRF token \u2192 expect 403"
     ]
   },
   {
     "id": 22,
-    "feature": "Section 1 — withAuth middleware for admin API routes",
+    "feature": "Section 1 \u2014 withAuth middleware for admin API routes",
     "description": "withAuth() wrapper middleware exists and is applied to all admin API routes",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Step 1: Verify file exists: admin/src/lib/auth-middleware.ts",
       "Step 2: Verify withAuth() exports a wrapper that validates iron-session",
       "Step 3: Verify withAuth() auto-logs to audit_log before response",
-      "Step 4: Grep admin API routes for withAuth usage — all should use it"
+      "Step 4: Grep admin API routes for withAuth usage \u2014 all should use it"
     ]
   },
   {
     "id": 23,
-    "feature": "Section 1 — Telegram webhook fallback secret removed",
+    "feature": "Section 1 \u2014 Telegram webhook fallback secret removed",
     "description": "Remove the fallback secret in Telegram webhook that allows bypass",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Step 1: Read frontend/src/app/api/webhooks/telegram/route.ts",
       "Step 2: Verify no fallback/default secret token exists (line ~32)",
@@ -273,132 +273,132 @@
   },
   {
     "id": 24,
-    "feature": "Section 2 — Admin dashboard route group layout",
+    "feature": "Section 2 \u2014 Admin dashboard route group layout",
     "description": "All 34 admin pages use shared layout via (dashboard) route group with sidebar, header, breadcrumbs",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Step 1: Verify file exists: admin/src/app/(dashboard)/layout.tsx",
       "Step 2: Navigate to http://localhost:3001 and login",
-      "Step 3: Navigate to /products → verify sidebar is visible without manual import",
-      "Step 4: Navigate to /orders → verify same sidebar layout",
-      "Step 5: Navigate to /customers → verify same sidebar layout",
+      "Step 3: Navigate to /products \u2192 verify sidebar is visible without manual import",
+      "Step 4: Navigate to /orders \u2192 verify same sidebar layout",
+      "Step 5: Navigate to /customers \u2192 verify same sidebar layout",
       "Step 6: Verify DashboardLayout manual import component is deleted or unused"
     ]
   },
   {
     "id": 25,
-    "feature": "Section 2 — React Query migration complete",
+    "feature": "Section 2 \u2014 React Query migration complete",
     "description": "All admin pages use React Query for data fetching with zero useEffect+fetch patterns remaining",
-    "passes": false,
+    "passes": true,
     "steps": [
-      "Step 1: grep -r 'useEffect' admin/src/app/ — verify no fetch patterns in useEffect",
+      "Step 1: grep -r 'useEffect' admin/src/app/ \u2014 verify no fetch patterns in useEffect",
       "Step 2: Verify typed query hooks exist: admin/src/hooks/queries/ directory",
       "Step 3: Verify typed mutation hooks exist: admin/src/hooks/mutations/ directory",
-      "Step 4: Navigate to /products → verify data loads via React Query (check devtools or loading states)",
-      "Step 5: Navigate to /orders → verify React Query data fetching"
+      "Step 4: Navigate to /products \u2192 verify data loads via React Query (check devtools or loading states)",
+      "Step 5: Navigate to /orders \u2192 verify React Query data fetching"
     ]
   },
   {
     "id": 26,
-    "feature": "Section 2 — Zero color token violations in admin",
+    "feature": "Section 2 \u2014 Zero color token violations in admin",
     "description": "No bg-blue-*, bg-gray-*, bg-white, text-gray-* raw Tailwind colors remain in admin code",
-    "passes": false,
+    "passes": true,
     "steps": [
-      "Step 1: grep -r 'bg-blue' admin/src/ → expect 0 matches",
-      "Step 2: grep -r 'bg-gray' admin/src/ → expect 0 matches",
-      "Step 3: grep -r 'text-gray' admin/src/ → expect 0 matches",
-      "Step 4: grep -r 'bg-white' admin/src/ → expect 0 matches (as card/surface bg)",
-      "Step 5: grep -r 'border-gray' admin/src/ → expect 0 matches"
+      "Step 1: grep -r 'bg-blue' admin/src/ \u2192 expect 0 matches",
+      "Step 2: grep -r 'bg-gray' admin/src/ \u2192 expect 0 matches",
+      "Step 3: grep -r 'text-gray' admin/src/ \u2192 expect 0 matches",
+      "Step 4: grep -r 'bg-white' admin/src/ \u2192 expect 0 matches (as card/surface bg)",
+      "Step 5: grep -r 'border-gray' admin/src/ \u2192 expect 0 matches"
     ]
   },
   {
     "id": 27,
-    "feature": "Section 2 — Zero native alert/prompt calls in admin",
+    "feature": "Section 2 \u2014 Zero native alert/prompt calls in admin",
     "description": "All 24 alert()/prompt()/confirm() calls replaced with toast() from sonner + Dialog from shadcn",
-    "passes": false,
+    "passes": true,
     "steps": [
-      "Step 1: grep -r 'window\\.alert\\|window\\.prompt\\|window\\.confirm\\|alert(' admin/src/ → expect 0 matches",
-      "Step 2: grep -r 'prompt(' admin/src/ → expect 0 matches (excluding TypeScript types)",
+      "Step 1: grep -r 'window\\.alert\\|window\\.prompt\\|window\\.confirm\\|alert(' admin/src/ \u2192 expect 0 matches",
+      "Step 2: grep -r 'prompt(' admin/src/ \u2192 expect 0 matches (excluding TypeScript types)",
       "Step 3: Verify sonner toast() is imported and used for notifications"
     ]
   },
   {
     "id": 28,
-    "feature": "Section 2 — Admin dark mode toggle works",
+    "feature": "Section 2 \u2014 Admin dark mode toggle works",
     "description": "Dark mode toggle in admin switches theme across all pages with persisted preference",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Step 1: Navigate to http://localhost:3001 and login",
       "Step 2: Find and click dark mode toggle",
       "Step 3: Verify background changes to dark theme (bg-background token)",
-      "Step 4: Navigate to /products → verify dark mode persists",
-      "Step 5: Refresh page → verify dark mode preference is persisted"
+      "Step 4: Navigate to /products \u2192 verify dark mode persists",
+      "Step 5: Refresh page \u2192 verify dark mode preference is persisted"
     ]
   },
   {
     "id": 29,
-    "feature": "Section 2 — Admin settings page persists to database",
+    "feature": "Section 2 \u2014 Admin settings page persists to database",
     "description": "Settings page saves to real API (not setTimeout stub) and changes persist across refresh",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Step 1: Navigate to http://localhost:3001/settings and login",
       "Step 2: Modify a setting value (store name, email, etc.)",
-      "Step 3: Click Save → verify toast success notification",
-      "Step 4: Refresh page → verify the changed value persists",
-      "Step 5: Read admin settings page source — verify no setTimeout fake save"
+      "Step 3: Click Save \u2192 verify toast success notification",
+      "Step 4: Refresh page \u2192 verify the changed value persists",
+      "Step 5: Read admin settings page source \u2014 verify no setTimeout fake save"
     ]
   },
   {
     "id": 30,
-    "feature": "Section 2 — Admin error boundaries and not-found pages",
+    "feature": "Section 2 \u2014 Admin error boundaries and not-found pages",
     "description": "Admin has error.tsx and not-found.tsx for dashboard route group",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Step 1: Verify file exists: admin/src/app/(dashboard)/error.tsx or admin/src/app/error.tsx",
       "Step 2: Verify file exists: admin/src/app/(dashboard)/not-found.tsx or admin/src/app/not-found.tsx",
-      "Step 3: Navigate to http://localhost:3001/nonexistent-page → verify not-found renders",
+      "Step 3: Navigate to http://localhost:3001/nonexistent-page \u2192 verify not-found renders",
       "Step 4: Verify error boundary has recovery option (retry button)"
     ]
   },
   {
     "id": 31,
-    "feature": "Section 2 — Admin pagination on list pages",
+    "feature": "Section 2 \u2014 Admin pagination on list pages",
     "description": "Products, orders, customers, and designs pages have server-side pagination with search",
-    "passes": false,
+    "passes": true,
     "steps": [
-      "Step 1: Navigate to http://localhost:3001/products → verify pagination controls exist",
+      "Step 1: Navigate to http://localhost:3001/products \u2192 verify pagination controls exist",
       "Step 2: Verify URL includes pagination params (?page=1&limit=20)",
-      "Step 3: Navigate to /orders → verify pagination controls",
+      "Step 3: Navigate to /orders \u2192 verify pagination controls",
       "Step 4: Test search with debounce on /products page",
       "Step 5: Verify Skeleton loading states appear during data fetch"
     ]
   },
   {
     "id": 32,
-    "feature": "Section 2 — Admin ReactMarkdown uses SafeMarkdown/DOMPurify",
+    "feature": "Section 2 \u2014 Admin ReactMarkdown uses SafeMarkdown/DOMPurify",
     "description": "All ReactMarkdown usage in admin replaced with DOMPurify-sanitized SafeMarkdown (legal editor, soul, memory, chat)",
-    "passes": false,
+    "passes": true,
     "steps": [
-      "Step 1: grep -r 'ReactMarkdown' admin/src/ → verify all usages are wrapped with DOMPurify",
+      "Step 1: grep -r 'ReactMarkdown' admin/src/ \u2192 verify all usages are wrapped with DOMPurify",
       "Step 2: Verify legal page editor uses sanitized markdown rendering",
       "Step 3: Verify soul, memory, and chat pages use sanitized markdown"
     ]
   },
   {
     "id": 33,
-    "feature": "Section 2 — Admin test-sse endpoint removed",
+    "feature": "Section 2 \u2014 Admin test-sse endpoint removed",
     "description": "Dev-only endpoint /api/test-sse is deleted from admin codebase",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Step 1: Verify file does NOT exist: admin/src/app/api/test-sse/route.ts",
-      "Step 2: curl http://localhost:3001/api/test-sse → expect 404"
+      "Step 2: curl http://localhost:3001/api/test-sse \u2192 expect 404"
     ]
   },
   {
     "id": 34,
-    "feature": "Section 3 — Compound database indexes created",
+    "feature": "Section 3 \u2014 Compound database indexes created",
     "description": "All 11 compound indexes for frequent queries are created and verified",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Step 1: Run SQL: SELECT indexname FROM pg_indexes WHERE schemaname='public' AND indexname LIKE 'idx_%'",
       "Step 2: Verify idx_orders_status_created exists",
@@ -411,9 +411,9 @@
   },
   {
     "id": 35,
-    "feature": "Section 3 — pgvector uses HNSW index",
+    "feature": "Section 3 \u2014 pgvector uses HNSW index",
     "description": "Vector search index on documents.embedding uses HNSW instead of IVFFlat for better performance",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Step 1: Run SQL: SELECT indexname, indexdef FROM pg_indexes WHERE tablename='documents' AND indexdef LIKE '%vector%'",
       "Step 2: Verify index uses HNSW method (not IVFFlat)",
@@ -423,9 +423,9 @@
   },
   {
     "id": 36,
-    "feature": "Section 3 — Table partitioning for high-growth tables",
+    "feature": "Section 3 \u2014 Table partitioning for high-growth tables",
     "description": "agent_events, messages, and audit_log are partitioned by month with auto-creation of future partitions",
-    "passes": false,
+    "passes": true,
     "steps": [
       "Step 1: Run SQL: SELECT relname, relkind FROM pg_class WHERE relname IN ('agent_events','messages','audit_log')",
       "Step 2: Verify tables are partitioned (relkind='p')",
@@ -435,86 +435,86 @@
   },
   {
     "id": 37,
-    "feature": "Section 3 — Migration cleanup (no test data in production)",
+    "feature": "Section 3 \u2014 Migration cleanup (no test data in production)",
     "description": "Test/seed data separated from production migrations into supabase/seed.sql",
     "passes": false,
     "steps": [
       "Step 1: Verify file exists: supabase/seed.sql",
-      "Step 2: grep production migrations for INSERT with test data — should be minimal or zero",
+      "Step 2: grep production migrations for INSERT with test data \u2014 should be minimal or zero",
       "Step 3: Verify seed.sql contains test data previously embedded in migrations"
     ]
   },
   {
     "id": 38,
-    "feature": "Section 4 — Homepage SSR with generateMetadata",
+    "feature": "Section 4 \u2014 Homepage SSR with generateMetadata",
     "description": "Landing page is a Server Component with generateMetadata(), JSON-LD Organization+WebSite schema",
     "passes": false,
     "steps": [
-      "Step 1: Read frontend/src/app/[locale]/(landing)/page.tsx → verify NO 'use client' directive at top",
+      "Step 1: Read frontend/src/app/[locale]/(landing)/page.tsx \u2192 verify NO 'use client' directive at top",
       "Step 2: Verify generateMetadata() function is exported",
-      "Step 3: Navigate to http://localhost:3000/en → view page source",
+      "Step 3: Navigate to http://localhost:3000/en \u2192 view page source",
       "Step 4: Verify <title> tag contains brand name in HTML source (SSR, not client-rendered)",
       "Step 5: Verify JSON-LD script tag with @type Organization or WebSite exists in source"
     ]
   },
   {
     "id": 39,
-    "feature": "Section 4 — Shop page SSR with generateMetadata",
+    "feature": "Section 4 \u2014 Shop page SSR with generateMetadata",
     "description": "Shop page is a Server Component with generateMetadata() and JSON-LD ItemList schema",
     "passes": false,
     "steps": [
-      "Step 1: Read frontend/src/app/[locale]/(app)/shop/page.tsx → verify server component or split pattern",
+      "Step 1: Read frontend/src/app/[locale]/(app)/shop/page.tsx \u2192 verify server component or split pattern",
       "Step 2: Verify generateMetadata() function is exported",
-      "Step 3: Navigate to http://localhost:3000/en/shop → view page source",
+      "Step 3: Navigate to http://localhost:3000/en/shop \u2192 view page source",
       "Step 4: Verify metadata is present in HTML source (not client-rendered)",
       "Step 5: Verify JSON-LD ItemList schema in page source"
     ]
   },
   {
     "id": 40,
-    "feature": "Section 4 — Missing pages exist: /about, /contact, /faq",
+    "feature": "Section 4 \u2014 Missing pages exist: /about, /contact, /faq",
     "description": "Three essential pages exist in (focused) route group with proper metadata",
     "passes": false,
     "steps": [
-      "Step 1: Navigate to http://localhost:3000/en/about → expect 200 with page content",
+      "Step 1: Navigate to http://localhost:3000/en/about \u2192 expect 200 with page content",
       "Step 2: Verify /about has generateMetadata() (check page source for <title>)",
-      "Step 3: Navigate to http://localhost:3000/en/contact → expect 200 with contact form",
-      "Step 4: Navigate to http://localhost:3000/en/faq → expect 200 with FAQ accordion",
+      "Step 3: Navigate to http://localhost:3000/en/contact \u2192 expect 200 with contact form",
+      "Step 4: Navigate to http://localhost:3000/en/faq \u2192 expect 200 with FAQ accordion",
       "Step 5: Verify all 3 pages use shadcn/ui components and semantic tokens"
     ]
   },
   {
     "id": 41,
-    "feature": "Section 4 — Missing pages exist: /blog, /size-guide",
+    "feature": "Section 4 \u2014 Missing pages exist: /blog, /size-guide",
     "description": "Blog listing page and size guide page exist with proper metadata",
     "passes": false,
     "steps": [
-      "Step 1: Navigate to http://localhost:3000/en/blog → expect 200 with blog listing",
-      "Step 2: Navigate to http://localhost:3000/en/size-guide → expect 200 with size tables",
+      "Step 1: Navigate to http://localhost:3000/en/blog \u2192 expect 200 with blog listing",
+      "Step 2: Navigate to http://localhost:3000/en/size-guide \u2192 expect 200 with size tables",
       "Step 3: Verify both pages have generateMetadata()",
       "Step 4: Verify pages use shadcn/ui components and semantic tokens"
     ]
   },
   {
     "id": 42,
-    "feature": "Section 4 — Category landing page /shop/category/[slug]",
+    "feature": "Section 4 \u2014 Category landing page /shop/category/[slug]",
     "description": "Category-specific shop page with SSR, generateMetadata(), and JSON-LD ItemList",
     "passes": false,
     "steps": [
       "Step 1: Verify file exists: frontend/src/app/[locale]/(app)/shop/category/[slug]/page.tsx",
-      "Step 2: Navigate to http://localhost:3000/en/shop/category/apparel → expect 200",
+      "Step 2: Navigate to http://localhost:3000/en/shop/category/apparel \u2192 expect 200",
       "Step 3: Verify page shows filtered products for the category",
       "Step 4: Verify page source has category-specific <title> and meta description",
-      "Step 5: Verify breadcrumbs: Home → Shop → Category Name"
+      "Step 5: Verify breadcrumbs: Home \u2192 Shop \u2192 Category Name"
     ]
   },
   {
     "id": 43,
-    "feature": "Section 4 — Dynamic sitemap includes products",
+    "feature": "Section 4 \u2014 Dynamic sitemap includes products",
     "description": "Sitemap includes all products with lastmod dates and category landing pages",
     "passes": false,
     "steps": [
-      "Step 1: curl http://localhost:3000/api/sitemap-en.xml → verify product URLs included",
+      "Step 1: curl http://localhost:3000/api/sitemap-en.xml \u2192 verify product URLs included",
       "Step 2: Verify product URLs include lastmod dates",
       "Step 3: Verify static pages included: /about, /contact, /faq, /privacy, /terms",
       "Step 4: Verify category landing pages included: /shop/category/apparel, etc."
@@ -522,24 +522,24 @@
   },
   {
     "id": 44,
-    "feature": "Section 4 — Loading and error states for all route groups",
+    "feature": "Section 4 \u2014 Loading and error states for all route groups",
     "description": "Every route group has loading.tsx and error.tsx for proper loading/error UI",
     "passes": false,
     "steps": [
       "Step 1: Verify loading.tsx exists for (app) route group or its child routes",
       "Step 2: Verify loading.tsx exists for orders, wishlist, designs pages",
       "Step 3: Verify error.tsx exists for (app), (focused), (landing) route groups",
-      "Step 4: Navigate to a page → verify loading skeleton appears during data fetch"
+      "Step 4: Navigate to a page \u2192 verify loading skeleton appears during data fetch"
     ]
   },
   {
     "id": 45,
-    "feature": "Section 4 — Footer links resolve without 404",
+    "feature": "Section 4 \u2014 Footer links resolve without 404",
     "description": "All footer links point to real pages that return 200",
     "passes": false,
     "steps": [
-      "Step 1: Navigate to http://localhost:3000/en → scroll to footer",
-      "Step 2: Click each footer link → verify none return 404",
+      "Step 1: Navigate to http://localhost:3000/en \u2192 scroll to footer",
+      "Step 2: Click each footer link \u2192 verify none return 404",
       "Step 3: Verify /about, /contact, /faq links work",
       "Step 4: Verify social links are either real brand URLs or hidden",
       "Step 5: Take screenshot of footer to verify visual appearance"
@@ -547,23 +547,23 @@
   },
   {
     "id": 46,
-    "feature": "Section 4 — Legal pages use SafeMarkdown",
+    "feature": "Section 4 \u2014 Legal pages use SafeMarkdown",
     "description": "All legal pages (terms, privacy, returns, shipping) use SafeMarkdown with DOMPurify instead of raw ReactMarkdown",
     "passes": false,
     "steps": [
-      "Step 1: grep -r 'ReactMarkdown' frontend/src/ → verify all wrapped with DOMPurify",
+      "Step 1: grep -r 'ReactMarkdown' frontend/src/ \u2192 verify all wrapped with DOMPurify",
       "Step 2: Verify SafeMarkdown component exists at frontend/src/components/common/SafeMarkdown.tsx",
       "Step 3: Verify legal pages import SafeMarkdown instead of raw ReactMarkdown",
-      "Step 4: Navigate to http://localhost:3000/en/legal/terms → verify renders correctly"
+      "Step 4: Navigate to http://localhost:3000/en/legal/terms \u2192 verify renders correctly"
     ]
   },
   {
     "id": 47,
-    "feature": "Section 5 — Categories table with 18 seeded categories",
+    "feature": "Section 5 \u2014 Categories table with 18 seeded categories",
     "description": "Relational categories table exists with 18 categories, i18n names, and proper schema",
     "passes": false,
     "steps": [
-      "Step 1: Run SQL: SELECT count(*) FROM categories WHERE is_active=true → expect 18",
+      "Step 1: Run SQL: SELECT count(*) FROM categories WHERE is_active=true \u2192 expect 18",
       "Step 2: Verify columns: id, slug, parent_id, name_en, name_es, name_de, icon, image_url, sort_order, is_active",
       "Step 3: Verify 18 slugs exist: apparel, accessories, drinkware, t-shirts, hoodies, stickers, phone-cases, posters, bags, hats, mugs, wall-art, stationery, sweatshirts, kitchen, kids, games, home-decor",
       "Step 4: Verify RLS: SELECT public for active, ALL for service_role"
@@ -571,32 +571,32 @@
   },
   {
     "id": 48,
-    "feature": "Section 5 — Categories API returns categories with product counts",
+    "feature": "Section 5 \u2014 Categories API returns categories with product counts",
     "description": "GET /api/categories returns all active categories with accurate product counts per category",
     "passes": false,
     "steps": [
-      "Step 1: curl http://localhost:3000/api/categories → expect 200 with JSON array",
+      "Step 1: curl http://localhost:3000/api/categories \u2192 expect 200 with JSON array",
       "Step 2: Verify each category has: id, slug, name (localized), icon, product_count",
       "Step 3: Verify product_count matches actual products in that category",
-      "Step 4: curl http://localhost:3000/api/categories/apparel → expect 200 with category detail"
+      "Step 4: curl http://localhost:3000/api/categories/apparel \u2192 expect 200 with category detail"
     ]
   },
   {
     "id": 49,
-    "feature": "Section 5 — Sidebar shows category navigation",
+    "feature": "Section 5 \u2014 Sidebar shows category navigation",
     "description": "StorefrontSidebar shows collapsible category list with icons and product counts",
     "passes": false,
     "steps": [
       "Step 1: Navigate to http://localhost:3000/en/shop",
       "Step 2: Verify sidebar shows category list with icons and product counts",
-      "Step 3: Click a category → verify navigation to /shop/category/[slug]",
+      "Step 3: Click a category \u2192 verify navigation to /shop/category/[slug]",
       "Step 4: Verify active category is highlighted",
       "Step 5: On mobile: verify category chips appear in Sheet sidebar"
     ]
   },
   {
     "id": 50,
-    "feature": "Section 5 — Admin category CRUD page",
+    "feature": "Section 5 \u2014 Admin category CRUD page",
     "description": "Admin panel has categories management page with list, create, edit, reorder, activate/deactivate",
     "passes": false,
     "steps": [
@@ -610,18 +610,18 @@
   },
   {
     "id": 51,
-    "feature": "Section 5 — Printify sync uses category_id",
+    "feature": "Section 5 \u2014 Printify sync uses category_id",
     "description": "Printify product sync assigns category_id from categories table instead of VARCHAR category",
     "passes": false,
     "steps": [
       "Step 1: Verify products table has category_id UUID column with FK to categories",
-      "Step 2: Read frontend/src/lib/printify-sync.ts → verify uses category_id",
+      "Step 2: Read frontend/src/lib/printify-sync.ts \u2192 verify uses category_id",
       "Step 3: Verify frontend/src/lib/categories.ts is deprecated (no imports remain)"
     ]
   },
   {
     "id": 52,
-    "feature": "Section 6 — PodClaw rate limits persist in Redis",
+    "feature": "Section 6 \u2014 PodClaw rate limits persist in Redis",
     "description": "Agent rate limits and daily costs survive PodClaw restart via Redis storage",
     "passes": false,
     "steps": [
@@ -633,23 +633,23 @@
   },
   {
     "id": 53,
-    "feature": "Section 6 — POST /agents/{name}/run is non-blocking",
+    "feature": "Section 6 \u2014 POST /agents/{name}/run is non-blocking",
     "description": "Agent run endpoint returns immediately with task ID instead of blocking for 5-15 minutes",
     "passes": false,
     "steps": [
-      "Step 1: Read podclaw/bridge/api.py → find POST /agents/{name}/run handler",
+      "Step 1: Read podclaw/bridge/api.py \u2192 find POST /agents/{name}/run handler",
       "Step 2: Verify handler uses BackgroundTasks (fire-and-forget pattern)",
       "Step 3: Verify response returns immediately with task_id for status polling",
-      "Step 4: curl POST http://localhost:8000/agents/researcher/run → verify response within 2 seconds"
+      "Step 4: curl POST http://localhost:8000/agents/researcher/run \u2192 verify response within 2 seconds"
     ]
   },
   {
     "id": 54,
-    "feature": "Section 6 — PodClaw GET /metrics returns Prometheus format",
+    "feature": "Section 6 \u2014 PodClaw GET /metrics returns Prometheus format",
     "description": "Metrics endpoint returns Prometheus text exposition format with custom agent gauges",
     "passes": false,
     "steps": [
-      "Step 1: curl http://localhost:8000/metrics → verify Content-Type contains 'text/plain' or 'text/openmetrics'",
+      "Step 1: curl http://localhost:8000/metrics \u2192 verify Content-Type contains 'text/plain' or 'text/openmetrics'",
       "Step 2: Verify response contains agent_session_duration_seconds histogram",
       "Step 3: Verify response contains agent_daily_cost_eur gauge",
       "Step 4: Verify response contains agent_tool_calls_total counter",
@@ -658,20 +658,20 @@
   },
   {
     "id": 55,
-    "feature": "Section 6 — PodClaw critical path tests exist",
+    "feature": "Section 6 \u2014 PodClaw critical path tests exist",
     "description": "Tests exist for production_governor.py, chat_session.py, and soul_evolution.py with >80% coverage",
     "passes": false,
     "steps": [
       "Step 1: Verify file exists: podclaw/tests/test_production_governor.py",
       "Step 2: Verify file exists: podclaw/tests/test_chat_session.py",
       "Step 3: Verify file exists: podclaw/tests/test_soul_evolution.py",
-      "Step 4: Run pytest podclaw/tests/ → verify tests pass",
+      "Step 4: Run pytest podclaw/tests/ \u2192 verify tests pass",
       "Step 5: Verify budget enforcement, kill switches, and escalation are tested in production_governor tests"
     ]
   },
   {
     "id": 56,
-    "feature": "Section 6 — Agent event cleanup with TTL",
+    "feature": "Section 6 \u2014 Agent event cleanup with TTL",
     "description": "Automatic cleanup of agent_events (90 days) and heartbeat_events (30 days)",
     "passes": false,
     "steps": [
@@ -683,7 +683,7 @@
   },
   {
     "id": 57,
-    "feature": "Section 6 — Admin agent page shows real Bridge API data",
+    "feature": "Section 6 \u2014 Admin agent page shows real Bridge API data",
     "description": "Admin /agent page shows real-time agent costs, session history, and schedule from Bridge API",
     "passes": false,
     "steps": [
@@ -695,23 +695,23 @@
   },
   {
     "id": 58,
-    "feature": "Section 7 — MCP Supabase JWT fallback removed",
+    "feature": "Section 7 \u2014 MCP Supabase JWT fallback removed",
     "description": "The insecure Supabase JWT decode-without-verify fallback is completely removed from session.ts",
     "passes": false,
     "steps": [
       "Step 1: Read mcp-server/src/session.ts",
       "Step 2: Verify NO Supabase JWT decode path exists (lines ~68-92 should be deleted)",
       "Step 3: Verify only MCP-issued OAuth 2.1 JWT validation remains",
-      "Step 4: Test: forged Supabase JWT → expect 401 Unauthorized"
+      "Step 4: Test: forged Supabase JWT \u2192 expect 401 Unauthorized"
     ]
   },
   {
     "id": 59,
-    "feature": "Section 7 — MCP per-tool rate limits",
+    "feature": "Section 7 \u2014 MCP per-tool rate limits",
     "description": "MCP server enforces per-tool rate limits (e.g., create_checkout limited to 5/min for auth users)",
     "passes": false,
     "steps": [
-      "Step 1: Read mcp-server/src/middleware/rate-limit.ts → verify toolName parameter support",
+      "Step 1: Read mcp-server/src/middleware/rate-limit.ts \u2192 verify toolName parameter support",
       "Step 2: Verify create_checkout has 5/min limit for authenticated users",
       "Step 3: Verify search_products has 60/min limit for authenticated users",
       "Step 4: Verify X-RateLimit-* headers present in tool responses"
@@ -719,30 +719,30 @@
   },
   {
     "id": 60,
-    "feature": "Section 7 — MCP server Vitest test suite",
+    "feature": "Section 7 \u2014 MCP server Vitest test suite",
     "description": "Vitest configured in MCP server with tests for OAuth flow, main tools, sessions, and rate limiting",
     "passes": false,
     "steps": [
       "Step 1: Verify vitest.config.ts exists in mcp-server/",
       "Step 2: Verify test files exist for: OAuth flow, search-products, get-cart, create-checkout, sessions",
-      "Step 3: Run npx vitest run in mcp-server/ → verify tests pass",
+      "Step 3: Run npx vitest run in mcp-server/ \u2192 verify tests pass",
       "Step 4: Verify >70% coverage"
     ]
   },
   {
     "id": 61,
-    "feature": "Section 7 — MCP session persistence in Redis",
+    "feature": "Section 7 \u2014 MCP session persistence in Redis",
     "description": "MCP sessions persist metadata in Redis and survive server restarts",
     "passes": false,
     "steps": [
-      "Step 1: Read mcp-server/src/session.ts → verify Redis storage for session metadata",
+      "Step 1: Read mcp-server/src/session.ts \u2192 verify Redis storage for session metadata",
       "Step 2: Verify sessions store: session_id, user_id, created_at, last_used in Redis",
       "Step 3: Verify unused sessions expire after 1h"
     ]
   },
   {
     "id": 62,
-    "feature": "Section 8 — CI/CD pipeline with 4 stages",
+    "feature": "Section 8 \u2014 CI/CD pipeline with 4 stages",
     "description": "GitHub Actions CI runs on every push with lint, unit tests, integration tests, and Docker build stages",
     "passes": false,
     "steps": [
@@ -755,7 +755,7 @@
   },
   {
     "id": 63,
-    "feature": "Section 8 — Admin API test suite",
+    "feature": "Section 8 \u2014 Admin API test suite",
     "description": "Admin has Vitest configured with tests for auth, CRUD products, orders, designs",
     "passes": false,
     "steps": [
@@ -763,12 +763,12 @@
       "Step 2: Verify test helper for mock iron-session and mock Supabase exists",
       "Step 3: Verify auth tests: login success, fail, session expired, rate limit",
       "Step 4: Verify CRUD tests: products create/read/update/delete",
-      "Step 5: Run npx vitest run in admin/ → verify tests pass"
+      "Step 5: Run npx vitest run in admin/ \u2192 verify tests pass"
     ]
   },
   {
     "id": 64,
-    "feature": "Section 8 — Frontend unit tests with Vitest",
+    "feature": "Section 8 \u2014 Frontend unit tests with Vitest",
     "description": "Frontend has Vitest configured with tests for Zod schemas, utility functions, and SafeMarkdown",
     "passes": false,
     "steps": [
@@ -776,12 +776,12 @@
       "Step 2: Verify test files for Zod schemas (chat input, checkout, profile)",
       "Step 3: Verify test files for utility functions (price formatting, date helpers)",
       "Step 4: Verify SafeMarkdown sanitization test exists",
-      "Step 5: Run npx vitest run in frontend/ → verify tests pass"
+      "Step 5: Run npx vitest run in frontend/ \u2192 verify tests pass"
     ]
   },
   {
     "id": 65,
-    "feature": "Section 8 — Playwright E2E for admin panel",
+    "feature": "Section 8 \u2014 Playwright E2E for admin panel",
     "description": "Playwright specs cover admin login, product CRUD, order management, and i18n",
     "passes": false,
     "steps": [
@@ -794,7 +794,7 @@
   },
   {
     "id": 66,
-    "feature": "Section 9 — Prometheus scrapes all application services",
+    "feature": "Section 9 \u2014 Prometheus scrapes all application services",
     "description": "Prometheus service in Docker Compose scrapes frontend, admin, podclaw, and MCP server /metrics",
     "passes": false,
     "steps": [
@@ -806,7 +806,7 @@
   },
   {
     "id": 67,
-    "feature": "Section 9 — Grafana dashboards with pre-built views",
+    "feature": "Section 9 \u2014 Grafana dashboards with pre-built views",
     "description": "Grafana service with provisioned dashboards for system, PodClaw, ecommerce, and infrastructure",
     "passes": false,
     "steps": [
@@ -818,7 +818,7 @@
   },
   {
     "id": 68,
-    "feature": "Section 9 — Alert rules fire on critical conditions",
+    "feature": "Section 9 \u2014 Alert rules fire on critical conditions",
     "description": "Grafana alert rules configured for service down, budget overrun, error rate, and memory usage",
     "passes": false,
     "steps": [
@@ -831,24 +831,24 @@
   },
   {
     "id": 69,
-    "feature": "Section 10 — Double opt-in newsletter (GDPR Germany compliant)",
+    "feature": "Section 10 \u2014 Double opt-in newsletter (GDPR Germany compliant)",
     "description": "Newsletter signup requires email confirmation before any marketing emails (UWG Sec. 7 compliance)",
     "passes": false,
     "steps": [
       "Step 1: Verify newsletter_subscribers has confirmed_at and confirmation_token columns",
-      "Step 2: Navigate to http://localhost:3000/en → find newsletter signup form in footer or landing",
-      "Step 3: Submit email → verify confirmation email is sent (not immediately subscribed)",
-      "Step 4: curl GET /api/newsletter/confirm/[token] → verify confirmed_at is set",
+      "Step 2: Navigate to http://localhost:3000/en \u2192 find newsletter signup form in footer or landing",
+      "Step 3: Submit email \u2192 verify confirmation email is sent (not immediately subscribed)",
+      "Step 4: curl GET /api/newsletter/confirm/[token] \u2192 verify confirmed_at is set",
       "Step 5: Verify drip cron only processes subscribers with confirmed_at IS NOT NULL"
     ]
   },
   {
     "id": 70,
-    "feature": "Section 10 — Social proof on homepage",
+    "feature": "Section 10 \u2014 Social proof on homepage",
     "description": "Homepage shows testimonials section with real review data and trust signals",
     "passes": false,
     "steps": [
-      "Step 1: Navigate to http://localhost:3000/en → scroll to testimonials section",
+      "Step 1: Navigate to http://localhost:3000/en \u2192 scroll to testimonials section",
       "Step 2: Verify Testimonials component renders with review data",
       "Step 3: Verify trust signals section (order count, rating average) exists",
       "Step 4: Verify component is SSR (visible in page source)"
@@ -856,12 +856,12 @@
   },
   {
     "id": 71,
-    "feature": "Section 10 — Photo reviews with verified purchase badge",
+    "feature": "Section 10 \u2014 Photo reviews with verified purchase badge",
     "description": "Product reviews support photo upload (max 3 images) with verified purchase indicator",
     "passes": false,
     "steps": [
       "Step 1: Verify product_reviews table has image_urls JSONB column",
-      "Step 2: Navigate to a product page → find review form",
+      "Step 2: Navigate to a product page \u2192 find review form",
       "Step 3: Verify review form has photo upload option",
       "Step 4: Verify verified purchase badge shows for buyers who purchased the product",
       "Step 5: Verify mockUserId is replaced with real auth.uid() from session"
@@ -869,7 +869,7 @@
   },
   {
     "id": 72,
-    "feature": "Section 10 — Abandoned cart recovery emails",
+    "feature": "Section 10 \u2014 Abandoned cart recovery emails",
     "description": "Carts abandoned for 1h trigger recovery email, second email at 24h, tracked in Supabase",
     "passes": false,
     "steps": [
@@ -882,19 +882,19 @@
   },
   {
     "id": 73,
-    "feature": "Section 10 — Blog system functional",
+    "feature": "Section 10 \u2014 Blog system functional",
     "description": "Blog posts table, admin editor, SSR listing page, and detail page with JSON-LD Article",
     "passes": false,
     "steps": [
       "Step 1: Verify blog_posts table exists with: id, slug, title_en/es/de, content_en/es/de, status, published_at",
-      "Step 2: Navigate to http://localhost:3001/blog (admin) → verify blog editor page",
-      "Step 3: Navigate to http://localhost:3000/en/blog → verify SSR listing page",
+      "Step 2: Navigate to http://localhost:3001/blog (admin) \u2192 verify blog editor page",
+      "Step 3: Navigate to http://localhost:3000/en/blog \u2192 verify SSR listing page",
       "Step 4: Verify blog post detail page exists at /blog/[slug] with JSON-LD Article"
     ]
   },
   {
     "id": 74,
-    "feature": "Section 10 — Referral program UI page",
+    "feature": "Section 10 \u2014 Referral program UI page",
     "description": "Referral page shows invite link, referral stats, and earned credits",
     "passes": false,
     "steps": [
@@ -906,7 +906,7 @@
   },
   {
     "id": 75,
-    "feature": "Section 10 — Cross-sell recommendations",
+    "feature": "Section 10 \u2014 Cross-sell recommendations",
     "description": "Product pages show 'Customers also bought' section based on co-purchase analysis from association_rules",
     "passes": false,
     "steps": [
@@ -918,7 +918,7 @@
   },
   {
     "id": 76,
-    "feature": "Section 11 — Tenants table and tenant_id on all tables",
+    "feature": "Section 11 \u2014 Tenants table and tenant_id on all tables",
     "description": "Multi-tenant schema with tenants table and tenant_id column on all 64 tables",
     "passes": false,
     "steps": [
@@ -930,7 +930,7 @@
   },
   {
     "id": 77,
-    "feature": "Section 11 — Tenant data isolation via RLS",
+    "feature": "Section 11 \u2014 Tenant data isolation via RLS",
     "description": "Two tenants coexist with complete data isolation enforced by RLS policies",
     "passes": false,
     "steps": [
@@ -942,7 +942,7 @@
   },
   {
     "id": 78,
-    "feature": "Section 11 — Custom domain tenant resolution",
+    "feature": "Section 11 \u2014 Custom domain tenant resolution",
     "description": "Tenant resolved from custom domain or subdomain with Caddy on-demand TLS",
     "passes": false,
     "steps": [
@@ -954,7 +954,7 @@
   },
   {
     "id": 79,
-    "feature": "Section 11 — Per-tenant branding and themes",
+    "feature": "Section 11 \u2014 Per-tenant branding and themes",
     "description": "Each tenant has independent theme, logo, branding, and legal pages",
     "passes": false,
     "steps": [
@@ -966,7 +966,7 @@
   },
   {
     "id": 80,
-    "feature": "Section 11 — Stripe Connect billing per tenant",
+    "feature": "Section 11 \u2014 Stripe Connect billing per tenant",
     "description": "Each tenant has own Stripe connected account with platform application_fee",
     "passes": false,
     "steps": [
@@ -978,8 +978,8 @@
   },
   {
     "id": 81,
-    "feature": "Section 11 — Tenant creation wizard",
-    "description": "End-to-end wizard: name/slug → branding → Stripe Connect → Printify → plan selection",
+    "feature": "Section 11 \u2014 Tenant creation wizard",
+    "description": "End-to-end wizard: name/slug \u2192 branding \u2192 Stripe Connect \u2192 Printify \u2192 plan selection",
     "passes": false,
     "steps": [
       "Step 1: Verify tenant creation wizard page exists in admin",
@@ -991,19 +991,19 @@
   },
   {
     "id": 82,
-    "feature": "Section 11 — Plan feature gates enforced",
+    "feature": "Section 11 \u2014 Plan feature gates enforced",
     "description": "Free/Starter/Pro plans gate features: product limits, API rate limits, custom domains",
     "passes": false,
     "steps": [
       "Step 1: Verify plan limits defined in tenant_configs or code",
-      "Step 2: Test: Free tenant exceeds 10 products → expect rejection",
-      "Step 3: Test: Free tenant tries custom domain → expect rejection",
+      "Step 2: Test: Free tenant exceeds 10 products \u2192 expect rejection",
+      "Step 3: Test: Free tenant tries custom domain \u2192 expect rejection",
       "Step 4: Verify API rate limits differ by plan tier"
     ]
   },
   {
     "id": 83,
-    "feature": "Section 12 — ADR directory with 6+ records",
+    "feature": "Section 12 \u2014 ADR directory with 6+ records",
     "description": "Architecture Decision Records exist for key architectural decisions in docs/adr/",
     "passes": false,
     "steps": [
@@ -1016,7 +1016,7 @@
   },
   {
     "id": 84,
-    "feature": "Section 12 — Onboarding guide and CHANGELOG",
+    "feature": "Section 12 \u2014 Onboarding guide and CHANGELOG",
     "description": "Unified onboarding guide enables zero-to-running setup, CHANGELOG tracks hardening changes",
     "passes": false,
     "steps": [
@@ -1028,7 +1028,7 @@
   },
   {
     "id": 85,
-    "feature": "Section 12 — API documentation and database ERD",
+    "feature": "Section 12 \u2014 API documentation and database ERD",
     "description": "Bridge API has OpenAPI docs, database ERD visualizes all tables with relationships",
     "passes": false,
     "steps": [
@@ -1040,7 +1040,7 @@
   },
   {
     "id": 86,
-    "feature": "Section 13 — Stuck orders retried automatically",
+    "feature": "Section 13 \u2014 Stuck orders retried automatically",
     "description": "Orders stuck in 'paid' state are retried within 30min, auto-refund after 3 failed attempts or 2h",
     "passes": false,
     "steps": [
@@ -1053,11 +1053,11 @@
   },
   {
     "id": 87,
-    "feature": "Section 13 — Printify cancellation triggers auto-refund",
+    "feature": "Section 13 \u2014 Printify cancellation triggers auto-refund",
     "description": "Printify order:cancelled webhook automatically creates Stripe refund and notifies customer",
     "passes": false,
     "steps": [
-      "Step 1: Read frontend/src/app/api/webhooks/printify/route.ts → find handleOrderCancelled",
+      "Step 1: Read frontend/src/app/api/webhooks/printify/route.ts \u2192 find handleOrderCancelled",
       "Step 2: Verify handler calls RefundGuard.issueRefund() or stripe.refunds.create + issue_refund_atomic",
       "Step 3: Verify customer notification email is sent on cancellation",
       "Step 4: Verify order status transitions to 'refunded' via StateTransitionValidator"
@@ -1065,11 +1065,11 @@
   },
   {
     "id": 88,
-    "feature": "Section 13 — Variant sync uses UPSERT (no DELETE+INSERT)",
+    "feature": "Section 13 \u2014 Variant sync uses UPSERT (no DELETE+INSERT)",
     "description": "syncVariants function uses ON CONFLICT DO UPDATE instead of DELETE+INSERT to prevent race conditions",
     "passes": false,
     "steps": [
-      "Step 1: Read frontend/src/lib/printify-sync.ts → find syncVariants function",
+      "Step 1: Read frontend/src/lib/printify-sync.ts \u2192 find syncVariants function",
       "Step 2: Verify UPSERT pattern: ON CONFLICT (product_id, printify_variant_id) DO UPDATE",
       "Step 3: Verify unique constraint exists: (product_id, printify_variant_id) on product_variants",
       "Step 4: Verify no DELETE FROM product_variants before INSERT"
@@ -1077,19 +1077,19 @@
   },
   {
     "id": 89,
-    "feature": "Section 13 — Admin edits preserved during Printify sync",
+    "feature": "Section 13 \u2014 Admin edits preserved during Printify sync",
     "description": "Products with admin_edited_at > last_synced_at preserve admin values for title, description, tags during sync",
     "passes": false,
     "steps": [
       "Step 1: Verify products table has admin_edited_at TIMESTAMPTZ column",
-      "Step 2: Read frontend/src/lib/printify-sync.ts → verify admin_edited_at check per field",
+      "Step 2: Read frontend/src/lib/printify-sync.ts \u2192 verify admin_edited_at check per field",
       "Step 3: Verify Printify sync ALWAYS updates: price, variants, images, availability",
       "Step 4: Verify admin-edited title/description/tags are preserved when admin_edited_at > last_synced_at"
     ]
   },
   {
     "id": 90,
-    "feature": "Section 13 — Products use soft delete",
+    "feature": "Section 13 \u2014 Products use soft delete",
     "description": "Product deletion uses soft delete (deleted_at, deleted_by) instead of hard DELETE",
     "passes": false,
     "steps": [
@@ -1101,68 +1101,68 @@
   },
   {
     "id": 91,
-    "feature": "Section 13 — Temp product cleanup cron",
+    "feature": "Section 13 \u2014 Temp product cleanup cron",
     "description": "Cron job deletes orphaned Printify temp products older than 24h without associated orders",
     "passes": false,
     "steps": [
       "Step 1: Verify file exists: frontend/src/app/api/cron/cleanup-temp-products/route.ts",
       "Step 2: Verify cron finds temp products >24h without orders",
       "Step 3: Verify cleanup uses CronLockManager for mutual exclusion",
-      "Step 4: curl GET http://localhost:3000/api/cron/cleanup-temp-products → expect 200"
+      "Step 4: curl GET http://localhost:3000/api/cron/cleanup-temp-products \u2192 expect 200"
     ]
   },
   {
     "id": 92,
-    "feature": "Section 13 — Printify connector exponential backoff",
+    "feature": "Section 13 \u2014 Printify connector exponential backoff",
     "description": "PrintifyMCPConnector retries 429/5xx with exponential backoff and circuit breaker",
     "passes": false,
     "steps": [
-      "Step 1: Read podclaw/connectors/printify_mcp_connector.py → find retry logic",
+      "Step 1: Read podclaw/connectors/printify_mcp_connector.py \u2192 find retry logic",
       "Step 2: Verify 3 attempts with 2s/4s/8s backoff for 429/5xx",
-      "Step 3: Verify circuit breaker: 5 consecutive failures → open circuit for 60s",
+      "Step 3: Verify circuit breaker: 5 consecutive failures \u2192 open circuit for 60s",
       "Step 4: Verify Retry-After header parsing on 429 responses",
       "Step 5: Verify dynamic timeouts: 30s reads, 60s writes, 120s uploads"
     ]
   },
   {
     "id": 93,
-    "feature": "Section 13 — Return lifecycle functional",
-    "description": "Complete return flow: customer requests → admin approves → customer ships → admin confirms → auto-refund",
+    "feature": "Section 13 \u2014 Return lifecycle functional",
+    "description": "Complete return flow: customer requests \u2192 admin approves \u2192 customer ships \u2192 admin confirms \u2192 auto-refund",
     "passes": false,
     "steps": [
       "Step 1: Verify return request API exists: POST /api/returns or /api/orders/[id]/returns",
       "Step 2: Verify admin return management page at /returns shows return queue",
       "Step 3: Verify admin can approve/reject returns",
       "Step 4: Verify return tracking number can be submitted by customer",
-      "Step 5: Verify auto-refund on item_received → return_completed transition"
+      "Step 5: Verify auto-refund on item_received \u2192 return_completed transition"
     ]
   },
   {
     "id": 94,
-    "feature": "Section 13 — Product deduplication check",
+    "feature": "Section 13 \u2014 Product deduplication check",
     "description": "PodClaw cataloger checks for duplicate titles before creating products in Printify",
     "passes": false,
     "steps": [
-      "Step 1: Read podclaw/connectors/printify_mcp_connector.py → find dedup logic",
+      "Step 1: Read podclaw/connectors/printify_mcp_connector.py \u2192 find dedup logic",
       "Step 2: Verify title similarity check (Levenshtein < 3 or trigram > 0.8)",
       "Step 3: Verify duplicate product is blocked before Printify API call"
     ]
   },
   {
     "id": 95,
-    "feature": "Section 14 — Zero 'POD AI' hardcodes in customer-visible code",
+    "feature": "Section 14 \u2014 Zero 'POD AI' hardcodes in customer-visible code",
     "description": "All customer-visible references to 'POD AI' replaced with 'Skapara' or brand_config dynamic value",
     "passes": false,
     "steps": [
-      "Step 1: grep -ri 'POD AI' frontend/src/ → expect 0 matches in customer-visible code",
-      "Step 2: grep -ri 'POD AI' admin/src/ → expect 0 matches in customer-visible code (internal comments OK)",
-      "Step 3: Navigate to http://localhost:3000/en → verify no 'POD AI' text visible",
-      "Step 4: Navigate to http://localhost:3001 → verify login page shows 'Skapara Admin'"
+      "Step 1: grep -ri 'POD AI' frontend/src/ \u2192 expect 0 matches in customer-visible code",
+      "Step 2: grep -ri 'POD AI' admin/src/ \u2192 expect 0 matches in customer-visible code (internal comments OK)",
+      "Step 3: Navigate to http://localhost:3000/en \u2192 verify no 'POD AI' text visible",
+      "Step 4: Navigate to http://localhost:3001 \u2192 verify login page shows 'Skapara Admin'"
     ]
   },
   {
     "id": 96,
-    "feature": "Section 14 — brand_config table has identity columns",
+    "feature": "Section 14 \u2014 brand_config table has identity columns",
     "description": "brand_config has brand_name, seo_titles, logo URLs, support_email, social_links columns",
     "passes": false,
     "steps": [
@@ -1174,7 +1174,7 @@
   },
   {
     "id": 97,
-    "feature": "Section 14 — Sidebar shows Skapara with real logo",
+    "feature": "Section 14 \u2014 Sidebar shows Skapara with real logo",
     "description": "StorefrontSidebar displays 'Skapara' text and logo image instead of gradient placeholder with 'P'",
     "passes": false,
     "steps": [
@@ -1186,49 +1186,49 @@
   },
   {
     "id": 98,
-    "feature": "Section 14 — PWA manifest dynamic with Skapara branding",
+    "feature": "Section 14 \u2014 PWA manifest dynamic with Skapara branding",
     "description": "PWA manifest uses dynamic brand_name and references /brand/ icon assets",
     "passes": false,
     "steps": [
       "Step 1: Verify frontend/src/app/manifest.ts exists (dynamic manifest)",
       "Step 2: Verify frontend/public/manifest.json is deleted (replaced by dynamic)",
-      "Step 3: curl http://localhost:3000/manifest.webmanifest → verify name contains 'Skapara'",
+      "Step 3: curl http://localhost:3000/manifest.webmanifest \u2192 verify name contains 'Skapara'",
       "Step 4: Verify icons reference real /brand/icon-192.png and /brand/icon-512.png",
       "Step 5: Verify favicon.ico and apple-touch-icon.png exist in frontend/public/"
     ]
   },
   {
     "id": 99,
-    "feature": "Section 14 — Admin branding page has Store Identity section",
+    "feature": "Section 14 \u2014 Admin branding page has Store Identity section",
     "description": "Admin /branding page expanded with editable Store Identity fields above themes section",
     "passes": false,
     "steps": [
       "Step 1: Navigate to http://localhost:3001/branding and login",
       "Step 2: Verify 'Store Identity' section exists with fields: brand_name, tagline, copyright, support_email",
       "Step 3: Verify logo upload fields exist (light, dark, icon)",
-      "Step 4: Edit brand_name → Save → refresh → verify change persists",
+      "Step 4: Edit brand_name \u2192 Save \u2192 refresh \u2192 verify change persists",
       "Step 5: Verify page uses shadcn/ui Tabs to separate 'Identity' and 'Themes'"
     ]
   },
   {
     "id": 100,
-    "feature": "Section 14 — Email templates use brand_config",
+    "feature": "Section 14 \u2014 Email templates use brand_config",
     "description": "All email templates use brand_name from brand_config (not hardcoded 'POD AI')",
     "passes": false,
     "steps": [
-      "Step 1: Read frontend/src/lib/resend.ts → verify from field uses brand config or env",
+      "Step 1: Read frontend/src/lib/resend.ts \u2192 verify from field uses brand config or env",
       "Step 2: Verify email heading uses dynamic brandName (not 'POD AI')",
       "Step 3: Verify email footer uses brand_tagline from config",
-      "Step 4: grep -r 'POD AI' frontend/src/lib/resend.ts → expect 0 matches"
+      "Step 4: grep -r 'POD AI' frontend/src/lib/resend.ts \u2192 expect 0 matches"
     ]
   },
   {
     "id": 101,
-    "feature": "Section 14 — i18n uses {brandName} interpolation",
+    "feature": "Section 14 \u2014 i18n uses {brandName} interpolation",
     "description": "All i18n files use {brandName} interpolation instead of hardcoded 'POD AI' for brand references",
     "passes": false,
     "steps": [
-      "Step 1: grep -r 'POD AI' frontend/messages/ → expect 0 matches",
+      "Step 1: grep -r 'POD AI' frontend/messages/ \u2192 expect 0 matches",
       "Step 2: Verify common.appName uses {brandName} or is 'Skapara'",
       "Step 3: Verify Auth.loginDescription uses {brandName} interpolation",
       "Step 4: Verify footer.copyright uses {storeName} template"
@@ -1236,53 +1236,53 @@
   },
   {
     "id": 102,
-    "feature": "Section 14 — SEO metadata from brand_config per locale",
+    "feature": "Section 14 \u2014 SEO metadata from brand_config per locale",
     "description": "Page titles and meta descriptions read from brand_config.seo_titles/seo_descriptions per locale",
     "passes": false,
     "steps": [
-      "Step 1: Read frontend/src/app/[locale]/layout.tsx → verify generateMetadata uses getBrandConfig",
+      "Step 1: Read frontend/src/app/[locale]/layout.tsx \u2192 verify generateMetadata uses getBrandConfig",
       "Step 2: Verify file exists: frontend/src/lib/brand-config-server.ts",
-      "Step 3: Navigate to http://localhost:3000/en → view source → verify <title> contains 'Skapara'",
-      "Step 4: Navigate to http://localhost:3000/es → view source → verify Spanish SEO title",
+      "Step 3: Navigate to http://localhost:3000/en \u2192 view source \u2192 verify <title> contains 'Skapara'",
+      "Step 4: Navigate to http://localhost:3000/es \u2192 view source \u2192 verify Spanish SEO title",
       "Step 5: Verify OpenGraph siteName = brand_name"
     ]
   },
   {
     "id": 103,
-    "feature": "Section 14 — Admin hardcodes cleaned (login, sidebar, layout)",
+    "feature": "Section 14 \u2014 Admin hardcodes cleaned (login, sidebar, layout)",
     "description": "Admin login page, sidebar, and layout display Skapara instead of POD AI",
     "passes": false,
     "steps": [
-      "Step 1: Navigate to http://localhost:3001/login → verify shows 'Skapara Admin' not 'POD AI Admin'",
-      "Step 2: Login → verify sidebar shows 'Skapara' not 'POD AI'",
+      "Step 1: Navigate to http://localhost:3001/login \u2192 verify shows 'Skapara Admin' not 'POD AI Admin'",
+      "Step 2: Login \u2192 verify sidebar shows 'Skapara' not 'POD AI'",
       "Step 3: Verify page <title> contains 'Skapara Admin'",
-      "Step 4: Read admin/src/app/settings/page.tsx → verify reads storeName from API"
+      "Step 4: Read admin/src/app/settings/page.tsx \u2192 verify reads storeName from API"
     ]
   },
   {
     "id": 104,
-    "feature": "Section 14 — PodClaw brand context updated",
+    "feature": "Section 14 \u2014 PodClaw brand context updated",
     "description": "PodClaw context files reference Skapara instead of POD AI Store",
     "passes": false,
     "steps": [
-      "Step 1: Read podclaw/context/brand_config.md → verify 'Store Name: Skapara'",
+      "Step 1: Read podclaw/context/brand_config.md \u2192 verify 'Store Name: Skapara'",
       "Step 2: Verify tagline is correct: 'AI-Powered Fashion, European Quality'"
     ]
   },
   {
     "id": 105,
-    "feature": "Section 1 — WhatsApp webhook fail-closed",
+    "feature": "Section 1 \u2014 WhatsApp webhook fail-closed",
     "description": "WhatsApp webhook fails closed when WHATSAPP_VERIFY_TOKEN env var is missing",
     "passes": false,
     "steps": [
       "Step 1: Read frontend/src/app/api/webhooks/whatsapp/route.ts",
-      "Step 2: Verify if WHATSAPP_VERIFY_TOKEN is missing → reject all requests (not fallback)",
-      "Step 3: Verify fail-closed pattern: error → deny, not error → allow"
+      "Step 2: Verify if WHATSAPP_VERIFY_TOKEN is missing \u2192 reject all requests (not fallback)",
+      "Step 3: Verify fail-closed pattern: error \u2192 deny, not error \u2192 allow"
     ]
   },
   {
     "id": 106,
-    "feature": "Section 1 — Theme CSS injection sanitized",
+    "feature": "Section 1 \u2014 Theme CSS injection sanitized",
     "description": "ThemeLoader replaces dangerouslySetInnerHTML with safe CSS variable injection",
     "passes": false,
     "steps": [
@@ -1293,18 +1293,18 @@
   },
   {
     "id": 107,
-    "feature": "Section 2 — Admin Zod validation on mutations",
+    "feature": "Section 2 \u2014 Admin Zod validation on mutations",
     "description": "Top 10 admin mutations validated with Zod schemas via withValidation wrapper",
     "passes": false,
     "steps": [
       "Step 1: Verify file exists: admin/src/lib/validation.ts with withValidation(schema) wrapper",
       "Step 2: Verify Zod schemas exist for: products, orders, designs, branding",
-      "Step 3: Test: POST /api/products with invalid data → expect 400 with validation errors"
+      "Step 3: Test: POST /api/products with invalid data \u2192 expect 400 with validation errors"
     ]
   },
   {
     "id": 108,
-    "feature": "Section 3 — Connection pooling configured",
+    "feature": "Section 3 \u2014 Connection pooling configured",
     "description": "Supabase connection pooler (pgBouncer) configured and used by all clients",
     "passes": false,
     "steps": [
@@ -1315,40 +1315,40 @@
   },
   {
     "id": 109,
-    "feature": "Section 4 — Homepage MetaballsBackground gated on mobile",
+    "feature": "Section 4 \u2014 Homepage MetaballsBackground gated on mobile",
     "description": "Canvas animation disabled on mobile (<768px) or no WebGL for performance",
     "passes": false,
     "steps": [
       "Step 1: Read frontend/src/components/landing/MetaballsBackground.tsx",
       "Step 2: Verify mobile detection or WebGL check before rendering canvas",
-      "Step 3: Navigate to homepage on mobile viewport (375px) → verify no heavy canvas animation"
+      "Step 3: Navigate to homepage on mobile viewport (375px) \u2192 verify no heavy canvas animation"
     ]
   },
   {
     "id": 110,
-    "feature": "Section 7 — MCP CORS origins configurable",
+    "feature": "Section 7 \u2014 MCP CORS origins configurable",
     "description": "MCP server CORS origins configurable via MCP_CORS_ORIGINS environment variable",
     "passes": false,
     "steps": [
-      "Step 1: Read mcp-server/src/index.ts → verify CORS origins read from env",
+      "Step 1: Read mcp-server/src/index.ts \u2192 verify CORS origins read from env",
       "Step 2: Verify MCP_CORS_ORIGINS env var is checked (not hardcoded origins only)",
       "Step 3: Verify default includes claude.ai, chatgpt.com, localhost:3000"
     ]
   },
   {
     "id": 111,
-    "feature": "Section 10 — Funnel analytics tracking",
+    "feature": "Section 10 \u2014 Funnel analytics tracking",
     "description": "Client-side event tracking for view_product, add_to_cart, begin_checkout, purchase with admin dashboard",
     "passes": false,
     "steps": [
       "Step 1: Verify analytics_events table exists with: event_name, user_id, session_id, properties JSONB",
       "Step 2: Verify client-side tracker fires events on product view and add-to-cart",
-      "Step 3: Navigate to admin analytics → verify funnel conversion rates displayed"
+      "Step 3: Navigate to admin analytics \u2192 verify funnel conversion rates displayed"
     ]
   },
   {
     "id": 112,
-    "feature": "Section 13 — Printify sync interval reduced to 30 minutes",
+    "feature": "Section 13 \u2014 Printify sync interval reduced to 30 minutes",
     "description": "sync-printify cron runs every 30 minutes instead of every 2 hours for fresher catalog data",
     "passes": false,
     "steps": [
@@ -1359,11 +1359,11 @@
   },
   {
     "id": 113,
-    "feature": "Section 13 — Stripe chargeback handling",
+    "feature": "Section 13 \u2014 Stripe chargeback handling",
     "description": "charge.dispute.created webhook marks order as disputed, alerts admin, pauses fulfillment",
     "passes": false,
     "steps": [
-      "Step 1: Read frontend/src/app/api/webhooks/stripe/route.ts → find dispute handling",
+      "Step 1: Read frontend/src/app/api/webhooks/stripe/route.ts \u2192 find dispute handling",
       "Step 2: Verify charge.dispute.created sets order status to 'disputed'",
       "Step 3: Verify admin alert is sent on dispute",
       "Step 4: Verify order fulfillment is paused while disputed"
@@ -1371,18 +1371,18 @@
   },
   {
     "id": 114,
-    "feature": "Section 6 — PodClaw graceful shutdown",
+    "feature": "Section 6 \u2014 PodClaw graceful shutdown",
     "description": "PodClaw drains running sessions and persists state to Redis on shutdown",
     "passes": false,
     "steps": [
-      "Step 1: Read podclaw/bridge/api.py or podclaw/core.py → find shutdown handler",
+      "Step 1: Read podclaw/bridge/api.py or podclaw/core.py \u2192 find shutdown handler",
       "Step 2: Verify running sessions are drained before exit",
       "Step 3: Verify disabled agents and event queue state persisted to Redis"
     ]
   },
   {
     "id": 115,
-    "feature": "Section 6 — PodClaw event queue in Redis",
+    "feature": "Section 6 \u2014 PodClaw event queue in Redis",
     "description": "Event queue uses Redis LIST instead of in-memory queue to survive restarts",
     "passes": false,
     "steps": [
@@ -1394,7 +1394,7 @@
   },
   {
     "id": 116,
-    "feature": "Section 11 — PII encryption at rest with pgsodium",
+    "feature": "Section 11 \u2014 PII encryption at rest with pgsodium",
     "description": "Sensitive fields (email, name, address, phone) encrypted with pgsodium for Pro plan tenants",
     "passes": false,
     "steps": [
@@ -1405,19 +1405,19 @@
   },
   {
     "id": 117,
-    "feature": "Section 11 — Data migration script (single to multi-tenant)",
+    "feature": "Section 11 \u2014 Data migration script (single to multi-tenant)",
     "description": "Idempotent script converts existing single-tenant data to first tenant with backfilled tenant_id",
     "passes": false,
     "steps": [
       "Step 1: Verify migration script exists that creates 'default' tenant",
       "Step 2: Verify script backfills tenant_id on all 64 tables",
-      "Step 3: Verify script migrates brand_config → tenant_configs",
+      "Step 3: Verify script migrates brand_config \u2192 tenant_configs",
       "Step 4: Verify script is idempotent (safe to re-run)"
     ]
   },
   {
     "id": 118,
-    "feature": "Section 1 — Admin MFA (TOTP-based)",
+    "feature": "Section 1 \u2014 Admin MFA (TOTP-based)",
     "description": "Admin accounts support TOTP-based multi-factor authentication",
     "passes": false,
     "steps": [
@@ -1426,5 +1426,2379 @@
       "Step 3: Verify TOTP code required after password authentication",
       "Step 4: Verify MFA can be enabled/disabled from admin settings"
     ]
+  },
+  {
+    "id": 119,
+    "feature": "Section 0 \u2014 INV-07 Agent singleton via Redis SET NX",
+    "description": "Only one instance of a given agent can be 'running' at a time. Redis SET NX podclaw:running:{agent_name} with TTL=20min. If SET NX fails \u2192 409 Conflict. Fallback: check agent_sessions WHERE status='running'.",
+    "passes": false,
+    "steps": [
+      "Step 1: Verify podclaw/core.py or podclaw/redis_store.py has SET NX logic for podclaw:running:{agent_name}",
+      "Step 2: Verify TTL is set to ~20min on the Redis key",
+      "Step 3: Verify that if Redis is unavailable, fallback queries agent_sessions table",
+      "Step 4: Verify key is DELeted on session completion/error"
+    ]
+  },
+  {
+    "id": 120,
+    "feature": "Section 0 \u2014 INV-08 Audit completeness on admin mutations",
+    "description": "Every admin mutation and webhook event has an audit record. withAuth() auto-logs to audit_log synchronous INSERT before response.",
+    "passes": false,
+    "steps": [
+      "Step 1: Verify admin withAuth() middleware inserts into audit_log on every mutation",
+      "Step 2: Verify webhook handlers log to processed_events on receipt",
+      "Step 3: Verify agent actions logged to agent_events",
+      "Step 4: Test: make an admin API call \u2192 verify audit_log row created with correct actor/action"
+    ]
+  },
+  {
+    "id": 121,
+    "feature": "Section 0 \u2014 INV-09 PII boundary enforcement",
+    "description": "PII (email, name, address, phone) never appears in logs, marketing content, or agent prompts. [DATA]...[/DATA] markers for agent data. structlog processors strip PII.",
+    "passes": false,
+    "steps": [
+      "Step 1: Verify podclaw uses [DATA]...[/DATA] markers for user data in agent prompts",
+      "Step 2: Verify structlog configuration strips PII fields from log output",
+      "Step 3: Verify marketing_content table has no PII columns",
+      "Step 4: Verify error messages returned to clients are generic (no PII in responses)"
+    ]
+  },
+  {
+    "id": 122,
+    "feature": "Section 0 \u2014 INV-10 Fail-closed security pattern",
+    "description": "All security checks deny on error, never allow. Pattern: if (error) return reject, NOT continue. HMAC throws \u2192 reject. RLS null \u2192 deny.",
+    "passes": false,
+    "steps": [
+      "Step 1: Verify admin auth functions return 401 on any error (not log-and-continue)",
+      "Step 2: Verify HMAC verification catches errors and rejects webhook",
+      "Step 3: Verify Supabase RPC returning null results in DENY, not empty array",
+      "Step 4: Grep for any catch blocks that allow continuation after auth errors"
+    ]
+  },
+  {
+    "id": 123,
+    "feature": "Section 0 \u2014 Order state machine enforces valid transitions only",
+    "description": "Order status updates include WHERE status=:expected_current_status. Invalid transitions result in rows_affected=0 and alert.",
+    "passes": false,
+    "steps": [
+      "Step 1: Verify frontend/src/lib/reliability/state-transition.ts has order transition matrix matching spec",
+      "Step 2: Verify all UPDATE orders SET status queries include WHERE status check",
+      "Step 3: Verify invalid transition (e.g. pending\u2192shipped) is rejected",
+      "Step 4: Verify rejected transitions log to error_logs"
+    ]
+  },
+  {
+    "id": 124,
+    "feature": "Section 0 \u2014 Product state machine enforces valid transitions only",
+    "description": "Product status changes follow defined matrix: draft\u2192pending_review\u2192publishing\u2192active\u2192archived\u2192deleted. Invalid transitions rejected.",
+    "passes": false,
+    "steps": [
+      "Step 1: Verify state-transition.ts has product transition matrix matching spec",
+      "Step 2: Verify product status updates use StateTransitionValidator",
+      "Step 3: Verify invalid transition (e.g. draft\u2192active bypassing publishing) is rejected",
+      "Step 4: Verify soft delete uses deleted_at column (never hard-delete products)"
+    ]
+  },
+  {
+    "id": 125,
+    "feature": "Section 0 \u2014 ZombieReaper detects order zombie states",
+    "description": "ZombieReaper cron detects specific order zombie states: pending>1h, paid>30min (retry), paid exhausted>2h (refund), requires_review>24h (refund), shipped>30d (auto-deliver).",
+    "passes": false,
+    "steps": [
+      "Step 1: Verify zombie-reaper/route.ts queries orders with pending status older than 1 hour",
+      "Step 2: Verify it retries Printify submission for paid orders >30min with retries left",
+      "Step 3: Verify it auto-refunds via issue_refund_atomic for paid orders >2h with exhausted retries",
+      "Step 4: Verify it auto-refunds requires_review orders >24h",
+      "Step 5: Verify escalation alerts sent per tier (L1/L2)"
+    ]
+  },
+  {
+    "id": 126,
+    "feature": "Section 0 \u2014 ZombieReaper detects product and agent zombie states",
+    "description": "ZombieReaper detects: product publishing>1h (revert to draft), pending_review>7d (alert), agent queued>30min (reschedule), agent running>20min (force-kill).",
+    "passes": false,
+    "steps": [
+      "Step 1: Verify zombie-reaper queries products with publishing status >1h \u2192 reverts to draft",
+      "Step 2: Verify it alerts admin for pending_review products >7d",
+      "Step 3: Verify it marks error and reschedules agents queued >30min",
+      "Step 4: Verify it force-kills agents running >20min and releases Redis lock"
+    ]
+  },
+  {
+    "id": 127,
+    "feature": "Section 0 \u2014 ZombieReaper detects return and user zombie states",
+    "description": "ZombieReaper detects: return_requested>7d (expire), return_approved>14d (expire), item_received>1h (auto-refund), registered user >30d unverified (soft-delete).",
+    "passes": false,
+    "steps": [
+      "Step 1: Verify zombie-reaper queries returns with return_requested >7d \u2192 expires and notifies customer",
+      "Step 2: Verify return_approved >14d \u2192 expires",
+      "Step 3: Verify item_received >1h \u2192 auto-refund via RefundGuard",
+      "Step 4: Verify unverified users >30d \u2192 soft-deleted"
+    ]
+  },
+  {
+    "id": 128,
+    "feature": "Section 0 \u2014 EscalationManager Python module exists",
+    "description": "podclaw/reliability/escalation.py routes alerts to correct channels: L1=Telegram, L2=Telegram+email, L3=Telegram+email+SSE+pause operations.",
+    "passes": false,
+    "steps": [
+      "Step 1: Verify file exists: podclaw/reliability/escalation.py",
+      "Step 2: Verify it exports escalate(level, message, context) function",
+      "Step 3: Verify L1 sends Telegram message",
+      "Step 4: Verify L2 sends Telegram + email",
+      "Step 5: Verify L3 sends Telegram + email + triggers SSE alert"
+    ]
+  },
+  {
+    "id": 129,
+    "feature": "Section 0 \u2014 RetryManager Python module exists",
+    "description": "podclaw/reliability/retry.py executes operations with exponential backoff + jitter. Formula: delay = base_delay * 2^attempt + random(0, base_delay*0.5).",
+    "passes": false,
+    "steps": [
+      "Step 1: Verify file exists: podclaw/reliability/retry.py",
+      "Step 2: Verify it exports withRetry(operation, fn, opts) or equivalent",
+      "Step 3: Verify exponential backoff formula matches spec",
+      "Step 4: Verify jitter is applied to prevent thundering herd",
+      "Step 5: Verify dead-letter to error_logs after max attempts"
+    ]
+  },
+  {
+    "id": 130,
+    "feature": "Section 0 \u2014 Cron runs table records all executions",
+    "description": "Every cron execution is recorded in cron_runs with status, duration_ms, error_message. All 10 cron routes use the CronLockManager pattern.",
+    "passes": false,
+    "steps": [
+      "Step 1: Verify all cron routes in frontend/src/app/api/cron/*/route.ts use CronLockManager",
+      "Step 2: Trigger a cron endpoint \u2192 verify cron_runs gets a new row with status='completed'",
+      "Step 3: Verify failed cron sets status='failed' and error_message",
+      "Step 4: Verify skipped cron (lock held) sets status='skipped' or returns 200 without new row"
+    ]
+  },
+  {
+    "id": 131,
+    "feature": "Section 1 \u2014 Admin middleware protects /api/* routes",
+    "description": "admin/src/middleware.ts protects ALL /api/* routes except /api/auth/login and /api/health. Previously excluded all /api/* routes (vulnerability).",
+    "passes": false,
+    "steps": [
+      "Step 1: Read admin/src/middleware.ts",
+      "Step 2: Verify matcher includes /api/* routes (not excluded)",
+      "Step 3: Verify /api/auth/login and /api/health are exempted",
+      "Step 4: curl a random admin API without session \u2192 expect 401"
+    ]
+  },
+  {
+    "id": 132,
+    "feature": "Section 1 \u2014 Admin password minimum 12 characters",
+    "description": "Admin login enforces minimum password length of 12 characters per spec Block A7.",
+    "passes": false,
+    "steps": [
+      "Step 1: Read admin/src/app/api/auth/login/route.ts",
+      "Step 2: Verify password validation requires >= 12 characters",
+      "Step 3: Test: POST /api/auth/login with 8-char password \u2192 rejected",
+      "Step 4: Test: POST /api/auth/login with 12-char correct password \u2192 accepted"
+    ]
+  },
+  {
+    "id": 133,
+    "feature": "Section 1 \u2014 RLS policies for user-scoped tables",
+    "description": "Orders, designs, cart_items, wishlists, wishlist_items, conversations, messages have RLS policies scoping to auth.uid().",
+    "passes": false,
+    "steps": [
+      "Step 1: Query pg_policies for orders table \u2192 verify USING clause includes auth.uid()",
+      "Step 2: Query pg_policies for designs table \u2192 verify user scoping",
+      "Step 3: Query pg_policies for cart_items \u2192 verify user/session scoping",
+      "Step 4: Query pg_policies for wishlists and wishlist_items \u2192 verify user scoping"
+    ]
+  },
+  {
+    "id": 134,
+    "feature": "Section 1 \u2014 RLS messaging tables fixed (no USING(true))",
+    "description": "messaging_channels, user_messaging_links, telegram_messages, whatsapp_messages have proper RLS policies replacing USING(true).",
+    "passes": false,
+    "steps": [
+      "Step 1: Query pg_policies for messaging_channels \u2192 verify no USING(true) policy",
+      "Step 2: Verify messaging tables have service_role or proper user-scoped policies",
+      "Step 3: Verify user_messaging_links scoped to authenticated user"
+    ]
+  },
+  {
+    "id": 135,
+    "feature": "Section 1 \u2014 RLS service_role only for internal tables",
+    "description": "agent_sessions, agent_events, agent_daily_costs, heartbeat_events, soul_change_log have RLS enabled with service_role only policies.",
+    "passes": false,
+    "steps": [
+      "Step 1: Query: SELECT tablename FROM pg_tables WHERE schemaname='public' AND tablename LIKE 'agent%'",
+      "Step 2: Verify RLS is enabled on all agent tables",
+      "Step 3: Verify policies only allow service_role access (not anon or authenticated)",
+      "Step 4: Verify error_logs, system_events also have service_role only"
+    ]
+  },
+  {
+    "id": 136,
+    "feature": "Section 1 \u2014 Content Security Policy headers in admin",
+    "description": "admin/next.config.ts includes Content Security Policy headers. Blocks inline scripts, restricts sources.",
+    "passes": false,
+    "steps": [
+      "Step 1: Read admin/next.config.ts \u2192 find security headers configuration",
+      "Step 2: Verify Content-Security-Policy header is defined",
+      "Step 3: Verify script-src does not include 'unsafe-inline' (or has nonce)",
+      "Step 4: curl admin page \u2192 verify CSP header present in response"
+    ]
+  },
+  {
+    "id": 137,
+    "feature": "Section 1 \u2014 Forged admin cookie rejected by iron-session",
+    "description": "Manually crafted admin-session cookie with JSON {role:admin} is rejected. Only iron-session signed+encrypted cookies accepted.",
+    "passes": false,
+    "steps": [
+      "Step 1: curl admin API with forged cookie: Cookie: admin-session={\"role\":\"admin\",\"email\":\"test@test.com\"} \u2192 expect 401",
+      "Step 2: curl admin API with empty cookie \u2192 expect 401",
+      "Step 3: curl admin API with random base64 string \u2192 expect 401",
+      "Step 4: Verify only iron-session encrypted cookies pass validation"
+    ]
+  },
+  {
+    "id": 138,
+    "feature": "Section 1 \u2014 withValidation Zod wrapper for admin mutations",
+    "description": "admin/src/lib/validation.ts exports withValidation(schema) wrapper. Zod schemas exist for top 10 mutations (products, orders, designs).",
+    "passes": false,
+    "steps": [
+      "Step 1: Verify file exists: admin/src/lib/validation.ts",
+      "Step 2: Verify it exports withValidation function accepting Zod schema",
+      "Step 3: Verify Zod schemas exist in admin/src/lib/schemas/ for product create/update",
+      "Step 4: Test: POST invalid product data \u2192 get Zod validation error response"
+    ]
+  },
+  {
+    "id": 139,
+    "feature": "Section 1 \u2014 Newsletter subscribers PII protection via RLS",
+    "description": "newsletter_subscribers table has RLS enabled with proper policies protecting PII (email addresses).",
+    "passes": false,
+    "steps": [
+      "Step 1: Verify RLS is enabled on newsletter_subscribers",
+      "Step 2: Verify policy restricts read access (not publicly readable)",
+      "Step 3: Verify service_role can access for cron/drip processing"
+    ]
+  },
+  {
+    "id": 140,
+    "feature": "Section 2 \u2014 Admin sidebar has 5 navigation groups",
+    "description": "Sidebar component has organized nav groups: Operations (5 items), Content (4), AI & Agents (2), Marketing (2), Settings (4).",
+    "passes": false,
+    "steps": [
+      "Step 1: Read admin/src/components/Sidebar.tsx",
+      "Step 2: Verify at least 5 distinct nav groups/sections exist",
+      "Step 3: Verify Operations group includes: orders, products, customers, returns, designs",
+      "Step 4: Verify Settings group includes: settings, branding, legal, seo"
+    ]
+  },
+  {
+    "id": 141,
+    "feature": "Section 2 \u2014 Typed React Query hooks for data fetching",
+    "description": "admin/src/hooks/queries/ contains typed hooks: useProducts(), useOrders(), useCustomers(), etc. Using React Query patterns.",
+    "passes": false,
+    "steps": [
+      "Step 1: Verify directory exists: admin/src/hooks/queries/ or admin/src/hooks/ with query hooks",
+      "Step 2: Verify useProducts hook exists with proper TypeScript typing",
+      "Step 3: Verify useOrders hook exists",
+      "Step 4: Verify hooks use useQuery from @tanstack/react-query"
+    ]
+  },
+  {
+    "id": 142,
+    "feature": "Section 2 \u2014 Admin search with debounce on list pages",
+    "description": "Product, order, customer list pages have search input with 300ms debounce. Searches server-side.",
+    "passes": false,
+    "steps": [
+      "Step 1: Read admin/src/app/products/page.tsx or (dashboard)/products/page.tsx",
+      "Step 2: Verify search input exists with debounce (setTimeout or useDebouncedValue)",
+      "Step 3: Verify search triggers API call with query parameter",
+      "Step 4: Verify orders page also has search functionality"
+    ]
+  },
+  {
+    "id": 143,
+    "feature": "Section 2 \u2014 Admin skeleton loading components",
+    "description": "List pages show Skeleton loading states while data is being fetched. Uses shadcn/ui Skeleton component.",
+    "passes": false,
+    "steps": [
+      "Step 1: Verify Skeleton component imported from @/components/ui/skeleton in admin pages",
+      "Step 2: Verify products page shows skeleton while loading",
+      "Step 3: Verify orders page shows skeleton while loading",
+      "Step 4: Verify isLoading/isPending state from React Query triggers skeleton display"
+    ]
+  },
+  {
+    "id": 144,
+    "feature": "Section 2 \u2014 Admin accessibility (aria-labels and alt text)",
+    "description": "Interactive elements have aria-labels, images have alt text, semantic HTML roles used across admin components.",
+    "passes": false,
+    "steps": [
+      "Step 1: Grep admin/src/ for aria-label \u2192 verify count > 20",
+      "Step 2: Grep admin/src/ for alt= on img/Image tags \u2192 verify all images have alt text",
+      "Step 3: Verify navigation uses nav element with aria-label",
+      "Step 4: Verify interactive buttons have descriptive aria-labels"
+    ]
+  },
+  {
+    "id": 145,
+    "feature": "Section 2 \u2014 Admin SSE optimization (batch events, debounce toast)",
+    "description": "SSEProvider batches events and debounces toast notifications to prevent notification flooding.",
+    "passes": false,
+    "steps": [
+      "Step 1: Read admin/src/components/providers/SSEProvider.tsx",
+      "Step 2: Verify event handling includes debounce or throttle for toast notifications",
+      "Step 3: Verify rapid sequential events don't create individual toasts for each",
+      "Step 4: Verify heartbeat events are handled silently (no toast)"
+    ]
+  },
+  {
+    "id": 146,
+    "feature": "Section 3 \u2014 Auth FK constraint prevents orphaned records",
+    "description": "public.users has FK constraint referencing auth.users(id) ON DELETE CASCADE. Prevents orphaned user records.",
+    "passes": false,
+    "steps": [
+      "Step 1: Query: SELECT conname FROM pg_constraint WHERE conrelid='users'::regclass AND contype='f'",
+      "Step 2: Verify FK referencing auth.users(id) exists",
+      "Step 3: Verify ON DELETE CASCADE behavior"
+    ]
+  },
+  {
+    "id": 147,
+    "feature": "Section 3 \u2014 Auth reconciliation script syncs existing users",
+    "description": "Migration or script reconciles existing UUIDs between auth.users and public.users. No orphaned records remain.",
+    "passes": false,
+    "steps": [
+      "Step 1: Verify migration file exists for auth reconciliation",
+      "Step 2: Query: SELECT count(*) FROM public.users WHERE id NOT IN (SELECT id FROM auth.users) \u2192 expect 0",
+      "Step 3: Verify all auth.users have corresponding public.users rows"
+    ]
+  },
+  {
+    "id": 148,
+    "feature": "Section 3 \u2014 Individual compound indexes verified with EXPLAIN",
+    "description": "All 11 compound indexes from spec Block B exist: idx_orders_status_created, idx_orders_user_created, idx_products_category_status, etc.",
+    "passes": false,
+    "steps": [
+      "Step 1: Verify index idx_orders_status_created ON orders(status, created_at DESC) exists",
+      "Step 2: Verify index idx_orders_user_created ON orders(user_id, created_at DESC) exists",
+      "Step 3: Verify index idx_designs_user_status_created exists",
+      "Step 4: Verify index idx_documents_content_fts (GIN) exists",
+      "Step 5: Verify index idx_audit_entity_created ON audit_log exists",
+      "Step 6: Run EXPLAIN ANALYZE on SELECT * FROM orders WHERE status='paid' ORDER BY created_at DESC \u2192 verify index scan"
+    ]
+  },
+  {
+    "id": 149,
+    "feature": "Section 3 \u2014 Seed data separated from production migrations",
+    "description": "supabase/seed.sql exists with test data. Production migrations contain DDL only, no INSERT of test records.",
+    "passes": false,
+    "steps": [
+      "Step 1: Verify file exists: supabase/seed.sql",
+      "Step 2: Grep production migrations for INSERT with test email addresses \u2192 expect 0",
+      "Step 3: Verify seed.sql contains test data (users, products, etc.) for development"
+    ]
+  },
+  {
+    "id": 150,
+    "feature": "Section 3 \u2014 pgvector HNSW index tuning parameters",
+    "description": "documents.embedding uses HNSW index with tuned ef_construction and m parameters. Vector search latency <50ms for 768-dim queries.",
+    "passes": false,
+    "steps": [
+      "Step 1: Query pg_indexes for documents table \u2192 verify USING hnsw",
+      "Step 2: Verify no IVFFlat index remains on embedding column",
+      "Step 3: Run: EXPLAIN ANALYZE SELECT * FROM documents ORDER BY embedding <=> '[...]' LIMIT 5 \u2192 verify index scan",
+      "Step 4: Verify query execution time < 50ms"
+    ]
+  },
+  {
+    "id": 151,
+    "feature": "Section 3 \u2014 Table partitioning with auto-create cron",
+    "description": "agent_events, messages, and audit_log partitioned by month. Cron auto-creates future partitions 3 months ahead.",
+    "passes": false,
+    "steps": [
+      "Step 1: Query pg_class for agent_events \u2192 verify relkind='p' (partitioned table)",
+      "Step 2: Verify at least current month partition exists",
+      "Step 3: Verify EXPLAIN on agent_events with date filter shows partition pruning",
+      "Step 4: Verify cron or migration creates future partitions"
+    ]
+  },
+  {
+    "id": 152,
+    "feature": "Section 8 \u2014 CI Stage 1: Lint and TypeScript check",
+    "description": "CI pipeline Stage 1 runs eslint and tsc --noEmit for both frontend and admin projects.",
+    "passes": false,
+    "steps": [
+      "Step 1: Verify .github/workflows/ci.yml exists",
+      "Step 2: Verify a step runs eslint for frontend",
+      "Step 3: Verify a step runs tsc --noEmit for frontend and admin",
+      "Step 4: Verify lint failures block the pipeline"
+    ]
+  },
+  {
+    "id": 153,
+    "feature": "Section 8 \u2014 CI Stage 2: Unit tests",
+    "description": "CI pipeline Stage 2 runs vitest for frontend and admin, pytest for PodClaw.",
+    "passes": false,
+    "steps": [
+      "Step 1: Verify CI has a step running vitest run in frontend/",
+      "Step 2: Verify CI has a step running vitest run in admin/",
+      "Step 3: Verify CI has a step running pytest in podclaw/",
+      "Step 4: Verify test failures block the pipeline"
+    ]
+  },
+  {
+    "id": 154,
+    "feature": "Section 8 \u2014 CI Stage 3: Integration and Docker build",
+    "description": "CI pipeline includes integration test stage and Docker build smoke test (docker compose build).",
+    "passes": false,
+    "steps": [
+      "Step 1: Verify CI has a stage for integration tests (MCP tools, admin APIs)",
+      "Step 2: Verify CI has a Docker build stage running docker compose build",
+      "Step 3: Verify all stages run in correct order (lint \u2192 unit \u2192 integration \u2192 build)"
+    ]
+  },
+  {
+    "id": 155,
+    "feature": "Section 8 \u2014 Branch protection requires CI pass",
+    "description": "GitHub branch protection on main requires CI pipeline pass before merge. Direct pushes to main blocked.",
+    "passes": false,
+    "steps": [
+      "Step 1: Verify .github/workflows/ci.yml triggers on pull_request to main",
+      "Step 2: Verify workflow includes required status checks",
+      "Step 3: Check branch protection rules via gh api repos/{owner}/{repo}/branches/main/protection (if available)"
+    ]
+  },
+  {
+    "id": 156,
+    "feature": "Section 8 \u2014 Frontend Vitest configured and tests pass",
+    "description": "Frontend has vitest.config.ts, test scripts in package.json. Tests for Zod schemas, utility functions, SafeMarkdown.",
+    "passes": false,
+    "steps": [
+      "Step 1: Verify frontend/vitest.config.ts exists",
+      "Step 2: Verify frontend/package.json has 'test' script using vitest",
+      "Step 3: Verify test files exist for Zod schemas or utility functions",
+      "Step 4: Run: cd frontend && npx vitest run --reporter=verbose \u2192 passes"
+    ]
+  },
+  {
+    "id": 157,
+    "feature": "Section 8 \u2014 Playwright E2E specs for admin panel",
+    "description": "Playwright test specs exist for admin panel: login flow, product CRUD, order management.",
+    "passes": false,
+    "steps": [
+      "Step 1: Verify Playwright test files exist for admin login flow",
+      "Step 2: Verify test for admin product creation/editing",
+      "Step 3: Verify test for admin order management",
+      "Step 4: Verify tests reference admin URL (port 3001 or /panel)"
+    ]
+  },
+  {
+    "id": 158,
+    "feature": "Section 8 \u2014 Playwright E2E for checkout flow",
+    "description": "Playwright specs cover checkout flow: guest and authenticated paths, including Stripe redirect.",
+    "passes": false,
+    "steps": [
+      "Step 1: Verify Playwright test file exists for checkout flow",
+      "Step 2: Verify test covers add to cart \u2192 checkout \u2192 (Stripe mock or redirect)",
+      "Step 3: Verify both guest and authenticated checkout paths tested"
+    ]
+  },
+  {
+    "id": 159,
+    "feature": "Section 4 \u2014 Homepage JSON-LD Organization + WebSite schema",
+    "description": "Homepage server component includes JSON-LD structured data for Organization and WebSite schemas. Passes Google Structured Data Testing Tool.",
+    "passes": false,
+    "steps": [
+      "Step 1: Read frontend/src/app/[locale]/(landing)/page.tsx",
+      "Step 2: Verify JSON-LD script tag with @type: Organization exists",
+      "Step 3: Verify JSON-LD script tag with @type: WebSite exists",
+      "Step 4: curl homepage \u2192 verify JSON-LD in HTML source"
+    ]
+  },
+  {
+    "id": 160,
+    "feature": "Section 4 \u2014 Shop page JSON-LD ItemList schema",
+    "description": "Shop page includes JSON-LD ItemList schema listing products for search engines.",
+    "passes": false,
+    "steps": [
+      "Step 1: Read frontend/src/app/[locale]/(app)/shop/page.tsx",
+      "Step 2: Verify JSON-LD script with @type: ItemList exists",
+      "Step 3: Verify items include product URLs and names"
+    ]
+  },
+  {
+    "id": 161,
+    "feature": "Section 4 \u2014 Product pages ISR revalidate",
+    "description": "Product detail pages use ISR with revalidate: 3600 for incremental static regeneration.",
+    "passes": false,
+    "steps": [
+      "Step 1: Read frontend/src/app/[locale]/(app)/shop/[id]/page.tsx",
+      "Step 2: Verify export const revalidate = 3600 (or similar ISR config)",
+      "Step 3: Verify generateStaticParams exists if using static generation"
+    ]
+  },
+  {
+    "id": 162,
+    "feature": "Section 4 \u2014 Breadcrumbs on shop and product pages",
+    "description": "Shop and product detail pages have breadcrumb navigation: Home \u2192 Shop \u2192 Category \u2192 Product Name.",
+    "passes": false,
+    "steps": [
+      "Step 1: Verify breadcrumb component exists in shop pages",
+      "Step 2: Verify product detail page shows: Home > Shop > [Category] > [Product]",
+      "Step 3: Verify breadcrumbs are clickable links to correct pages"
+    ]
+  },
+  {
+    "id": 163,
+    "feature": "Section 4 \u2014 JSON-LD BreadcrumbList on product pages",
+    "description": "Product pages include JSON-LD BreadcrumbList structured data for SEO.",
+    "passes": false,
+    "steps": [
+      "Step 1: Read product detail page source",
+      "Step 2: Verify JSON-LD script with @type: BreadcrumbList exists",
+      "Step 3: Verify items include position, name, and item URL"
+    ]
+  },
+  {
+    "id": 164,
+    "feature": "Section 4 \u2014 robots.txt with sitemap references",
+    "description": "robots.txt exists at frontend root, references all sitemap URLs per locale.",
+    "passes": false,
+    "steps": [
+      "Step 1: curl http://localhost:3000/robots.txt \u2192 returns 200",
+      "Step 2: Verify contains Sitemap: directive pointing to sitemap URL",
+      "Step 3: Verify Allow and Disallow directives are appropriate"
+    ]
+  },
+  {
+    "id": 165,
+    "feature": "Section 4 \u2014 Dynamic sitemap per locale with products",
+    "description": "Sitemap index references per-locale sitemaps. Each locale sitemap includes all active products with lastmod dates.",
+    "passes": false,
+    "steps": [
+      "Step 1: curl http://localhost:3000/sitemap.xml \u2192 returns sitemap index",
+      "Step 2: Verify per-locale sitemap references exist (en, es, de)",
+      "Step 3: Verify product URLs appear in sitemap with lastmod dates",
+      "Step 4: Verify static pages (/about, /contact, /faq) included"
+    ]
+  },
+  {
+    "id": 166,
+    "feature": "Section 4 \u2014 Error boundaries for all route groups",
+    "description": "Each route group ((app), (focused), (landing)) has error.tsx with recovery option.",
+    "passes": false,
+    "steps": [
+      "Step 1: Verify frontend/src/app/[locale]/(app)/error.tsx exists",
+      "Step 2: Verify frontend/src/app/[locale]/(focused)/error.tsx exists",
+      "Step 3: Verify frontend/src/app/[locale]/(landing)/error.tsx exists",
+      "Step 4: Verify error pages show recovery button (retry/go home)"
+    ]
+  },
+  {
+    "id": 167,
+    "feature": "Section 4 \u2014 Blog page exists at /blog",
+    "description": "/blog page renders with correct SEO metadata, showing blog post listing (placeholder structure for future CMS).",
+    "passes": false,
+    "steps": [
+      "Step 1: Verify frontend/src/app/[locale]/(focused)/blog/page.tsx exists",
+      "Step 2: curl http://localhost:3000/en/blog \u2192 returns 200",
+      "Step 3: Verify page has generateMetadata() for SEO"
+    ]
+  },
+  {
+    "id": 168,
+    "feature": "Section 4 \u2014 Size guide page exists at /size-guide",
+    "description": "/size-guide page with size tables by product type and correct SEO metadata.",
+    "passes": false,
+    "steps": [
+      "Step 1: Verify frontend/src/app/[locale]/(focused)/size-guide/page.tsx exists",
+      "Step 2: curl http://localhost:3000/en/size-guide \u2192 returns 200",
+      "Step 3: Verify page has generateMetadata()"
+    ]
+  },
+  {
+    "id": 169,
+    "feature": "Section 5 \u2014 Products table has category_id FK column",
+    "description": "products.category_id UUID references categories(id). Data migration populates category_id from VARCHAR category field.",
+    "passes": false,
+    "steps": [
+      "Step 1: Query: SELECT column_name, data_type FROM information_schema.columns WHERE table_name='products' AND column_name='category_id'",
+      "Step 2: Verify column is UUID type",
+      "Step 3: Verify FK constraint references categories(id)",
+      "Step 4: Verify existing products have category_id populated (not null for products with valid categories)"
+    ]
+  },
+  {
+    "id": 170,
+    "feature": "Section 5 \u2014 Categories table has RLS policies",
+    "description": "categories table has RLS enabled. Public SELECT for active categories, ALL operations for service_role.",
+    "passes": false,
+    "steps": [
+      "Step 1: Verify RLS is enabled on categories table",
+      "Step 2: Verify public/anon can SELECT categories WHERE is_active=true",
+      "Step 3: Verify service_role can INSERT/UPDATE/DELETE"
+    ]
+  },
+  {
+    "id": 171,
+    "feature": "Section 5 \u2014 Category landing pages in sitemap",
+    "description": "/shop/category/[slug] pages included in dynamic sitemap with correct URLs for all active categories.",
+    "passes": false,
+    "steps": [
+      "Step 1: curl sitemap \u2192 verify category URLs present",
+      "Step 2: Verify at least 5 category slugs appear (apparel, accessories, drinkware, etc.)",
+      "Step 3: Verify URLs follow pattern /[locale]/shop/category/[slug]"
+    ]
+  },
+  {
+    "id": 172,
+    "feature": "Section 5 \u2014 Sidebar active category highlighting",
+    "description": "StorefrontSidebar highlights current category when browsing /shop/category/[slug]. Mobile shows category chips.",
+    "passes": false,
+    "steps": [
+      "Step 1: Read StorefrontSidebar.tsx \u2192 verify category navigation section",
+      "Step 2: Verify active category has visual distinction (bg-accent, font-bold, etc.)",
+      "Step 3: Verify categories display product counts"
+    ]
+  },
+  {
+    "id": 173,
+    "feature": "Section 5 \u2014 Category selector in admin product forms",
+    "description": "Admin product create/edit forms include category selector dropdown populated from categories table.",
+    "passes": false,
+    "steps": [
+      "Step 1: Read admin product create/edit page",
+      "Step 2: Verify category dropdown/select exists",
+      "Step 3: Verify it fetches from categories API (not hardcoded list)"
+    ]
+  },
+  {
+    "id": 174,
+    "feature": "Section 5 \u2014 Client-side categories.ts deprecated",
+    "description": "frontend/src/lib/categories.ts is no longer imported anywhere. All category data comes from API/database.",
+    "passes": false,
+    "steps": [
+      "Step 1: Grep frontend/src/ for 'from.*categories' or 'import.*categories.ts'",
+      "Step 2: Verify no active imports of the old client-side mapping file",
+      "Step 3: Verify shop page fetches categories from API route"
+    ]
+  },
+  {
+    "id": 175,
+    "feature": "Section 6 \u2014 Disabled agents persisted in Redis",
+    "description": "_disabled_agents stored in Redis SET podclaw:disabled_agents. Survives PodClaw restart.",
+    "passes": false,
+    "steps": [
+      "Step 1: Verify podclaw/core.py stores disabled agents in Redis SET",
+      "Step 2: Verify disabling an agent writes to Redis",
+      "Step 3: Verify after restart, disabled agents are still disabled"
+    ]
+  },
+  {
+    "id": 176,
+    "feature": "Section 6 \u2014 Task status tracking for manual agent runs",
+    "description": "POST /agents/{name}/run returns task_id. GET /task/{id} shows status (queued/running/completed/failed).",
+    "passes": false,
+    "steps": [
+      "Step 1: Verify POST /agents/{name}/run returns immediately with task_id",
+      "Step 2: Verify GET /task/{id} returns current status",
+      "Step 3: Verify task transitions through queued \u2192 running \u2192 completed"
+    ]
+  },
+  {
+    "id": 177,
+    "feature": "Section 6 \u2014 Custom Prometheus metrics for agents",
+    "description": "GET /metrics includes custom metrics: agent_session_duration_seconds (Histogram), agent_daily_cost_eur (Gauge), agent_tool_calls_total (Counter), agent_errors_total (Counter).",
+    "passes": false,
+    "steps": [
+      "Step 1: curl http://localhost:8000/metrics \u2192 returns Prometheus text format",
+      "Step 2: Verify agent_session_duration_seconds metric present",
+      "Step 3: Verify agent_daily_cost_eur metric present",
+      "Step 4: Verify agent_tool_calls_total counter present"
+    ]
+  },
+  {
+    "id": 178,
+    "feature": "Section 6 \u2014 Health endpoint includes Redis check",
+    "description": "GET /api/health (deep check) includes Redis connectivity status. Returns degraded if Redis unavailable.",
+    "passes": false,
+    "steps": [
+      "Step 1: curl http://localhost:8000/api/health \u2192 returns JSON",
+      "Step 2: Verify response includes redis status field",
+      "Step 3: Verify when Redis is connected \u2192 redis: 'ok'",
+      "Step 4: Verify services continue working if Redis is down (graceful degradation)"
+    ]
+  },
+  {
+    "id": 179,
+    "feature": "Section 6 \u2014 Admin cost dashboard per agent",
+    "description": "Admin /agent page shows cost dashboard: daily/weekly/monthly spend per agent with visual breakdown.",
+    "passes": false,
+    "steps": [
+      "Step 1: Navigate to admin agent page",
+      "Step 2: Verify cost data displayed per agent (daily spend)",
+      "Step 3: Verify budget utilization percentage shown",
+      "Step 4: Verify data comes from Bridge API /costs endpoint"
+    ]
+  },
+  {
+    "id": 180,
+    "feature": "Section 6 \u2014 Production governor tests exist",
+    "description": "podclaw/tests/test_production_governor.py has tests for budget enforcement, kill switches, and escalation logic.",
+    "passes": false,
+    "steps": [
+      "Step 1: Verify file exists: podclaw/tests/test_production_governor.py",
+      "Step 2: Verify tests cover budget enforcement (80%/90%/100% thresholds)",
+      "Step 3: Verify tests cover kill switch functionality",
+      "Step 4: Run: cd podclaw && python -m pytest tests/test_production_governor.py -v \u2192 passes"
+    ]
+  },
+  {
+    "id": 181,
+    "feature": "Section 6 \u2014 Chat session tests exist",
+    "description": "podclaw/tests/test_chat_session.py has tests for message handling, streaming, and tool routing.",
+    "passes": false,
+    "steps": [
+      "Step 1: Verify file exists: podclaw/tests/test_chat_session.py",
+      "Step 2: Verify tests cover message handling",
+      "Step 3: Verify tests cover streaming responses",
+      "Step 4: Run: cd podclaw && python -m pytest tests/test_chat_session.py -v \u2192 passes"
+    ]
+  },
+  {
+    "id": 182,
+    "feature": "Section 6 \u2014 Soul evolution tests exist",
+    "description": "podclaw/tests/test_soul_evolution.py has tests for proposal generation, constraint validation, and merge logic.",
+    "passes": false,
+    "steps": [
+      "Step 1: Verify file exists: podclaw/tests/test_soul_evolution.py",
+      "Step 2: Verify tests cover proposal generation",
+      "Step 3: Verify tests cover constraint validation (immutable sections)",
+      "Step 4: Run: cd podclaw && python -m pytest tests/test_soul_evolution.py -v \u2192 passes"
+    ]
+  },
+  {
+    "id": 183,
+    "feature": "Section 7 \u2014 MCP X-RateLimit headers on tool responses",
+    "description": "MCP tool responses include X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset headers.",
+    "passes": false,
+    "steps": [
+      "Step 1: Read mcp-server/src/middleware/rate-limit.ts",
+      "Step 2: Verify response headers include X-RateLimit-Limit",
+      "Step 3: Verify response headers include X-RateLimit-Remaining",
+      "Step 4: Verify response headers include X-RateLimit-Reset"
+    ]
+  },
+  {
+    "id": 184,
+    "feature": "Section 7 \u2014 MCP session cleanup expires after 1h",
+    "description": "Unused MCP sessions expire after 1 hour. Session metadata in Redis with TTL.",
+    "passes": false,
+    "steps": [
+      "Step 1: Verify session creation sets Redis TTL or in-memory expiry",
+      "Step 2: Verify session accessed within 1h is refreshed",
+      "Step 3: Verify session not accessed for >1h is cleaned up"
+    ]
+  },
+  {
+    "id": 185,
+    "feature": "Section 7 \u2014 MCP JSON-RPC standardized error codes",
+    "description": "All MCP tool errors use standard JSON-RPC error codes with descriptive messages.",
+    "passes": false,
+    "steps": [
+      "Step 1: Read MCP server error handling code",
+      "Step 2: Verify error responses follow JSON-RPC format: {code, message, data}",
+      "Step 3: Verify -32600 (Invalid Request), -32601 (Method not found), -32602 (Invalid params) used correctly"
+    ]
+  },
+  {
+    "id": 186,
+    "feature": "Section 7 \u2014 MCP input length limits on Zod schemas",
+    "description": "All MCP tool Zod schemas include max length limits (1000 chars for text fields).",
+    "passes": false,
+    "steps": [
+      "Step 1: Read MCP tool schema definitions",
+      "Step 2: Verify string fields have .max(1000) or similar limits",
+      "Step 3: Test: send request with >1000 char query \u2192 get validation error"
+    ]
+  },
+  {
+    "id": 187,
+    "feature": "Section 7 \u2014 MCP OAuth flow tests",
+    "description": "MCP server Vitest tests cover OAuth 2.1 flow: authorize, token, revoke, PKCE S256 validation.",
+    "passes": false,
+    "steps": [
+      "Step 1: Verify test files exist for OAuth flow",
+      "Step 2: Verify tests cover authorization endpoint",
+      "Step 3: Verify tests cover token exchange with PKCE",
+      "Step 4: Verify tests cover token revocation"
+    ]
+  },
+  {
+    "id": 188,
+    "feature": "Section 7 \u2014 MCP tool tests for 5 main tools",
+    "description": "Vitest tests exist for: search_products, get_cart, create_checkout, get_order_status, get_my_profile.",
+    "passes": false,
+    "steps": [
+      "Step 1: Verify test files exist for MCP tools",
+      "Step 2: Verify search_products tool is tested",
+      "Step 3: Verify create_checkout tool is tested with auth",
+      "Step 4: Run: cd mcp-server && npx vitest run \u2192 passes"
+    ]
+  },
+  {
+    "id": 189,
+    "feature": "Section 13 \u2014 Delivery notification email on shipment",
+    "description": "When Printify webhook reports order:delivered, system sends delivery notification email to customer via Resend.",
+    "passes": false,
+    "steps": [
+      "Step 1: Read frontend/src/app/api/webhooks/printify/route.ts",
+      "Step 2: Verify handleOrderDelivered or similar handler exists",
+      "Step 3: Verify it calls sendEmail or Resend to notify customer",
+      "Step 4: Verify email includes order details and tracking info"
+    ]
+  },
+  {
+    "id": 190,
+    "feature": "Section 13 \u2014 Multiple shipments support in webhook",
+    "description": "Printify webhook handler iterates shipments[] array. Each package generates separate tracking notification.",
+    "passes": false,
+    "steps": [
+      "Step 1: Read Printify webhook handler for shipped events",
+      "Step 2: Verify it iterates over shipments array (not just first element)",
+      "Step 3: Verify each shipment generates a tracking notification"
+    ]
+  },
+  {
+    "id": 191,
+    "feature": "Section 13 \u2014 order:updated and order:failed Printify handlers",
+    "description": "Printify webhook handles order:updated (printify_status update) and order:failed (auto-refund + notify) events.",
+    "passes": false,
+    "steps": [
+      "Step 1: Verify Printify webhook handles 'order:updated' event type",
+      "Step 2: Verify order:updated updates printify_status field in orders table",
+      "Step 3: Verify 'order:failed' event triggers auto-refund via RefundGuard",
+      "Step 4: Verify order:failed notifies admin via escalation"
+    ]
+  },
+  {
+    "id": 192,
+    "feature": "Section 13 \u2014 Printify connector respects Retry-After header",
+    "description": "PrintifyMCPConnector parses Retry-After header on 429 responses. Dynamic timeouts: 30s reads, 60s writes, 120s uploads.",
+    "passes": false,
+    "steps": [
+      "Step 1: Read podclaw/connectors/printify_mcp_connector.py",
+      "Step 2: Verify 429 response handling extracts Retry-After header",
+      "Step 3: Verify different timeout values for read/write/upload operations"
+    ]
+  },
+  {
+    "id": 193,
+    "feature": "Section 13 \u2014 Cart validates product availability on open",
+    "description": "When user opens cart, product availability is re-validated against current stock/status. Unavailable items flagged.",
+    "passes": false,
+    "steps": [
+      "Step 1: Read cart component or cart API route",
+      "Step 2: Verify cart fetch includes product availability check",
+      "Step 3: Verify unavailable items shown with visual warning"
+    ]
+  },
+  {
+    "id": 194,
+    "feature": "Section 13 \u2014 Audit log on product deletion",
+    "description": "Product deletion records actor, reason, timestamp in audit_log table. Products use soft delete (deleted_at).",
+    "passes": false,
+    "steps": [
+      "Step 1: Verify product delete handler inserts into audit_log",
+      "Step 2: Verify audit_log entry includes actor (admin id), entity_type='product', action='delete'",
+      "Step 3: Verify product is soft-deleted (deleted_at set, not hard-deleted)"
+    ]
+  },
+  {
+    "id": 195,
+    "feature": "Section 13 \u2014 Admin approval queue for borderline products",
+    "description": "Products with QA score 6-7 set to 'pending_review'. Admin products page has pending_review filter with approve/reject actions.",
+    "passes": false,
+    "steps": [
+      "Step 1: Read admin products page",
+      "Step 2: Verify filter for 'pending_review' status exists",
+      "Step 3: Verify approve button transitions to 'publishing'",
+      "Step 4: Verify reject button transitions to 'draft' with required feedback"
+    ]
+  },
+  {
+    "id": 196,
+    "feature": "Section 13 \u2014 Printify test: retry scheduler and refund",
+    "description": "Test file verifies: mock Printify API failure \u2192 retry scheduler activates \u2192 eventual refund after max attempts.",
+    "passes": false,
+    "steps": [
+      "Step 1: Verify test file exists for retry-printify-orders cron",
+      "Step 2: Verify test mocks Printify API failure",
+      "Step 3: Verify test verifies retry attempts occur",
+      "Step 4: Verify test verifies refund after exhausted retries"
+    ]
+  },
+  {
+    "id": 197,
+    "feature": "Section 13 \u2014 Printify test: UPSERT concurrent sync",
+    "description": "Test verifies two concurrent variant syncs produce no data loss. UPSERT pattern preserves all variants.",
+    "passes": false,
+    "steps": [
+      "Step 1: Verify test file exists for variant sync",
+      "Step 2: Verify test runs concurrent sync operations",
+      "Step 3: Verify no variants are lost after concurrent syncs"
+    ]
+  },
+  {
+    "id": 198,
+    "feature": "Section 14 \u2014 VAPID_SUBJECT updated to Skapara email",
+    "description": "push-notifications.ts uses process.env.VAPID_SUBJECT or 'mailto:push@skapara.com' (not 'mailto:push@podai.com').",
+    "passes": false,
+    "steps": [
+      "Step 1: Read frontend/src/lib/push-notifications.ts",
+      "Step 2: Verify VAPID_SUBJECT uses env var or skapara.com email",
+      "Step 3: Verify no reference to podai.com remains"
+    ]
+  },
+  {
+    "id": 199,
+    "feature": "Section 14 \u2014 NEXT_PUBLIC_BRAND_NAME env vars configured",
+    "description": "admin/.env.local and .env.example include NEXT_PUBLIC_BRAND_NAME=Skapara.",
+    "passes": false,
+    "steps": [
+      "Step 1: Read admin/.env.local \u2192 verify NEXT_PUBLIC_BRAND_NAME=Skapara",
+      "Step 2: Read .env.example \u2192 verify NEXT_PUBLIC_BRAND_NAME documented",
+      "Step 3: Verify admin components use process.env.NEXT_PUBLIC_BRAND_NAME"
+    ]
+  },
+  {
+    "id": 200,
+    "feature": "Section 14 \u2014 Favicon and apple-touch-icon links in root layout",
+    "description": "Root layout includes <link rel='icon' href='/favicon.ico'> and <link rel='apple-touch-icon' href='/apple-touch-icon.png'>.",
+    "passes": false,
+    "steps": [
+      "Step 1: Read frontend/src/app/layout.tsx",
+      "Step 2: Verify favicon.ico link in head/metadata",
+      "Step 3: Verify apple-touch-icon link in head/metadata",
+      "Step 4: curl homepage HTML \u2192 verify link tags present"
+    ]
+  },
+  {
+    "id": 201,
+    "feature": "Section 14 \u2014 Brand config public API route exists",
+    "description": "GET /api/storefront/brand-config returns public brand info: brand_name, brand_tagline, logo URLs, support_email.",
+    "passes": false,
+    "steps": [
+      "Step 1: Verify file exists: frontend/src/app/api/storefront/brand-config/route.ts",
+      "Step 2: curl http://localhost:3000/api/storefront/brand-config \u2192 returns 200 JSON",
+      "Step 3: Verify response includes brand_name, brand_tagline, logo_light_url",
+      "Step 4: Verify response is cached (Cache-Control header)"
+    ]
+  },
+  {
+    "id": 202,
+    "feature": "Section 14 \u2014 OG image verified present and referenced",
+    "description": "og-image.png exists at frontend/public/brand/og-image.png (1200x630). Referenced in OpenGraph metadata.",
+    "passes": false,
+    "steps": [
+      "Step 1: Verify file exists: frontend/public/brand/og-image.png",
+      "Step 2: Read [locale]/layout.tsx \u2192 verify OpenGraph image references og-image.png",
+      "Step 3: curl homepage HTML \u2192 verify og:image meta tag present"
+    ]
+  },
+  {
+    "id": 203,
+    "feature": "Section 9 \u2014 Prometheus service in Docker Compose",
+    "description": "docker-compose.yml includes Prometheus service with scrape config targeting all application services /metrics endpoints.",
+    "passes": false,
+    "steps": [
+      "Step 1: Read docker-compose.yml \u2192 verify prometheus service defined",
+      "Step 2: Verify deploy/prometheus/prometheus.yml exists with scrape targets",
+      "Step 3: Verify scrape targets include frontend, admin, podclaw, mcp-server"
+    ]
+  },
+  {
+    "id": 204,
+    "feature": "Section 9 \u2014 Grafana service with pre-built dashboards",
+    "description": "docker-compose.yml includes Grafana service with provisioned dashboards for system, PodClaw, ecommerce, and infrastructure.",
+    "passes": false,
+    "steps": [
+      "Step 1: Read docker-compose.yml \u2192 verify grafana service defined",
+      "Step 2: Verify deploy/grafana/provisioning/ directory exists with datasource and dashboard configs",
+      "Step 3: Verify at least 2 pre-built dashboards configured"
+    ]
+  },
+  {
+    "id": 205,
+    "feature": "Section 9 \u2014 Loki service for log aggregation",
+    "description": "docker-compose.yml includes Loki service. Docker logging driver configured to send logs to Loki.",
+    "passes": false,
+    "steps": [
+      "Step 1: Read docker-compose.yml \u2192 verify loki service defined",
+      "Step 2: Verify deploy/loki/loki.yml config exists",
+      "Step 3: Verify services use Loki logging driver or ship logs to Loki"
+    ]
+  },
+  {
+    "id": 206,
+    "feature": "Section 9 \u2014 cAdvisor for container resource metrics",
+    "description": "docker-compose.yml includes cAdvisor service exposing container CPU, RAM, network metrics to Prometheus.",
+    "passes": false,
+    "steps": [
+      "Step 1: Read docker-compose.yml \u2192 verify cadvisor service defined",
+      "Step 2: Verify Prometheus config scrapes cAdvisor endpoint",
+      "Step 3: Verify cAdvisor has access to Docker socket (read-only)"
+    ]
+  },
+  {
+    "id": 207,
+    "feature": "Section 9 \u2014 Frontend /api/metrics endpoint",
+    "description": "Frontend exposes GET /api/metrics in Prometheus text format with request counts, latencies, external API call counts.",
+    "passes": false,
+    "steps": [
+      "Step 1: Verify file exists: frontend/src/app/api/metrics/route.ts",
+      "Step 2: curl http://localhost:3000/api/metrics \u2192 returns Prometheus text format",
+      "Step 3: Verify metrics include http_request_duration_seconds or similar"
+    ]
+  },
+  {
+    "id": 208,
+    "feature": "Section 9 \u2014 Admin /api/metrics endpoint",
+    "description": "Admin exposes GET /api/metrics in Prometheus text format with request counts and page load metrics.",
+    "passes": false,
+    "steps": [
+      "Step 1: Verify file exists: admin/src/app/api/metrics/route.ts",
+      "Step 2: curl http://localhost:3001/api/metrics \u2192 returns Prometheus text format"
+    ]
+  },
+  {
+    "id": 209,
+    "feature": "Section 9 \u2014 Observability RAM budget under 768MB",
+    "description": "Total RAM increase from observability stack (Prometheus + Grafana + Loki + cAdvisor) is under 768MB.",
+    "passes": false,
+    "steps": [
+      "Step 1: Verify docker-compose.yml memory limits for observability services",
+      "Step 2: Verify combined limits: Prometheus + Grafana + Loki + cAdvisor < 768MB",
+      "Step 3: Verify deploy.resources.limits.memory set on each observability service"
+    ]
+  },
+  {
+    "id": 210,
+    "feature": "Section 9 \u2014 Grafana alert rules for critical conditions",
+    "description": "Grafana alerting configured with rules: service down >5min, PodClaw budget >90%, error rate >5%, memory >85%, Supabase latency >2s.",
+    "passes": false,
+    "steps": [
+      "Step 1: Verify Grafana alerting provisioning file exists",
+      "Step 2: Verify at least 3 alert rules defined",
+      "Step 3: Verify Telegram contact point configured for alerts"
+    ]
+  },
+  {
+    "id": 211,
+    "feature": "Section 10 \u2014 Newsletter confirmation endpoint",
+    "description": "GET /api/newsletter/confirm/[token] confirms subscription. Sets confirmed_at in newsletter_subscribers.",
+    "passes": false,
+    "steps": [
+      "Step 1: Verify route exists: frontend/src/app/api/newsletter/confirm/[token]/route.ts",
+      "Step 2: Verify it looks up token in newsletter_subscribers",
+      "Step 3: Verify it sets confirmed_at timestamp",
+      "Step 4: Verify drip cron only processes subscribers with confirmed_at IS NOT NULL"
+    ]
+  },
+  {
+    "id": 212,
+    "feature": "Section 10 \u2014 Newsletter signup form on footer and landing",
+    "description": "Footer component and landing page include newsletter email signup form. Form submits to /api/newsletter/subscribe.",
+    "passes": false,
+    "steps": [
+      "Step 1: Read frontend/src/components/Footer.tsx \u2192 verify newsletter form exists",
+      "Step 2: Verify form has email input and submit button",
+      "Step 3: Verify form posts to newsletter subscribe endpoint"
+    ]
+  },
+  {
+    "id": 213,
+    "feature": "Section 10 \u2014 Trust signals on homepage",
+    "description": "Homepage shows trust signal section: total orders, average rating, shipping countries. Data from Supabase aggregates.",
+    "passes": false,
+    "steps": [
+      "Step 1: Read landing page component",
+      "Step 2: Verify trust signals section with order count, ratings, or similar stats",
+      "Step 3: Verify data is fetched from Supabase (not hardcoded)"
+    ]
+  },
+  {
+    "id": 214,
+    "feature": "Section 10 \u2014 Reviews use real auth.uid (no mockUserId)",
+    "description": "ReviewForm.tsx uses real authenticated user ID from session, not mockUserId placeholder.",
+    "passes": false,
+    "steps": [
+      "Step 1: Read frontend/src/components/ReviewForm.tsx or similar review component",
+      "Step 2: Grep for 'mockUserId' or 'mock_user' \u2192 expect 0 matches",
+      "Step 3: Verify user_id comes from auth session or useAuth hook"
+    ]
+  },
+  {
+    "id": 215,
+    "feature": "Section 10 \u2014 Admin review moderation",
+    "description": "Admin can approve/reject reviews. Reviews with photos require moderation before display.",
+    "passes": false,
+    "steps": [
+      "Step 1: Read admin reviews page",
+      "Step 2: Verify approve/reject actions exist for reviews",
+      "Step 3: Verify moderation status is used to filter displayed reviews"
+    ]
+  },
+  {
+    "id": 216,
+    "feature": "Section 10 \u2014 Recently viewed products tracking",
+    "description": "Client-side recently viewed tracking using localStorage (max 20 products). Displayed on product pages.",
+    "passes": false,
+    "steps": [
+      "Step 1: Verify recently viewed tracking in product detail page or hook",
+      "Step 2: Verify localStorage used with max 20 items",
+      "Step 3: Verify recently viewed section displays on product pages"
+    ]
+  },
+  {
+    "id": 217,
+    "feature": "Section 10 \u2014 Abandoned cart tracked in Supabase table",
+    "description": "abandoned_carts table tracks cart abandonment: user_id, cart_snapshot JSONB, abandoned_at, email timestamps, recovered_at.",
+    "passes": false,
+    "steps": [
+      "Step 1: Query: SELECT column_name FROM information_schema.columns WHERE table_name='abandoned_carts'",
+      "Step 2: Verify columns: user_id, cart_snapshot, abandoned_at, email_1_sent_at, recovered_at",
+      "Step 3: Verify table stores data in Supabase (not Redis)"
+    ]
+  },
+  {
+    "id": 218,
+    "feature": "Section 10 \u2014 Abandoned cart recovery cron sends localized emails",
+    "description": "Cron job (every 1h) finds abandoned carts >1h. Second email at 24h. Emails localized (en/es/de).",
+    "passes": false,
+    "steps": [
+      "Step 1: Verify cron route exists: frontend/src/app/api/cron/abandoned-cart-recovery/route.ts",
+      "Step 2: Verify cron finds carts abandoned >1h without checkout",
+      "Step 3: Verify recovery emails are localized based on user locale",
+      "Step 4: Verify second email sent at 24h if still abandoned"
+    ]
+  },
+  {
+    "id": 219,
+    "feature": "Section 10 \u2014 Blog table and admin editor",
+    "description": "blog_posts table exists with multilingual columns (title_en/es/de, content_en/es/de, status, slug). Admin has blog editor page.",
+    "passes": false,
+    "steps": [
+      "Step 1: Query: SELECT column_name FROM information_schema.columns WHERE table_name='blog_posts'",
+      "Step 2: Verify columns include title_en, title_es, title_de, content_en, status, slug",
+      "Step 3: Verify admin blog editor page exists"
+    ]
+  },
+  {
+    "id": 220,
+    "feature": "Section 10 \u2014 Share buttons on product pages",
+    "description": "Product pages have share buttons using native Web Share API with fallback links for social media.",
+    "passes": false,
+    "steps": [
+      "Step 1: Read product detail page",
+      "Step 2: Verify share button component exists",
+      "Step 3: Verify it uses navigator.share API with fallback",
+      "Step 4: Verify shared URL includes product slug"
+    ]
+  },
+  {
+    "id": 221,
+    "feature": "Section 10 \u2014 Social links from brand_config (not generic URLs)",
+    "description": "Footer social links come from brand_config.social_links JSONB (not hardcoded facebook.com, twitter.com).",
+    "passes": false,
+    "steps": [
+      "Step 1: Read Footer.tsx \u2192 verify social links source",
+      "Step 2: Verify links read from brand_config or store config (not hardcoded generic URLs)",
+      "Step 3: Verify empty/missing social links are hidden (not broken links)"
+    ]
+  },
+  {
+    "id": 222,
+    "feature": "Section 10 \u2014 Drip emails localized in 3 languages",
+    "description": "Email drip templates exist for en, es, de. Drip cron sends in user's locale.",
+    "passes": false,
+    "steps": [
+      "Step 1: Read drip cron route or email templates",
+      "Step 2: Verify templates exist for at least en and es",
+      "Step 3: Verify drip processor uses user's locale for email selection"
+    ]
+  },
+  {
+    "id": 223,
+    "feature": "Section 12 \u2014 6 specific ADRs written",
+    "description": "docs/adr/ contains ADR-0001 through ADR-0006 for key decisions: iron-session, route groups, dual budget, Supabase Cloud, Redis optional, two auth systems.",
+    "passes": false,
+    "steps": [
+      "Step 1: Verify docs/adr/ directory exists",
+      "Step 2: Verify at least 6 .md files with NNNN- prefix",
+      "Step 3: Verify ADR-0001 covers iron-session decision",
+      "Step 4: Verify each ADR follows Nygard lightweight format (Status, Context, Decision, Consequences)"
+    ]
+  },
+  {
+    "id": 224,
+    "feature": "Section 12 \u2014 FastAPI OpenAPI docs accessible at /docs",
+    "description": "PodClaw Bridge API auto-generated OpenAPI docs accessible at http://localhost:8000/docs.",
+    "passes": false,
+    "steps": [
+      "Step 1: curl http://localhost:8000/docs \u2192 returns 200 with Swagger UI HTML",
+      "Step 2: curl http://localhost:8000/openapi.json \u2192 returns valid OpenAPI spec",
+      "Step 3: Verify all 48 endpoints documented"
+    ]
+  },
+  {
+    "id": 225,
+    "feature": "Section 12 \u2014 Deployment runbook exists",
+    "description": "docs/runbooks/deployment.md covers troubleshooting, rollback, scaling procedures.",
+    "passes": false,
+    "steps": [
+      "Step 1: Verify file exists: docs/runbooks/deployment.md",
+      "Step 2: Verify content includes deployment steps",
+      "Step 3: Verify content includes rollback procedure"
+    ]
+  },
+  {
+    "id": 226,
+    "feature": "Section 12 \u2014 Database ERD with table relationships",
+    "description": "docs/database-erd.md (or .svg) visualizes all tables with their relationships.",
+    "passes": false,
+    "steps": [
+      "Step 1: Verify docs/database-erd.md or docs/database-erd.svg exists",
+      "Step 2: Verify it covers the major tables (orders, products, users, etc.)",
+      "Step 3: Verify foreign key relationships are shown"
+    ]
+  },
+  {
+    "id": 227,
+    "feature": "Section 12 \u2014 Table descriptions with column semantics",
+    "description": "Database documentation includes column-level descriptions for key tables explaining data semantics.",
+    "passes": false,
+    "steps": [
+      "Step 1: Verify database documentation file exists with table descriptions",
+      "Step 2: Verify orders table columns are documented",
+      "Step 3: Verify products table columns are documented"
+    ]
+  },
+  {
+    "id": 228,
+    "feature": "Section 11 \u2014 tenant_id column on all 64 tables",
+    "description": "All 64 existing tables have tenant_id UUID NOT NULL column with FK to tenants(id). Migration in 3 phases.",
+    "passes": false,
+    "steps": [
+      "Step 1: Query: SELECT count(*) FROM information_schema.columns WHERE column_name='tenant_id' AND table_schema='public'",
+      "Step 2: Verify count matches total number of user-facing tables",
+      "Step 3: Verify tenant_id has NOT NULL constraint",
+      "Step 4: Verify FK reference to tenants(id)"
+    ]
+  },
+  {
+    "id": 229,
+    "feature": "Section 11 \u2014 RLS policies include tenant_id dimension",
+    "description": "All RLS policies updated to include tenant_id check: USING(tenant_id = (auth.jwt() ->> 'tenant_id')::uuid AND ...)",
+    "passes": false,
+    "steps": [
+      "Step 1: Query pg_policies for orders \u2192 verify tenant_id in USING clause",
+      "Step 2: Query pg_policies for products \u2192 verify tenant_id in USING clause",
+      "Step 3: Verify cross-tenant query returns 0 rows for wrong tenant"
+    ]
+  },
+  {
+    "id": 230,
+    "feature": "Section 11 \u2014 Supabase Auth hook injects tenant_id in JWT",
+    "description": "Custom access token hook adds tenant_id claim to JWT. Maps user \u2192 tenant via user_tenants junction table.",
+    "passes": false,
+    "steps": [
+      "Step 1: Verify supabase/functions/custom-access-token/index.ts exists",
+      "Step 2: Verify it queries user_tenants to find tenant_id",
+      "Step 3: Verify JWT claim includes tenant_id"
+    ]
+  },
+  {
+    "id": 231,
+    "feature": "Section 11 \u2014 Store themes scoped per tenant",
+    "description": "store_themes UNIQUE constraint changed from UNIQUE(is_active=true) global to UNIQUE(tenant_id, is_active=true) per tenant.",
+    "passes": false,
+    "steps": [
+      "Step 1: Query pg_constraint for store_themes \u2192 verify unique includes tenant_id",
+      "Step 2: Verify two tenants can each have an active theme simultaneously"
+    ]
+  },
+  {
+    "id": 232,
+    "feature": "Section 11 \u2014 Per-tenant PodClaw configuration",
+    "description": "tenant_configs table stores per-tenant agent settings: daily_budget, allowed_tools, model, max_sessions, cron_schedule.",
+    "passes": false,
+    "steps": [
+      "Step 1: Verify tenant_configs table has rows with keys like 'agent:daily_budget_eur'",
+      "Step 2: Verify Bridge API resolves config from tenant_configs instead of global config.py",
+      "Step 3: Verify different tenants can have different budget limits"
+    ]
+  },
+  {
+    "id": 233,
+    "feature": "Section 11 \u2014 Per-tenant Stripe Connect accounts",
+    "description": "Each tenant has own Stripe connected account. Checkout creates PaymentIntent with transfer_data to tenant's account.",
+    "passes": false,
+    "steps": [
+      "Step 1: Verify tenant_configs has 'stripe:connected_account_id' entries",
+      "Step 2: Verify checkout code uses transfer_data.destination from tenant config",
+      "Step 3: Verify platform application_fee_amount is configured per plan"
+    ]
+  },
+  {
+    "id": 234,
+    "feature": "Section 11 \u2014 Per-tenant Printify shop mapping",
+    "description": "tenant_configs stores 'printify:shop_id' and 'printify:api_token' per tenant. Connector resolves per-tenant credentials.",
+    "passes": false,
+    "steps": [
+      "Step 1: Verify tenant_configs has printify config entries",
+      "Step 2: Verify Printify connector resolves per-tenant API token",
+      "Step 3: Verify product sync operates per-tenant scope"
+    ]
+  },
+  {
+    "id": 235,
+    "feature": "Section 11 \u2014 Caddy on-demand TLS for custom domains",
+    "description": "Caddyfile uses on_demand_tls with ask endpoint /api/verify-domain. Automatic ACME certificates per tenant domain.",
+    "passes": false,
+    "steps": [
+      "Step 1: Read deploy/Caddyfile \u2192 verify on_demand_tls configuration",
+      "Step 2: Verify ask endpoint configured to validate tenant domains",
+      "Step 3: Verify /api/verify-domain checks tenants.domain table"
+    ]
+  },
+  {
+    "id": 236,
+    "feature": "Section 11 \u2014 Tenant resolution middleware",
+    "description": "frontend/src/middleware.ts resolves tenant from: 1) custom domain lookup, 2) subdomain lookup, 3) 404 if no match. Caches in Redis 5min.",
+    "passes": false,
+    "steps": [
+      "Step 1: Read frontend/src/middleware.ts \u2192 verify tenant resolution logic",
+      "Step 2: Verify custom domain \u2192 tenants.domain lookup",
+      "Step 3: Verify subdomain \u2192 tenants.slug lookup",
+      "Step 4: Verify x-tenant-id header set for downstream"
+    ]
+  },
+  {
+    "id": 237,
+    "feature": "Section 11 \u2014 Admin tenant switcher",
+    "description": "Platform admin can switch between tenants. Regular tenant admin sees only their tenant.",
+    "passes": false,
+    "steps": [
+      "Step 1: Verify admin UI has tenant switcher component (for platform admin)",
+      "Step 2: Verify switching tenant changes context for all data views",
+      "Step 3: Verify regular tenant admin doesn't see switcher"
+    ]
+  },
+  {
+    "id": 238,
+    "feature": "Section 11 \u2014 Platform billing plans with feature gates",
+    "description": "Three plans (Free/Starter/Pro) with feature gates: product limits, agent sessions, custom domain, storage, API rate limits.",
+    "passes": false,
+    "steps": [
+      "Step 1: Verify plan definitions exist (Free: 10 products, Starter: 100, Pro: unlimited)",
+      "Step 2: Verify feature gate enforcement: free tenant blocked from creating >10 products",
+      "Step 3: Verify plan stored in tenants.plan column"
+    ]
+  },
+  {
+    "id": 239,
+    "feature": "Section 11 \u2014 Tenant creation wizard end-to-end",
+    "description": "Wizard with 5 steps: name/slug/domain \u2192 branding \u2192 Stripe Connect \u2192 Printify \u2192 plan selection. Creates functioning tenant. NOTE: Stripe Connect OAuth requires manual human intervention \u2014 agent should implement the UI and API scaffolding but cannot complete the OAuth flow automatically.",
+    "passes": false,
+    "steps": [
+      "Step 1: Verify tenant creation wizard page exists",
+      "Step 2: Verify step 1: name, slug, domain input with availability check",
+      "Step 3: Verify step 3: Stripe Connect onboarding flow",
+      "Step 4: Verify wizard creates tenant record in tenants table",
+      "MANUAL: Complete Stripe Connect OAuth flow requires human operator"
+    ]
+  },
+  {
+    "id": 240,
+    "feature": "Section 11 \u2014 Cross-tenant data isolation verified",
+    "description": "Test: 100 random queries across all APIs verified to return only own-tenant data. Zero cross-tenant leakage.",
+    "passes": false,
+    "steps": [
+      "Step 1: Create test with two tenants",
+      "Step 2: Verify tenant A querying orders returns only tenant A orders",
+      "Step 3: Verify tenant A querying products returns only tenant A products",
+      "Step 4: Verify admin API, bridge API, and MCP all enforce tenant isolation"
+    ]
+  },
+  {
+    "id": 241,
+    "feature": "Section 11 \u2014 Coupons scoped by tenant",
+    "description": "Coupons table has tenant_id. UNIQUE(tenant_id, code) prevents cross-tenant code collisions.",
+    "passes": false,
+    "steps": [
+      "Step 1: Verify coupons table has tenant_id column",
+      "Step 2: Verify UNIQUE constraint on (tenant_id, code)",
+      "Step 3: Verify two tenants can have same coupon code independently"
+    ]
+  },
+  {
+    "id": 242,
+    "feature": "Section 11 \u2014 Storage isolation per tenant",
+    "description": "Supabase storage uses one bucket per tenant (tenant-{slug}). RLS on storage.objects filters by tenant bucket.",
+    "passes": false,
+    "steps": [
+      "Step 1: Verify storage bucket naming convention includes tenant slug",
+      "Step 2: Verify RLS policy on storage.objects includes tenant filter",
+      "Step 3: Verify product image URLs include tenant-specific path"
+    ]
+  },
+  {
+    "id": 243,
+    "feature": "Section 11 \u2014 Tenant health dashboard",
+    "description": "Admin has per-tenant metrics: orders/day, revenue, agent cost, storage used. Cross-tenant overview for platform admin.",
+    "passes": false,
+    "steps": [
+      "Step 1: Verify admin dashboard shows per-tenant metrics",
+      "Step 2: Verify platform admin sees cross-tenant overview",
+      "Step 3: Verify alerts if tenant exceeds plan limits"
+    ]
+  },
+  {
+    "id": 244,
+    "feature": "Section 15 \u2014 Personalization saves to DB",
+    "description": "Personalizing text and clicking Apply calls POST /api/designs/personalize, creating a row in personalizations table with status=draft. usePersonalization hook returns personalizationId.",
+    "steps": [
+      "Open product detail page and click Personalize button",
+      "Enter text, select font and color, click Apply",
+      "Verify personalizations table has new row with text_content, font_family, font_color, status=draft",
+      "Verify usePersonalization hook returns a valid personalizationId UUID"
+    ],
+    "passes": false
+  },
+  {
+    "id": 245,
+    "feature": "Section 15 \u2014 Cart receives personalization_id",
+    "description": "addToCart() accepts personalizationId parameter. After personalizing and adding to cart, cart_items row has personalization_id set (not NULL).",
+    "steps": [
+      "Personalize a product (text + font + color)",
+      "Click Add to Cart",
+      "Query cart_items table for the new item",
+      "Verify personalization_id column is set to a valid UUID matching the personalizations row"
+    ],
+    "passes": false
+  },
+  {
+    "id": 246,
+    "feature": "Section 15 \u2014 Product color passed to preview",
+    "description": "ProductPersonalizer receives productColor prop from DetailPanel and ProductDetailClient. Selecting a black variant shows dark mockup template in preview.",
+    "steps": [
+      "Open a product with multiple color variants (e.g., black and white t-shirt)",
+      "Select the black variant",
+      "Click Personalize",
+      "Verify the preview shows a dark/black mockup template (not white default)"
+    ],
+    "passes": false
+  },
+  {
+    "id": 247,
+    "feature": "Section 15 \u2014 Consistent SIZE_MAP ratios",
+    "description": "All font size maps (CSS preview, Canvas preview, production) use the same ratio imported from print-areas.ts. Quick and Accurate previews show same relative text proportions.",
+    "steps": [
+      "Open personalizer, type multi-word text, select Large font size",
+      "Compare Quick preview (CSS) text size",
+      "Switch to Accurate preview (server Canvas)",
+      "Verify both previews show proportionally similar text size relative to print area"
+    ],
+    "passes": false
+  },
+  {
+    "id": 248,
+    "feature": "Section 15 \u2014 Consistent lineHeight",
+    "description": "Multi-line text has consistent line spacing (1.3) across CSS preview, Canvas preview, and production render. No visual jump between preview modes.",
+    "steps": [
+      "Enter 3-line text in personalizer",
+      "View in Quick preview mode \u2014 note line spacing",
+      "Switch to Accurate preview mode",
+      "Verify line spacing is visually identical between both modes"
+    ],
+    "passes": false
+  },
+  {
+    "id": 249,
+    "feature": "Section 15 \u2014 Surcharge persists in DB",
+    "description": "Personalization surcharge_amount is stored in personalizations table. After page refresh, surcharge is still associated with the personalization.",
+    "steps": [
+      "Personalize a product (surcharge must be configured in brand_config)",
+      "Click Apply and add to cart",
+      "Query personalizations table for the new row",
+      "Verify surcharge_amount column has the correct decimal value (not NULL)"
+    ],
+    "passes": false
+  },
+  {
+    "id": 250,
+    "feature": "Section 15 \u2014 12 fonts with script/handwriting",
+    "description": "Font selector shows 12+ fonts grouped by category. Includes script fonts (Pacifico, Dancing Script, Great Vibes) and handwriting (Caveat, Permanent Marker).",
+    "steps": [
+      "Open personalizer and click the font dropdown",
+      "Verify at least 12 fonts are listed",
+      "Select Pacifico (script font) and verify it renders in preview",
+      "Select Permanent Marker and verify it renders differently from sans-serif fonts"
+    ],
+    "passes": false
+  },
+  {
+    "id": 251,
+    "feature": "Section 15 \u2014 Color swatches grid",
+    "description": "Color picker shows a grid of 16 curated color swatches plus a custom hex input. Clicking a swatch updates the font color and preview immediately.",
+    "steps": [
+      "Open personalizer with text entered",
+      "Verify 16 color swatch circles/buttons are visible",
+      "Click a red swatch and verify font color updates in preview",
+      "Enter a custom hex value and verify preview updates accordingly"
+    ],
+    "passes": false
+  },
+  {
+    "id": 252,
+    "feature": "Section 15 \u2014 Text alignment (left/center/right)",
+    "description": "Text alignment buttons allow left, center, and right alignment. Alignment applies to CSS preview, server Canvas preview, and production render.",
+    "steps": [
+      "Open personalizer and enter multi-word text",
+      "Click Left alignment button \u2014 verify text aligns left in preview",
+      "Click Right alignment button \u2014 verify text aligns right",
+      "Switch to Accurate preview and verify alignment is consistent"
+    ],
+    "passes": false
+  },
+  {
+    "id": 253,
+    "feature": "Section 15 \u2014 Safe zone visualization",
+    "description": "Print area preview shows dashed border lines inside representing safe margins (10% inset). Label indicates safe zone area.",
+    "steps": [
+      "Open personalizer with any product",
+      "Look at the print area overlay on the product mockup",
+      "Verify dashed border lines are visible inside the print area boundary",
+      "Verify the dashed lines are inset approximately 10% from the print area edges"
+    ],
+    "passes": false
+  },
+  {
+    "id": 254,
+    "feature": "Section 15 \u2014 Contrast warning",
+    "description": "Warning alert appears when font color has low contrast against product color (white text on white product, black text on black product).",
+    "steps": [
+      "Open personalizer for a white product variant",
+      "Set font color to white (#FFFFFF) or near-white (#EEEEEE)",
+      "Verify a contrast warning alert appears",
+      "Change font color to black (#000000) and verify warning disappears"
+    ],
+    "passes": false
+  },
+  {
+    "id": 255,
+    "feature": "Section 15 \u2014 Image upload with rembg",
+    "description": "Image tab in personalizer allows uploading PNG/JPG. Remove Background button calls rembg sidecar. Uploaded image shows overlaid on product mockup.",
+    "steps": [
+      "Open personalizer and switch to Image tab",
+      "Upload a PNG image (under 5MB)",
+      "Verify image preview appears on the product mockup",
+      "Click Remove Background and verify rembg processes the image"
+    ],
+    "passes": false
+  },
+  {
+    "id": 256,
+    "feature": "Section 15 \u2014 Checkout creates Printify temp product",
+    "description": "Personalized product in checkout flow creates a Printify temp product with correct text or image overlay. personalizations.status changes to ready.",
+    "steps": [
+      "Add a personalized product to cart",
+      "Initiate checkout via POST /api/checkout/create-session",
+      "Verify Printify temp product is created with modified print_areas containing the overlay",
+      "Verify personalizations row has printify_temp_product_id set and status=ready"
+    ],
+    "passes": false
+  },
+  {
+    "id": 257,
+    "feature": "Section 15 \u2014 Production DPI proportional sizing",
+    "description": "Production font size scales proportionally to print area dimensions using PRODUCTION_SIZE_RATIOS (not fixed 72/96/120px). Medium text at 8% of print area height.",
+    "steps": [
+      "Create personalized product with medium font size",
+      "Trigger checkout temp product creation",
+      "Inspect the uploaded PNG dimensions and font size",
+      "Verify font size is approximately 8% of the placeholder height (not a fixed 96px)"
+    ],
+    "passes": false
+  },
+  {
+    "id": 258,
+    "feature": "Section 15 \u2014 Personalization history",
+    "description": "Authenticated users see Recent Personalizations section in dialog showing last 10 saved personalizations. Clicking one pre-fills all fields.",
+    "steps": [
+      "Login as test user and create 3 different personalizations",
+      "Open personalizer for a new product",
+      "Verify Recent Personalizations section shows the 3 previous entries",
+      "Click one entry and verify text, font, color, and size fields are pre-filled"
+    ],
+    "passes": false
+  },
+  {
+    "id": 259,
+    "feature": "Section 16 \u2014 design_sessions table",
+    "description": "design_sessions table exists with columns: id (uuid PK), user_id (FK auth.users), product_id (FK products), product_type, status (active|completed|abandoned), style_preset, total_generations, total_cost_usd, created_at, updated_at, completed_at. Index on (user_id, created_at DESC).",
+    "steps": [
+      "Query information_schema.columns for design_sessions table \u2014 all columns present with correct types",
+      "Insert a row with status='active' \u2014 succeeds",
+      "Insert a row with status='invalid' \u2014 fails CHECK constraint",
+      "Verify index idx_design_sessions_user exists via pg_indexes"
+    ],
+    "passes": false
+  },
+  {
+    "id": 260,
+    "feature": "Section 16 \u2014 ai_generations table",
+    "description": "ai_generations table exists with columns: id, session_id (FK), user_id (FK), prompt, engineered_prompt, negative_prompt, intent (CHECK 7 values), provider, image_url, cost_usd, inference_ms, is_refinement, parent_generation_id (self-FK), moderation_status, metadata (jsonb), created_at.",
+    "steps": [
+      "Query information_schema.columns for ai_generations \u2014 all columns present",
+      "Insert row with intent='artistic' \u2014 succeeds",
+      "Insert row with intent='invalid_type' \u2014 fails CHECK constraint",
+      "Verify indexes idx_ai_generations_user and idx_ai_generations_session exist"
+    ],
+    "passes": false
+  },
+  {
+    "id": 261,
+    "feature": "Section 16 \u2014 user_design_assets table",
+    "description": "user_design_assets table exists with columns: id, user_id, original_url, processed_url, thumbnail_url, filename, mime_type, file_size_bytes, width, height, has_transparency, source (CHECK upload|ai_generation|chat), tags (text[]), created_at.",
+    "steps": [
+      "Query information_schema.columns for user_design_assets \u2014 all columns present",
+      "Insert row with source='upload' \u2014 succeeds",
+      "Insert row with source='invalid' \u2014 fails CHECK constraint",
+      "Verify index idx_user_design_assets_user exists"
+    ],
+    "passes": false
+  },
+  {
+    "id": 262,
+    "feature": "Section 16 \u2014 design_compositions table with schema_version",
+    "description": "design_compositions table exists with columns including schema_version (INTEGER NOT NULL DEFAULT 1), layers (JSONB), preview_url, production_url, surcharge_amount, status (CHECK draft|applied|ordered). schema_version defaults to 1 on all new rows.",
+    "steps": [
+      "Query information_schema.columns for design_compositions \u2014 schema_version column exists as integer",
+      "Insert row without specifying schema_version \u2014 verify it defaults to 1",
+      "Insert row with layers='[]' \u2014 succeeds (JSONB default)",
+      "Verify indexes idx_compositions_user and idx_compositions_status exist"
+    ],
+    "passes": false
+  },
+  {
+    "id": 263,
+    "feature": "Section 16 \u2014 cart_items composition_id FK",
+    "description": "cart_items table has composition_id column (UUID, FK to design_compositions). Partial index idx_cart_items_composition exists on non-NULL values.",
+    "steps": [
+      "Query information_schema.columns for cart_items.composition_id \u2014 exists as uuid",
+      "Verify FK constraint references design_compositions(id)",
+      "Verify partial index idx_cart_items_composition exists",
+      "Insert cart_item with valid composition_id \u2014 succeeds"
+    ],
+    "passes": false
+  },
+  {
+    "id": 264,
+    "feature": "Section 16 \u2014 RLS on all design studio tables",
+    "description": "Row Level Security enabled on design_sessions, ai_generations, user_design_assets, design_compositions. Each has owner-only policy (auth.uid() = user_id).",
+    "steps": [
+      "Verify RLS is enabled on all 4 tables via pg_tables.rowsecurity",
+      "Query pg_policies \u2014 each table has at least one policy",
+      "As authenticated user A: insert row \u2014 succeeds",
+      "As authenticated user B: SELECT on user A's row \u2014 returns 0 rows (RLS blocks)"
+    ],
+    "passes": false
+  },
+  {
+    "id": 265,
+    "feature": "Section 16 \u2014 AI design orchestrator",
+    "description": "ai-design-orchestrator.ts exists at frontend/src/lib/. Exports orchestrateDesign(userPrompt, productType, stylePreset?) that returns { engineeredPrompt, negativePrompt, intent, confidence }. Uses Gemini 2.5 Flash for intent classification only.",
+    "steps": [
+      "File frontend/src/lib/ai-design-orchestrator.ts exists and exports orchestrateDesign function",
+      "Function uses google('gemini-2.5-flash') from @ai-sdk/google",
+      "Function returns object with engineeredPrompt, negativePrompt, intent, and confidence fields",
+      "Function does NOT select provider \u2014 only classifies intent from 7 valid categories"
+    ],
+    "passes": false
+  },
+  {
+    "id": 266,
+    "feature": "Section 16 \u2014 POST /api/designs/ai-generate endpoint",
+    "description": "API endpoint accepts { prompt, style_preset?, product_id, product_type }. Requires auth, rate-limited (5/min), usage-limited (5/month free, 50/month premium), cost-guarded server-side. Returns { success, image_url, generation_id, intent, provider, cost_usd }.",
+    "steps": [
+      "POST /api/designs/ai-generate without auth token \u2014 returns 401",
+      "POST with valid auth and prompt \u2014 returns 200 with image_url and generation_id",
+      "Verify ai_generations table has new row with all fields populated including cost_usd",
+      "POST 6 times in rapid succession \u2014 6th returns 429 (rate limited)"
+    ],
+    "passes": false
+  },
+  {
+    "id": 267,
+    "feature": "Section 16 \u2014 Design refinement endpoint",
+    "description": "POST /api/designs/ai-generate/refine accepts { generation_id, refinement_prompt }. Loads parent generation, combines prompts, regenerates. Saves with is_refinement=true and parent_generation_id set.",
+    "steps": [
+      "Generate initial design via /api/designs/ai-generate \u2014 get generation_id",
+      "POST /api/designs/ai-generate/refine with generation_id and refinement_prompt \u2014 returns new image",
+      "Verify new ai_generations row has is_refinement=true",
+      "Verify parent_generation_id points to original generation"
+    ],
+    "passes": false
+  },
+  {
+    "id": 268,
+    "feature": "Section 16 \u2014 Style presets library",
+    "description": "design-presets.ts exports 8 style presets (minimalist, vintage, geometric, watercolor, pop-art, line-art, botanical, typography). Each has id, name (en/es/de), promptSuffix, negativePrompt, preferredIntent, suggestedColors.",
+    "steps": [
+      "File frontend/src/lib/design-presets.ts exists and exports STYLE_PRESETS array",
+      "Array has exactly 8 presets with all required fields",
+      "Each preset has name as Record with en, es, de keys",
+      "Each preset has preferredIntent matching one of the 7 valid DesignIntent values"
+    ],
+    "passes": false
+  },
+  {
+    "id": 269,
+    "feature": "Section 16 \u2014 Server-side cost guard",
+    "description": "design-cost-guard.ts exports checkCostGuard(userId, tier, estimatedCost). Returns { allowed: false } when limits exceeded. Hard limits: free $0.05/gen $2.50/month, premium $0.15/gen $25/month. Emits structured log on every call.",
+    "steps": [
+      "File frontend/src/lib/design-cost-guard.ts exists and exports checkCostGuard",
+      "Call with free tier and $0.06 estimated cost \u2014 returns allowed: false (exceeds per-generation limit)",
+      "Call with premium tier and $0.05 \u2014 returns allowed: true",
+      "Verify structured log is emitted (console output includes userId, tier, estimatedCost, allowed fields)"
+    ],
+    "passes": false
+  },
+  {
+    "id": 270,
+    "feature": "Section 16 \u2014 Usage limiter extended with design actions",
+    "description": "usage-limiter.ts USAGE_TIERS includes design:ai-generate (0/5/50 monthly), design:refine (0/10/100 monthly), design:upload (0/5/20 daily) for anonymous/free/premium tiers.",
+    "steps": [
+      "Read frontend/src/lib/usage-limiter.ts \u2014 UsageAction type includes 'design:ai-generate'",
+      "USAGE_TIERS.free['design:ai-generate'] has limit: 5 and period: 'monthly'",
+      "USAGE_TIERS.premium['design:ai-generate'] has limit: 50 and period: 'monthly'",
+      "USAGE_TIERS.anonymous['design:ai-generate'] has limit: 0"
+    ],
+    "passes": false
+  },
+  {
+    "id": 271,
+    "feature": "Section 16 \u2014 DesignStudio dialog component",
+    "description": "DesignStudio.tsx at frontend/src/components/products/ renders Dialog (desktop) or Sheet (mobile) with 3 tabs: Text, AI Design, Upload. Text tab reuses existing ProductPersonalizer. Props: product, productColor, onApply, onClose.",
+    "steps": [
+      "File frontend/src/components/products/DesignStudio.tsx exists",
+      "Component renders shadcn/ui Tabs with 3 TabsTrigger elements",
+      "Text tab renders ProductPersonalizer as child component",
+      "Open product detail page, click Customize button \u2014 DesignStudio dialog opens with 3 tabs visible"
+    ],
+    "passes": false
+  },
+  {
+    "id": 272,
+    "feature": "Section 16 \u2014 AIPromptEditor and StyleSelector components",
+    "description": "AIPromptEditor.tsx renders prompt input with Generate button and loading state. StyleSelector.tsx renders grid of 8 style preset cards with thumbnails. Selecting a preset injects promptSuffix.",
+    "steps": [
+      "File frontend/src/components/design/AIPromptEditor.tsx exists with Generate button",
+      "File frontend/src/components/design/StyleSelector.tsx exists with 8 preset cards",
+      "Open DesignStudio AI tab \u2014 8 style presets visible in grid layout",
+      "Click a preset \u2014 prompt editor updates with preset's suffix text"
+    ],
+    "passes": false
+  },
+  {
+    "id": 273,
+    "feature": "Section 16 \u2014 AIPreviewCanvas component",
+    "description": "AIPreviewCanvas.tsx overlays generated AI design image on product mockup using CSS positioning from getPreviewZone(). Shows opacity slider and generation metadata badge.",
+    "steps": [
+      "File frontend/src/components/design/AIPreviewCanvas.tsx exists",
+      "Generate a design in DesignStudio \u2014 preview shows design overlaid on product mockup",
+      "Design position matches print area for the product type",
+      "Opacity slider adjusts design transparency between 0.5 and 1.0"
+    ],
+    "passes": false
+  },
+  {
+    "id": 274,
+    "feature": "Section 16 \u2014 AuthGateOverlay and GenerationCostBadge",
+    "description": "AuthGateOverlay shows translucent overlay with sign-in CTA on AI/Upload tabs for anonymous users. GenerationCostBadge shows remaining credits with color-coded status.",
+    "steps": [
+      "Open DesignStudio as anonymous user \u2014 AI tab shows AuthGateOverlay with sign-in button",
+      "Text tab does NOT show AuthGateOverlay (text personalization is free for all)",
+      "Open as authenticated free user \u2014 GenerationCostBadge shows '5/5 this month'",
+      "After generating 1 design \u2014 badge updates to '4/5 this month'"
+    ],
+    "passes": false
+  },
+  {
+    "id": 275,
+    "feature": "Section 16 \u2014 DesignStudio mobile responsive",
+    "description": "DesignStudio uses Sheet component on mobile (<768px) with stacked tabs. Touch targets minimum 44px. All components readable at 375px viewport.",
+    "steps": [
+      "Open product page at 375px viewport width \u2014 click Customize",
+      "DesignStudio opens as Sheet (bottom drawer), not Dialog",
+      "All 3 tabs visible and tappable with adequate touch targets",
+      "Style preset grid shows 2 columns on mobile"
+    ],
+    "passes": false
+  },
+  {
+    "id": 276,
+    "feature": "Section 16 \u2014 Design Studio i18n",
+    "description": "All Design Studio UI strings have i18n keys in en.json, es.json, de.json under designStudio namespace. Includes tab names, button labels, preset names, and descriptions.",
+    "steps": [
+      "Read frontend/messages/en.json \u2014 designStudio namespace exists with all keys",
+      "Read frontend/messages/es.json \u2014 same keys present in Spanish",
+      "Read frontend/messages/de.json \u2014 same keys present in German",
+      "Switch locale to es \u2014 DesignStudio shows Spanish labels"
+    ],
+    "passes": false
+  },
+  {
+    "id": 277,
+    "feature": "Section 16 \u2014 Composition API endpoint",
+    "description": "POST /api/designs/compose accepts { layers[], product_type, product_id? }. Creates design_compositions row with schema_version=1. Returns { composition_id, preview_url }.",
+    "steps": [
+      "POST /api/designs/compose with AI layer \u2014 returns 200 with composition_id",
+      "Verify design_compositions row created with schema_version=1 and status='draft'",
+      "preview_url points to a valid PNG image",
+      "POST without auth \u2014 returns 401"
+    ],
+    "passes": false
+  },
+  {
+    "id": 278,
+    "feature": "Section 16 \u2014 Server-side composition renderer",
+    "description": "composition-renderer.ts uses Sharp to composite multiple layers (AI design, text, upload) onto product template. Outputs PNG at 1024x1024 preview resolution.",
+    "steps": [
+      "File frontend/src/lib/composition-renderer.ts exists and exports render functions",
+      "Compositing AI layer + text layer produces valid PNG",
+      "Layer positions respect print area coordinates from print-areas.ts",
+      "Output stored in Supabase Storage and URL saved to design_compositions.preview_url"
+    ],
+    "passes": false
+  },
+  {
+    "id": 279,
+    "feature": "Section 16 \u2014 Production export for Printify",
+    "description": "exportForProduction(compositionId) maps 1024x1024 preview to Printify production dimensions. Stores high-res PNG in Supabase Storage. Updates design_compositions.production_url.",
+    "steps": [
+      "Call exportForProduction with a valid compositionId \u2014 production_url returned",
+      "Production PNG dimensions are proportional to product print area (not 1024x1024)",
+      "design_compositions.production_url updated with storage URL",
+      "Production image quality suitable for 300 DPI print"
+    ],
+    "passes": false
+  },
+  {
+    "id": 280,
+    "feature": "Section 16 \u2014 Checkout handles compositions",
+    "description": "create-session/route.ts checks cart_items.composition_id. If present, fetches production_url from design_compositions, uploads to Printify for temp product. Sets composition status to 'ordered'.",
+    "steps": [
+      "Add product with AI composition to cart \u2014 cart_items.composition_id is set",
+      "Proceed to checkout \u2014 create-session route detects composition_id",
+      "Printify temp product created with composition's production image",
+      "After checkout, design_compositions.status = 'ordered'"
+    ],
+    "passes": false
+  },
+  {
+    "id": 281,
+    "feature": "Section 16 \u2014 addToCart accepts compositionId",
+    "description": "useCart hook addToCart() accepts compositionId parameter. Cart API stores composition_id in cart_items table alongside existing personalization_id support.",
+    "steps": [
+      "Call addToCart(productId, 1, variant, title, price, null, compositionId) \u2014 succeeds",
+      "Verify cart_items row has composition_id set (not NULL)",
+      "Cart view shows preview of the composition",
+      "Both personalizationId and compositionId can coexist on same cart item"
+    ],
+    "passes": false
+  },
+  {
+    "id": 282,
+    "feature": "Section 16 \u2014 Design history API",
+    "description": "GET /api/designs/history returns user's recent AI generations (last 10 by default). Supports ?limit and ?product_type query params. Auth required.",
+    "steps": [
+      "GET /api/designs/history without auth \u2014 returns 401",
+      "GET with auth \u2014 returns array of recent generations with id, image_url, prompt, intent",
+      "Results ordered by created_at DESC",
+      "GET with ?product_type=tshirt \u2014 filters by session product_type"
+    ],
+    "passes": false
+  },
+  {
+    "id": 283,
+    "feature": "Section 16 \u2014 DesignHistoryPanel component",
+    "description": "DesignHistoryPanel.tsx shows horizontal scroll of recent design thumbnails in DesignStudio AI tab. Clicking a design loads it into AIPreviewCanvas. Shows 'No designs yet' for new users.",
+    "steps": [
+      "Open DesignStudio AI tab as user with previous designs \u2014 history panel visible",
+      "Panel shows thumbnails in horizontal scroll area",
+      "Click a thumbnail \u2014 design loads into preview canvas on current product",
+      "Open as new user \u2014 shows 'No designs yet' message"
+    ],
+    "passes": false
+  },
+  {
+    "id": 284,
+    "feature": "Section 16 \u2014 Chat tool ai_design_generate",
+    "description": "Chat tool #25 ai_design_generate accepts { prompt, stylePreset?, productId? }. Generates design via same pipeline as /api/designs/ai-generate. Returns imageUrl and canApplyToProduct flag. Renders DesignPreviewArtifact.",
+    "steps": [
+      "In chat, say 'design a minimalist logo for a t-shirt' \u2014 AI calls ai_design_generate tool",
+      "Artifact shows generated design image",
+      "If user was viewing a product, artifact shows 'Apply to Product' button",
+      "Generation saved to ai_generations table with all fields"
+    ],
+    "passes": false
+  },
+  {
+    "id": 285,
+    "feature": "Section 16 \u2014 Chat tool apply_design_to_product",
+    "description": "Chat tool #26 apply_design_to_product with needsApproval:true. Creates composition, shows approval card with preview and surcharge. On approval, adds to cart.",
+    "steps": [
+      "After generating design in chat, click 'Apply to Product' \u2014 approval card appears",
+      "Approval card shows product name, design preview, and surcharge amount",
+      "Click Approve \u2014 composition created and product added to cart",
+      "Click Deny \u2014 no composition created, chat shows cancellation message"
+    ],
+    "passes": false
+  },
+  {
+    "id": 286,
+    "feature": "Section 16 \u2014 DesignContext shared state",
+    "description": "DesignContext provider shares state between product page and chat. When viewing a product, chat knows the active product. When chat generates a design, product page can display it.",
+    "steps": [
+      "Open product detail page \u2014 DesignContext.activeProduct is set",
+      "Open chat while product is active \u2014 system prompt mentions the current product",
+      "Generate design in chat \u2014 DesignContext.recentGenerations updates",
+      "DesignStudio reads recentGenerations and shows them in history panel"
+    ],
+    "passes": false
+  },
+  {
+    "id": 287,
+    "feature": "Section 18 \u2014 Checkout placeholder eliminated + TrustBadgesStrip",
+    "description": "CheckoutView has NO visible placeholder text removed. TrustBadgesStrip component renders payment logos (Visa, MC, AMEX), SSL badge, and 30-day returns below order summary. i18n keys under trust namespace in all 3 locales.",
+    "steps": [
+      "Open checkout page \u2014 zero placeholder text visible, payment section shows clean UI or loading skeleton",
+      "TrustBadgesStrip component exists at frontend/src/components/common/TrustBadgesStrip.tsx",
+      "Trust badges visible between order summary and payment section",
+      "Switch to es/de locale \u2014 trust badge labels translate correctly"
+    ],
+    "passes": false
+  },
+  {
+    "id": 288,
+    "feature": "Section 18 \u2014 Coupon persistence cart to checkout via sessionStorage",
+    "description": "When user applies coupon in cart and clicks Proceed to Checkout, coupon code and discount are saved to sessionStorage key pod_applied_coupon. CheckoutView reads and auto-applies on mount.",
+    "steps": [
+      "Apply coupon in cart \u2014 discount reflected in cart total",
+      "Click Proceed to Checkout \u2014 sessionStorage pod_applied_coupon contains code and discount",
+      "Checkout page loads \u2014 coupon auto-applied, discount visible in order summary",
+      "Complete or abandon checkout \u2014 sessionStorage key cleared"
+    ],
+    "passes": false
+  },
+  {
+    "id": 289,
+    "feature": "Section 18 \u2014 Cart and Checkout i18n fix (zero hardcoded English)",
+    "description": "CartView.tsx and CheckoutView.tsx have ZERO hardcoded English strings. All UI text uses useTranslations. Keys exist in en.json, es.json, de.json.",
+    "steps": [
+      "Grep CartView.tsx for hardcoded strings (Your Cart, Subtotal, Shipping, Apply, etc.) \u2014 zero matches",
+      "Grep CheckoutView.tsx for hardcoded strings \u2014 zero matches",
+      "Read messages/es.json \u2014 cart and checkout namespaces exist with all required keys",
+      "Switch to de locale \u2014 cart and checkout pages render in German"
+    ],
+    "passes": false
+  },
+  {
+    "id": 290,
+    "feature": "Section 18 \u2014 compare_at_price + StrikethroughPrice component",
+    "description": "products table has compare_at_price_cents column (INTEGER, nullable, CHECK > price_cents). StrikethroughPrice component shows original price with line-through and discount badge when compare_at_price exists.",
+    "steps": [
+      "Run SQL: SELECT column_name FROM information_schema.columns WHERE table_name=products AND column_name=compare_at_price_cents \u2014 returns 1 row",
+      "File frontend/src/components/products/StrikethroughPrice.tsx exists",
+      "Product with compare_at_price_cents=3500 and price_cents=2500 shows strikethrough + discount badge",
+      "Product without compare_at_price_cents shows normal price only"
+    ],
+    "passes": false
+  },
+  {
+    "id": 291,
+    "feature": "Section 18 \u2014 ProductBadge + product_labels table",
+    "description": "product_labels table exists with label_type CHECK (trending/bestseller/new/sale/limited). ProductBadge component renders positioned overlay on ProductCard.",
+    "steps": [
+      "Run SQL: SELECT * FROM product_labels LIMIT 1 \u2014 table exists with correct schema",
+      "File frontend/src/components/products/ProductBadge.tsx exists",
+      "Product with sale label shows red XX% OFF badge overlay on ProductCard",
+      "Product with trending label shows warning-colored Trending badge"
+    ],
+    "passes": false
+  },
+  {
+    "id": 292,
+    "feature": "Section 18 \u2014 Cross-sell on product detail using association_rules",
+    "description": "GET /api/products/[id]/cross-sell queries existing association_rules table. FrequentlyBoughtTogetherBlock shows 4 related products below reviews.",
+    "steps": [
+      "GET /api/products/{id}/cross-sell returns array of products ordered by lift DESC",
+      "SQL confirms query uses association_rules table (not a new recommendation engine)",
+      "Product detail page shows Frequently bought together section with 4 product cards",
+      "Fallback: product with no association rules shows same-category products"
+    ],
+    "passes": false
+  },
+  {
+    "id": 293,
+    "feature": "Section 18 \u2014 Cross-sell in cart + CartCrossSellSection",
+    "description": "CartCrossSellSection shows You might also like below cart items. Fetches cross-sell for first cart item product_id. Each card has Add to Cart button.",
+    "steps": [
+      "Add item to cart \u2014 CartCrossSellSection visible below cart items",
+      "Section shows 3 product cards with Add to Cart buttons",
+      "Click Add to Cart on cross-sell product \u2014 item added to cart, toast confirms",
+      "Empty cart \u2014 CartCrossSellSection not visible"
+    ],
+    "passes": false
+  },
+  {
+    "id": 294,
+    "feature": "Section 18 \u2014 SmartStickyCTA on mobile product detail",
+    "description": "SmartStickyCTA fixed bottom bar on mobile (<768px) shows price + Add to Cart button. Only visible when main CTA scrolls out of viewport (IntersectionObserver).",
+    "steps": [
+      "Open product detail at 375px viewport \u2014 scroll down past main Add to Cart button",
+      "SmartStickyCTA appears at bottom with price and Add to Cart button",
+      "Scroll back up to main CTA \u2014 SmartStickyCTA disappears",
+      "On desktop (>768px) \u2014 SmartStickyCTA never appears"
+    ],
+    "passes": false
+  },
+  {
+    "id": 295,
+    "feature": "Section 18 \u2014 RecentlyViewed v1 (localStorage)",
+    "description": "useRecentlyViewed hook stores viewed products in localStorage (max 20, FIFO). RecentlyViewedCarousel shows on shop page. No database sync in v1.",
+    "steps": [
+      "Visit product A, then product B, then product C",
+      "Navigate to shop page \u2014 RecentlyViewedCarousel shows C, B, A (most recent first)",
+      "localStorage key pod_recently_viewed contains array of product data",
+      "Clear localStorage \u2014 carousel hidden on shop page"
+    ],
+    "passes": false
+  },
+  {
+    "id": 296,
+    "feature": "Section 18 \u2014 Exit-intent warning on checkout",
+    "description": "When user moves mouse toward browser chrome on checkout (desktop only), AlertDialog shows warning with Stay/Leave buttons. Shows once per session. Reuses useExitIntent hook from Section 21 Block B5. Shows AlertDialog once per session via sessionStorage flag.",
+    "steps": [
+      "On checkout page, move mouse to top of viewport (clientY < 10) \u2014 AlertDialog appears",
+      "Click Stay \u2014 dialog closes, user remains on checkout",
+      "Move mouse to top again \u2014 dialog does NOT appear (once per session)",
+      "On mobile \u2014 exit-intent warning never triggers"
+    ],
+    "passes": false
+  },
+  {
+    "id": 297,
+    "feature": "Section 18 \u2014 Cart item links + undo on remove",
+    "description": "Cart item images and titles are clickable links to product detail page. Removing item shows sonner toast with Undo action that re-adds the item.",
+    "steps": [
+      "In cart, click product image \u2014 navigates to product detail page",
+      "In cart, click product title \u2014 navigates to product detail page",
+      "Click remove on cart item \u2014 toast appears with Item removed and Undo button",
+      "Click Undo within 5 seconds \u2014 item re-added to cart with same quantity"
+    ],
+    "passes": false
+  },
+  {
+    "id": 298,
+    "feature": "Section 18 \u2014 Mobile search in StorefrontHeader",
+    "description": "Search icon button visible on mobile (sm:hidden) in StorefrontHeader. Clicking opens full-width search input overlaying header.",
+    "steps": [
+      "At 375px viewport \u2014 search icon button visible in header",
+      "Click search icon \u2014 full-width search input appears",
+      "Type query and submit \u2014 navigates to /shop?q=query",
+      "At desktop width \u2014 search bar visible inline (existing behavior unchanged)"
+    ],
+    "passes": false
+  },
+  {
+    "id": 299,
+    "feature": "Section 19 \u2014 Trending materialized view + API",
+    "description": "trending_products materialized view aggregates product_daily_metrics over 7 days with weighted score. GET /api/products/trending returns top 12.",
+    "steps": [
+      "Run SQL: SELECT * FROM trending_products LIMIT 5 \u2014 returns products with trending_score",
+      "GET /api/products/trending returns array of 12 products ordered by trending_score DESC",
+      "Products with zero activity in last 7 days are NOT in trending results",
+      "Materialized view has unique index on product_id"
+    ],
+    "passes": false
+  },
+  {
+    "id": 300,
+    "feature": "Section 19 \u2014 Social proof on product detail (SocialProofToast + ScarcityIndicator)",
+    "description": "GET /api/products/[id]/social-proof returns viewsToday, ordersThisWeek from product_daily_metrics. SocialProofToast shows X people bought today. ScarcityIndicator shows Selling fast when ordersThisWeek > 3.",
+    "steps": [
+      "GET /api/products/{id}/social-proof returns viewsToday, ordersThisWeek, cartAddsToday, isTrending",
+      "Product detail page shows SocialProofToast after 2-second delay (once per product per session)",
+      "Product with ordersThisWeek > 3 shows Selling fast text below price",
+      "Product with ordersThisWeek <= 3 does NOT show ScarcityIndicator"
+    ],
+    "passes": false
+  },
+  {
+    "id": 301,
+    "feature": "Section 19 \u2014 FreeShippingProgressBar in cart",
+    "description": "FreeShippingProgressBar shows progress toward free shipping threshold (50 EUR default). Uses shadcn/ui Progress component.",
+    "steps": [
+      "Add 30 EUR of products to cart \u2014 progress bar shows ~60% with Add 20 EUR more message",
+      "Add more products to reach 50+ EUR \u2014 bar shows 100% with checkmark and qualification message",
+      "Empty cart \u2014 progress bar not visible",
+      "Component file exists at frontend/src/components/cart/FreeShippingProgressBar.tsx"
+    ],
+    "passes": false
+  },
+  {
+    "id": 302,
+    "feature": "Section 19 \u2014 Product bundles (tables + API + UI)",
+    "description": "product_bundles and bundle_items tables exist. Admin can create bundles with discount. Frontend displays BundleCard with Save XX% badge. NOTE: This feature covers frontend only (tables + API + BundleCard component). Admin CRUD is feature 318.",
+    "steps": [
+      "Run SQL: SELECT * FROM product_bundles LIMIT 1 \u2014 table exists with discount_type, discount_value columns",
+      "Run SQL: SELECT * FROM bundle_items LIMIT 1 \u2014 table exists with bundle_id, product_id FK",
+      "GET /api/bundles returns active bundles with product details and calculated discount",
+      "BundleCard shows stacked product images, original vs discounted price, and Save badge"
+    ],
+    "passes": false
+  },
+  {
+    "id": 303,
+    "feature": "Section 19 \u2014 Admin labels dashboard + compare_at_price in product editor",
+    "description": "Admin labels page shows all product_labels with filters. Admin product editor has Compare at price input field.",
+    "steps": [
+      "Admin /labels page shows table of product labels with type, product name, auto_computed flag",
+      "Admin can add manual label via form (select product + label type + optional override_until)",
+      "Admin /products/{id} page has Compare at price input field below regular price",
+      "Setting compare_at_price to 35 EUR on a 25 EUR product saves correctly to database"
+    ],
+    "passes": false
+  },
+  {
+    "id": 304,
+    "feature": "Section 19 \u2014 SmartStickyCTA v2 (variant selector + quantity)",
+    "description": "SmartStickyCTA enhanced with variant dropdown selector and +/- quantity buttons. Shows compare_at_price strikethrough when applicable.",
+    "steps": [
+      "Product with variants \u2014 SmartStickyCTA shows variant dropdown (e.g., size S/M/L)",
+      "Select variant in sticky CTA \u2014 updates selected variant and price",
+      "Tap +/- buttons \u2014 quantity updates (min 1)",
+      "Product with compare_at_price \u2014 sticky CTA shows strikethrough price"
+    ],
+    "passes": false
+  },
+  {
+    "id": 305,
+    "feature": "Section 20 \u2014 Affiliate products table + click tracking",
+    "description": "affiliate_products table exists with affiliate_url, commission_rate, related_categories[]. affiliate_clicks tracks each click. POST /api/affiliate/click increments count and returns redirectUrl.",
+    "steps": [
+      "Run SQL: SELECT column_name FROM information_schema.columns WHERE table_name=affiliate_products \u2014 returns expected columns",
+      "Run SQL: SELECT * FROM affiliate_clicks LIMIT 1 \u2014 table exists with affiliate_product_id FK",
+      "POST /api/affiliate/click with affiliateProductId and referrerPage \u2014 returns redirectUrl",
+      "Verify affiliate_products.click_count incremented after click"
+    ],
+    "passes": false
+  },
+  {
+    "id": 306,
+    "feature": "Section 20 \u2014 AffiliateBlock on product detail with EU disclosure",
+    "description": "AffiliateBlock shows Complement your purchase section on product detail page with contextual affiliate products. AffiliateDisclaimer renders EU-compliant disclosure text.",
+    "steps": [
+      "Product in apparel category \u2014 AffiliateBlock shows affiliate products with matching related_categories",
+      "Each affiliate card shows Partner badge and external link icon",
+      "Clicking affiliate card opens affiliate URL in new tab with rel noopener nofollow",
+      "AffiliateDisclaimer text visible below block in all 3 locales"
+    ],
+    "passes": false
+  },
+  {
+    "id": 307,
+    "feature": "Section 20 \u2014 Admin affiliate CRUD + analytics",
+    "description": "Admin /affiliates page with table, create/edit dialog, and analytics section showing total clicks, top 5 by CTR, clicks chart.",
+    "steps": [
+      "Admin /affiliates page lists all affiliate products with sortable columns",
+      "Click Add Affiliate \u2014 form with name, URL, image, category, commission_rate fields",
+      "Save affiliate product \u2014 appears in table, GET /api/affiliate/products returns it",
+      "Analytics section shows click counts and CTR for last 30 days"
+    ],
+    "passes": false
+  },
+  {
+    "id": 308,
+    "feature": "Section 21 \u2014 Popup campaigns table + impressions tracking",
+    "description": "popup_campaigns table with display_type, trigger_type, frequency_cap, exclude_pages defaulting to /checkout. popup_impressions tracks actions.",
+    "steps": [
+      "Run SQL: SELECT * FROM popup_campaigns LIMIT 1 \u2014 table exists with all CHECK constraints",
+      "Verify exclude_pages DEFAULT includes /checkout",
+      "Run SQL: SELECT * FROM popup_impressions LIMIT 1 \u2014 table exists with action CHECK constraint",
+      "POST /api/popups/track with campaignId and action impression \u2014 row created and counter incremented"
+    ],
+    "passes": false
+  },
+  {
+    "id": 309,
+    "feature": "Section 21 \u2014 PopupManager enforces max 1 per session + checkout exclusion",
+    "description": "PopupManager provider evaluates trigger conditions. STRICTLY enforces: max 1 popup per session (sessionStorage), NEVER on /checkout/* paths.",
+    "steps": [
+      "Create 2 active campaigns \u2014 only 1 popup appears per session (sessionStorage flag set)",
+      "Navigate to /checkout \u2014 NO popup appears regardless of campaign targeting",
+      "Dismiss popup \u2014 sessionStorage flag prevents any further popups this session",
+      "New session (clear sessionStorage) \u2014 popup appears again on qualifying page"
+    ],
+    "passes": false
+  },
+  {
+    "id": 310,
+    "feature": "Section 21 \u2014 All 4 popup display types render correctly",
+    "description": "CampaignModal (Dialog), CampaignSlideIn (Sheet), CampaignBanner (top bar), and contextual popup all render with title, body, CTA, dismiss button.",
+    "steps": [
+      "Campaign with display_type modal \u2014 renders as shadcn/ui Dialog with close button",
+      "Campaign with display_type slide-in \u2014 renders as Sheet from right (desktop) or bottom (mobile)",
+      "Campaign with display_type banner \u2014 renders as top bar above header with dismiss X",
+      "Press Escape on any popup \u2014 popup dismisses and tracks dismiss action"
+    ],
+    "passes": false
+  },
+  {
+    "id": 311,
+    "feature": "Section 21 \u2014 Exit-intent detection hook",
+    "description": "useExitIntent hook detects desktop mouseleave (clientY < 10) and mobile visibilitychange. Fires callback once per session.",
+    "steps": [
+      "File frontend/src/hooks/useExitIntent.ts exists and exports useExitIntent hook",
+      "Desktop: move mouse to top of viewport (clientY < 10) \u2014 exit-intent fires, sessionStorage pod_exit_intent_fired=true",
+      "Move mouse to top again \u2014 callback does NOT fire (sessionStorage flag blocks)",
+      "Mobile: switch tabs \u2014 callback fires via visibilitychange event"
+    ],
+    "passes": false
+  },
+  {
+    "id": 312,
+    "feature": "Section 21 \u2014 Admin campaign CRUD + analytics",
+    "description": "Admin /campaigns page with table, create/edit form, and analytics showing impressions, clicks, CTR, conversion funnel.",
+    "steps": [
+      "Admin /campaigns page lists all campaigns with impressions, clicks, CTR columns",
+      "Create campaign with display_type modal, trigger_type time, trigger_value 5 \u2014 saves correctly",
+      "Edit campaign dates, toggle is_active \u2014 changes reflected in GET /api/popups/active",
+      "Analytics section shows impressions vs clicks chart for last 30 days"
+    ],
+    "passes": false
+  },
+  {
+    "id": 313,
+    "feature": "Section 22 \u2014 Seasonal themes table with 5 pre-seeded themes",
+    "description": "seasonal_themes table exists with animation_type CHECK, theme_config JSONB, banner_config JSONB, css_overrides JSONB. 5 themes seeded.",
+    "steps": [
+      "Run SQL: SELECT slug, animation_type FROM seasonal_themes \u2014 returns 5 rows",
+      "christmas has animation_type snow, halloween has particles, black-friday has none",
+      "theme_config JSONB contains accentColor and bannerText for each theme",
+      "banner_config JSONB contains text and optional countdownTo timestamp"
+    ],
+    "passes": false
+  },
+  {
+    "id": 314,
+    "feature": "Section 22 \u2014 useSeasonalTheme hook + SeasonalBanner",
+    "description": "useSeasonalTheme fetches active seasonal theme by date range. SeasonalBanner shows configurable banner with optional countdown. Dismissible per session.",
+    "steps": [
+      "GET /api/seasonal/active returns theme when CURRENT_DATE within range, null otherwise",
+      "Within Christmas date range \u2014 SeasonalBanner appears above header with Holiday Sale text",
+      "Click dismiss X on banner \u2014 banner hidden, sessionStorage flag set for season slug",
+      "Outside any theme date range \u2014 no banner appears"
+    ],
+    "passes": false
+  },
+  {
+    "id": 315,
+    "feature": "Section 22 \u2014 Seasonal animations (CSS/Canvas, <16ms, user-togglable)",
+    "description": "SeasonalAnimation renders lightweight animation. Respects prefers-reduced-motion. User toggle button. Max 30 particles. pointer-events: none.",
+    "steps": [
+      "Within Christmas range \u2014 snow animation renders with max 30 snowflake elements",
+      "Set prefers-reduced-motion: reduce \u2014 animation completely disabled",
+      "Click toggle button \u2014 animation stops, preference saved in localStorage",
+      "Animation container has pointer-events: none \u2014 underlying content fully interactive"
+    ],
+    "passes": false
+  },
+  {
+    "id": 316,
+    "feature": "Section 22 \u2014 SeasonalCSSOverrides (temporary variable injection)",
+    "description": "SeasonalCSSOverrides reads css_overrides from active seasonal theme and injects temporary CSS variables. Variables removed when season ends.",
+    "steps": [
+      "Christmas theme with css_overrides primary override \u2014 primary color becomes red",
+      "Base store theme tokens remain for non-overridden variables",
+      "Navigate outside date range or deactivate theme \u2014 CSS variables revert to base theme",
+      "SeasonalCSSOverrides component renders no visible DOM (style injection only)"
+    ],
+    "passes": false
+  },
+  {
+    "id": 317,
+    "feature": "Section 22 \u2014 Admin seasonal themes management",
+    "description": "Admin /seasonal page with calendar view of theme date ranges. Create/Edit form with date pickers, animation type selector, CSS override editor.",
+    "steps": [
+      "Admin /seasonal page shows 5 seeded themes with date ranges and animation types",
+      "Edit Christmas dates \u2014 changes reflected in GET /api/seasonal/active within date range",
+      "Create new theme Summer Sale with custom dates and confetti animation \u2014 saves correctly",
+      "Toggle auto_activate off for a theme \u2014 theme does not appear on frontend within its dates"
+    ],
+    "passes": false
+  },
+  {
+    "id": 318,
+    "feature": "Section 19 \u2014 Admin bundles CRUD page",
+    "description": "Admin /bundles page with create/edit form. Select products for bundle, set discount type and value. Activate/deactivate bundles. Uses adminFetch() for all API calls. Depends on feature 302 (tables + frontend API).",
+    "steps": [
+      "Admin /bundles page lists all bundles with product count, discount, active status",
+      "Create bundle with 3 products and 15% discount \u2014 saves to product_bundles + bundle_items",
+      "GET /api/bundles returns the new bundle with calculated prices",
+      "Deactivate bundle \u2014 no longer returned by frontend API"
+    ],
+    "passes": false
+  },
+  {
+    "id": 319,
+    "feature": "Section 18 \u2014 Product labels API with caching",
+    "description": "GET /api/products/[id]/labels returns labels from product_labels table. Cached with stale-while-revalidate 60 seconds.",
+    "steps": [
+      "GET /api/products/{id}/labels returns array of label_type and priority",
+      "Response has Cache-Control header with stale-while-revalidate",
+      "ProductCard with labels shows highest-priority badge as overlay",
+      "Product with no labels \u2014 no badge overlay, no API error"
+    ],
+    "passes": false
+  },
+  {
+    "id": 320,
+    "feature": "Section 18 \u2014 RecentlyViewed tracking in ProductDetailClient",
+    "description": "ProductDetailClient calls useRecentlyViewed.addViewed(product) on mount. Shop page renders RecentlyViewedCarousel at top when user has history.",
+    "steps": [
+      "Visit 3 product pages \u2014 localStorage pod_recently_viewed contains 3 entries",
+      "Navigate to shop page \u2014 RecentlyViewedCarousel visible at top with 3 products",
+      "Most recently viewed product appears first in carousel",
+      "No viewed products (fresh browser) \u2014 carousel not rendered on shop page"
+    ],
+    "passes": false
+  },
+  {
+    "id": 321,
+    "feature": "Section 18 \u2014 Cart item product links",
+    "description": "Cart item images and titles are clickable Link components pointing to /{locale}/shop/{product_id}. Uses Next.js Link component.",
+    "steps": [
+      "In cart, click product image \u2014 navigates to product detail page",
+      "In cart, click product title \u2014 navigates to product detail page",
+      "Link uses correct locale prefix in URL",
+      "Product page loads correctly \u2014 product title and image match the cart item clicked"
+    ],
+    "passes": false
   }
 ]
