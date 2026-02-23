@@ -3,7 +3,7 @@
 import { use, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import ReactMarkdown from 'react-markdown';
+import { SafeMarkdown } from '@/components/ui/safe-markdown';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -266,7 +266,7 @@ export default function LegalPageEditorPage({
                 <div>
                   <Label>Preview</Label>
                   <div className="p-4 border rounded-lg prose prose-sm max-w-none">
-                    <ReactMarkdown>{contentEn}</ReactMarkdown>
+                    <SafeMarkdown>{contentEn}</SafeMarkdown>
                   </div>
                 </div>
               )}
@@ -307,7 +307,7 @@ export default function LegalPageEditorPage({
                 <div>
                   <Label>Preview</Label>
                   <div className="p-4 border rounded-lg prose prose-sm max-w-none">
-                    <ReactMarkdown>{contentEs}</ReactMarkdown>
+                    <SafeMarkdown>{contentEs}</SafeMarkdown>
                   </div>
                 </div>
               )}
@@ -348,7 +348,7 @@ export default function LegalPageEditorPage({
                 <div>
                   <Label>Preview</Label>
                   <div className="p-4 border rounded-lg prose prose-sm max-w-none">
-                    <ReactMarkdown>{contentDe}</ReactMarkdown>
+                    <SafeMarkdown>{contentDe}</SafeMarkdown>
                   </div>
                 </div>
               )}

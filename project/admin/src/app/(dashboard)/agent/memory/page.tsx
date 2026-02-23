@@ -7,8 +7,7 @@ import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { ChevronLeft, FileText, Calendar, Brain, Sparkles } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
+import { SafeMarkdown } from '@/components/ui/safe-markdown'
 import { adminFetch } from '@/lib/admin-api'
 
 interface FileListItem {
@@ -212,9 +211,9 @@ export default function MemoryExplorerPage() {
                 <ScrollArea className="h-[400px] md:h-[500px]">
                   {selectedContextFile ? (
                     <div className="prose prose-sm dark:prose-invert max-w-none">
-                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      <SafeMarkdown>
                         {contextContent}
-                      </ReactMarkdown>
+                      </SafeMarkdown>
                     </div>
                   ) : (
                     <p className="text-sm text-muted-foreground">
@@ -278,9 +277,9 @@ export default function MemoryExplorerPage() {
                 <ScrollArea className="h-[400px] md:h-[500px]">
                   {selectedLog ? (
                     <div className="prose prose-sm dark:prose-invert max-w-none">
-                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      <SafeMarkdown>
                         {logContent}
-                      </ReactMarkdown>
+                      </SafeMarkdown>
                     </div>
                   ) : (
                     <p className="text-sm text-muted-foreground">
@@ -316,9 +315,9 @@ export default function MemoryExplorerPage() {
                   </div>
                 ) : (
                   <div className="prose prose-sm dark:prose-invert max-w-none">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    <SafeMarkdown>
                       {memoryContent}
-                    </ReactMarkdown>
+                    </SafeMarkdown>
                   </div>
                 )}
               </ScrollArea>
@@ -349,9 +348,9 @@ export default function MemoryExplorerPage() {
                   </div>
                 ) : (
                   <div className="prose prose-sm dark:prose-invert max-w-none">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    <SafeMarkdown>
                       {soulContent}
-                    </ReactMarkdown>
+                    </SafeMarkdown>
                   </div>
                 )}
               </ScrollArea>

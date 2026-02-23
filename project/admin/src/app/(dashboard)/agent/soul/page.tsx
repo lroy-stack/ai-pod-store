@@ -16,8 +16,7 @@ import {
 } from '@/components/ui/dialog'
 import { ChevronLeft, Sparkles, Check, X, FileText, AlertCircle } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
+import { SafeMarkdown } from '@/components/ui/safe-markdown'
 import { adminFetch } from '@/lib/admin-api'
 import { toast } from 'sonner'
 
@@ -212,9 +211,9 @@ export default function SoulEvolutionPage() {
                 </div>
               ) : (
                 <div className="prose prose-sm dark:prose-invert max-w-none">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  <SafeMarkdown>
                     {soulContent}
-                  </ReactMarkdown>
+                  </SafeMarkdown>
                 </div>
               )}
             </ScrollArea>

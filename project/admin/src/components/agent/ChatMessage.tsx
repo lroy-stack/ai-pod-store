@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Bot, User, ChevronDown, ChevronRight, DollarSign, Wrench } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import ReactMarkdown from 'react-markdown'
+import { SafeMarkdown } from '@/components/ui/safe-markdown'
 import remarkGfm from 'remark-gfm'
 import { ToolCallCard } from './ToolCallCard'
 import type { ChatMessage as ChatMessageType } from '@/hooks/usePodClawChat'
@@ -54,7 +54,7 @@ export function ChatMessage({ message, isStreaming }: ChatMessageProps) {
             <p className="text-sm whitespace-pre-wrap">{message.content}</p>
           ) : (
             <div className="prose prose-sm dark:prose-invert max-w-none [&_table]:text-xs [&_pre]:text-xs [&_code]:text-xs">
-              <ReactMarkdown
+              <SafeMarkdown
                 remarkPlugins={[remarkGfm]}
                 components={{
                   table: ({ children }) => (
@@ -88,7 +88,7 @@ export function ChatMessage({ message, isStreaming }: ChatMessageProps) {
                 }}
               >
                 {message.content || ''}
-              </ReactMarkdown>
+              </SafeMarkdown>
               {isStreaming && !message.content && (
                 <span className="inline-block w-2 h-4 bg-foreground/50 animate-pulse rounded-sm" />
               )}
