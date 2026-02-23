@@ -85,28 +85,38 @@
 git clone <repository-url>
 cd project
 
-# 2. Copy and configure environment variables
-cp config/.env.required .env
-# Edit .env with your actual API keys (see Configuration section)
-
-# 3. Start all services
-docker compose -f deploy/docker-compose.yml up -d
+# 2. Start (first run creates .env from template)
+./start.sh
+# Edit .env with your real API keys, then run again:
+./start.sh
 ```
+
+The `start.sh` script handles everything: validates prerequisites, creates `.env` from `.env.example` on first run, checks required variables, builds images, and starts services in the correct order.
 
 Once running:
 
-| Service | URL |
-|---------|-----|
-| Storefront | http://localhost:3000 |
-| Admin Panel | http://localhost:3001 |
-| PodClaw API | http://localhost:8000/health |
+| Service | Direct URL | Via Caddy |
+|---------|------------|-----------|
+| Storefront | http://localhost:3000 | http://localhost:8080 |
+| Admin Panel | http://localhost:3001/panel | http://localhost:8080/panel |
+| PodClaw API | http://localhost:8000/health | http://localhost:8080/api/bridge/health |
+| MCP Server | http://localhost:8002/health | http://localhost:8080/mcp |
 
 ```bash
 # View logs
-docker compose -f deploy/docker-compose.yml logs -f
+docker compose logs -f
+
+# Show service status
+./start.sh --status
 
 # Stop all services
-docker compose -f deploy/docker-compose.yml down
+./start.sh --down
+
+# Build images only (no start)
+./start.sh --build
+
+# Clean up Docker resources
+./start.sh --clean
 ```
 
 ---
@@ -176,36 +186,51 @@ supabase db push
 
 ## Configuration
 
-All services read from environment variables. **Never commit real credentials.**
+All services read from a **single `.env` file** at the project root. **Never commit real credentials.**
 
-See [`config/.env.required`](config/.env.required) for the complete variable list with placeholder values.
+```bash
+cp .env.example .env
+# Edit .env with your real values
+```
+
+See [`.env.example`](.env.example) for the complete variable list with `[REQUIRED]`/`[OPTIONAL]` tags and service ownership annotations.
 
 ### Required Variables
 
-| Variable | Service | Description |
+| Variable | Used by | Description |
 |----------|---------|-------------|
-| `SUPABASE_URL` | All | Supabase project URL |
-| `SUPABASE_SERVICE_KEY` | All | Supabase service role key |
-| `NEXT_PUBLIC_SUPABASE_URL` | Frontend | Public Supabase URL (same as above) |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Frontend | Public anon key |
-| `STRIPE_SECRET_KEY` | Frontend, PodClaw | Stripe secret key |
-| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Frontend | Stripe publishable key |
-| `STRIPE_WEBHOOK_SECRET` | Frontend | Stripe webhook signing secret |
-| `PRINTIFY_TOKEN` | Frontend, PodClaw | Printify API token |
-| `ANTHROPIC_API_KEY` | PodClaw | Claude API key for agents |
-| `GEMINI_API_KEY` | Frontend, PodClaw | Google Gemini API key (embeddings) |
-| `FAL_KEY` | Frontend, PodClaw | fal.ai API key (design generation) |
-| `RESEND_API_KEY` | Frontend, PodClaw | Resend email API key |
+| `SUPABASE_URL` | frontend, podclaw, mcp-server | Supabase project URL |
+| `SUPABASE_SERVICE_KEY` | frontend, podclaw, mcp-server | Supabase service role key |
+| `SUPABASE_ANON_KEY` | frontend, mcp-server | Supabase anon key |
+| `STRIPE_SECRET_KEY` | frontend, podclaw | Stripe secret key |
+| `STRIPE_WEBHOOK_SECRET` | frontend | Stripe webhook signing secret |
+| `PRINTIFY_API_TOKEN` | podclaw | Printify API token |
+| `ANTHROPIC_API_KEY` | podclaw | Claude API key for agents |
+| `GEMINI_API_KEY` | podclaw | Google Gemini API key |
+| `FAL_KEY` | podclaw | fal.ai API key (design generation) |
+| `RESEND_API_KEY` | frontend, podclaw | Resend email API key |
+| `REDIS_PASSWORD` | frontend, podclaw, mcp-server, redis | Redis authentication |
+| `PODCLAW_BRIDGE_AUTH_TOKEN` | admin, podclaw | Bridge API auth token |
+
+### Build-time Variables (NEXT_PUBLIC_)
+
+These are baked into JS bundles at `docker compose build` time:
+
+| Variable | Used by | Description |
+|----------|---------|-------------|
+| `NEXT_PUBLIC_SUPABASE_URL` | frontend, admin | Public Supabase URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | frontend, admin | Public anon key |
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | frontend | Stripe publishable key |
+| `NEXT_PUBLIC_BASE_URL` | frontend | Site base URL |
 
 ### Optional Variables
 
-| Variable | Service | Description |
+| Variable | Used by | Description |
 |----------|---------|-------------|
-| `REDIS_URL` | Frontend, PodClaw | Redis connection string (graceful fallback if absent) |
-| `TELEGRAM_BOT_TOKEN` | PodClaw | Telegram bot for admin notifications |
-| `WHATSAPP_ACCESS_TOKEN` | PodClaw | WhatsApp Business API token |
-| `PODCLAW_BRIDGE_AUTH_TOKEN` | Admin, PodClaw | Bearer token for Bridge API auth |
-| `REMBG_URL` | PodClaw | Background removal sidecar URL (default: `http://localhost:7000`) |
+| `TELEGRAM_BOT_TOKEN` | podclaw | Telegram bot for admin notifications |
+| `WHATSAPP_ACCESS_TOKEN` | podclaw | WhatsApp Business API token |
+| `TURNSTILE_SECRET_KEY` | frontend | Cloudflare Turnstile CAPTCHA |
+| `DOMAIN` | caddy | Production domain (enables auto-HTTPS) |
 
 ---
 
@@ -222,9 +247,13 @@ project/
 │   ├── hooks/       PreToolUse/PostToolUse hooks (security, rate limits, costs)
 │   ├── skills/      Per-agent skill prompts and templates
 │   └── scripts/     Reconciliation and maintenance scripts
-├── deploy/          Docker Compose, Dockerfiles, Caddyfile
+├── deploy/          Dockerfiles, Caddyfile, rembg sidecar
 ├── supabase/        PostgreSQL migrations (56 tables)
-└── config/          Environment variable templates
+├── docker-compose.yml        Base compose (8 services)
+├── docker-compose.local.yml  Local dev override (127.0.0.1 ports)
+├── docker-compose.prod.yml   Production override (80/443, auth)
+├── .env.example              Environment variable template
+└── start.sh                  Docker orchestration script
 ```
 
 ---
@@ -252,41 +281,73 @@ PodClaw orchestrates 10 autonomous agents with configurable schedules, budgets, 
 
 ## Deployment
 
-### Production (Docker Compose + Caddy)
+### Docker Stack Overview
 
-Caddy provides automatic HTTPS via Let's Encrypt.
+The stack runs 8 services on 3 isolated networks:
 
-```bash
-# Set your domain
-export DOMAIN=your-domain.com
-
-# Start production stack
-docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.prod.yml up -d
+```
+proxy network:       caddy <-> frontend, admin, podclaw, mcp-server
+data network:        frontend, podclaw, mcp-server <-> redis
+ai-services network: podclaw <-> rembg, crawl4ai
 ```
 
-This runs:
-- **Caddy** on ports 80/443 with automatic TLS
-- **Frontend** on port 3000 (proxied at `/`)
-- **Admin** on port 3001 (proxied at `/panel`)
-- **PodClaw** on port 8000 (proxied at `/api/bridge/*`)
-- **rembg** on port 7000 (internal only)
-- **Redis** on port 6379 (internal only)
+| Service | Port | Description |
+|---------|------|-------------|
+| frontend | 3000 | Next.js 16 storefront |
+| admin | 3001 | Admin panel (proxied at `/panel`) |
+| podclaw | 8000 | Agent system + FastAPI bridge |
+| mcp-server | 8002 | MCP server for AI assistants |
+| rembg | 8080 | Background removal (internal only) |
+| redis | 6379 | Session cache, rate limiting (internal only) |
+| crawl4ai | 11235 | Web crawler with JS rendering (internal only) |
+| caddy | 80/443 | Reverse proxy with auto-HTTPS |
+
+### Production
+
+```bash
+# Set DOMAIN in .env, then:
+./start.sh --prod
+```
+
+Caddy automatically obtains TLS certificates from Let's Encrypt. Routes:
+- `/` -> frontend
+- `/panel` -> admin
+- `/api/bridge/*` -> podclaw (auth required)
+- `/mcp` -> mcp-server
+
+### Local Development (Docker)
+
+```bash
+./start.sh --local    # or just ./start.sh
+```
+
+All debug ports bound to `127.0.0.1`. PodClaw bridge auth disabled for easier testing.
+
+### Manual (without start.sh)
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.local.yml up -d
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d   # production
+```
 
 ### Health Checks
 
 ```bash
-curl http://localhost:3000/api/health    # Frontend
-curl http://localhost:8000/health        # PodClaw
-curl http://localhost:8000/api/health    # PodClaw deep check
+curl http://localhost:3000/api/health          # Frontend
+curl http://localhost:3001/panel/api/health     # Admin
+curl http://localhost:8000/health               # PodClaw
+curl http://localhost:8002/health               # MCP Server
 ```
 
-### Local Development (Docker)
+### Security Hardening
 
-For local development with Docker:
-
-```bash
-docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.local.yml up -d
-```
+- `cap_drop: ALL` on every container (selective `cap_add` only where needed)
+- Non-root users in all custom images
+- Each service receives only the environment variables it needs
+- rembg and crawl4ai have zero secrets (isolated network)
+- Redis destructive commands disabled (`FLUSHALL`, `FLUSHDB`, `DEBUG`, `CONFIG`)
+- Log rotation: 10MB x 3 files per service
+- Local dev: all ports bound to `127.0.0.1`
 
 ---
 
@@ -348,7 +409,7 @@ kill -9 <PID>    # Free the port
 
 ### Environment variables not loaded
 
-Ensure `.env.local` (frontend/admin) or `.env` (podclaw) exists and has all required variables. The app will fail on startup if critical variables are missing. Check `config/.env.required` for the complete list.
+For Docker: ensure `.env` exists at the project root with all required variables. Run `./start.sh` to auto-create from `.env.example`. For local dev without Docker: use `frontend/.env.local` and `admin/.env.local`.
 
 ### Supabase connection errors
 
@@ -369,7 +430,7 @@ curl -H "Authorization: Bearer $PODCLAW_BRIDGE_AUTH_TOKEN" \
   http://localhost:8000/agents
 
 # Review logs
-docker compose -f deploy/docker-compose.yml logs podclaw
+docker compose logs podclaw
 ```
 
 ### rembg sidecar not responding
@@ -377,8 +438,18 @@ docker compose -f deploy/docker-compose.yml logs podclaw
 The background removal service must be running for design transparency processing.
 
 ```bash
-curl http://localhost:7000/health
-docker compose -f deploy/docker-compose.yml logs rembg
+curl http://localhost:8090/health    # mapped port in local dev
+docker compose logs rembg
+```
+
+### Docker build failures
+
+```bash
+# Clean up failed builds (frees disk space)
+./start.sh --clean
+
+# Rebuild from scratch
+./start.sh --build
 ```
 
 ---

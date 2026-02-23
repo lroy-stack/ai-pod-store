@@ -121,3 +121,78 @@ The landing page is at `/` via `(landing)/page.tsx`. The chat is at `/chat` via 
 3. Is it mobile-first? → Base styles for 375px, then md: and lg: overrides.
 4. Does it match the patterns in StorefrontHeader.tsx / StorefrontSidebar.tsx?
 5. Am I importing cn() for conditional classes?
+
+---
+
+## Docker — Self-Hosted Stack
+
+### File Structure
+
+All Docker Compose files and `.env` live at the **project root**. Support files (Caddyfile, Dockerfiles) stay in `deploy/`.
+
+```
+project/
+├── docker-compose.yml          # Base — 8 services, no ports exposed
+├── docker-compose.local.yml    # Local dev override (127.0.0.1 ports)
+├── docker-compose.prod.yml     # Production override (80/443, auth enabled)
+├── .env.example                # Template — cp to .env and fill values
+├── .env                        # Secrets (gitignored, auto-loaded by Compose)
+├── start.sh                    # Orchestration script
+└── deploy/
+    ├── Caddyfile               # Reverse proxy config
+    ├── Dockerfile              # PodClaw image (multi-stage Python)
+    └── rembg/                  # Background removal sidecar
+        ├── Dockerfile
+        └── server.py
+```
+
+### start.sh — Orchestration Script
+
+```bash
+./start.sh              # Local dev (default)
+./start.sh --prod       # Production (requires DOMAIN in .env)
+./start.sh --down       # Stop all services
+./start.sh --build      # Build images only
+./start.sh --clean      # Stop + prune Docker resources
+./start.sh --status     # Show service health
+```
+
+The script:
+1. Checks Docker prerequisites
+2. Creates `.env` from `.env.example` on first run
+3. Validates required variables (rejects placeholders)
+4. Builds images
+5. Starts in 3 phases: infrastructure (redis, rembg, crawl4ai) → application (podclaw, frontend, admin, mcp-server) → reverse proxy (caddy)
+
+### Services & Networks
+
+```
+proxy network:       caddy <-> frontend, admin, podclaw, mcp-server
+data network:        frontend, podclaw, mcp-server <-> redis
+ai-services network: podclaw <-> rembg, crawl4ai
+```
+
+| Service | Port | Image | Network(s) |
+|---|---|---|---|
+| frontend | 3000 | ./frontend/Dockerfile | proxy, data |
+| admin | 3001 | ./admin/Dockerfile | proxy |
+| podclaw | 8000 | deploy/Dockerfile | proxy, data, ai-services |
+| mcp-server | 8002 | ./mcp-server/Dockerfile | proxy, data |
+| rembg | 8080 | deploy/rembg/Dockerfile | ai-services |
+| redis | 6379 | redis:7-alpine | data |
+| crawl4ai | 11235 | unclecode/crawl4ai:0.8.0 | ai-services |
+| caddy | 80/443 | caddy:2.9-alpine | proxy |
+
+### Security Hardening
+
+- **cap_drop: ALL** on every service, selective `cap_add` only for redis (SETGID/SETUID/DAC_OVERRIDE), crawl4ai (SYS_ADMIN), caddy (NET_BIND_SERVICE)
+- **Non-root users** in all custom images (nextjs, rembg, podclaw)
+- **No `env_file:`** — each service declares only the variables it needs via `environment:`
+- **rembg + crawl4ai**: zero secrets (isolated ai-services network)
+- **Redis**: `rename-command` blocks FLUSHALL, FLUSHDB, DEBUG, CONFIG
+- **Local dev**: all ports bound to `127.0.0.1`
+- **Log rotation**: json-file driver, 10MB x 3 files per service
+
+### Environment Variables
+
+Single `.env` file at project root. See `.env.example` for all variables with `[REQUIRED]`/`[OPTIONAL]` tags and service ownership annotations. Key principle: **each service receives ONLY the secrets it needs**.
