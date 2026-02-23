@@ -178,6 +178,10 @@ services:
       --appendonly yes
       --maxmemory 256mb
       --maxmemory-policy allkeys-lru
+      --rename-command FLUSHALL ""
+      --rename-command FLUSHDB ""
+      --rename-command DEBUG ""
+      --rename-command CONFIG ""
     restart: unless-stopped
     deploy:
       resources:
@@ -189,7 +193,7 @@ services:
     networks:
       - data
     healthcheck:
-      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:?REDIS_PASSWORD must be set}", "ping"]
+      test: ["CMD", "sh", "-c", "redis-cli -a $$REDIS_PASSWORD ping 2>/dev/null"]
       interval: 10s
       timeout: 5s
       start_period: 5s
