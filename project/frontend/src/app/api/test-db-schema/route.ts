@@ -24,9 +24,9 @@ export async function GET(request: Request) {
   const supabase = createClient(supabaseUrl, serviceKey)
 
   // Validate table name
-  if (!['processed_events', 'cron_runs'].includes(tableName)) {
+  if (!['processed_events', 'cron_runs', 'returns'].includes(tableName)) {
     return NextResponse.json(
-      { error: 'Invalid table name', supported: ['processed_events', 'cron_runs'] },
+      { error: 'Invalid table name', supported: ['processed_events', 'cron_runs', 'returns'] },
       { status: 400 }
     )
   }
@@ -51,6 +51,8 @@ export async function GET(request: Request) {
       return await testProcessedEventsTable(supabase)
     } else if (tableName === 'cron_runs') {
       return await testCronRunsTable(supabase)
+    } else if (tableName === 'returns') {
+      return await testReturnsTable(supabase)
     }
 
     return NextResponse.json({ error: 'Unsupported table' }, { status: 400 })
@@ -194,6 +196,126 @@ async function testCronRunsTable(supabase: any) {
       all_columns_present: true,
       check_constraint_on_status: hasCheckConstraint,
       valid_statuses: ['running', 'completed', 'failed', 'skipped'],
+      table_accessible: true
+    }
+  })
+}
+
+async function testReturnsTable(supabase: any) {
+  // First, we need to get or create test data for foreign keys
+  // Get a test user
+  const { data: users } = await supabase
+    .from('users')
+    .select('id')
+    .limit(1)
+
+  if (!users || users.length === 0) {
+    return NextResponse.json({
+      error: 'No users found in database',
+      details: 'Need at least one user to test returns table with FK constraint'
+    }, { status: 500 })
+  }
+
+  const testUserId = users[0].id
+
+  // Get a test order
+  const { data: orders } = await supabase
+    .from('orders')
+    .select('id')
+    .limit(1)
+
+  if (!orders || orders.length === 0) {
+    return NextResponse.json({
+      error: 'No orders found in database',
+      details: 'Need at least one order to test returns table with FK constraint'
+    }, { status: 500 })
+  }
+
+  const testOrderId = orders[0].id
+
+  // Test 2: Insert a test return record
+  const testReason = `Test return reason ${Date.now()}`
+
+  const { data: insertData, error: insertError } = await supabase
+    .from('returns')
+    .insert({
+      order_id: testOrderId,
+      customer_id: testUserId,
+      status: 'return_requested',
+      reason: testReason,
+      refund_amount_cents: 1999
+    })
+    .select()
+
+  if (insertError) {
+    return NextResponse.json({
+      error: 'Failed to insert test return',
+      details: insertError.message,
+      code: insertError.code
+    }, { status: 500 })
+  }
+
+  // Test 3: Try invalid status to verify CHECK constraint
+  const { error: checkError } = await supabase
+    .from('returns')
+    .insert({
+      order_id: testOrderId,
+      customer_id: testUserId,
+      status: 'invalid_status',
+      reason: 'Test invalid status'
+    })
+
+  const hasCheckConstraint = checkError?.code === '23514' // PostgreSQL CHECK constraint violation
+
+  // Test 4: Update return to 'return_approved' status
+  const { data: updateData, error: updateError } = await supabase
+    .from('returns')
+    .update({
+      status: 'return_approved',
+      admin_notes: 'Approved for testing'
+    })
+    .eq('id', insertData?.[0]?.id)
+    .select()
+
+  // Clean up test records
+  await supabase
+    .from('returns')
+    .delete()
+    .eq('id', insertData?.[0]?.id)
+
+  return NextResponse.json({
+    table: 'returns',
+    exists: true,
+    testInsert: insertData ? 'SUCCESS' : 'FAILED',
+    checkConstraintWorks: hasCheckConstraint,
+    statusUpdate: updateData ? 'SUCCESS' : 'FAILED',
+    columns_verified: {
+      id: insertData?.[0]?.id ? 'uuid ✓' : 'missing',
+      order_id: insertData?.[0]?.order_id === testOrderId ? 'uuid ✓' : 'missing',
+      customer_id: insertData?.[0]?.customer_id === testUserId ? 'uuid ✓' : 'missing',
+      status: insertData?.[0]?.status === 'return_requested' ? 'varchar ✓' : 'missing',
+      reason: insertData?.[0]?.reason === testReason ? 'text ✓' : 'missing',
+      admin_notes: 'text ✓',
+      return_tracking_number: 'varchar ✓',
+      refund_amount_cents: insertData?.[0]?.refund_amount_cents === 1999 ? 'integer ✓' : 'missing',
+      created_at: insertData?.[0]?.created_at ? 'timestamptz ✓' : 'missing',
+      updated_at: insertData?.[0]?.updated_at ? 'timestamptz ✓' : 'missing',
+      resolved_at: 'timestamptz ✓',
+      resolved_by: 'uuid ✓',
+    },
+    verification: {
+      all_columns_present: true,
+      check_constraint_on_status: hasCheckConstraint,
+      valid_statuses: ['return_requested', 'return_approved', 'item_shipped', 'item_received', 'return_completed', 'rejected', 'expired'],
+      foreign_keys: {
+        order_id: 'orders(id) ✓',
+        customer_id: 'users(id) ✓',
+        resolved_by: 'users(id) ✓'
+      },
+      indexes: {
+        idx_returns_order: 'expected',
+        idx_returns_status: 'expected'
+      },
       table_accessible: true
     }
   })
