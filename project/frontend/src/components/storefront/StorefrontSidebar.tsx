@@ -197,10 +197,21 @@ export function StorefrontSidebar({ onNavigate, onCollapse }: StorefrontSidebarP
       {/* Logo + Store Name */}
       <div className="px-4 h-14 border-b border-border flex items-center justify-between">
         <Link href={`/${locale}`} className="flex items-center gap-3" onClick={onNavigate}>
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center">
-            <span className="text-primary-foreground font-bold text-sm">P</span>
+          <div className="relative w-8 h-8 flex-shrink-0">
+            <Image
+              src="/brand/skapara-mark-dark.svg"
+              alt="Skapara"
+              fill
+              className="object-contain dark:hidden"
+            />
+            <Image
+              src="/brand/skapara-mark-white.svg"
+              alt="Skapara"
+              fill
+              className="object-contain hidden dark:block"
+            />
           </div>
-          <span className="font-semibold text-foreground">POD AI</span>
+          <span className="font-semibold text-foreground">Skapara</span>
         </Link>
         {onCollapse && (
           <Button variant="ghost" size="icon" className="h-7 w-7 hidden lg:inline-flex" onClick={onCollapse}>
