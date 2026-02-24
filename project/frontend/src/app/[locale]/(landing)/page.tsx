@@ -148,7 +148,7 @@ export default async function LandingPage({ params }: LandingPageProps) {
   // Get translations for JSON-LD
   const t = await getTranslations({ locale, namespace: 'landing' })
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://podai.com'
-  const siteName = process.env.NEXT_PUBLIC_SITE_NAME || 'POD AI'
+  const siteName = process.env.NEXT_PUBLIC_SITE_NAME || 'Skapara'
 
   // JSON-LD structured data for SEO
   const organizationSchema = {

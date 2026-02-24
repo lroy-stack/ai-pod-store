@@ -44,9 +44,9 @@ export async function POST(request: Request) {
     let botResponse: string;
 
     if (command === '/start') {
-      botResponse = '👋 Welcome to POD AI! I can help you browse products, track orders, and more. Type /help to see available commands.';
+      botResponse = '👋 Welcome to Skapara! I can help you browse products, track orders, and more. Type /help to see available commands.';
     } else if (command === '/help') {
-      botResponse = '🤖 POD AI Commands:\n\n' +
+      botResponse = '🤖 Skapara Commands:\n\n' +
         '🛍️ Shopping:\n' +
         '/browse - Browse our product catalog\n' +
         '/search <query> - Search for products\n' +

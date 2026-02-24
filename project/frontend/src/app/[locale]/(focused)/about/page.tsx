@@ -12,10 +12,10 @@ export async function generateMetadata({ params }: AboutPageProps): Promise<Meta
   const { locale } = await params
 
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://podai.com'
-  const siteName = process.env.NEXT_PUBLIC_SITE_NAME || 'POD AI'
+  const siteName = process.env.NEXT_PUBLIC_SITE_NAME || 'Skapara'
 
   const title = `About Us - ${siteName}`
-  const description = 'Learn about POD AI - the AI-powered print-on-demand platform that makes custom product creation easy and accessible for everyone.'
+  const description = 'Learn about Skapara - the AI-powered print-on-demand platform that makes custom product creation easy and accessible for everyone.'
 
   return {
     title,
@@ -50,7 +50,7 @@ export default async function AboutPage({ params }: AboutPageProps) {
   return (
     <div className="container mx-auto max-w-4xl px-4 py-12">
       <div className="mb-12 text-center">
-        <h1 className="mb-4 text-4xl font-bold tracking-tight md:text-5xl">About POD AI</h1>
+        <h1 className="mb-4 text-4xl font-bold tracking-tight md:text-5xl">About Skapara</h1>
         <p className="text-lg text-muted-foreground">
           Empowering creativity with AI-powered print-on-demand
         </p>
@@ -63,7 +63,7 @@ export default async function AboutPage({ params }: AboutPageProps) {
           </CardHeader>
           <CardContent className="prose prose-sm max-w-none dark:prose-invert">
             <p className="text-muted-foreground">
-              POD AI is revolutionizing the print-on-demand industry by combining cutting-edge artificial intelligence
+              Skapara is revolutionizing the print-on-demand industry by combining cutting-edge artificial intelligence
               with traditional e-commerce. Our platform empowers creators, entrepreneurs, and businesses to bring their
               ideas to life without the complexity of traditional manufacturing.
             </p>
@@ -150,13 +150,13 @@ export default async function AboutPage({ params }: AboutPageProps) {
           </CardHeader>
           <CardContent className="prose prose-sm max-w-none dark:prose-invert">
             <p className="text-muted-foreground">
-              Founded in 2024, POD AI emerged from a simple observation: creating custom products shouldn't
+              Founded in 2024, Skapara emerged from a simple observation: creating custom products shouldn't
               require design expertise or large upfront investments. By leveraging the latest advances in
               artificial intelligence and machine learning, we've built a platform that democratizes creativity
               and makes entrepreneurship accessible to everyone.
             </p>
             <p className="text-muted-foreground">
-              Today, POD AI serves thousands of customers worldwide, from individual creators to established
+              Today, Skapara serves thousands of customers worldwide, from individual creators to established
               businesses. Our AI-powered tools have generated millions of designs, and our platform has helped
               countless entrepreneurs launch and grow their brands.
             </p>
@@ -165,7 +165,7 @@ export default async function AboutPage({ params }: AboutPageProps) {
 
         <Card className="border-primary/20 bg-primary/5">
           <CardHeader>
-            <CardTitle>Why Choose POD AI?</CardTitle>
+            <CardTitle>Why Choose Skapara?</CardTitle>
           </CardHeader>
           <CardContent>
             <ul className="space-y-2 text-sm text-muted-foreground">

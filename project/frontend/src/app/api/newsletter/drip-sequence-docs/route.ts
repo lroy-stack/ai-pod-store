@@ -48,7 +48,7 @@ export async function GET() {
               'How satisfied are you with your order? (1-5 stars)',
               'How was the quality of the product?',
               'How was the shipping experience?',
-              'Would you recommend POD AI to a friend?',
+              'Would you recommend Skapara to a friend?',
             ],
           },
           {
@@ -104,8 +104,8 @@ WHERE o.status = 'delivered'
         },
         compliance: {
           can_spam: 'All emails include unsubscribe link and physical address',
-          physical_address: 'POD AI Store, Friedrichstraße 123, 10117 Berlin, Germany',
-          sender: 'POD AI Store <noreply@podai.com>',
+          physical_address: 'Skapara Store, Friedrichstraße 123, 10117 Berlin, Germany',
+          sender: 'Skapara Store <noreply@podai.com>',
           respect_preferences: 'Honors users.notification_preferences.email setting',
           locale_aware: 'Sends in customer preferred language (en/es/de)',
         },

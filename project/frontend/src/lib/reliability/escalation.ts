@@ -197,7 +197,7 @@ async function notifySlack(
               short: true,
             },
           ],
-          footer: 'POD AI Store Escalation',
+          footer: 'Skapara Store Escalation',
           ts: Math.floor(Date.now() / 1000),
         },
       ],

@@ -13,7 +13,7 @@ export async function generateMetadata({ params }: ContactPageProps): Promise<Me
   const { locale } = await params
 
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://podai.com'
-  const siteName = process.env.NEXT_PUBLIC_SITE_NAME || 'POD AI'
+  const siteName = process.env.NEXT_PUBLIC_SITE_NAME || 'Skapara'
 
   const title = `Contact Us - ${siteName}`
   const description = 'Get in touch with our support team. We\'re here to help with questions about orders, products, or our AI-powered platform.'

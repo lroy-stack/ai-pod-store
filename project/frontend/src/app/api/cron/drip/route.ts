@@ -25,8 +25,8 @@ const CRON_SECRET = process.env.CRON_SECRET || process.env.PODCLAW_BRIDGE_AUTH_T
 const TEMPLATES: Record<string, (email: string, unsubscribeUrl: string) => { html: string }> = {
   welcome: (email, unsubscribeUrl) => ({
     html: `
-      <h1>Welcome to POD AI!</h1>
-      <p>Hey there! Thanks for joining POD AI, your AI-powered design studio.</p>
+      <h1>Welcome to Skapara!</h1>
+      <p>Hey there! Thanks for joining Skapara, your AI-powered design studio.</p>
       <p>You can now:</p>
       <ul>
         <li>Chat with our AI assistant to find the perfect product</li>
@@ -36,7 +36,7 @@ const TEMPLATES: Record<string, (email: string, unsubscribeUrl: string) => { htm
       <p><a href="${process.env.NEXT_PUBLIC_BASE_URL || 'https://podai.com'}">Start Designing →</a></p>
       <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
       <p style="font-size: 12px; color: #999; text-align: center;">
-        You received this email because you signed up for POD AI Store.<br>
+        You received this email because you signed up for Skapara Store.<br>
         <a href="${unsubscribeUrl}" style="color: #999; text-decoration: underline;">Unsubscribe from marketing emails</a>
       </p>
     `,
@@ -44,7 +44,7 @@ const TEMPLATES: Record<string, (email: string, unsubscribeUrl: string) => { htm
   tips: (email, unsubscribeUrl) => ({
     html: `
       <h1>3 Ways to Create Amazing Designs</h1>
-      <p>Here are some tips to get the most out of POD AI:</p>
+      <p>Here are some tips to get the most out of Skapara:</p>
       <ol>
         <li><strong>Be specific</strong> — "A watercolor sunset over mountains" works better than "sunset"</li>
         <li><strong>Try different styles</strong> — Ask for "minimalist", "cartoon", or "realistic"</li>
@@ -53,7 +53,7 @@ const TEMPLATES: Record<string, (email: string, unsubscribeUrl: string) => { htm
       <p><a href="${process.env.NEXT_PUBLIC_BASE_URL || 'https://podai.com'}">Try It Now →</a></p>
       <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
       <p style="font-size: 12px; color: #999; text-align: center;">
-        You received this email because you signed up for POD AI Store.<br>
+        You received this email because you signed up for Skapara Store.<br>
         <a href="${unsubscribeUrl}" style="color: #999; text-decoration: underline;">Unsubscribe from marketing emails</a>
       </p>
     `,
@@ -66,7 +66,7 @@ const TEMPLATES: Record<string, (email: string, unsubscribeUrl: string) => { htm
       <p><a href="${process.env.NEXT_PUBLIC_BASE_URL || 'https://podai.com'}/en/pricing">See Premium Plans →</a></p>
       <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
       <p style="font-size: 12px; color: #999; text-align: center;">
-        You received this email because you signed up for POD AI Store.<br>
+        You received this email because you signed up for Skapara Store.<br>
         <a href="${unsubscribeUrl}" style="color: #999; text-decoration: underline;">Unsubscribe from marketing emails</a>
       </p>
     `,
@@ -147,7 +147,7 @@ export async function GET(req: NextRequest) {
               'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
             },
             body: JSON.stringify({
-              from: process.env.RESEND_FROM_EMAIL || 'POD AI <noreply@podai.com>',
+              from: process.env.RESEND_FROM_EMAIL || 'Skapara <noreply@podai.com>',
               to: item.email,
               subject: item.subject,
               html,

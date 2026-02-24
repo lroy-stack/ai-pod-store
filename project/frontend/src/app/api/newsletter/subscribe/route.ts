@@ -98,7 +98,7 @@ export async function POST(req: NextRequest) {
         subject: 'Confirm your newsletter subscription',
         body: `
           <h1>Confirm Your Subscription</h1>
-          <p>Thanks for subscribing to POD AI newsletter!</p>
+          <p>Thanks for subscribing to Skapara newsletter!</p>
           <p>Please confirm your email address by clicking the link below:</p>
           <p><a href="${confirmUrl}" style="display: inline-block; padding: 12px 24px; background: #000; color: #fff; text-decoration: none; border-radius: 6px;">Confirm Subscription</a></p>
           <p>Or copy and paste this link into your browser:</p>
@@ -113,7 +113,7 @@ export async function POST(req: NextRequest) {
         subject: 'Confirma tu suscripción al boletín',
         body: `
           <h1>Confirma tu suscripción</h1>
-          <p>¡Gracias por suscribirte al boletín de POD AI!</p>
+          <p>¡Gracias por suscribirte al boletín de Skapara!</p>
           <p>Por favor confirma tu dirección de correo electrónico haciendo clic en el siguiente enlace:</p>
           <p><a href="${confirmUrl}" style="display: inline-block; padding: 12px 24px; background: #000; color: #fff; text-decoration: none; border-radius: 6px;">Confirmar suscripción</a></p>
           <p>O copia y pega este enlace en tu navegador:</p>
@@ -128,7 +128,7 @@ export async function POST(req: NextRequest) {
         subject: 'Bestätigen Sie Ihr Newsletter-Abonnement',
         body: `
           <h1>Bestätigen Sie Ihr Abonnement</h1>
-          <p>Vielen Dank für Ihr Abonnement des POD AI Newsletters!</p>
+          <p>Vielen Dank für Ihr Abonnement des Skapara Newsletters!</p>
           <p>Bitte bestätigen Sie Ihre E-Mail-Adresse, indem Sie auf den folgenden Link klicken:</p>
           <p><a href="${confirmUrl}" style="display: inline-block; padding: 12px 24px; background: #000; color: #fff; text-decoration: none; border-radius: 6px;">Abonnement bestätigen</a></p>
           <p>Oder kopieren Sie diesen Link in Ihren Browser:</p>
@@ -150,7 +150,7 @@ export async function POST(req: NextRequest) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: process.env.RESEND_FROM_EMAIL || 'POD AI <noreply@podai.com>',
+        from: process.env.RESEND_FROM_EMAIL || 'Skapara <noreply@podai.com>',
         to: email,
         subject: content.subject,
         html: content.body,

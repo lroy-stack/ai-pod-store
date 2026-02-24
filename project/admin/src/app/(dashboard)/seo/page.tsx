@@ -20,17 +20,17 @@ interface MetaTags {
 
 const defaultMetaTags: MetaTags = {
   en: {
-    title: 'POD AI - Custom Print on Demand',
+    title: 'Skapara - Custom Print on Demand',
     description: 'Create custom designs and order high-quality print-on-demand products.',
     keywords: 'print on demand, custom designs, t-shirts, AI designs',
   },
   es: {
-    title: 'POD AI - Impresión bajo demanda personalizada',
+    title: 'Skapara - Impresión bajo demanda personalizada',
     description: 'Crea diseños personalizados y ordena productos de impresión bajo demanda de alta calidad.',
     keywords: 'impresión bajo demanda, diseños personalizados, camisetas, diseños AI',
   },
   de: {
-    title: 'POD AI - Benutzerdefinierter Print-on-Demand',
+    title: 'Skapara - Benutzerdefinierter Print-on-Demand',
     description: 'Erstellen Sie individuelle Designs und bestellen Sie hochwertige Print-on-Demand-Produkte.',
     keywords: 'Print-on-Demand, individuelle Designs, T-Shirts, KI-Designs',
   },

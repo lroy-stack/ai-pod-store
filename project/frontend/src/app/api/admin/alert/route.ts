@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
 
     if (telegramToken && adminChatId) {
       const emoji = severity === 'high' ? '🚨' : severity === 'medium' ? '⚠️' : 'ℹ️'
-      const text = `${emoji} *POD AI Alert*\n\n*Type:* ${type}\n*Severity:* ${severity || 'info'}\n*Message:* ${message}`
+      const text = `${emoji} *Skapara Alert*\n\n*Type:* ${type}\n*Severity:* ${severity || 'info'}\n*Message:* ${message}`
 
       await fetch(`https://api.telegram.org/bot${telegramToken}/sendMessage`, {
         method: 'POST',

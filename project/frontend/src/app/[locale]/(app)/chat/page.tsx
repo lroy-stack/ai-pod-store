@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Chat — POD AI',
+  title: 'Chat — Skapara',
   description: 'Chat with our AI assistant to design custom print-on-demand products.',
 }
 

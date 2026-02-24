@@ -164,7 +164,7 @@ async function handleWhatsAppCommand(phoneNumber: string, text: string, phoneNum
     case '/start':
       await sendWhatsAppMessage(
         phoneNumber,
-        '👋 Welcome to POD AI! I can help you browse products, track orders, and more. Type /help to see available commands.',
+        '👋 Welcome to Skapara! I can help you browse products, track orders, and more. Type /help to see available commands.',
         phoneNumberId
       );
       break;
@@ -172,7 +172,7 @@ async function handleWhatsAppCommand(phoneNumber: string, text: string, phoneNum
     case '/help':
       await sendWhatsAppMessage(
         phoneNumber,
-        '🤖 POD AI Commands:\n\n' +
+        '🤖 Skapara Commands:\n\n' +
         '🛍️ Shopping:\n' +
         '/browse - Browse our product catalog\n' +
         '/search <query> - Search for products\n' +
@@ -193,7 +193,7 @@ async function handleWhatsAppCommand(phoneNumber: string, text: string, phoneNum
       // For now, just return a simple response
       await sendWhatsAppMessage(
         phoneNumber,
-        '✅ POD AI is online and ready to assist you!',
+        '✅ Skapara is online and ready to assist you!',
         phoneNumberId
       );
       break;

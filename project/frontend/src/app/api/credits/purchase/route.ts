@@ -80,7 +80,7 @@ export async function POST(req: NextRequest) {
           price_data: {
             currency: 'eur',
             product_data: {
-              name: `POD AI ${packInfo.label}`,
+              name: `Skapara ${packInfo.label}`,
               description: `${packInfo.credits} design credits for AI-powered designs`,
             },
             unit_amount: packInfo.priceCents,

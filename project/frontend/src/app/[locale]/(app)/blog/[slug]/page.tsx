@@ -105,7 +105,7 @@ export default async function BlogPostPage({
     image: post.featured_image || undefined,
     author: {
       '@type': 'Organization',
-      name: 'POD AI',
+      name: 'Skapara',
     },
   }
 

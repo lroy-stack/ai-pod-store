@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'POD AI Store',
+  title: 'Skapara Store',
   description: 'AI-Managed Print-on-Demand Ecommerce Platform',
 }
 

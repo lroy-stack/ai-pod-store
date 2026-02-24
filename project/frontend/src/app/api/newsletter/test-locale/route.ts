@@ -23,18 +23,18 @@ export async function POST() {
         campaign_name: 'Welcome Series - Day 1 (EN)',
         segment: 'new_customers',
         locale: 'en',
-        subject_a: 'Welcome to POD AI! Here\'s 10% off 🎉',
+        subject_a: 'Welcome to Skapara! Here\'s 10% off 🎉',
         subject_b: 'Start your style journey with 10% off',
         preview_text: 'Welcome! Discover unique designs',
         body_html: `<html><body>
           <h1>Welcome!</h1>
-          <p>We're thrilled to have you here at POD AI.</p>
+          <p>We're thrilled to have you here at Skapara.</p>
           <p>Use code <strong>FIRSTORDER</strong> for 10% off your first purchase.</p>
           <a href="https://podai.com/en/shop">Start Shopping</a>
-          <p>Best regards,<br>The POD AI Team</p>
+          <p>Best regards,<br>The Skapara Team</p>
           <hr>
           <p style="font-size:12px;color:#666;">
-            POD AI Store, Friedrichstraße 123, 10117 Berlin, Germany<br>
+            Skapara Store, Friedrichstraße 123, 10117 Berlin, Germany<br>
             <a href="https://podai.com/en/unsubscribe">Unsubscribe</a>
           </p>
         </body></html>`,
@@ -49,18 +49,18 @@ export async function POST() {
         campaign_name: 'Welcome Series - Day 1 (ES)',
         segment: 'new_customers',
         locale: 'es',
-        subject_a: '¡Bienvenido a POD AI! 10% de descuento 🎉',
+        subject_a: '¡Bienvenido a Skapara! 10% de descuento 🎉',
         subject_b: 'Comienza tu viaje de estilo con 10% de descuento',
         preview_text: '¡Bienvenido! Descubre diseños únicos',
         body_html: `<html><body>
           <h1>¡Bienvenido!</h1>
-          <p>Estamos encantados de tenerte aquí en POD AI.</p>
+          <p>Estamos encantados de tenerte aquí en Skapara.</p>
           <p>Usa el código <strong>FIRSTORDER</strong> para obtener un 10% de descuento en tu primera compra.</p>
           <a href="https://podai.com/es/shop">Comenzar a Comprar</a>
-          <p>Saludos cordiales,<br>El Equipo de POD AI</p>
+          <p>Saludos cordiales,<br>El Equipo de Skapara</p>
           <hr>
           <p style="font-size:12px;color:#666;">
-            POD AI Store, Friedrichstraße 123, 10117 Berlín, Alemania<br>
+            Skapara Store, Friedrichstraße 123, 10117 Berlín, Alemania<br>
             <a href="https://podai.com/es/unsubscribe">Darse de baja</a>
           </p>
         </body></html>`,
@@ -75,18 +75,18 @@ export async function POST() {
         campaign_name: 'Welcome Series - Day 1 (DE)',
         segment: 'new_customers',
         locale: 'de',
-        subject_a: 'Willkommen bei POD AI! 10% Rabatt 🎉',
+        subject_a: 'Willkommen bei Skapara! 10% Rabatt 🎉',
         subject_b: 'Beginne deine Stil-Reise mit 10% Rabatt',
         preview_text: 'Willkommen! Entdecke einzigartige Designs',
         body_html: `<html><body>
           <h1>Willkommen!</h1>
-          <p>Wir freuen uns, dich bei POD AI zu haben.</p>
+          <p>Wir freuen uns, dich bei Skapara zu haben.</p>
           <p>Verwende den Code <strong>FIRSTORDER</strong> für 10% Rabatt auf deinen ersten Einkauf.</p>
           <a href="https://podai.com/de/shop">Jetzt Einkaufen</a>
-          <p>Mit freundlichen Grüßen,<br>Das POD AI Team</p>
+          <p>Mit freundlichen Grüßen,<br>Das Skapara Team</p>
           <hr>
           <p style="font-size:12px;color:#666;">
-            POD AI Store, Friedrichstraße 123, 10117 Berlin, Deutschland<br>
+            Skapara Store, Friedrichstraße 123, 10117 Berlin, Deutschland<br>
             <a href="https://podai.com/de/unsubscribe">Abmelden</a>
           </p>
         </body></html>`,
@@ -110,10 +110,10 @@ export async function POST() {
           <p>Here's a special <strong>20% discount</strong> code just for you: <strong>COMEBACK20</strong></p>
           <p>Valid for the next 7 days.</p>
           <a href="https://podai.com/en/shop">Rediscover Your Style</a>
-          <p>❤️ The POD AI Team</p>
+          <p>❤️ The Skapara Team</p>
           <hr>
           <p style="font-size:12px;color:#666;">
-            POD AI Store, Friedrichstraße 123, 10117 Berlin, Germany<br>
+            Skapara Store, Friedrichstraße 123, 10117 Berlin, Germany<br>
             <a href="https://podai.com/en/unsubscribe">Unsubscribe</a>
           </p>
         </body></html>`,
@@ -136,10 +136,10 @@ export async function POST() {
           <p>Aquí tienes un código de <strong>20% de descuento</strong> especial solo para ti: <strong>COMEBACK20</strong></p>
           <p>Válido por los próximos 7 días.</p>
           <a href="https://podai.com/es/shop">Redescubre Tu Estilo</a>
-          <p>❤️ El Equipo de POD AI</p>
+          <p>❤️ El Equipo de Skapara</p>
           <hr>
           <p style="font-size:12px;color:#666;">
-            POD AI Store, Friedrichstraße 123, 10117 Berlín, Alemania<br>
+            Skapara Store, Friedrichstraße 123, 10117 Berlín, Alemania<br>
             <a href="https://podai.com/es/unsubscribe">Darse de baja</a>
           </p>
         </body></html>`,
@@ -162,10 +162,10 @@ export async function POST() {
           <p>Hier ist ein spezieller <strong>20% Rabattcode</strong> nur für dich: <strong>COMEBACK20</strong></p>
           <p>Gültig für die nächsten 7 Tage.</p>
           <a href="https://podai.com/de/shop">Entdecke Deinen Stil Neu</a>
-          <p>❤️ Das POD AI Team</p>
+          <p>❤️ Das Skapara Team</p>
           <hr>
           <p style="font-size:12px;color:#666;">
-            POD AI Store, Friedrichstraße 123, 10117 Berlin, Deutschland<br>
+            Skapara Store, Friedrichstraße 123, 10117 Berlin, Deutschland<br>
             <a href="https://podai.com/de/unsubscribe">Abmelden</a>
           </p>
         </body></html>`,

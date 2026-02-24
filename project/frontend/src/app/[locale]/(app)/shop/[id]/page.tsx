@@ -17,13 +17,13 @@ export async function generateMetadata({
 
   if (!product) {
     return {
-      title: 'Product Not Found | POD AI Store',
+      title: 'Product Not Found | Skapara Store',
       description: 'The product you are looking for could not be found.',
     }
   }
 
-  const title = `${product.title} - €${product.price} | POD AI Store`
-  const description = product.description || `Buy ${product.title} at POD AI Store`
+  const title = `${product.title} - €${product.price} | Skapara Store`
+  const description = product.description || `Buy ${product.title} at Skapara Store`
   const images = product.images && product.images.length > 0 ? [product.images[0]] : []
 
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
@@ -90,7 +90,7 @@ export default async function ProductDetailPage({
       availability: product.inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
       seller: {
         '@type': 'Organization',
-        name: 'POD AI Store',
+        name: 'Skapara Store',
       },
     },
     aggregateRating: product.reviewCount > 0 ? {

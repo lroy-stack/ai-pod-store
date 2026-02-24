@@ -31,7 +31,7 @@ export interface MockupResult {
  * @param options.designUrl - URL of the AI-generated design image
  * @param options.productType - Product type for template selection
  * @param options.color - Template color variant (default: first available)
- * @param options.watermark - If true, output is 512px with "POD AI" watermark (anonymous users)
+ * @param options.watermark - If true, output is 512px with "Skapara" watermark (anonymous users)
  */
 export async function generateMockup(options: MockupOptions): Promise<MockupResult> {
   const { designUrl, productType, color, watermark = false } = options
@@ -100,7 +100,7 @@ export async function generateMockup(options: MockupOptions): Promise<MockupResu
         <text x="512" y="512" font-size="80" font-family="Arial, sans-serif"
               fill="rgba(255,255,255,0.35)" text-anchor="middle"
               dominant-baseline="middle"
-              transform="rotate(-30 512 512)">POD AI</text>
+              transform="rotate(-30 512 512)">Skapara</text>
         <text x="512" y="620" font-size="40" font-family="Arial, sans-serif"
               fill="rgba(255,255,255,0.25)" text-anchor="middle"
               dominant-baseline="middle"

@@ -106,7 +106,7 @@ async function sendAbandonedCartEmail(params: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: process.env.RESEND_FROM_EMAIL || 'POD AI <onboarding@resend.dev>',
+        from: process.env.RESEND_FROM_EMAIL || 'Skapara <onboarding@resend.dev>',
         to,
         subject,
         html: `
@@ -119,7 +119,7 @@ async function sendAbandonedCartEmail(params: {
 </head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: ${EMAIL_COLORS.bodyText}; max-width: 600px; margin: 0 auto; padding: 20px;">
   <div style="background: linear-gradient(135deg, ${EMAIL_COLORS.gradientStart} 0%, ${EMAIL_COLORS.gradientEnd} 100%); color: white; padding: 30px; border-radius: 8px 8px 0 0; text-align: center;">
-    <h1 style="margin: 0; font-size: 28px;">POD AI</h1>
+    <h1 style="margin: 0; font-size: 28px;">Skapara</h1>
   </div>
 
   <div style="background: ${EMAIL_COLORS.panelBg}; padding: 30px; border-radius: 0 0 8px 8px;">
@@ -132,12 +132,12 @@ async function sendAbandonedCartEmail(params: {
     </div>
 
     <p style="font-size: 14px; color: ${EMAIL_COLORS.mutedText}; margin-top: 30px;">
-      ${locale === 'es' ? 'Gracias por elegir POD AI' : locale === 'de' ? 'Danke, dass du POD AI gewählt hast' : 'Thank you for choosing POD AI'}!
+      ${locale === 'es' ? 'Gracias por elegir Skapara' : locale === 'de' ? 'Danke, dass du Skapara gewählt hast' : 'Thank you for choosing Skapara'}!
     </p>
   </div>
 
   <div style="text-align: center; margin-top: 20px; padding: 20px; font-size: 12px; color: ${EMAIL_COLORS.footerText};">
-    <p>POD AI ${locale === 'es' ? '— Tu tienda de impresión bajo demanda impulsada por IA' : locale === 'de' ? '— Dein KI-gesteuerter Print-on-Demand-Marktplatz' : '— Your AI-powered print-on-demand marketplace'}</p>
+    <p>Skapara ${locale === 'es' ? '— Tu tienda de impresión bajo demanda impulsada por IA' : locale === 'de' ? '— Dein KI-gesteuerter Print-on-Demand-Marktplatz' : '— Your AI-powered print-on-demand marketplace'}</p>
   </div>
 </body>
 </html>

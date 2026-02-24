@@ -138,7 +138,7 @@ self.addEventListener('push', (event: any) => {
     vibrate: [100, 50, 100],
   }
   event.waitUntil(
-    self.registration.showNotification(data.title || 'POD AI', options)
+    self.registration.showNotification(data.title || 'Skapara', options)
   )
 })
 

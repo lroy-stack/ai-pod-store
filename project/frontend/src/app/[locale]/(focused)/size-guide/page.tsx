@@ -11,7 +11,7 @@ export async function generateMetadata({ params }: SizeGuidePageProps): Promise<
   const t = await getTranslations({ locale, namespace: 'sizeGuide' })
 
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://podai.com'
-  const siteName = process.env.NEXT_PUBLIC_SITE_NAME || 'POD AI'
+  const siteName = process.env.NEXT_PUBLIC_SITE_NAME || 'Skapara'
 
   return {
     title: `${t('title')} - ${siteName}`,

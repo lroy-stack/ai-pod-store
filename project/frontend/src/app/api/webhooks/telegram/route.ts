@@ -127,7 +127,7 @@ export async function POST(request: NextRequest) {
           case '/help':
             await sendTelegramMessage(
               chatId,
-              '🔧 POD AI Admin Commands:\n\n' +
+              '🔧 Skapara Admin Commands:\n\n' +
               '📊 Monitoring:\n' +
               '/status - PodClaw agent status\n' +
               '/agents - List all 8 agents\n' +
@@ -147,13 +147,13 @@ export async function POST(request: NextRequest) {
         // Customer commands
         switch (command) {
           case '/start':
-            await sendTelegramMessage(chatId, '👋 Welcome to POD AI! I can help you browse products, track orders, and more. Type /help to see available commands.');
+            await sendTelegramMessage(chatId, '👋 Welcome to Skapara! I can help you browse products, track orders, and more. Type /help to see available commands.');
             break;
 
           case '/help':
             await sendTelegramMessage(
               chatId,
-              '🤖 POD AI Commands:\n\n' +
+              '🤖 Skapara Commands:\n\n' +
               '🛍️ Shopping:\n' +
               '/browse - Browse our product catalog\n' +
               '/search <query> - Search for products\n' +
@@ -162,7 +162,7 @@ export async function POST(request: NextRequest) {
               '/orders - View your order history\n' +
               '/track <order_id> - Track an order\n\n' +
               '👤 Account:\n' +
-              '/link - Link your POD AI account\n' +
+              '/link - Link your Skapara account\n' +
               '/settings - Account settings\n\n' +
               '❓ /help - Show this message'
             );
@@ -172,10 +172,10 @@ export async function POST(request: NextRequest) {
             await sendTelegramMessage(
               chatId,
               '🔗 Account Linking\n\n' +
-              'To link your POD AI account:\n' +
+              'To link your Skapara account:\n' +
               '1. Visit https://podai.com/account/linking\n' +
               '2. Enter this code: ' + userId.toString().slice(-6) + '\n\n' +
-              'This will connect your Telegram to your POD AI account.'
+              'This will connect your Telegram to your Skapara account.'
             );
             break;
 

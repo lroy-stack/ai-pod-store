@@ -715,7 +715,7 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          from: process.env.RESEND_FROM_EMAIL || 'POD AI <noreply@podai.com>',
+          from: process.env.RESEND_FROM_EMAIL || 'Skapara <noreply@podai.com>',
           to: user.email,
           subject: 'Payment Failed — Please Update Your Payment Method',
           html: `
@@ -769,7 +769,7 @@ async function sendOrderIssueEmail(email: string, orderId: string, locale: strin
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: process.env.RESEND_FROM_EMAIL || 'POD AI <noreply@podai.com>',
+        from: process.env.RESEND_FROM_EMAIL || 'Skapara <noreply@podai.com>',
         to: email,
         subject: locale === 'es'
           ? `Pedido #${orderNumber} — Revisión necesaria`

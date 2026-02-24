@@ -47,7 +47,7 @@ export async function generateMetadata({ params, searchParams }: ShopPageProps):
   const t = await getTranslations({ locale, namespace: 'shop' })
 
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://podai.com'
-  const siteName = process.env.NEXT_PUBLIC_SITE_NAME || 'POD AI'
+  const siteName = process.env.NEXT_PUBLIC_SITE_NAME || 'Skapara'
 
   const query = search.q as string | undefined
   const category = search.category as string | undefined
@@ -190,7 +190,7 @@ export default async function ShopPage({ params, searchParams }: ShopPageProps) 
   // Get translations for JSON-LD
   const t = await getTranslations({ locale, namespace: 'shop' })
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://podai.com'
-  const siteName = process.env.NEXT_PUBLIC_SITE_NAME || 'POD AI'
+  const siteName = process.env.NEXT_PUBLIC_SITE_NAME || 'Skapara'
 
   // JSON-LD structured data for SEO - ItemList schema
   const itemListSchema = {

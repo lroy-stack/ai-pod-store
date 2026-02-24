@@ -51,7 +51,7 @@ export async function POST() {
           <p>Here's a special 20% discount code just for you: <strong>COMEBACK20</strong></p>
           <p>Valid for the next 7 days on your favorite designs.</p>
           <a href="https://podai.com/en/shop">Rediscover Your Style</a>
-          <p>❤️ The POD AI Team</p>
+          <p>❤️ The Skapara Team</p>
         </body></html>`,
         cta_a: 'Shop Now with 20% Off',
         cta_b: 'Browse New Designs',
@@ -63,12 +63,12 @@ export async function POST() {
         campaign_name: 'New Customer Welcome - Day 1',
         segment: 'new_customers',
         locale: 'en',
-        subject_a: 'Welcome to POD AI! Here\'s 10% off 🎉',
+        subject_a: 'Welcome to Skapara! Here\'s 10% off 🎉',
         subject_b: 'Start your style journey with 10% off',
         preview_text: 'Welcome! Discover unique designs that express who you are',
         body_html: `<html><body>
           <h1>Welcome, {{first_name}}! 👋</h1>
-          <p>We're thrilled to have you here. At POD AI, every design tells a story - yours.</p>
+          <p>We're thrilled to have you here. At Skapara, every design tells a story - yours.</p>
           <p>Get started with <strong>10% off</strong> your first order: <strong>FIRSTORDER</strong></p>
           <a href="https://podai.com/en/shop">Start Shopping</a>
           <p>Our most popular designs this week:</p>

@@ -12,10 +12,10 @@ export async function generateMetadata({ params }: FAQPageProps): Promise<Metada
   const { locale } = await params
 
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://podai.com'
-  const siteName = process.env.NEXT_PUBLIC_SITE_NAME || 'POD AI'
+  const siteName = process.env.NEXT_PUBLIC_SITE_NAME || 'Skapara'
 
   const title = `Frequently Asked Questions - ${siteName}`
-  const description = 'Find answers to common questions about POD AI, our products, ordering, shipping, and more.'
+  const description = 'Find answers to common questions about Skapara, our products, ordering, shipping, and more.'
 
   return {
     title,
@@ -49,16 +49,16 @@ const faqData = [
     category: 'General',
     questions: [
       {
-        question: 'What is POD AI?',
-        answer: 'POD AI is an AI-powered print-on-demand platform that allows you to create custom designs and order personalized products. Our platform combines cutting-edge artificial intelligence with traditional e-commerce to make product creation accessible to everyone.',
+        question: 'What is Skapara?',
+        answer: 'Skapara is an AI-powered print-on-demand platform that allows you to create custom designs and order personalized products. Our platform combines cutting-edge artificial intelligence with traditional e-commerce to make product creation accessible to everyone.',
       },
       {
         question: 'How does the AI design tool work?',
         answer: 'Our AI design tool uses advanced machine learning models to help you create unique designs. Simply describe what you want, and our AI will generate design suggestions. You can then refine, customize, and perfect your design before ordering.',
       },
       {
-        question: 'Do I need design experience to use POD AI?',
-        answer: 'No! POD AI is designed for everyone, regardless of design experience. Our AI assistant guides you through the process and handles the technical aspects, so you can focus on bringing your creative vision to life.',
+        question: 'Do I need design experience to use Skapara?',
+        answer: 'No! Skapara is designed for everyone, regardless of design experience. Our AI assistant guides you through the process and handles the technical aspects, so you can focus on bringing your creative vision to life.',
       },
     ],
   },

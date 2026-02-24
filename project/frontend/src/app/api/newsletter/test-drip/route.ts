@@ -23,7 +23,7 @@ export async function POST() {
         campaign_name: 'Welcome Series - Day 1',
         segment: 'new_customers',
         locale: 'en',
-        subject_a: 'Welcome to POD AI! Here\'s 10% off 🎉',
+        subject_a: 'Welcome to Skapara! Here\'s 10% off 🎉',
         subject_b: 'Start your style journey with 10% off',
         preview_text: 'Welcome! Discover unique designs',
         body_html: '<html><body><h1>Welcome, {{first_name}}! 👋</h1><p>Use code FIRSTORDER for 10% off</p></body></html>',

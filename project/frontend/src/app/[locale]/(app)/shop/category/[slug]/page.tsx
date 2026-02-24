@@ -69,7 +69,7 @@ export async function generateMetadata({ params, searchParams }: CategoryPagePro
   const t = await getTranslations({ locale, namespace: 'shop' })
 
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://podai.com'
-  const siteName = process.env.NEXT_PUBLIC_SITE_NAME || 'POD AI'
+  const siteName = process.env.NEXT_PUBLIC_SITE_NAME || 'Skapara'
 
   // Get category name from translations
   const categoryName = t.has(`category.${slug}`) ? t(`category.${slug}`) : slug
@@ -206,7 +206,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   // Get translations for JSON-LD and UI
   const t = await getTranslations({ locale, namespace: 'shop' })
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://podai.com'
-  const siteName = process.env.NEXT_PUBLIC_SITE_NAME || 'POD AI'
+  const siteName = process.env.NEXT_PUBLIC_SITE_NAME || 'Skapara'
 
   // Get category name from translations
   const categoryName = t.has(`category.${slug}`) ? t(`category.${slug}`) : slug
