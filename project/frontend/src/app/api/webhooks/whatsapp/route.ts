@@ -70,17 +70,27 @@ export async function POST(request: NextRequest) {
     const body = await request.text();
     const update: WhatsAppUpdate = JSON.parse(body);
 
-    // Verify signature if configured
-    const signature = request.headers.get('x-hub-signature-256');
-    if (signature && process.env.WHATSAPP_APP_SECRET) {
-      const expectedSignature = 'sha256=' + createHmac('sha256', process.env.WHATSAPP_APP_SECRET)
-        .update(body)
-        .digest('hex');
+    // Fail closed: reject if WHATSAPP_APP_SECRET is not configured
+    const appSecret = process.env.WHATSAPP_APP_SECRET;
+    if (!appSecret) {
+      console.error('WHATSAPP_APP_SECRET not configured — failing closed');
+      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
+    }
 
-      if (signature !== expectedSignature) {
-        console.error('WhatsApp webhook signature verification failed');
-        return NextResponse.json({ error: 'Invalid signature' }, { status: 403 });
-      }
+    // Verify signature (always required in production)
+    const signature = request.headers.get('x-hub-signature-256');
+    if (!signature) {
+      console.error('WhatsApp webhook missing x-hub-signature-256 header');
+      return NextResponse.json({ error: 'Missing signature' }, { status: 403 });
+    }
+
+    const expectedSignature = 'sha256=' + createHmac('sha256', appSecret)
+      .update(body)
+      .digest('hex');
+
+    if (signature !== expectedSignature) {
+      console.error('WhatsApp webhook signature verification failed');
+      return NextResponse.json({ error: 'Invalid signature' }, { status: 403 });
     }
 
     // Verify this is a WhatsApp update
