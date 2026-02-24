@@ -7,9 +7,11 @@ Full CRUD for the cataloger agent: products, blueprints, mockups, orders.
 
 from __future__ import annotations
 
+import asyncio
 import ipaddress
 import re
 import socket
+import time
 from typing import Any
 
 import httpx
@@ -191,6 +193,151 @@ def _raise_with_detail(resp: "httpx.Response", operation: str) -> None:
     )
 
 
+class CircuitBreaker:
+    """Circuit breaker to prevent cascading failures.
+
+    Opens circuit after 5 consecutive failures, stays open for 60s.
+    """
+
+    def __init__(self, failure_threshold: int = 5, timeout: float = 60.0):
+        self.failure_threshold = failure_threshold
+        self.timeout = timeout
+        self.failure_count = 0
+        self.last_failure_time: float | None = None
+        self.state = "closed"  # closed, open, half-open
+
+    def record_success(self) -> None:
+        """Reset failure counter on successful request."""
+        self.failure_count = 0
+        if self.state == "half-open":
+            self.state = "closed"
+            logger.info("circuit_breaker_closed", message="Circuit recovered after successful request")
+
+    def record_failure(self) -> None:
+        """Increment failure counter and open circuit if threshold exceeded."""
+        self.failure_count += 1
+        self.last_failure_time = time.time()
+        if self.failure_count >= self.failure_threshold and self.state == "closed":
+            self.state = "open"
+            logger.warning(
+                "circuit_breaker_opened",
+                failure_count=self.failure_count,
+                timeout=self.timeout,
+            )
+
+    def can_attempt(self) -> bool:
+        """Check if request is allowed based on circuit state."""
+        if self.state == "closed":
+            return True
+
+        if self.state == "open":
+            # Check if timeout has elapsed
+            if self.last_failure_time and (time.time() - self.last_failure_time) >= self.timeout:
+                self.state = "half-open"
+                logger.info("circuit_breaker_half_open", message="Attempting recovery")
+                return True
+            return False
+
+        # half-open state allows one attempt
+        return True
+
+
+async def _retry_with_backoff(
+    operation: str,
+    request_fn: Any,
+    circuit_breaker: CircuitBreaker,
+    max_attempts: int = 3,
+) -> httpx.Response:
+    """Retry HTTP requests with exponential backoff for 429/5xx errors.
+
+    Backoff delays: 2s, 4s, 8s (doubles each retry)
+    Respects Retry-After header on 429 responses.
+    Records successes/failures in circuit breaker.
+    """
+    backoff_delays = [2.0, 4.0, 8.0]  # Exponential: 2^1, 2^2, 2^3
+
+    for attempt in range(max_attempts):
+        # Check circuit breaker before attempting
+        if not circuit_breaker.can_attempt():
+            logger.warning(
+                "circuit_breaker_blocking_request",
+                operation=operation,
+                state=circuit_breaker.state,
+            )
+            raise httpx.HTTPStatusError(
+                "Circuit breaker is open — too many consecutive failures",
+                request=None,  # type: ignore
+                response=None,  # type: ignore
+            )
+
+        try:
+            resp = await request_fn()
+
+            # Success — record and return
+            if resp.status_code < 400:
+                circuit_breaker.record_success()
+                return resp
+
+            # 429 Rate Limit — retry with Retry-After or backoff
+            if resp.status_code == 429 and attempt < max_attempts - 1:
+                retry_after = resp.headers.get("Retry-After")
+                if retry_after:
+                    try:
+                        delay = float(retry_after)
+                    except ValueError:
+                        delay = backoff_delays[attempt]
+                else:
+                    delay = backoff_delays[attempt]
+
+                logger.warning(
+                    "printify_rate_limited",
+                    operation=operation,
+                    attempt=attempt + 1,
+                    retry_after=delay,
+                )
+                await asyncio.sleep(delay)
+                continue
+
+            # 5xx Server Error — retry with backoff
+            if resp.status_code >= 500 and attempt < max_attempts - 1:
+                delay = backoff_delays[attempt]
+                logger.warning(
+                    "printify_server_error",
+                    operation=operation,
+                    status=resp.status_code,
+                    attempt=attempt + 1,
+                    retry_delay=delay,
+                )
+                circuit_breaker.record_failure()
+                await asyncio.sleep(delay)
+                continue
+
+            # 4xx Client Error (not 429) — don't retry, but record failure
+            if resp.status_code >= 400:
+                circuit_breaker.record_failure()
+                return resp
+
+        except (httpx.RequestError, httpx.TimeoutException) as exc:
+            # Network/timeout errors — retry with backoff
+            circuit_breaker.record_failure()
+            if attempt < max_attempts - 1:
+                delay = backoff_delays[attempt]
+                logger.warning(
+                    "printify_network_error",
+                    operation=operation,
+                    error=str(exc)[:200],
+                    attempt=attempt + 1,
+                    retry_delay=delay,
+                )
+                await asyncio.sleep(delay)
+                continue
+            raise
+
+    # All retries exhausted — raise the last response
+    circuit_breaker.record_failure()
+    return resp  # type: ignore
+
+
 class PrintifyMCPConnector:
     """In-process MCP connector for Printify."""
 
@@ -204,15 +351,23 @@ class PrintifyMCPConnector:
         }
         # Shared httpx client for connection pooling (lazy init)
         self._client: httpx.AsyncClient | None = None
+        # Circuit breaker for failure detection and recovery
+        self._circuit_breaker = CircuitBreaker(failure_threshold=5, timeout=60.0)
 
-    async def _get_client(self) -> httpx.AsyncClient:
-        """Get or create shared httpx client with connection pooling."""
+    async def _get_client(self, timeout: float = 30.0) -> httpx.AsyncClient:
+        """Get or create shared httpx client with dynamic timeout.
+
+        Timeouts: 30s reads (default), 60s writes, 120s uploads.
+        """
         if self._client is None or self._client.is_closed:
             self._client = httpx.AsyncClient(
                 headers=self._headers,
-                timeout=30,
+                timeout=timeout,
                 limits=httpx.Limits(max_connections=10, max_keepalive_connections=5),
             )
+        else:
+            # Update timeout if different from current
+            self._client.timeout = httpx.Timeout(timeout)
         return self._client
 
     async def close(self) -> None:
@@ -634,8 +789,12 @@ class PrintifyMCPConnector:
         page = _clamp_page(params.get("page", 1))
         limit = _clamp_limit(params.get("limit", 20))
         url = f"{PRINTIFY_API}/shops/{self._shop_id}/products.json?page={page}&limit={limit}"
-        client = await self._get_client()
-        resp = await client.get(url, headers=self._headers)
+        client = await self._get_client(timeout=30.0)  # Read operation
+
+        async def request_fn():
+            return await client.get(url, headers=self._headers)
+
+        resp = await _retry_with_backoff("list_products", request_fn, self._circuit_breaker)
         resp.raise_for_status()
         return resp.json()
 
@@ -668,8 +827,12 @@ class PrintifyMCPConnector:
         # GPSR: pass safety_information if provided
         if params.get("safety_information"):
             body["safety_information"] = params["safety_information"]
-        client = await self._get_client()
-        resp = await client.post(url, headers=self._headers, json=body, timeout=30)
+        client = await self._get_client(timeout=60.0)  # Write operation
+
+        async def request_fn():
+            return await client.post(url, headers=self._headers, json=body)
+
+        resp = await _retry_with_backoff("create_product", request_fn, self._circuit_breaker)
         if resp.status_code >= 400:
             _raise_with_detail(resp, "printify_create")
         return resp.json()
@@ -693,8 +856,12 @@ class PrintifyMCPConnector:
                 normalized.append(entry)
             body["variants"] = normalized
 
-        client = await self._get_client()
-        resp = await client.put(url, headers=self._headers, json=body, timeout=30)
+        client = await self._get_client(timeout=60.0)  # Write operation
+
+        async def request_fn():
+            return await client.put(url, headers=self._headers, json=body)
+
+        resp = await _retry_with_backoff("update_product", request_fn, self._circuit_breaker)
         if resp.status_code >= 400:
             _raise_with_detail(resp, "printify_update")
         return resp.json()
@@ -718,16 +885,24 @@ class PrintifyMCPConnector:
     async def _get_product(self, params: dict[str, Any]) -> dict[str, Any]:
         pid = params["product_id"]
         url = f"{PRINTIFY_API}/shops/{self._shop_id}/products/{pid}.json"
-        client = await self._get_client()
-        resp = await client.get(url, headers=self._headers)
+        client = await self._get_client(timeout=30.0)  # Read operation
+
+        async def request_fn():
+            return await client.get(url, headers=self._headers)
+
+        resp = await _retry_with_backoff("get_product", request_fn, self._circuit_breaker)
         resp.raise_for_status()
         return resp.json()
 
     async def _delete_product(self, params: dict[str, Any]) -> dict[str, Any]:
         pid = params["product_id"]
         url = f"{PRINTIFY_API}/shops/{self._shop_id}/products/{pid}.json"
-        client = await self._get_client()
-        resp = await client.delete(url, headers=self._headers, timeout=30)
+        client = await self._get_client(timeout=60.0)  # Write operation
+
+        async def request_fn():
+            return await client.delete(url, headers=self._headers)
+
+        resp = await _retry_with_backoff("delete_product", request_fn, self._circuit_breaker)
         if resp.status_code >= 400:
             _raise_with_detail(resp, "printify_delete")
         logger.warning(
@@ -748,8 +923,12 @@ class PrintifyMCPConnector:
             "variants": params.get("variants", True),
             "tags": params.get("tags", True),
         }
-        client = await self._get_client()
-        resp = await client.post(url, headers=self._headers, json=body, timeout=30)
+        client = await self._get_client(timeout=60.0)  # Write operation
+
+        async def request_fn():
+            return await client.post(url, headers=self._headers, json=body)
+
+        resp = await _retry_with_backoff("publish_product", request_fn, self._circuit_breaker)
         if resp.status_code >= 400:
             _raise_with_detail(resp, "printify_publish")
         # Return actual Printify response merged with our fields
@@ -798,8 +977,12 @@ class PrintifyMCPConnector:
             "file_name": file_name,
             "url": image_url,
         }
-        client = await self._get_client()
-        resp = await client.post(url, headers=self._headers, json=body, timeout=60)
+        client = await self._get_client(timeout=120.0)  # Upload operation
+
+        async def request_fn():
+            return await client.post(url, headers=self._headers, json=body)
+
+        resp = await _retry_with_backoff("upload_image", request_fn, self._circuit_breaker)
         if resp.status_code >= 400:
             _raise_with_detail(resp, "printify_upload_image")
         return resp.json()
