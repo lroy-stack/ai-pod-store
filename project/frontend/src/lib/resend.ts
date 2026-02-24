@@ -5,6 +5,7 @@
  */
 
 import { Resend } from 'resend'
+import { createClient } from '@supabase/supabase-js'
 
 /** Centralized email color palette — update here to match brand theme */
 const EMAIL_COLORS = {
@@ -43,6 +44,35 @@ export const resend: Resend = new Proxy({} as Resend, {
 })
 
 /**
+ * Fetch brand configuration from database
+ * Returns brand_name and brand_tagline for use in emails
+ */
+async function getBrandConfig(): Promise<{ brandName: string; brandTagline: string }> {
+  try {
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_KEY!
+    )
+
+    const { data, error } = await supabase
+      .from('brand_config')
+      .select('brand_name, brand_tagline')
+      .eq('is_active', true)
+      .single()
+
+    if (error || !data) {
+      console.warn('Failed to fetch brand config, using fallback:', error)
+      return { brandName: 'Skapara', brandTagline: 'AI-Powered Print on Demand' }
+    }
+
+    return { brandName: data.brand_name, brandTagline: data.brand_tagline }
+  } catch (error) {
+    console.error('Exception fetching brand config:', error)
+    return { brandName: 'Skapara', brandTagline: 'AI-Powered Print on Demand' }
+  }
+}
+
+/**
  * Send order confirmation email
  */
 export async function sendOrderConfirmationEmail(params: {
@@ -56,6 +86,7 @@ export async function sendOrderConfirmationEmail(params: {
 }) {
   const { to, orderId, orderNumber, itemCount, totalCents, currency, locale } = params
 
+  const { brandName, brandTagline } = await getBrandConfig()
   const totalAmount = (totalCents / 100).toFixed(2)
   const currencyCode = currency.toUpperCase()
 
@@ -112,7 +143,7 @@ export async function sendOrderConfirmationEmail(params: {
 
   try {
     const { data, error } = await resend.emails.send({
-      from: 'POD AI <onboarding@resend.dev>',
+      from: `${brandName} <${process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev'}>`,
       to,
       subject,
       html: `
@@ -125,7 +156,7 @@ export async function sendOrderConfirmationEmail(params: {
 </head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: ${EMAIL_COLORS.bodyText}; max-width: 600px; margin: 0 auto; padding: 20px;">
   <div style="background: linear-gradient(135deg, ${EMAIL_COLORS.gradientStart} 0%, ${EMAIL_COLORS.gradientEnd} 100%); color: white; padding: 30px; border-radius: 8px 8px 0 0; text-align: center;">
-    <h1 style="margin: 0; font-size: 28px;">POD AI</h1>
+    <h1 style="margin: 0; font-size: 28px;">${brandName}</h1>
   </div>
 
   <div style="background: ${EMAIL_COLORS.panelBg}; padding: 30px; border-radius: 0 0 8px 8px;">
@@ -150,7 +181,7 @@ export async function sendOrderConfirmationEmail(params: {
   </div>
 
   <div style="text-align: center; margin-top: 20px; padding: 20px; font-size: 12px; color: ${EMAIL_COLORS.footerText};">
-    <p>POD AI ${locale === 'es' ? '— Tu tienda de impresión bajo demanda impulsada por IA' : locale === 'de' ? '— Dein KI-gesteuerter Print-on-Demand-Marktplatz' : '— Your AI-powered print-on-demand marketplace'}</p>
+    <p>${brandName} — ${brandTagline}</p>
   </div>
 </body>
 </html>
@@ -182,6 +213,8 @@ export async function sendOrderShippedEmail(params: {
   locale: string
 }) {
   const { to, orderId, trackingNumber, trackingUrl, carrier, locale } = params
+
+  const { brandName, brandTagline } = await getBrandConfig()
 
   // Locale-aware email content
   const subjects = {
@@ -221,7 +254,7 @@ export async function sendOrderShippedEmail(params: {
 
   try {
     const { data, error } = await resend.emails.send({
-      from: process.env.RESEND_FROM_EMAIL || 'POD AI Store <onboarding@resend.dev>',
+      from: `${brandName} <${process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev'}>`,
       to,
       subject,
       html: `
@@ -234,7 +267,7 @@ export async function sendOrderShippedEmail(params: {
 </head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: ${EMAIL_COLORS.bodyText}; max-width: 600px; margin: 0 auto; padding: 20px;">
   <div style="background: linear-gradient(135deg, ${EMAIL_COLORS.gradientStart} 0%, ${EMAIL_COLORS.gradientEnd} 100%); color: white; padding: 30px; border-radius: 8px 8px 0 0; text-align: center;">
-    <h1 style="margin: 0; font-size: 28px;">POD AI Store</h1>
+    <h1 style="margin: 0; font-size: 28px;">${brandName}</h1>
   </div>
 
   <div style="background: ${EMAIL_COLORS.panelBg}; padding: 30px; border-radius: 0 0 8px 8px;">
@@ -268,7 +301,7 @@ export async function sendOrderShippedEmail(params: {
   </div>
 
   <div style="text-align: center; margin-top: 20px; padding: 20px; font-size: 12px; color: ${EMAIL_COLORS.footerText};">
-    <p>POD AI Store — Your AI-powered print-on-demand marketplace</p>
+    <p>${brandName} — ${brandTagline}</p>
   </div>
 </body>
 </html>
@@ -301,6 +334,7 @@ export async function sendOrderCancelledEmail(params: {
 }) {
   const { to, orderId, refundAmount, currency, reason, locale } = params
 
+  const { brandName, brandTagline } = await getBrandConfig()
   const refundAmountFormatted = (refundAmount / 100).toFixed(2)
   const currencyCode = currency.toUpperCase()
 
@@ -364,7 +398,7 @@ export async function sendOrderCancelledEmail(params: {
 
   try {
     const { data, error } = await resend.emails.send({
-      from: process.env.RESEND_FROM_EMAIL || 'POD AI Store <onboarding@resend.dev>',
+      from: `${brandName} <${process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev'}>`,
       to,
       subject,
       html: `
@@ -377,7 +411,7 @@ export async function sendOrderCancelledEmail(params: {
 </head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: ${EMAIL_COLORS.bodyText}; max-width: 600px; margin: 0 auto; padding: 20px;">
   <div style="background: linear-gradient(135deg, ${EMAIL_COLORS.gradientStart} 0%, ${EMAIL_COLORS.gradientEnd} 100%); color: white; padding: 30px; border-radius: 8px 8px 0 0; text-align: center;">
-    <h1 style="margin: 0; font-size: 28px;">POD AI Store</h1>
+    <h1 style="margin: 0; font-size: 28px;">${brandName}</h1>
   </div>
 
   <div style="background: ${EMAIL_COLORS.panelBg}; padding: 30px; border-radius: 0 0 8px 8px;">
@@ -402,7 +436,7 @@ export async function sendOrderCancelledEmail(params: {
   </div>
 
   <div style="text-align: center; margin-top: 20px; padding: 20px; font-size: 12px; color: ${EMAIL_COLORS.footerText};">
-    <p>POD AI Store — Your AI-powered print-on-demand marketplace</p>
+    <p>${brandName} — ${brandTagline}</p>
   </div>
 </body>
 </html>
@@ -435,6 +469,7 @@ export async function sendCreditPurchaseEmail(params: {
 }) {
   const { to, credits, priceCents, currency, newBalance, locale } = params
 
+  const { brandName, brandTagline } = await getBrandConfig()
   const priceAmount = (priceCents / 100).toFixed(2)
   const currencyCode = currency.toUpperCase()
 
@@ -505,7 +540,7 @@ export async function sendCreditPurchaseEmail(params: {
 
   try {
     const { data, error } = await resend.emails.send({
-      from: process.env.RESEND_FROM_EMAIL || 'POD AI <onboarding@resend.dev>',
+      from: `${brandName} <${process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev'}>`,
       to,
       subject,
       html: `
@@ -518,7 +553,7 @@ export async function sendCreditPurchaseEmail(params: {
 </head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: ${EMAIL_COLORS.bodyText}; max-width: 600px; margin: 0 auto; padding: 20px;">
   <div style="background: linear-gradient(135deg, ${EMAIL_COLORS.gradientStart} 0%, ${EMAIL_COLORS.gradientEnd} 100%); color: white; padding: 30px; border-radius: 8px 8px 0 0; text-align: center;">
-    <h1 style="margin: 0; font-size: 28px;">POD AI</h1>
+    <h1 style="margin: 0; font-size: 28px;">${brandName}</h1>
   </div>
 
   <div style="background: ${EMAIL_COLORS.panelBg}; padding: 30px; border-radius: 0 0 8px 8px;">
@@ -547,7 +582,7 @@ export async function sendCreditPurchaseEmail(params: {
   </div>
 
   <div style="text-align: center; margin-top: 20px; padding: 20px; font-size: 12px; color: ${EMAIL_COLORS.footerText};">
-    <p>POD AI ${locale === 'es' ? '— Tu tienda de impresión bajo demanda impulsada por IA' : locale === 'de' ? '— Dein KI-gesteuerter Print-on-Demand-Marktplatz' : '— Your AI-powered print-on-demand marketplace'}</p>
+    <p>${brandName} — ${brandTagline}</p>
   </div>
 </body>
 </html>
