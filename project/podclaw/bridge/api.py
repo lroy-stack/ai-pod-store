@@ -166,7 +166,42 @@ def create_app(
 
     @app.on_event("startup")
     async def _restore_tasks():
+        """Restore persisted state on startup."""
+        from podclaw.redis_store import get_redis
+
+        # Restore task store from SQLite
         await _tasks.restore()
+
+        # Restore paused agents from Redis
+        redis_client = get_redis()
+        if redis_client:
+            try:
+                paused_data = await redis_client.get("podclaw:state:paused_agents")
+                if paused_data:
+                    paused_agents = json.loads(paused_data)
+                    for agent_name in paused_agents:
+                        scheduler.pause_agent(agent_name)
+                        logger.info("agent_restored_paused", agent=agent_name)
+            except Exception as e:
+                logger.warning("paused_agents_restore_failed", error=str(e))
+
+        # Restore event queue from Redis
+        if redis_client and event_queue:
+            try:
+                queue_data = await redis_client.get("podclaw:state:event_queue")
+                if queue_data:
+                    events_list = json.loads(queue_data)
+                    from podclaw.event_queue import SystemEvent
+                    for event_data in events_list:
+                        event = SystemEvent(
+                            event_type=event_data["event_type"],
+                            data=event_data["data"],
+                            priority=event_data.get("priority", 5),
+                        )
+                        await event_queue.push(event)
+                    logger.info("event_queue_restored", count=len(events_list))
+            except Exception as e:
+                logger.warning("event_queue_restore_failed", error=str(e))
 
     # ----- Natural Language Task Endpoint -----
 
@@ -855,6 +890,98 @@ def create_app(
                 _chat_mcp_servers["memory"] = connector_to_mcp_server("memory", memory_conn)
             except Exception as e:
                 logger.warning("memory_mcp_chat_failed", error=str(e))
+
+    @app.on_event("shutdown")
+    async def _graceful_shutdown():
+        """
+        Graceful shutdown handler:
+        1. Drain running sessions (wait for in-progress tasks)
+        2. Persist disabled/paused agents state to Redis
+        3. Persist event queue state to Redis
+        4. Close Redis connection
+        """
+        from podclaw.redis_store import close_redis, get_redis
+
+        logger.info("podclaw_shutdown_started")
+
+        # Step 1: Drain running tasks (wait up to 30 seconds)
+        running_tasks = [t for t in _tasks.values() if t.get("status") in ("routing", "running")]
+        if running_tasks:
+            logger.info("draining_tasks", count=len(running_tasks))
+            timeout = 30  # seconds
+            start = asyncio.get_event_loop().time()
+
+            while running_tasks and (asyncio.get_event_loop().time() - start) < timeout:
+                await asyncio.sleep(1)
+                running_tasks = [t for t in _tasks.values() if t.get("status") in ("routing", "running")]
+
+            if running_tasks:
+                logger.warning("tasks_not_drained", count=len(running_tasks), timeout=timeout)
+            else:
+                logger.info("tasks_drained")
+
+        # Step 2: Persist disabled/paused agents state to Redis
+        redis_client = get_redis()
+        if redis_client:
+            try:
+                # Get all paused agents from scheduler
+                paused_agents = []
+                for job in scheduler.scheduler.get_jobs():
+                    # APScheduler: paused jobs have next_run_time = None
+                    if job.next_run_time is None:
+                        # Extract agent name from job id (format: "{agent}_scheduled")
+                        agent_name = job.id.replace("_scheduled", "").split("_")[0]
+                        if agent_name not in paused_agents:
+                            paused_agents.append(agent_name)
+
+                if paused_agents:
+                    # Store as JSON list in Redis with 7-day expiration
+                    await redis_client.set(
+                        "podclaw:state:paused_agents",
+                        json.dumps(paused_agents),
+                        ex=604800  # 7 days
+                    )
+                    logger.info("paused_agents_persisted", agents=paused_agents)
+                else:
+                    # Clear key if no paused agents
+                    await redis_client.delete("podclaw:state:paused_agents")
+                    logger.info("paused_agents_cleared")
+            except Exception as e:
+                logger.warning("paused_agents_persist_failed", error=str(e))
+
+        # Step 3: Persist event queue state to Redis
+        if redis_client and event_queue:
+            try:
+                # Peek at all events in queue
+                events = await event_queue.peek()
+                if events:
+                    # Store as JSON array in Redis with 7-day expiration
+                    events_data = [
+                        {
+                            "event_type": e.event_type,
+                            "data": e.data,
+                            "priority": e.priority,
+                            "created_at": e.created_at.isoformat() if hasattr(e, "created_at") else None,
+                        }
+                        for e in events
+                    ]
+                    await redis_client.set(
+                        "podclaw:state:event_queue",
+                        json.dumps(events_data),
+                        ex=604800  # 7 days
+                    )
+                    logger.info("event_queue_persisted", count=len(events))
+                else:
+                    # Clear key if queue is empty
+                    await redis_client.delete("podclaw:state:event_queue")
+                    logger.info("event_queue_empty")
+            except Exception as e:
+                logger.warning("event_queue_persist_failed", error=str(e))
+
+        # Step 4: Close Redis connection
+        await close_redis()
+
+        logger.info("podclaw_shutdown_complete")
 
     @app.post("/chat/stream", dependencies=[Depends(require_auth)])
     async def chat_stream(body: ChatStreamRequest):
