@@ -2,14 +2,18 @@
  * Printify Order Retry Cron
  *
  * GET /api/cron/retry-printify-orders
- * Retries failed Printify order submissions (max 3 retries per order).
+ * Handles stuck orders and automatic refunds:
+ * 1. Retries orders stuck in 'paid' state without printify_order_id (max 3 attempts, 30min window)
+ * 2. Auto-refunds after 3 failed attempts OR 2 hours timeout
+ * 3. Auto-refunds orders in 'requires_review' > 24 hours
  * Protected by bearer token auth.
  */
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { printify } from '@/lib/printify'
 import { verifyCronSecret } from '@/lib/rate-limit'
+import { issueRefund } from '@/lib/reliability/refund-guard'
+import { transition } from '@/lib/reliability/state-transition'
 
 const supabase = createClient(
   process.env.SUPABASE_URL!,
@@ -18,6 +22,12 @@ const supabase = createClient(
 
 const CRON_SECRET = process.env.CRON_SECRET || process.env.PODCLAW_BRIDGE_AUTH_TOKEN
 
+// Time windows
+const RETRY_WINDOW_MINUTES = 30
+const HARD_TIMEOUT_HOURS = 2
+const REQUIRES_REVIEW_TIMEOUT_HOURS = 24
+const MAX_RETRY_ATTEMPTS = 3
+
 export async function GET(req: NextRequest) {
   // Verify cron secret (timing-safe)
   const authHeader = req.headers.get('authorization')
@@ -25,68 +35,151 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  // Fetch orders that failed and haven't exceeded retry limit
-  const { data: failedOrders, error: fetchError } = await supabase
+  const now = new Date()
+  const retryWindowCutoff = new Date(now.getTime() - RETRY_WINDOW_MINUTES * 60 * 1000)
+  const hardTimeoutCutoff = new Date(now.getTime() - HARD_TIMEOUT_HOURS * 60 * 60 * 1000)
+  const requiresReviewCutoff = new Date(now.getTime() - REQUIRES_REVIEW_TIMEOUT_HOURS * 60 * 60 * 1000)
+
+  const results: Array<{ orderId: string; action: string; success: boolean; error?: string }> = []
+
+  // === PART 1: Handle stuck 'paid' orders ===
+  // Find orders in 'paid' status without printify_order_id (stuck after payment)
+  const { data: stuckPaidOrders, error: paidFetchError } = await supabase
     .from('orders')
-    .select('id, printify_order_id, printify_error, printify_retry_count')
-    .not('printify_error', 'is', null)
-    .lt('printify_retry_count', 3)
-    .order('created_at', { ascending: true })
-    .limit(10)
+    .select('id, status, stripe_payment_intent_id, total_cents, paid_at, retry_count, currency')
+    .eq('status', 'paid')
+    .is('printify_order_id', null)
+    .not('stripe_payment_intent_id', 'is', null)
+    .order('paid_at', { ascending: true })
+    .limit(20)
 
-  if (fetchError) {
-    console.error('Failed to fetch orders for retry:', fetchError)
-    return NextResponse.json({ error: 'Failed to fetch orders' }, { status: 500 })
-  }
+  if (paidFetchError) {
+    console.error('[Retry Cron] Failed to fetch stuck paid orders:', paidFetchError)
+  } else if (stuckPaidOrders && stuckPaidOrders.length > 0) {
+    console.log(`[Retry Cron] Found ${stuckPaidOrders.length} stuck 'paid' orders`)
 
-  if (!failedOrders || failedOrders.length === 0) {
-    return NextResponse.json({ message: 'No orders to retry', retried: 0 })
-  }
+    for (const order of stuckPaidOrders) {
+      const paidAt = order.paid_at ? new Date(order.paid_at) : null
 
-  const results: Array<{ orderId: string; success: boolean; error?: string }> = []
-
-  for (const order of failedOrders) {
-    try {
-      if (order.printify_order_id) {
-        // Order was created in Printify but production submission failed — retry production
-        await printify.submitOrderForProduction(order.printify_order_id)
-      } else {
-        // Order was never submitted to Printify — need full order data to recreate
-        // Skip these for now — they need manual intervention or the full order data
-        results.push({
-          orderId: order.id,
-          success: false,
-          error: 'No printify_order_id — needs manual resubmission',
-        })
+      if (!paidAt) {
+        console.warn(`[Retry Cron] Order ${order.id} has no paid_at timestamp, skipping`)
         continue
       }
 
-      // Success — clear error
-      await supabase
-        .from('orders')
-        .update({
-          printify_error: null,
-          status: 'submitted',
-          printify_last_attempt_at: new Date().toISOString(),
+      const retryCount = order.retry_count || 0
+      const isExpired = paidAt < hardTimeoutCutoff
+      const isWithinRetryWindow = paidAt > retryWindowCutoff
+
+      // Auto-refund conditions: max retries exceeded OR hard timeout exceeded
+      if (retryCount >= MAX_RETRY_ATTEMPTS || isExpired) {
+        const reason = retryCount >= MAX_RETRY_ATTEMPTS
+          ? `Max retry attempts (${MAX_RETRY_ATTEMPTS}) exceeded`
+          : `Hard timeout (${HARD_TIMEOUT_HOURS}h) exceeded`
+
+        console.log(`[Retry Cron] Auto-refunding order ${order.id}: ${reason}`)
+
+        const refundResult = await issueRefund(
+          order.id,
+          order.stripe_payment_intent_id!,
+          order.total_cents,
+          reason
+        )
+
+        if (refundResult.success || refundResult.alreadyRefunded) {
+          // Transition to refunded status
+          await transition('orders', order.id, 'paid', 'refunded')
+
+          results.push({
+            orderId: order.id,
+            action: 'auto_refund',
+            success: true,
+          })
+
+          console.log(`[Retry Cron] Successfully refunded order ${order.id}`)
+        } else {
+          results.push({
+            orderId: order.id,
+            action: 'auto_refund_failed',
+            success: false,
+            error: refundResult.error,
+          })
+
+          console.error(`[Retry Cron] Refund failed for order ${order.id}:`, refundResult.error)
+        }
+      } else if (isWithinRetryWindow) {
+        // Still within retry window — increment retry count and transition to requires_review
+        console.log(`[Retry Cron] Marking order ${order.id} as requires_review (retry ${retryCount + 1}/${MAX_RETRY_ATTEMPTS})`)
+
+        // Increment retry count
+        await supabase
+          .from('orders')
+          .update({
+            retry_count: retryCount + 1,
+          })
+          .eq('id', order.id)
+
+        // Transition to requires_review for manual intervention
+        await transition('orders', order.id, 'paid', 'requires_review')
+
+        results.push({
+          orderId: order.id,
+          action: 'mark_requires_review',
+          success: true,
         })
-        .eq('id', order.id)
+      } else {
+        // Outside retry window (older than 30min) but not yet at hard timeout
+        // Leave as-is for next cron run
+        console.log(`[Retry Cron] Order ${order.id} outside retry window, will check again on next run`)
+      }
+    }
+  }
 
-      results.push({ orderId: order.id, success: true })
-      console.log('Successfully retried Printify order:', order.id)
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error'
+  // === PART 2: Auto-refund orders stuck in 'requires_review' > 24h ===
+  const { data: oldRequiresReviewOrders, error: reviewFetchError } = await supabase
+    .from('orders')
+    .select('id, status, stripe_payment_intent_id, total_cents, created_at, currency')
+    .eq('status', 'requires_review')
+    .not('stripe_payment_intent_id', 'is', null)
+    .lt('created_at', requiresReviewCutoff.toISOString())
+    .order('created_at', { ascending: true })
+    .limit(20)
 
-      await supabase
-        .from('orders')
-        .update({
-          printify_error: errorMessage,
-          printify_retry_count: (order.printify_retry_count || 0) + 1,
-          printify_last_attempt_at: new Date().toISOString(),
+  if (reviewFetchError) {
+    console.error('[Retry Cron] Failed to fetch old requires_review orders:', reviewFetchError)
+  } else if (oldRequiresReviewOrders && oldRequiresReviewOrders.length > 0) {
+    console.log(`[Retry Cron] Found ${oldRequiresReviewOrders.length} old 'requires_review' orders`)
+
+    for (const order of oldRequiresReviewOrders) {
+      console.log(`[Retry Cron] Auto-refunding requires_review order ${order.id} (>24h old)`)
+
+      const refundResult = await issueRefund(
+        order.id,
+        order.stripe_payment_intent_id!,
+        order.total_cents,
+        `Order stuck in requires_review for >24 hours`
+      )
+
+      if (refundResult.success || refundResult.alreadyRefunded) {
+        // Transition to refunded status
+        await transition('orders', order.id, 'requires_review', 'refunded')
+
+        results.push({
+          orderId: order.id,
+          action: 'auto_refund_requires_review',
+          success: true,
         })
-        .eq('id', order.id)
 
-      results.push({ orderId: order.id, success: false, error: errorMessage })
-      console.error('Retry failed for order:', order.id, errorMessage)
+        console.log(`[Retry Cron] Successfully refunded requires_review order ${order.id}`)
+      } else {
+        results.push({
+          orderId: order.id,
+          action: 'auto_refund_requires_review_failed',
+          success: false,
+          error: refundResult.error,
+        })
+
+        console.error(`[Retry Cron] Refund failed for requires_review order ${order.id}:`, refundResult.error)
+      }
     }
   }
 
@@ -94,8 +187,10 @@ export async function GET(req: NextRequest) {
   const failed = results.filter(r => !r.success).length
 
   return NextResponse.json({
-    message: `Retried ${results.length} orders: ${succeeded} succeeded, ${failed} failed`,
-    retried: results.length,
+    message: `Processed ${results.length} orders: ${succeeded} succeeded, ${failed} failed`,
+    processed: results.length,
+    succeeded,
+    failed,
     results,
   })
 }
