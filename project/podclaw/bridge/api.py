@@ -511,8 +511,19 @@ def create_app(
 
     @app.get("/metrics", dependencies=[Depends(require_auth)])
     async def get_metrics():
-        from podclaw.hooks.metrics_hook import get_metrics
-        return get_metrics()
+        """
+        Prometheus metrics endpoint (text exposition format).
+
+        Returns custom agent metrics:
+        - agent_tool_calls_total: Counter of tool invocations
+        - agent_daily_cost_eur: Gauge of daily cost
+        - agent_session_duration_seconds: Histogram of session durations
+        """
+        from podclaw.prometheus_metrics import get_prometheus_metrics, get_content_type
+        from fastapi import Response
+
+        metrics_data = get_prometheus_metrics()
+        return Response(content=metrics_data, media_type=get_content_type())
 
     # ----- Costs -----
 

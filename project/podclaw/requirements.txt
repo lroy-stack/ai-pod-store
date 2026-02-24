@@ -31,3 +31,7 @@ supabase>=2.0.0
 
 # Redis client (persistent rate limits and cost tracking)
 redis[hiredis]>=5.0.0
+
+# Prometheus metrics (observability and monitoring)
+prometheus-client>=0.20.0
+prometheus-fastapi-instrumentator>=7.0.0
