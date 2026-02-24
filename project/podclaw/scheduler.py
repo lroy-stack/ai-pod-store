@@ -254,6 +254,14 @@ class PodClawScheduler:
             name="Session Reaper",
         )
 
+        # Event cleanup: 02:00 UTC daily (off-peak hours, TTL-based cleanup)
+        self.scheduler.add_job(
+            self._run_event_cleanup,
+            CronTrigger(hour=2, minute=0),
+            id="event_cleanup",
+            name="Event Cleanup (TTL)",
+        )
+
         # Memory decay + pruning: 04:00 UTC daily (before agents start)
         self.scheduler.add_job(
             self._run_memory_decay,
@@ -279,6 +287,14 @@ class PodClawScheduler:
         )
 
         logger.info("scheduler_configured", job_count=len(self.scheduler.get_jobs()))
+
+    async def _run_event_cleanup(self) -> None:
+        """Delete old events based on TTL retention policies."""
+        try:
+            from podclaw.cleanup import cleanup_job
+            await cleanup_job(event_store=self.orchestrator.events)
+        except Exception as e:
+            logger.error("event_cleanup_failed", error=str(e))
 
     async def _run_governor(self) -> None:
         """Compute daily production limits based on market signals."""
