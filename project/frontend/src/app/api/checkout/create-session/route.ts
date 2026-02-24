@@ -126,7 +126,8 @@ export async function POST(req: NextRequest) {
         .from('products')
         .select('id')
         .in('id', productIds)
-        .eq('status', 'active');
+        .eq('status', 'active')
+        .is('deleted_at', null);
 
       const activeProductIds = new Set((activeProducts || []).map((p: any) => p.id));
       const inactiveItems = productIds.filter(id => !activeProductIds.has(id));
@@ -211,6 +212,7 @@ export async function POST(req: NextRequest) {
           .from('products')
           .select('id, printify_id, blueprint_id, print_provider_id, title')
           .eq('id', pz.product_id)
+          .is('deleted_at', null)
           .single()
 
         if (!dbProduct?.printify_id || !dbProduct?.blueprint_id || !dbProduct?.print_provider_id) continue

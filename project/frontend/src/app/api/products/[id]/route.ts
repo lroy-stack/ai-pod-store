@@ -41,6 +41,7 @@ export async function GET(
         .select('*')
         .eq('id', id)
         .eq('status', 'active')
+        .is('deleted_at', null)
         .single(),
       supabaseAdmin
         .from('product_variants')

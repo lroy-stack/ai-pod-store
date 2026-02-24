@@ -43,6 +43,7 @@ export async function getProduct(id: string) {
       .select('*')
       .eq('id', id)
       .eq('status', 'active')
+      .is('deleted_at', null)
       .single(),
     supabaseAdmin
       .from('product_variants')
@@ -174,6 +175,7 @@ export async function getRelatedProducts(productId: string) {
       .from('products')
       .select('id, title, description, category, base_price_cents, currency, images, avg_rating, review_count')
       .eq('status', 'active')
+      .is('deleted_at', null)
       .in('id', recommendedIds)
 
     if (!productsError && products && products.length > 0) {
@@ -199,6 +201,7 @@ export async function getRelatedProducts(productId: string) {
     .from('products')
     .select('id, title, description, category, base_price_cents, currency, images, avg_rating, review_count')
     .eq('status', 'active')
+    .is('deleted_at', null)
     .ilike('category', product.category)
     .neq('id', productId)
     .limit(4)

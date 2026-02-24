@@ -266,6 +266,7 @@ async function getVectorSearchResults(
       .from('products')
       .select('id, title, description, category_id, categories(slug), tags, base_price_cents, currency, images, status, avg_rating, review_count, created_at, translations')
       .eq('status', 'active')
+      .is('deleted_at', null)
       .in('id', productIds)
 
     if (category && category !== 'all') {
@@ -303,6 +304,7 @@ async function getKeywordSearchResults(
       .from('products')
       .select('id, title, description, category_id, categories(slug), tags, base_price_cents, currency, images, status, avg_rating, review_count, created_at, translations')
       .eq('status', 'active')
+      .is('deleted_at', null)
 
     if (category && category !== 'all') {
       // Join with categories table to filter by slug
@@ -341,6 +343,7 @@ async function fallbackTextSearch(
     .from('products')
     .select('id, title, description, category_id, categories(slug), tags, base_price_cents, currency, images, status, avg_rating, review_count, created_at, translations', { count: 'exact' })
     .eq('status', 'active')
+    .is('deleted_at', null)
 
   if (category && category !== 'all') {
     query = query.eq('categories.slug', category)
@@ -458,6 +461,7 @@ export async function GET(request: NextRequest) {
         .from('products')
         .select('id, title, description, category_id, categories(slug), tags, base_price_cents, currency, images, status, avg_rating, review_count, created_at, translations')
         .eq('status', 'active')
+        .is('deleted_at', null)
         .in('id', idList)
 
       if (idsError) {
@@ -496,6 +500,7 @@ export async function GET(request: NextRequest) {
       .from('products')
       .select('id, title, description, category_id, categories(slug), tags, base_price_cents, currency, images, status, avg_rating, review_count, created_at, translations', { count: 'exact' })
       .eq('status', 'active')
+      .is('deleted_at', null)
 
     // Filter by category slug
     if (category && category !== 'all') {

@@ -85,6 +85,7 @@ export async function GET(request: NextRequest) {
     const { data: products, error: productsError } = await supabase
       .from('products')
       .select('id, title, base_price_cents, currency, images, status')
+      .is('deleted_at', null)
       .in('id', productIds)
 
     if (productsError) {
@@ -246,6 +247,7 @@ export async function POST(request: NextRequest) {
       .select('id, status')
       .eq('id', product_id)
       .eq('status', 'active')
+      .is('deleted_at', null)
       .single()
 
     if (!product) {

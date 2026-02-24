@@ -317,18 +317,21 @@ async function syncVariants(
 // ---------------------------------------------------------------------------
 
 /**
- * Delete a product from Supabase by its Printify ID.
+ * Soft delete a product from Supabase by its Printify ID.
+ * Sets deleted_at timestamp instead of hard DELETE.
  * Cascades to child tables but PRESERVES designs (only unlinks them).
  */
 export async function deleteProductCascade(
   printifyId: string,
   supabase: SupabaseClient,
+  deletedBy?: string,
 ): Promise<{ deleted: boolean; error?: string }> {
   // Find the product UUID
   const { data: products, error: findError } = await supabase
     .from('products')
     .select('id')
     .eq('printify_id', printifyId)
+    .is('deleted_at', null)
 
   if (findError || !products?.length) {
     console.warn('printify-sync: product not found for delete', printifyId)
@@ -348,17 +351,36 @@ export async function deleteProductCascade(
     await supabase.from(table).delete().eq('product_id', productId)
   }
 
-  // Delete the product itself
+  // Soft delete the product itself
   const { error: deleteError } = await supabase
     .from('products')
-    .delete()
+    .update({
+      deleted_at: new Date().toISOString(),
+      deleted_by: deletedBy || null,
+    })
     .eq('id', productId)
 
   if (deleteError) {
-    console.error('printify-sync: delete failed', printifyId, deleteError.message)
+    console.error('printify-sync: soft delete failed', printifyId, deleteError.message)
     return { deleted: false, error: deleteError.message }
   }
 
-  console.log('printify-sync: deleted product', printifyId)
+  // Log deletion to audit_log
+  await supabase
+    .from('audit_log')
+    .insert({
+      actor_type: deletedBy ? 'admin' : 'system',
+      actor_id: deletedBy || 'system',
+      action: 'soft_delete',
+      resource_type: 'product',
+      resource_id: productId,
+      metadata: {
+        printify_id: printifyId,
+        reason: 'Product soft deleted',
+      },
+    })
+    .select()
+
+  console.log('printify-sync: soft deleted product', printifyId)
   return { deleted: true }
 }
