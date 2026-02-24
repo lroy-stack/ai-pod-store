@@ -2,7 +2,7 @@
   "crons": [
     {
       "path": "/api/cron/sync-printify",
-      "schedule": "0 */2 * * *"
+      "schedule": "*/30 * * * *"
     }
   ]
 }

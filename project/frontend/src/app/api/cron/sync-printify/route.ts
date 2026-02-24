@@ -3,7 +3,7 @@
  *
  * GET /api/cron/sync-printify
  *
- * Safety net that runs every 2 hours (Vercel cron) to catch anything
+ * Safety net that runs every 30 minutes (Vercel cron) to catch anything
  * the webhooks or agent sync_hook may have missed.
  *
  * Steps:
@@ -23,14 +23,29 @@ import {
   calculateEngagementPrice,
 } from '@/lib/printify-sync'
 import { verifyCronSecret } from '@/lib/rate-limit'
+import { acquireLock, recordRun } from '@/lib/reliability/cron-lock'
 
 const CRON_SECRET = process.env.CRON_SECRET || process.env.PODCLAW_BRIDGE_AUTH_TOKEN
 
 export async function GET(req: NextRequest) {
+  const startTime = Date.now()
+  const cronName = 'sync-printify'
+
   // Auth check — timing-safe
   const authHeader = req.headers.get('authorization')
   if (!verifyCronSecret(authHeader, CRON_SECRET)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  // Acquire lock to prevent overlapping executions
+  const lock = await acquireLock(cronName)
+  if (!lock.acquired) {
+    console.log(`[${cronName}] Job already running, skipping`)
+    return NextResponse.json({
+      skipped: true,
+      reason: 'Another instance is already running',
+      timestamp: new Date().toISOString()
+    })
   }
 
   const supabase = supabaseAdmin
@@ -209,6 +224,19 @@ export async function GET(req: NextRequest) {
   }
 
   report.completedAt = new Date().toISOString()
+  const durationMs = Date.now() - startTime
+  const totalRows = report.created + report.updated + report.deleted + report.marginFixed
+  const status = report.errors.length > 0 ? 'failed' : 'completed'
+
+  // Record run completion
+  await recordRun(
+    cronName,
+    status,
+    durationMs,
+    report.errors.length > 0 ? report.errors.join('; ') : undefined,
+    totalRows
+  )
+
   console.log('printify-sync cron completed:', JSON.stringify(report))
   return NextResponse.json(report)
 }
