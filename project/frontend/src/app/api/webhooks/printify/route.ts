@@ -14,9 +14,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createHmac, timingSafeEqual } from 'crypto'
 import { createClient } from '@supabase/supabase-js'
-import { sendOrderShippedEmail } from '@/lib/resend'
+import { sendOrderShippedEmail, sendOrderCancelledEmail } from '@/lib/resend'
 import { printify } from '@/lib/printify'
 import { syncProductFromPrintify, deleteProductCascade } from '@/lib/printify-sync'
+import { issueRefund } from '@/lib/reliability/refund-guard'
+import { transition } from '@/lib/reliability/state-transition'
 
 const supabase = createClient(
   process.env.SUPABASE_URL!,
@@ -343,10 +345,10 @@ async function handleOrderDelivered(resource: Record<string, unknown>) {
 async function handleOrderCancelled(resource: Record<string, unknown>) {
   const printifyOrderId = resource.id as string
 
-  // Get the order to find the UUID
+  // Get the full order with all required fields for refund processing
   const { data: order, error: fetchError } = await supabase
     .from('orders')
-    .select('id')
+    .select('id, user_id, customer_email, status, stripe_payment_intent_id, total_cents, currency, locale')
     .eq('printify_order_id', printifyOrderId)
     .single()
 
@@ -355,29 +357,122 @@ async function handleOrderCancelled(resource: Record<string, unknown>) {
     throw fetchError || new Error('Order not found')
   }
 
-  const { error } = await supabase
-    .from('orders')
-    .update({ status: 'cancelled' })
-    .eq('printify_order_id', printifyOrderId)
+  const orderDisplayId = order.id.slice(0, 8) // Use first 8 chars of UUID as display ID
+  let finalStatus = 'cancelled'
+  let refundIssued = false
 
-  if (error) {
-    console.error('Failed to update order for cancelled event:', error)
-    throw error
+  // If the order has been paid, issue a refund
+  if (order.stripe_payment_intent_id && order.total_cents > 0) {
+    console.log(`[Printify Cancelled] Issuing refund for order ${order.id}`)
+
+    const refundResult = await issueRefund(
+      order.id,
+      order.stripe_payment_intent_id,
+      order.total_cents,
+      'Printify cancelled order'
+    )
+
+    if (refundResult.success) {
+      console.log(`[Printify Cancelled] Refund issued successfully: ${refundResult.stripeRefundId}`)
+      finalStatus = 'refunded'
+      refundIssued = true
+    } else if (refundResult.alreadyRefunded) {
+      console.log(`[Printify Cancelled] Order was already refunded`)
+      finalStatus = 'refunded'
+      refundIssued = true
+    } else {
+      console.error(`[Printify Cancelled] Refund failed: ${refundResult.error}`)
+      // Continue with cancellation even if refund fails - manual intervention needed
+    }
+  } else {
+    console.log(`[Printify Cancelled] No payment to refund for order ${order.id}`)
   }
 
-  console.log('Order marked as cancelled:', printifyOrderId)
+  // Perform state transition with validation
+  const transitionResult = await transition('orders', order.id, order.status, finalStatus)
 
+  if (!transitionResult.success) {
+    console.error(`[Printify Cancelled] State transition failed: ${transitionResult.error}`)
+    // Log but don't throw - we still want to notify the customer
+  } else {
+    console.log(`[Printify Cancelled] Order ${order.id}: ${order.status} → ${finalStatus}`)
+  }
+
+  // Create notification for user
+  if (order.user_id) {
+    const { error: notificationError } = await supabase.from('notifications').insert({
+      user_id: order.user_id,
+      type: 'order_cancelled',
+      title: `Order #${orderDisplayId} Cancelled`,
+      body: refundIssued
+        ? `Your order has been cancelled and a full refund has been issued.`
+        : `Your order has been cancelled. Please contact support if you were charged.`,
+      data: {
+        order_id: order.id,
+        refunded: refundIssued,
+      },
+      is_read: false,
+    })
+
+    if (notificationError) {
+      console.error('Failed to create cancellation notification:', notificationError)
+      // Don't throw — notification is not critical
+    } else {
+      console.log('Created order_cancelled notification for user:', order.user_id)
+    }
+  }
+
+  // Send email notification if refund was issued
+  if (refundIssued && order.customer_email) {
+    // Check user's notification preferences
+    let emailEnabled = true
+    if (order.user_id) {
+      const { data: userData } = await supabase
+        .from('users')
+        .select('notification_preferences')
+        .eq('id', order.user_id)
+        .single()
+
+      const preferences = userData?.notification_preferences || { email: true }
+      emailEnabled = preferences.email !== false
+    }
+
+    if (emailEnabled) {
+      const emailResult = await sendOrderCancelledEmail({
+        to: order.customer_email,
+        orderId: orderDisplayId,
+        refundAmount: order.total_cents,
+        currency: order.currency,
+        reason: 'Printify cancelled order',
+        locale: order.locale || 'en',
+      })
+
+      if (emailResult.success) {
+        console.log('Order cancelled email sent to:', order.customer_email)
+      } else {
+        console.error('Failed to send order cancelled email:', emailResult.error)
+        // Don't throw — email is not critical
+      }
+    } else {
+      console.log('Email notification skipped (user preference disabled):', order.customer_email)
+    }
+  }
+
+  // Create audit log entry
   await supabase.from('audit_log').insert({
     actor_type: 'webhook',
     actor_id: 'printify_webhook',
     action: 'order_cancelled',
     resource_type: 'order',
-    resource_id: order.id, // Use order UUID, not printify_order_id string
-    changes: { status: 'cancelled' },
+    resource_id: order.id,
+    changes: { status: finalStatus, refunded: refundIssued },
     metadata: {
       printify_order_id: printifyOrderId,
+      refund_issued: refundIssued,
     },
   })
+
+  console.log(`[Printify Cancelled] Order processing complete: ${printifyOrderId} (status: ${finalStatus})`)
 }
 
 // handleProductPublished is now handled by syncProductFromPrintify()

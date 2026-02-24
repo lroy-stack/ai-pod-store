@@ -289,6 +289,140 @@ export async function sendOrderShippedEmail(params: {
 }
 
 /**
+ * Send order cancelled and refunded email
+ */
+export async function sendOrderCancelledEmail(params: {
+  to: string
+  orderId: string
+  refundAmount: number
+  currency: string
+  reason: string
+  locale: string
+}) {
+  const { to, orderId, refundAmount, currency, reason, locale } = params
+
+  const refundAmountFormatted = (refundAmount / 100).toFixed(2)
+  const currencyCode = currency.toUpperCase()
+
+  // Locale-aware email content
+  const subjects = {
+    en: `Order #${orderId} Cancelled and Refunded`,
+    es: `Pedido #${orderId} Cancelado y Reembolsado`,
+    de: `Bestellung #${orderId} Storniert und Erstattet`,
+  }
+
+  const headings = {
+    en: 'Your order has been cancelled',
+    es: 'Tu pedido ha sido cancelado',
+    de: 'Deine Bestellung wurde storniert',
+  }
+
+  const bodies = {
+    en: `We're sorry, but your order has been cancelled by our fulfillment partner. A full refund has been issued to your original payment method.`,
+    es: `Lo sentimos, pero tu pedido ha sido cancelado por nuestro socio de fulfillment. Se ha emitido un reembolso completo a tu método de pago original.`,
+    de: `Es tut uns leid, aber deine Bestellung wurde von unserem Fulfillment-Partner storniert. Eine vollständige Rückerstattung wurde auf deine ursprüngliche Zahlungsmethode ausgestellt.`,
+  }
+
+  const refundDetailsTexts = {
+    en: 'Refund Details',
+    es: 'Detalles del Reembolso',
+    de: 'Erstattungsdetails',
+  }
+
+  const orderIdTexts = {
+    en: 'Order ID',
+    es: 'ID del Pedido',
+    de: 'Bestellnummer',
+  }
+
+  const refundAmountTexts = {
+    en: 'Refund Amount',
+    es: 'Monto Reembolsado',
+    de: 'Erstattungsbetrag',
+  }
+
+  const reasonTexts = {
+    en: 'Reason',
+    es: 'Razón',
+    de: 'Grund',
+  }
+
+  const footerTexts = {
+    en: 'The refund will appear on your statement within 5-10 business days. If you have any questions, please contact our support team.',
+    es: 'El reembolso aparecerá en tu estado de cuenta dentro de 5-10 días hábiles. Si tienes alguna pregunta, por favor contacta a nuestro equipo de soporte.',
+    de: 'Die Erstattung wird innerhalb von 5-10 Werktagen auf deinem Kontoauszug erscheinen. Bei Fragen wende dich bitte an unser Support-Team.',
+  }
+
+  const subject = subjects[locale as keyof typeof subjects] || subjects.en
+  const heading = headings[locale as keyof typeof headings] || headings.en
+  const body = bodies[locale as keyof typeof bodies] || bodies.en
+  const refundDetailsText = refundDetailsTexts[locale as keyof typeof refundDetailsTexts] || refundDetailsTexts.en
+  const orderIdText = orderIdTexts[locale as keyof typeof orderIdTexts] || orderIdTexts.en
+  const refundAmountText = refundAmountTexts[locale as keyof typeof refundAmountTexts] || refundAmountTexts.en
+  const reasonText = reasonTexts[locale as keyof typeof reasonTexts] || reasonTexts.en
+  const footerText = footerTexts[locale as keyof typeof footerTexts] || footerTexts.en
+
+  try {
+    const { data, error } = await resend.emails.send({
+      from: process.env.RESEND_FROM_EMAIL || 'POD AI Store <onboarding@resend.dev>',
+      to,
+      subject,
+      html: `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${subject}</title>
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: ${EMAIL_COLORS.bodyText}; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <div style="background: linear-gradient(135deg, ${EMAIL_COLORS.gradientStart} 0%, ${EMAIL_COLORS.gradientEnd} 100%); color: white; padding: 30px; border-radius: 8px 8px 0 0; text-align: center;">
+    <h1 style="margin: 0; font-size: 28px;">POD AI Store</h1>
+  </div>
+
+  <div style="background: ${EMAIL_COLORS.panelBg}; padding: 30px; border-radius: 0 0 8px 8px;">
+    <h2 style="color: ${EMAIL_COLORS.heading}; margin-top: 0;">${heading}</h2>
+
+    <p style="font-size: 16px; margin: 20px 0;">${body}</p>
+
+    <div style="background: white; border: 1px solid ${EMAIL_COLORS.cardBorder}; border-radius: 6px; padding: 20px; margin: 20px 0;">
+      <h3 style="margin: 0 0 15px 0; color: ${EMAIL_COLORS.heading};">${refundDetailsText}</h3>
+      <p style="margin: 0 0 10px 0;"><strong>${orderIdText}:</strong> #${orderId}</p>
+      <p style="margin: 0 0 10px 0;"><strong>${refundAmountText}:</strong> ${refundAmountFormatted} ${currencyCode}</p>
+      <p style="margin: 0;"><strong>${reasonText}:</strong> ${reason}</p>
+    </div>
+
+    <p style="font-size: 14px; color: ${EMAIL_COLORS.mutedText}; margin-top: 20px; padding: 15px; background: ${EMAIL_COLORS.warningBg}; border-left: 4px solid ${EMAIL_COLORS.warningBorder}; border-radius: 4px;">
+      ${footerText}
+    </p>
+
+    <p style="font-size: 14px; color: ${EMAIL_COLORS.mutedText}; margin-top: 30px;">
+      ${locale === 'es' ? 'Lamentamos las molestias' : locale === 'de' ? 'Wir entschuldigen uns für die Unannehmlichkeiten' : 'We apologize for the inconvenience'}.
+    </p>
+  </div>
+
+  <div style="text-align: center; margin-top: 20px; padding: 20px; font-size: 12px; color: ${EMAIL_COLORS.footerText};">
+    <p>POD AI Store — Your AI-powered print-on-demand marketplace</p>
+  </div>
+</body>
+</html>
+      `,
+    })
+
+    if (error) {
+      console.error('Failed to send order cancelled email:', error)
+      return { success: false, error }
+    }
+
+    console.log('Order cancelled email sent:', data?.id)
+    return { success: true, messageId: data?.id }
+  } catch (error) {
+    console.error('Exception sending order cancelled email:', error)
+    return { success: false, error }
+  }
+}
+
+/**
  * Send credit pack purchase confirmation email
  */
 export async function sendCreditPurchaseEmail(params: {
