@@ -1,0 +1,62 @@
+# Prometheus Configuration for POD AI Platform
+# Scrapes metrics from all application services
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'pod-ai'
+    environment: 'production'
+
+scrape_configs:
+  # Frontend — Next.js storefront
+  - job_name: 'frontend'
+    static_configs:
+      - targets: ['frontend:3000']
+        labels:
+          service: 'frontend'
+          tier: 'web'
+    scrape_interval: 30s
+    scrape_timeout: 10s
+    metrics_path: '/api/metrics'
+
+  # Admin — Next.js admin panel
+  - job_name: 'admin'
+    static_configs:
+      - targets: ['admin:3001']
+        labels:
+          service: 'admin'
+          tier: 'web'
+    scrape_interval: 30s
+    scrape_timeout: 10s
+    metrics_path: '/panel/api/metrics'
+
+  # PodClaw — Python agent system
+  - job_name: 'podclaw'
+    static_configs:
+      - targets: ['podclaw:8000']
+        labels:
+          service: 'podclaw'
+          tier: 'backend'
+    scrape_interval: 30s
+    scrape_timeout: 10s
+    metrics_path: '/metrics'
+
+  # MCP Server — Model Context Protocol
+  - job_name: 'mcp-server'
+    static_configs:
+      - targets: ['mcp-server:8002']
+        labels:
+          service: 'mcp-server'
+          tier: 'backend'
+    scrape_interval: 30s
+    scrape_timeout: 10s
+    metrics_path: '/metrics'
+
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+        labels:
+          service: 'prometheus'
+          tier: 'monitoring'

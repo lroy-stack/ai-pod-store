@@ -9,6 +9,7 @@
 #   rembg      — Background removal sidecar with u2net (port 8080)
 #   redis      — Session cache, rate limiting, queues (port 6379)
 #   crawl4ai   — Web crawler with JS rendering (port 11235)
+#   prometheus — Metrics collection and monitoring (port 9090)
 #   caddy      — Reverse proxy with automatic HTTPS (ports 80, 443)
 #
 # Supabase is cloud-managed (NOT self-hosted).
@@ -311,6 +312,43 @@ services:
     logging: *default-logging
 
   # ---------------------------------------------------------------------------
+  # Prometheus — Metrics Collection and Monitoring
+  # ---------------------------------------------------------------------------
+  prometheus:
+    image: prom/prometheus:v3.0.0
+    expose:
+      - "9090"
+    volumes:
+      - ./deploy/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=15d'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    restart: unless-stopped
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - SETGID
+      - SETUID
+    deploy:
+      resources:
+        limits: { cpus: '0.5', memory: 512M }
+        reservations: { memory: 256M }
+    networks: [proxy, data]
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      start_period: 15s
+      retries: 3
+    logging: *default-logging
+
+  # ---------------------------------------------------------------------------
   # Caddy — Reverse Proxy with Automatic HTTPS
   # ---------------------------------------------------------------------------
   caddy:
@@ -355,6 +393,7 @@ volumes:
   podclaw-memory:    # PodClaw memory logs and context files
   redis-data:        # Redis AOF persistence
   crawl4ai-output:   # Crawl4AI scraped data and cache
+  prometheus-data:   # Prometheus TSDB (15 days retention)
   caddy-data:        # TLS certificates
   caddy-config:      # Caddy runtime config
 
