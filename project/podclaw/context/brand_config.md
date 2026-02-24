@@ -1,7 +1,7 @@
 # Brand Configuration
 
 ## Brand Identity
-- **Store Name**: POD AI Store
+- **Store Name**: Skapara
 - **Tagline**: AI-Powered Fashion, European Quality
 - **Primary Color**: #000000
 - **Secondary Color**: #FFFFFF
