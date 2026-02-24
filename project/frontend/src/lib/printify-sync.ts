@@ -25,6 +25,48 @@ const CHILD_TABLES = [
 ]
 
 // ---------------------------------------------------------------------------
+// Category Inference — map product title to category slug
+// ---------------------------------------------------------------------------
+
+/**
+ * Infer category slug from product title based on keywords.
+ * Returns the category slug that matches the categories table.
+ *
+ * @param title - Product title
+ * @returns Category slug (apparel, mugs, stickers, etc.)
+ */
+export function inferCategorySlug(title: string): string {
+  const t = title.toLowerCase()
+
+  // Specific product types first (most specific to least specific)
+  if (['sticker', 'decal'].some(k => t.includes(k))) return 'stickers'
+  if (['phone case', 'iphone', 'samsung', 'case'].some(k => t.includes(k))) return 'phone-cases'
+  if (['poster', 'print', 'wall art'].some(k => t.includes(k))) return 'posters'
+  if (['mug', 'cup'].some(k => t.includes(k))) return 'mugs'
+  if (['hoodie', 'pullover'].some(k => t.includes(k))) return 'hoodies'
+  if (['sweatshirt', 'sweater'].some(k => t.includes(k))) return 'sweatshirts'
+  if (['t-shirt', 'tee', 'tshirt'].some(k => t.includes(k))) return 't-shirts'
+  if (['tote', 'bag', 'backpack'].some(k => t.includes(k))) return 'bags'
+  if (['hat', 'cap', 'beanie'].some(k => t.includes(k))) return 'hats'
+  if (['notebook', 'journal', 'notepad'].some(k => t.includes(k))) return 'stationery'
+
+  // Broader categories
+  if (['blanket', 'pillow', 'cushion', 'throw', 'home decor', 'home & living'].some(k => t.includes(k))) return 'home-decor'
+  if (['kitchen', 'utensil', 'cutting board'].some(k => t.includes(k))) return 'kitchen'
+  if (['game', 'puzzle', 'toy'].some(k => t.includes(k))) return 'games'
+  if (['kids', 'children', 'baby'].some(k => t.includes(k))) return 'kids'
+  if (['drinkware', 'bottle', 'tumbler'].some(k => t.includes(k))) return 'drinkware'
+
+  // Generic apparel fallback for clothing items
+  if (['shirt', 'clothing', 'apparel', 'wear', 'jacket', 'pants'].some(k => t.includes(k))) return 'apparel'
+
+  // Default for accessories or uncategorized items
+  if (['accessory', 'accessories', 'jewelry', 'watch'].some(k => t.includes(k))) return 'accessories'
+
+  return 'accessories' // Default fallback
+}
+
+// ---------------------------------------------------------------------------
 // Pricing — port of sync_hook.py:_engagement_price()
 // ---------------------------------------------------------------------------
 
@@ -131,6 +173,16 @@ export async function syncProductFromPrintify(
 
   const status = visible ? 'active' : 'draft'
 
+  // Infer category from title and look up category_id
+  const categorySlug = inferCategorySlug(title)
+  const { data: categories } = await supabase
+    .from('categories')
+    .select('id')
+    .eq('slug', categorySlug)
+    .limit(1)
+
+  const categoryId = categories?.[0]?.id || null
+
   const row = {
     printify_id: printifyId,
     title,
@@ -140,7 +192,7 @@ export async function syncProductFromPrintify(
     cost_cents: costEur || null,
     base_price_cents: basePrice,
     images,
-    category: 'uncategorized',
+    category_id: categoryId,
     ...(visible ? { published_at: new Date().toISOString() } : {}),
   }
 

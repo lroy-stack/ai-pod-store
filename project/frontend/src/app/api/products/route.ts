@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
-import { normalizeCategory } from '@/lib/categories'
 import { sanitizeForLike, sanitizeForPostgrest } from '@/lib/query-sanitizer'
 
 export const dynamic = 'force-dynamic'
@@ -171,7 +170,7 @@ async function hybridSearch(
         images: Array.isArray(p.images) ? p.images.map((img: { src?: string; url?: string; alt?: string }) => img.src || img.url || '') : [],
         rating: Number(p.avg_rating) || 0,
         reviewCount: p.review_count || 0,
-        category: normalizeCategory(p.category),
+        category: (p.categories as any)?.slug || 'other',
         tags: p.tags || [],
         inStock: variantsMap.has(p.id),
         createdAt: p.created_at,
@@ -265,7 +264,7 @@ async function getVectorSearchResults(
     // Fetch full product details
     let query = supabaseAdmin
       .from('products')
-      .select('id, title, description, category, tags, base_price_cents, currency, images, status, avg_rating, review_count, created_at, translations')
+      .select('id, title, description, category_id, categories(slug), tags, base_price_cents, currency, images, status, avg_rating, review_count, created_at, translations')
       .eq('status', 'active')
       .in('id', productIds)
 
@@ -302,11 +301,12 @@ async function getKeywordSearchResults(
   try {
     let query = supabaseAdmin
       .from('products')
-      .select('id, title, description, category, tags, base_price_cents, currency, images, status, avg_rating, review_count, created_at, translations')
+      .select('id, title, description, category_id, categories(slug), tags, base_price_cents, currency, images, status, avg_rating, review_count, created_at, translations')
       .eq('status', 'active')
 
     if (category && category !== 'all') {
-      query = query.ilike('category', category)
+      // Join with categories table to filter by slug
+      query = query.eq('categories.slug', category)
     }
 
     // PostgreSQL full-text search on title, description, category
@@ -339,11 +339,11 @@ async function fallbackTextSearch(
 ) {
   let query = supabaseAdmin
     .from('products')
-    .select('id, title, description, category, tags, base_price_cents, currency, images, status, avg_rating, review_count, created_at, translations', { count: 'exact' })
+    .select('id, title, description, category_id, categories(slug), tags, base_price_cents, currency, images, status, avg_rating, review_count, created_at, translations', { count: 'exact' })
     .eq('status', 'active')
 
   if (category && category !== 'all') {
-    query = query.ilike('category', category)
+    query = query.eq('categories.slug', category)
   }
 
   if (searchQuery) {
@@ -397,7 +397,7 @@ async function fallbackTextSearch(
       images: Array.isArray(p.images) ? p.images.map((img: { src?: string; url?: string; alt?: string }) => img.src || img.url || '') : [],
       rating: Number(p.avg_rating) || 0,
       reviewCount: p.review_count || 0,
-      category: normalizeCategory(p.category),
+      category: (p.categories as any)?.slug || 'other',
       tags: p.tags || [],
       inStock: variantsMap.has(p.id),
       createdAt: p.created_at,
@@ -456,7 +456,7 @@ export async function GET(request: NextRequest) {
 
       const { data: products, error: idsError } = await supabaseAdmin
         .from('products')
-        .select('id, title, description, category, tags, base_price_cents, currency, images, status, avg_rating, review_count, created_at, translations')
+        .select('id, title, description, category_id, categories(slug), tags, base_price_cents, currency, images, status, avg_rating, review_count, created_at, translations')
         .eq('status', 'active')
         .in('id', idList)
 
@@ -478,7 +478,7 @@ export async function GET(request: NextRequest) {
           images: Array.isArray(p.images) ? p.images.map((img: any) => img.src || img.url || '') : [],
           rating: Number(p.avg_rating) || 0,
           reviewCount: p.review_count || 0,
-          category: normalizeCategory(p.category),
+          category: (p.categories as any)?.slug || 'other',
           inStock: idsVariantsMap.has(p.id),
           variants: buildVariantsField(idsVariantsMap, p.id),
         }
@@ -494,12 +494,12 @@ export async function GET(request: NextRequest) {
     // Otherwise, use traditional database query
     let query = supabaseAdmin
       .from('products')
-      .select('id, title, description, category, tags, base_price_cents, currency, images, status, avg_rating, review_count, created_at, translations', { count: 'exact' })
+      .select('id, title, description, category_id, categories(slug), tags, base_price_cents, currency, images, status, avg_rating, review_count, created_at, translations', { count: 'exact' })
       .eq('status', 'active')
 
-    // Filter by category (case-insensitive — DB has mixed casing)
+    // Filter by category slug
     if (category && category !== 'all') {
-      query = query.ilike('category', category)
+      query = query.eq('categories.slug', category)
     }
 
     // Filter new arrivals (last 14 days)
@@ -561,7 +561,7 @@ export async function GET(request: NextRequest) {
         images: Array.isArray(p.images) ? p.images.map((img: { src?: string; url?: string; alt?: string }) => img.src || img.url || '') : [],
         rating: Number(p.avg_rating) || 0,
         reviewCount: p.review_count || 0,
-        category: normalizeCategory(p.category),
+        category: (p.categories as any)?.slug || 'other',
         tags: p.tags || [],
         inStock: variantsMap.has(p.id),
         createdAt: p.created_at,

@@ -10,7 +10,7 @@ import { checkAndIncrementUsage, decrementUsage, usageHeaders, UserTier, USAGE_T
 import { checkAnomaly, trackRateLimitHit, isBlocked, checkVelocity } from '@/lib/anomaly-monitor'
 import { checkPromptSafety } from '@/lib/content-safety'
 import { removeBackground } from '@/lib/providers/background-removal'
-import { normalizeCategory } from '@/lib/categories'
+
 import { sanitizeForLike, sanitizeForPostgrest } from '@/lib/query-sanitizer'
 
 export const maxDuration = 60
@@ -33,7 +33,7 @@ function formatProduct(p: any) {
     id: p.id,
     title: p.title,
     description: p.description?.substring(0, 150) + (p.description?.length > 150 ? '...' : ''),
-    category: normalizeCategory(p.category),
+    category: (p.categories as any)?.slug || 'other',
     price: p.base_price_cents / 100,
     currency: p.currency?.toUpperCase() || 'EUR',
     image: Array.isArray(p.images) && p.images.length > 0 ? (p.images[0].src || p.images[0].url) : null,
@@ -57,10 +57,10 @@ const supabase = createClient(
 /** Fetch top-rated suggestions + available categories when a search returns 0 results */
 async function getSearchFallback() {
   const [catResult, sugResult] = await Promise.all([
-    supabase.from('products').select('category').eq('status', 'active'),
+    supabase.from('products').select('category_id, categories(slug)').eq('status', 'active'),
     supabase
       .from('products')
-      .select('id, title, description, category, base_price_cents, currency, images, avg_rating, review_count')
+      .select('id, title, description, category_id, categories(slug), base_price_cents, currency, images, avg_rating, review_count')
       .eq('status', 'active')
       .order('avg_rating', { ascending: false })
       .limit(4),
@@ -68,7 +68,7 @@ async function getSearchFallback() {
 
   const categoryCounts: Record<string, number> = {}
   for (const p of catResult.data || []) {
-    const cat = normalizeCategory(p.category)
+    const cat = (p.categories as any)?.slug || 'other'
     categoryCounts[cat] = (categoryCounts[cat] || 0) + 1
   }
 
@@ -505,15 +505,15 @@ Be friendly, helpful, and concise.`
           try {
             let dbQuery = supabase
               .from('products')
-              .select('id, title, description, category, base_price_cents, currency, images, avg_rating, review_count')
+              .select('id, title, description, category_id, categories(slug), base_price_cents, currency, images, avg_rating, review_count')
               .eq('status', 'active')
               .limit(limit)
 
-            // Full-text search across title, description, and category
+            // Full-text search across title and description
             // SECURITY: Sanitize user input to prevent SQL injection
             if (query) {
               const sanitizedQuery = sanitizeForPostgrest(query)
-              dbQuery = dbQuery.or(`title.wfts.${sanitizedQuery},description.wfts.${sanitizedQuery},category.wfts.${sanitizedQuery}`)
+              dbQuery = dbQuery.or(`title.wfts.${sanitizedQuery},description.wfts.${sanitizedQuery}`)
             }
 
             const { data: products, error } = await dbQuery
@@ -572,13 +572,13 @@ Be friendly, helpful, and concise.`
             const offset = (page - 1) * limit
             let dbQuery = supabase
               .from('products')
-              .select('id, title, description, category, base_price_cents, currency, images, avg_rating, review_count', { count: 'exact' })
+              .select('id, title, description, category_id, categories(slug), base_price_cents, currency, images, avg_rating, review_count', { count: 'exact' })
               .eq('status', 'active')
               .range(offset, offset + limit - 1)
 
             // Filter by category if provided
             if (category) {
-              dbQuery = dbQuery.eq('category', category)
+              dbQuery = dbQuery.eq('categories.slug', category)
             }
 
             // Sort
@@ -662,7 +662,7 @@ Be friendly, helpful, and concise.`
               // Direct ID lookup
               const { data, error } = await supabase
                 .from('products')
-                .select('*')
+                .select('*, categories(slug)')
                 .eq('id', productIdentifier)
                 .eq('status', 'active')
                 .single()
@@ -677,7 +677,7 @@ Be friendly, helpful, and concise.`
               const sanitizedIdentifier = sanitizeForLike(productIdentifier, 'both')
               const { data, error } = await supabase
                 .from('products')
-                .select('*')
+                .select('*, categories(slug)')
                 .eq('status', 'active')
                 .or(`title.ilike.${sanitizedIdentifier},description.ilike.${sanitizedIdentifier}`)
                 .limit(1)
@@ -695,7 +695,7 @@ Be friendly, helpful, and concise.`
                 id: product.id,
                 title: product.title,
                 description: product.description || 'No description available',
-                category: normalizeCategory(product.category),
+                category: (product.categories as any)?.slug || 'other',
                 price: product.base_price_cents / 100,
                 currency: product.currency?.toUpperCase() || 'EUR',
                 images: Array.isArray(product.images) ? product.images : [],
@@ -729,7 +729,7 @@ Be friendly, helpful, and concise.`
             const ids = productIds.slice(0, 4)
             const { data: products, error } = await supabase
               .from('products')
-              .select('*')
+              .select('*, categories(slug)')
               .in('id', ids)
               .eq('status', 'active')
 
@@ -742,7 +742,7 @@ Be friendly, helpful, and concise.`
               products: (products || []).map((p) => ({
                 id: p.id,
                 title: p.title,
-                category: normalizeCategory(p.category),
+                category: (p.categories as any)?.slug || 'other',
                 price: p.base_price_cents / 100,
                 currency: p.currency?.toUpperCase() || 'EUR',
                 image: Array.isArray(p.images) && p.images.length > 0 ? (p.images[0].src || p.images[0].url) : null,
@@ -773,7 +773,7 @@ Be friendly, helpful, and concise.`
           try {
             let dbQuery = supabase
               .from('products')
-              .select('id, title, description, category, base_price_cents, currency, images, avg_rating, review_count, created_at')
+              .select('id, title, description, category_id, categories(slug), base_price_cents, currency, images, avg_rating, review_count, created_at')
               .eq('status', 'active')
               .limit(limit)
 
@@ -791,7 +791,7 @@ Be friendly, helpful, and concise.`
             }
 
             if (category) {
-              dbQuery = dbQuery.ilike('category', `%${category}%`)
+              dbQuery = dbQuery.eq('categories.slug', category)
             }
 
             if (maxPrice) {

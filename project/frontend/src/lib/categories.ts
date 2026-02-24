@@ -1,5 +1,14 @@
 /**
- * Canonical category normalization.
+ * @deprecated This module is deprecated as of Feature #51.
+ *
+ * Products now use category_id (UUID FK to categories table) instead of VARCHAR category.
+ * API routes should join with categories table and use categories.slug directly.
+ *
+ * DO NOT import this module in new code.
+ *
+ * ---
+ *
+ * LEGACY: Canonical category normalization.
  *
  * The DB may store categories in varied formats (Titlecase, spaces, ampersands).
  * This module maps every known variant to a single canonical kebab-case key
