@@ -97,7 +97,7 @@ export function MobileSidebar({ open, onOpenChange }: MobileSidebarProps) {
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="left" className="w-64 p-0">
         <SheetHeader className="border-b p-4">
-          <SheetTitle className="text-xl font-bold">POD AI</SheetTitle>
+          <SheetTitle className="text-xl font-bold">Skapara</SheetTitle>
         </SheetHeader>
         <ScrollArea className="h-[calc(100vh-5rem)]">
           <nav className="flex flex-col gap-4 p-4">

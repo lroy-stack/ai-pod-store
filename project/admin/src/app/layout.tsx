@@ -8,8 +8,8 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { NotificationsProvider } from "@/contexts/NotificationsContext";
 
 export const metadata: Metadata = {
-  title: "POD AI Admin",
-  description: "Admin panel for POD AI store management",
+  title: "Skapara Admin",
+  description: "Admin panel for Skapara store management",
 };
 
 export default function RootLayout({

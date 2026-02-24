@@ -107,7 +107,7 @@ export function Sidebar() {
         )}
       >
         <div className="flex h-16 items-center justify-between border-b px-4">
-          {!collapsed && <h1 className="text-xl font-bold">POD AI</h1>}
+          {!collapsed && <h1 className="text-xl font-bold">Skapara</h1>}
           <Button
             variant="ghost"
             size="icon"

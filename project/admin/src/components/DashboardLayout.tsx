@@ -44,7 +44,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                 <Menu className="h-5 w-5" />
                 <span className="sr-only">Open menu</span>
               </Button>
-              <h1 className="text-lg font-bold">POD AI Admin</h1>
+              <h1 className="text-lg font-bold">Skapara Admin</h1>
             </div>
             {/* Mobile TopBar (notification bell only) */}
             <TopBar />
