@@ -1,12 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { promises as fs } from 'fs'
 import path from 'path'
+import { getIronSession } from 'iron-session'
+import { sessionOptions, SessionData } from '@/lib/session'
+import { cookies } from 'next/headers'
 
 const PODCLAW_ROOT = path.join(process.cwd(), '..', 'podclaw')
 const CONTEXT_DIR = path.join(PODCLAW_ROOT, 'context')
 const MEMORY_DIR = path.join(PODCLAW_ROOT, 'memory')
 
 export async function GET(request: NextRequest) {
+  // Check admin authentication
+  try {
+    const session = await getIronSession<SessionData>(await cookies(), sessionOptions)
+    if (!session.isLoggedIn || session.role !== 'admin') {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      )
+    }
+  } catch {
+    return NextResponse.json(
+      { error: 'Invalid session' },
+      { status: 401 }
+    )
+  }
+
   try {
     const { searchParams } = new URL(request.url)
     const type = searchParams.get('type') // 'context', 'logs', 'memory.md', 'soul.md'

@@ -1,26 +1,40 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getIronSession } from 'iron-session'
+import { sessionOptions, SessionData } from '@/lib/session'
+import { cookies } from 'next/headers'
 
 const BRIDGE_URL = process.env.PODCLAW_BRIDGE_URL || 'http://localhost:8000'
 const BRIDGE_TOKEN = process.env.PODCLAW_BRIDGE_AUTH_TOKEN || ''
 
-function checkAdminAuth(req: NextRequest): NextResponse | null {
-  const sessionCookie = req.cookies.get('admin-session')
-  if (!sessionCookie) {
-    return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
-  }
+async function checkAdminAuth(): Promise<NextResponse | null> {
   try {
-    const sessionData = JSON.parse(sessionCookie.value)
-    if (sessionData.role !== 'admin') {
-      return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
+    const session = await getIronSession<SessionData>(await cookies(), sessionOptions)
+
+    if (!session.isLoggedIn) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      )
     }
+
+    if (session.role !== 'admin') {
+      return NextResponse.json(
+        { error: 'Admin access required' },
+        { status: 403 }
+      )
+    }
+
     return null
   } catch {
-    return NextResponse.json({ error: 'Invalid session' }, { status: 401 })
+    return NextResponse.json(
+      { error: 'Invalid session' },
+      { status: 401 }
+    )
   }
 }
 
 export async function POST(req: NextRequest) {
-  const authError = checkAdminAuth(req)
+  const authError = await checkAdminAuth()
   if (authError) return authError
 
   const body = await req.json()
