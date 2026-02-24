@@ -145,8 +145,53 @@ export async function getProductReviews(productId: string) {
   }))
 }
 
-// Fetch related products (same category, excluding current)
+// Fetch related products using co-purchase analysis from association_rules
 export async function getRelatedProducts(productId: string) {
+  // First, try to get recommendations from association rules (co-purchase data)
+  const { data: rules, error: rulesError } = await supabaseAdmin
+    .from('association_rules')
+    .select('consequents, confidence, lift')
+    .contains('antecedents', [productId])
+    .order('lift', { ascending: false })
+    .limit(4)
+
+  let recommendedIds: string[] = []
+
+  if (!rulesError && rules && rules.length > 0) {
+    // Extract all consequent product IDs and flatten
+    for (const rule of rules) {
+      if (rule.consequents && Array.isArray(rule.consequents)) {
+        recommendedIds.push(...rule.consequents)
+      }
+    }
+    // Remove duplicates and limit to 4
+    recommendedIds = [...new Set(recommendedIds)].slice(0, 4)
+  }
+
+  // If we have co-purchase recommendations, fetch those products
+  if (recommendedIds.length > 0) {
+    const { data: products, error: productsError } = await supabaseAdmin
+      .from('products')
+      .select('id, title, description, category, base_price_cents, currency, images, avg_rating, review_count')
+      .eq('status', 'active')
+      .in('id', recommendedIds)
+
+    if (!productsError && products && products.length > 0) {
+      return products.map((p) => ({
+        id: p.id,
+        title: p.title,
+        description: p.description,
+        price: p.base_price_cents / 100,
+        currency: p.currency?.toUpperCase() || 'EUR',
+        image: Array.isArray(p.images) && p.images.length > 0 ? (p.images[0].src || p.images[0].url) : null,
+        rating: Number(p.avg_rating) || 0,
+        reviewCount: p.review_count || 0,
+        category: p.category?.toLowerCase(),
+      }))
+    }
+  }
+
+  // Fallback: Use category-based recommendations if no association rules exist
   const product = await getProduct(productId)
   if (!product) return []
 

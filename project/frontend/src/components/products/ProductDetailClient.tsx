@@ -4,10 +4,11 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { useTranslations, useLocale } from 'next-intl'
 import Link from 'next/link'
 import Image from 'next/image'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Star, Heart, ShoppingCart, ChevronLeft, Shirt, Droplets, Globe, Printer, ShieldCheck, Paintbrush } from 'lucide-react'
 import { useCart } from '@/hooks/useCart'
 import { useWishlist } from '@/hooks/useWishlist'
+import { useRecentlyViewed } from '@/hooks/useRecentlyViewed'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
@@ -50,6 +51,7 @@ export function ProductDetailClient({ product, relatedProducts, reviews }: Produ
   const locale = useLocale()
   const { addToCart } = useCart()
   const { isWishlisted, toggleWishlist } = useWishlist()
+  const { trackView, getRecentlyViewed } = useRecentlyViewed()
 
   // Extract variant data early for default selection
   const sizes = product?.variants && 'sizes' in product.variants ? product.variants.sizes as string[] : undefined
@@ -86,6 +88,22 @@ export function ProductDetailClient({ product, relatedProducts, reviews }: Produ
   const [isAddingToCart, setIsAddingToCart] = useState(false)
   const [showReviewForm, setShowReviewForm] = useState(false)
   const [personalization, setPersonalization] = useState<PersonalizationData | null>(null)
+
+  // Track product view in localStorage
+  useEffect(() => {
+    if (product) {
+      trackView({
+        id: product.id,
+        title: product.title,
+        price: product.price,
+        currency: product.currency,
+        image: product.images && product.images.length > 0 ? product.images[0] : null,
+      })
+    }
+  }, [product?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Get recently viewed products excluding current one
+  const recentlyViewedProducts = product ? getRecentlyViewed(product.id) : []
 
   // Filter images by selected variant (color takes priority, then size)
   const visibleImages: string[] = (() => {
@@ -582,16 +600,44 @@ export function ProductDetailClient({ product, relatedProducts, reviews }: Produ
         </div>
       </div>
 
-      {/* Related Products Section */}
+      {/* Customers Also Bought Section */}
       {relatedProducts.length > 0 && (
         <>
           <Separator className="my-12" />
 
           <div>
-            <h2 className="text-2xl font-bold mb-6">{t('relatedProducts')}</h2>
+            <h2 className="text-2xl font-bold mb-6">{t('customersAlsoBought')}</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {relatedProducts.map((relatedProduct) => (
                 <ProductCard key={relatedProduct.id} product={relatedProduct} />
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Recently Viewed Section */}
+      {recentlyViewedProducts.length > 0 && (
+        <>
+          <Separator className="my-12" />
+
+          <div>
+            <h2 className="text-2xl font-bold mb-6">{t('recentlyViewed')}</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {recentlyViewedProducts.slice(0, 4).map((recentProduct) => (
+                <ProductCard
+                  key={recentProduct.id}
+                  product={{
+                    id: recentProduct.id,
+                    title: recentProduct.title,
+                    description: '',
+                    price: recentProduct.price,
+                    currency: recentProduct.currency,
+                    image: recentProduct.image || '',
+                    rating: 0,
+                    reviewCount: 0,
+                  }}
+                />
               ))}
             </div>
           </div>
