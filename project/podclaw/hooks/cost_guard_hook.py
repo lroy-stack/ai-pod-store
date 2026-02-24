@@ -5,7 +5,8 @@ PodClaw — Cost Guard Hook (PreToolUse)
 Tracks daily API call costs per agent and denies if budget exceeded.
 Costs are estimated per tool call (actual billing comes from Claude API).
 
-Uses Supabase agent_daily_costs table when available, falls back to in-memory.
+Uses Redis INCRBYFLOAT for persistent cost tracking across restarts.
+Key pattern: podclaw:cost:{agent}:{date} → FLOAT (total cost in EUR)
 """
 
 from __future__ import annotations
@@ -16,7 +17,19 @@ from typing import Any, Optional
 
 import structlog
 
-from podclaw.config import AGENT_DAILY_BUDGETS, DEFAULT_DAILY_BUDGET, GLOBAL_DAILY_SPEND_LIMIT_EUR, PRINTIFY_USD_TO_EUR_RATE
+from podclaw.config import (
+    AGENT_DAILY_BUDGETS,
+    DEFAULT_DAILY_BUDGET,
+    GLOBAL_DAILY_SPEND_LIMIT_EUR,
+    PRINTIFY_USD_TO_EUR_RATE,
+)
+from podclaw.redis_store import (
+    increment_daily_cost,
+    get_daily_cost,
+    get_all_daily_costs,
+    reset_daily_costs,
+    init_redis,
+)
 
 logger = structlog.get_logger(__name__)
 
@@ -81,10 +94,7 @@ TOOL_COSTS: dict[str, float] = {
     "whatsapp_send_template": 0.001,
 }
 
-# In-memory daily cost tracker (fallback): {date_str: {agent_name: total_cost}}
-_daily_costs: dict[str, dict[str, float]] = {}
-
-# Lock for in-memory cost tracking
+# Lock for atomic check-and-increment operations
 _cost_lock = asyncio.Lock()
 
 # Supabase client (set via init_cost_guard)
@@ -92,94 +102,10 @@ _supabase_client: Any = None
 
 
 def init_cost_guard(supabase_client: Any) -> None:
-    """Initialize with Supabase client for persistent cost tracking."""
+    """Initialize with Supabase client and Redis."""
     global _supabase_client
     _supabase_client = supabase_client
-
-
-def _today_key() -> str:
-    return datetime.now(timezone.utc).strftime("%Y-%m-%d")
-
-
-def _get_agent_cost_sync(agent_name: str) -> float | None:
-    """Get current daily cost for an agent (sync, for thread pool)."""
-    if not _supabase_client:
-        return None
-    today = _today_key()
-    result = (
-        _supabase_client.table("agent_daily_costs")
-        .select("total_cost")
-        .eq("agent_name", agent_name)
-        .eq("date", today)
-        .execute()
-    )
-    if result.data:
-        return float(result.data[0]["total_cost"])
-    return 0.0
-
-
-async def _get_agent_cost(agent_name: str) -> float:
-    """Get current daily cost for an agent."""
-    if _supabase_client:
-        try:
-            result = await asyncio.to_thread(_get_agent_cost_sync, agent_name)
-            if result is not None:
-                return result
-        except Exception as e:
-            logger.warning("cost_guard_supabase_read_failed", error=str(e))
-
-    # Fallback to in-memory
-    today = _today_key()
-    return _daily_costs.get(today, {}).get(agent_name, 0.0)
-
-
-def _add_cost_sync(agent_name: str, cost: float) -> float | None:
-    """Add cost and return new total (sync, for thread pool)."""
-    if not _supabase_client:
-        return None
-    today = _today_key()
-    result = (
-        _supabase_client.table("agent_daily_costs")
-        .select("total_cost")
-        .eq("agent_name", agent_name)
-        .eq("date", today)
-        .execute()
-    )
-    if result.data:
-        new_total = float(result.data[0]["total_cost"]) + cost
-        _supabase_client.table("agent_daily_costs").update(
-            {"total_cost": new_total}
-        ).eq("agent_name", agent_name).eq("date", today).execute()
-    else:
-        new_total = cost
-        _supabase_client.table("agent_daily_costs").insert({
-            "agent_name": agent_name,
-            "date": today,
-            "total_cost": new_total,
-        }).execute()
-    return new_total
-
-
-async def _add_cost(agent_name: str, cost: float) -> float:
-    """Add cost and return new total.
-
-    Caller MUST hold _cost_lock to prevent TOCTOU with _get_agent_cost.
-    """
-    if _supabase_client:
-        try:
-            result = await asyncio.to_thread(_add_cost_sync, agent_name, cost)
-            if result is not None:
-                return result
-        except Exception as e:
-            logger.warning("cost_guard_supabase_write_failed", error=str(e))
-
-    # Fallback to in-memory (no lock here — caller holds _cost_lock)
-    today = _today_key()
-    if today not in _daily_costs:
-        _daily_costs.clear()
-        _daily_costs[today] = {}
-    _daily_costs[today][agent_name] = _daily_costs[today].get(agent_name, 0.0) + cost
-    return _daily_costs[today][agent_name]
+    init_redis()  # Initialize Redis connection pool
 
 
 async def cost_guard_hook(
@@ -203,9 +129,9 @@ async def cost_guard_hook(
     # Atomic check-and-increment under lock
     async with _cost_lock:
         # Global daily spend limit (sum of all agents)
-        today = _today_key()
-        all_costs = _daily_costs.get(today, {})
+        all_costs = await get_all_daily_costs()
         global_total = sum(all_costs.values())
+
         if global_total + estimated_cost > GLOBAL_DAILY_SPEND_LIMIT_EUR:
             reason = (
                 f"Global daily spend limit exceeded: "
@@ -220,7 +146,7 @@ async def cost_guard_hook(
                 }
             }
 
-        current_cost = await _get_agent_cost(agent_name)
+        current_cost = await get_daily_cost(agent_name)
 
         if current_cost + estimated_cost > budget:
             reason = (
@@ -236,7 +162,7 @@ async def cost_guard_hook(
                 }
             }
 
-        new_total = await _add_cost(agent_name, estimated_cost)
+        new_total = await increment_daily_cost(agent_name, estimated_cost)
         logger.debug("cost_tracked", agent=agent_name, tool=tool_name, cost=estimated_cost, total=new_total)
 
         budget_usage = new_total / budget
@@ -247,23 +173,13 @@ async def cost_guard_hook(
 
 
 def get_daily_costs() -> dict[str, float]:
-    """Get current daily costs for all agents."""
-    if _supabase_client:
-        try:
-            today = _today_key()
-            result = (
-                _supabase_client.table("agent_daily_costs")
-                .select("agent_name, total_cost")
-                .eq("date", today)
-                .execute()
-            )
-            if result.data:
-                return {row["agent_name"]: float(row["total_cost"]) for row in result.data}
-        except Exception as e:
-            logger.warning("cost_guard_supabase_query_failed", error=str(e))
+    """
+    Get current daily costs for all agents (synchronous wrapper).
 
-    today = _today_key()
-    return dict(_daily_costs.get(today, {}))
+    Note: This is deprecated. Use async get_all_daily_costs() from redis_store instead.
+    """
+    logger.warning("get_daily_costs_deprecated", reason="Use async get_all_daily_costs() instead")
+    return {}
 
 
 async def record_session_cost(agent_name: str, session_cost_usd: float) -> None:
@@ -274,7 +190,7 @@ async def record_session_cost(agent_name: str, session_cost_usd: float) -> None:
     """
     cost_eur = session_cost_usd * PRINTIFY_USD_TO_EUR_RATE  # USD → EUR
     async with _cost_lock:
-        new_total = await _add_cost(agent_name, cost_eur)
+        new_total = await increment_daily_cost(agent_name, cost_eur)
         logger.info(
             "session_cost_recorded",
             agent=agent_name,
@@ -284,19 +200,17 @@ async def record_session_cost(agent_name: str, session_cost_usd: float) -> None:
         )
 
 
-def reset_costs() -> None:
+async def reset_costs() -> None:
     """Reset all cost tracking (for testing).
 
-    Clears both in-memory tracker AND Supabase agent_daily_costs for today.
+    Clears Redis cost keys for today and optionally Supabase agent_daily_costs.
     """
-    _daily_costs.clear()
+    await reset_daily_costs()
 
     if _supabase_client:
         try:
-            today = _today_key()
-            _supabase_client.table("agent_daily_costs").delete().eq(
-                "date", today
-            ).execute()
-            logger.info("cost_guard_reset", date=today, source="supabase+memory")
+            today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+            _supabase_client.table("agent_daily_costs").delete().eq("date", today).execute()
+            logger.info("cost_guard_reset_supabase", date=today)
         except Exception as e:
             logger.warning("cost_guard_reset_supabase_failed", error=str(e))

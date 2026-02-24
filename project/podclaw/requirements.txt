@@ -28,3 +28,6 @@ aiofiles>=24.0.0
 
 # Supabase client (event store, state)
 supabase>=2.0.0
+
+# Redis client (persistent rate limits and cost tracking)
+redis[hiredis]>=5.0.0
