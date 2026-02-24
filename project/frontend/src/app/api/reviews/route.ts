@@ -1,16 +1,44 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { cookies } from 'next/headers'
 
 const supabaseUrl = process.env.SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY!
+const supabaseAnonKey = process.env.SUPABASE_ANON_KEY!
 
 // Server-side Supabase client with service role key
-const supabase = createClient(supabaseUrl, supabaseServiceKey)
+const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey)
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { productId, rating, comment } = body
+    const { productId, rating, comment, imageUrls = [] } = body
+
+    // Get authenticated user from session
+    const cookieStore = await cookies()
+    const accessToken = cookieStore.get('sb-access-token')?.value
+    const refreshToken = cookieStore.get('sb-refresh-token')?.value
+
+    if (!accessToken || !refreshToken) {
+      return NextResponse.json(
+        { error: 'Unauthorized', message: 'You must be logged in to submit a review' },
+        { status: 401 }
+      )
+    }
+
+    // Create Supabase client with user session
+    const supabase = createClient(supabaseUrl, supabaseAnonKey)
+    const { data: { user }, error: authError } = await supabase.auth.setSession({
+      access_token: accessToken,
+      refresh_token: refreshToken,
+    })
+
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: 'Unauthorized', message: 'Invalid session' },
+        { status: 401 }
+      )
+    }
 
     // Validation
     if (!productId || !rating || !comment) {
@@ -34,28 +62,44 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // For now, we'll use the test user - in production this would come from the session
-    const mockUserId = '00000000-0000-0000-0000-000000000001'
+    if (imageUrls.length > 3) {
+      return NextResponse.json(
+        { error: 'Too many photos', message: 'Maximum 3 photos allowed' },
+        { status: 400 }
+      )
+    }
+
+    // Check if user has purchased this product
+    const { data: orders } = await supabaseAdmin
+      .from('orders')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('items->>product_id', productId)
+      .eq('status', 'completed')
+      .limit(1)
+
+    const isVerifiedPurchase = orders && orders.length > 0
+    const orderId = isVerifiedPurchase ? orders[0].id : null
 
     // Delete any existing review from this user for this product (to bypass unique constraint)
-    await supabase
+    await supabaseAdmin
       .from('product_reviews')
       .delete()
       .eq('product_id', productId)
-      .eq('user_id', mockUserId)
-      .is('order_id', null)
+      .eq('user_id', user.id)
 
     // Insert the new review
-    const { data: review, error: insertError} = await supabase
+    const { data: review, error: insertError} = await supabaseAdmin
       .from('product_reviews')
       .insert([
         {
           product_id: productId,
-          user_id: mockUserId,
+          user_id: user.id,
           rating,
           body: comment.trim(),
-          is_verified_purchase: false,
-          order_id: null,
+          is_verified_purchase: isVerifiedPurchase,
+          order_id: orderId,
+          image_urls: imageUrls,
         },
       ])
       .select()
@@ -98,10 +142,11 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const { data: reviews, error } = await supabase
+    const { data: reviews, error } = await supabaseAdmin
       .from('product_reviews')
       .select('*')
       .eq('product_id', productId)
+      .eq('moderation_status', 'approved')
       .order('created_at', { ascending: false })
 
     if (error) {
