@@ -678,8 +678,7 @@
     "itemsInCartCount": "{count} {count, plural, one {artículo} other {artículos}} en el carrito",
     "errorLoadingResults": "Error al cargar resultados",
     "collapseSidebar": "Contraer barra lateral",
-    "podclawActive": "Gestor de tienda IA activo",
-    "categories": "Categorías"
+    "podclawActive": "Gestor de tienda IA activo"
   },
   "commandPalette": {
     "searchPlaceholder": "Buscar páginas, productos o acciones...",
@@ -1230,5 +1229,22 @@
     "subtitle": "Historias, consejos y actualizaciones del equipo de POD AI",
     "noPosts": "Aún no hay publicaciones de blog. ¡Vuelve pronto!",
     "views": "vistas"
+  },
+  "referrals": {
+    "metaTitle": "Referencias - POD AI Store",
+    "metaDescription": "Invita a amigos y gana créditos por cada referencia exitosa",
+    "title": "Refiere Amigos, Gana Créditos",
+    "subtitle": "Comparte POD AI con tus amigos y gana 10 créditos por cada amigo que haga una compra",
+    "inviteLinkTitle": "Tu Enlace de Referencia",
+    "inviteLinkDescription": "Comparte este enlace con tus amigos para ganar créditos",
+    "copy": "Copiar",
+    "shareInstructions": "Comparte este enlace en redes sociales, correo electrónico o donde quieras. ¡Cuando alguien se registre y haga su primera compra, ganarás 10 créditos!",
+    "totalInvited": "Amigos Invitados",
+    "totalConverted": "Referencias Exitosas",
+    "creditsEarned": "Créditos Ganados",
+    "howItWorksTitle": "Cómo Funciona",
+    "step1": "Comparte tu enlace de referencia único con amigos",
+    "step2": "Ellos se registran y hacen su primera compra usando tu enlace",
+    "step3": "¡Ambos obtienen 10 créditos! Ellos reciben un bono de bienvenida y tú una recompensa por referencia"
   }
 }

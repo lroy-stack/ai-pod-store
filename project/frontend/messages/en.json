@@ -1229,5 +1229,22 @@
     "subtitle": "Stories, tips, and updates from the POD AI team",
     "noPosts": "No blog posts yet. Check back soon!",
     "views": "views"
+  },
+  "referrals": {
+    "metaTitle": "Referrals - POD AI Store",
+    "metaDescription": "Invite friends and earn credits for every successful referral",
+    "title": "Refer Friends, Earn Credits",
+    "subtitle": "Share POD AI with your friends and earn 10 credits for each friend who makes a purchase",
+    "inviteLinkTitle": "Your Referral Link",
+    "inviteLinkDescription": "Share this link with your friends to earn credits",
+    "copy": "Copy",
+    "shareInstructions": "Share this link on social media, email, or anywhere you like. When someone signs up and makes their first purchase, you'll earn 10 credits!",
+    "totalInvited": "Friends Invited",
+    "totalConverted": "Successful Referrals",
+    "creditsEarned": "Credits Earned",
+    "howItWorksTitle": "How It Works",
+    "step1": "Share your unique referral link with friends",
+    "step2": "They sign up and make their first purchase using your link",
+    "step3": "You both get 10 credits! They get a welcome bonus, and you get a referral reward"
   }
 }

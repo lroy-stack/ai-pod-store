@@ -678,8 +678,7 @@
     "itemsInCartCount": "{count} {count, plural, one {Artikel} other {Artikel}} im Warenkorb",
     "errorLoadingResults": "Fehler beim Laden der Ergebnisse",
     "collapseSidebar": "Seitenleiste einklappen",
-    "podclawActive": "KI-Shop-Manager aktiv",
-    "categories": "Kategorien"
+    "podclawActive": "KI-Shop-Manager aktiv"
   },
   "commandPalette": {
     "searchPlaceholder": "Seiten, Produkte oder Aktionen suchen...",
@@ -1230,5 +1229,22 @@
     "subtitle": "Geschichten, Tipps und Updates vom POD AI-Team",
     "noPosts": "Noch keine Blog-Beiträge. Schau bald wieder vorbei!",
     "views": "Aufrufe"
+  },
+  "referrals": {
+    "metaTitle": "Empfehlungen - POD AI Store",
+    "metaDescription": "Lade Freunde ein und verdiene Credits für jede erfolgreiche Empfehlung",
+    "title": "Empfiehl Freunde, Verdiene Credits",
+    "subtitle": "Teile POD AI mit deinen Freunden und verdiene 10 Credits für jeden Freund, der einen Kauf tätigt",
+    "inviteLinkTitle": "Dein Empfehlungslink",
+    "inviteLinkDescription": "Teile diesen Link mit deinen Freunden, um Credits zu verdienen",
+    "copy": "Kopieren",
+    "shareInstructions": "Teile diesen Link auf sozialen Medien, per E-Mail oder wo immer du möchtest. Wenn sich jemand registriert und seinen ersten Kauf tätigt, verdienst du 10 Credits!",
+    "totalInvited": "Eingeladene Freunde",
+    "totalConverted": "Erfolgreiche Empfehlungen",
+    "creditsEarned": "Verdiente Credits",
+    "howItWorksTitle": "Wie es funktioniert",
+    "step1": "Teile deinen einzigartigen Empfehlungslink mit Freunden",
+    "step2": "Sie registrieren sich und tätigen ihren ersten Kauf mit deinem Link",
+    "step3": "Ihr beide erhaltet 10 Credits! Sie bekommen einen Willkommensbonus und du eine Empfehlungsbelohnung"
   }
 }
