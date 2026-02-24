@@ -1222,5 +1222,13 @@
     "unisexSizing": "Tallas unisex",
     "measurementsIn": "medidas en",
     "availableSizes": "Tamaños disponibles"
+  },
+  "blog": {
+    "metaTitle": "Blog - POD AI Store",
+    "metaDescription": "Lee las últimas actualizaciones, consejos e historias de POD AI Store",
+    "title": "Blog",
+    "subtitle": "Historias, consejos y actualizaciones del equipo de POD AI",
+    "noPosts": "Aún no hay publicaciones de blog. ¡Vuelve pronto!",
+    "views": "vistas"
   }
 }

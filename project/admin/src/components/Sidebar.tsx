@@ -65,6 +65,7 @@ const navigationSections: NavSection[] = [
       { name: 'Translations', href: '/translations', icon: Languages },
       { name: 'SEO', href: '/seo', icon: Search },
       { name: 'Reviews', href: '/reviews', icon: Star },
+      { name: 'Blog', href: '/blog', icon: FileText },
     ],
   },
   {
