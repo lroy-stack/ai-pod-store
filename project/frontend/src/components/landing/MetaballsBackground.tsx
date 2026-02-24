@@ -38,6 +38,7 @@ export function MetaballsBackground() {
   const [mounted, setMounted] = useState(false)
   const [supportsWebGL, setSupportsWebGL] = useState(true)
   const [reducedMotion, setReducedMotion] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
 
   useEffect(() => {
     setMounted(true)
@@ -45,9 +46,18 @@ export function MetaballsBackground() {
     setReducedMotion(
       window.matchMedia('(prefers-reduced-motion: reduce)').matches
     )
+
+    // Check if viewport is mobile (<768px)
+    const checkMobile = () => setIsMobile(window.innerWidth < 768)
+    checkMobile()
+
+    // Re-check on resize
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
   }, [])
 
-  if (!mounted || !supportsWebGL) return null
+  // Disable canvas on mobile, no WebGL, or if not mounted
+  if (!mounted || !supportsWebGL || isMobile) return null
 
   // Read unprefixed theme variables from :root and convert oklch→hex for shader
   const colorBack = getThemeColorHex('--background', resolvedTheme === 'dark' ? '#0a0a0b' : '#dcdde0')
