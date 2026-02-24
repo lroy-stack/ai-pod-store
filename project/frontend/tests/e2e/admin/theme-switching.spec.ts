@@ -7,7 +7,7 @@ import { test, expect } from '@playwright/test'
  * Note: Admin panel is desktop-only, so we skip mobile browsers
  */
 test.describe('@admin Theme Switching', () => {
-  test.skip(({ browserName }) => browserName === 'mobile-chrome', 'Admin panel requires desktop browser')
+  test.skip(({ browserName }) => (browserName as string) === 'mobile-chrome', 'Admin panel requires desktop browser')
   const adminUser = {
     email: 'admin@podstore.local',
     password: 'admin123',

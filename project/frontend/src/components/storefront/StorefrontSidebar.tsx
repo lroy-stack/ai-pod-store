@@ -18,8 +18,6 @@ import { useParams, usePathname, useSearchParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import {
   Store, Sparkles, Heart, ShoppingBag, ShoppingCart, PanelLeftClose, MessageCircle,
-  ChevronDown, ChevronRight, Shirt, Coffee, Home, Image as ImageIcon, Palette,
-  Utensils, Baby, Gamepad, Pencil, Crown, Smartphone, Star, type LucideIcon
 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -28,27 +26,6 @@ import { useCart } from '@/hooks/useCart'
 import { useStorefront } from './StorefrontContext'
 import { formatPrice } from '@/lib/currency'
 import { UsageMeter } from '@/components/engagement/UsageMeter'
-
-// Map icon names from database to Lucide React components
-const iconMap: Record<string, LucideIcon> = {
-  'shirt': Shirt,
-  'shopping-bag': ShoppingBag,
-  'crown': Crown,
-  'smartphone': Smartphone,
-  'star': Star,
-  'coffee': Coffee,
-  'home': Home,
-  'image': ImageIcon,
-  'palette': Palette,
-  'utensils': Utensils,
-  'baby': Baby,
-  'gamepad': Gamepad,
-  'pencil': Pencil,
-}
-
-function getCategoryIcon(iconName: string): LucideIcon {
-  return iconMap[iconName] || Store // Fallback to Store icon
-}
 
 interface SidebarProduct {
   id: string
@@ -74,33 +51,6 @@ export function StorefrontSidebar({ onNavigate, onCollapse }: StorefrontSidebarP
   const locale = params.locale as string
   const [recommended, setRecommended] = useState<SidebarProduct[]>([])
   const [popular, setPopular] = useState<SidebarProduct[]>([])
-  const [categories, setCategories] = useState<Array<{
-    id: string
-    slug: string
-    name: string
-    icon: string
-    product_count: number
-    parent_id: string | null
-  }>>([])
-  const [categoriesExpanded, setCategoriesExpanded] = useState(true)
-
-  // Fetch categories
-  useEffect(() => {
-    async function fetchCategories() {
-      try {
-        const res = await fetch(`/api/categories?locale=${locale}`)
-        const data = await res.json()
-        if (Array.isArray(data)) {
-          // Show only top-level categories in sidebar (parent_id is null)
-          setCategories(data.filter(cat => cat.parent_id === null))
-        }
-      } catch (e) {
-        console.error('Sidebar categories fetch error:', e)
-      }
-    }
-    fetchCategories()
-  }, [locale])
-
   // Recommended: fetch top 6 by rating, shuffle, pick 2 — re-fetch every 5 min
   useEffect(() => {
     async function fetchRecommended() {
@@ -211,7 +161,7 @@ export function StorefrontSidebar({ onNavigate, onCollapse }: StorefrontSidebarP
               className="object-contain hidden dark:block"
             />
           </div>
-          <span className="font-semibold text-foreground">Skapara</span>
+          <span className="text-sm font-bold tracking-tight uppercase text-foreground">Skapara</span>
         </Link>
         {onCollapse && (
           <Button variant="ghost" size="icon" className="h-7 w-7 hidden lg:inline-flex" onClick={onCollapse}>
@@ -267,59 +217,6 @@ export function StorefrontSidebar({ onNavigate, onCollapse }: StorefrontSidebarP
           )}
         </Link>
       </nav>
-
-      {/* Categories Section */}
-      {categories.length > 0 && (
-        <div className="border-t border-border">
-          <button
-            onClick={() => setCategoriesExpanded(!categoriesExpanded)}
-            className="flex items-center justify-between w-full px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider hover:bg-muted/50 transition-colors"
-          >
-            <span>{t('categories')}</span>
-            {categoriesExpanded ? (
-              <ChevronDown className="h-3 w-3" aria-hidden="true" />
-            ) : (
-              <ChevronRight className="h-3 w-3" aria-hidden="true" />
-            )}
-          </button>
-          {categoriesExpanded && (
-            <nav className="flex flex-col gap-1 p-2">
-              {categories.map((category) => {
-                const categoryHref = `/${locale}/shop/category/${category.slug}`
-                const isActiveCategory = pathname === `/${locale}/shop/category/${category.slug}` ||
-                                         pathname === `/${locale}/shop/category/${category.slug}/`
-                const CategoryIcon = getCategoryIcon(category.icon)
-                return (
-                  <Link
-                    key={category.id}
-                    href={categoryHref}
-                    onClick={onNavigate}
-                    className={cn(
-                      'flex items-center justify-between px-3 py-3 rounded-lg text-sm transition-colors group',
-                      isActiveCategory
-                        ? 'bg-primary/10 text-primary font-medium'
-                        : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                    )}
-                  >
-                    <div className="flex items-center gap-2">
-                      <CategoryIcon className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
-                      <span className="truncate">{category.name}</span>
-                    </div>
-                    {category.product_count > 0 && (
-                      <Badge
-                        variant="secondary"
-                        className="ml-2 h-5 min-w-5 rounded-full px-1.5 text-xs tabular-nums"
-                      >
-                        {category.product_count}
-                      </Badge>
-                    )}
-                  </Link>
-                )
-              })}
-            </nav>
-          )}
-        </div>
-      )}
 
       {/* Usage Meter */}
       <UsageMeter />

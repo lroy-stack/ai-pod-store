@@ -60,7 +60,7 @@ export function WelcomePopup() {
             <span className="text-2xl font-bold text-primary-foreground">P</span>
           </div>
           <DialogTitle className="text-2xl">
-            {t('title')}
+            {t('title', { brandName: process.env.NEXT_PUBLIC_SITE_NAME || 'Skapara' })}
           </DialogTitle>
           <DialogDescription className="text-base">
             {t('description')}

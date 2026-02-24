@@ -456,7 +456,7 @@ export function ChatArea() {
                 <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground mb-2">
                   {userData.user
                     ? t('welcomeBackTitle', { name: userData.user.name?.split(' ')[0] || 'there' })
-                    : t('welcomeTitle')}
+                    : t('welcomeTitle', { brandName: process.env.NEXT_PUBLIC_SITE_NAME || 'Skapara' })}
                 </h1>
                 <p className="text-muted-foreground">
                   {userData.user ? t('welcomeBackSubtitle') : t('welcomeSubtitle')}

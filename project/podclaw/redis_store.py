@@ -230,6 +230,110 @@ async def get_all_daily_costs() -> dict[str, float]:
         return {}
 
 
+# ---------------------------------------------------------------------------
+# Agent Singleton Lock Operations (SET NX)
+# ---------------------------------------------------------------------------
+
+AGENT_LOCK_TTL = 1200  # 20 minutes — matches max agent session duration
+
+
+def _agent_lock_key(agent_name: str) -> str:
+    """Return the Redis key for an agent's singleton lock."""
+    return f"podclaw:agent:{agent_name}:lock"
+
+
+async def acquire_agent_lock(agent_name: str, session_id: str) -> bool:
+    """
+    Acquire a distributed singleton lock for an agent using Redis SET NX.
+
+    Uses SET NX (set-if-not-exists) with a 20-minute TTL to ensure only
+    one instance of a given agent can be 'running' at a time across all
+    PodClaw processes.
+
+    Args:
+        agent_name: Name of the agent to lock
+        session_id: Unique session ID (stored as lock value for debugging)
+
+    Returns:
+        True if lock acquired, False if another instance is running.
+        Returns True (allow) if Redis is unavailable (graceful degradation).
+    """
+    client = get_redis()
+    if not client:
+        logger.warning("agent_lock_redis_unavailable", agent=agent_name, action="allow_fallback")
+        return True  # Fail-open: allow if Redis not available
+
+    key = _agent_lock_key(agent_name)
+    try:
+        # SET NX EX: atomic "set if not exists" with TTL
+        acquired = await client.set(key, session_id, nx=True, ex=AGENT_LOCK_TTL)
+        if acquired:
+            logger.debug("agent_lock_acquired", agent=agent_name, session=session_id, ttl=AGENT_LOCK_TTL)
+        else:
+            # Check who holds the lock (for observability)
+            holder = await client.get(key)
+            logger.warning("agent_lock_conflict", agent=agent_name, held_by=holder)
+        return bool(acquired)
+    except Exception as e:
+        logger.warning("agent_lock_acquire_failed", agent=agent_name, error=str(e))
+        return True  # Fail-open: allow if Redis errors
+
+
+async def release_agent_lock(agent_name: str, session_id: str) -> None:
+    """
+    Release the distributed singleton lock for an agent.
+
+    Only deletes the key if the value matches session_id (prevents
+    accidentally releasing a lock held by a different session).
+
+    Args:
+        agent_name: Name of the agent to unlock
+        session_id: Session ID that originally acquired the lock
+    """
+    client = get_redis()
+    if not client:
+        return
+
+    key = _agent_lock_key(agent_name)
+    try:
+        # Lua script for atomic check-and-delete (prevents race condition)
+        script = """
+        local current = redis.call('GET', KEYS[1])
+        if current == ARGV[1] then
+            return redis.call('DEL', KEYS[1])
+        else
+            return 0
+        end
+        """
+        result = await client.eval(script, 1, key, session_id)
+        if result:
+            logger.debug("agent_lock_released", agent=agent_name, session=session_id)
+        else:
+            logger.warning("agent_lock_release_skipped", agent=agent_name, reason="lock not held by this session")
+    except Exception as e:
+        logger.warning("agent_lock_release_failed", agent=agent_name, error=str(e))
+
+
+async def is_agent_locked(agent_name: str) -> tuple[bool, str | None]:
+    """
+    Check if an agent's singleton lock is held (for status reporting).
+
+    Returns:
+        (is_locked, session_id_or_None)
+    """
+    client = get_redis()
+    if not client:
+        return False, None
+
+    key = _agent_lock_key(agent_name)
+    try:
+        holder = await client.get(key)
+        return bool(holder), holder
+    except Exception as e:
+        logger.warning("agent_lock_check_failed", agent=agent_name, error=str(e))
+        return False, None
+
+
 async def reset_daily_costs(agent_name: str | None = None) -> None:
     """
     Reset daily cost counters for an agent (or all agents if None).

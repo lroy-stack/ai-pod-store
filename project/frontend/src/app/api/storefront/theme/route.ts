@@ -1,19 +1,56 @@
 import { supabaseAdmin } from '@/lib/supabase-admin';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
 /**
  * GET /api/storefront/theme
- * Returns the active theme's CSS variables for the frontend
- * This is a public endpoint (no authentication required)
+ * Returns the active theme's CSS variables for the frontend.
+ * This is a public endpoint (no authentication required).
+ *
+ * Per-tenant theme resolution order:
+ *   1. Tenant-specific active theme (if x-tenant-id header present)
+ *   2. Global active theme (tenant_id IS NULL)
+ *   3. Global default theme
+ *   4. Fallback slug 'ocean-blue'
  */
-export async function GET() {
-  try {
+export async function GET(request: NextRequest) {
+  const tenantId = request.headers.get('x-tenant-id') || null
 
-    // Fetch the active theme
+  try {
+    // If tenant context, look for tenant-specific active theme first
+    if (tenantId) {
+      const { data: tenantTheme } = await supabaseAdmin
+        .from('store_themes')
+        .select('*')
+        .eq('tenant_id', tenantId)
+        .eq('is_active', true)
+        .single()
+
+      if (tenantTheme) {
+        return NextResponse.json(
+          {
+            id: tenantTheme.id,
+            name: tenantTheme.name,
+            slug: tenantTheme.slug,
+            category: tenantTheme.category,
+            css_variables: tenantTheme.css_variables,
+            css_variables_dark: tenantTheme.css_variables_dark,
+            fonts: tenantTheme.fonts,
+            border_radius: tenantTheme.border_radius,
+            shadow_preset: tenantTheme.shadow_preset,
+            tenant_id: tenantTheme.tenant_id,
+          },
+          { headers: { 'Cache-Control': 'public, max-age=300' } }
+        )
+      }
+      // Fall through to global theme resolution
+    }
+
+    // Fetch the active theme (global)
     const { data: activeTheme, error } = await supabaseAdmin
       .from('store_themes')
       .select('*')
       .eq('is_active', true)
+      .is('tenant_id', null)
       .single();
 
     // If no active theme, return the default theme

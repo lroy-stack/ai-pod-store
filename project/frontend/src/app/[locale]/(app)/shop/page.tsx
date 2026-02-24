@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
-import { createClient } from '@supabase/supabase-js'
+import { supabaseAdmin } from '@/lib/supabase-admin'
 import Link from 'next/link'
 import { ShopPageClient } from '@/components/shop/ShopPageClient'
 import {
@@ -20,15 +20,48 @@ interface Product {
   currency: string
   avg_rating: number
   review_count: number
-  category: string
+  category_id: string
+  categories: { slug: string } | { slug: string }[] | null
   status: string
   created_at: string
   images: Array<{ src: string; alt: string }>
-  variants?: {
-    sizes?: string[]
-    colors?: string[]
-    colorImages?: Record<string, string>
+}
+
+/** Batch-fetch variants from product_variants table, grouped by product_id */
+async function fetchVariantsByProductId(productIds: string[]) {
+  if (productIds.length === 0) return new Map<string, { sizes: string[]; colors: string[]; colorImages: Record<string, string> }>()
+
+  const { data: allVariants } = await supabaseAdmin
+    .from('product_variants')
+    .select('product_id, size, color, image_url')
+    .in('product_id', productIds)
+    .eq('is_enabled', true)
+    .eq('is_available', true)
+
+  const grouped = new Map<string, { sizes: Set<string>; colors: Set<string>; colorImages: Map<string, string> }>()
+  for (const v of allVariants || []) {
+    if (!grouped.has(v.product_id)) {
+      grouped.set(v.product_id, { sizes: new Set(), colors: new Set(), colorImages: new Map() })
+    }
+    const entry = grouped.get(v.product_id)!
+    if (v.size) entry.sizes.add(v.size)
+    if (v.color) {
+      entry.colors.add(v.color)
+      if (v.image_url && !entry.colorImages.has(v.color)) {
+        entry.colorImages.set(v.color, v.image_url)
+      }
+    }
   }
+
+  const result = new Map<string, { sizes: string[]; colors: string[]; colorImages: Record<string, string> }>()
+  for (const [id, { sizes, colors, colorImages }] of grouped) {
+    result.set(id, {
+      sizes: [...sizes],
+      colors: [...colors],
+      colorImages: Object.fromEntries(colorImages),
+    })
+  }
+  return result
 }
 
 interface ShopPageProps {
@@ -102,21 +135,15 @@ export default async function ShopPage({ params, searchParams }: ShopPageProps) 
   const sort = (search.sort as SortOption) || 'featured'
   const newArrivals = search.newArrivals === 'true'
 
-  // Fetch products on the server (using anon key for public data)
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
-
-  // Build query
-  let productsQuery = supabase
+  // Fetch products on the server (service key bypasses RLS — safe in Server Components)
+  let productsQuery = supabaseAdmin
     .from('products')
-    .select('id, title, description, base_price_cents, currency, avg_rating, review_count, category, status, created_at, images, variants', { count: 'exact' })
+    .select('id, title, description, base_price_cents, currency, avg_rating, review_count, category_id, categories(slug), status, created_at, images', { count: 'exact' })
     .eq('status', 'active')
 
   // Apply filters
   if (category && category !== 'all') {
-    productsQuery = productsQuery.eq('category', category)
+    productsQuery = productsQuery.eq('categories.slug', category)
   }
 
   if (query && query.trim()) {
@@ -154,22 +181,25 @@ export default async function ShopPage({ params, searchParams }: ShopPageProps) 
 
   const { data: productsData, count: totalCount } = await productsQuery
 
-  // Fetch all categories for filters
-  const { data: allProductsData } = await supabase
+  // Fetch all categories for filters (JOIN with categories table for slug)
+  const { data: allProductsData } = await supabaseAdmin
     .from('products')
-    .select('category')
+    .select('category_id, categories(slug)')
     .eq('status', 'active')
 
   // Calculate category counts
   const categoryCounts: Record<string, number> = { all: totalCount || 0 }
   if (allProductsData) {
     for (const p of allProductsData) {
-      const cat = p.category || 'other'
+      const cat = (p.categories as any)?.slug || 'other'
       categoryCounts[cat] = (categoryCounts[cat] || 0) + 1
     }
   }
 
   const categories = ['all', ...Object.keys(categoryCounts).filter(c => c !== 'all')]
+
+  // Batch-fetch variants from product_variants table (same pattern as /api/products)
+  const variantsMap = await fetchVariantsByProductId((productsData || []).map((p: any) => p.id))
 
   // Transform products for client component
   const products = (productsData || []).map((p: Product) => ({
@@ -180,11 +210,11 @@ export default async function ShopPage({ params, searchParams }: ShopPageProps) 
     currency: p.currency || 'EUR',
     rating: p.avg_rating || 0,
     reviewCount: p.review_count || 0,
-    category: p.category,
+    category: (p.categories as any)?.slug || 'other',
     inStock: p.status === 'active',
     createdAt: p.created_at,
     image: p.images?.[0]?.src || '',
-    variants: p.variants,
+    variants: variantsMap.get(p.id),
   }))
 
   // Get translations for JSON-LD

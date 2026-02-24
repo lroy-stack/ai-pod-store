@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 import { sanitizeForLike, sanitizeForPostgrest } from '@/lib/query-sanitizer'
+import { checkPlanGate } from '@/lib/plan-gates'
 
 export const dynamic = 'force-dynamic'
 
@@ -270,7 +271,7 @@ async function getVectorSearchResults(
       .in('id', productIds)
 
     if (category && category !== 'all') {
-      query = query.ilike('category', category)
+      query = query.eq('categories.slug', category)
     }
 
     const { data: products, error: productsError } = await query
@@ -314,7 +315,7 @@ async function getKeywordSearchResults(
     // PostgreSQL full-text search on title, description, category
     // SECURITY: Sanitize user input to prevent SQL injection
     const sanitizedSearchQuery = sanitizeForLike(searchQuery, 'both')
-    query = query.or(`title.ilike.${sanitizedSearchQuery},description.ilike.${sanitizedSearchQuery},category.ilike.${sanitizedSearchQuery}`)
+    query = query.or(`title.ilike.${sanitizedSearchQuery},description.ilike.${sanitizedSearchQuery}`)
     query = query.limit(limit)
 
     const { data: products, error } = await query
@@ -352,7 +353,7 @@ async function fallbackTextSearch(
   if (searchQuery) {
     // SECURITY: Sanitize user input to prevent SQL injection
     const sanitizedSearchQuery = sanitizeForPostgrest(searchQuery)
-    query = query.or(`title.wfts.${sanitizedSearchQuery},description.wfts.${sanitizedSearchQuery},category.wfts.${sanitizedSearchQuery}`)
+    query = query.or(`title.wfts.${sanitizedSearchQuery},description.wfts.${sanitizedSearchQuery}`)
   }
 
   // Apply sorting
@@ -449,6 +450,10 @@ export async function GET(request: NextRequest) {
     const sort = searchParams.get('sort')
     const newArrivals = searchParams.get('newArrivals')
 
+    // Multi-tenant: read tenant_id from x-tenant-id header (set by middleware after domain resolution)
+    // Falls back to no filter (single-tenant mode) when header is absent
+    const tenantId = request.headers.get('x-tenant-id') || null
+
     // Fast-path: fetch by product IDs (used by guest wishlist)
     const ids = searchParams.get('ids')
     if (ids) {
@@ -501,6 +506,11 @@ export async function GET(request: NextRequest) {
       .select('id, title, description, category_id, categories(slug), tags, base_price_cents, currency, images, status, avg_rating, review_count, created_at, translations', { count: 'exact' })
       .eq('status', 'active')
       .is('deleted_at', null)
+
+    // Multi-tenant isolation: filter by tenant_id when x-tenant-id header is set
+    if (tenantId) {
+      query = query.eq('tenant_id', tenantId)
+    }
 
     // Filter by category slug
     if (category && category !== 'all') {
@@ -589,5 +599,74 @@ export async function GET(request: NextRequest) {
       { success: false, error: 'Failed to fetch products' },
       { status: 500 }
     )
+  }
+}
+
+/**
+ * POST /api/products
+ *
+ * Creates a product for the current tenant (identified via x-tenant-id header).
+ * Enforces plan-based product limits before inserting.
+ *
+ * This endpoint is used by PodClaw and programmatic integrations.
+ * The admin panel uses its own POST /panel/api/products route.
+ *
+ * Body: { title, description, base_price, currency, category, tags?, status? }
+ */
+export async function POST(request: NextRequest) {
+  const tenantId = request.headers.get('x-tenant-id')
+
+  try {
+    const body = await request.json()
+    const { title, description, base_price, currency = 'usd', category = 'apparel', tags = [], status = 'active' } = body
+
+    if (!title) {
+      return NextResponse.json({ success: false, error: 'title is required' }, { status: 400 })
+    }
+
+    // Enforce plan product limit (if tenant context is available)
+    if (tenantId) {
+      const gate = await checkPlanGate(tenantId, 'products')
+      if (!gate.allowed) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: gate.reason,
+            code: 'PLAN_LIMIT_EXCEEDED',
+            limit: gate.limit,
+            current: gate.current,
+            plan: gate.plan,
+            upgrade_to: gate.upgrade_to,
+          },
+          { status: 402 } // 402 Payment Required = plan upgrade needed
+        )
+      }
+    }
+
+    const insertData: Record<string, unknown> = {
+      title,
+      description: description ?? '',
+      base_price_cents: Math.round((Number(base_price) || 0) * 100),
+      currency: currency.toLowerCase(),
+      category,
+      tags,
+      status,
+      ...(tenantId && { tenant_id: tenantId }),
+    }
+
+    const { data: product, error } = await supabaseAdmin
+      .from('products')
+      .insert(insertData)
+      .select('id, title, status, created_at')
+      .single()
+
+    if (error) {
+      return NextResponse.json({ success: false, error: error.message }, { status: 500 })
+    }
+
+    return NextResponse.json({ success: true, product }, { status: 201 })
+  } catch (err) {
+    console.error('[POST /api/products]', err)
+    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }

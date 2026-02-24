@@ -46,61 +46,62 @@ export const RADIUS_PRESETS: Record<string, string> = {
 };
 
 /**
- * Applies CSS variables to an element safely using setProperty().
- * No dangerouslySetInnerHTML or textContent CSS injection.
+ * Sanitizes a CSS value — strips characters that could break out of CSS context.
+ * Theme values come from our own admin-controlled DB, but defense-in-depth applies.
  */
-function applyVariables(element: HTMLElement, variables: ThemeVariables): void {
-  Object.entries(variables).forEach(([key, value]) => {
-    const cssKey = `--${key.replace(/_/g, '-')}`;
-    element.style.setProperty(cssKey, value);
-  });
+function sanitizeValue(value: string): string {
+  return value.replace(/[<>{};]/g, '');
 }
 
 /**
- * Injects theme CSS variables safely via style.setProperty().
- * Uses document.documentElement (:root) and .dark class for theme variants.
+ * Builds CSS property declarations from a variable map.
+ */
+function buildProperties(variables: ThemeVariables): string {
+  return Object.entries(variables)
+    .map(([key, value]) => `--${key.replace(/_/g, '-')}: ${sanitizeValue(value)}`)
+    .join('; ');
+}
+
+/**
+ * Injects theme CSS variables via a <style> tag.
+ *
+ * IMPORTANT: Both :root and .dark MUST be in the same <style> tag (not inline styles).
+ * Using style.setProperty() on :root would create inline styles (specificity 1,0,0,0)
+ * that .dark {} (specificity 0,1,0) can NEVER override — breaking dark mode completely.
  */
 function injectThemeCSS(theme: Theme): void {
   // Remove existing theme style tags (both server-rendered and dynamic)
-  const serverStyle = document.getElementById('server-theme-style');
-  if (serverStyle) {
-    serverStyle.remove();
-  }
-  const existingStyle = document.getElementById('dynamic-theme-style');
-  if (existingStyle) {
-    existingStyle.remove();
-  }
+  document.getElementById('server-theme-style')?.remove();
+  document.getElementById('dynamic-theme-style')?.remove();
+
+  // Also clear any stale inline styles from the previous setProperty approach
+  const root = document.documentElement;
+  Object.keys(theme.css_variables).forEach((key) => {
+    root.style.removeProperty(`--${key.replace(/_/g, '-')}`);
+  });
+  root.style.removeProperty('--radius');
+  root.style.removeProperty('--shadow');
+  root.style.removeProperty('--font-sans');
+  root.style.removeProperty('--font-heading');
+  root.style.removeProperty('--font-mono');
 
   const shadowValue = SHADOW_PRESETS[theme.shadow_preset] || SHADOW_PRESETS.medium;
   const radiusValue = RADIUS_PRESETS[theme.border_radius] || theme.border_radius;
 
-  // Apply light theme variables to :root
-  const root = document.documentElement;
-  applyVariables(root, theme.css_variables);
-  root.style.setProperty('--radius', radiusValue);
-  root.style.setProperty('--shadow', shadowValue);
-  root.style.setProperty('--font-sans', `"${theme.fonts.body}", system-ui, sans-serif`);
-  root.style.setProperty('--font-heading', `"${theme.fonts.heading}", system-ui, sans-serif`);
-  root.style.setProperty('--font-mono', `"${theme.fonts.mono}", ui-monospace, monospace`);
+  const lightProps = buildProperties(theme.css_variables);
+  const darkProps = buildProperties(theme.css_variables_dark);
 
-  // Apply dark theme variables via inline style on .dark class
-  // This requires a workaround: we inject a minimal <style> with .dark selector
-  // but without user-controlled content in the CSS text
+  const fontSans = `"${sanitizeValue(theme.fonts.body)}", system-ui, sans-serif`;
+  const fontHeading = `"${sanitizeValue(theme.fonts.heading)}", system-ui, sans-serif`;
+  const fontMono = `"${sanitizeValue(theme.fonts.mono)}", ui-monospace, monospace`;
+
   const styleTag = document.createElement('style');
   styleTag.id = 'dynamic-theme-style';
+  styleTag.textContent = [
+    `:root { ${lightProps}; --radius: ${radiusValue}; --shadow: ${shadowValue}; --font-sans: ${fontSans}; --font-heading: ${fontHeading}; --font-mono: ${fontMono} }`,
+    `.dark { ${darkProps}; --radius: ${radiusValue}; --shadow: ${shadowValue} }`
+  ].join('\n');
 
-  // Build dark theme CSS properties using setProperty-like approach
-  const darkProperties = Object.entries(theme.css_variables_dark)
-    .map(([key, value]) => {
-      const cssKey = `--${key.replace(/_/g, '-')}`;
-      // Escape value to prevent CSS injection
-      const safeValue = value.replace(/[<>"']/g, '');
-      return `${cssKey}: ${safeValue};`;
-    })
-    .join(' ');
-
-  // Only inject the minimal .dark selector with safe properties
-  styleTag.textContent = `.dark { ${darkProperties} --radius: ${radiusValue}; --shadow: ${shadowValue}; }`;
   document.head.appendChild(styleTag);
 }
 
@@ -140,23 +141,52 @@ function loadGoogleFonts(fonts: ThemeFonts): void {
 }
 
 /**
- * Loads the active theme from the API and applies it to the document
+ * Loads the active theme from the API and applies it to the document.
+ * Also loads per-tenant branding overrides and merges CSS variables on top.
  */
 export async function loadActiveTheme(): Promise<Theme> {
-  const response = await fetch('/api/storefront/theme', {
-    method: 'GET',
-    headers: { 'Content-Type': 'application/json' },
-  });
+  // Fetch base theme and tenant branding in parallel
+  const [themeResponse, brandingResponse] = await Promise.allSettled([
+    fetch('/api/storefront/theme', { method: 'GET' }),
+    fetch('/api/storefront/branding', { method: 'GET' }),
+  ])
 
-  if (!response.ok) {
-    throw new Error(`Failed to fetch theme: ${response.status} ${response.statusText}`);
+  if (themeResponse.status === 'rejected' || !themeResponse.value.ok) {
+    const err = themeResponse.status === 'rejected'
+      ? themeResponse.reason
+      : `HTTP ${(themeResponse as PromiseFulfilledResult<Response>).value.status}`
+    throw new Error(`Failed to fetch theme: ${err}`)
   }
 
-  const theme: Theme = await response.json();
+  const theme: Theme = await themeResponse.value.json()
 
-  injectThemeCSS(theme);
-  loadGoogleFonts(theme.fonts);
+  // Merge per-tenant branding CSS overrides onto base theme
+  if (brandingResponse.status === 'fulfilled' && brandingResponse.value.ok) {
+    try {
+      const { branding } = await brandingResponse.value.json()
+      if (branding) {
+        // Individual color shortcut keys → CSS variables
+        if (branding.primary_color) theme.css_variables['primary'] = branding.primary_color
+        if (branding.secondary_color) theme.css_variables['secondary'] = branding.secondary_color
+        if (branding.accent_color) theme.css_variables['accent'] = branding.accent_color
 
-  console.log(`Theme loaded: ${theme.name} (${theme.slug})`);
-  return theme;
+        // Arbitrary per-tenant CSS variable overrides (JSONB map)
+        if (branding.css_overrides && typeof branding.css_overrides === 'object') {
+          Object.assign(theme.css_variables, branding.css_overrides)
+        }
+
+        // Font overrides
+        if (branding.font_heading) theme.fonts.heading = branding.font_heading
+        if (branding.font_body) theme.fonts.body = branding.font_body
+      }
+    } catch {
+      // Branding merge failed — continue with base theme
+    }
+  }
+
+  injectThemeCSS(theme)
+  loadGoogleFonts(theme.fonts)
+
+  console.log(`Theme loaded: ${theme.name} (${theme.slug})`)
+  return theme
 }

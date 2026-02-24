@@ -32,6 +32,9 @@ export async function GET(req: NextRequest) {
     // Calculate offset for pagination
     const offset = (page - 1) * limit
 
+    // Multi-tenant isolation: filter by tenant_id when x-tenant-id header is set
+    const tenantId = req.headers.get('x-tenant-id') || null
+
     // Build query with pagination
     let query = supabase
       .from('orders')
@@ -39,6 +42,11 @@ export async function GET(req: NextRequest) {
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1)
+
+    // Apply tenant isolation when header is present
+    if (tenantId) {
+      query = query.eq('tenant_id', tenantId)
+    }
 
     // Apply status filter if provided
     if (status) {

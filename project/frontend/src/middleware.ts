@@ -32,13 +32,63 @@ function simpleHash(str: string): number {
   return hash
 }
 
+// Domains treated as the primary/default tenant — no custom domain lookup
+const PRIMARY_DOMAINS = ['localhost', '127.0.0.1', '0.0.0.0', 'podai.com', 'skapara.com']
+
+// Internal paths that must skip tenant resolution to avoid infinite loops
+const SKIP_TENANT_PATHS = ['/api/tenant-resolve', '/api/verify-domain']
+
 export default async function middleware(request: NextRequest) {
   // Get the pathname early for routing decisions
   const pathname = request.nextUrl.pathname
+  const hostname = request.nextUrl.hostname
+
+  // --- Tenant Resolution (custom domain → tenant_id) ---
+  // Edge-compatible: calls /api/tenant-resolve (server route with Redis cache)
+  // so we avoid ioredis (Node-only) in the Edge runtime.
+  const requestHeaders = new Headers(request.headers)
+
+  const isPrimaryDomain = PRIMARY_DOMAINS.some(
+    (d) => hostname === d || hostname.endsWith(`.${d}`)
+  )
+  const skipTenantResolution = SKIP_TENANT_PATHS.some((p) => pathname.startsWith(p))
+
+  if (!isPrimaryDomain && !skipTenantResolution) {
+    try {
+      const resolveUrl = new URL(
+        `/api/tenant-resolve?domain=${encodeURIComponent(hostname)}`,
+        request.url
+      )
+      const tenantRes = await fetch(resolveUrl.toString())
+      if (tenantRes.ok) {
+        const data = await tenantRes.json()
+        if (data.tenant_id) {
+          requestHeaders.set('x-tenant-id', data.tenant_id)
+        }
+      }
+    } catch {
+      // Tenant resolution failed — continue without tenant isolation
+    }
+  }
+  // --- End Tenant Resolution ---
 
   // Skip i18n middleware for API routes (they don't have locale prefixes)
   const isApiRoute = pathname.startsWith('/api')
-  const response = isApiRoute ? NextResponse.next() : intlMiddleware(request)
+
+  // Build response — API routes get modified request headers forwarded downstream;
+  // page routes go through i18n middleware and receive tenant header via response headers.
+  let response: NextResponse
+  if (isApiRoute) {
+    // Forward modified request headers to API route handlers
+    response = NextResponse.next({ request: { headers: requestHeaders } })
+  } else {
+    response = intlMiddleware(request) as NextResponse
+    // Propagate tenant ID for Server Components (Next.js forwards response headers)
+    const tenantId = requestHeaders.get('x-tenant-id')
+    if (tenantId) {
+      response.headers.set('x-tenant-id', tenantId)
+    }
+  }
 
   // --- A/B Testing: Variant Assignment ---
   // Get or create visitor ID for deterministic variant assignment

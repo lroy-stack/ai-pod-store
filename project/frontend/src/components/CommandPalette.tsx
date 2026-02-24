@@ -125,6 +125,11 @@ export function CommandPalette() {
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [])
 
+  const handleSelectCommand = (command: CommandAction) => {
+    router.push(command.href)
+    setOpen(false)
+  }
+
   // Handle keyboard navigation within palette
   useEffect(() => {
     if (!open) return
@@ -149,7 +154,7 @@ export function CommandPalette() {
 
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [open, filteredCommands, selectedIndex])
+  }, [open, filteredCommands, selectedIndex, handleSelectCommand])
 
   // Reset state when opening
   useEffect(() => {
@@ -158,12 +163,6 @@ export function CommandPalette() {
       setSelectedIndex(0)
     }
   }, [open])
-
-  // React Compiler auto-memoizes this function
-  const handleSelectCommand = (command: CommandAction) => {
-    router.push(command.href)
-    setOpen(false)
-  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

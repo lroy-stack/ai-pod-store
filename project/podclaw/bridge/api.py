@@ -70,6 +70,7 @@ logger = structlog.get_logger(__name__)
 
 class TaskRequest(BaseModel):
     message: str = Field(..., min_length=1, max_length=5000)
+    tenant_id: str | None = Field(default=None, description="Tenant UUID for multi-tenant isolation")
 
 
 class AgentRunRequest(BaseModel):
@@ -172,8 +173,13 @@ def create_app(
         # Restore task store from SQLite
         await _tasks.restore()
 
-        # Restore paused agents from Redis
+        # Wire Redis client to event queue (enables Redis LIST primary storage)
         redis_client = get_redis()
+        if redis_client and event_queue:
+            event_queue.set_redis(redis_client)
+            logger.info("event_queue_redis_wired")
+
+        # Restore paused agents from Redis
         if redis_client:
             try:
                 paused_data = await redis_client.get("podclaw:state:paused_agents")
@@ -185,23 +191,15 @@ def create_app(
             except Exception as e:
                 logger.warning("paused_agents_restore_failed", error=str(e))
 
-        # Restore event queue from Redis
+        # Event queue is automatically persisted in Redis LIST (podclaw:events:queue)
+        # No need to restore from a separate JSON blob — events survive in the LIST
         if redis_client and event_queue:
             try:
-                queue_data = await redis_client.get("podclaw:state:event_queue")
-                if queue_data:
-                    events_list = json.loads(queue_data)
-                    from podclaw.event_queue import SystemEvent
-                    for event_data in events_list:
-                        event = SystemEvent(
-                            event_type=event_data["event_type"],
-                            data=event_data["data"],
-                            priority=event_data.get("priority", 5),
-                        )
-                        await event_queue.push(event)
-                    logger.info("event_queue_restored", count=len(events_list))
+                events = await event_queue.peek()
+                if events:
+                    logger.info("event_queue_auto_restored", count=len(events))
             except Exception as e:
-                logger.warning("event_queue_restore_failed", error=str(e))
+                logger.warning("event_queue_peek_failed", error=str(e))
 
     # ----- Natural Language Task Endpoint -----
 
@@ -332,24 +330,29 @@ def create_app(
         return valid
 
     @app.post("/task", dependencies=[Depends(require_auth)])
-    async def create_task(body: TaskRequest, background_tasks: BackgroundTasks):
+    async def create_task(body: TaskRequest, request: Request, background_tasks: BackgroundTasks):
         """Send a natural language task to PodClaw.
 
         PodClaw classifies which agent(s) to run and executes them in background.
         Returns immediately with a task_id to poll for progress.
+        Tenant isolation: pass tenant_id in request body or x-tenant-id header.
         """
+        # Resolve tenant_id from body or request header
+        tenant_id = body.tenant_id or request.headers.get("x-tenant-id")
+
         task_id = str(uuid.uuid4())
         _tasks[task_id] = {
             "task_id": task_id,
             "message": body.message,
+            "tenant_id": tenant_id,
             "status": "accepted",
             "created_at": datetime.now(timezone.utc).isoformat(),
             "agents": [],
             "progress": [],
         }
         background_tasks.add_task(_route_and_execute, task_id, body.message)
-        logger.info("task_accepted", task_id=task_id[:8], message=body.message[:80])
-        return {"task_id": task_id, "status": "accepted"}
+        logger.info("task_accepted", task_id=task_id[:8], message=body.message[:80], tenant_id=tenant_id)
+        return {"task_id": task_id, "status": "accepted", "tenant_id": tenant_id}
 
     @app.get("/task/{task_id}", dependencies=[Depends(require_auth)])
     async def get_task(task_id: str):
@@ -820,6 +823,18 @@ def create_app(
         added = await event_queue.push(event)
         return {"status": "ok", "added": added, "queue_size": event_queue.size}
 
+    @app.get("/queue/dlq", dependencies=[Depends(require_auth)])
+    async def peek_dead_letter_queue():
+        """Peek at failed events in the dead-letter queue (Redis LIST)."""
+        if not event_queue:
+            return {"events": [], "size": 0}
+        dlq_events = await event_queue.peek_dlq()
+        return {
+            "events": dlq_events,
+            "size": len(dlq_events),
+            "redis_key": "podclaw:events:dlq",
+        }
+
     # ----- Soul Evolution -----
 
     @app.get("/soul", dependencies=[Depends(require_auth)])
@@ -949,34 +964,17 @@ def create_app(
             except Exception as e:
                 logger.warning("paused_agents_persist_failed", error=str(e))
 
-        # Step 3: Persist event queue state to Redis
+        # Step 3: Event queue is automatically persisted in Redis LIST (podclaw:events:queue)
+        # The LIST survives restarts natively — no manual save needed.
+        # Just log the current queue depth for observability.
         if redis_client and event_queue:
             try:
-                # Peek at all events in queue
                 events = await event_queue.peek()
-                if events:
-                    # Store as JSON array in Redis with 7-day expiration
-                    events_data = [
-                        {
-                            "event_type": e.event_type,
-                            "data": e.data,
-                            "priority": e.priority,
-                            "created_at": e.created_at.isoformat() if hasattr(e, "created_at") else None,
-                        }
-                        for e in events
-                    ]
-                    await redis_client.set(
-                        "podclaw:state:event_queue",
-                        json.dumps(events_data),
-                        ex=604800  # 7 days
-                    )
-                    logger.info("event_queue_persisted", count=len(events))
-                else:
-                    # Clear key if queue is empty
-                    await redis_client.delete("podclaw:state:event_queue")
-                    logger.info("event_queue_empty")
+                logger.info("event_queue_shutdown_state", pending_count=len(events))
+                # Clean up the legacy JSON blob key if it exists
+                await redis_client.delete("podclaw:state:event_queue")
             except Exception as e:
-                logger.warning("event_queue_persist_failed", error=str(e))
+                logger.warning("event_queue_shutdown_check_failed", error=str(e))
 
         # Step 4: Close Redis connection
         await close_redis()

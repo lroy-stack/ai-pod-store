@@ -198,6 +198,37 @@ class Orchestrator:
         finally:
             self._session_lock.release()
 
+        # Distributed Redis singleton lock (SET NX) — prevents multi-process conflicts.
+        # Falls back to agent_sessions table query if Redis is unavailable.
+        from podclaw.redis_store import acquire_agent_lock, release_agent_lock, get_redis
+        redis_lock_acquired = await acquire_agent_lock(agent_name, session_id)
+        if not redis_lock_acquired:
+            # Redis lock denied — another PodClaw instance is running this agent.
+            # Fall back to checking agent_sessions table for confirmation.
+            try:
+                fallback_result = await self.events.supabase_client.from_("agent_sessions") \
+                    .select("id, status") \
+                    .eq("session_type", agent_name) \
+                    .eq("status", "running") \
+                    .limit(1) \
+                    .execute()
+                if fallback_result.data:
+                    # Confirmed running in DB — reject
+                    async with self._session_lock:
+                        self._active_sessions.pop(agent_name, None)
+                    logger.warning("agent_singleton_denied_db_confirmed", agent=agent_name)
+                    return {"status": "skipped", "reason": f"agent '{agent_name}' is already running (distributed lock)"}
+                else:
+                    # DB says not running — stale Redis lock, re-acquire
+                    logger.warning("agent_singleton_stale_lock", agent=agent_name)
+                    # Proceed without re-acquiring the lock (we'll set it below)
+            except Exception as e:
+                logger.warning("agent_singleton_fallback_failed", agent=agent_name, error=str(e))
+                # Fail-closed: if we can't confirm, deny the run
+                async with self._session_lock:
+                    self._active_sessions.pop(agent_name, None)
+                return {"status": "skipped", "reason": f"agent singleton check failed: {str(e)}"}
+
         # Lock released — agent execution is long-running
         start_time = datetime.now(timezone.utc)
 
@@ -353,6 +384,13 @@ class Orchestrator:
                 # Force-remove without lock to prevent zombie session
                 self._active_sessions.pop(agent_name, None)
                 logger.error("session_cleanup_lock_timeout", agent=agent_name)
+
+            # Release Redis singleton lock (DEL key only if we hold it)
+            try:
+                from podclaw.redis_store import release_agent_lock
+                await release_agent_lock(agent_name, session_id)
+            except Exception as e:
+                logger.warning("agent_lock_release_error", agent=agent_name, error=str(e))
 
             await self.events.record(
                 agent_name=agent_name,

@@ -229,6 +229,15 @@ class PrintifyClient {
   }
 
   /**
+   * Delete a product from Printify
+   */
+  async deleteProduct(productId: string): Promise<void> {
+    await this.request(`/shops/${this.shopId}/products/${productId}.json`, {
+      method: 'DELETE',
+    })
+  }
+
+  /**
    * List all products in the shop (paginated)
    */
   async listProducts(page = 1, limit = 100): Promise<{

@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
-import { CheckCircle, XCircle, Clock, Loader2, DollarSign, Package } from 'lucide-react'
+import { CheckCircle, XCircle, Clock, Loader2, DollarSign, Package, Truck } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
 
@@ -33,6 +33,10 @@ interface ReturnRequest {
   approved_by: string | null
   approved_at: string | null
   completed_at: string | null
+  tracking_number: string | null
+  tracking_carrier: string | null
+  customer_shipped_at: string | null
+  item_received_at: string | null
   created_at: string
   updated_at: string
 }
@@ -154,6 +158,26 @@ export default function ReturnsPage() {
     }
   }
 
+  const handleReceive = async (returnRequest: ReturnRequest) => {
+    setActionLoading(returnRequest.id)
+    try {
+      const response = await adminFetch(`/api/returns/${returnRequest.id}/receive`, {
+        method: 'POST',
+      })
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to mark as received')
+      }
+      toast.success('Item received — refund processed and return completed!')
+      await fetchReturns()
+    } catch (error) {
+      console.error('Error marking item as received:', error)
+      toast.error(error instanceof Error ? error.message : 'Failed to mark as received')
+    } finally {
+      setActionLoading(null)
+    }
+  }
+
   const filteredReturns = filter === 'all'
     ? returns
     : returns.filter(r => r.status === filter)
@@ -257,6 +281,22 @@ export default function ReturnsPage() {
                       </div>
                     )}
 
+                    {/* Tracking info (customer shipped) */}
+                    {returnRequest.tracking_number && (
+                      <div className="flex items-center gap-2 text-sm border border-border/60 rounded-md p-2 bg-muted/30">
+                        <Truck className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                        <div>
+                          <span className="font-medium">{returnRequest.tracking_carrier}: </span>
+                          <span className="font-mono">{returnRequest.tracking_number}</span>
+                          {returnRequest.customer_shipped_at && (
+                            <span className="text-xs text-muted-foreground ml-2">
+                              Shipped {new Date(returnRequest.customer_shipped_at).toLocaleDateString()}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
                     <div className="flex items-center justify-between text-xs text-muted-foreground">
                       <span>Requested: {new Date(returnRequest.created_at).toLocaleString()}</span>
                       {returnRequest.approved_at && (
@@ -291,6 +331,25 @@ export default function ReturnsPage() {
                             <XCircle className="h-4 w-4 mr-2" />
                           )}
                           Reject
+                        </Button>
+                      </div>
+                    )}
+
+                    {/* Mark item as received — triggers auto-refund if not yet issued */}
+                    {(returnRequest.status === 'approved' || returnRequest.status === 'processing') && (
+                      <div className="flex gap-2 pt-2">
+                        <Button
+                          variant="default"
+                          size="sm"
+                          onClick={() => handleReceive(returnRequest)}
+                          disabled={actionLoading === returnRequest.id}
+                        >
+                          {actionLoading === returnRequest.id ? (
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          ) : (
+                            <Truck className="h-4 w-4 mr-2" />
+                          )}
+                          Mark Item Received &amp; Complete
                         </Button>
                       </div>
                     )}

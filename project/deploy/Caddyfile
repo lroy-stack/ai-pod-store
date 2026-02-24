@@ -6,6 +6,25 @@
 #   Production: DOMAIN=yourdomain.com (automatic HTTPS via Let's Encrypt)
 #
 # Set the DOMAIN environment variable, or it defaults to localhost.
+#
+# On-demand TLS for custom tenant domains:
+#   Caddy requests a certificate for each new custom domain on-demand.
+#   The `ask` URL is called by Caddy before issuing a certificate —
+#   it must return HTTP 200 for known tenant domains, non-200 otherwise.
+
+# Global options — enable on-demand TLS with domain verification
+{
+	on_demand_tls {
+		# Ask our frontend verify-domain endpoint before issuing any cert.
+		# Caddy calls: GET http://frontend:3000/api/verify-domain?domain=<hostname>
+		# 200 = issue cert, non-200 = reject
+		ask http://frontend:3000/api/verify-domain
+
+		# Rate-limit: max 5 new certs per 2-minute interval
+		interval 2m
+		burst 5
+	}
+}
 
 {$CADDY_SITE_ADDRESS:http://localhost} {
 	# NOTE: For production behind Cloudflare, use a custom Caddy image with
@@ -56,5 +75,32 @@
 	}
 
 	# Gzip/Zstd compression
+	encode zstd gzip
+}
+
+# Custom tenant domains — on-demand TLS
+# Caddy automatically obtains certificates for any domain that passes
+# the verify-domain check above. Requests are proxied straight to frontend.
+:443 {
+	tls {
+		on_demand
+	}
+
+	# Forward the real hostname so middleware can resolve the tenant
+	reverse_proxy frontend:3000 {
+		header_up Host {host}
+	}
+
+	# Security headers (same as primary domain)
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		X-XSS-Protection "1; mode=block"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()"
+		-Server
+	}
+
 	encode zstd gzip
 }

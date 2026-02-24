@@ -425,22 +425,56 @@ async def _shutdown(scheduler, orchestrator, server, heartbeat=None, delegation_
     logger.info("shutdown_complete")
 
 
+def _scrub_pii(logger, method, event_dict: dict) -> dict:
+    """
+    Structlog processor that strips PII fields from log output.
+
+    PII fields that must never appear in logs:
+      - email, user_email, customer_email
+      - name, user_name, customer_name, full_name
+      - address, shipping_address, billing_address
+      - phone, phone_number, mobile
+
+    Replaces values with [REDACTED] marker.
+    """
+    PII_FIELDS = frozenset({
+        "email", "user_email", "customer_email", "sender_email",
+        "name", "user_name", "customer_name", "full_name", "display_name",
+        "address", "shipping_address", "billing_address", "street_address",
+        "phone", "phone_number", "mobile", "telephone",
+    })
+
+    for key in list(event_dict.keys()):
+        if key.lower() in PII_FIELDS:
+            event_dict[key] = "[REDACTED]"
+        elif isinstance(event_dict.get(key), dict):
+            # Recursively scrub nested dicts (e.g., metadata)
+            for nested_key in list(event_dict[key].keys()):
+                if nested_key.lower() in PII_FIELDS:
+                    event_dict[key][nested_key] = "[REDACTED]"
+
+    return event_dict
+
+
 def _configure_structlog(json_output: bool = False) -> None:
-    """Configure structlog with console or JSON output."""
+    """Configure structlog with console or JSON output and PII scrubbing."""
     import logging
 
+    # PII scrubbing processor is always applied (first in chain)
+    shared_processors = [
+        _scrub_pii,
+        structlog.processors.TimeStamper(fmt="iso"),
+        structlog.processors.add_log_level,
+    ]
+
     if json_output:
-        processors = [
-            structlog.processors.TimeStamper(fmt="iso"),
-            structlog.processors.add_log_level,
+        processors = shared_processors + [
             structlog.processors.StackInfoRenderer(),
             structlog.processors.format_exc_info,
             structlog.processors.JSONRenderer(),
         ]
     else:
-        processors = [
-            structlog.processors.TimeStamper(fmt="iso"),
-            structlog.processors.add_log_level,
+        processors = shared_processors + [
             structlog.dev.ConsoleRenderer(),
         ]
 

@@ -5,7 +5,8 @@
     "error": "Fehler",
     "success": "Erfolg",
     "welcome": "Willkommen im {brandName}",
-    "skipToContent": "Zum Hauptinhalt springen"
+    "skipToContent": "Zum Hauptinhalt springen",
+    "navigation": "Navigation"
   },
   "navigation": {
     "home": "Startseite",

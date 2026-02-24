@@ -84,8 +84,10 @@ export function useSpeechToText({
   const onErrorRef = useRef(onError)
 
   // Keep callback refs current without re-creating recognition
-  onTranscriptRef.current = onTranscript
-  onErrorRef.current = onError
+  useEffect(() => {
+    onTranscriptRef.current = onTranscript
+    onErrorRef.current = onError
+  })
 
   // Create recognition instance once on mount
   useEffect(() => {

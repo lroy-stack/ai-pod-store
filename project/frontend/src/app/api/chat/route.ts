@@ -888,10 +888,10 @@ Be friendly, helpful, and concise.`
         execute: async (args: { productId: string; variantId?: string }) => {
           const { productId, variantId } = args
           try {
-            // Check product exists
+            // Check product exists (products table has NO variants column — use product_variants table)
             const { data: product, error: productError } = await supabase
               .from('products')
-              .select('id, title, variants')
+              .select('id, title')
               .eq('id', productId)
               .eq('status', 'active')
               .single()
@@ -900,31 +900,36 @@ Be friendly, helpful, and concise.`
               return { success: false, error: 'Product not found' }
             }
 
+            // Fetch variants from product_variants table
+            const { data: variants } = await supabase
+              .from('product_variants')
+              .select('id, size, color, image_url')
+              .eq('product_id', productId)
+              .eq('is_enabled', true)
+              .eq('is_available', true)
+
             // For POD products, availability is always "made to order"
-            // In a real implementation, this would call Printify API
-            // For now, return static availability data
             if (variantId) {
-              const variant = Array.isArray(product.variants)
-                ? product.variants.find((v: any) => v.id === variantId)
-                : null
+              const variant = (variants || []).find((v: any) => v.id === variantId)
 
               if (!variant) {
                 return {
                   success: false,
                   error: 'Variant not found. Available variants: ' +
-                    (Array.isArray(product.variants) ? product.variants.map((v: any) => v.title).join(', ') : 'none')
+                    (variants || []).map((v: any) => `${v.color || ''} ${v.size || ''}`.trim()).join(', ')
                 }
               }
 
+              const variantTitle = `${variant.color || ''} ${variant.size || ''}`.trim()
               return {
                 success: true,
                 available: true,
                 productId,
                 variantId,
-                variantTitle: variant.title,
+                variantTitle,
                 stockStatus: 'Made to Order',
                 estimatedShipping: '3-5 business days',
-                message: `✓ ${variant.title} is available for made-to-order production`,
+                message: `✓ ${variantTitle} is available for made-to-order production`,
               }
             } else {
               return {
@@ -934,7 +939,7 @@ Be friendly, helpful, and concise.`
                 productTitle: product.title,
                 stockStatus: 'Made to Order',
                 estimatedShipping: '3-5 business days',
-                variantsCount: Array.isArray(product.variants) ? product.variants.length : 0,
+                variantsCount: (variants || []).length,
                 message: `✓ ${product.title} is available for made-to-order production`,
               }
             }

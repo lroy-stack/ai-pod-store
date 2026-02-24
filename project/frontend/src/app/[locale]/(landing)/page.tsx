@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
-import { createClient } from '@supabase/supabase-js'
+import { supabaseAdmin } from '@/lib/supabase-admin'
 import { LandingPageClient } from '@/components/landing/LandingPageClient'
 import { Footer } from '@/components/Footer'
 import { getBrandConfig } from '@/lib/brand-config-server'
@@ -60,11 +60,7 @@ export async function generateMetadata({ params }: LandingPageProps): Promise<Me
 export default async function LandingPage({ params }: LandingPageProps) {
   const { locale } = await params
 
-  // Fetch products on the server (using anon key for public data)
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
+  // Fetch products on the server (service key bypasses RLS — safe in Server Components)
 
   // Determine sort based on month (seasonal)
   const month = new Date().getMonth()
@@ -85,7 +81,7 @@ export default async function LandingPage({ params }: LandingPageProps) {
     ascending = false
   }
 
-  const { data: productsData } = await supabase
+  const { data: productsData } = await supabaseAdmin
     .from('products')
     .select('id, title, base_price_cents, currency, avg_rating, images')
     .eq('status', 'active')
@@ -103,7 +99,7 @@ export default async function LandingPage({ params }: LandingPageProps) {
   }))
 
   // Fetch testimonials (approved reviews with user info)
-  const { data: reviewsData } = await supabase
+  const { data: reviewsData } = await supabaseAdmin
     .from('product_reviews')
     .select(`
       id,
@@ -130,13 +126,13 @@ export default async function LandingPage({ params }: LandingPageProps) {
   }))
 
   // Fetch trust signals (total orders count)
-  const { count: totalOrders } = await supabase
+  const { count: totalOrders } = await supabaseAdmin
     .from('orders')
     .select('*', { count: 'exact', head: true })
     .eq('status', 'paid')
 
   // Calculate average rating from all approved reviews
-  const { data: avgData } = await supabase
+  const { data: avgData } = await supabaseAdmin
     .from('product_reviews')
     .select('rating')
     .eq('moderation_status', 'approved')

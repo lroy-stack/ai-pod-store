@@ -343,6 +343,58 @@ export async function POST(req: NextRequest) {
       paymentMethodTypes.push('crypto');
     }
 
+    // --- Stripe Connect: per-tenant connected account + application fee ---
+    // Platform application_fee_amount by plan tier (basis points → percent)
+    const PLAN_FEE_RATES: Record<string, number> = {
+      free: 0.10,       // 10% platform fee
+      starter: 0.05,    // 5%
+      pro: 0.03,        // 3%
+      enterprise: 0.02, // 2%
+    }
+
+    let stripeConnectAccountId: string | null = null
+    let applicationFeeAmount: number | null = null
+
+    const tenantId = req.headers.get('x-tenant-id')
+    if (tenantId) {
+      try {
+        // Look up tenant's Stripe connected account ID and plan
+        const [{ data: connectConfig }, { data: tenantRow }] = await Promise.all([
+          supabaseAdmin
+            .from('tenant_configs')
+            .select('value')
+            .eq('tenant_id', tenantId)
+            .eq('key', 'stripe:connected_account_id')
+            .single(),
+          supabaseAdmin
+            .from('tenants')
+            .select('plan')
+            .eq('id', tenantId)
+            .single(),
+        ])
+
+        if (connectConfig?.value) {
+          const connectedId = typeof connectConfig.value === 'string'
+            ? connectConfig.value
+            : (connectConfig.value as { v?: string })?.v
+          if (connectedId) {
+            stripeConnectAccountId = connectedId
+            // Calculate application fee from total order amount
+            const totalAmountCents = lineItems.reduce(
+              (sum: number, item: any) =>
+                sum + item.price_data.unit_amount * item.quantity,
+              0
+            )
+            const feeRate = PLAN_FEE_RATES[tenantRow?.plan ?? 'free'] ?? 0.10
+            applicationFeeAmount = Math.round(totalAmountCents * feeRate)
+          }
+        }
+      } catch {
+        // Connect lookup failed — proceed without Connect routing
+      }
+    }
+    // --- End Stripe Connect ---
+
     // Create Stripe Checkout session
     const sessionConfig: any = {
       mode: 'payment',
@@ -352,6 +404,13 @@ export async function POST(req: NextRequest) {
       cancel_url: cancelUrl,
       locale: locale === 'es' ? 'es' : locale === 'de' ? 'de' : 'en',
       currency: currency.toLowerCase(),
+      // Per-tenant Stripe Connect routing (only when a connected account is configured)
+      ...(stripeConnectAccountId && {
+        payment_intent_data: {
+          transfer_data: { destination: stripeConnectAccountId },
+          ...(applicationFeeAmount !== null && { application_fee_amount: applicationFeeAmount }),
+        },
+      }),
       // Automatic tax calculation (if Stripe Tax is enabled)
       automatic_tax: {
         enabled: false, // Disabled for now, will enable when Stripe Tax is activated
