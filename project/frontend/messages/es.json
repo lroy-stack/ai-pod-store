@@ -1,10 +1,10 @@
 {
   "common": {
-    "appName": "Tienda POD AI",
+    "appName": "{brandName}",
     "loading": "Cargando...",
     "error": "Error",
     "success": "Éxito",
-    "welcome": "Bienvenido a la Tienda POD AI",
+    "welcome": "Bienvenido a la {brandName}",
     "skipToContent": "Saltar al contenido principal"
   },
   "navigation": {
@@ -141,9 +141,9 @@
   },
   "Auth": {
     "loginTitle": "Iniciar sesión en tu cuenta",
-    "loginDescription": "Accede a tu cuenta de Tienda POD AI",
+    "loginDescription": "Accede a tu cuenta de {brandName}",
     "registerTitle": "Crear tu cuenta",
-    "registerDescription": "Únete a Tienda POD AI hoy",
+    "registerDescription": "Únete a {brandName} hoy",
     "emailLabel": "Correo electrónico",
     "emailPlaceholder": "Correo electrónico",
     "passwordLabel": "Contraseña",
@@ -566,7 +566,7 @@
     "popularToday": "Popular Hoy",
     "lastDesignGenerated": "Último diseño hace 2m",
     "searchPlaceholder": "Buscar productos...",
-    "welcomeTitle": "Bienvenido a POD AI",
+    "welcomeTitle": "Bienvenido a {brandName}",
     "welcomeSubtitle": "Tu tienda print-on-demand con IA. ¡Pregúntame lo que quieras!",
     "welcomeBackTitle": "Bienvenido de nuevo, {name}",
     "welcomeBackSubtitle": "¿Listo para encontrar tu próximo diseño favorito?",
@@ -783,7 +783,7 @@
   },
   "engagement": {
     "welcome": {
-      "title": "Bienvenido a POD AI",
+      "title": "Bienvenido a {brandName}",
       "description": "Tu tienda print-on-demand con IA. Describe lo que quieres y lo diseñamos e imprimimos para ti.",
       "benefit1": "Chatea con IA para crear diseños personalizados",
       "benefit2": "Explora productos únicos de print-on-demand",
@@ -868,7 +868,7 @@
     "lastUpdated": "Última actualización",
     "intro": {
       "title": "Introducción",
-      "content": "En POD AI Store, respetamos tu privacidad y nos comprometemos a proteger tus datos personales. Esta política de privacidad explica cómo recopilamos, usamos y protegemos tu información cuando utilizas nuestra plataforma de impresión bajo demanda con IA."
+      "content": "En {brandName}, respetamos tu privacidad y nos comprometemos a proteger tus datos personales. Esta política de privacidad explica cómo recopilamos, usamos y protegemos tu información cuando utilizas nuestra plataforma de impresión bajo demanda con IA."
     },
     "dataCollected": {
       "title": "Datos que Recopilamos",
@@ -942,7 +942,7 @@
     "lastUpdated": "Última actualización",
     "intro": {
       "title": "Introducción",
-      "content": "Bienvenido a POD AI Store. Al acceder o usar nuestra plataforma de impresión bajo demanda impulsada por IA, acepta estar sujeto a estos Términos de Servicio. Por favor, léalos cuidadosamente antes de usar nuestros servicios."
+      "content": "Bienvenido a {brandName}. Al acceder o usar nuestra plataforma de impresión bajo demanda impulsada por IA, acepta estar sujeto a estos Términos de Servicio. Por favor, léalos cuidadosamente antes de usar nuestros servicios."
     },
     "acceptance": {
       "title": "Aceptación de los Términos",
@@ -956,7 +956,7 @@
     },
     "services": {
       "title": "Nuestros Servicios",
-      "content": "POD AI Store proporciona una plataforma impulsada por IA para crear diseños personalizados y ordenar productos bajo demanda. Nuestros servicios incluyen:",
+      "content": "{brandName} proporciona una plataforma impulsada por IA para crear diseños personalizados y ordenar productos bajo demanda. Nuestros servicios incluyen:",
       "items": {
         "0": "Generación de diseños impulsada por IA usando modelos de aprendizaje automático avanzados",
         "1": "Herramientas de creación y personalización de productos personalizados",
@@ -1016,7 +1016,7 @@
     },
     "limitationOfLiability": {
       "title": "Limitación de Responsabilidad",
-      "content": "En la medida máxima permitida por la ley, POD AI Store no será responsable de:",
+      "content": "En la medida máxima permitida por la ley, {brandName} no será responsable de:",
       "items": {
         "0": "Daños indirectos, incidentales, especiales o consecuentes",
         "1": "Pérdida de ganancias, ingresos, datos u oportunidades comerciales",
@@ -1041,7 +1041,7 @@
       "title": "Ley Aplicable y Disputas",
       "content": "Estos Términos de Servicio se rigen por las leyes de la jurisdicción donde nuestra empresa está registrada. Cualquier disputa se resolverá mediante:",
       "items": {
-        "0": "Negociación de buena fe entre usted y POD AI Store",
+        "0": "Negociación de buena fe entre usted y {brandName}",
         "1": "Arbitraje vinculante si la negociación falla (donde lo permita la ley)",
         "2": "La jurisdicción exclusiva de los tribunales en nuestra ubicación registrada",
         "3": "Renuncia al derecho de participar en demandas colectivas"
@@ -1225,18 +1225,18 @@
     "availableSizes": "Tamaños disponibles"
   },
   "blog": {
-    "metaTitle": "Blog - POD AI Store",
-    "metaDescription": "Lee las últimas actualizaciones, consejos e historias de POD AI Store",
+    "metaTitle": "Blog - {brandName}",
+    "metaDescription": "Lee las últimas actualizaciones, consejos e historias de {brandName}",
     "title": "Blog",
-    "subtitle": "Historias, consejos y actualizaciones del equipo de POD AI",
+    "subtitle": "Historias, consejos y actualizaciones del equipo de {brandName}",
     "noPosts": "Aún no hay publicaciones de blog. ¡Vuelve pronto!",
     "views": "vistas"
   },
   "referrals": {
-    "metaTitle": "Referencias - POD AI Store",
+    "metaTitle": "Referencias - {brandName}",
     "metaDescription": "Invita a amigos y gana créditos por cada referencia exitosa",
     "title": "Refiere Amigos, Gana Créditos",
-    "subtitle": "Comparte POD AI con tus amigos y gana 10 créditos por cada amigo que haga una compra",
+    "subtitle": "Comparte {brandName} con tus amigos y gana 10 créditos por cada amigo que haga una compra",
     "inviteLinkTitle": "Tu Enlace de Referencia",
     "inviteLinkDescription": "Comparte este enlace con tus amigos para ganar créditos",
     "copy": "Copiar",

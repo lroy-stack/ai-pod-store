@@ -1,10 +1,10 @@
 {
   "common": {
-    "appName": "POD AI Store",
+    "appName": "{brandName}",
     "loading": "Wird geladen...",
     "error": "Fehler",
     "success": "Erfolg",
-    "welcome": "Willkommen im POD AI Store",
+    "welcome": "Willkommen im {brandName}",
     "skipToContent": "Zum Hauptinhalt springen"
   },
   "navigation": {
@@ -141,9 +141,9 @@
   },
   "Auth": {
     "loginTitle": "Bei Ihrem Konto anmelden",
-    "loginDescription": "Greifen Sie auf Ihr POD AI Store-Konto zu",
+    "loginDescription": "Greifen Sie auf Ihr {brandName}-Konto zu",
     "registerTitle": "Konto erstellen",
-    "registerDescription": "Treten Sie heute dem POD AI Store bei",
+    "registerDescription": "Treten Sie heute dem {brandName} bei",
     "emailLabel": "E-Mail-Adresse",
     "emailPlaceholder": "E-Mail-Adresse",
     "passwordLabel": "Passwort",
@@ -566,7 +566,7 @@
     "popularToday": "Heute Beliebt",
     "lastDesignGenerated": "Letztes Design vor 2m",
     "searchPlaceholder": "Produkte suchen...",
-    "welcomeTitle": "Willkommen bei POD AI",
+    "welcomeTitle": "Willkommen bei {brandName}",
     "welcomeSubtitle": "Ihr KI-gestützter Print-on-Demand-Shop. Fragen Sie mich etwas!",
     "welcomeBackTitle": "Willkommen zurück, {name}",
     "welcomeBackSubtitle": "Bereit, Ihr nächstes Lieblingsdesign zu finden?",
@@ -783,7 +783,7 @@
   },
   "engagement": {
     "welcome": {
-      "title": "Willkommen bei POD AI",
+      "title": "Willkommen bei {brandName}",
       "description": "Dein KI-gestützter Print-on-Demand-Shop. Beschreibe, was du willst, und wir designen und drucken es für dich.",
       "benefit1": "Chatte mit KI, um individuelle Designs zu erstellen",
       "benefit2": "Entdecke einzigartige Print-on-Demand-Produkte",
@@ -868,7 +868,7 @@
     "lastUpdated": "Zuletzt aktualisiert",
     "intro": {
       "title": "Einführung",
-      "content": "Bei POD AI Store respektieren wir Ihre Privatsphäre und verpflichten uns, Ihre personenbezogenen Daten zu schützen. Diese Datenschutzerklärung erklärt, wie wir Ihre Informationen sammeln, verwenden und schützen, wenn Sie unsere KI-gestützte Print-on-Demand-Plattform nutzen."
+      "content": "Bei {brandName} respektieren wir Ihre Privatsphäre und verpflichten uns, Ihre personenbezogenen Daten zu schützen. Diese Datenschutzerklärung erklärt, wie wir Ihre Informationen sammeln, verwenden und schützen, wenn Sie unsere KI-gestützte Print-on-Demand-Plattform nutzen."
     },
     "dataCollected": {
       "title": "Gesammelte Daten",
@@ -942,7 +942,7 @@
     "lastUpdated": "Zuletzt aktualisiert",
     "intro": {
       "title": "Einführung",
-      "content": "Willkommen bei POD AI Store. Durch den Zugriff auf oder die Nutzung unserer KI-gestützten Print-on-Demand-Plattform erklären Sie sich mit diesen Nutzungsbedingungen einverstanden. Bitte lesen Sie sie sorgfältig, bevor Sie unsere Dienste nutzen."
+      "content": "Willkommen bei {brandName}. Durch den Zugriff auf oder die Nutzung unserer KI-gestützten Print-on-Demand-Plattform erklären Sie sich mit diesen Nutzungsbedingungen einverstanden. Bitte lesen Sie sie sorgfältig, bevor Sie unsere Dienste nutzen."
     },
     "acceptance": {
       "title": "Annahme der Bedingungen",
@@ -956,7 +956,7 @@
     },
     "services": {
       "title": "Unsere Dienstleistungen",
-      "content": "POD AI Store bietet eine KI-gestützte Plattform zum Erstellen individueller Designs und Bestellen von Print-on-Demand-Produkten. Unsere Dienstleistungen umfassen:",
+      "content": "{brandName} bietet eine KI-gestützte Plattform zum Erstellen individueller Designs und Bestellen von Print-on-Demand-Produkten. Unsere Dienstleistungen umfassen:",
       "items": {
         "0": "KI-gestützte Designgenerierung mit fortschrittlichen Machine-Learning-Modellen",
         "1": "Tools zur Erstellung und Personalisierung individueller Produkte",
@@ -1016,7 +1016,7 @@
     },
     "limitationOfLiability": {
       "title": "Haftungsbeschränkung",
-      "content": "Im maximal gesetzlich zulässigen Umfang haftet POD AI Store nicht für:",
+      "content": "Im maximal gesetzlich zulässigen Umfang haftet {brandName} nicht für:",
       "items": {
         "0": "Indirekte, zufällige, besondere oder Folgeschäden",
         "1": "Verlust von Gewinn, Umsatz, Daten oder Geschäftsmöglichkeiten",
@@ -1041,7 +1041,7 @@
       "title": "Anwendbares Recht und Streitigkeiten",
       "content": "Diese Nutzungsbedingungen unterliegen den Gesetzen der Gerichtsbarkeit, in der unser Unternehmen registriert ist. Streitigkeiten werden wie folgt gelöst:",
       "items": {
-        "0": "Verhandlung in gutem Glauben zwischen Ihnen und POD AI Store",
+        "0": "Verhandlung in gutem Glauben zwischen Ihnen und {brandName}",
         "1": "Verbindliche Schiedsgerichtsbarkeit, wenn die Verhandlung scheitert (sofern gesetzlich zulässig)",
         "2": "Die ausschließliche Zuständigkeit der Gerichte an unserem registrierten Standort",
         "3": "Sie verzichten auf das Recht, an Sammelklagen teilzunehmen"
@@ -1225,18 +1225,18 @@
     "availableSizes": "Verfügbare Größen"
   },
   "blog": {
-    "metaTitle": "Blog - POD AI Store",
-    "metaDescription": "Lies die neuesten Updates, Tipps und Geschichten von POD AI Store",
+    "metaTitle": "Blog - {brandName}",
+    "metaDescription": "Lies die neuesten Updates, Tipps und Geschichten von {brandName}",
     "title": "Blog",
-    "subtitle": "Geschichten, Tipps und Updates vom POD AI-Team",
+    "subtitle": "Geschichten, Tipps und Updates vom {brandName}-Team",
     "noPosts": "Noch keine Blog-Beiträge. Schau bald wieder vorbei!",
     "views": "Aufrufe"
   },
   "referrals": {
-    "metaTitle": "Empfehlungen - POD AI Store",
+    "metaTitle": "Empfehlungen - {brandName}",
     "metaDescription": "Lade Freunde ein und verdiene Credits für jede erfolgreiche Empfehlung",
     "title": "Empfiehl Freunde, Verdiene Credits",
-    "subtitle": "Teile POD AI mit deinen Freunden und verdiene 10 Credits für jeden Freund, der einen Kauf tätigt",
+    "subtitle": "Teile {brandName} mit deinen Freunden und verdiene 10 Credits für jeden Freund, der einen Kauf tätigt",
     "inviteLinkTitle": "Dein Empfehlungslink",
     "inviteLinkDescription": "Teile diesen Link mit deinen Freunden, um Credits zu verdienen",
     "copy": "Kopieren",

@@ -1,10 +1,10 @@
 {
   "common": {
-    "appName": "POD AI Store",
+    "appName": "{brandName}",
     "loading": "Loading...",
     "error": "Error",
     "success": "Success",
-    "welcome": "Welcome to POD AI Store",
+    "welcome": "Welcome to {brandName}",
     "skipToContent": "Skip to main content"
   },
   "navigation": {
@@ -141,9 +141,9 @@
   },
   "Auth": {
     "loginTitle": "Sign in to your account",
-    "loginDescription": "Access your POD AI Store account",
+    "loginDescription": "Access your {brandName} account",
     "registerTitle": "Create your account",
-    "registerDescription": "Join POD AI Store today",
+    "registerDescription": "Join {brandName} today",
     "emailLabel": "Email address",
     "emailPlaceholder": "Email address",
     "passwordLabel": "Password",
@@ -566,7 +566,7 @@
     "popularToday": "Popular Today",
     "lastDesignGenerated": "Last design 2m ago",
     "searchPlaceholder": "Search products...",
-    "welcomeTitle": "Welcome to POD AI",
+    "welcomeTitle": "Welcome to {brandName}",
     "welcomeSubtitle": "Your AI-powered print-on-demand store. Ask me anything!",
     "welcomeBackTitle": "Welcome back, {name}",
     "welcomeBackSubtitle": "Ready to find your next favorite design?",
@@ -783,7 +783,7 @@
   },
   "engagement": {
     "welcome": {
-      "title": "Welcome to POD AI",
+      "title": "Welcome to {brandName}",
       "description": "Your AI-powered print-on-demand store. Describe what you want, and we'll design and print it for you.",
       "benefit1": "Chat with AI to create custom designs",
       "benefit2": "Browse unique print-on-demand products",
@@ -868,7 +868,7 @@
     "lastUpdated": "Last updated",
     "intro": {
       "title": "Introduction",
-      "content": "At POD AI Store, we respect your privacy and are committed to protecting your personal data. This privacy policy explains how we collect, use, and safeguard your information when you use our AI-powered print-on-demand platform."
+      "content": "At {brandName}, we respect your privacy and are committed to protecting your personal data. This privacy policy explains how we collect, use, and safeguard your information when you use our AI-powered print-on-demand platform."
     },
     "dataCollected": {
       "title": "Data We Collect",
@@ -942,7 +942,7 @@
     "lastUpdated": "Last updated",
     "intro": {
       "title": "Introduction",
-      "content": "Welcome to POD AI Store. By accessing or using our AI-powered print-on-demand platform, you agree to be bound by these Terms of Service. Please read them carefully before using our services."
+      "content": "Welcome to {brandName}. By accessing or using our AI-powered print-on-demand platform, you agree to be bound by these Terms of Service. Please read them carefully before using our services."
     },
     "acceptance": {
       "title": "Acceptance of Terms",
@@ -956,7 +956,7 @@
     },
     "services": {
       "title": "Our Services",
-      "content": "POD AI Store provides an AI-powered platform for creating custom designs and ordering print-on-demand products. Our services include:",
+      "content": "{brandName} provides an AI-powered platform for creating custom designs and ordering print-on-demand products. Our services include:",
       "items": {
         "0": "AI-powered design generation using advanced machine learning models",
         "1": "Custom product creation and personalization tools",
@@ -1016,7 +1016,7 @@
     },
     "limitationOfLiability": {
       "title": "Limitation of Liability",
-      "content": "To the maximum extent permitted by law, POD AI Store shall not be liable for:",
+      "content": "To the maximum extent permitted by law, {brandName} shall not be liable for:",
       "items": {
         "0": "Indirect, incidental, special, or consequential damages",
         "1": "Loss of profits, revenue, data, or business opportunities",
@@ -1041,7 +1041,7 @@
       "title": "Governing Law and Disputes",
       "content": "These Terms of Service are governed by the laws of the jurisdiction where our company is registered. Any disputes shall be resolved through:",
       "items": {
-        "0": "Good faith negotiation between you and POD AI Store",
+        "0": "Good faith negotiation between you and {brandName}",
         "1": "Binding arbitration if negotiation fails (where permitted by law)",
         "2": "The exclusive jurisdiction of courts in our registered location",
         "3": "You waive the right to participate in class action lawsuits"
@@ -1225,18 +1225,18 @@
     "availableSizes": "Available sizes"
   },
   "blog": {
-    "metaTitle": "Blog - POD AI Store",
-    "metaDescription": "Read the latest updates, tips, and stories from POD AI Store",
+    "metaTitle": "Blog - {brandName}",
+    "metaDescription": "Read the latest updates, tips, and stories from {brandName}",
     "title": "Blog",
-    "subtitle": "Stories, tips, and updates from the POD AI team",
+    "subtitle": "Stories, tips, and updates from the {brandName} team",
     "noPosts": "No blog posts yet. Check back soon!",
     "views": "views"
   },
   "referrals": {
-    "metaTitle": "Referrals - POD AI Store",
+    "metaTitle": "Referrals - {brandName}",
     "metaDescription": "Invite friends and earn credits for every successful referral",
     "title": "Refer Friends, Earn Credits",
-    "subtitle": "Share POD AI with your friends and earn 10 credits for each friend who makes a purchase",
+    "subtitle": "Share {brandName} with your friends and earn 10 credits for each friend who makes a purchase",
     "inviteLinkTitle": "Your Referral Link",
     "inviteLinkDescription": "Share this link with your friends to earn credits",
     "copy": "Copy",
