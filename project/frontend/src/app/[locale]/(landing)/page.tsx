@@ -3,6 +3,7 @@ import { getTranslations } from 'next-intl/server'
 import { createClient } from '@supabase/supabase-js'
 import { LandingPageClient } from '@/components/landing/LandingPageClient'
 import { Footer } from '@/components/Footer'
+import { getBrandConfig } from '@/lib/brand-config-server'
 
 interface Product {
   id: string
@@ -22,8 +23,11 @@ export async function generateMetadata({ params }: LandingPageProps): Promise<Me
   const { locale } = await params
   const t = await getTranslations({ locale, namespace: 'landing' })
 
+  // Fetch brand config from database
+  const brandConfig = await getBrandConfig()
+  const siteName = brandConfig.brandName
+
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://podai.com'
-  const siteName = process.env.NEXT_PUBLIC_SITE_NAME || 'POD AI'
 
   return {
     title: `${siteName} - ${t('heroTitle')}`,
