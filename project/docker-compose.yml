@@ -363,6 +363,9 @@ services:
       GF_USERS_ALLOW_SIGN_UP: "false"
       GF_AUTH_ANONYMOUS_ENABLED: "false"
       GF_INSTALL_PLUGINS: ""
+      GF_UNIFIED_ALERTING_ENABLED: "true"
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      PODCLAW_ADMIN_TELEGRAM_CHAT_ID: ${PODCLAW_ADMIN_TELEGRAM_CHAT_ID:-}
     volumes:
       - ./deploy/grafana/provisioning:/etc/grafana/provisioning:ro
       - grafana-data:/var/lib/grafana
