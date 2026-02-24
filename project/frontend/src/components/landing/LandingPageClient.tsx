@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/carousel'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Testimonials } from '@/components/landing/Testimonials'
+import { NewsletterSignup } from '@/components/landing/NewsletterSignup'
 import { formatPrice } from '@/lib/currency'
 import { cn } from '@/lib/utils'
 
@@ -277,6 +278,11 @@ export function LandingPageClient({
         totalOrders={totalOrders}
         averageRating={averageRating}
       />
+
+      {/* ─── Newsletter Signup ─── */}
+      <section className="px-6 py-24 md:py-32 bg-muted/20">
+        <NewsletterSignup locale={locale as 'en' | 'es' | 'de'} />
+      </section>
 
       {/* ─── Final CTA ─── */}
       <section

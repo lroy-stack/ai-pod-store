@@ -114,6 +114,20 @@ export async function GET(req: NextRequest) {
           continue
         }
 
+        // GDPR compliance: Only send to confirmed newsletter subscribers
+        const { data: subscriber } = await supabase
+          .from('newsletter_subscribers')
+          .select('confirmed_at')
+          .eq('email', item.email)
+          .single()
+
+        if (!subscriber || !subscriber.confirmed_at) {
+          console.warn(`[Drip] Skipping unconfirmed subscriber: ${item.email}`)
+          await supabase.from('drip_queue').update({ status: 'skipped' }).eq('id', item.id)
+          failed++
+          continue
+        }
+
         // Generate one-click unsubscribe token (RFC 8058)
         const unsubscribeToken = generateUnsubscribeToken(item.email)
         const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
