@@ -358,14 +358,69 @@ def create_app(
             raise HTTPException(404, f"Unknown agent: {name}")
         return orchestrator.get_agent_status(name)
 
+    async def _run_single_agent(task_id: str, agent_name: str, task_prompt: str | None) -> None:
+        """Background coroutine: run a single agent and store results."""
+        _tasks[task_id]["status"] = "running"
+        _tasks[task_id]["current_agent"] = agent_name
+
+        try:
+            logger.info("agent_run_start", task_id=task_id[:8], agent=agent_name)
+            result = await orchestrator.run_agent(agent_name, task=task_prompt, force_fresh=True)
+
+            cost = result.get("total_cost_usd") or 0
+            response_text = result.get("response", "")
+
+            _tasks[task_id]["status"] = "completed"
+            _tasks[task_id]["result"] = {
+                "agent": agent_name,
+                "status": result.get("status", "unknown"),
+                "tool_calls": result.get("tool_calls", 0),
+                "cost_usd": round(cost, 3),
+                "duration_s": round(result.get("duration_seconds", 0)),
+                "session_id": result.get("session_id", ""),
+                "response": response_text,
+            }
+            _tasks[task_id]["total_cost_usd"] = round(cost, 3)
+            _tasks[task_id]["completed_at"] = datetime.now(timezone.utc).isoformat()
+
+            logger.info("agent_run_done", task_id=task_id[:8], agent=agent_name,
+                        status=result.get("status"), tools=result.get("tool_calls", 0),
+                        cost=round(cost, 3))
+
+        except Exception as e:
+            _tasks[task_id]["status"] = "error"
+            _tasks[task_id]["error"] = str(e)
+            logger.error("agent_run_failed", task_id=task_id[:8], agent=agent_name, error=str(e))
+
     @app.post("/agents/{name}/run", dependencies=[Depends(require_auth)])
-    async def run_agent(name: str, body: AgentRunRequest | None = None):
+    async def run_agent(name: str, body: AgentRunRequest | None = None, background_tasks: BackgroundTasks | None = None):
+        """Trigger an agent manually (non-blocking).
+
+        Returns immediately with a task_id for status polling via GET /task/{task_id}.
+        """
         from podclaw.core import AGENT_NAMES
         if name not in AGENT_NAMES:
             raise HTTPException(404, f"Unknown agent: {name}")
+
         task = body.task if body else None
-        result = await orchestrator.run_agent(name, task)
-        return result
+        task_id = str(uuid.uuid4())
+
+        _tasks[task_id] = {
+            "task_id": task_id,
+            "agent": name,
+            "task": task or "(default task)",
+            "status": "accepted",
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        }
+
+        if background_tasks:
+            background_tasks.add_task(_run_single_agent, task_id, name, task)
+        else:
+            # Fallback: immediate execution (for tests without BackgroundTasks)
+            asyncio.create_task(_run_single_agent(task_id, name, task))
+
+        logger.info("agent_run_accepted", task_id=task_id[:8], agent=name, task=task[:80] if task else "default")
+        return {"task_id": task_id, "status": "accepted", "agent": name}
 
     @app.post("/agents/{name}/pause", dependencies=[Depends(require_auth)])
     async def pause_agent(name: str):
@@ -380,13 +435,34 @@ def create_app(
     # ----- Sub-agent alias (tests expect /subagent/{name}/run) -----
 
     @app.post("/subagent/{name}/run", dependencies=[Depends(require_auth)])
-    async def run_subagent(name: str, body: AgentRunRequest | None = None):
+    async def run_subagent(name: str, body: AgentRunRequest | None = None, background_tasks: BackgroundTasks | None = None):
+        """Trigger a sub-agent manually (non-blocking alias for /agents/{name}/run).
+
+        Returns immediately with a task_id for status polling via GET /task/{task_id}.
+        """
         from podclaw.core import AGENT_NAMES
         if name not in AGENT_NAMES:
             raise HTTPException(404, f"Unknown agent: {name}")
+
         task = body.task if body else None
-        result = await orchestrator.run_agent(name, task)
-        return result
+        task_id = str(uuid.uuid4())
+
+        _tasks[task_id] = {
+            "task_id": task_id,
+            "agent": name,
+            "task": task or "(default task)",
+            "status": "accepted",
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        }
+
+        if background_tasks:
+            background_tasks.add_task(_run_single_agent, task_id, name, task)
+        else:
+            # Fallback: immediate execution (for tests without BackgroundTasks)
+            asyncio.create_task(_run_single_agent(task_id, name, task))
+
+        logger.info("subagent_run_accepted", task_id=task_id[:8], agent=name, task=task[:80] if task else "default")
+        return {"task_id": task_id, "status": "accepted", "agent": name}
 
     # ----- Emergency Stop -----
 
