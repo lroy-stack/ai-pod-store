@@ -76,6 +76,7 @@ dump.rdb
 
 # Supabase
 .supabase/
+.migration-backups/
 
 # PodClaw local state (SQLite brain)
 podclaw/data/
