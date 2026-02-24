@@ -17,6 +17,7 @@ import { cn } from '@/lib/utils'
 import { formatPrice, getLocalizedPrice } from '@/lib/currency'
 import { ProductPersonalizer, PersonalizationData } from './ProductPersonalizer'
 import { SafeHTML } from '@/components/common/SafeHTML'
+import { trackProductView, trackAddToCart as trackAnalyticsAddToCart } from '@/lib/analytics'
 import {
   Select,
   SelectContent,
@@ -99,6 +100,8 @@ export function ProductDetailClient({ product, relatedProducts, reviews }: Produ
         currency: product.currency,
         image: product.images && product.images.length > 0 ? product.images[0] : null,
       })
+      // Track analytics event
+      trackProductView(product.id, product.title, product.price)
     }
   }, [product?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -201,6 +204,8 @@ export function ProductDetailClient({ product, relatedProducts, reviews }: Produ
         product.title,
         product.price
       )
+      // Track analytics event
+      trackAnalyticsAddToCart(product.id, product.title, product.price, quantity)
     } catch (error) {
       // Error is already handled by useCart with toast
       console.error('Failed to add to cart:', error)

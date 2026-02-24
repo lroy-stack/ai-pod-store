@@ -92,10 +92,31 @@ interface DemandData {
   source: string;
 }
 
+interface FunnelData {
+  funnel: {
+    view_product: number;
+    add_to_cart: number;
+    begin_checkout: number;
+    purchase: number;
+  };
+  conversionRates: {
+    viewToCart: number;
+    cartToCheckout: number;
+    checkoutToPurchase: number;
+    overall: number;
+  };
+  period: {
+    start: string;
+    end: string;
+    days: number;
+  };
+}
+
 export default function AnalyticsPage() {
   const [report, setReport] = useState<FinanceReport | null>(null);
   const [rfmData, setRfmData] = useState<RFMData | null>(null);
   const [demandData, setDemandData] = useState<DemandData | null>(null);
+  const [funnelData, setFunnelData] = useState<FunnelData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -107,7 +128,8 @@ export default function AnalyticsPage() {
     await Promise.all([
       fetchReport(),
       fetchRFM(),
-      fetchDemand()
+      fetchDemand(),
+      fetchFunnel()
     ]);
     setLoading(false);
   };
@@ -148,6 +170,18 @@ export default function AnalyticsPage() {
     }
   };
 
+  const fetchFunnel = async () => {
+    try {
+      const response = await adminFetch('/api/analytics/funnel');
+      if (response.ok) {
+        const data = await response.json();
+        setFunnelData(data);
+      }
+    } catch (error) {
+      console.error('Error fetching funnel data:', error);
+    }
+  };
+
   const formatCurrency = (amount: number, currency: string = 'eur') => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -166,6 +200,7 @@ export default function AnalyticsPage() {
           report,
           rfmData,
           demandData,
+          funnelData,
         }),
       });
 
@@ -222,7 +257,7 @@ export default function AnalyticsPage() {
           <p className="text-muted-foreground">Financial overview, customer segments, and demand forecasting</p>
         </div>
         <div className="flex gap-2">
-          <Button onClick={handleExport} variant="outline" disabled={!report && !rfmData && !demandData}>
+          <Button onClick={handleExport} variant="outline" disabled={!report && !rfmData && !demandData && !funnelData}>
             <Download className="mr-2 h-4 w-4" />
             Export CSV
           </Button>
@@ -282,6 +317,131 @@ export default function AnalyticsPage() {
               Last updated: {new Date(rfmData.calculatedAt).toLocaleString()}
               {rfmData.source === 'realtime' && ' (Real-time calculation)'}
             </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Conversion Funnel */}
+      {funnelData && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Target className="h-5 w-5" />
+              Conversion Funnel (Last 30 Days)
+            </CardTitle>
+            <CardDescription>
+              Overall conversion rate: {funnelData.conversionRates.overall}% •
+              {' '}{new Date(funnelData.period.start).toLocaleDateString()} - {new Date(funnelData.period.end).toLocaleDateString()}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {/* Product Views */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-primary"></div>
+                    <span className="text-sm font-medium">Product Views</span>
+                  </div>
+                  <span className="text-2xl font-bold">{funnelData.funnel.view_product.toLocaleString()}</span>
+                </div>
+                <div className="h-12 bg-primary rounded-lg w-full"></div>
+              </div>
+
+              {/* Add to Cart */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-accent"></div>
+                    <span className="text-sm font-medium">Add to Cart</span>
+                    <span className="text-xs text-muted-foreground">
+                      ({funnelData.conversionRates.viewToCart}% conversion)
+                    </span>
+                  </div>
+                  <span className="text-2xl font-bold">{funnelData.funnel.add_to_cart.toLocaleString()}</span>
+                </div>
+                <div
+                  className="h-12 bg-accent rounded-lg"
+                  style={{
+                    width: `${funnelData.funnel.view_product > 0 ? (funnelData.funnel.add_to_cart / funnelData.funnel.view_product) * 100 : 0}%`,
+                    minWidth: '10%'
+                  }}
+                ></div>
+              </div>
+
+              {/* Begin Checkout */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-warning"></div>
+                    <span className="text-sm font-medium">Begin Checkout</span>
+                    <span className="text-xs text-muted-foreground">
+                      ({funnelData.conversionRates.cartToCheckout}% from cart)
+                    </span>
+                  </div>
+                  <span className="text-2xl font-bold">{funnelData.funnel.begin_checkout.toLocaleString()}</span>
+                </div>
+                <div
+                  className="h-12 bg-warning rounded-lg"
+                  style={{
+                    width: `${funnelData.funnel.view_product > 0 ? (funnelData.funnel.begin_checkout / funnelData.funnel.view_product) * 100 : 0}%`,
+                    minWidth: '10%'
+                  }}
+                ></div>
+              </div>
+
+              {/* Purchase */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-success"></div>
+                    <span className="text-sm font-medium">Purchase</span>
+                    <span className="text-xs text-muted-foreground">
+                      ({funnelData.conversionRates.checkoutToPurchase}% from checkout)
+                    </span>
+                  </div>
+                  <span className="text-2xl font-bold">{funnelData.funnel.purchase.toLocaleString()}</span>
+                </div>
+                <div
+                  className="h-12 bg-success rounded-lg"
+                  style={{
+                    width: `${funnelData.funnel.view_product > 0 ? (funnelData.funnel.purchase / funnelData.funnel.view_product) * 100 : 0}%`,
+                    minWidth: '10%'
+                  }}
+                ></div>
+              </div>
+            </div>
+
+            {/* Drop-off Analysis */}
+            <div className="mt-6 p-4 bg-muted rounded-lg">
+              <h4 className="font-semibold mb-2">Drop-off Analysis</h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                <div>
+                  <p className="text-muted-foreground">View → Cart</p>
+                  <p className="text-lg font-bold text-destructive">
+                    {funnelData.funnel.view_product > 0
+                      ? Math.round((1 - funnelData.funnel.add_to_cart / funnelData.funnel.view_product) * 100)
+                      : 0}% drop-off
+                  </p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Cart → Checkout</p>
+                  <p className="text-lg font-bold text-destructive">
+                    {funnelData.funnel.add_to_cart > 0
+                      ? Math.round((1 - funnelData.funnel.begin_checkout / funnelData.funnel.add_to_cart) * 100)
+                      : 0}% drop-off
+                  </p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Checkout → Purchase</p>
+                  <p className="text-lg font-bold text-destructive">
+                    {funnelData.funnel.begin_checkout > 0
+                      ? Math.round((1 - funnelData.funnel.purchase / funnelData.funnel.begin_checkout) * 100)
+                      : 0}% drop-off
+                  </p>
+                </div>
+              </div>
+            </div>
           </CardContent>
         </Card>
       )}
