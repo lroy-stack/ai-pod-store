@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { withPermission } from '@/lib/rbac';
 import { logCreate } from '@/lib/audit';
+import { withValidation, productSchema } from '@/lib/validation';
 
 // GET requires 'read' permission on 'products' resource
 export const GET = withPermission('products', 'read', async (req: NextRequest) => {
@@ -56,9 +57,8 @@ export const GET = withPermission('products', 'read', async (req: NextRequest) =
 });
 
 // POST requires 'create' permission on 'products' resource
-export const POST = withPermission('products', 'create', async (req: NextRequest, session) => {
+export const POST = withPermission('products', 'create', withValidation(productSchema, async (req: NextRequest, validatedData, session) => {
   try {
-    const body = await req.json();
     const {
       title,
       name,
@@ -71,17 +71,10 @@ export const POST = withPermission('products', 'create', async (req: NextRequest
       design_id,
       image_url,
       status
-    } = body;
+    } = validatedData;
 
-    // Support both 'title' and 'name' fields
+    // Support both 'title' and 'name' fields (schema already validates at least one exists)
     const productName = name || title;
-
-    if (!productName || !base_price_cents || !currency) {
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
-      );
-    }
 
     const insertData: any = {
       title: productName,
@@ -123,4 +116,4 @@ export const POST = withPermission('products', 'create', async (req: NextRequest
       { status: 500 }
     );
   }
-});
+}));

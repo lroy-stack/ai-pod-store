@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { withValidation, brandConfigSchema } from '@/lib/validation';
 
 const supabaseUrl = process.env.SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY!;
@@ -40,9 +41,8 @@ export async function GET(request: NextRequest) {
  * PUT /api/admin/brand-config
  * Update the brand configuration
  */
-export async function PUT(request: NextRequest) {
+export const PUT = withValidation(brandConfigSchema, async (request: NextRequest, validatedData) => {
   try {
-    const body = await request.json();
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Get the current active config ID
@@ -59,40 +59,11 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    // Update fields (allow partial updates)
+    // Update fields (allow partial updates) - validation already done by schema
     const updateData: any = {
       updated_at: new Date().toISOString(),
+      ...validatedData,
     };
-
-    if (body.personalization_surcharge_amount !== undefined) {
-      // Validate surcharge amount
-      const surcharge = body.personalization_surcharge_amount;
-      if (surcharge !== null) {
-        if (typeof surcharge !== 'number' || surcharge < 0 || surcharge > 1000) {
-          return NextResponse.json(
-            { error: 'Surcharge must be a number between 0 and 1000' },
-            { status: 400 }
-          );
-        }
-      }
-      updateData.personalization_surcharge_amount = surcharge;
-    }
-
-    // Brand identity fields
-    if (body.brand_name !== undefined) updateData.brand_name = body.brand_name;
-    if (body.brand_tagline !== undefined) updateData.brand_tagline = body.brand_tagline;
-    if (body.copyright_text !== undefined) updateData.copyright_text = body.copyright_text;
-    if (body.support_email !== undefined) updateData.support_email = body.support_email;
-    if (body.logo_light_url !== undefined) updateData.logo_light_url = body.logo_light_url;
-    if (body.logo_dark_url !== undefined) updateData.logo_dark_url = body.logo_dark_url;
-
-    // Brand styling fields
-    if (body.brand_color_primary) updateData.brand_color_primary = body.brand_color_primary;
-    if (body.brand_color_secondary) updateData.brand_color_secondary = body.brand_color_secondary;
-    if (body.brand_font) updateData.brand_font = body.brand_font;
-    if (body.packaging_insert_enabled !== undefined) updateData.packaging_insert_enabled = body.packaging_insert_enabled;
-    if (body.packaging_insert_text !== undefined) updateData.packaging_insert_text = body.packaging_insert_text;
-    if (body.gift_messages_enabled !== undefined) updateData.gift_messages_enabled = body.gift_messages_enabled;
 
     const { data, error } = await supabase
       .from('brand_config')
@@ -117,4 +88,4 @@ export async function PUT(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});

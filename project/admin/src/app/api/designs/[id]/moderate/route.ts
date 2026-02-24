@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { withPermission } from '@/lib/rbac';
+import { withValidation, designModerationSchema } from '@/lib/validation';
 
 // PUT requires 'moderate' permission on 'designs' resource
-export const PUT = withPermission('designs', 'moderate', async (
+export const PUT = withPermission('designs', 'moderate', withValidation(designModerationSchema, async (
   request: NextRequest,
+  validatedData,
   session,
   context?: { params: Promise<{ id: string }> }
 ) => {
@@ -14,16 +16,7 @@ export const PUT = withPermission('designs', 'moderate', async (
     }
 
     const { id } = await context.params;
-    const body = await request.json();
-    const { status, notes } = body;
-
-    // Validate status
-    if (!status || !['approved', 'rejected'].includes(status)) {
-      return NextResponse.json(
-        { error: 'Invalid status. Must be "approved" or "rejected"' },
-        { status: 400 }
-      );
-    }
+    const { status, notes } = validatedData;
 
     // Update the design moderation status
     const updateData: any = {
@@ -57,4 +50,4 @@ export const PUT = withPermission('designs', 'moderate', async (
       { status: 500 }
     );
   }
-});
+}));

@@ -56,6 +56,7 @@ export async function GET() {
     // Perform multiple queries to get average performance
     const queryTimes: number[] = [];
     const iterations = 5;
+    let lastSearchError: any = null;
 
     for (let i = 0; i < iterations; i++) {
       const startTime = Date.now();
@@ -71,6 +72,8 @@ export async function GET() {
       const queryTime = endTime - startTime;
       queryTimes.push(queryTime);
 
+      lastSearchError = searchError;
+
       // If RPC function doesn't exist, fall back to simple query test
       if (searchError && searchError.message.includes('Could not find')) {
         // Just verify we can access the table quickly
@@ -83,14 +86,14 @@ export async function GET() {
       }
     }
 
-    const avgQueryTime = queryTimes.reduce((a, b) => a + b, 0) / queryTimes.length;
-    const minQueryTime = Math.min(...queryTimes);
-    const maxQueryTime = Math.max(...queryTimes);
+    const avgQueryTime = queryTimes.length > 0 ? queryTimes.reduce((a, b) => a + b, 0) / queryTimes.length : 0;
+    const minQueryTime = queryTimes.length > 0 ? Math.min(...queryTimes) : 0;
+    const maxQueryTime = queryTimes.length > 0 ? Math.max(...queryTimes) : 0;
 
-    if (searchError) {
+    if (lastSearchError) {
       return NextResponse.json({
         success: false,
-        error: `Vector search failed: ${searchError.message}`
+        error: `Vector search failed: ${lastSearchError.message}`
       });
     }
 
@@ -109,8 +112,10 @@ export async function GET() {
       },
       verification: {
         documentsCount: count || 1,
-        queryTimeMs: queryTime,
-        performance: queryTime < 50 ? 'excellent' : queryTime < 100 ? 'good' : 'acceptable'
+        avgQueryTimeMs: avgQueryTime,
+        minQueryTimeMs: minQueryTime,
+        maxQueryTimeMs: maxQueryTime,
+        performance: avgQueryTime < 50 ? 'excellent' : avgQueryTime < 100 ? 'good' : 'acceptable'
       },
       note: 'Index details verified via migration file. Query performance tested above.'
     });

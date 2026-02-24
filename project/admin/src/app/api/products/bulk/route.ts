@@ -1,24 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import { withValidation, bulkProductUpdateSchema } from '@/lib/validation';
 
-export async function PATCH(req: NextRequest) {
+export const PATCH = withValidation(bulkProductUpdateSchema, async (req: NextRequest, validatedData) => {
   try {
-    const body = await req.json();
-    const { ids, status } = body;
-
-    if (!ids || !Array.isArray(ids) || ids.length === 0) {
-      return NextResponse.json(
-        { error: 'Invalid or missing ids' },
-        { status: 400 }
-      );
-    }
-
-    if (!status || typeof status !== 'string') {
-      return NextResponse.json(
-        { error: 'status must be a string' },
-        { status: 400 }
-      );
-    }
+    const { ids, status } = validatedData;
 
     const { data: products, error } = await supabaseAdmin
       .from('products')
@@ -45,4 +31,4 @@ export async function PATCH(req: NextRequest) {
       { status: 500 }
     );
   }
-}
+});
