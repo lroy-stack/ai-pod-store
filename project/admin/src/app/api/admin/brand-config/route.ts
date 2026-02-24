@@ -78,6 +78,15 @@ export async function PUT(request: NextRequest) {
       updateData.personalization_surcharge_amount = surcharge;
     }
 
+    // Brand identity fields
+    if (body.brand_name !== undefined) updateData.brand_name = body.brand_name;
+    if (body.brand_tagline !== undefined) updateData.brand_tagline = body.brand_tagline;
+    if (body.copyright_text !== undefined) updateData.copyright_text = body.copyright_text;
+    if (body.support_email !== undefined) updateData.support_email = body.support_email;
+    if (body.logo_light_url !== undefined) updateData.logo_light_url = body.logo_light_url;
+    if (body.logo_dark_url !== undefined) updateData.logo_dark_url = body.logo_dark_url;
+
+    // Brand styling fields
     if (body.brand_color_primary) updateData.brand_color_primary = body.brand_color_primary;
     if (body.brand_color_secondary) updateData.brand_color_secondary = body.brand_color_secondary;
     if (body.brand_font) updateData.brand_font = body.brand_font;
