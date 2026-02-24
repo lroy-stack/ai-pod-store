@@ -701,8 +701,22 @@ async function handleMcpPost(
   // Inject auth info from JWT (if Bearer token present)
   await injectAuthInfo(req);
 
-  // Apply rate limiting
-  const allowed = await rateLimitMiddleware(req, res);
+  // Extract tool name from request body for per-tool rate limiting
+  let toolName: string | undefined;
+  if (
+    body &&
+    typeof body === 'object' &&
+    'method' in body &&
+    body.method === 'tools/call' &&
+    'params' in body &&
+    typeof (body as any).params === 'object' &&
+    'name' in (body as any).params
+  ) {
+    toolName = (body as any).params.name;
+  }
+
+  // Apply rate limiting (with optional per-tool limit)
+  const allowed = await rateLimitMiddleware(req, res, toolName);
   if (!allowed) {
     // Rate limit exceeded, response already sent by middleware
     return;
