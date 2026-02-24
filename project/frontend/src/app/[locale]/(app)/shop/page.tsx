@@ -1,7 +1,16 @@
 import { Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
 import { createClient } from '@supabase/supabase-js'
+import Link from 'next/link'
 import { ShopPageClient } from '@/components/shop/ShopPageClient'
+import {
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbSeparator,
+  BreadcrumbPage,
+} from '@/components/ui/breadcrumb'
 
 interface Product {
   id: string
@@ -222,6 +231,23 @@ export default async function ShopPage({ params, searchParams }: ShopPageProps) 
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListSchema) }}
       />
+
+      {/* Breadcrumbs */}
+      <div className="container mx-auto max-w-7xl px-4 py-4">
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link href={`/${locale}`}>Home</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>Shop</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+      </div>
 
       <ShopPageClient
         locale={locale}

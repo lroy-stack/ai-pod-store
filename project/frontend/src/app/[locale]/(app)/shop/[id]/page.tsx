@@ -3,6 +3,9 @@ import { notFound } from 'next/navigation'
 import { ProductDetailClient } from '@/components/products/ProductDetailClient'
 import { getProduct, getProductReviews, getRelatedProducts } from '@/lib/product-detail-cache'
 
+// Enable ISR with 1-hour revalidation
+export const revalidate = 3600
+
 // Generate metadata for SEO
 export async function generateMetadata({
   params,
