@@ -183,17 +183,46 @@ export async function syncProductFromPrintify(
 
   const categoryId = categories?.[0]?.id || null
 
+  // Check if product exists and has admin edits that should be preserved
+  const { data: existingProduct } = await supabase
+    .from('products')
+    .select('id, title, description, tags, admin_edited_at, last_synced_at')
+    .eq('printify_id', printifyId)
+    .single()
+
+  // Determine if admin edits should be preserved
+  const hasAdminEdits = existingProduct?.admin_edited_at != null
+  const lastSyncAt = existingProduct?.last_synced_at
+    ? new Date(existingProduct.last_synced_at)
+    : null
+  const adminEditAt = existingProduct?.admin_edited_at
+    ? new Date(existingProduct.admin_edited_at)
+    : null
+
+  const shouldPreserveAdminEdits =
+    hasAdminEdits && adminEditAt && lastSyncAt && adminEditAt > lastSyncAt
+
+  // Build row with conditional preservation of admin-edited fields
   const row = {
     printify_id: printifyId,
-    title,
-    description,
+    // Preserve admin edits for title, description, tags if admin_edited_at > last_synced_at
+    title: shouldPreserveAdminEdits && existingProduct?.title ? existingProduct.title : title,
+    description: shouldPreserveAdminEdits && existingProduct?.description ? existingProduct.description : description,
+    tags: shouldPreserveAdminEdits && existingProduct?.tags ? existingProduct.tags : [],
+    // Always sync price, status, images, category, and cost
     status,
     currency: 'EUR',
     cost_cents: costEur || null,
     base_price_cents: basePrice,
     images,
     category_id: categoryId,
+    // Update last_synced_at timestamp
+    last_synced_at: new Date().toISOString(),
     ...(visible ? { published_at: new Date().toISOString() } : {}),
+  }
+
+  if (shouldPreserveAdminEdits) {
+    console.log(`printify-sync: preserving admin edits for ${printifyId} (admin_edited_at: ${adminEditAt?.toISOString()}, last_synced_at: ${lastSyncAt?.toISOString()})`)
   }
 
   const { data, error } = await supabase
