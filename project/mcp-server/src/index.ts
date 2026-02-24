@@ -121,7 +121,7 @@ import {
 
 const PORT = parseInt(process.env.PORT || '8002', 10);
 const MCP_BASE_URL = process.env.MCP_BASE_URL || `http://localhost:${PORT}`;
-const MCP_CORS_ORIGINS = (process.env.MCP_CORS_ORIGINS || 'https://claude.ai,https://chatgpt.com')
+const MCP_CORS_ORIGINS = (process.env.MCP_CORS_ORIGINS || 'https://claude.ai,https://chatgpt.com,http://localhost:3000')
   .split(',')
   .map((s) => s.trim());
 
