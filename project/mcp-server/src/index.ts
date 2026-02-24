@@ -11,6 +11,11 @@ import { getSupabaseClient } from './lib/supabase.js';
 import { getStripeClient } from './lib/stripe.js';
 import { injectAuthInfo } from './auth/session.js';
 import { rateLimitMiddleware } from './middleware/rate-limit.js';
+import {
+  createSession,
+  updateSessionActivity,
+  deleteSession,
+} from './session.js';
 import { withAuditLog } from './lib/audit-log.js';
 import { logger } from './lib/logger.js';
 import { getCompletions, type CompletionRequest } from './lib/completions.js';
@@ -724,20 +729,28 @@ async function handleMcpPost(
 
   if (sessionId && transports.has(sessionId)) {
     // Existing session — reuse transport
+    await updateSessionActivity(sessionId);
     await transports.get(sessionId)!.handleRequest(req, res, body);
   } else if (!sessionId && isInitializeRequest(body)) {
     // New session — create transport + server
     const transport = new StreamableHTTPServerTransport({
       sessionIdGenerator: () => randomUUID(),
-      onsessioninitialized: (sid) => {
+      onsessioninitialized: async (sid) => {
         transports.set(sid, transport);
         console.info(`[MCP] Session initialized: ${sid}`);
+
+        // Persist session metadata to Redis
+        const userId = (req as any).auth?.extra?.userId;
+        await createSession(sid, userId);
       },
     });
-    transport.onclose = () => {
+    transport.onclose = async () => {
       if (transport.sessionId) {
         console.info(`[MCP] Session closed: ${transport.sessionId}`);
         transports.delete(transport.sessionId);
+
+        // Remove session metadata from Redis
+        await deleteSession(transport.sessionId);
       }
     };
 
@@ -764,6 +777,7 @@ async function handleMcpGet(req: IncomingMessage, res: ServerResponse): Promise<
     res.end(JSON.stringify({ error: 'Invalid or missing session ID' }));
     return;
   }
+  await updateSessionActivity(sessionId);
   await transports.get(sessionId)!.handleRequest(req, res);
 }
 
@@ -774,6 +788,7 @@ async function handleMcpDelete(req: IncomingMessage, res: ServerResponse): Promi
     res.end(JSON.stringify({ error: 'Invalid or missing session ID' }));
     return;
   }
+  await updateSessionActivity(sessionId);
   await transports.get(sessionId)!.handleRequest(req, res);
 }
 
