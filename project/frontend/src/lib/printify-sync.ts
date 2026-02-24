@@ -295,18 +295,17 @@ async function syncVariants(
 
   if (rows.length === 0) return
 
-  // Delete existing variants for this product, then insert fresh
-  await supabase
-    .from('product_variants')
-    .delete()
-    .eq('product_id', productId)
-
+  // Upsert variants using ON CONFLICT (product_id, printify_variant_id) DO UPDATE
+  // This prevents race conditions when syncing from multiple webhook events
   const { error } = await supabase
     .from('product_variants')
-    .insert(rows)
+    .upsert(rows, {
+      onConflict: 'product_id,printify_variant_id',
+      ignoreDuplicates: false,
+    })
 
   if (error) {
-    console.error('printify-sync: variant insert failed', printifyId, error.message)
+    console.error('printify-sync: variant upsert failed', printifyId, error.message)
   } else {
     console.log(`printify-sync: synced ${rows.length} variants for`, printifyId)
   }
