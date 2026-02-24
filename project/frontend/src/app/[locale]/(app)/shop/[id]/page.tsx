@@ -75,7 +75,7 @@ export default async function ProductDetailPage({
 
   // Generate JSON-LD structured data for SEO
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
-  const jsonLd = product ? {
+  const productJsonLd = product ? {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: product.title,
@@ -100,14 +100,58 @@ export default async function ProductDetailPage({
     } : undefined,
   } : null
 
+  // Generate BreadcrumbList structured data
+  const breadcrumbItems = [
+    {
+      '@type': 'ListItem',
+      position: 1,
+      name: 'Home',
+      item: `${baseUrl}/${locale}`,
+    },
+    {
+      '@type': 'ListItem',
+      position: 2,
+      name: 'Shop',
+      item: `${baseUrl}/${locale}/shop`,
+    },
+  ]
+
+  // Add category breadcrumb if product has category
+  if (product?.category) {
+    breadcrumbItems.push({
+      '@type': 'ListItem',
+      position: 3,
+      name: product.category.name || product.category.slug,
+      item: `${baseUrl}/${locale}/shop/category/${product.category.slug}`,
+    })
+  }
+
+  // Add product as final breadcrumb item
+  breadcrumbItems.push({
+    '@type': 'ListItem',
+    position: breadcrumbItems.length + 1,
+    name: product?.title || 'Product',
+    item: `${baseUrl}/${locale}/shop/${id}`,
+  })
+
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: breadcrumbItems,
+  }
+
   return (
     <>
-      {jsonLd && (
+      {productJsonLd && (
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
         />
       )}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
       <ProductDetailClient product={product} relatedProducts={relatedProducts} reviews={reviews} />
     </>
   )
