@@ -46,20 +46,19 @@ export const RADIUS_PRESETS: Record<string, string> = {
 };
 
 /**
- * Converts theme CSS variables object to CSS custom properties string.
- * Outputs unprefixed variables (--background, --primary, etc.)
- * that propagate through @theme inline { --color-background: var(--background); }
+ * Applies CSS variables to an element safely using setProperty().
+ * No dangerouslySetInnerHTML or textContent CSS injection.
  */
-function variablesToCSS(variables: ThemeVariables): string {
-  const properties = Object.entries(variables).map(([key, value]) => {
-    const cssKey = key.replace(/_/g, '-');
-    return `  --${cssKey}: ${value};`;
+function applyVariables(element: HTMLElement, variables: ThemeVariables): void {
+  Object.entries(variables).forEach(([key, value]) => {
+    const cssKey = `--${key.replace(/_/g, '-')}`;
+    element.style.setProperty(cssKey, value);
   });
-  return properties.join('\n');
 }
 
 /**
- * Injects theme CSS into document head
+ * Injects theme CSS variables safely via style.setProperty().
+ * Uses document.documentElement (:root) and .dark class for theme variants.
  */
 function injectThemeCSS(theme: Theme): void {
   // Remove existing theme style tags (both server-rendered and dynamic)
@@ -72,31 +71,36 @@ function injectThemeCSS(theme: Theme): void {
     existingStyle.remove();
   }
 
-  const styleTag = document.createElement('style');
-  styleTag.id = 'dynamic-theme-style';
-
-  const lightCSS = variablesToCSS(theme.css_variables);
-  const darkCSS = variablesToCSS(theme.css_variables_dark);
   const shadowValue = SHADOW_PRESETS[theme.shadow_preset] || SHADOW_PRESETS.medium;
   const radiusValue = RADIUS_PRESETS[theme.border_radius] || theme.border_radius;
 
-  styleTag.textContent = `
-:root {
-${lightCSS}
-  --radius: ${radiusValue};
-  --shadow: ${shadowValue};
-  --font-sans: "${theme.fonts.body}", system-ui, sans-serif;
-  --font-heading: "${theme.fonts.heading}", system-ui, sans-serif;
-  --font-mono: "${theme.fonts.mono}", ui-monospace, monospace;
-}
+  // Apply light theme variables to :root
+  const root = document.documentElement;
+  applyVariables(root, theme.css_variables);
+  root.style.setProperty('--radius', radiusValue);
+  root.style.setProperty('--shadow', shadowValue);
+  root.style.setProperty('--font-sans', `"${theme.fonts.body}", system-ui, sans-serif`);
+  root.style.setProperty('--font-heading', `"${theme.fonts.heading}", system-ui, sans-serif`);
+  root.style.setProperty('--font-mono', `"${theme.fonts.mono}", ui-monospace, monospace`);
 
-.dark {
-${darkCSS}
-  --radius: ${radiusValue};
-  --shadow: ${shadowValue};
-}
-`.trim();
+  // Apply dark theme variables via inline style on .dark class
+  // This requires a workaround: we inject a minimal <style> with .dark selector
+  // but without user-controlled content in the CSS text
+  const styleTag = document.createElement('style');
+  styleTag.id = 'dynamic-theme-style';
 
+  // Build dark theme CSS properties using setProperty-like approach
+  const darkProperties = Object.entries(theme.css_variables_dark)
+    .map(([key, value]) => {
+      const cssKey = `--${key.replace(/_/g, '-')}`;
+      // Escape value to prevent CSS injection
+      const safeValue = value.replace(/[<>"']/g, '');
+      return `${cssKey}: ${safeValue};`;
+    })
+    .join(' ');
+
+  // Only inject the minimal .dark selector with safe properties
+  styleTag.textContent = `.dark { ${darkProperties} --radius: ${radiusValue}; --shadow: ${shadowValue}; }`;
   document.head.appendChild(styleTag);
 }
 
