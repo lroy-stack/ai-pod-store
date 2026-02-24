@@ -25,6 +25,7 @@ import {
   CarouselPrevious,
 } from '@/components/ui/carousel'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Testimonials } from '@/components/landing/Testimonials'
 import { formatPrice } from '@/lib/currency'
 import { cn } from '@/lib/utils'
 
@@ -42,9 +43,22 @@ interface Product {
   image: string | null
 }
 
+interface Review {
+  id: string
+  rating: number
+  title: string | null
+  body: string | null
+  user_name: string | null
+  is_verified_purchase: boolean
+  created_at: string
+}
+
 interface LandingPageClientProps {
   locale: string
   initialProducts: Product[]
+  reviews: Review[]
+  totalOrders: number
+  averageRating: number
 }
 
 function useScrollReveal() {
@@ -70,7 +84,13 @@ function useScrollReveal() {
   return { ref, visible }
 }
 
-export function LandingPageClient({ locale, initialProducts }: LandingPageClientProps) {
+export function LandingPageClient({
+  locale,
+  initialProducts,
+  reviews,
+  totalOrders,
+  averageRating,
+}: LandingPageClientProps) {
   const t = useTranslations('landing')
   const [products] = useState<Product[]>(initialProducts)
 
@@ -250,6 +270,13 @@ export function LandingPageClient({ locale, initialProducts }: LandingPageClient
           )}
         </div>
       </section>
+
+      {/* ─── Testimonials ─── */}
+      <Testimonials
+        reviews={reviews}
+        totalOrders={totalOrders}
+        averageRating={averageRating}
+      />
 
       {/* ─── Final CTA ─── */}
       <section

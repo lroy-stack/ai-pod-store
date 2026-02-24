@@ -2,7 +2,6 @@ import { Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
 import { createClient } from '@supabase/supabase-js'
 import { LandingPageClient } from '@/components/landing/LandingPageClient'
-import { Testimonials } from '@/components/landing/Testimonials'
 import { Footer } from '@/components/Footer'
 
 interface Product {
@@ -109,7 +108,7 @@ export default async function LandingPage({ params }: LandingPageProps) {
       body,
       is_verified_purchase,
       created_at,
-      users!inner(name)
+      users!product_reviews_user_id_fkey(name)
     `)
     .eq('moderation_status', 'approved')
     .eq('locale', locale)
@@ -130,7 +129,7 @@ export default async function LandingPage({ params }: LandingPageProps) {
   const { count: totalOrders } = await supabase
     .from('orders')
     .select('*', { count: 'exact', head: true })
-    .eq('payment_status', 'paid')
+    .eq('status', 'paid')
 
   // Calculate average rating from all approved reviews
   const { data: avgData } = await supabase
@@ -189,8 +188,9 @@ export default async function LandingPage({ params }: LandingPageProps) {
       />
 
       <div className="flex flex-col">
-        <LandingPageClient locale={locale} initialProducts={products} />
-        <Testimonials
+        <LandingPageClient
+          locale={locale}
+          initialProducts={products}
           reviews={reviews}
           totalOrders={totalOrders || 0}
           averageRating={averageRating}
