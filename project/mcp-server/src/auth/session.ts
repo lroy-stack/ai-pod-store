@@ -15,7 +15,7 @@ const MCP_BASE_URL = process.env.MCP_BASE_URL || 'http://localhost:8002';
  * Returns SDK AuthInfo with userId/email in extra field.
  * Returns null if no token or invalid token (public tools still work).
  *
- * Supports both MCP-issued JWTs and Supabase JWTs for testing/development.
+ * Only accepts MCP-issued OAuth 2.1 JWTs with valid signatures.
  */
 export async function validateJwt(req: IncomingMessage): Promise<AuthInfo | null> {
   const authHeader = req.headers.authorization;
@@ -65,30 +65,8 @@ export async function validateJwt(req: IncomingMessage): Promise<AuthInfo | null
       },
     };
   } catch {
-    // Try Supabase JWT (for testing/development)
-    try {
-      // Decode without verification for Supabase tokens (development only)
-      const parts = token.split('.');
-      if (parts.length !== 3) return null;
-
-      const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString());
-
-      // Verify it's a Supabase token by checking issuer pattern
-      if (!payload.iss?.includes('supabase.co')) return null;
-
-      return {
-        token,
-        clientId: 'supabase-client',
-        scopes: ['read', 'write'],
-        expiresAt: payload.exp,
-        extra: {
-          userId: payload.sub,
-          email: payload.email as string | undefined,
-        },
-      };
-    } catch {
-      return null;
-    }
+    // Invalid or expired JWT - reject
+    return null;
   }
 }
 
