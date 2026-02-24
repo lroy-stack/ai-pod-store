@@ -85,7 +85,12 @@ def _build_connectors(memory_store=None, state_store=None) -> dict:
     connectors = {
         "supabase": SupabaseMCPConnector(config.SUPABASE_URL, config.SUPABASE_SERVICE_KEY),
         "stripe": StripeMCPConnector(config.STRIPE_SECRET_KEY),
-        "printify": PrintifyMCPConnector(config.PRINTIFY_API_TOKEN, config.PRINTIFY_SHOP_ID),
+        "printify": PrintifyMCPConnector(
+            config.PRINTIFY_API_TOKEN,
+            config.PRINTIFY_SHOP_ID,
+            supabase_url=config.SUPABASE_URL,
+            supabase_key=config.SUPABASE_SERVICE_KEY,
+        ),
         "fal": FalMCPConnector(config.FAL_KEY),
         "gemini": GeminiMCPConnector(config.GEMINI_API_KEY),
         "resend": ResendMCPConnector(config.RESEND_API_KEY, config.RESEND_FROM_EMAIL),

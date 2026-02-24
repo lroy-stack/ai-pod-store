@@ -341,9 +341,17 @@ async def _retry_with_backoff(
 class PrintifyMCPConnector:
     """In-process MCP connector for Printify."""
 
-    def __init__(self, api_token: str, shop_id: str):
+    def __init__(
+        self,
+        api_token: str,
+        shop_id: str,
+        supabase_url: str | None = None,
+        supabase_key: str | None = None,
+    ):
         self._token = api_token
         self._shop_id = shop_id
+        self._supabase_url = supabase_url.rstrip("/") if supabase_url else None
+        self._supabase_key = supabase_key
         self._headers = {
             "Authorization": f"Bearer {api_token}",
             "Content-Type": "application/json",
@@ -375,6 +383,93 @@ class PrintifyMCPConnector:
         if self._client and not self._client.is_closed:
             await self._client.aclose()
             self._client = None
+
+    async def _check_duplicate_title(self, title: str) -> dict[str, Any] | None:
+        """Check if a product with similar title already exists.
+
+        Returns duplicate product dict if found, None otherwise.
+        Uses Levenshtein distance < 3 OR trigram similarity > 0.8.
+        """
+        if not self._supabase_url or not self._supabase_key:
+            # Deduplication disabled if Supabase not configured
+            logger.debug("duplicate_check_skipped", reason="Supabase not configured")
+            return None
+
+        try:
+            from rapidfuzz import fuzz
+            from rapidfuzz.distance import Levenshtein
+        except ImportError:
+            logger.warning("duplicate_check_skipped", reason="rapidfuzz not installed")
+            return None
+
+        # Query existing products (active, draft, publishing)
+        url = f"{self._supabase_url}/rest/v1/products"
+        headers = {
+            "apikey": self._supabase_key,
+            "Authorization": f"Bearer {self._supabase_key}",
+            "Content-Type": "application/json",
+        }
+        params = {
+            "select": "id,title,status",
+            "status": "in.(active,draft,publishing)",
+            "limit": "1000",
+        }
+
+        client = await self._get_client(timeout=10.0)
+        try:
+            resp = await client.get(url, headers=headers, params=params)
+            if resp.status_code != 200:
+                logger.warning(
+                    "duplicate_check_failed",
+                    status=resp.status_code,
+                    detail=resp.text[:200],
+                )
+                return None
+
+            products = resp.json()
+            title_lower = title.lower()
+
+            for product in products:
+                existing_title = product.get("title", "")
+                existing_title_lower = existing_title.lower()
+
+                # Levenshtein distance check (< 3 = very similar)
+                lev_distance = Levenshtein.distance(title_lower, existing_title_lower)
+                if lev_distance < 3:
+                    logger.warning(
+                        "duplicate_product_detected",
+                        method="levenshtein",
+                        distance=lev_distance,
+                        new_title=title,
+                        existing_title=existing_title,
+                        existing_id=product.get("id"),
+                    )
+                    return product
+
+                # Trigram similarity check (> 0.8 = very similar)
+                trigram_sim = fuzz.token_set_ratio(title_lower, existing_title_lower) / 100.0
+                if trigram_sim > 0.8:
+                    logger.warning(
+                        "duplicate_product_detected",
+                        method="trigram",
+                        similarity=trigram_sim,
+                        new_title=title,
+                        existing_title=existing_title,
+                        existing_id=product.get("id"),
+                    )
+                    return product
+
+            logger.debug("duplicate_check_passed", title=title, checked_products=len(products))
+            return None
+
+        except Exception as exc:
+            logger.warning(
+                "duplicate_check_error",
+                error=str(exc)[:200],
+                title=title,
+            )
+            # Fail open: don't block product creation on check errors
+            return None
 
     def get_tools(self) -> dict[str, dict[str, Any]]:
         return {
@@ -799,6 +894,23 @@ class PrintifyMCPConnector:
         return resp.json()
 
     async def _create_product(self, params: dict[str, Any]) -> dict[str, Any]:
+        # Check for duplicate title before creating product
+        title = params["title"]
+        duplicate = await self._check_duplicate_title(title)
+        if duplicate:
+            return {
+                "error": True,
+                "tool": "printify_create",
+                "status": 409,
+                "message": (
+                    f"Duplicate product detected: '{title}' is too similar to "
+                    f"existing product '{duplicate.get('title')}' (ID: {duplicate.get('id')}). "
+                    "Product creation blocked to prevent duplicates."
+                ),
+                "duplicate_id": duplicate.get("id"),
+                "duplicate_title": duplicate.get("title"),
+            }
+
         url = f"{PRINTIFY_API}/shops/{self._shop_id}/products.json"
 
         # Normalize variants: accept both {variantId/variant_id/id, price} formats

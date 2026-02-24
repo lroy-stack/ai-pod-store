@@ -35,3 +35,6 @@ redis[hiredis]>=5.0.0
 # Prometheus metrics (observability and monitoring)
 prometheus-client>=0.20.0
 prometheus-fastapi-instrumentator>=7.0.0
+
+# Text similarity (product deduplication)
+rapidfuzz>=3.0.0
