@@ -2,6 +2,7 @@ import { Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
 import { createClient } from '@supabase/supabase-js'
 import { LandingPageClient } from '@/components/landing/LandingPageClient'
+import { Testimonials } from '@/components/landing/Testimonials'
 import { Footer } from '@/components/Footer'
 
 interface Product {
@@ -98,6 +99,49 @@ export default async function LandingPage({ params }: LandingPageProps) {
     image: p.images?.[0]?.src || null,
   }))
 
+  // Fetch testimonials (approved reviews with user info)
+  const { data: reviewsData } = await supabase
+    .from('product_reviews')
+    .select(`
+      id,
+      rating,
+      title,
+      body,
+      is_verified_purchase,
+      created_at,
+      users!inner(name)
+    `)
+    .eq('moderation_status', 'approved')
+    .eq('locale', locale)
+    .order('created_at', { ascending: false })
+    .limit(6)
+
+  const reviews = (reviewsData || []).map((r: any) => ({
+    id: r.id,
+    rating: r.rating,
+    title: r.title,
+    body: r.body,
+    user_name: r.users?.name || 'Anonymous',
+    is_verified_purchase: r.is_verified_purchase,
+    created_at: r.created_at,
+  }))
+
+  // Fetch trust signals (total orders count)
+  const { count: totalOrders } = await supabase
+    .from('orders')
+    .select('*', { count: 'exact', head: true })
+    .eq('payment_status', 'paid')
+
+  // Calculate average rating from all approved reviews
+  const { data: avgData } = await supabase
+    .from('product_reviews')
+    .select('rating')
+    .eq('moderation_status', 'approved')
+
+  const averageRating = avgData && avgData.length > 0
+    ? avgData.reduce((acc, r) => acc + r.rating, 0) / avgData.length
+    : 4.8 // Default fallback
+
   // Get translations for JSON-LD
   const t = await getTranslations({ locale, namespace: 'landing' })
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://podai.com'
@@ -146,6 +190,11 @@ export default async function LandingPage({ params }: LandingPageProps) {
 
       <div className="flex flex-col">
         <LandingPageClient locale={locale} initialProducts={products} />
+        <Testimonials
+          reviews={reviews}
+          totalOrders={totalOrders || 0}
+          averageRating={averageRating}
+        />
         <Footer />
       </div>
     </>
