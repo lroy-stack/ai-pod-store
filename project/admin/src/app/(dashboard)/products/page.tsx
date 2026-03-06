@@ -148,6 +148,31 @@ export default function ProductsPage() {
           return <Badge variant="destructive">No Provider</Badge>;
         },
       },
+      // Sync Status
+      {
+        id: 'sync_status',
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title="Sync Status" />
+        ),
+        cell: ({ row }) => {
+          const product = row.original;
+          // Not Published: no provider_product_id
+          if (!product.provider_product_id) {
+            return <Badge variant="outline" className="text-muted-foreground">Not Published</Badge>;
+          }
+          // No sync timestamp yet
+          if (!product.last_synced_at) {
+            return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400 border-0">Pending Sync</Badge>;
+          }
+          // Updated after last sync → pending
+          if (product.updated_at && new Date(product.updated_at) > new Date(product.last_synced_at)) {
+            return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400 border-0">Pending Sync</Badge>;
+          }
+          // All good
+          return <Badge className="bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400 border-0">Synced</Badge>;
+        },
+        enableSorting: false,
+      },
       // Actions
       {
         id: 'actions',

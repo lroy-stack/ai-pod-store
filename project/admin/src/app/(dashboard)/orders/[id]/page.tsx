@@ -1,12 +1,20 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useState, useEffect, useCallback } from 'react';
+import { useParams } from 'next/navigation';
 import { adminFetch } from '@/lib/admin-api';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Package, Truck, CheckCircle, Clock, RefreshCw, Paintbrush, ShoppingCart, CreditCard, Send } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  ShoppingCart, CreditCard, Send, Clock, Truck, CheckCircle2,
+  RefreshCw, Paintbrush, Package, MapPin, FileText, Activity,
+} from 'lucide-react';
 import { toast } from 'sonner';
+
+// ─── Types ───────────────────────────────────────────────────────────────────
 
 interface OrderLineItem {
   id: string;
@@ -22,6 +30,13 @@ interface OrderLineItem {
   personalization_position?: string;
 }
 
+interface AdminNote {
+  id: string;
+  text: string;
+  author: string;
+  createdAt: string;
+}
+
 interface OrderDetail {
   id: string;
   user_id: string | null;
@@ -32,7 +47,7 @@ interface OrderDetail {
   paid_at: string | null;
   shipped_at: string | null;
   customer_email?: string;
-  shipping_address: any;
+  shipping_address: Record<string, unknown> | null;
   tracking_number?: string;
   tracking_url?: string;
   carrier?: string;
@@ -40,98 +55,197 @@ interface OrderDetail {
   provider_status?: string;
   pod_provider?: string;
   stripe_payment_intent_id?: string;
+  payment_method?: string;
+  admin_notes?: AdminNote[];
   items?: OrderLineItem[];
-  user?: {
-    id: string;
-    email: string;
-    name: string | null;
-  };
+  user?: { id: string; email: string; name: string | null };
 }
 
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
 const statusColors: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
-  pending: 'secondary',
-  paid: 'default',
-  processing: 'default',
-  submitted: 'default',
-  production: 'default',
-  shipped: 'default',
-  delivered: 'default',
-  cancelled: 'destructive',
-  refunded: 'outline',
+  pending: 'secondary', paid: 'default', processing: 'default',
+  submitted: 'default', production: 'default', shipped: 'default',
+  delivered: 'default', cancelled: 'destructive', refunded: 'outline',
 };
 
-// Helper to generate timeline events from order data
-const generateTimelineEvents = (order: OrderDetail) => {
-  const events: Array<{ label: string; timestamp: string | null; icon: any; details?: string }> = [];
+const formatCurrency = (cents: number, currency: string) =>
+  new Intl.NumberFormat('en-US', { style: 'currency', currency: currency.toUpperCase() }).format(cents / 100);
 
-  // Order created
-  events.push({
-    label: 'Order Created',
-    timestamp: order.created_at,
-    icon: ShoppingCart,
-    details: `Order placed${order.user?.email ? ` by ${order.user.email}` : ''}`,
+const formatDate = (dateString: string | null) => {
+  if (!dateString) return null;
+  return new Date(dateString).toLocaleDateString('en-US', {
+    year: 'numeric', month: 'short', day: 'numeric',
+    hour: '2-digit', minute: '2-digit',
   });
-
-  // Payment received
-  if (order.paid_at) {
-    events.push({
-      label: 'Payment Received',
-      timestamp: order.paid_at,
-      icon: CreditCard,
-      details: order.stripe_payment_intent_id
-        ? `Payment ID: ${order.stripe_payment_intent_id.substring(0, 20)}...`
-        : 'Payment processed successfully',
-    });
-  }
-
-  // Submitted to Provider
-  if (order.external_order_id) {
-    events.push({
-      label: `Submitted to ${order.pod_provider || 'Provider'}`,
-      timestamp: order.paid_at, // Typically happens right after payment
-      icon: Send,
-      details: `Provider Order ID: ${order.external_order_id}`,
-    });
-  }
-
-  // In Production (if status is production or later)
-  if (['production', 'shipped', 'delivered'].includes(order.status)) {
-    events.push({
-      label: 'In Production',
-      timestamp: null, // Would need separate tracking
-      icon: Clock,
-      details: order.provider_status ? `Status: ${order.provider_status}` : undefined,
-    });
-  }
-
-  // Shipped
-  if (order.shipped_at) {
-    events.push({
-      label: 'Shipped',
-      timestamp: order.shipped_at,
-      icon: Truck,
-      details: order.tracking_number
-        ? `Tracking: ${order.tracking_number}${order.carrier ? ` (${order.carrier})` : ''}`
-        : undefined,
-    });
-  }
-
-  // Delivered (if status is delivered)
-  if (order.status === 'delivered') {
-    events.push({
-      label: 'Delivered',
-      timestamp: null, // Would need separate tracking
-      icon: CheckCircle,
-      details: 'Order successfully delivered',
-    });
-  }
-
-  return events;
 };
+
+// ─── Timeline ────────────────────────────────────────────────────────────────
+
+const TIMELINE_STEPS = [
+  { key: 'created', label: 'Created', icon: ShoppingCart },
+  { key: 'paid', label: 'Paid', icon: CreditCard },
+  { key: 'sent_to_provider', label: 'Sent to Provider', icon: Send },
+  { key: 'in_production', label: 'In Production', icon: Clock },
+  { key: 'shipped', label: 'Shipped', icon: Truck },
+  { key: 'delivered', label: 'Delivered', icon: CheckCircle2 },
+];
+
+function getStepTimestamp(order: OrderDetail, key: string): string | null {
+  switch (key) {
+    case 'created': return order.created_at;
+    case 'paid': return order.paid_at;
+    case 'sent_to_provider': return order.external_order_id ? order.paid_at : null;
+    case 'in_production': return ['production', 'shipped', 'delivered'].includes(order.status) ? order.paid_at : null;
+    case 'shipped': return order.shipped_at;
+    case 'delivered': return order.status === 'delivered' ? order.shipped_at : null;
+    default: return null;
+  }
+}
+
+function getCurrentStepIndex(order: OrderDetail): number {
+  const status = order.status;
+  if (status === 'delivered') return 5;
+  if (status === 'shipped') return 4;
+  if (status === 'production') return 3;
+  if (status === 'submitted' || order.external_order_id) return 2;
+  if (status === 'paid' || status === 'processing') return 1;
+  return 0;
+}
+
+function TimelineTab({ order }: { order: OrderDetail }) {
+  const currentStep = getCurrentStepIndex(order);
+
+  return (
+    <div className="py-4">
+      <div className="relative">
+        {TIMELINE_STEPS.map((step, index) => {
+          const Icon = step.icon;
+          const ts = getStepTimestamp(order, step.key);
+          const isCompleted = index <= currentStep;
+          const isCurrent = index === currentStep;
+          const isLast = index === TIMELINE_STEPS.length - 1;
+
+          return (
+            <div key={step.key} className="flex items-start gap-4 mb-0">
+              {/* Icon + connector */}
+              <div className="flex flex-col items-center">
+                <div
+                  className={`flex items-center justify-center w-10 h-10 rounded-full border-2 flex-shrink-0 transition-colors ${
+                    isCurrent
+                      ? 'bg-primary border-primary text-primary-foreground ring-4 ring-primary/20'
+                      : isCompleted
+                      ? 'bg-primary border-primary text-primary-foreground'
+                      : 'bg-background border-border text-muted-foreground'
+                  }`}
+                >
+                  <Icon className="h-4 w-4" />
+                </div>
+                {!isLast && (
+                  <div className={`w-0.5 h-12 mt-0 ${isCompleted ? 'bg-primary' : 'bg-border'}`} />
+                )}
+              </div>
+
+              {/* Content */}
+              <div className="pt-2 pb-12 last:pb-0 flex-1">
+                <div className={`font-medium flex items-center gap-2 ${isCompleted ? 'text-foreground' : 'text-muted-foreground'}`}>
+                  <span>{step.label}</span>
+                  {isCurrent && (
+                    <Badge className="text-xs" variant="default">Current</Badge>
+                  )}
+                </div>
+                {ts ? (
+                  <p className="text-sm text-muted-foreground mt-0.5">{formatDate(ts)}</p>
+                ) : isCompleted ? (
+                  <p className="text-xs text-muted-foreground">Completed</p>
+                ) : (
+                  <p className="text-xs text-muted-foreground">Pending</p>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ─── Notes Tab ────────────────────────────────────────────────────────────────
+
+function NotesTab({ order, onNotesUpdate }: { order: OrderDetail; onNotesUpdate: (notes: AdminNote[]) => void }) {
+  const [noteText, setNoteText] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const notes = order.admin_notes || [];
+
+  const handleAddNote = async () => {
+    if (!noteText.trim()) return;
+    setSubmitting(true);
+    try {
+      const res = await adminFetch(`/api/orders/${order.id}/notes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: noteText.trim() }),
+      });
+      if (!res.ok) throw new Error('Failed to save note');
+      const data = await res.json();
+      onNotesUpdate(data.notes);
+      setNoteText('');
+      toast.success('Note added');
+    } catch {
+      toast.error('Failed to add note');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Add note form */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm">Add Internal Note</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <Textarea
+            placeholder="Type an admin-only note..."
+            value={noteText}
+            onChange={(e) => setNoteText(e.target.value)}
+            rows={3}
+          />
+          <Button onClick={handleAddNote} disabled={submitting || !noteText.trim()} size="sm">
+            {submitting ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : null}
+            Add Note
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Existing notes */}
+      {notes.length === 0 ? (
+        <p className="text-sm text-muted-foreground text-center py-8">No notes yet</p>
+      ) : (
+        <div className="space-y-3">
+          {[...notes].reverse().map((note) => (
+            <Card key={note.id}>
+              <CardContent className="p-4">
+                <p className="text-sm whitespace-pre-wrap">{note.text}</p>
+                <div className="flex gap-2 mt-2 text-xs text-muted-foreground">
+                  <span className="font-medium">{note.author}</span>
+                  <span>·</span>
+                  <span>{formatDate(note.createdAt)}</span>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function OrderDetailPage() {
   const params = useParams();
-  const router = useRouter();
   const orderId = params.id as string;
 
   const [order, setOrder] = useState<OrderDetail | null>(null);
@@ -139,76 +253,47 @@ export default function OrderDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [retrying, setRetrying] = useState(false);
 
-  useEffect(() => {
-    fetchOrderDetail();
-  }, [orderId]);
-
-  const fetchOrderDetail = async () => {
+  const fetchOrderDetail = useCallback(async () => {
     try {
       setLoading(true);
       const response = await adminFetch(`/api/orders/${orderId}`);
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch order details');
-      }
-
+      if (!response.ok) throw new Error('Failed to fetch order details');
       const data = await response.json();
       setOrder(data.order);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setLoading(false);
     }
-  };
+  }, [orderId]);
 
-  const formatCurrency = (cents: number, currency: string) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: currency.toUpperCase(),
-    }).format(cents / 100);
-  };
-
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
+  useEffect(() => { fetchOrderDetail(); }, [fetchOrderDetail]);
 
   const handleRetryProvider = async () => {
     if (!order) return;
-
     setRetrying(true);
     try {
-      const response = await adminFetch(`/api/admin/orders/${order.id}/retry`, {
-        method: 'POST',
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to retry provider submission');
-      }
-
-      const data = await response.json();
+      const res = await adminFetch(`/api/admin/orders/${order.id}/retry`, { method: 'POST' });
+      if (!res.ok) throw new Error('Failed to retry provider submission');
       toast.success('Order resubmitted successfully');
-
-      // Refresh order details
       await fetchOrderDetail();
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to retry provider submission');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to retry');
     } finally {
       setRetrying(false);
     }
   };
 
+  const handleNotesUpdate = (notes: AdminNote[]) => {
+    if (order) setOrder({ ...order, admin_notes: notes });
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen">
+      <div className="p-4 md:p-8">
         <div className="max-w-4xl mx-auto">
-          <p className="text-muted-foreground">Loading order details...</p>
+          <div className="h-8 bg-muted rounded w-48 animate-pulse mb-6" />
+          <div className="h-64 bg-muted rounded animate-pulse" />
         </div>
       </div>
     );
@@ -216,7 +301,7 @@ export default function OrderDetailPage() {
 
   if (error || !order) {
     return (
-      <div className="min-h-screen">
+      <div className="p-4 md:p-8">
         <div className="max-w-4xl mx-auto">
           <p className="text-destructive">Error: {error || 'Order not found'}</p>
         </div>
@@ -224,263 +309,261 @@ export default function OrderDetailPage() {
     );
   }
 
-  const timelineEvents = generateTimelineEvents(order);
+  const shippingAddress = order.shipping_address as Record<string, string> | null;
 
   return (
-    <div className="min-h-screen">
-      <div className="max-w-4xl mx-auto">
+    <div className="p-4 md:p-8">
+      <div className="max-w-4xl mx-auto space-y-6">
         {/* Header */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold">Order Details</h1>
-              <p className="text-muted-foreground font-mono text-sm mt-1">{order.id}</p>
-            </div>
-            <Badge variant={statusColors[order.status] || 'default'} className="text-sm px-3 py-1">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <h1 className="text-2xl font-bold">Order Details</h1>
+            <p className="text-muted-foreground font-mono text-xs mt-0.5">{order.id}</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Badge variant={statusColors[order.status] || 'default'} className="text-sm px-3 py-1 capitalize">
               {order.status}
             </Badge>
-          </div>
-        </div>
-
-        {/* Event History Timeline */}
-        <div className="bg-card border rounded-lg p-6 mb-6">
-          <h2 className="text-xl font-semibold mb-6">Event History</h2>
-          <div className="relative">
-            {timelineEvents.map((event, index) => {
-              const Icon = event.icon;
-              const hasTimestamp = !!event.timestamp;
-
-              return (
-                <div key={index} className="flex items-start mb-6 last:mb-0">
-                  {/* Connector Line */}
-                  {index < timelineEvents.length - 1 && (
-                    <div className="absolute left-5 w-0.5 bg-border" style={{ top: `${index * 96 + 40}px`, height: '56px' }} />
-                  )}
-
-                  {/* Icon */}
-                  <div
-                    className={`relative z-10 flex items-center justify-center w-10 h-10 rounded-full border-2 ${
-                      hasTimestamp
-                        ? 'bg-primary border-primary text-primary-foreground'
-                        : 'bg-background border-border text-muted-foreground'
-                    }`}
-                  >
-                    <Icon className="h-5 w-5" />
-                  </div>
-
-                  {/* Content */}
-                  <div className="ml-4 flex-1">
-                    <p className={`font-medium ${hasTimestamp ? 'text-foreground' : 'text-muted-foreground'}`}>
-                      {event.label}
-                    </p>
-                    {event.timestamp && (
-                      <p className="text-sm text-muted-foreground mt-0.5">{formatDate(event.timestamp)}</p>
-                    )}
-                    {event.details && (
-                      <p className="text-xs text-muted-foreground mt-1">{event.details}</p>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Order Information */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          {/* Customer Information */}
-          <div className="bg-card border rounded-lg p-6">
-            <h2 className="text-xl font-semibold mb-4">Customer Information</h2>
-            <div className="space-y-2">
-              <div>
-                <p className="text-sm text-muted-foreground">Email</p>
-                <p className="font-medium">{order.user?.email || order.customer_email || 'N/A'}</p>
-              </div>
-              {order.user?.name && (
-                <div>
-                  <p className="text-sm text-muted-foreground">Name</p>
-                  <p className="font-medium">{order.user.name}</p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Order Summary */}
-          <div className="bg-card border rounded-lg p-6">
-            <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
-            <div className="space-y-2">
-              <div>
-                <p className="text-sm text-muted-foreground">Order Date</p>
-                <p className="font-medium">{formatDate(order.created_at)}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Total Amount</p>
-                <p className="font-medium text-lg">{formatCurrency(order.total_cents, order.currency)}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Shipping & Tracking */}
-        {(order.tracking_number || order.carrier) && (
-          <div className="bg-card border rounded-lg p-6 mb-6">
-            <h2 className="text-xl font-semibold mb-4">Shipping & Tracking</h2>
-            <div className="space-y-2">
-              {order.carrier && (
-                <div>
-                  <p className="text-sm text-muted-foreground">Carrier</p>
-                  <p className="font-medium">{order.carrier}</p>
-                </div>
-              )}
-              {order.tracking_number && (
-                <div>
-                  <p className="text-sm text-muted-foreground">Tracking Number</p>
-                  {order.tracking_url ? (
-                    <a
-                      href={order.tracking_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="font-medium text-primary hover:underline"
-                    >
-                      {order.tracking_number}
-                    </a>
-                  ) : (
-                    <p className="font-medium">{order.tracking_number}</p>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Order Items */}
-        {order.items && order.items.length > 0 && (
-          <div className="bg-card border rounded-lg p-6 mb-6">
-            <h2 className="text-xl font-semibold mb-4">Order Items</h2>
-            <div className="space-y-4">
-              {order.items.map((item) => (
-                <div key={item.id} className="border-b border-border last:border-0 pb-4 last:pb-0">
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-medium">{item.product_name}</h3>
-                        {item.personalization_text && (
-                          <Badge variant="default" className="gap-1">
-                            <Paintbrush className="h-3 w-3" />
-                            Personalized
-                          </Badge>
-                        )}
-                      </div>
-                      {item.variant_name && (
-                        <p className="text-sm text-muted-foreground mt-1">{item.variant_name}</p>
-                      )}
-
-                      {/* Personalization Details */}
-                      {item.personalization_text && (
-                        <div className="mt-3 p-3 bg-muted/30 rounded-md border border-border">
-                          <p className="text-xs font-medium text-muted-foreground uppercase mb-2">Personalization</p>
-                          <div className="space-y-1.5 text-sm">
-                            <div>
-                              <span className="font-medium text-muted-foreground">Text: </span>
-                              <span className="text-foreground">{item.personalization_text}</span>
-                            </div>
-                            {item.personalization_font && (
-                              <div>
-                                <span className="font-medium text-muted-foreground">Font: </span>
-                                <span className="text-foreground" style={{ fontFamily: item.personalization_font }}>
-                                  {item.personalization_font}
-                                </span>
-                              </div>
-                            )}
-                            {item.personalization_font_color && (
-                              <div className="flex items-center gap-2">
-                                <span className="font-medium text-muted-foreground">Color: </span>
-                                <div
-                                  className="w-4 h-4 rounded border border-border"
-                                  style={{ backgroundColor: item.personalization_font_color }}
-                                />
-                                <span className="text-foreground font-mono text-xs">
-                                  {item.personalization_font_color}
-                                </span>
-                              </div>
-                            )}
-                            {item.personalization_position && (
-                              <div>
-                                <span className="font-medium text-muted-foreground">Position: </span>
-                                <span className="text-foreground capitalize">{item.personalization_position}</span>
-                              </div>
-                            )}
-                            {item.personalization_font_size && (
-                              <div>
-                                <span className="font-medium text-muted-foreground">Font Size: </span>
-                                <span className="text-foreground capitalize">{item.personalization_font_size}</span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                    <div className="text-right ml-4">
-                      <p className="font-medium">{formatCurrency(item.price_cents, order.currency)}</p>
-                      <p className="text-sm text-muted-foreground">Qty: {item.quantity}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Technical Details */}
-        <div className="bg-card border rounded-lg p-6">
-          <div className="flex items-start justify-between mb-4">
-            <h2 className="text-xl font-semibold">Technical Details</h2>
             {order.provider_status === 'failed' && (
-              <Button
-                onClick={handleRetryProvider}
-                disabled={retrying}
-                variant="outline"
-                size="sm"
-              >
-                {retrying ? (
-                  <>
-                    <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                    Retrying...
-                  </>
-                ) : (
-                  <>
-                    <RefreshCw className="mr-2 h-4 w-4" />
-                    Retry Provider Submission
-                  </>
-                )}
+              <Button onClick={handleRetryProvider} disabled={retrying} variant="outline" size="sm">
+                <RefreshCw className={`h-4 w-4 mr-1 ${retrying ? 'animate-spin' : ''}`} />
+                Retry
               </Button>
             )}
           </div>
-          <div className="space-y-2 text-sm">
-            {order.stripe_payment_intent_id && (
-              <div>
-                <p className="text-muted-foreground">Stripe Payment Intent</p>
-                <p className="font-mono">{order.stripe_payment_intent_id}</p>
-              </div>
-            )}
-            {order.external_order_id && (
-              <div>
-                <p className="text-muted-foreground">Provider Order ID</p>
-                <p className="font-mono">{order.external_order_id}</p>
-              </div>
-            )}
-            {order.provider_status && (
-              <div>
-                <p className="text-muted-foreground">Provider Status</p>
-                <div className="flex items-center gap-2">
-                  <Badge variant={order.provider_status === 'failed' ? 'destructive' : 'default'}>
-                    {order.provider_status}
-                  </Badge>
-                </div>
-              </div>
-            )}
-          </div>
         </div>
+
+        {/* Tabs */}
+        <Tabs defaultValue="general" className="space-y-4">
+          <TabsList className="grid grid-cols-5 w-full">
+            <TabsTrigger value="general" className="flex items-center gap-1">
+              <Package className="h-4 w-4 hidden sm:block" />
+              <span>General</span>
+            </TabsTrigger>
+            <TabsTrigger value="items" className="flex items-center gap-1">
+              <ShoppingCart className="h-4 w-4 hidden sm:block" />
+              <span>Items</span>
+            </TabsTrigger>
+            <TabsTrigger value="timeline" className="flex items-center gap-1">
+              <Activity className="h-4 w-4 hidden sm:block" />
+              <span>Timeline</span>
+            </TabsTrigger>
+            <TabsTrigger value="shipping" className="flex items-center gap-1">
+              <MapPin className="h-4 w-4 hidden sm:block" />
+              <span>Shipping</span>
+            </TabsTrigger>
+            <TabsTrigger value="notes" className="flex items-center gap-1">
+              <FileText className="h-4 w-4 hidden sm:block" />
+              <span>Notes</span>
+              {(order.admin_notes?.length ?? 0) > 0 && (
+                <Badge variant="secondary" className="ml-1 h-4 px-1 text-xs">
+                  {order.admin_notes!.length}
+                </Badge>
+              )}
+            </TabsTrigger>
+          </TabsList>
+
+          {/* General Tab */}
+          <TabsContent value="general" className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Card>
+                <CardHeader><CardTitle className="text-base">Customer</CardTitle></CardHeader>
+                <CardContent className="space-y-2 text-sm">
+                  <div>
+                    <p className="text-muted-foreground">Email</p>
+                    <p className="font-medium">{order.user?.email || order.customer_email || 'N/A'}</p>
+                  </div>
+                  {order.user?.name && (
+                    <div>
+                      <p className="text-muted-foreground">Name</p>
+                      <p className="font-medium">{order.user.name}</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader><CardTitle className="text-base">Payment</CardTitle></CardHeader>
+                <CardContent className="space-y-2 text-sm">
+                  <div>
+                    <p className="text-muted-foreground">Total</p>
+                    <p className="font-bold text-lg">{formatCurrency(order.total_cents, order.currency)}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Order Date</p>
+                    <p className="font-medium">{formatDate(order.created_at)}</p>
+                  </div>
+                  {order.paid_at && (
+                    <div>
+                      <p className="text-muted-foreground">Paid At</p>
+                      <p className="font-medium">{formatDate(order.paid_at)}</p>
+                    </div>
+                  )}
+                  {order.payment_method && (
+                    <div>
+                      <p className="text-muted-foreground">Method</p>
+                      <p className="font-medium capitalize">{order.payment_method}</p>
+                    </div>
+                  )}
+                  {order.stripe_payment_intent_id && (
+                    <div>
+                      <p className="text-muted-foreground">Stripe PI</p>
+                      <p className="font-mono text-xs">{order.stripe_payment_intent_id}</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Provider info */}
+            {(order.external_order_id || order.provider_status) && (
+              <Card>
+                <CardHeader><CardTitle className="text-base">Provider</CardTitle></CardHeader>
+                <CardContent className="space-y-2 text-sm">
+                  {order.pod_provider && (
+                    <div>
+                      <p className="text-muted-foreground">Provider</p>
+                      <p className="font-medium capitalize">{order.pod_provider}</p>
+                    </div>
+                  )}
+                  {order.external_order_id && (
+                    <div>
+                      <p className="text-muted-foreground">Provider Order ID</p>
+                      <p className="font-mono">{order.external_order_id}</p>
+                    </div>
+                  )}
+                  {order.provider_status && (
+                    <div>
+                      <p className="text-muted-foreground">Provider Status</p>
+                      <Badge variant={order.provider_status === 'failed' ? 'destructive' : 'default'}>
+                        {order.provider_status}
+                      </Badge>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
+          {/* Items Tab */}
+          <TabsContent value="items">
+            <Card>
+              <CardHeader><CardTitle className="text-base">Order Items ({order.items?.length ?? 0})</CardTitle></CardHeader>
+              <CardContent>
+                {!order.items || order.items.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No items found</p>
+                ) : (
+                  <div className="divide-y divide-border">
+                    {order.items.map((item) => (
+                      <div key={item.id} className="py-4 first:pt-0 last:pb-0">
+                        <div className="flex justify-between items-start gap-4">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <p className="font-medium">{item.product_name}</p>
+                              {item.personalization_text && (
+                                <Badge variant="default" className="gap-1 text-xs">
+                                  <Paintbrush className="h-3 w-3" />
+                                  Personalized
+                                </Badge>
+                              )}
+                            </div>
+                            {item.variant_name && (
+                              <p className="text-sm text-muted-foreground mt-0.5">{item.variant_name}</p>
+                            )}
+                            {item.personalization_text && (
+                              <div className="mt-2 p-3 bg-muted/30 rounded border text-sm space-y-1">
+                                <p><span className="text-muted-foreground">Text: </span>{item.personalization_text}</p>
+                                {item.personalization_font && (
+                                  <p><span className="text-muted-foreground">Font: </span>{item.personalization_font}</p>
+                                )}
+                                {item.personalization_font_color && (
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-muted-foreground">Color: </span>
+                                    <div className="w-4 h-4 rounded border" style={{ backgroundColor: item.personalization_font_color }} />
+                                    <span className="font-mono text-xs">{item.personalization_font_color}</span>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                          <div className="text-right flex-shrink-0">
+                            <p className="font-medium">{formatCurrency(item.price_cents, order.currency)}</p>
+                            <p className="text-sm text-muted-foreground">Qty: {item.quantity}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Timeline Tab */}
+          <TabsContent value="timeline">
+            <Card>
+              <CardHeader><CardTitle className="text-base">Order Timeline</CardTitle></CardHeader>
+              <CardContent>
+                <TimelineTab order={order} />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Shipping Tab */}
+          <TabsContent value="shipping">
+            <Card>
+              <CardHeader><CardTitle className="text-base">Shipping Information</CardTitle></CardHeader>
+              <CardContent className="space-y-4 text-sm">
+                {order.tracking_number && (
+                  <div>
+                    <p className="text-muted-foreground">Tracking Number</p>
+                    {order.tracking_url ? (
+                      <a href={order.tracking_url} target="_blank" rel="noopener noreferrer"
+                        className="font-medium text-primary hover:underline">
+                        {order.tracking_number}
+                      </a>
+                    ) : (
+                      <p className="font-medium font-mono">{order.tracking_number}</p>
+                    )}
+                  </div>
+                )}
+                {order.carrier && (
+                  <div>
+                    <p className="text-muted-foreground">Carrier</p>
+                    <p className="font-medium">{order.carrier}</p>
+                  </div>
+                )}
+                {order.shipped_at && (
+                  <div>
+                    <p className="text-muted-foreground">Shipped At</p>
+                    <p className="font-medium">{formatDate(order.shipped_at)}</p>
+                  </div>
+                )}
+                {shippingAddress && Object.keys(shippingAddress).length > 0 ? (
+                  <div>
+                    <p className="text-muted-foreground mb-1">Delivery Address</p>
+                    <div className="bg-muted/30 rounded p-3 space-y-0.5">
+                      {shippingAddress.name && <p className="font-medium">{shippingAddress.name}</p>}
+                      {shippingAddress.line1 && <p>{shippingAddress.line1}</p>}
+                      {shippingAddress.line2 && <p>{shippingAddress.line2}</p>}
+                      {(shippingAddress.city || shippingAddress.postal_code) && (
+                        <p>{[shippingAddress.postal_code, shippingAddress.city].filter(Boolean).join(' ')}</p>
+                      )}
+                      {shippingAddress.country && <p>{shippingAddress.country}</p>}
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground">No shipping address on file</p>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Notes Tab */}
+          <TabsContent value="notes">
+            <NotesTab order={order} onNotesUpdate={handleNotesUpdate} />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

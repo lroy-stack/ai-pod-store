@@ -9,7 +9,10 @@ export interface Product {
   status: string;
   category: string;
   created_at: string;
+  updated_at?: string | null;
   pod_provider?: string | null;
+  provider_product_id?: string | null;
+  last_synced_at?: string | null;
 }
 
 interface ProductsResponse {

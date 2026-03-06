@@ -117,7 +117,7 @@ export default function EditProductPage() {
             <h1 className="text-3xl font-bold">Edit Product</h1>
             {product.pod_provider === 'printful' && product.provider_product_id && (
               <a
-                href={`https://www.printful.com/dashboard/product/${product.provider_product_id}`}
+                href={`https://www.printful.com/dashboard/sync/products/${product.provider_product_id}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 px-4 py-2 text-sm font-medium transition-colors"
