@@ -74,11 +74,13 @@ export default function FinancePage() {
   const fetchReport = async () => {
     setLoading(true);
     try {
-      const url = new URL('/api/admin/finance/report', window.location.origin);
+      const params = new URLSearchParams();
       if (paymentMethodFilter && paymentMethodFilter !== 'all') {
-        url.searchParams.set('paymentMethod', paymentMethodFilter);
+        params.set('paymentMethod', paymentMethodFilter);
       }
-      const response = await adminFetch(url.toString());
+      const qs = params.toString();
+      const path = `/api/admin/finance/report${qs ? `?${qs}` : ''}`;
+      const response = await adminFetch(path);
       if (response.ok) {
         const data = await response.json();
         setReport(data);

@@ -9,6 +9,7 @@ export interface Product {
   status: string;
   category: string;
   created_at: string;
+  pod_provider?: string | null;
 }
 
 interface ProductsResponse {

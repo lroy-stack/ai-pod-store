@@ -2,13 +2,17 @@ import { createClient } from '@/lib/supabase-admin';
 import { NextResponse } from 'next/server';
 import { withAuth } from '@/lib/auth-middleware';
 
+// Stripe fee formula: 2.9% + EUR 0.25 per transaction
+const STRIPE_RATE = 0.029;
+const STRIPE_FIXED_CENTS = 25; // EUR 0.25
+
 export const GET = withAuth(async (req, session) => {
   try {
     const supabase = createClient();
     const { searchParams } = new URL(req.url);
     const paymentMethod = searchParams.get('paymentMethod');
 
-    // Get all completed orders with items
+    // Get all completed orders
     let query = supabase
       .from('orders')
       .select('id, total_cents, currency, created_at, status, payment_method')
@@ -26,58 +30,92 @@ export const GET = withAuth(async (req, session) => {
       return NextResponse.json({ error: 'Failed to fetch orders' }, { status: 500 });
     }
 
-    // Get order items with product info
-    const { data: orderItems, error: itemsError } = await supabase
-      .from('order_items')
-      .select('order_id, product_id, quantity, unit_price_cents, products(title, category)')
-      .order('product_id');
-
-    if (itemsError) {
-      console.error('Error fetching order items:', itemsError);
-      return NextResponse.json({ error: 'Failed to fetch order items' }, { status: 500 });
-    }
+    const orderIds = orders?.map(o => o.id) || [];
 
     // Calculate total revenue
     const totalRevenue = orders?.reduce((sum, order) => sum + (order.total_cents || 0), 0) || 0;
 
-    // Calculate revenue by product
-    const productRevenue = new Map<string, { name: string; category: string; revenue: number; quantity: number }>();
+    // Calculate Stripe fees: 2.9% + EUR 0.25 per order
+    const totalStripeFees = orders?.reduce((sum, order) => {
+      const fee = Math.round((order.total_cents || 0) * STRIPE_RATE) + STRIPE_FIXED_CENTS;
+      return sum + fee;
+    }, 0) || 0;
 
-    orderItems?.forEach(item => {
-      const productId = item.product_id;
+    // Get order items with real Printful base costs from product_variants
+    let orderItems: any[] = [];
+    if (orderIds.length > 0) {
+      const { data: items, error: itemsError } = await supabase
+        .from('order_items')
+        .select(
+          'order_id, product_id, variant_id, quantity, unit_price_cents, cost_cents, products(title), product_variants(cost_cents)'
+        )
+        .in('order_id', orderIds);
+
+      if (itemsError) {
+        console.error('Error fetching order items:', itemsError);
+        return NextResponse.json({ error: 'Failed to fetch order items' }, { status: 500 });
+      }
+      orderItems = items || [];
+    }
+
+    // Aggregate per-product margins using real Printful base costs
+    let totalPrintfulCosts = 0;
+    const productRevenue = new Map<
+      string,
+      { name: string; revenue: number; quantity: number; printfulCost: number }
+    >();
+
+    orderItems.forEach(item => {
+      const productId = item.product_id as string;
       const product = Array.isArray(item.products) ? item.products[0] : item.products;
-      const productName = product?.title || 'Unknown Product';
-      const productCategory = product?.category || 'uncategorized';
-      const revenue = (item.unit_price_cents || 0) * (item.quantity || 0);
-      const quantity = item.quantity || 0;
+      const productName = (product?.title as string) || 'Unknown Product';
+      const quantity = (item.quantity as number) || 0;
+      const revenue = ((item.unit_price_cents as number) || 0) * quantity;
+
+      // Use order_items.cost_cents if set, otherwise fall back to product_variants.cost_cents
+      const variant = Array.isArray(item.product_variants)
+        ? item.product_variants[0]
+        : item.product_variants;
+      const unitCost =
+        (item.cost_cents as number | null) ?? (variant?.cost_cents as number | null) ?? 0;
+      const printfulCost = unitCost * quantity;
+
+      totalPrintfulCosts += printfulCost;
 
       const existing = productRevenue.get(productId);
       if (existing) {
         existing.revenue += revenue;
         existing.quantity += quantity;
+        existing.printfulCost += printfulCost;
       } else {
-        productRevenue.set(productId, {
-          name: productName,
-          category: productCategory,
-          revenue,
-          quantity,
-        });
+        productRevenue.set(productId, { name: productName, revenue, quantity, printfulCost });
       }
     });
 
-    // Convert to array and sort by revenue
+    // Build per-product margin rows (Stripe fee allocated proportionally by revenue share)
     const productMargins = Array.from(productRevenue.entries())
-      .map(([productId, data]) => ({
-        productId,
-        productName: data.name,
-        category: data.category,
-        revenue: data.revenue / 100, // Convert cents to decimal
-        quantity: data.quantity,
-        // Simplified margin calculation (would need COGS data for accurate margin)
-        // For POD, typical margin is ~30-40% after Printful costs
-        estimatedMargin: (data.revenue * 0.35) / 100,
-        marginPercent: 35,
-      }))
+      .map(([productId, data]) => {
+        const revenueDecimal = data.revenue / 100;
+        const printfulCostDecimal = data.printfulCost / 100;
+        const stripeFeeDecimal =
+          totalRevenue > 0
+            ? (data.revenue / totalRevenue) * (totalStripeFees / 100)
+            : 0;
+        const grossProfit = revenueDecimal - printfulCostDecimal - stripeFeeDecimal;
+        const marginPercent =
+          revenueDecimal > 0 ? Math.round((grossProfit / revenueDecimal) * 1000) / 10 : 0;
+        return {
+          productId,
+          productName: data.name,
+          category: 'product',
+          revenue: revenueDecimal,
+          quantity: data.quantity,
+          printfulCost: Math.round(printfulCostDecimal * 100) / 100,
+          stripeFee: Math.round(stripeFeeDecimal * 100) / 100,
+          estimatedMargin: Math.round(grossProfit * 100) / 100,
+          marginPercent,
+        };
+      })
       .sort((a, b) => b.revenue - a.revenue);
 
     // Calculate revenue by month (last 12 months)
@@ -89,50 +127,40 @@ export const GET = withAuth(async (req, session) => {
       const monthKey = date.toISOString().slice(0, 7); // YYYY-MM
       const monthLabel = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 
-      const monthOrders = orders?.filter(order => {
-        const orderMonth = order.created_at?.slice(0, 7);
-        return orderMonth === monthKey;
-      }) || [];
+      const monthOrders =
+        orders?.filter(order => {
+          const orderMonth = order.created_at?.slice(0, 7);
+          return orderMonth === monthKey;
+        }) || [];
 
-      const monthRevenue = monthOrders.reduce((sum, order) => sum + (order.total_cents || 0), 0);
+      const monthRev = monthOrders.reduce((sum, order) => sum + (order.total_cents || 0), 0);
 
       monthlyRevenue.push({
         month: monthLabel,
-        revenue: monthRevenue / 100,
+        revenue: monthRev / 100,
         orders: monthOrders.length,
       });
     }
 
-    // Calculate margin breakdown by category
-    const categoryMargins = new Map<string, { revenue: number; quantity: number; margin: number }>();
+    // Overall category breakdown (one row since we removed legacy category field)
+    const totalGrossProfit =
+      productMargins.reduce((sum, p) => sum + p.estimatedMargin, 0);
+    const overallMarginPercent =
+      totalRevenue > 0
+        ? Math.round((totalGrossProfit / (totalRevenue / 100)) * 1000) / 10
+        : 0;
+    const categoryMarginBreakdown = [
+      {
+        category: 'all products',
+        revenue: totalRevenue / 100,
+        quantity: productMargins.reduce((sum, p) => sum + p.quantity, 0),
+        estimatedMargin: totalGrossProfit,
+        marginPercent: overallMarginPercent,
+      },
+    ];
 
-    productMargins.forEach(product => {
-      const existing = categoryMargins.get(product.category);
-      if (existing) {
-        existing.revenue += product.revenue;
-        existing.quantity += product.quantity;
-        existing.margin += product.estimatedMargin;
-      } else {
-        categoryMargins.set(product.category, {
-          revenue: product.revenue,
-          quantity: product.quantity,
-          margin: product.estimatedMargin,
-        });
-      }
-    });
-
-    const categoryMarginBreakdown = Array.from(categoryMargins.entries())
-      .map(([category, data]) => ({
-        category,
-        revenue: data.revenue,
-        quantity: data.quantity,
-        estimatedMargin: data.margin,
-        marginPercent: data.revenue > 0 ? Math.round((data.margin / data.revenue) * 100 * 10) / 10 : 0,
-      }))
-      .sort((a, b) => b.revenue - a.revenue);
-
-    // Calculate P&L statement
-    const totalCosts = totalRevenue * 0.65; // Simplified: assume 65% costs (Printful, Stripe, ops)
+    // P&L using real Printful base costs + Stripe fees (no hardcoded percentages)
+    const totalCosts = totalPrintfulCosts + totalStripeFees;
     const grossProfit = totalRevenue - totalCosts;
     const grossMargin = totalRevenue > 0 ? (grossProfit / totalRevenue) * 100 : 0;
 
@@ -140,7 +168,7 @@ export const GET = withAuth(async (req, session) => {
       summary: {
         totalRevenue: totalRevenue / 100,
         totalOrders: orders?.length || 0,
-        averageOrderValue: orders?.length ? (totalRevenue / orders.length) / 100 : 0,
+        averageOrderValue: orders?.length ? totalRevenue / orders.length / 100 : 0,
         currency: orders?.[0]?.currency || 'eur',
       },
       profitAndLoss: {
@@ -148,11 +176,10 @@ export const GET = withAuth(async (req, session) => {
         costs: totalCosts / 100,
         grossProfit: grossProfit / 100,
         grossMarginPercent: Math.round(grossMargin * 10) / 10,
-        // Simplified breakdown
         breakdown: {
-          printfulCosts: (totalRevenue * 0.45) / 100,
-          stripeFees: (totalRevenue * 0.03) / 100,
-          operationalCosts: (totalRevenue * 0.17) / 100,
+          printfulCosts: totalPrintfulCosts / 100,
+          stripeFees: totalStripeFees / 100,
+          operationalCosts: 0,
         },
       },
       productMargins,
@@ -165,4 +192,4 @@ export const GET = withAuth(async (req, session) => {
     console.error('Error in finance report API:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
-})
+});

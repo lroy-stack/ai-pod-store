@@ -144,6 +144,7 @@ export default function ProductsPage() {
                         <TableHead>Title</TableHead>
                         <TableHead>Category</TableHead>
                         <TableHead>Price</TableHead>
+                        <TableHead>Provider</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead>Actions</TableHead>
                       </TableRow>
@@ -164,6 +165,15 @@ export default function ProductsPage() {
                           <TableCell>
                             {product.currency === 'eur' ? '€' : '$'}
                             {(product.base_price_cents / 100).toFixed(2)}
+                          </TableCell>
+                          <TableCell>
+                            {product.pod_provider === 'printful' ? (
+                              <Badge variant="default">Printful</Badge>
+                            ) : product.pod_provider ? (
+                              <Badge variant="secondary">Legacy</Badge>
+                            ) : (
+                              <Badge variant="destructive">No Provider</Badge>
+                            )}
                           </TableCell>
                           <TableCell>
                             <Badge variant={product.status === 'active' ? 'default' : 'secondary'}>
@@ -225,6 +235,13 @@ export default function ProductsPage() {
                         <Badge variant={product.status === 'active' ? 'default' : 'secondary'}>
                           {product.status === 'active' ? 'Active' : 'Archived'}
                         </Badge>
+                        {product.pod_provider === 'printful' ? (
+                          <Badge variant="default">Printful</Badge>
+                        ) : product.pod_provider ? (
+                          <Badge variant="secondary">Legacy</Badge>
+                        ) : (
+                          <Badge variant="destructive">No Provider</Badge>
+                        )}
                       </div>
                       <div className="flex gap-2 pt-2 border-t">
                         <Button

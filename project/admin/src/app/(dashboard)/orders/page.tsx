@@ -320,6 +320,7 @@ export default function OrdersPage() {
                       <TableHead>Order ID</TableHead>
                       <TableHead>Customer</TableHead>
                       <TableHead>Status</TableHead>
+                      <TableHead>Provider</TableHead>
                       <TableHead>Date</TableHead>
                       <TableHead className="text-right">Total</TableHead>
                     </TableRow>
@@ -359,6 +360,15 @@ export default function OrdersPage() {
                           <Badge variant={statusColors[order.status] || 'default'}>
                             {order.status}
                           </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {order.pod_provider === 'printful' ? (
+                            <Badge variant="default">Printful</Badge>
+                          ) : order.pod_provider ? (
+                            <Badge variant="secondary">Legacy</Badge>
+                          ) : (
+                            <Badge variant="destructive">No Provider</Badge>
+                          )}
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground">
                           {formatDate(order.created_at)}
@@ -417,9 +427,18 @@ export default function OrdersPage() {
                         <span className="text-muted-foreground">
                           {formatDate(order.created_at)}
                         </span>
-                        <span className="font-medium">
-                          {formatCurrency(order.total_cents, order.currency)}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          {order.pod_provider === 'printful' ? (
+                            <Badge variant="default">Printful</Badge>
+                          ) : order.pod_provider ? (
+                            <Badge variant="secondary">Legacy</Badge>
+                          ) : (
+                            <Badge variant="destructive">No Provider</Badge>
+                          )}
+                          <span className="font-medium">
+                            {formatCurrency(order.total_cents, order.currency)}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   ))}

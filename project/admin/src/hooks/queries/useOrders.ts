@@ -9,6 +9,7 @@ export interface Order {
   currency: string;
   created_at: string;
   customer_email?: string;
+  pod_provider?: string | null;
   user?: {
     id: string;
     email: string;
