@@ -1,10 +1,11 @@
 import { createClient } from '@/lib/supabase-admin';
 import { NextResponse } from 'next/server';
+import { withAuth } from '@/lib/auth-middleware';
 
-export async function GET(request: Request) {
+export const GET = withAuth(async (req, session) => {
   try {
     const supabase = createClient();
-    const { searchParams } = new URL(request.url);
+    const { searchParams } = new URL(req.url);
     const paymentMethod = searchParams.get('paymentMethod');
 
     // Get all completed orders with items
@@ -164,4 +165,4 @@ export async function GET(request: Request) {
     console.error('Error in finance report API:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
-}
+})

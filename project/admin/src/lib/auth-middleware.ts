@@ -21,11 +21,12 @@ import { supabaseAdmin } from '@/lib/supabase'
 
 /**
  * Type for authenticated route handlers.
- * Handlers receive the request and validated session data.
+ * Handlers receive the request, validated session data, and optional route context (params).
  */
 type AuthenticatedHandler = (
   req: NextRequest,
-  session: SessionData
+  session: SessionData,
+  context?: any
 ) => Promise<NextResponse> | NextResponse
 
 /**
@@ -102,7 +103,7 @@ async function logAuditEntry(
  * })
  */
 export function withAuth(handler: AuthenticatedHandler) {
-  return async function authenticatedRoute(req: NextRequest): Promise<NextResponse> {
+  return async function authenticatedRoute(req: NextRequest, context?: any): Promise<NextResponse> {
     try {
       // Get iron-session from cookies
       const session = await getIronSession<SessionData>(await cookies(), sessionOptions)
@@ -123,8 +124,8 @@ export function withAuth(handler: AuthenticatedHandler) {
         )
       }
 
-      // Execute the wrapped handler
-      const response = await handler(req, session)
+      // Execute the wrapped handler, passing context (route params) if present
+      const response = await handler(req, session, context)
 
       // Log to audit_log after successful execution
       const statusCode = response.status || 200

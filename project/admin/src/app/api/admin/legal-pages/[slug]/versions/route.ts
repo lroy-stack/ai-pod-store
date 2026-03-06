@@ -5,13 +5,11 @@
 
 import { createClient } from '@/lib/supabase-admin';
 import { NextRequest, NextResponse } from 'next/server';
+import { withAuth } from '@/lib/auth-middleware';
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ slug: string }> }
-) {
+export const GET = withAuth(async (req, session, context) => {
   try {
-    const { slug } = await params;
+    const { slug } = await context.params;
     const supabase = createClient();
 
     // Get page ID from slug
@@ -52,4 +50,4 @@ export async function GET(
       { status: 500 }
     );
   }
-}
+})

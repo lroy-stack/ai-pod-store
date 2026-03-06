@@ -7,13 +7,11 @@
 
 import { createClient } from '@/lib/supabase-admin';
 import { NextRequest, NextResponse } from 'next/server';
+import { withAuth } from '@/lib/auth-middleware';
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export const GET = withAuth(async (req, session, context) => {
   try {
-    const { id } = await params;
+    const { id } = await context.params;
     const supabase = createClient();
 
     const { data: category, error } = await supabase
@@ -22,7 +20,7 @@ export async function GET(
       .eq('id', id)
       .single();
 
-    if (error || !category) {
+    if (error || \!category) {
       return NextResponse.json(
         { error: 'Category not found' },
         { status: 404 }
@@ -37,14 +35,11 @@ export async function GET(
       { status: 500 }
     );
   }
-}
+})
 
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export const PATCH = withAuth(async (req, session, context) => {
   try {
-    const { id } = await params;
+    const { id } = await context.params;
     const supabase = createClient();
     const body = await req.json();
 
@@ -71,14 +66,11 @@ export async function PATCH(
       { status: 500 }
     );
   }
-}
+})
 
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export const DELETE = withAuth(async (req, session, context) => {
   try {
-    const { id } = await params;
+    const { id } = await context.params;
     const supabase = createClient();
 
     const { error } = await supabase
@@ -102,4 +94,4 @@ export async function DELETE(
       { status: 500 }
     );
   }
-}
+})

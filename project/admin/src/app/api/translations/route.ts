@@ -1,7 +1,8 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs/promises';
 import { existsSync } from 'fs';
 import path from 'path';
+import { withAuth } from '@/lib/auth-middleware';
 
 // Docker: messages copied into /app/frontend-messages/ at build time
 // Dev: messages live at ../frontend/messages/ relative to admin root
@@ -9,7 +10,7 @@ const dockerPath = path.join(process.cwd(), 'frontend-messages');
 const devPath = path.join(process.cwd(), '../frontend/messages');
 const MESSAGES_DIR = existsSync(dockerPath) ? dockerPath : devPath;
 
-export async function GET() {
+export const GET = withAuth(async (req: NextRequest, session: unknown) => {
   try {
     // Read all three locale files
     const [enData, esData, deData] = await Promise.all([
@@ -66,9 +67,9 @@ export async function GET() {
       { status: 500 }
     );
   }
-}
+});
 
-export async function PUT(request: Request) {
+export const PUT = withAuth(async (request: NextRequest, session: unknown) => {
   try {
     const { key, locale, value } = await request.json();
 
@@ -113,4 +114,4 @@ export async function PUT(request: Request) {
       { status: 500 }
     );
   }
-}
+});

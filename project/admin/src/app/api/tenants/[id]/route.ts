@@ -9,6 +9,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
+import { withAuth } from '@/lib/auth-middleware'
 
 // Plan feature config (mirrors plan-gates.ts in frontend)
 const PLAN_CONFIG: Record<string, { custom_domain: boolean; max_products: number | null }> = {
@@ -18,11 +19,12 @@ const PLAN_CONFIG: Record<string, { custom_domain: boolean; max_products: number
   enterprise: { custom_domain: true, max_products: null },
 }
 
-export async function PATCH(
+export const PATCH = withAuth(async (
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  const { id: tenantId } = await params
+  session: unknown,
+  context: { params: Promise<{ id: string }> }
+) => {
+  const { id: tenantId } = await context.params
 
   if (!tenantId) {
     return NextResponse.json({ error: 'tenant_id required' }, { status: 400 })
@@ -93,13 +95,14 @@ export async function PATCH(
     console.error('[PATCH /api/tenants/[id]]', err)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
-}
+})
 
-export async function GET(
+export const GET = withAuth(async (
   _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  const { id: tenantId } = await params
+  session: unknown,
+  context: { params: Promise<{ id: string }> }
+) => {
+  const { id: tenantId } = await context.params
 
   const { data: tenant, error } = await supabaseAdmin
     .from('tenants')
@@ -112,4 +115,4 @@ export async function GET(
   }
 
   return NextResponse.json({ tenant })
-}
+})

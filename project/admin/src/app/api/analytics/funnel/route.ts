@@ -1,10 +1,11 @@
+import { withAuth } from '@/lib/auth-middleware'
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-export async function GET() {
+export const GET = withAuth(async (req, session) => {
   try {
-    const supabaseUrl = process.env.SUPABASE_URL!;
-    const supabaseKey = process.env.SUPABASE_SERVICE_KEY!;
+    const supabaseUrl = process.env.SUPABASE_URL\!;
+    const supabaseKey = process.env.SUPABASE_SERVICE_KEY\!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     // Get counts for each funnel stage in the last 30 days
@@ -71,4 +72,4 @@ export async function GET() {
       { status: 500 }
     );
   }
-}
+})

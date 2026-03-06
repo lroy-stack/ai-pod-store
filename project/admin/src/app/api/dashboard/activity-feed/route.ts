@@ -1,9 +1,10 @@
 import { NextRequest } from 'next/server';
 import { sseEmitter } from '@/lib/sse-emitter';
+import { withAuth } from '@/lib/auth-middleware';
 
 // SSE endpoint for dashboard activity feed
 // Streams real-time events: orders, agent runs, errors
-export async function GET(request: NextRequest) {
+export const GET = withAuth(async (req, session) => {
   // Set SSE headers
   const headers = new Headers({
     'Content-Type': 'text/event-stream',
@@ -22,7 +23,9 @@ export async function GET(request: NextRequest) {
         type: 'connected',
         message: 'Activity feed connected',
         timestamp: Date.now(),
-      })}\n\n`;
+      })}
+
+`;
       controller.enqueue(encoder.encode(initialEvent));
 
       // Subscribe to SSE events
@@ -43,7 +46,9 @@ export async function GET(request: NextRequest) {
             type: event,
             ...data,
             timestamp: data.timestamp || Date.now(),
-          })}\n\n`;
+          })}
+
+`;
 
           try {
             controller.enqueue(encoder.encode(sseData));
@@ -56,7 +61,9 @@ export async function GET(request: NextRequest) {
       // Keep-alive ping every 30 seconds
       const pingInterval = setInterval(() => {
         try {
-          controller.enqueue(encoder.encode(': ping\n\n'));
+          controller.enqueue(encoder.encode(': ping
+
+'));
         } catch (err) {
           console.error('[ActivityFeed SSE] Ping failed:', err);
           clearInterval(pingInterval);
@@ -64,7 +71,7 @@ export async function GET(request: NextRequest) {
       }, 30000);
 
       // Cleanup on connection close
-      request.signal.addEventListener('abort', () => {
+      req.signal.addEventListener('abort', () => {
         clearInterval(pingInterval);
         unsubscribe();
         try {
@@ -77,4 +84,4 @@ export async function GET(request: NextRequest) {
   });
 
   return new Response(stream, { headers });
-}
+});

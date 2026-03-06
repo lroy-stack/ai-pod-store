@@ -1,12 +1,13 @@
 import { createClient } from '@/lib/supabase-admin';
 import { NextRequest, NextResponse } from 'next/server';
+import { withAuth } from '@/lib/auth-middleware';
 
-export async function GET(request: NextRequest) {
+export const GET = withAuth(async (req: NextRequest, session: unknown) => {
   try {
-    const searchParams = request.nextUrl.searchParams;
+    const searchParams = req.nextUrl.searchParams;
     const query = searchParams.get('q');
 
-    if (!query || query.trim().length === 0) {
+    if (\!query || query.trim().length === 0) {
       return NextResponse.json({ results: [] });
     }
 
@@ -71,4 +72,4 @@ export async function GET(request: NextRequest) {
     console.error('Error in search API:', error);
     return NextResponse.json({ error: 'Search failed' }, { status: 500 });
   }
-}
+});

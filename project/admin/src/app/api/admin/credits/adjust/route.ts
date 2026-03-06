@@ -7,26 +7,10 @@
 
 import { createClient } from '@/lib/supabase-admin'
 import { NextRequest, NextResponse } from 'next/server'
+import { withAuth } from '@/lib/auth-middleware'
 
-export async function POST(request: NextRequest) {
+async function handler(request: NextRequest) {
   try {
-    // Check admin session (simple cookie check)
-    const sessionCookie = request.cookies.get('admin-session')
-    if (!sessionCookie) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    let adminId: string
-    try {
-      const sessionData = JSON.parse(sessionCookie.value)
-      if (sessionData.role !== 'admin') {
-        return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-      }
-      adminId = sessionData.id || sessionData.user?.id || 'unknown'
-    } catch {
-      return NextResponse.json({ error: 'Invalid session' }, { status: 401 })
-    }
-
     // Parse request body
     const body = await request.json()
     const { user_id, amount, reason } = body
@@ -107,7 +91,6 @@ export async function POST(request: NextRequest) {
       .from('audit_log')
       .insert({
         actor_type: 'admin',
-        actor_id: adminId,
         action: 'credit_adjustment',
         resource_type: 'user',
         resource_id: user_id,
@@ -142,3 +125,5 @@ export async function POST(request: NextRequest) {
     )
   }
 }
+
+export const POST = withAuth(handler)

@@ -1,13 +1,11 @@
 import { createClient } from '@/lib/supabase-admin';
 import { NextResponse } from 'next/server';
+import { withAuth } from '@/lib/auth-middleware';
 
-export async function GET(
-  request: Request,
-  { params }: { params: Promise<{ email: string }> }
-) {
+export const GET = withAuth(async (req, session, context) => {
+  const { email: rawEmail } = await context.params;
+  const email = decodeURIComponent(rawEmail);
   try {
-    const { email: rawEmail } = await params;
-    const email = decodeURIComponent(rawEmail);
     const supabase = createClient();
 
     // First get the user ID from the email
@@ -17,7 +15,7 @@ export async function GET(
       .eq('email', email)
       .limit(1);
 
-    if (userError || !users || users.length === 0) {
+    if (userError || \!users || users.length === 0) {
       return NextResponse.json([]);
     }
 
@@ -48,4 +46,4 @@ export async function GET(
     console.error('Error in customer orders API:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
-}
+});

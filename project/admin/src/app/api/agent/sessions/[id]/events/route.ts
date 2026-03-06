@@ -1,9 +1,10 @@
+import { withAuth } from '@/lib/auth-middleware'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
 const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_KEY!,
+  process.env.SUPABASE_URL\!,
+  process.env.SUPABASE_SERVICE_KEY\!,
   {
     auth: {
       autoRefreshToken: false,
@@ -12,12 +13,9 @@ const supabase = createClient(
   }
 )
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export const GET = withAuth(async (req, session, context) => {
   try {
-    const { id: sessionId } = await params
+    const { id: sessionId } = await context.params
 
     // Fetch events for this session in chronological order (for replay)
     const { data: events, error } = await supabase
@@ -47,4 +45,4 @@ export async function GET(
       { status: 500 }
     )
   }
-}
+})

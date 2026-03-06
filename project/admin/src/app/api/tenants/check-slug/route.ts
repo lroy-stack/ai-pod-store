@@ -6,8 +6,9 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
+import { withAuth } from '@/lib/auth-middleware'
 
-export async function GET(request: NextRequest) {
+export const GET = withAuth(async (request: NextRequest, session: unknown) => {
   const slug = request.nextUrl.searchParams.get('slug')?.toLowerCase().trim()
 
   if (!slug) {
@@ -26,4 +27,4 @@ export async function GET(request: NextRequest) {
     .maybeSingle()
 
   return NextResponse.json({ available: !data })
-}
+})

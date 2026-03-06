@@ -35,8 +35,12 @@ export const defaultSession: SessionData = {
  * - cookieName: Cookie name for the session
  * - cookieOptions: Security settings for the cookie
  */
+if (!process.env.SESSION_SECRET) {
+  throw new Error('SESSION_SECRET environment variable is required. Set a 32+ character secret in .env.local')
+}
+
 export const sessionOptions: SessionOptions = {
-  password: process.env.SESSION_SECRET || 'complex_password_at_least_32_characters_long_default_dev_only',
+  password: process.env.SESSION_SECRET,
   cookieName: 'admin-session',
   cookieOptions: {
     // Secure flag only when behind HTTPS

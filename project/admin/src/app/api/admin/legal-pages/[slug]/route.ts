@@ -6,13 +6,11 @@
 
 import { createClient } from '@/lib/supabase-admin';
 import { NextRequest, NextResponse } from 'next/server';
+import { withAuth } from '@/lib/auth-middleware';
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ slug: string }> }
-) {
+export const GET = withAuth(async (req, session, context) => {
   try {
-    const { slug } = await params;
+    const { slug } = await context.params;
     const supabase = createClient();
 
     const { data: page, error } = await supabase
@@ -37,15 +35,12 @@ export async function GET(
       { status: 500 }
     );
   }
-}
+})
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ slug: string }> }
-) {
+export const PUT = withAuth(async (req, session, context) => {
   try {
-    const { slug } = await params;
-    const body = await request.json();
+    const { slug } = await context.params;
+    const body = await req.json();
     const supabase = createClient();
 
     const {
@@ -154,4 +149,4 @@ export async function PUT(
       { status: 500 }
     );
   }
-}
+})

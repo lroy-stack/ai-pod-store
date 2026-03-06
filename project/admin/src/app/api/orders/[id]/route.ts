@@ -1,14 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import { withAuth } from '@/lib/auth-middleware';
 
-export async function GET(
-  request: NextRequest,
-  context: { params: Promise<{ id: string }> }
-) {
+export const GET = withAuth(async (req, session, context) => {
+  const { id: orderId } = await context.params;
   try {
-    const params = await context.params;
-    const orderId = params.id;
-
     const { data: order, error } = await supabaseAdmin
       .from('orders')
       .select(`
@@ -30,7 +26,7 @@ export async function GET(
       );
     }
 
-    if (!order) {
+    if (\!order) {
       return NextResponse.json(
         { error: 'Order not found' },
         { status: 404 }
@@ -60,4 +56,4 @@ export async function GET(
       { status: 500 }
     );
   }
-}
+});

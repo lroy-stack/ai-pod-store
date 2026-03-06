@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { withAuth } from '@/lib/auth-middleware'
 
 const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_KEY!,
+  process.env.SUPABASE_URL\!,
+  process.env.SUPABASE_SERVICE_KEY\!,
   {
     auth: {
       autoRefreshToken: false,
@@ -12,7 +13,7 @@ const supabase = createClient(
   }
 )
 
-export async function GET() {
+export const GET = withAuth(async (req, session) => {
   try {
     // Fetch all experiments
     const { data: experiments, error } = await supabase
@@ -80,14 +81,14 @@ export async function GET() {
       { status: 500 }
     )
   }
-}
+})
 
-export async function POST(request: NextRequest) {
+export const POST = withAuth(async (req, session) => {
   try {
-    const body = await request.json()
+    const body = await req.json()
     const { name, description, variants } = body
 
-    if (!name || !variants) {
+    if (\!name || \!variants) {
       return NextResponse.json(
         { error: 'Name and variants are required' },
         { status: 400 }
@@ -95,7 +96,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate variants structure
-    if (!variants.control || !variants.test) {
+    if (\!variants.control || \!variants.test) {
       return NextResponse.json(
         { error: 'Both control and test variants are required' },
         { status: 400 }
@@ -123,4 +124,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     )
   }
-}
+})

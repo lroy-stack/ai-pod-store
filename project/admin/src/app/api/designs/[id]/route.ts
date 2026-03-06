@@ -1,43 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { cookies } from 'next/headers'
+import { withAuth } from '@/lib/auth-middleware'
 
-// Admin auth check
-async function checkAdminAuth() {
-  const cookieStore = await cookies()
-  const sessionCookie = cookieStore.get('admin-session')
-
-  if (!sessionCookie) {
-    return null
-  }
-
-  try {
-    const session = JSON.parse(sessionCookie.value)
-    if (session.role !== 'admin') {
-      return null
-    }
-    return session
-  } catch {
-    return null
-  }
-}
-
-export async function GET(
+export const GET = withAuth(async (
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  // Check admin authentication
-  const session = await checkAdminAuth()
-  if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
-  const { id } = await params
+  context: { params?: Promise<{ id: string }> }
+) => {
+  const { id } = await context.params\!
 
   const supabaseUrl = process.env.SUPABASE_URL
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY
 
-  if (!supabaseUrl || !supabaseServiceKey) {
+  if (\!supabaseUrl || \!supabaseServiceKey) {
     return NextResponse.json(
       { error: 'Supabase configuration missing' },
       { status: 500 }
@@ -69,24 +43,18 @@ export async function GET(
       { status: 500 }
     )
   }
-}
+})
 
-export async function PATCH(
+export const PATCH = withAuth(async (
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  // Check admin authentication
-  const session = await checkAdminAuth()
-  if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
-  const { id } = await params
+  context: { params?: Promise<{ id: string }> }
+) => {
+  const { id } = await context.params\!
 
   const supabaseUrl = process.env.SUPABASE_URL
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY
 
-  if (!supabaseUrl || !supabaseServiceKey) {
+  if (\!supabaseUrl || \!supabaseServiceKey) {
     return NextResponse.json(
       { error: 'Supabase configuration missing' },
       { status: 500 }
@@ -121,4 +89,4 @@ export async function PATCH(
       { status: 500 }
     )
   }
-}
+})

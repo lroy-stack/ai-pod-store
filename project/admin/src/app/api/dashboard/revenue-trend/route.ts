@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import { withAuth } from '@/lib/auth-middleware';
 
-export async function GET(request: NextRequest) {
+export const GET = withAuth(async (req, session) => {
   try {
-    const searchParams = request.nextUrl.searchParams;
+    const searchParams = req.nextUrl.searchParams;
     const period = searchParams.get('period') || '7d'; // 7d, 30d, or 90d
 
     // Calculate date range
@@ -57,4 +58,4 @@ export async function GET(request: NextRequest) {
     console.error('Revenue trend error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
-}
+});

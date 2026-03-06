@@ -7,24 +7,10 @@
 
 import { createClient } from '@/lib/supabase-admin'
 import { NextRequest, NextResponse } from 'next/server'
+import { withAuth } from '@/lib/auth-middleware'
 
-export async function GET(request: NextRequest) {
+async function handler(request: NextRequest) {
   try {
-    // Check admin session (simple cookie check)
-    const sessionCookie = request.cookies.get('admin-session')
-    if (!sessionCookie) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    try {
-      const sessionData = JSON.parse(sessionCookie.value)
-      if (sessionData.role !== 'admin') {
-        return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-      }
-    } catch {
-      return NextResponse.json({ error: 'Invalid session' }, { status: 401 })
-    }
-
     const supabase = createClient()
     const { searchParams } = request.nextUrl
 
@@ -74,3 +60,5 @@ export async function GET(request: NextRequest) {
     )
   }
 }
+
+export const GET = withAuth(handler)

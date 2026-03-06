@@ -1,9 +1,10 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { withAuth } from '@/lib/auth-middleware';
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent';
 
-export async function POST(request: Request) {
+export const POST = withAuth(async (request: NextRequest, session: unknown) => {
   try {
     const { key, sourceLocale, sourceText, targetLocale } = await request.json();
 
@@ -79,4 +80,4 @@ Return ONLY the translated text, no explanations.`;
       { status: 500 }
     );
   }
-}
+});

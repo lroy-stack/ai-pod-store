@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { withAuth } from '@/lib/auth-middleware'
 
 const FRONTEND_URL = process.env.NEXT_PUBLIC_FRONTEND_URL || 'http://localhost:3000'
 
-export async function POST(request: NextRequest) {
+export const POST = withAuth(async (req, session) => {
   try {
     const response = await fetch(`${FRONTEND_URL}/api/admin/sitemap`, {
       method: 'POST',
@@ -24,9 +25,9 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     )
   }
-}
+})
 
-export async function GET() {
+export const GET = withAuth(async (req, session) => {
   try {
     const response = await fetch(`${FRONTEND_URL}/api/admin/sitemap`, {
       method: 'GET',
@@ -45,4 +46,4 @@ export async function GET() {
       { status: 500 }
     )
   }
-}
+})

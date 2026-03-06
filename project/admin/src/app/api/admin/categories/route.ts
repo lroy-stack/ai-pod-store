@@ -6,8 +6,9 @@
 
 import { createClient } from '@/lib/supabase-admin';
 import { NextRequest, NextResponse } from 'next/server';
+import { withAuth } from '@/lib/auth-middleware';
 
-export async function GET() {
+export const GET = withAuth(async (req, session) => {
   try {
     const supabase = createClient();
 
@@ -55,9 +56,9 @@ export async function GET() {
       { status: 500 }
     );
   }
-}
+})
 
-export async function POST(req: NextRequest) {
+export const POST = withAuth(async (req, session) => {
   try {
     const supabase = createClient();
     const body = await req.json();
@@ -84,4 +85,4 @@ export async function POST(req: NextRequest) {
       { status: 500 }
     );
   }
-}
+})

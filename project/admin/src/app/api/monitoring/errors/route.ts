@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { withAuth } from '@/lib/auth-middleware';
 
 /**
  * GET /api/monitoring/errors
@@ -9,9 +10,9 @@ import { createClient } from '@supabase/supabase-js';
  * - limit: number of errors to fetch (default: 50)
  * - days: number of days to look back (default: 7)
  */
-export async function GET(request: NextRequest) {
+export const GET = withAuth(async (req, session) => {
   try {
-    const { searchParams } = new URL(request.url);
+    const { searchParams } = new URL(req.url);
     const limit = parseInt(searchParams.get('limit') || '50');
     const days = parseInt(searchParams.get('days') || '7');
 
@@ -19,7 +20,7 @@ export async function GET(request: NextRequest) {
     const supabaseUrl = process.env.SUPABASE_URL;
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
 
-    if (!supabaseUrl || !supabaseServiceKey) {
+    if (\!supabaseUrl || \!supabaseServiceKey) {
       return NextResponse.json(
         { error: 'Missing Supabase configuration' },
         { status: 500 }
@@ -94,4 +95,4 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});

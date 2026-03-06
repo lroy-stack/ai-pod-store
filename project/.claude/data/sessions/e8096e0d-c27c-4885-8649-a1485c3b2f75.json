@@ -24,6 +24,7 @@
     "ademas esta en sesion 62 porqeu? deberia estar en sesion 1. es un harnes nuevo, no debe quedar rastrop del a terior",
     "creoq eu el max budget de 8$ es mala practica que lo tenga el inicailizador",
     "el no solo lee un specc. el es granular, va  a contrastar contra codebase.. por eso va a gastartokens de normal 20 minutos",
-    "perfecto, ahroa te voy a pedir que monitores los logs del harness, que esta correindo actulmante.. deberia estar creando el json ahora vamos a esperar 10 ninutos"
+    "perfecto, ahroa te voy a pedir que monitores los logs del harness, que esta correindo actulmante.. deberia estar creando el json ahora vamos a esperar 10 ninutos",
+    "vamos a segrui monitoreando un poco, y hechale un ojo a featured_list para verificar que sigue el plan correctamente"
   ]
 }

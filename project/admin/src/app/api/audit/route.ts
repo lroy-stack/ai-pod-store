@@ -1,13 +1,14 @@
+import { withAuth } from '@/lib/auth-middleware'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.SUPABASE_URL!
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY!
+const supabaseUrl = process.env.SUPABASE_URL\!
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY\!
 
-export async function GET(request: NextRequest) {
+export const GET = withAuth(async (req, session) => {
   try {
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
-    const { searchParams } = new URL(request.url)
+    const { searchParams } = new URL(req.url)
 
     const actorType = searchParams.get('actor_type')
     const limit = parseInt(searchParams.get('limit') || '100')
@@ -20,7 +21,7 @@ export async function GET(request: NextRequest) {
       .range(offset, offset + limit - 1)
 
     // Filter by actor_type if provided
-    if (actorType && actorType !== 'all') {
+    if (actorType && actorType \!== 'all') {
       query = query.eq('actor_type', actorType)
     }
 
@@ -44,4 +45,4 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     )
   }
-}
+})

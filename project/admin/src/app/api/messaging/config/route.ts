@@ -1,29 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { withAuth } from '@/lib/auth-middleware'
 
 const supabase = createClient(
   process.env.SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_KEY!
 )
 
-function checkAdminAuth(req: NextRequest): boolean {
-  const sessionCookie = req.cookies.get('admin-session')
-  if (!sessionCookie) return false
-
-  try {
-    const sessionData = JSON.parse(sessionCookie.value)
-    return sessionData.role === 'admin'
-  } catch {
-    return false
-  }
-}
-
 // GET /api/messaging/config - Fetch current messaging configuration
-export async function GET(request: NextRequest) {
-  if (!checkAdminAuth(request)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
+export const GET = withAuth(async (request: NextRequest) => {
   try {
     const { data, error } = await supabase
       .from('messaging_channels')
@@ -55,14 +40,10 @@ export async function GET(request: NextRequest) {
       error: error.message
     }, { status: 500 })
   }
-}
+})
 
 // POST /api/messaging/config - Save messaging configuration
-export async function POST(request: NextRequest) {
-  if (!checkAdminAuth(request)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
+export const POST = withAuth(async (request: NextRequest) => {
   try {
     const body = await request.json()
     const { telegram, whatsapp } = body
@@ -155,4 +136,4 @@ export async function POST(request: NextRequest) {
       error: error.message
     }, { status: 500 })
   }
-}
+})

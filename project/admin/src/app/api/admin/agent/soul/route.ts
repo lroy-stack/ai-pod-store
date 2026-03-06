@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { withAuth } from '@/lib/auth-middleware'
 
 const PODCLAW_BRIDGE_URL = process.env.PODCLAW_BRIDGE_URL || 'http://localhost:8000'
 const PODCLAW_API_KEY = process.env.PODCLAW_API_KEY || ''
@@ -8,7 +9,7 @@ const PODCLAW_API_KEY = process.env.PODCLAW_API_KEY || ''
  *
  * Returns current SOUL.md content and pending proposals
  */
-export async function GET(req: NextRequest) {
+export const GET = withAuth(async (req, session) => {
   try {
     // Fetch current SOUL.md content
     const soulRes = await fetch(`${PODCLAW_BRIDGE_URL}/soul`, {
@@ -17,7 +18,7 @@ export async function GET(req: NextRequest) {
       },
     })
 
-    if (!soulRes.ok) {
+    if (\!soulRes.ok) {
       return NextResponse.json(
         { error: 'Failed to fetch SOUL.md' },
         { status: soulRes.status }
@@ -33,7 +34,7 @@ export async function GET(req: NextRequest) {
       },
     })
 
-    if (!proposalsRes.ok) {
+    if (\!proposalsRes.ok) {
       return NextResponse.json(
         { error: 'Failed to fetch proposals' },
         { status: proposalsRes.status }
@@ -54,7 +55,7 @@ export async function GET(req: NextRequest) {
       { status: 500 }
     )
   }
-}
+})
 
 /**
  * POST /api/admin/agent/soul
@@ -62,19 +63,19 @@ export async function GET(req: NextRequest) {
  * Approve or reject a soul proposal
  * Body: { action: 'approve' | 'reject', proposalId: string, reason?: string }
  */
-export async function POST(req: NextRequest) {
+export const POST = withAuth(async (req, session) => {
   try {
     const body = await req.json()
     const { action, proposalId, reason } = body
 
-    if (!action || !proposalId) {
+    if (\!action || \!proposalId) {
       return NextResponse.json(
         { error: 'Missing required fields: action, proposalId' },
         { status: 400 }
       )
     }
 
-    if (action !== 'approve' && action !== 'reject') {
+    if (action \!== 'approve' && action \!== 'reject') {
       return NextResponse.json(
         { error: 'Invalid action. Must be "approve" or "reject"' },
         { status: 400 }
@@ -94,7 +95,7 @@ export async function POST(req: NextRequest) {
       body: action === 'reject' && reason ? JSON.stringify({ reason }) : undefined,
     })
 
-    if (!response.ok) {
+    if (\!response.ok) {
       const errorData = await response.json().catch(() => ({}))
       return NextResponse.json(
         { error: errorData.detail || `Failed to ${action} proposal` },
@@ -111,4 +112,4 @@ export async function POST(req: NextRequest) {
       { status: 500 }
     )
   }
-}
+})

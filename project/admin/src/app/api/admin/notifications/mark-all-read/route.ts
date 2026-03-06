@@ -1,24 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import { withAuth } from '@/lib/auth-middleware';
 
-function checkAdminAuth(req: NextRequest): boolean {
-  const sessionCookie = req.cookies.get('admin-session');
-  if (!sessionCookie) return false;
-
-  try {
-    const sessionData = JSON.parse(sessionCookie.value);
-    return sessionData.role === 'admin';
-  } catch {
-    return false;
-  }
-}
-
-export async function POST(req: NextRequest) {
-  // Check authentication
-  if (!checkAdminAuth(req)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
+async function handler(req: NextRequest) {
   try {
     // Mark all admin notifications as read
     const { error } = await supabaseAdmin
@@ -37,3 +21,5 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true }); // Return success anyway
   }
 }
+
+export const POST = withAuth(handler);

@@ -1,3 +1,4 @@
+import { withAuth } from '@/lib/auth-middleware'
 import { createClient } from '@/lib/supabase-admin';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -5,12 +6,9 @@ import { NextRequest, NextResponse } from 'next/server';
  * POST /api/admin/themes/[id]/activate
  * Activates a theme (sets is_active to true) and deactivates all others
  */
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export const POST = withAuth(async (req, session, context) => {
   try {
-    const { id } = await params;
+    const { id } = await context.params;
     const supabase = createClient();
 
     // First, verify the theme exists
@@ -76,4 +74,4 @@ export async function POST(
     console.error('Error in theme activate API:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
-}
+})

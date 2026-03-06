@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { withAuth } from '@/lib/auth-middleware';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY!;
 
-export async function POST(request: NextRequest) {
+export const POST = withAuth(async (req, session) => {
   try {
-    const body = await request.json();
+    const body = await req.json();
     const { orderIds, action } = body;
 
     if (!orderIds || !Array.isArray(orderIds) || orderIds.length === 0) {
@@ -72,8 +73,8 @@ export async function POST(request: NextRequest) {
         bulk_action: action,
       },
       user_id: null, // TODO: Add admin user ID when auth is implemented
-      ip_address: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
-      user_agent: request.headers.get('user-agent') || 'unknown',
+      ip_address: req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown',
+      user_agent: req.headers.get('user-agent') || 'unknown',
     }));
 
     await supabase.from('audit_log').insert(auditEntries.map(e => ({
@@ -98,4 +99,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+})

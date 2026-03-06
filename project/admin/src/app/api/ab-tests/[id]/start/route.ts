@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { withAuth } from '@/lib/auth-middleware'
 
 const supabase = createClient(
   process.env.SUPABASE_URL!,
@@ -12,12 +13,9 @@ const supabase = createClient(
   }
 )
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export const POST = withAuth(async (req, session, context) => {
   try {
-    const { id } = await params
+    const { id } = await context.params
 
     // Update experiment status to running
     const { data, error } = await supabase
@@ -40,4 +38,4 @@ export async function POST(
       { status: 500 }
     )
   }
-}
+})

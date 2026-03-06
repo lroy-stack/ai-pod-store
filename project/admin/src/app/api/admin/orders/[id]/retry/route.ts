@@ -1,38 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase-admin';
-import { cookies } from 'next/headers';
+import { withAuth } from '@/lib/auth-middleware';
 
-// Admin auth check
-async function checkAdminAuth() {
-  const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get('admin-session');
-
-  if (!sessionCookie) {
-    return null;
-  }
-
-  try {
-    const session = JSON.parse(sessionCookie.value);
-    if (session.role !== 'admin') {
-      return null;
-    }
-    return session;
-  } catch {
-    return null;
-  }
-}
-
-export async function POST(
+async function handler(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    // Check admin auth
-    const session = await checkAdminAuth();
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const { id: orderId } = await params;
 
     // Get Supabase admin client
@@ -45,7 +19,7 @@ export async function POST(
       .eq('id', orderId)
       .single();
 
-    if (orderError || !order) {
+    if (orderError || \!order) {
       return NextResponse.json(
         { error: 'Order not found' },
         { status: 404 }
@@ -53,7 +27,7 @@ export async function POST(
     }
 
     // Check if the order has a failed provider status
-    if (order.provider_status !== 'failed' && order.pod_error === null) {
+    if (order.provider_status \!== 'failed' && order.pod_error === null) {
       return NextResponse.json(
         { error: 'Order does not have a failed provider status' },
         { status: 400 }
@@ -66,7 +40,7 @@ export async function POST(
       .select('*, product:products(provider_product_id), variant:product_variants(external_variant_id)')
       .eq('order_id', orderId);
 
-    if (itemsError || !items || items.length === 0) {
+    if (itemsError || \!items || items.length === 0) {
       return NextResponse.json(
         { error: 'No items found for this order' },
         { status: 400 }
@@ -87,7 +61,7 @@ export async function POST(
       }
     );
 
-    if (!retryResponse.ok) {
+    if (\!retryResponse.ok) {
       throw new Error('Failed to trigger order retry via cron');
     }
 
@@ -95,7 +69,6 @@ export async function POST(
 
     // Create audit log entry
     await supabase.from('audit_log').insert({
-      user_id: session.id,
       action: 'order.provider.retry',
       resource_type: 'order',
       resource_id: orderId,
@@ -118,3 +91,5 @@ export async function POST(
     );
   }
 }
+
+export const POST = withAuth(handler);

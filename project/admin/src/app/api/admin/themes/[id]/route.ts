@@ -1,3 +1,4 @@
+import { withAuth } from '@/lib/auth-middleware'
 import { createClient } from '@/lib/supabase-admin';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -5,12 +6,9 @@ import { NextRequest, NextResponse } from 'next/server';
  * GET /api/admin/themes/[id]
  * Returns a single theme by ID
  */
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export const GET = withAuth(async (req, session, context) => {
   try {
-    const { id } = await params;
+    const { id } = await context.params;
     const supabase = createClient();
 
     const { data: theme, error } = await supabase
@@ -32,19 +30,16 @@ export async function GET(
     console.error('Error in theme GET API:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
-}
+})
 
 /**
  * PUT /api/admin/themes/[id]
  * Updates a theme
  */
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export const PUT = withAuth(async (req, session, context) => {
   try {
-    const { id } = await params;
-    const body = await request.json();
+    const { id } = await context.params;
+    const body = await req.json();
     const supabase = createClient();
 
     // Extract updatable fields from body
@@ -171,4 +166,4 @@ export async function PUT(
     console.error('Error in theme PUT API:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
-}
+})

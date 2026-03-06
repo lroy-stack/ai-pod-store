@@ -14,10 +14,11 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
+import { withAuth } from '@/lib/auth-middleware'
 
 const VALID_PLANS = ['free', 'starter', 'pro', 'enterprise'] as const
 
-export async function POST(request: NextRequest) {
+export const POST = withAuth(async (request: NextRequest, session: unknown) => {
   try {
     const body = await request.json()
     const { step1, step2, step3, step4 } = body
@@ -153,4 +154,4 @@ export async function POST(request: NextRequest) {
     console.error('[POST /api/tenants/create]', err)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
-}
+})

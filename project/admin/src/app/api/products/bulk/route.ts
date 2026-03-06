@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { withValidation, bulkProductUpdateSchema } from '@/lib/validation';
+import { withAuth } from '@/lib/auth-middleware';
 
-export const PATCH = withValidation(bulkProductUpdateSchema, async (req: NextRequest, validatedData) => {
+export const PATCH = withAuth(withValidation(bulkProductUpdateSchema, async (req: NextRequest, validatedData) => {
   try {
     const { ids, status } = validatedData;
 
@@ -31,4 +32,4 @@ export const PATCH = withValidation(bulkProductUpdateSchema, async (req: NextReq
       { status: 500 }
     );
   }
-});
+}));

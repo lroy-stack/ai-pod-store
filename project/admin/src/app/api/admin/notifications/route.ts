@@ -1,24 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import { withAuth } from '@/lib/auth-middleware';
 
-function checkAdminAuth(req: NextRequest): boolean {
-  const sessionCookie = req.cookies.get('admin-session');
-  if (!sessionCookie) return false;
-
-  try {
-    const sessionData = JSON.parse(sessionCookie.value);
-    return sessionData.role === 'admin';
-  } catch {
-    return false;
-  }
-}
-
-export async function GET(req: NextRequest) {
-  // Check authentication
-  if (!checkAdminAuth(req)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
+async function handler(req: NextRequest) {
   try {
     // Fetch admin user to get notifications for admin user_id
     const { data: adminUser } = await supabaseAdmin
@@ -27,7 +11,7 @@ export async function GET(req: NextRequest) {
       .eq('email', 'admin@skapara.com')
       .single();
 
-    if (!adminUser) {
+    if (\!adminUser) {
       return NextResponse.json({
         notifications: [],
         unread_count: 0,
@@ -60,7 +44,7 @@ export async function GET(req: NextRequest) {
       type: n.type || 'info',
     }));
 
-    const unreadCount = notifications.filter((n) => !n.read).length;
+    const unreadCount = notifications.filter((n) => \!n.read).length;
 
     return NextResponse.json({
       notifications,
@@ -74,3 +58,5 @@ export async function GET(req: NextRequest) {
     });
   }
 }
+
+export const GET = withAuth(handler);

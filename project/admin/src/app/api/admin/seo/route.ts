@@ -1,7 +1,8 @@
 import { createClient } from '@/lib/supabase-admin';
 import { NextRequest, NextResponse } from 'next/server';
+import { withAuth } from '@/lib/auth-middleware';
 
-export async function GET() {
+export const GET = withAuth(async (req, session) => {
   try {
     const supabase = createClient();
 
@@ -27,12 +28,12 @@ export async function GET() {
     console.error('Error in SEO GET API:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
-}
+})
 
-export async function POST(request: NextRequest) {
+export const POST = withAuth(async (req, session) => {
   try {
     const supabase = createClient();
-    const body = await request.json();
+    const body = await req.json();
 
     // Validate request body
     if (!body.locale || !body.title || !body.description || !body.keywords) {
@@ -66,4 +67,4 @@ export async function POST(request: NextRequest) {
     console.error('Error in SEO POST API:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
-}
+})

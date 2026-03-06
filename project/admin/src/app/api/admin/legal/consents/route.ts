@@ -6,28 +6,14 @@
 
 import { createClient } from '@/lib/supabase-admin';
 import { NextRequest, NextResponse } from 'next/server';
+import { withAuth } from '@/lib/auth-middleware';
 
 /**
  * GET /api/admin/legal/consents
  * Returns consent records with pagination, filters, and summary statistics
  */
-export async function GET(request: NextRequest) {
+async function handler(request: NextRequest) {
   try {
-    // Check admin session
-    const sessionCookie = request.cookies.get('admin-session');
-    if (!sessionCookie) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    try {
-      const sessionData = JSON.parse(sessionCookie.value);
-      if (sessionData.role !== 'admin') {
-        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-      }
-    } catch {
-      return NextResponse.json({ error: 'Invalid session' }, { status: 401 });
-    }
-
     const supabase = createClient();
     const { searchParams } = new URL(request.url);
 
@@ -44,7 +30,7 @@ export async function GET(request: NextRequest) {
     // Build query
     let query = supabase
       .from('user_consents')
-      .select('*, users!inner(email, name)', { count: 'exact' });
+      .select('*, users\!inner(email, name)', { count: 'exact' });
 
     // Apply filters
     if (consentType) {
@@ -86,7 +72,7 @@ export async function GET(request: NextRequest) {
         const key = `${record.consent_type}`;
         // Since we don't have user_id in this query, we'll just count all records
         // In a production scenario, we'd need a more complex query
-        if (!summary[record.consent_type]) {
+        if (\!summary[record.consent_type]) {
           summary[record.consent_type] = { total: 0, optIn: 0, optInRate: 0 };
         }
         summary[record.consent_type].total++;
@@ -128,3 +114,5 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+export const GET = withAuth(handler);

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { withAuth } from '@/lib/auth-middleware'
 
 /**
  * POST /api/task
@@ -61,12 +62,12 @@ const AGENT_CAPABILITIES = {
   },
 } as const
 
-export async function POST(request: NextRequest) {
+export const POST = withAuth(async (request: NextRequest, session: unknown) => {
   try {
     const body: TaskClassificationRequest = await request.json()
     const { message } = body
 
-    if (!message || typeof message !== 'string') {
+    if (\!message || typeof message \!== 'string') {
       return NextResponse.json(
         { error: 'Message is required' },
         { status: 400 }
@@ -93,7 +94,7 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     )
   }
-}
+})
 
 function classifyMessage(message: string): string[] {
   const agents = new Set<string>()

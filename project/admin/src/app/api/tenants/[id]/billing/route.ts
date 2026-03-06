@@ -12,6 +12,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
+import { withAuth } from '@/lib/auth-middleware'
 
 // Platform application fee rates by plan
 export const PLAN_FEE_RATES: Record<string, number> = {
@@ -29,11 +30,12 @@ export const PLAN_LIMITS: Record<string, { products: number | null; orders_per_m
   enterprise: { products: null, orders_per_month: null, custom_domain: true },
 }
 
-export async function GET(
+export const GET = withAuth(async (
   _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  const { id: tenantId } = await params
+  session: unknown,
+  context: { params: Promise<{ id: string }> }
+) => {
+  const { id: tenantId } = await context.params
 
   if (!tenantId) {
     return NextResponse.json({ error: 'tenant_id required' }, { status: 400 })
@@ -129,4 +131,4 @@ export async function GET(
     console.error('[/api/tenants/[id]/billing]', err)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
-}
+})

@@ -1,52 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { cookies } from 'next/headers'
+import { withAuth } from '@/lib/auth-middleware'
 import Stripe from 'stripe'
 
-// Admin auth check
-async function checkAdminAuth() {
-  const cookieStore = await cookies()
-  const sessionCookie = cookieStore.get('admin-session')
-
-  if (!sessionCookie) {
-    return null
-  }
-
-  try {
-    const session = JSON.parse(sessionCookie.value)
-    if (session.role !== 'admin') {
-      return null
-    }
-    return session
-  } catch {
-    return null
-  }
-}
-
-export async function POST(
+export const POST = withAuth(async (
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  // Check admin authentication
-  const session = await checkAdminAuth()
-  if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
-  const { id } = await params
+  context: { params?: Promise<{ id: string }>, session?: any }
+) => {
+  const { id } = await context.params\!
+  const session = context.session
 
   const supabaseUrl = process.env.SUPABASE_URL
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY
   const stripeSecretKey = process.env.STRIPE_SECRET_KEY
 
-  if (!supabaseUrl || !supabaseServiceKey) {
+  if (\!supabaseUrl || \!supabaseServiceKey) {
     return NextResponse.json(
       { error: 'Supabase configuration missing' },
       { status: 500 }
     )
   }
 
-  if (!stripeSecretKey) {
+  if (\!stripeSecretKey) {
     return NextResponse.json(
       { error: 'Stripe configuration missing' },
       { status: 500 }
@@ -67,14 +42,14 @@ export async function POST(
       .eq('id', id)
       .single()
 
-    if (fetchError || !returnRequest) {
+    if (fetchError || \!returnRequest) {
       return NextResponse.json(
         { error: 'Return request not found' },
         { status: 404 }
       )
     }
 
-    if (returnRequest.status !== 'pending') {
+    if (returnRequest.status \!== 'pending') {
       return NextResponse.json(
         { error: 'Return request is not pending' },
         { status: 400 }
@@ -88,14 +63,14 @@ export async function POST(
       .eq('id', returnRequest.order_id)
       .single()
 
-    if (orderError || !order) {
+    if (orderError || \!order) {
       return NextResponse.json(
         { error: 'Order not found' },
         { status: 404 }
       )
     }
 
-    if (!order.stripe_payment_intent_id) {
+    if (\!order.stripe_payment_intent_id) {
       return NextResponse.json(
         { error: 'No payment intent found for this order' },
         { status: 400 }
@@ -131,7 +106,7 @@ export async function POST(
         refund_currency: order.currency,
         stripe_refund_id: stripeRefund.id,
         admin_notes: admin_notes || null,
-        approved_by: session.id,
+        approved_by: session?.id,
         approved_at: new Date().toISOString(),
       })
       .eq('id', id)
@@ -157,7 +132,7 @@ export async function POST(
       .from('audit_log')
       .insert({
         actor_type: 'admin',
-        actor_id: session.id,
+        actor_id: session?.id,
         action: 'return_approved',
         resource_type: 'return_request',
         resource_id: id,
@@ -193,4 +168,4 @@ export async function POST(
       { status: 500 }
     )
   }
-}
+})

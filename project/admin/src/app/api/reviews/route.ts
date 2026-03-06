@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { withAuth } from '@/lib/auth-middleware';
 
 const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_KEY!
+  process.env.SUPABASE_URL\!,
+  process.env.SUPABASE_SERVICE_KEY\!
 );
 
 /**
@@ -13,7 +14,7 @@ const supabase = createClient(
  *  - limit: number (default: 50)
  *  - offset: number (default: 0)
  */
-export async function GET(req: NextRequest) {
+export const GET = withAuth(async (req, session) => {
   const { searchParams } = new URL(req.url);
   const status = searchParams.get('status') || 'pending';
   const limit = parseInt(searchParams.get('limit') || '50', 10);
@@ -26,7 +27,7 @@ export async function GET(req: NextRequest) {
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
 
-    if (status !== 'all') {
+    if (status \!== 'all') {
       query = query.eq('moderation_status', status);
     }
 
@@ -53,4 +54,4 @@ export async function GET(req: NextRequest) {
       { status: 500 }
     );
   }
-}
+});

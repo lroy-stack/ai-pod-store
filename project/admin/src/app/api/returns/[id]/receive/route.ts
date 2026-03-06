@@ -1,45 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { cookies } from 'next/headers'
+import { withAuth } from '@/lib/auth-middleware'
 import Stripe from 'stripe'
-
-async function checkAdminAuth() {
-  const cookieStore = await cookies()
-  const sessionCookie = cookieStore.get('admin-session')
-  if (!sessionCookie) return null
-  try {
-    const session = JSON.parse(sessionCookie.value)
-    if (session.role !== 'admin') return null
-    return session
-  } catch {
-    return null
-  }
-}
 
 /**
  * POST /api/returns/[id]/receive
  *
- * Marks a return as item_received → return_completed.
- * Auto-issues Stripe refund if one hasn't been processed yet.
+ * Marks a return as item_received -> return_completed.
+ * Auto-issues Stripe refund if one has not been processed yet.
  * This is the canonical "item received" step in the return lifecycle:
- *   pending → approved → processing (customer ships) → item_received → return_completed
+ *   pending -> approved -> processing (customer ships) -> item_received -> return_completed
  */
-export async function POST(
+export const POST = withAuth(async (
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  const session = await checkAdminAuth()
-  if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
-  const { id } = await params
+  context: { params?: Promise<{ id: string }>, session?: any }
+) => {
+  const { id } = await context.params\!
+  const session = context.session
 
   const supabaseUrl = process.env.SUPABASE_URL
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY
   const stripeSecretKey = process.env.STRIPE_SECRET_KEY
 
-  if (!supabaseUrl || !supabaseServiceKey) {
+  if (\!supabaseUrl || \!supabaseServiceKey) {
     return NextResponse.json({ error: 'Supabase configuration missing' }, { status: 500 })
   }
 
@@ -53,13 +36,13 @@ export async function POST(
       .eq('id', id)
       .single()
 
-    if (fetchError || !returnRequest) {
+    if (fetchError || \!returnRequest) {
       return NextResponse.json({ error: 'Return request not found' }, { status: 404 })
     }
 
     // Can only receive items that are approved or processing (customer shipped)
     const allowedStatuses = ['approved', 'processing']
-    if (!allowedStatuses.includes(returnRequest.status)) {
+    if (\!allowedStatuses.includes(returnRequest.status)) {
       return NextResponse.json(
         { error: `Cannot mark as received — current status is '${returnRequest.status}'` },
         { status: 400 }
@@ -73,7 +56,7 @@ export async function POST(
       .eq('id', returnRequest.order_id)
       .single()
 
-    if (orderError || !order) {
+    if (orderError || \!order) {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 })
     }
 
@@ -81,7 +64,7 @@ export async function POST(
     let refundAmountCents = returnRequest.refund_amount_cents || order.total_cents
 
     // Issue Stripe refund if not already done
-    if (!stripeRefundId && stripeSecretKey && order.stripe_payment_intent_id) {
+    if (\!stripeRefundId && stripeSecretKey && order.stripe_payment_intent_id) {
       const stripe = new Stripe(stripeSecretKey, { apiVersion: '2026-01-28.clover' })
       try {
         const stripeRefund = await stripe.refunds.create({
@@ -105,7 +88,7 @@ export async function POST(
       }
     }
 
-    // Transition: item_received → return_completed (auto)
+    // Transition: item_received -> return_completed (auto)
     const now = new Date().toISOString()
     const { data: updated, error: updateError } = await supabase
       .from('return_requests')
@@ -138,7 +121,7 @@ export async function POST(
     // Audit log
     await supabase.from('audit_log').insert({
       actor_type: 'admin',
-      actor_id: session.id,
+      actor_id: session?.id,
       action: 'return_item_received',
       resource_type: 'return_request',
       resource_id: id,
@@ -167,10 +150,10 @@ export async function POST(
     return NextResponse.json({
       success: true,
       return_request: updated,
-      refund_issued: !!stripeRefundId,
+      refund_issued: \!\!stripeRefundId,
     })
   } catch (error) {
     console.error('Error marking return as received:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
-}
+})

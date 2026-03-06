@@ -1,13 +1,11 @@
 import { createClient } from '@/lib/supabase-admin';
 import { NextResponse } from 'next/server';
+import { withAuth } from '@/lib/auth-middleware';
 
-export async function GET(
-  request: Request,
-  { params }: { params: Promise<{ email: string }> }
-) {
+export const GET = withAuth(async (req, session, context) => {
+  const { email: rawEmail } = await context.params;
+  const email = decodeURIComponent(rawEmail);
   try {
-    const { email: rawEmail } = await params;
-    const email = decodeURIComponent(rawEmail);
     const supabase = createClient();
 
     // Get user profile
@@ -17,7 +15,7 @@ export async function GET(
       .eq('email', email)
       .single();
 
-    if (userError || !user) {
+    if (userError || \!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
@@ -78,4 +76,4 @@ export async function GET(
     console.error('Error in customer profile API:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
-}
+});

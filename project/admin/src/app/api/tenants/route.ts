@@ -5,10 +5,11 @@
  * Used by the admin tenants list page.
  */
 
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
+import { withAuth } from '@/lib/auth-middleware'
 
-export async function GET() {
+export const GET = withAuth(async (req: NextRequest, session: unknown) => {
   try {
     const { data: tenants, error } = await supabaseAdmin
       .from('tenants')
@@ -24,4 +25,4 @@ export async function GET() {
     console.error('[/api/tenants]', err)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
-}
+})

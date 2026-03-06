@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withAuth } from '@/lib/auth-middleware';
 
-export async function POST(req: NextRequest) {
+export const POST = withAuth(async (req, session) => {
   try {
     const { report, rfmData, demandData } = await req.json();
 
@@ -117,4 +118,4 @@ export async function POST(req: NextRequest) {
       { status: 500 }
     );
   }
-}
+});
