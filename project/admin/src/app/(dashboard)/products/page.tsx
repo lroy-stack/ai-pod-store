@@ -1,93 +1,286 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+import { useMemo } from 'react';
+import { ColumnDef } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Plus, Pencil, Archive, Eye, Search } from 'lucide-react';
-import { useProducts } from '@/hooks/queries/useProducts';
-import { useBulkUpdateProducts, useArchiveProduct } from '@/hooks/mutations/useProductMutations';
+import { Checkbox } from '@/components/ui/checkbox';
+import { DataTable } from '@/components/ui/data-table';
+import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
+import { exportToCSV } from '@/lib/export-utils';
+import { Pencil, Archive, Plus } from 'lucide-react';
+import { useProducts, Product } from '@/hooks/queries/useProducts';
+import { useArchiveProduct, useBulkUpdateProducts } from '@/hooks/mutations/useProductMutations';
+import Image from 'next/image';
+
+const formatPrice = (cents: number, currency: string) => {
+  const symbol = currency.toLowerCase() === 'eur' ? '€' : '$';
+  return `${symbol}${(cents / 100).toFixed(2)}`;
+};
 
 export default function ProductsPage() {
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [page, setPage] = useState(1);
-  const [search, setSearch] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
-
-  // Debounce search input
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(search);
-      setPage(1); // Reset to first page on search
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, [search]);
-
-  // React Query hooks for data fetching and mutations
-  const { data, isLoading, error } = useProducts({
-    page,
-    limit: 20,
-    search: debouncedSearch || undefined,
-  });
-  const bulkUpdateMutation = useBulkUpdateProducts();
-  const archiveProductMutation = useArchiveProduct();
-
+  const { data, isLoading } = useProducts({ page: 1, limit: 500 });
   const products = data?.products || [];
-  const loading = isLoading;
-  const total = data?.total || 0;
-  const totalPages = data?.totalPages || 1;
 
-  function toggleSelect(id: string) {
-    const newSelected = new Set(selectedIds);
-    if (newSelected.has(id)) {
-      newSelected.delete(id);
-    } else {
-      newSelected.add(id);
-    }
-    setSelectedIds(newSelected);
-  }
+  const archiveProductMutation = useArchiveProduct();
+  const bulkUpdateMutation = useBulkUpdateProducts();
 
-  function bulkPublish() {
-    if (selectedIds.size === 0) return;
-
-    bulkUpdateMutation.mutate(
+  const columns = useMemo<ColumnDef<Product>[]>(
+    () => [
+      // Select column
       {
-        ids: Array.from(selectedIds),
-        status: 'active',
+        id: 'select',
+        header: ({ table }) => (
+          <Checkbox
+            checked={
+              table.getIsAllPageRowsSelected() ||
+              (table.getIsSomePageRowsSelected() && 'indeterminate')
+            }
+            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+            aria-label="Select all"
+          />
+        ),
+        cell: ({ row }) => (
+          <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            aria-label="Select row"
+          />
+        ),
+        enableSorting: false,
+        enableHiding: false,
       },
+      // Image thumbnail (50px)
       {
-        onSuccess: () => {
-          setSelectedIds(new Set());
+        id: 'image',
+        header: 'Image',
+        cell: ({ row }) => {
+          const product = row.original;
+          // Attempt to derive an image path
+          const slug = product.title
+            ?.toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-|-$/g, '');
+          const imgSrc = `/brand/logo-mark-dark.png`; // fallback
+          return (
+            <div className="w-12 h-12 rounded overflow-hidden bg-muted flex-shrink-0">
+              <Image
+                src={imgSrc}
+                alt={product.title}
+                width={50}
+                height={50}
+                className="object-cover w-full h-full"
+                unoptimized
+              />
+            </div>
+          );
         },
-        onError: (error) => {
-          console.error('Bulk publish failed:', error);
+        enableSorting: false,
+      },
+      // Name
+      {
+        accessorKey: 'title',
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title="Name" />
+        ),
+        cell: ({ row }) => (
+          <a
+            href={`/products/${row.original.id}`}
+            className="font-medium hover:underline text-primary line-clamp-2 max-w-[200px]"
+          >
+            {row.original.title}
+          </a>
+        ),
+      },
+      // Price
+      {
+        accessorKey: 'base_price_cents',
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title="Price" />
+        ),
+        cell: ({ row }) =>
+          formatPrice(row.original.base_price_cents, row.original.currency),
+      },
+      // Status
+      {
+        accessorKey: 'status',
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title="Status" />
+        ),
+        cell: ({ row }) => (
+          <Badge
+            variant={row.original.status === 'active' ? 'default' : 'secondary'}
+          >
+            {row.original.status === 'active' ? 'Active' : 'Archived'}
+          </Badge>
+        ),
+        filterFn: (row, _, filterValue) => {
+          if (!filterValue) return true;
+          return row.original.status === filterValue;
         },
-      }
+      },
+      // Category
+      {
+        accessorKey: 'category',
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title="Category" />
+        ),
+        cell: ({ row }) => (
+          <span className="capitalize text-sm">
+            {row.original.category || '—'}
+          </span>
+        ),
+        filterFn: (row, _, filterValue) => {
+          if (!filterValue) return true;
+          return (row.original.category || '') === filterValue;
+        },
+      },
+      // Provider
+      {
+        accessorKey: 'pod_provider',
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title="Provider" />
+        ),
+        cell: ({ row }) => {
+          const p = row.original.pod_provider;
+          if (p === 'printful') return <Badge variant="default">Printful</Badge>;
+          if (p) return <Badge variant="secondary">Legacy</Badge>;
+          return <Badge variant="destructive">No Provider</Badge>;
+        },
+      },
+      // Actions
+      {
+        id: 'actions',
+        enableHiding: false,
+        cell: ({ row }) => {
+          const product = row.original;
+          return (
+            <div className="flex items-center gap-1">
+              <Button variant="ghost" size="sm" asChild>
+                <a href={`/products/${product.id}`}>
+                  <Pencil className="h-4 w-4" />
+                </a>
+              </Button>
+              {product.status === 'active' && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() =>
+                    archiveProductMutation.mutate(product.id)
+                  }
+                >
+                  <Archive className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+          );
+        },
+      },
+    ],
+    [archiveProductMutation]
+  );
+
+  // Get unique categories for filter
+  const categoryOptions = useMemo(() => {
+    const cats = Array.from(
+      new Set(products.map((p) => p.category).filter(Boolean))
     );
-  }
+    return cats.map((c) => ({ label: c, value: c }));
+  }, [products]);
 
-  function archiveProduct(id: string) {
-    archiveProductMutation.mutate(id, {
-      onError: (error) => {
-        console.error('Archive failed:', error);
-      },
-    });
-  }
+  const handleExport = (rows: Product[], visibleColumnIds: string[]) => {
+    const headers = visibleColumnIds.filter(
+      (id) => !['select', 'actions', 'image'].includes(id)
+    );
+    const csvRows = rows.map((p) =>
+      headers.map((col) => {
+        switch (col) {
+          case 'title':
+            return p.title;
+          case 'base_price_cents':
+            return formatPrice(p.base_price_cents, p.currency);
+          case 'status':
+            return p.status;
+          case 'category':
+            return p.category || '';
+          case 'pod_provider':
+            return p.pod_provider || 'None';
+          default:
+            return '';
+        }
+      })
+    );
+    exportToCSV(
+      headers.map((h) => h.replace(/_/g, ' ').toUpperCase()),
+      csvRows,
+      'products.csv'
+    );
+  };
+
+  const renderMobileCard = (product: Product) => (
+    <div className="rounded-lg border border-border p-4 space-y-3">
+      <div className="flex items-start justify-between gap-2">
+        <a
+          href={`/products/${product.id}`}
+          className="font-medium text-primary hover:underline line-clamp-2"
+        >
+          {product.title}
+        </a>
+        <Badge
+          variant={product.status === 'active' ? 'default' : 'secondary'}
+        >
+          {product.status === 'active' ? 'Active' : 'Archived'}
+        </Badge>
+      </div>
+      <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+        <span className="capitalize">{product.category || '—'}</span>
+        <span>•</span>
+        <span className="font-medium">
+          {formatPrice(product.base_price_cents, product.currency)}
+        </span>
+      </div>
+      <div className="flex items-center justify-between border-t pt-2">
+        {product.pod_provider === 'printful' ? (
+          <Badge variant="default">Printful</Badge>
+        ) : product.pod_provider ? (
+          <Badge variant="secondary">Legacy</Badge>
+        ) : (
+          <Badge variant="destructive">No Provider</Badge>
+        )}
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" asChild className="min-h-[44px]">
+            <a href={`/products/${product.id}`}>
+              <Pencil className="h-4 w-4 mr-1" />
+              Edit
+            </a>
+          </Button>
+          {product.status === 'active' && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => archiveProductMutation.mutate(product.id)}
+              className="min-h-[44px]"
+            >
+              <Archive className="h-4 w-4 mr-1" />
+              Archive
+            </Button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 
   return (
-    <main className="min-h-screen p-8">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold">Products</h1>
+    <main className="min-h-screen p-4 md:p-8">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">Products</h1>
+            <p className="text-muted-foreground">
+              Manage your product catalog
+            </p>
+          </div>
           <Button asChild>
             <a href="/products/new">
               <Plus className="h-4 w-4 mr-2" />
@@ -96,214 +289,47 @@ export default function ProductsPage() {
           </Button>
         </div>
 
-        {/* Search Bar */}
-        <div className="mb-4">
-          <div className="relative max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="text"
-              placeholder="Search products by title or category..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-        </div>
-
-        {selectedIds.size > 0 && (
-          <div className="mb-4 flex gap-2">
-            <Button onClick={bulkPublish} variant="default">
-              Publish Selected ({selectedIds.size})
-            </Button>
-          </div>
-        )}
-
-        <Card>
-          <CardHeader>
-            <CardTitle>All Products</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <div className="space-y-2">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <div key={i} className="h-12 bg-muted rounded animate-pulse" />
-                ))}
-              </div>
-            ) : products.length === 0 ? (
-              <p className="text-muted-foreground text-center py-8">No products found</p>
-            ) : (
-              <>
-                {/* Desktop Table View */}
-                <div className="hidden md:block">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-12">
-                          <input type="checkbox" className="rounded" />
-                        </TableHead>
-                        <TableHead>Title</TableHead>
-                        <TableHead>Category</TableHead>
-                        <TableHead>Price</TableHead>
-                        <TableHead>Provider</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {products.map((product) => (
-                        <TableRow key={product.id}>
-                          <TableCell>
-                            <input
-                              type="checkbox"
-                              className="rounded"
-                              checked={selectedIds.has(product.id)}
-                              onChange={() => toggleSelect(product.id)}
-                            />
-                          </TableCell>
-                          <TableCell className="font-medium">{product.title}</TableCell>
-                          <TableCell className="capitalize">{product.category}</TableCell>
-                          <TableCell>
-                            {product.currency === 'eur' ? '€' : '$'}
-                            {(product.base_price_cents / 100).toFixed(2)}
-                          </TableCell>
-                          <TableCell>
-                            {product.pod_provider === 'printful' ? (
-                              <Badge variant="default">Printful</Badge>
-                            ) : product.pod_provider ? (
-                              <Badge variant="secondary">Legacy</Badge>
-                            ) : (
-                              <Badge variant="destructive">No Provider</Badge>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant={product.status === 'active' ? 'default' : 'secondary'}>
-                              {product.status === 'active' ? 'Active' : 'Archived'}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex gap-2">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                asChild
-                              >
-                                <a href={`/products/${product.id}`}>
-                                  <Pencil className="h-4 w-4" />
-                                </a>
-                              </Button>
-                              {product.status === 'active' && (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => archiveProduct(product.id)}
-                                >
-                                  <Archive className="h-4 w-4" />
-                                </Button>
-                              )}
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-
-                {/* Mobile Card View */}
-                <div className="block md:hidden space-y-4">
-                  {products.map((product) => (
-                    <div key={product.id} className="border rounded-lg p-4 space-y-3">
-                      <div className="flex items-start gap-3">
-                        <input
-                          type="checkbox"
-                          className="rounded mt-1"
-                          checked={selectedIds.has(product.id)}
-                          onChange={() => toggleSelect(product.id)}
-                        />
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-medium text-base leading-tight mb-1 break-words">
-                            {product.title}
-                          </h3>
-                          <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-                            <span className="capitalize">{product.category}</span>
-                            <span>•</span>
-                            <span className="font-medium">
-                              {product.currency === 'eur' ? '€' : '$'}
-                              {(product.base_price_cents / 100).toFixed(2)}
-                            </span>
-                          </div>
-                        </div>
-                        <Badge variant={product.status === 'active' ? 'default' : 'secondary'}>
-                          {product.status === 'active' ? 'Active' : 'Archived'}
-                        </Badge>
-                        {product.pod_provider === 'printful' ? (
-                          <Badge variant="default">Printful</Badge>
-                        ) : product.pod_provider ? (
-                          <Badge variant="secondary">Legacy</Badge>
-                        ) : (
-                          <Badge variant="destructive">No Provider</Badge>
-                        )}
-                      </div>
-                      <div className="flex gap-2 pt-2 border-t">
-                        <Button
-                          variant="outline"
-                          size="default"
-                          asChild
-                          className="flex-1 min-h-[44px]"
-                        >
-                          <a href={`/products/${product.id}`}>
-                            <Pencil className="h-4 w-4 mr-2" />
-                            Edit
-                          </a>
-                        </Button>
-                        {product.status === 'active' && (
-                          <Button
-                            variant="outline"
-                            size="default"
-                            onClick={() => archiveProduct(product.id)}
-                            className="flex-1 min-h-[44px]"
-                          >
-                            <Archive className="h-4 w-4 mr-2" />
-                            Archive
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </>
-            )}
-
-            {/* Pagination */}
-            {!loading && products.length > 0 && totalPages > 1 && (
-              <div className="mt-6 flex items-center justify-between border-t pt-4">
-                <p className="text-sm text-muted-foreground">
-                  Showing {products.length} of {total} products
-                </p>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setPage(page - 1)}
-                    disabled={page === 1}
-                  >
-                    Previous
-                  </Button>
-                  <span className="px-4 py-2 text-sm">
-                    Page {page} of {totalPages}
-                  </span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setPage(page + 1)}
-                    disabled={page === totalPages}
-                  >
-                    Next
-                  </Button>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </main>
+        {/* DataTable */}
+        <DataTable
+          columns={columns}
+          data={products}
+          isLoading={isLoading}
+          enableSorting
+          enablePagination
+          enableRowSelection
+          enableColumnVisibility
+          pageSize={20}
+          tableId="products"
+          searchColumn="title"
+          searchPlaceholder="Search products by name..."
+          filters={[
+            {
+              columnId: 'status',
+              label: 'Status',
+              options: [
+                { label: 'Active', value: 'active' },
+                { label: 'Archived', value: 'archived' },
+                { label: 'Draft', value: 'draft' },
+              ],
+            },
+            ...(categoryOptions.length > 0
+              ? [
+                  {
+                    columnId: 'category',
+                    label: 'Category',
+                    options: categoryOptions,
+                  },
+                ]
+              : []),
+          ]}
+          onExport={handleExport}
+          renderMobileCard={renderMobileCard}
+          emptyTitle="No products found"
+          emptyDescription="Try adjusting your search or filter, or create a new product."
+          emptyCtaLabel="Create Product"
+          onEmptyCta={() => window.location.assign('/products/new')}
+        />
+      </div>
+    </main>
   );
 }
