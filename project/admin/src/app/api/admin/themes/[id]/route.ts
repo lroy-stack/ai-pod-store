@@ -1,5 +1,7 @@
 import { withAuth } from '@/lib/auth-middleware'
 import { withPermission } from '@/lib/rbac'
+import { withValidation } from '@/lib/validation'
+import { themeUpdateSchema } from '@/lib/schemas/extended'
 import { createClient } from '@/lib/supabase-admin';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -37,67 +39,21 @@ export const GET = withAuth(async (req, session, context) => {
  * PUT /api/admin/themes/[id]
  * Updates a theme
  */
-export const PUT = withPermission('themes', 'update', async (req, session, context) => {
+export const PUT = withPermission('themes', 'update', withValidation(themeUpdateSchema, async (req, validatedData, session, context) => {
   try {
     const { id } = await context.params;
-    const body = await req.json();
     const supabase = createClient();
 
-    // Extract updatable fields from body
+    // Extract updatable fields from validatedData
     const updateData: Record<string, any> = {};
-
-    // Allow updating these fields
     const allowedFields = [
-      'name',
-      'slug',
-      'description',
-      'category',
-      'css_variables',
-      'css_variables_dark',
-      'fonts',
-      'border_radius',
-      'shadow_preset',
-      'is_active',
-      'is_default',
-      'is_custom',
+      'name', 'slug', 'description', 'category', 'css_variables',
+      'css_variables_dark', 'fonts', 'border_radius', 'shadow_preset',
+      'is_active', 'is_default',
     ];
-
     for (const field of allowedFields) {
-      if (field in body) {
-        updateData[field] = body[field];
-      }
-    }
-
-    // Validate category if provided
-    if (updateData.category) {
-      const validCategories = ['light', 'dark', 'high_contrast', 'custom'];
-      if (!validCategories.includes(updateData.category)) {
-        return NextResponse.json(
-          { error: `Invalid category. Must be one of: ${validCategories.join(', ')}` },
-          { status: 400 }
-        );
-      }
-    }
-
-    // Validate border_radius if provided
-    if (updateData.border_radius) {
-      const validRadii = ['none', 'small', 'medium', 'large', 'full'];
-      if (!validRadii.includes(updateData.border_radius)) {
-        return NextResponse.json(
-          { error: `Invalid border_radius. Must be one of: ${validRadii.join(', ')}` },
-          { status: 400 }
-        );
-      }
-    }
-
-    // Validate shadow_preset if provided
-    if (updateData.shadow_preset) {
-      const validPresets = ['none', 'small', 'medium', 'large', 'extra_large'];
-      if (!validPresets.includes(updateData.shadow_preset)) {
-        return NextResponse.json(
-          { error: `Invalid shadow_preset. Must be one of: ${validPresets.join(', ')}` },
-          { status: 400 }
-        );
+      if (field in validatedData) {
+        updateData[field] = (validatedData as any)[field];
       }
     }
 
@@ -167,4 +123,4 @@ export const PUT = withPermission('themes', 'update', async (req, session, conte
     console.error('Error in theme PUT API:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
-})
+}))

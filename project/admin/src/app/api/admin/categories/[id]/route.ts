@@ -9,6 +9,8 @@ import { createClient } from '@/lib/supabase-admin';
 import { NextRequest, NextResponse } from 'next/server';
 import { withAuth } from '@/lib/auth-middleware';
 import { withPermission } from '@/lib/rbac';
+import { withValidation } from '@/lib/validation';
+import { categoryUpdateSchema } from '@/lib/schemas/extended';
 
 export const GET = withAuth(async (req, session, context) => {
   try {
@@ -38,15 +40,14 @@ export const GET = withAuth(async (req, session, context) => {
   }
 })
 
-export const PATCH = withPermission('settings', 'update', async (req, session, context) => {
+export const PATCH = withPermission('settings', 'update', withValidation(categoryUpdateSchema, async (req, validatedData, session, context) => {
   try {
     const { id } = await context.params;
     const supabase = createClient();
-    const body = await req.json();
 
     const { data: category, error } = await supabase
       .from('categories')
-      .update(body)
+      .update(validatedData)
       .eq('id', id)
       .select()
       .single();
@@ -67,7 +68,7 @@ export const PATCH = withPermission('settings', 'update', async (req, session, c
       { status: 500 }
     );
   }
-})
+}))
 
 export const DELETE = withPermission('settings', 'update', async (req, session, context) => {
   try {

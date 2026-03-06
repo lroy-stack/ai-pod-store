@@ -1,5 +1,7 @@
 import { withAuth } from '@/lib/auth-middleware'
 import { withPermission } from '@/lib/rbac'
+import { withValidation } from '@/lib/validation'
+import { blogPostSchema } from '@/lib/schemas/extended'
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
@@ -30,9 +32,8 @@ export const GET = withAuth(async (req, session) => {
 })
 
 // POST /api/blog - Create new blog post
-export const POST = withPermission('blog', 'create', async (req, session) => {
+export const POST = withPermission('blog', 'create', withValidation(blogPostSchema, async (req, validatedData, session) => {
   try {
-    const body = await req.json();
     const {
       slug,
       title_en,
@@ -48,15 +49,7 @@ export const POST = withPermission('blog', 'create', async (req, session) => {
       status,
       published_at,
       tags,
-    } = body;
-
-    // Validate required fields
-    if (!slug || !title_en || !title_es || !title_de || !content_en || !content_es || !content_de) {
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
-      );
-    }
+    } = validatedData;
 
     // Insert blog post
     const { data: post, error } = await supabase
@@ -90,4 +83,4 @@ export const POST = withPermission('blog', 'create', async (req, session) => {
     console.error('Blog API error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
-})
+}))

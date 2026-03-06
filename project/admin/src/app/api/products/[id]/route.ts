@@ -2,6 +2,22 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { withPermission } from '@/lib/rbac';
 import { logUpdate } from '@/lib/audit';
+import { withValidation } from '@/lib/validation';
+import { z } from 'zod';
+
+const productUpdateSchema = z.object({
+  title: z.string().min(1).max(200).optional(),
+  name: z.string().min(1).max(200).optional(),
+  description: z.string().max(5000).optional(),
+  base_price_cents: z.number().int().min(0).optional(),
+  currency: z.enum(['EUR', 'USD', 'GBP', 'eur', 'usd', 'gbp']).optional(),
+  category: z.string().max(100).optional(),
+  tags: z.array(z.string()).optional(),
+  stock: z.number().int().min(0).optional(),
+  design_id: z.string().uuid().optional().nullable(),
+  image_url: z.string().url().optional().nullable(),
+  status: z.enum(['active', 'draft', 'archived']).optional(),
+});
 
 // GET requires 'read' permission on 'products' resource
 export const GET = withPermission('products', 'read', async (
@@ -40,8 +56,9 @@ export const GET = withPermission('products', 'read', async (
 });
 
 // PATCH requires 'update' permission on 'products' resource
-export const PATCH = withPermission('products', 'update', async (
+export const PATCH = withPermission('products', 'update', withValidation(productUpdateSchema, async (
   req: NextRequest,
+  validatedData,
   session,
   context?: { params: Promise<{ id: string }> }
 ) => {
@@ -51,7 +68,6 @@ export const PATCH = withPermission('products', 'update', async (
     }
 
     const { id } = await context.params;
-    const body = await req.json();
 
     // Fetch current product state (before update)
     const { data: beforeProduct, error: fetchError } = await supabaseAdmin
@@ -70,7 +86,7 @@ export const PATCH = withPermission('products', 'update', async (
     // Perform update
     const { data: product, error } = await supabaseAdmin
       .from('products')
-      .update(body)
+      .update(validatedData)
       .eq('id', id)
       .select()
       .single();
@@ -94,4 +110,4 @@ export const PATCH = withPermission('products', 'update', async (
       { status: 500 }
     );
   }
-});
+}));

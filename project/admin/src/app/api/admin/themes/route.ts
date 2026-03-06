@@ -1,5 +1,7 @@
 import { withAuth } from '@/lib/auth-middleware'
 import { withPermission } from '@/lib/rbac'
+import { withValidation } from '@/lib/validation'
+import { themeSchema } from '@/lib/schemas/extended'
 import { createClient } from '@/lib/supabase-admin';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -32,65 +34,29 @@ export const GET = withAuth(async (req, session) => {
  * POST /api/admin/themes
  * Creates a new custom theme
  */
-export const POST = withPermission('themes', 'create', async (req, session) => {
+export const POST = withPermission('themes', 'create', withValidation(themeSchema, async (req, validatedData, session) => {
   try {
-    const body = await req.json();
     const supabase = createClient();
-
-    // Required fields
-    if (!body.name || !body.slug) {
-      return NextResponse.json(
-        { error: 'Missing required fields: name and slug are required' },
-        { status: 400 }
-      );
-    }
 
     // Build theme object with defaults
     const newTheme: Record<string, any> = {
-      name: body.name,
-      slug: body.slug,
-      description: body.description || '',
-      category: body.category || 'custom',
-      css_variables: body.css_variables || {},
-      css_variables_dark: body.css_variables_dark || {},
-      fonts: body.fonts || {
+      name: validatedData.name,
+      slug: validatedData.slug,
+      description: validatedData.description || '',
+      category: validatedData.category || 'custom',
+      css_variables: validatedData.css_variables || {},
+      css_variables_dark: validatedData.css_variables_dark || {},
+      fonts: validatedData.fonts || {
         heading: 'system-ui',
         body: 'system-ui',
         mono: 'ui-monospace',
       },
-      border_radius: body.border_radius || 'medium',
-      shadow_preset: body.shadow_preset || 'medium',
+      border_radius: validatedData.border_radius || 'medium',
+      shadow_preset: validatedData.shadow_preset || 'medium',
       is_custom: true, // Always true for user-created themes
       is_active: false, // New themes start inactive
       is_default: false, // New themes cannot be default
     };
-
-    // Validate category
-    const validCategories = ['light', 'dark', 'high_contrast', 'custom'];
-    if (!validCategories.includes(newTheme.category)) {
-      return NextResponse.json(
-        { error: `Invalid category. Must be one of: ${validCategories.join(', ')}` },
-        { status: 400 }
-      );
-    }
-
-    // Validate border_radius
-    const validRadii = ['none', 'small', 'medium', 'large', 'full'];
-    if (!validRadii.includes(newTheme.border_radius)) {
-      return NextResponse.json(
-        { error: `Invalid border_radius. Must be one of: ${validRadii.join(', ')}` },
-        { status: 400 }
-      );
-    }
-
-    // Validate shadow_preset
-    const validPresets = ['none', 'small', 'medium', 'large', 'extra_large'];
-    if (!validPresets.includes(newTheme.shadow_preset)) {
-      return NextResponse.json(
-        { error: `Invalid shadow_preset. Must be one of: ${validPresets.join(', ')}` },
-        { status: 400 }
-      );
-    }
 
     // Insert the new theme
     const { data: createdTheme, error: insertError } = await supabase
@@ -118,4 +84,4 @@ export const POST = withPermission('themes', 'create', async (req, session) => {
     console.error('Error in themes POST API:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
-})
+}))

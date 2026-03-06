@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { withAuth } from '@/lib/auth-middleware'
 import { withPermission } from '@/lib/rbac'
+import { withValidation } from '@/lib/validation'
+import { designUpdateSchema } from '@/lib/schemas/extended'
 
 export const GET = withAuth(async (
   request: NextRequest,
@@ -46,8 +48,9 @@ export const GET = withAuth(async (
   }
 })
 
-export const PATCH = withPermission('designs', 'update', async (
+export const PATCH = withPermission('designs', 'update', withValidation(designUpdateSchema, async (
   request: NextRequest,
+  validatedData,
   session,
   context: { params?: Promise<{ id: string }> }
 ) => {
@@ -66,11 +69,9 @@ export const PATCH = withPermission('designs', 'update', async (
   const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
   try {
-    const body = await request.json()
-
     const { data, error } = await supabase
       .from('designs')
-      .update(body)
+      .update(validatedData)
       .eq('id', id)
       .select()
       .single()
@@ -91,4 +92,4 @@ export const PATCH = withPermission('designs', 'update', async (
       { status: 500 }
     )
   }
-})
+}))

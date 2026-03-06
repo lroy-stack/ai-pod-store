@@ -8,6 +8,7 @@ import { createClient } from '@/lib/supabase-admin';
 import { NextRequest, NextResponse } from 'next/server';
 import { withAuth } from '@/lib/auth-middleware';
 import { withPermission } from '@/lib/rbac';
+import { withValidation, categorySchema } from '@/lib/validation';
 
 export const GET = withAuth(async (req, session) => {
   try {
@@ -59,14 +60,13 @@ export const GET = withAuth(async (req, session) => {
   }
 })
 
-export const POST = withPermission('settings', 'update', async (req, session) => {
+export const POST = withPermission('settings', 'update', withValidation(categorySchema, async (req, validatedData, session) => {
   try {
     const supabase = createClient();
-    const body = await req.json();
 
     const { data: category, error } = await supabase
       .from('categories')
-      .insert(body)
+      .insert(validatedData)
       .select()
       .single();
 
@@ -86,4 +86,4 @@ export const POST = withPermission('settings', 'update', async (req, session) =>
       { status: 500 }
     );
   }
-})
+}))

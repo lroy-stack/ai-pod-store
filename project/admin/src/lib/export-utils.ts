@@ -74,7 +74,7 @@ export function exportConversation(messages: ChatMessage[], filename?: string) {
       lines.push('')
       lines.push('**Tool Calls:**')
       for (const tc of msg.toolCalls) {
-        lines.push(`- `${tc.tool}` (${tc.status})`)
+        lines.push(`- \`${tc.tool}\` (${tc.status})`)
         if (tc.result) {
           lines.push(`  Result: ${tc.result.slice(0, 200)}`)
         }
