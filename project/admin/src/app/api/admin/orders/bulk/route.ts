@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { withAuth } from '@/lib/auth-middleware';
+import { withPermission } from '@/lib/rbac';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY!;
 
-export const POST = withAuth(async (req, session) => {
+export const POST = withPermission('orders', 'update', async (req, session) => {
   try {
     const body = await req.json();
     const { orderIds, action } = body;

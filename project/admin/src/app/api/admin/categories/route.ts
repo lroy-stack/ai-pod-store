@@ -7,6 +7,7 @@
 import { createClient } from '@/lib/supabase-admin';
 import { NextRequest, NextResponse } from 'next/server';
 import { withAuth } from '@/lib/auth-middleware';
+import { withPermission } from '@/lib/rbac';
 
 export const GET = withAuth(async (req, session) => {
   try {
@@ -58,7 +59,7 @@ export const GET = withAuth(async (req, session) => {
   }
 })
 
-export const POST = withAuth(async (req, session) => {
+export const POST = withPermission('settings', 'update', async (req, session) => {
   try {
     const supabase = createClient();
     const body = await req.json();

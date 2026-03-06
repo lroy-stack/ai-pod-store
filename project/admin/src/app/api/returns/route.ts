@@ -6,7 +6,7 @@ export const GET = withAuth(async (request: NextRequest) => {
   const supabaseUrl = process.env.SUPABASE_URL
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY
 
-  if (\!supabaseUrl || \!supabaseServiceKey) {
+  if (!supabaseUrl || !supabaseServiceKey) {
     return NextResponse.json(
       { error: 'Supabase configuration missing' },
       { status: 500 }

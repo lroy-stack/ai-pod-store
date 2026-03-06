@@ -8,6 +8,7 @@
 import { createClient } from '@/lib/supabase-admin';
 import { NextRequest, NextResponse } from 'next/server';
 import { withAuth } from '@/lib/auth-middleware';
+import { withPermission } from '@/lib/rbac';
 
 export const GET = withAuth(async (req, session, context) => {
   try {
@@ -20,7 +21,7 @@ export const GET = withAuth(async (req, session, context) => {
       .eq('id', id)
       .single();
 
-    if (error || \!category) {
+    if (error || !category) {
       return NextResponse.json(
         { error: 'Category not found' },
         { status: 404 }
@@ -37,7 +38,7 @@ export const GET = withAuth(async (req, session, context) => {
   }
 })
 
-export const PATCH = withAuth(async (req, session, context) => {
+export const PATCH = withPermission('settings', 'update', async (req, session, context) => {
   try {
     const { id } = await context.params;
     const supabase = createClient();
@@ -68,7 +69,7 @@ export const PATCH = withAuth(async (req, session, context) => {
   }
 })
 
-export const DELETE = withAuth(async (req, session, context) => {
+export const DELETE = withPermission('settings', 'update', async (req, session, context) => {
   try {
     const { id } = await context.params;
     const supabase = createClient();

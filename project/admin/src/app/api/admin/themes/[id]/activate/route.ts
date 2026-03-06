@@ -1,4 +1,4 @@
-import { withAuth } from '@/lib/auth-middleware'
+import { withPermission } from '@/lib/rbac'
 import { createClient } from '@/lib/supabase-admin';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -6,7 +6,7 @@ import { NextRequest, NextResponse } from 'next/server';
  * POST /api/admin/themes/[id]/activate
  * Activates a theme (sets is_active to true) and deactivates all others
  */
-export const POST = withAuth(async (req, session, context) => {
+export const POST = withPermission('themes', 'update', async (req, session, context) => {
   try {
     const { id } = await context.params;
     const supabase = createClient();

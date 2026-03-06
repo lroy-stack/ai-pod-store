@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { withAuth } from '@/lib/auth-middleware'
+import { withPermission } from '@/lib/rbac'
 
 const supabase = createClient(
   process.env.SUPABASE_URL!,
@@ -13,7 +13,7 @@ const supabase = createClient(
   }
 )
 
-export const POST = withAuth(async (req, session, context) => {
+export const POST = withPermission('analytics', 'update', async (req, session, context) => {
   try {
     const { id } = await context.params
 

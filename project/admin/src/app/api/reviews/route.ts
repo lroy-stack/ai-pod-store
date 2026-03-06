@@ -3,8 +3,8 @@ import { createClient } from '@supabase/supabase-js';
 import { withAuth } from '@/lib/auth-middleware';
 
 const supabase = createClient(
-  process.env.SUPABASE_URL\!,
-  process.env.SUPABASE_SERVICE_KEY\!
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_KEY!
 );
 
 /**
@@ -27,7 +27,7 @@ export const GET = withAuth(async (req, session) => {
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
 
-    if (status \!== 'all') {
+    if (status !== 'all') {
       query = query.eq('moderation_status', status);
     }
 

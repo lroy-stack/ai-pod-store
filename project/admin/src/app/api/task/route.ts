@@ -67,7 +67,7 @@ export const POST = withAuth(async (request: NextRequest, session: unknown) => {
     const body: TaskClassificationRequest = await request.json()
     const { message } = body
 
-    if (\!message || typeof message \!== 'string') {
+    if (!message || typeof message !== 'string') {
       return NextResponse.json(
         { error: 'Message is required' },
         { status: 400 }

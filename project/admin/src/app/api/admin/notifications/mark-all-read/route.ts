@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
-import { withAuth } from '@/lib/auth-middleware';
+import { withPermission } from '@/lib/rbac';
 
 async function handler(req: NextRequest) {
   try {
@@ -22,4 +22,4 @@ async function handler(req: NextRequest) {
   }
 }
 
-export const POST = withAuth(handler);
+export const POST = withPermission('settings', 'update', handler);

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase-admin';
-import { withAuth } from '@/lib/auth-middleware';
+import { withPermission } from '@/lib/rbac';
 
 async function handler(
   request: NextRequest,
@@ -19,7 +19,7 @@ async function handler(
       .eq('id', orderId)
       .single();
 
-    if (orderError || \!order) {
+    if (orderError || !order) {
       return NextResponse.json(
         { error: 'Order not found' },
         { status: 404 }
@@ -27,7 +27,7 @@ async function handler(
     }
 
     // Check if the order has a failed provider status
-    if (order.provider_status \!== 'failed' && order.pod_error === null) {
+    if (order.provider_status !== 'failed' && order.pod_error === null) {
       return NextResponse.json(
         { error: 'Order does not have a failed provider status' },
         { status: 400 }
@@ -40,7 +40,7 @@ async function handler(
       .select('*, product:products(provider_product_id), variant:product_variants(external_variant_id)')
       .eq('order_id', orderId);
 
-    if (itemsError || \!items || items.length === 0) {
+    if (itemsError || !items || items.length === 0) {
       return NextResponse.json(
         { error: 'No items found for this order' },
         { status: 400 }
@@ -61,7 +61,7 @@ async function handler(
       }
     );
 
-    if (\!retryResponse.ok) {
+    if (!retryResponse.ok) {
       throw new Error('Failed to trigger order retry via cron');
     }
 
@@ -92,4 +92,4 @@ async function handler(
   }
 }
 
-export const POST = withAuth(handler);
+export const POST = withPermission('orders', 'update', handler);

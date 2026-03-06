@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { withAuth } from '@/lib/auth-middleware'
+import { withPermission } from '@/lib/rbac'
 import Stripe from 'stripe'
 
 /**
@@ -11,18 +11,18 @@ import Stripe from 'stripe'
  * This is the canonical "item received" step in the return lifecycle:
  *   pending -> approved -> processing (customer ships) -> item_received -> return_completed
  */
-export const POST = withAuth(async (
+export const POST = withPermission('orders', 'update', async (
   request: NextRequest,
+  session,
   context: { params?: Promise<{ id: string }>, session?: any }
 ) => {
-  const { id } = await context.params\!
-  const session = context.session
+  const { id } = await context.params!
 
   const supabaseUrl = process.env.SUPABASE_URL
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY
   const stripeSecretKey = process.env.STRIPE_SECRET_KEY
 
-  if (\!supabaseUrl || \!supabaseServiceKey) {
+  if (!supabaseUrl || !supabaseServiceKey) {
     return NextResponse.json({ error: 'Supabase configuration missing' }, { status: 500 })
   }
 
@@ -36,13 +36,13 @@ export const POST = withAuth(async (
       .eq('id', id)
       .single()
 
-    if (fetchError || \!returnRequest) {
+    if (fetchError || !returnRequest) {
       return NextResponse.json({ error: 'Return request not found' }, { status: 404 })
     }
 
     // Can only receive items that are approved or processing (customer shipped)
     const allowedStatuses = ['approved', 'processing']
-    if (\!allowedStatuses.includes(returnRequest.status)) {
+    if (!allowedStatuses.includes(returnRequest.status)) {
       return NextResponse.json(
         { error: `Cannot mark as received — current status is '${returnRequest.status}'` },
         { status: 400 }
@@ -56,7 +56,7 @@ export const POST = withAuth(async (
       .eq('id', returnRequest.order_id)
       .single()
 
-    if (orderError || \!order) {
+    if (orderError || !order) {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 })
     }
 
@@ -64,7 +64,7 @@ export const POST = withAuth(async (
     let refundAmountCents = returnRequest.refund_amount_cents || order.total_cents
 
     // Issue Stripe refund if not already done
-    if (\!stripeRefundId && stripeSecretKey && order.stripe_payment_intent_id) {
+    if (!stripeRefundId && stripeSecretKey && order.stripe_payment_intent_id) {
       const stripe = new Stripe(stripeSecretKey, { apiVersion: '2026-01-28.clover' })
       try {
         const stripeRefund = await stripe.refunds.create({
@@ -150,7 +150,7 @@ export const POST = withAuth(async (
     return NextResponse.json({
       success: true,
       return_request: updated,
-      refund_issued: \!\!stripeRefundId,
+      refund_issued: !!stripeRefundId,
     })
   } catch (error) {
     console.error('Error marking return as received:', error)

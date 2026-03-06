@@ -7,7 +7,7 @@
 
 import { createClient } from '@/lib/supabase-admin'
 import { NextRequest, NextResponse } from 'next/server'
-import { withAuth } from '@/lib/auth-middleware'
+import { withPermission } from '@/lib/rbac'
 
 async function handler(request: NextRequest) {
   try {
@@ -126,4 +126,4 @@ async function handler(request: NextRequest) {
   }
 }
 
-export const POST = withAuth(handler)
+export const POST = withPermission('users', 'update', handler)

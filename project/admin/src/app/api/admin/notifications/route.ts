@@ -11,7 +11,7 @@ async function handler(req: NextRequest) {
       .eq('email', 'admin@skapara.com')
       .single();
 
-    if (\!adminUser) {
+    if (!adminUser) {
       return NextResponse.json({
         notifications: [],
         unread_count: 0,
@@ -44,7 +44,7 @@ async function handler(req: NextRequest) {
       type: n.type || 'info',
     }));
 
-    const unreadCount = notifications.filter((n) => \!n.read).length;
+    const unreadCount = notifications.filter((n) => !n.read).length;
 
     return NextResponse.json({
       notifications,

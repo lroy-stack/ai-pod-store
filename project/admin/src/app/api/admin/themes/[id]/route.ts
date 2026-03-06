@@ -1,4 +1,5 @@
 import { withAuth } from '@/lib/auth-middleware'
+import { withPermission } from '@/lib/rbac'
 import { createClient } from '@/lib/supabase-admin';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -36,7 +37,7 @@ export const GET = withAuth(async (req, session, context) => {
  * PUT /api/admin/themes/[id]
  * Updates a theme
  */
-export const PUT = withAuth(async (req, session, context) => {
+export const PUT = withPermission('themes', 'update', async (req, session, context) => {
   try {
     const { id } = await context.params;
     const body = await req.json();

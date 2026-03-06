@@ -1,27 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { withAuth } from '@/lib/auth-middleware'
+import { withPermission } from '@/lib/rbac'
 import Stripe from 'stripe'
 
-export const POST = withAuth(async (
+export const POST = withPermission('orders', 'refund', async (
   request: NextRequest,
+  session,
   context: { params?: Promise<{ id: string }>, session?: any }
 ) => {
-  const { id } = await context.params\!
-  const session = context.session
+  const { id } = await context.params!
 
   const supabaseUrl = process.env.SUPABASE_URL
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY
   const stripeSecretKey = process.env.STRIPE_SECRET_KEY
 
-  if (\!supabaseUrl || \!supabaseServiceKey) {
+  if (!supabaseUrl || !supabaseServiceKey) {
     return NextResponse.json(
       { error: 'Supabase configuration missing' },
       { status: 500 }
     )
   }
 
-  if (\!stripeSecretKey) {
+  if (!stripeSecretKey) {
     return NextResponse.json(
       { error: 'Stripe configuration missing' },
       { status: 500 }
@@ -42,14 +42,14 @@ export const POST = withAuth(async (
       .eq('id', id)
       .single()
 
-    if (fetchError || \!returnRequest) {
+    if (fetchError || !returnRequest) {
       return NextResponse.json(
         { error: 'Return request not found' },
         { status: 404 }
       )
     }
 
-    if (returnRequest.status \!== 'pending') {
+    if (returnRequest.status !== 'pending') {
       return NextResponse.json(
         { error: 'Return request is not pending' },
         { status: 400 }
@@ -63,14 +63,14 @@ export const POST = withAuth(async (
       .eq('id', returnRequest.order_id)
       .single()
 
-    if (orderError || \!order) {
+    if (orderError || !order) {
       return NextResponse.json(
         { error: 'Order not found' },
         { status: 404 }
       )
     }
 
-    if (\!order.stripe_payment_intent_id) {
+    if (!order.stripe_payment_intent_id) {
       return NextResponse.json(
         { error: 'No payment intent found for this order' },
         { status: 400 }

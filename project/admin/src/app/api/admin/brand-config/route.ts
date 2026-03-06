@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { withValidation, brandConfigSchema } from '@/lib/validation';
+import { withPermission } from '@/lib/rbac';
 
 const supabaseUrl = process.env.SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY!;
@@ -41,7 +42,7 @@ export async function GET(request: NextRequest) {
  * PUT /api/admin/brand-config
  * Update the brand configuration
  */
-export const PUT = withValidation(brandConfigSchema, async (request: NextRequest, validatedData) => {
+export const PUT = withPermission('settings', 'update', withValidation(brandConfigSchema, async (request: NextRequest, validatedData) => {
   try {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
@@ -88,4 +89,4 @@ export const PUT = withValidation(brandConfigSchema, async (request: NextRequest
       { status: 500 }
     );
   }
-});
+}));

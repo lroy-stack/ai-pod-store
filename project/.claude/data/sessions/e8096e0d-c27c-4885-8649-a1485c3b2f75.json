@@ -25,6 +25,13 @@
     "creoq eu el max budget de 8$ es mala practica que lo tenga el inicailizador",
     "el no solo lee un specc. el es granular, va  a contrastar contra codebase.. por eso va a gastartokens de normal 20 minutos",
     "perfecto, ahroa te voy a pedir que monitores los logs del harness, que esta correindo actulmante.. deberia estar creando el json ahora vamos a esperar 10 ninutos",
-    "vamos a segrui monitoreando un poco, y hechale un ojo a featured_list para verificar que sigue el plan correctamente"
+    "vamos a segrui monitoreando un poco, y hechale un ojo a featured_list para verificar que sigue el plan correctamente",
+    "seguimos monitoreando me interesa saber si tien problemas de acceso, si tiene problemas en general, si sigue correctamenye i nstrucciones, tiene acceso a db antes de escribir",
+    "puedo cerrar la tapa del macbook y seguira correindo el harness?",
+    "estamos usando caffeinate -s -w 61876 actualmente?",
+    "no lo reemplaces, ejecuta este caffeinate -s -w 61876 en otra",
+    "vale, he cerrado durante 10 minutos, me confirmas si ha seguido trabajndo este tiempo\u00bf?",
+    "revisa sus logs esta teniendo porblemas para inicar seison con adin puede ser?",
+    "si porfavor"
   ]
 }

@@ -15,7 +15,7 @@ export const GET = withAuth(async (req, session, context) => {
       .eq('email', email)
       .single();
 
-    if (userError || \!user) {
+    if (userError || !user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 

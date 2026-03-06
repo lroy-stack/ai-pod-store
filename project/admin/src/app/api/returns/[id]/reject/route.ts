@@ -1,18 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { withAuth } from '@/lib/auth-middleware'
+import { withPermission } from '@/lib/rbac'
 
-export const POST = withAuth(async (
+export const POST = withPermission('orders', 'update', async (
   request: NextRequest,
+  session,
   context: { params?: Promise<{ id: string }>, session?: any }
 ) => {
-  const { id } = await context.params\!
-  const session = context.session
+  const { id } = await context.params!
 
   const supabaseUrl = process.env.SUPABASE_URL
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY
 
-  if (\!supabaseUrl || \!supabaseServiceKey) {
+  if (!supabaseUrl || !supabaseServiceKey) {
     return NextResponse.json(
       { error: 'Supabase configuration missing' },
       { status: 500 }
@@ -25,7 +25,7 @@ export const POST = withAuth(async (
     const body = await request.json()
     const { admin_notes } = body
 
-    if (\!admin_notes) {
+    if (!admin_notes) {
       return NextResponse.json(
         { error: 'Admin notes are required for rejection' },
         { status: 400 }
@@ -39,14 +39,14 @@ export const POST = withAuth(async (
       .eq('id', id)
       .single()
 
-    if (fetchError || \!returnRequest) {
+    if (fetchError || !returnRequest) {
       return NextResponse.json(
         { error: 'Return request not found' },
         { status: 404 }
       )
     }
 
-    if (returnRequest.status \!== 'pending') {
+    if (returnRequest.status !== 'pending') {
       return NextResponse.json(
         { error: 'Return request is not pending' },
         { status: 400 }

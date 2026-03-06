@@ -1,17 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { withAuth } from '@/lib/auth-middleware'
+import { withPermission } from '@/lib/rbac'
 
 export const GET = withAuth(async (
   request: NextRequest,
   context: { params?: Promise<{ id: string }> }
 ) => {
-  const { id } = await context.params\!
+  const { id } = await context.params!
 
   const supabaseUrl = process.env.SUPABASE_URL
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY
 
-  if (\!supabaseUrl || \!supabaseServiceKey) {
+  if (!supabaseUrl || !supabaseServiceKey) {
     return NextResponse.json(
       { error: 'Supabase configuration missing' },
       { status: 500 }
@@ -45,16 +46,17 @@ export const GET = withAuth(async (
   }
 })
 
-export const PATCH = withAuth(async (
+export const PATCH = withPermission('designs', 'update', async (
   request: NextRequest,
+  session,
   context: { params?: Promise<{ id: string }> }
 ) => {
-  const { id } = await context.params\!
+  const { id } = await context.params!
 
   const supabaseUrl = process.env.SUPABASE_URL
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY
 
-  if (\!supabaseUrl || \!supabaseServiceKey) {
+  if (!supabaseUrl || !supabaseServiceKey) {
     return NextResponse.json(
       { error: 'Supabase configuration missing' },
       { status: 500 }

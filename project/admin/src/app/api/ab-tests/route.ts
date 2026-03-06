@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { withAuth } from '@/lib/auth-middleware'
+import { withPermission } from '@/lib/rbac'
 
 const supabase = createClient(
-  process.env.SUPABASE_URL\!,
-  process.env.SUPABASE_SERVICE_KEY\!,
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_KEY!,
   {
     auth: {
       autoRefreshToken: false,
@@ -83,12 +84,12 @@ export const GET = withAuth(async (req, session) => {
   }
 })
 
-export const POST = withAuth(async (req, session) => {
+export const POST = withPermission('analytics', 'update', async (req, session) => {
   try {
     const body = await req.json()
     const { name, description, variants } = body
 
-    if (\!name || \!variants) {
+    if (!name || !variants) {
       return NextResponse.json(
         { error: 'Name and variants are required' },
         { status: 400 }
@@ -96,7 +97,7 @@ export const POST = withAuth(async (req, session) => {
     }
 
     // Validate variants structure
-    if (\!variants.control || \!variants.test) {
+    if (!variants.control || !variants.test) {
       return NextResponse.json(
         { error: 'Both control and test variants are required' },
         { status: 400 }

@@ -10,6 +10,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { withAuth } from '@/lib/auth-middleware'
+import { withPermission } from '@/lib/rbac'
 
 // Plan feature config (mirrors plan-gates.ts in frontend)
 const PLAN_CONFIG: Record<string, { custom_domain: boolean; max_products: number | null }> = {
@@ -19,7 +20,7 @@ const PLAN_CONFIG: Record<string, { custom_domain: boolean; max_products: number
   enterprise: { custom_domain: true, max_products: null },
 }
 
-export const PATCH = withAuth(async (
+export const PATCH = withPermission('settings', 'update', async (
   request: NextRequest,
   session: unknown,
   context: { params: Promise<{ id: string }> }

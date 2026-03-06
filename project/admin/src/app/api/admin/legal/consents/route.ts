@@ -30,7 +30,7 @@ async function handler(request: NextRequest) {
     // Build query
     let query = supabase
       .from('user_consents')
-      .select('*, users\!inner(email, name)', { count: 'exact' });
+      .select('*, users!inner(email, name)', { count: 'exact' });
 
     // Apply filters
     if (consentType) {
@@ -72,7 +72,7 @@ async function handler(request: NextRequest) {
         const key = `${record.consent_type}`;
         // Since we don't have user_id in this query, we'll just count all records
         // In a production scenario, we'd need a more complex query
-        if (\!summary[record.consent_type]) {
+        if (!summary[record.consent_type]) {
           summary[record.consent_type] = { total: 0, optIn: 0, optInRate: 0 };
         }
         summary[record.consent_type].total++;

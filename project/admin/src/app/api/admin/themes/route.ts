@@ -1,4 +1,5 @@
 import { withAuth } from '@/lib/auth-middleware'
+import { withPermission } from '@/lib/rbac'
 import { createClient } from '@/lib/supabase-admin';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -31,13 +32,13 @@ export const GET = withAuth(async (req, session) => {
  * POST /api/admin/themes
  * Creates a new custom theme
  */
-export const POST = withAuth(async (req, session) => {
+export const POST = withPermission('themes', 'create', async (req, session) => {
   try {
     const body = await req.json();
     const supabase = createClient();
 
     // Required fields
-    if (\!body.name || \!body.slug) {
+    if (!body.name || !body.slug) {
       return NextResponse.json(
         { error: 'Missing required fields: name and slug are required' },
         { status: 400 }
@@ -66,7 +67,7 @@ export const POST = withAuth(async (req, session) => {
 
     // Validate category
     const validCategories = ['light', 'dark', 'high_contrast', 'custom'];
-    if (\!validCategories.includes(newTheme.category)) {
+    if (!validCategories.includes(newTheme.category)) {
       return NextResponse.json(
         { error: `Invalid category. Must be one of: ${validCategories.join(', ')}` },
         { status: 400 }
@@ -75,7 +76,7 @@ export const POST = withAuth(async (req, session) => {
 
     // Validate border_radius
     const validRadii = ['none', 'small', 'medium', 'large', 'full'];
-    if (\!validRadii.includes(newTheme.border_radius)) {
+    if (!validRadii.includes(newTheme.border_radius)) {
       return NextResponse.json(
         { error: `Invalid border_radius. Must be one of: ${validRadii.join(', ')}` },
         { status: 400 }
@@ -84,7 +85,7 @@ export const POST = withAuth(async (req, session) => {
 
     // Validate shadow_preset
     const validPresets = ['none', 'small', 'medium', 'large', 'extra_large'];
-    if (\!validPresets.includes(newTheme.shadow_preset)) {
+    if (!validPresets.includes(newTheme.shadow_preset)) {
       return NextResponse.json(
         { error: `Invalid shadow_preset. Must be one of: ${validPresets.join(', ')}` },
         { status: 400 }

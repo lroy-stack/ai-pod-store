@@ -7,7 +7,7 @@ export const GET = withAuth(async (req: NextRequest, session: unknown) => {
     const searchParams = req.nextUrl.searchParams;
     const query = searchParams.get('q');
 
-    if (\!query || query.trim().length === 0) {
+    if (!query || query.trim().length === 0) {
       return NextResponse.json({ results: [] });
     }
 

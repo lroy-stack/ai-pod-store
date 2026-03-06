@@ -1,10 +1,11 @@
 import { withAuth } from '@/lib/auth-middleware'
+import { withPermission } from '@/lib/rbac'
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
-  process.env.SUPABASE_URL\!,
-  process.env.SUPABASE_SERVICE_KEY\!,
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_KEY!,
   { auth: { autoRefreshToken: false, persistSession: false } }
 );
 
@@ -29,7 +30,7 @@ export const GET = withAuth(async (req, session) => {
 })
 
 // POST /api/blog - Create new blog post
-export const POST = withAuth(async (req, session) => {
+export const POST = withPermission('blog', 'create', async (req, session) => {
   try {
     const body = await req.json();
     const {
@@ -50,7 +51,7 @@ export const POST = withAuth(async (req, session) => {
     } = body;
 
     // Validate required fields
-    if (\!slug || \!title_en || \!title_es || \!title_de || \!content_en || \!content_es || \!content_de) {
+    if (!slug || !title_en || !title_es || !title_de || !content_en || !content_es || !content_de) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }

@@ -15,7 +15,7 @@ export const GET = withAuth(async (req, session, context) => {
       .eq('email', email)
       .limit(1);
 
-    if (userError || \!users || users.length === 0) {
+    if (userError || !users || users.length === 0) {
       return NextResponse.json([]);
     }
 

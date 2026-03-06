@@ -18,7 +18,7 @@ export const GET = withAuth(async (req, session) => {
       },
     })
 
-    if (\!soulRes.ok) {
+    if (!soulRes.ok) {
       return NextResponse.json(
         { error: 'Failed to fetch SOUL.md' },
         { status: soulRes.status }
@@ -34,7 +34,7 @@ export const GET = withAuth(async (req, session) => {
       },
     })
 
-    if (\!proposalsRes.ok) {
+    if (!proposalsRes.ok) {
       return NextResponse.json(
         { error: 'Failed to fetch proposals' },
         { status: proposalsRes.status }
@@ -68,14 +68,14 @@ export const POST = withAuth(async (req, session) => {
     const body = await req.json()
     const { action, proposalId, reason } = body
 
-    if (\!action || \!proposalId) {
+    if (!action || !proposalId) {
       return NextResponse.json(
         { error: 'Missing required fields: action, proposalId' },
         { status: 400 }
       )
     }
 
-    if (action \!== 'approve' && action \!== 'reject') {
+    if (action !== 'approve' && action !== 'reject') {
       return NextResponse.json(
         { error: 'Invalid action. Must be "approve" or "reject"' },
         { status: 400 }
@@ -95,7 +95,7 @@ export const POST = withAuth(async (req, session) => {
       body: action === 'reject' && reason ? JSON.stringify({ reason }) : undefined,
     })
 
-    if (\!response.ok) {
+    if (!response.ok) {
       const errorData = await response.json().catch(() => ({}))
       return NextResponse.json(
         { error: errorData.detail || `Failed to ${action} proposal` },

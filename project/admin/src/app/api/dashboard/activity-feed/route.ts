@@ -61,9 +61,7 @@ export const GET = withAuth(async (req, session) => {
       // Keep-alive ping every 30 seconds
       const pingInterval = setInterval(() => {
         try {
-          controller.enqueue(encoder.encode(': ping
-
-'));
+          controller.enqueue(encoder.encode(': ping\n\n'));
         } catch (err) {
           console.error('[ActivityFeed SSE] Ping failed:', err);
           clearInterval(pingInterval);

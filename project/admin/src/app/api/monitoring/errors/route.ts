@@ -20,7 +20,7 @@ export const GET = withAuth(async (req, session) => {
     const supabaseUrl = process.env.SUPABASE_URL;
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
 
-    if (\!supabaseUrl || \!supabaseServiceKey) {
+    if (!supabaseUrl || !supabaseServiceKey) {
       return NextResponse.json(
         { error: 'Missing Supabase configuration' },
         { status: 500 }

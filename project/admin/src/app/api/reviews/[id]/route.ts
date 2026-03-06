@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { withAuth } from '@/lib/auth-middleware';
+import { withPermission } from '@/lib/rbac';
 
 const supabase = createClient(
-  process.env.SUPABASE_URL\!,
-  process.env.SUPABASE_SERVICE_KEY\!
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_KEY!
 );
 
 /**
@@ -14,14 +15,14 @@ const supabase = createClient(
  *  - moderation_notes?: string (optional)
  *  - moderated_by: string (user ID)
  */
-export const PUT = withAuth(async (req, session, context) => {
+export const PUT = withPermission('reviews', 'moderate', async (req, session, context) => {
   const { id } = await context.params;
 
   try {
     const body = await req.json();
     const { moderation_status, moderation_notes, moderated_by } = body;
 
-    if (\!moderation_status || \!['approved', 'rejected'].includes(moderation_status)) {
+    if (!moderation_status || !['approved', 'rejected'].includes(moderation_status)) {
       return NextResponse.json(
         { error: 'Invalid moderation_status. Must be "approved" or "rejected".' },
         { status: 400 }
@@ -48,7 +49,7 @@ export const PUT = withAuth(async (req, session, context) => {
       );
     }
 
-    if (\!data) {
+    if (!data) {
       return NextResponse.json(
         { error: 'Review not found' },
         { status: 404 }

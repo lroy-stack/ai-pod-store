@@ -2,8 +2,8 @@ import { withAuth } from '@/lib/auth-middleware'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.SUPABASE_URL\!
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY\!
+const supabaseUrl = process.env.SUPABASE_URL!
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY!
 
 export const GET = withAuth(async (req, session) => {
   try {
@@ -21,7 +21,7 @@ export const GET = withAuth(async (req, session) => {
       .range(offset, offset + limit - 1)
 
     // Filter by actor_type if provided
-    if (actorType && actorType \!== 'all') {
+    if (actorType && actorType !== 'all') {
       query = query.eq('actor_type', actorType)
     }
 

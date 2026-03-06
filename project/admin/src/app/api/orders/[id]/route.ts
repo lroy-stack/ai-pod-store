@@ -26,7 +26,7 @@ export const GET = withAuth(async (req, session, context) => {
       );
     }
 
-    if (\!order) {
+    if (!order) {
       return NextResponse.json(
         { error: 'Order not found' },
         { status: 404 }
