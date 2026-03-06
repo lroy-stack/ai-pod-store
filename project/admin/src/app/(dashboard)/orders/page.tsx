@@ -22,6 +22,8 @@ import { DataTable } from '@/components/ui/data-table';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { exportToCSV } from '@/lib/export-utils';
 import { useOrders, Order } from '@/hooks/queries/useOrders';
+import { OrderKanbanBoard } from '@/components/orders/OrderKanbanBoard';
+import { LayoutList, LayoutDashboard } from 'lucide-react';
 
 const statusColors: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
   pending: 'secondary',
@@ -50,6 +52,7 @@ export default function OrdersPage() {
   const [bulkAction, setBulkAction] = useState<string>('');
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [bulkLoading, setBulkLoading] = useState(false);
+  const [viewMode, setViewMode] = useState<'table' | 'board'>('table');
 
   // Fetch a large page to work client-side
   const { data, isLoading } = useOrders({ page: 1, limit: 500 });
@@ -291,11 +294,34 @@ export default function OrdersPage() {
     <div className="min-h-screen p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Orders</h1>
-          <p className="text-muted-foreground">
-            Manage and track customer orders
-          </p>
+        <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">Orders</h1>
+            <p className="text-muted-foreground">
+              Manage and track customer orders
+            </p>
+          </div>
+          {/* Table | Board switcher */}
+          <div className="flex items-center gap-1 p-1 rounded-lg border border-border bg-muted/50 self-start sm:self-auto">
+            <Button
+              variant={viewMode === 'table' ? 'default' : 'ghost'}
+              size="sm"
+              className="gap-2 h-8"
+              onClick={() => setViewMode('table')}
+            >
+              <LayoutList className="h-4 w-4" />
+              Table
+            </Button>
+            <Button
+              variant={viewMode === 'board' ? 'default' : 'ghost'}
+              size="sm"
+              className="gap-2 h-8"
+              onClick={() => setViewMode('board')}
+            >
+              <LayoutDashboard className="h-4 w-4" />
+              Board
+            </Button>
+          </div>
         </div>
 
         {/* Bulk Actions Bar */}
@@ -339,39 +365,43 @@ export default function OrdersPage() {
           </div>
         )}
 
-        {/* DataTable */}
-        <DataTable
-          columns={columns}
-          data={orders}
-          isLoading={isLoading}
-          enableSorting
-          enablePagination
-          enableRowSelection
-          enableColumnVisibility
-          pageSize={20}
-          tableId="orders"
-          searchColumn="customer_email"
-          searchPlaceholder="Search by customer email or name..."
-          filters={[
-            {
-              columnId: 'status',
-              label: 'Status',
-              options: [
-                { label: 'Pending', value: 'pending' },
-                { label: 'Processing', value: 'processing' },
-                { label: 'Shipped', value: 'shipped' },
-                { label: 'Delivered', value: 'delivered' },
-                { label: 'Cancelled', value: 'cancelled' },
-                { label: 'Refunded', value: 'refunded' },
-              ],
-            },
-          ]}
-          onExport={handleExport}
-          onRowSelectionChange={setSelectedRows}
-          renderMobileCard={renderMobileCard}
-          emptyTitle="No orders found"
-          emptyDescription="Try adjusting your search or filter criteria."
-        />
+        {/* Table or Board view */}
+        {viewMode === 'table' ? (
+          <DataTable
+            columns={columns}
+            data={orders}
+            isLoading={isLoading}
+            enableSorting
+            enablePagination
+            enableRowSelection
+            enableColumnVisibility
+            pageSize={20}
+            tableId="orders"
+            searchColumn="customer_email"
+            searchPlaceholder="Search by customer email or name..."
+            filters={[
+              {
+                columnId: 'status',
+                label: 'Status',
+                options: [
+                  { label: 'Pending', value: 'pending' },
+                  { label: 'Processing', value: 'processing' },
+                  { label: 'Shipped', value: 'shipped' },
+                  { label: 'Delivered', value: 'delivered' },
+                  { label: 'Cancelled', value: 'cancelled' },
+                  { label: 'Refunded', value: 'refunded' },
+                ],
+              },
+            ]}
+            onExport={handleExport}
+            onRowSelectionChange={setSelectedRows}
+            renderMobileCard={renderMobileCard}
+            emptyTitle="No orders found"
+            emptyDescription="Try adjusting your search or filter criteria."
+          />
+        ) : (
+          <OrderKanbanBoard orders={orders} isLoading={isLoading} />
+        )}
 
         {/* Confirmation Dialog */}
         <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>

@@ -1,13 +1,29 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useEffect, useState, useRef, useCallback } from 'react';
+import { useParams } from 'next/navigation';
 import { adminFetch } from '@/lib/admin-api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { toast } from 'sonner';
+import {
+  Package, Grid3X3, ImageIcon, Search, ShieldCheck, ExternalLink,
+} from 'lucide-react';
+import Link from 'next/link';
+
+// ─── Types ───────────────────────────────────────────────────────────────────
 
 interface Product {
   id: string;
@@ -19,27 +35,80 @@ interface Product {
   status: string;
   pod_provider?: string | null;
   provider_product_id?: string | null;
+  images?: Array<{ src: string; position?: number; is_primary?: boolean }> | null;
+  // SEO
+  slug?: string | null;
+  meta_title?: string | null;
+  meta_description?: string | null;
+  // GPSR
+  gpsr_info?: {
+    manufacturer_name?: string;
+    manufacturer_address?: string;
+    manufacturer_contact?: string;
+    safety_warnings?: string;
+    material_info?: string;
+    age_restriction?: string;
+  } | null;
 }
 
+// ─── Save Bar ────────────────────────────────────────────────────────────────
+
+function SaveBar({
+  isDirty,
+  saving,
+  onSave,
+  onDiscard,
+}: {
+  isDirty: boolean;
+  saving: boolean;
+  onSave: () => void;
+  onDiscard: () => void;
+}) {
+  if (!isDirty) return null;
+
+  return (
+    <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background/95 backdrop-blur-sm shadow-lg">
+      <div className="max-w-4xl mx-auto px-4 md:px-8 py-3 flex items-center justify-between gap-3">
+        <p className="text-sm text-muted-foreground">You have unsaved changes</p>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={onDiscard} disabled={saving}>
+            Discard
+          </Button>
+          <Button size="sm" onClick={onSave} disabled={saving}>
+            {saving ? 'Saving...' : 'Save Changes'}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
+
 export default function EditProductPage() {
-  const router = useRouter();
   const params = useParams();
   const id = params.id as string;
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [product, setProduct] = useState<Product | null>(null);
+  const originalProduct = useRef<Product | null>(null);
+  const [isDirty, setIsDirty] = useState(false);
 
   useEffect(() => {
     fetchProduct();
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
 
   async function fetchProduct() {
+    setLoading(true);
     try {
       const res = await adminFetch(`/api/products/${id}`);
       if (res.ok) {
         const data = await res.json();
         setProduct(data.product);
+        originalProduct.current = data.product;
+        setIsDirty(false);
       }
     } catch (error) {
       console.error('Failed to fetch product:', error);
@@ -48,12 +117,33 @@ export default function EditProductPage() {
     }
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  const updateField = useCallback(
+    (updates: Partial<Product>) => {
+      setProduct((prev) => {
+        if (!prev) return prev;
+        const updated = { ...prev, ...updates };
+        setIsDirty(JSON.stringify(updated) !== JSON.stringify(originalProduct.current));
+        return updated;
+      });
+    },
+    []
+  );
+
+  const updateGpsr = useCallback((key: string, value: string) => {
+    setProduct((prev) => {
+      if (!prev) return prev;
+      const updated = {
+        ...prev,
+        gpsr_info: { ...(prev.gpsr_info ?? {}), [key]: value },
+      };
+      setIsDirty(JSON.stringify(updated) !== JSON.stringify(originalProduct.current));
+      return updated;
+    });
+  }, []);
+
+  const handleSave = async () => {
     if (!product) return;
-
     setSaving(true);
-
     try {
       const res = await adminFetch(`/api/products/${id}`, {
         method: 'PATCH',
@@ -64,151 +154,410 @@ export default function EditProductPage() {
           base_price_cents: product.base_price_cents,
           currency: product.currency,
           category: product.category,
+          status: product.status,
+          slug: product.slug || null,
+          meta_title: product.meta_title || null,
+          meta_description: product.meta_description || null,
+          gpsr_info: product.gpsr_info || {},
         }),
       });
-
       if (res.ok) {
-        router.push('/products');
+        const data = await res.json();
+        setProduct(data.product);
+        originalProduct.current = data.product;
+        setIsDirty(false);
+        toast.success('Product saved successfully');
       } else {
-        toast.error('Failed to update product');
+        toast.error('Failed to save product');
       }
-    } catch (error) {
-      console.error('Update product error:', error);
-      toast.error('Failed to update product');
+    } catch {
+      toast.error('Failed to save product');
     } finally {
       setSaving(false);
     }
-  }
+  };
+
+  const handleDiscard = () => {
+    if (originalProduct.current) {
+      setProduct(originalProduct.current);
+      setIsDirty(false);
+    }
+  };
+
+  // ── Loading state ──────────────────────────────────────────────────────────
 
   if (loading) {
     return (
-      <main className="min-h-screen p-8">
-          <div className="max-w-2xl">
-            <div className="h-8 w-48 bg-muted rounded animate-pulse mb-6" />
-            <Card>
-              <CardHeader>
-                <div className="h-6 w-32 bg-muted rounded animate-pulse" />
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {[1, 2, 3, 4].map((i) => (
-                    <div key={i} className="h-10 bg-muted rounded animate-pulse" />
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </main>
+      <div className="p-4 md:p-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="h-8 w-48 bg-muted rounded animate-pulse mb-6" />
+          <div className="h-12 bg-muted rounded animate-pulse mb-4" />
+          <div className="h-64 bg-muted rounded animate-pulse" />
+        </div>
+      </div>
     );
   }
 
   if (!product) {
     return (
-      <main className="min-h-screen p-8">
-          <p>Product not found</p>
-        </main>
+      <div className="p-4 md:p-8">
+        <div className="max-w-4xl mx-auto">
+          <p className="text-destructive">Product not found</p>
+        </div>
+      </div>
     );
   }
 
+  const images = Array.isArray(product.images) ? product.images : [];
+
   return (
-    <main className="min-h-screen p-8">
-        <div className="max-w-2xl">
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="text-3xl font-bold">Edit Product</h1>
+    <div className="p-4 md:p-8 pb-24">
+      <div className="max-w-4xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <h1 className="text-2xl font-bold">Edit Product</h1>
+            <p className="text-muted-foreground text-sm font-mono mt-0.5">{product.id}</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Badge variant={product.status === 'active' ? 'default' : 'secondary'} className="capitalize">
+              {product.status}
+            </Badge>
             {product.pod_provider === 'printful' && product.provider_product_id && (
               <a
                 href={`https://www.printful.com/dashboard/sync/products/${product.provider_product_id}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 px-4 py-2 text-sm font-medium transition-colors"
               >
-                View on Printful ↗
+                <Button variant="outline" size="sm" className="gap-1">
+                  <ExternalLink className="h-3.5 w-3.5" />
+                  Printful
+                </Button>
               </a>
             )}
           </div>
+        </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Product Details</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Tabs */}
+        <Tabs defaultValue="general" className="space-y-4">
+          <TabsList className="grid grid-cols-5 w-full">
+            <TabsTrigger value="general" className="flex items-center gap-1 text-xs sm:text-sm">
+              <Package className="h-3.5 w-3.5 hidden sm:block" />
+              General
+            </TabsTrigger>
+            <TabsTrigger value="variants" className="flex items-center gap-1 text-xs sm:text-sm">
+              <Grid3X3 className="h-3.5 w-3.5 hidden sm:block" />
+              Variants
+            </TabsTrigger>
+            <TabsTrigger value="images" className="flex items-center gap-1 text-xs sm:text-sm">
+              <ImageIcon className="h-3.5 w-3.5 hidden sm:block" />
+              Images
+            </TabsTrigger>
+            <TabsTrigger value="seo" className="flex items-center gap-1 text-xs sm:text-sm">
+              <Search className="h-3.5 w-3.5 hidden sm:block" />
+              SEO
+            </TabsTrigger>
+            <TabsTrigger value="gpsr" className="flex items-center gap-1 text-xs sm:text-sm">
+              <ShieldCheck className="h-3.5 w-3.5 hidden sm:block" />
+              GPSR
+            </TabsTrigger>
+          </TabsList>
+
+          {/* General Tab */}
+          <TabsContent value="general" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Product Details</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
                 <div>
                   <Label htmlFor="title">Title</Label>
                   <Input
                     id="title"
                     value={product.title}
-                    onChange={(e) => setProduct({ ...product, title: e.target.value })}
-                    required
+                    onChange={(e) => updateField({ title: e.target.value })}
                   />
                 </div>
-
                 <div>
                   <Label htmlFor="description">Description</Label>
-                  <Input
+                  <Textarea
                     id="description"
-                    value={product.description}
-                    onChange={(e) => setProduct({ ...product, description: e.target.value })}
+                    rows={4}
+                    value={product.description || ''}
+                    onChange={(e) => updateField({ description: e.target.value })}
                   />
                 </div>
-
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="price">Price (cents)</Label>
+                    <Label htmlFor="price">Base Price (cents)</Label>
                     <Input
                       id="price"
                       type="number"
                       value={product.base_price_cents}
-                      onChange={(e) => setProduct({ ...product, base_price_cents: parseInt(e.target.value) })}
-                      required
+                      onChange={(e) => updateField({ base_price_cents: parseInt(e.target.value) || 0 })}
                     />
                   </div>
-
                   <div>
                     <Label htmlFor="currency">Currency</Label>
-                    <select
-                      id="currency"
-                      value={product.currency}
-                      onChange={(e) => setProduct({ ...product, currency: e.target.value })}
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    <Select
+                      value={product.currency.toUpperCase()}
+                      onValueChange={(v) => updateField({ currency: v })}
                     >
-                      <option value="EUR">EUR</option>
-                      <option value="USD">USD</option>
-                      <option value="GBP">GBP</option>
-                    </select>
+                      <SelectTrigger id="currency">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="EUR">EUR</SelectItem>
+                        <SelectItem value="USD">USD</SelectItem>
+                        <SelectItem value="GBP">GBP</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="category">Category</Label>
+                    <Input
+                      id="category"
+                      value={product.category || ''}
+                      onChange={(e) => updateField({ category: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="status">Status</Label>
+                    <Select
+                      value={product.status}
+                      onValueChange={(v) => updateField({ status: v })}
+                    >
+                      <SelectTrigger id="status">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="active">Active</SelectItem>
+                        <SelectItem value="draft">Draft</SelectItem>
+                        <SelectItem value="archived">Archived</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
+          {/* Variants Tab */}
+          <TabsContent value="variants" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Variants</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Variant matrix showing all size × color combinations. Each cell shows price and availability.
+                </p>
+                <div className="mt-4 rounded-lg border border-dashed border-border p-8 text-center">
+                  <Grid3X3 className="h-8 w-8 mx-auto mb-3 text-muted-foreground" />
+                  <p className="text-sm font-medium">Variant Matrix</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Visual grid of sizes and colors coming in next update
+                  </p>
+                  <Link href={`/products/${id}/variants`}>
+                    <Button variant="outline" size="sm" className="mt-4">
+                      Manage Variants
+                    </Button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Images Tab */}
+          <TabsContent value="images" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Product Images</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {images.length === 0 ? (
+                  <div className="rounded-lg border border-dashed border-border p-8 text-center">
+                    <ImageIcon className="h-8 w-8 mx-auto mb-3 text-muted-foreground" />
+                    <p className="text-sm font-medium">No images</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Upload product images from Printful or add custom images
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                    {images.slice(0, 12).map((img, idx) => (
+                      <div
+                        key={idx}
+                        className="relative aspect-square rounded-lg border border-border overflow-hidden bg-muted"
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={typeof img === 'string' ? img : img.src}
+                          alt={`Product image ${idx + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                        {(typeof img !== 'string' && img.is_primary) && (
+                          <Badge className="absolute top-1 left-1 text-xs py-0">Primary</Badge>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* SEO Tab */}
+          <TabsContent value="seo" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Search Engine Optimisation</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
                 <div>
-                  <Label htmlFor="category">Category</Label>
-                  <select
-                    id="category"
-                    value={product.category}
-                    onChange={(e) => setProduct({ ...product, category: e.target.value })}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                  >
-                    <option value="apparel">Apparel</option>
-                    <option value="home">Home</option>
-                    <option value="accessories">Accessories</option>
-                  </select>
+                  <Label htmlFor="slug">URL Slug</Label>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground shrink-0">/en/shop/products/</span>
+                    <Input
+                      id="slug"
+                      placeholder="my-product-name"
+                      value={product.slug || ''}
+                      onChange={(e) => updateField({ slug: e.target.value || null })}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Leave blank to auto-generate from title
+                  </p>
                 </div>
+                <div>
+                  <Label htmlFor="meta_title">Meta Title</Label>
+                  <Input
+                    id="meta_title"
+                    placeholder={product.title}
+                    value={product.meta_title || ''}
+                    onChange={(e) => updateField({ meta_title: e.target.value || null })}
+                    maxLength={200}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {(product.meta_title || '').length}/200 characters · Recommended: 50–60
+                  </p>
+                </div>
+                <div>
+                  <Label htmlFor="meta_description">Meta Description</Label>
+                  <Textarea
+                    id="meta_description"
+                    rows={3}
+                    placeholder={product.description?.substring(0, 160) || 'Product description for search engines'}
+                    value={product.meta_description || ''}
+                    onChange={(e) => updateField({ meta_description: e.target.value || null })}
+                    maxLength={500}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {(product.meta_description || '').length}/500 characters · Recommended: 120–160
+                  </p>
+                </div>
+                {/* Preview */}
+                <div className="rounded-lg border border-border p-4 bg-muted/30">
+                  <p className="text-xs text-muted-foreground mb-2 font-medium uppercase tracking-wide">Search Preview</p>
+                  <p className="text-base text-blue-600 dark:text-blue-400 font-medium truncate">
+                    {product.meta_title || product.title}
+                  </p>
+                  <p className="text-xs text-green-700 dark:text-green-400 truncate">
+                    skapara.com/en/shop/products/{product.slug || '[auto-generated]'}
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                    {product.meta_description || product.description || 'No description provided.'}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-                <div className="flex gap-2">
-                  <Button type="submit" disabled={saving}>
-                    {saving ? 'Saving...' : 'Save Changes'}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => router.push('/products')}
-                  >
-                    Cancel
-                  </Button>
+          {/* GPSR Tab */}
+          <TabsContent value="gpsr" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>
+                  GPSR — General Product Safety Regulation
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 p-3 text-sm text-amber-800 dark:text-amber-200">
+                  EU GPSR (effective Dec 13, 2024) requires manufacturer and safety information for all products sold to EU consumers.
                 </div>
-              </form>
-            </CardContent>
-          </Card>
-        </div>
-      </main>
+                <div>
+                  <Label htmlFor="manufacturer_name">Manufacturer / Responsible Person</Label>
+                  <Input
+                    id="manufacturer_name"
+                    placeholder="Company name"
+                    value={product.gpsr_info?.manufacturer_name || ''}
+                    onChange={(e) => updateGpsr('manufacturer_name', e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="manufacturer_address">Manufacturer Address</Label>
+                  <Textarea
+                    id="manufacturer_address"
+                    rows={2}
+                    placeholder="Street, City, Country"
+                    value={product.gpsr_info?.manufacturer_address || ''}
+                    onChange={(e) => updateGpsr('manufacturer_address', e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="manufacturer_contact">Contact (email or URL)</Label>
+                  <Input
+                    id="manufacturer_contact"
+                    placeholder="safety@example.com or https://example.com/safety"
+                    value={product.gpsr_info?.manufacturer_contact || ''}
+                    onChange={(e) => updateGpsr('manufacturer_contact', e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="safety_warnings">Safety Warnings</Label>
+                  <Textarea
+                    id="safety_warnings"
+                    rows={3}
+                    placeholder="e.g. Keep away from children under 3 years. Not suitable for..."
+                    value={product.gpsr_info?.safety_warnings || ''}
+                    onChange={(e) => updateGpsr('safety_warnings', e.target.value)}
+                  />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="material_info">Material / Composition</Label>
+                    <Input
+                      id="material_info"
+                      placeholder="e.g. 100% organic cotton"
+                      value={product.gpsr_info?.material_info || ''}
+                      onChange={(e) => updateGpsr('material_info', e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="age_restriction">Age Restriction</Label>
+                    <Input
+                      id="age_restriction"
+                      placeholder="e.g. 14+ years"
+                      value={product.gpsr_info?.age_restriction || ''}
+                      onChange={(e) => updateGpsr('age_restriction', e.target.value)}
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
+
+      {/* Sticky Save Bar */}
+      <SaveBar
+        isDirty={isDirty}
+        saving={saving}
+        onSave={handleSave}
+        onDiscard={handleDiscard}
+      />
+    </div>
   );
 }

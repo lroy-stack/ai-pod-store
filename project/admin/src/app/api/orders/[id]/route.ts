@@ -43,10 +43,21 @@ export const GET = withAuth(async (req, session, context) => {
       console.error('Order items fetch error:', itemsError);
     }
 
+    // Fetch user order count (for first-time customer fraud check)
+    let userOrderCount = 0;
+    if (order.user_id) {
+      const { count } = await supabaseAdmin
+        .from('orders')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', order.user_id);
+      userOrderCount = count ?? 0;
+    }
+
     return NextResponse.json({
       order: {
         ...order,
-        items: lineItems || []
+        items: lineItems || [],
+        user_order_count: userOrderCount,
       }
     });
   } catch (error: any) {

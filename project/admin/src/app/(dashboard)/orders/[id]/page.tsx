@@ -59,6 +59,89 @@ interface OrderDetail {
   admin_notes?: AdminNote[];
   items?: OrderLineItem[];
   user?: { id: string; email: string; name: string | null };
+  user_order_count?: number;
+}
+
+// ─── Fraud Indicators ────────────────────────────────────────────────────────
+
+interface FraudFlag {
+  label: string;
+  reason: string;
+}
+
+function computeFraudFlags(order: OrderDetail): FraudFlag[] {
+  const flags: FraudFlag[] = [];
+  const shipping = order.shipping_address as Record<string, string> | null;
+  const totalEur = order.total_cents / 100;
+  const isHighValue = totalEur > 200;
+
+  // Flag 1: First-time customer with order > €200
+  const isFirstOrNew = (order.user_order_count ?? 0) <= 1;
+  if (isHighValue && order.user_id && isFirstOrNew) {
+    flags.push({
+      label: 'First Order > €200',
+      reason: `High-value first order (${order.currency.toUpperCase()} ${totalEur.toFixed(2)}) from new customer`,
+    });
+  }
+
+  // Flag 2: High-value guest order (no account)
+  if (isHighValue && !order.user_id) {
+    flags.push({
+      label: 'High Value Guest',
+      reason: `Guest checkout for ${order.currency.toUpperCase()} ${totalEur.toFixed(2)} — no account`,
+    });
+  }
+
+  // Flag 3: Address mismatch — currency region vs shipping country
+  const shippingCountry = (shipping?.country ?? shipping?.country_code ?? '').toUpperCase();
+  const eurCountries = ['DE', 'FR', 'ES', 'IT', 'NL', 'BE', 'AT', 'PT', 'FI', 'IE', 'GR', 'LU', 'SK', 'SI', 'MT', 'CY', 'EE', 'LV', 'LT'];
+  const currencyIsEur = order.currency.toUpperCase() === 'EUR';
+  const currencyIsUsd = order.currency.toUpperCase() === 'USD';
+  if (
+    shippingCountry &&
+    ((currencyIsUsd && eurCountries.includes(shippingCountry)) ||
+      (currencyIsEur && shippingCountry === 'US'))
+  ) {
+    flags.push({
+      label: 'Address Mismatch',
+      reason: `Order currency (${order.currency.toUpperCase()}) does not match shipping country (${shippingCountry})`,
+    });
+  }
+
+  // Flag 4: Multiple failed payment signals — provider failed with no retry
+  if (order.provider_status === 'failed' && !order.external_order_id) {
+    flags.push({
+      label: 'Provider Failed',
+      reason: 'Order submitted to provider but failed — possible fulfilment risk',
+    });
+  }
+
+  return flags;
+}
+
+function FraudIndicators({ order }: { order: OrderDetail }) {
+  const flags = computeFraudFlags(order);
+  if (flags.length === 0) return null;
+
+  return (
+    <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-3 space-y-2">
+      <p className="text-xs font-semibold text-destructive uppercase tracking-wide">
+        Fraud Indicators
+      </p>
+      <div className="flex flex-wrap gap-2">
+        {flags.map((flag) => (
+          <Badge
+            key={flag.label}
+            variant="destructive"
+            className="text-xs"
+            title={flag.reason}
+          >
+            {flag.label}
+          </Badge>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -332,6 +415,9 @@ export default function OrderDetailPage() {
             )}
           </div>
         </div>
+
+        {/* Fraud Indicators */}
+        <FraudIndicators order={order} />
 
         {/* Tabs */}
         <Tabs defaultValue="general" className="space-y-4">

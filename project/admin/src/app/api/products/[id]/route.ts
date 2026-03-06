@@ -17,6 +17,12 @@ const productUpdateSchema = z.object({
   design_id: z.string().uuid().optional().nullable(),
   image_url: z.string().url().optional().nullable(),
   status: z.enum(['active', 'draft', 'archived']).optional(),
+  // SEO fields
+  slug: z.string().max(200).optional().nullable(),
+  meta_title: z.string().max(200).optional().nullable(),
+  meta_description: z.string().max(500).optional().nullable(),
+  // GPSR fields
+  gpsr_info: z.record(z.unknown()).optional().nullable(),
 });
 
 // GET requires 'read' permission on 'products' resource
