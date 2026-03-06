@@ -11,7 +11,7 @@ import { SessionData } from '@/lib/session';
 export function createMockSession(data: Partial<SessionData> = {}): SessionData {
   return {
     id: data.id || 'test-user-id',
-    email: data.email || 'admin@podstore.local',
+    email: data.email || 'admin@skapara.com',
     role: data.role || 'admin',
     name: data.name || 'Test Admin',
     isLoggedIn: data.isLoggedIn !== undefined ? data.isLoggedIn : true,
@@ -115,7 +115,7 @@ export function createMockAdminSession(overrides: Partial<{
 }> = {}) {
   return {
     userId: overrides.userId || 'test-admin-id',
-    email: overrides.email || 'admin@podstore.local',
+    email: overrides.email || 'admin@skapara.com',
     role: overrides.role || 'admin',
     name: overrides.name || 'Test Admin',
   };

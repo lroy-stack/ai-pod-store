@@ -1,0 +1,450 @@
+{
+  "version": "1.0",
+  "phase": 1,
+  "created": "2026-03-01",
+  "totalProducts": 20,
+
+  "variantSets": {
+    "BP6_P26": {
+      "blueprint_id": 6, "provider_id": 26,
+      "canvas": { "front": [4606, 5787], "back": [4606, 5787], "neck_outer": [1181, 1181], "left_sleeve": [1181, 1181] },
+      "colors": {
+        "Black":          { "S": 12126, "M": 12125, "L": 12124, "XL": 12127, "2XL": 12128, "3XL": 12129 },
+        "Navy":           { "S": 11988, "M": 11987, "L": 11986, "XL": 11989, "2XL": 11990, "3XL": 11991 },
+        "Dark Heather":   { "S": 11904, "M": 11903, "L": 11902, "XL": 11905, "2XL": 11906 },
+        "Charcoal":       { "S": 11874, "M": 11873, "L": 11872, "XL": 11875, "2XL": 11876 },
+        "Dark Chocolate":  { "S": 11898, "M": 11897, "L": 11896, "XL": 11899, "2XL": 11900, "3XL": 11901 },
+        "Forest Green":   { "S": 12144, "M": 12143, "L": 12142, "XL": 12145, "2XL": 12146 },
+        "Maroon":         { "S": 11976, "M": 11975, "L": 11974, "XL": 11977, "2XL": 11978, "3XL": 11979 },
+        "Military Green": { "S": 12192, "M": 12191, "L": 12190, "XL": 12193, "2XL": 12194, "3XL": 12195 }
+      }
+    },
+    "BP77_P26": {
+      "blueprint_id": 77, "provider_id": 26,
+      "canvas": { "front": [4016, 3307], "back": [4016, 3307] },
+      "colors": {
+        "Black":          { "S": 32918, "M": 32919, "L": 32920, "XL": 32921, "2XL": 32922, "3XL": 32923 },
+        "Navy":           { "S": 32894, "M": 32895, "L": 32896, "XL": 32897, "2XL": 32898, "3XL": 32899 },
+        "Dark Heather":   { "S": 32878, "M": 32879, "L": 32880, "XL": 32881, "2XL": 32882 },
+        "Forest Green":   { "S": 33417, "M": 33418, "L": 33419, "XL": 33420, "2XL": 33421, "3XL": 33422 },
+        "Maroon":         { "S": 32886, "M": 32887, "L": 32888, "XL": 32889, "2XL": 32890, "3XL": 32891 },
+        "Military Green": { "S": 33425, "M": 33426, "L": 33427, "XL": 33428, "2XL": 33429 },
+        "Dark Chocolate":  { "M": 42220, "L": 42221, "XL": 42222, "2XL": 42223, "3XL": 42224 }
+      }
+    },
+    "BP49_P26": {
+      "blueprint_id": 49, "provider_id": 26,
+      "canvas": { "front": [4500, 5100], "back": [4500, 5100] },
+      "colors": {
+        "Black":          { "S": 25397, "M": 25428, "L": 25459, "XL": 25490, "2XL": 25521, "3XL": 25552 },
+        "Navy":           { "S": 25388, "M": 25419, "L": 25450, "XL": 25481, "2XL": 25512, "3XL": 25543 },
+        "Dark Heather":   { "S": 25381, "M": 25412, "L": 25443, "XL": 25474, "2XL": 25505 },
+        "Forest Green":   { "S": 25400, "M": 25431, "L": 25462, "XL": 25493, "2XL": 25524, "3XL": 25555 },
+        "Maroon":         { "S": 25387, "M": 25418, "L": 25449, "XL": 25480, "2XL": 25511, "3XL": 25542 },
+        "Military Green": { "S": 25404, "M": 25435, "L": 25466, "XL": 25497, "2XL": 25528, "3XL": 25559 }
+      }
+    },
+    "BP80_P26": {
+      "blueprint_id": 80, "provider_id": 26,
+      "canvas": { "front": [4500, 5100], "back": [4500, 5100] },
+      "colors": {
+        "Black": { "S": 33796, "M": 33797, "L": 33798, "XL": 33799, "2XL": 33800 },
+        "Navy":  { "S": 42711, "M": 42712, "L": 42713, "XL": 42714, "2XL": 42715 }
+      }
+    },
+    "BP1018_P26": {
+      "blueprint_id": 1018, "provider_id": 26,
+      "canvas": { "front": [2244, 945] },
+      "colors": {
+        "Black": { "One Size": 79701 },
+        "Pink": { "One Size": 79702 },
+        "Gold": { "One Size": 80021 },
+        "Red": { "One Size": 80022 },
+        "Cambridge Blue": { "One Size": 80023 },
+        "Dark Green": { "One Size": 80024 },
+        "Light Green": { "One Size": 80026 },
+        "Maroon": { "One Size": 80027 },
+        "Orange": { "One Size": 80028 },
+        "Yellow": { "One Size": 80029 },
+        "Dark Blue": { "One Size": 80030 }
+      }
+    },
+    "BP1744_P410": {
+      "blueprint_id": 1744, "provider_id": 410,
+      "canvas": { "front": [1770, 600], "back_hat": [600, 300], "left_hat": [600, 300], "right_hat": [600, 300] },
+      "colors": {
+        "Black":          { "S/M": 118702, "L/XL": 118703 },
+        "Dark Navy":      { "S/M": 118704, "L/XL": 118705 },
+        "Dark Grey":      { "S/M": 118706, "L/XL": 118707 },
+        "Multicam Black": { "S/M": 118716, "L/XL": 118717 }
+      }
+    }
+  },
+
+  "brandingAssets": {
+    "wordmark": "branding/skapara-wordmark-white.png",
+    "neckLabel": "branding/neck-label-skapara-white.png",
+    "capSmark": "branding/cap-smark-teal.svg"
+  },
+
+  "gpsrTemplates": {
+    "dtg": {
+      "manufacturer": "Textildruck Europa GmbH, Germany",
+      "compliance": "REACH (EC) 1907/2006, OEKO-TEX Standard 100",
+      "eu_responsible": "Textildruck Europa GmbH, Germany"
+    },
+    "sublimation": {
+      "manufacturer": "Textildruck Europa GmbH, Germany",
+      "compliance": "REACH (EC) 1907/2006, FDA food-contact (21 CFR 177)",
+      "eu_responsible": "Textildruck Europa GmbH, Germany"
+    },
+    "embroidery": {
+      "manufacturer": "Printful Latvia SIA, Riga, Latvia",
+      "compliance": "REACH (EC) 1907/2006, OEKO-TEX Standard 100",
+      "eu_responsible": "Printful Latvia SIA, Riga, Latvia"
+    }
+  },
+
+  "products": [
+    {
+      "id": "T01", "designId": "A01", "name": "Soup Fork",
+      "variantSet": "BP6_P26", "priceCents": 3799,
+      "category": "t-shirts",
+      "svg": "tshirts/a01-life-is-soup.svg",
+      "positions": ["front", "back", "neck_outer", "left_sleeve"],
+      "gpsr": "dtg",
+      "material": "100% Cotton (Gildan 5000)",
+      "care": "Machine wash cold inside out. Tumble dry low. Do not iron on print.",
+      "printTechnique": "DTG",
+      "tags": ["t-shirt", "humor", "existential", "soup", "fork"],
+      "desc": {
+        "en": "A philosophical crisis served in a bowl. For those who feel slightly out of place — everywhere.",
+        "es": "Una crisis filosófica servida en un plato. Para los que se sienten un poco fuera de lugar — en todas partes.",
+        "de": "Eine philosophische Krise, serviert in einer Schüssel. Für alle, die sich überall leicht fehl am Platz fühlen."
+      }
+    },
+    {
+      "id": "T02", "designId": "A04", "name": "Existential Dread",
+      "variantSet": "BP6_P26", "priceCents": 3799,
+      "category": "t-shirts",
+      "svg": "tshirts/a04-existential-dread.svg",
+      "positions": ["front", "back", "neck_outer", "left_sleeve"],
+      "gpsr": "dtg",
+      "material": "100% Cotton (Gildan 5000)",
+      "care": "Machine wash cold inside out. Tumble dry low. Do not iron on print.",
+      "printTechnique": "DTG",
+      "tags": ["t-shirt", "humor", "existential", "economy", "dread"],
+      "desc": {
+        "en": "Can't even afford a proper crisis anymore. At least the shirt is worth it.",
+        "es": "Ya ni una crisis existencial se puede permitir. Al menos la camiseta lo vale.",
+        "de": "Man kann sich nicht mal mehr eine richtige Krise leisten. Wenigstens ist das Shirt es wert."
+      }
+    },
+    {
+      "id": "T03", "designId": "C01", "name": "Social Battery",
+      "variantSet": "BP6_P26", "priceCents": 3799,
+      "category": "t-shirts",
+      "svg": "tshirts/c01-social-battery.svg",
+      "positions": ["front", "back", "neck_outer", "left_sleeve"],
+      "gpsr": "dtg",
+      "material": "100% Cotton (Gildan 5000)",
+      "care": "Machine wash cold inside out. Tumble dry low. Do not iron on print.",
+      "printTechnique": "DTG",
+      "tags": ["t-shirt", "humor", "introvert", "battery", "social"],
+      "desc": {
+        "en": "Low battery, high standards. Your official excuse to leave early.",
+        "es": "Batería baja, estándares altos. Tu excusa oficial para irte antes.",
+        "de": "Akku leer, Ansprüche hoch. Deine offizielle Ausrede, früher zu gehen."
+      }
+    },
+    {
+      "id": "T04", "designId": "C02", "name": "Plans Cancelled",
+      "variantSet": "BP6_P26", "priceCents": 3799,
+      "category": "t-shirts",
+      "svg": "tshirts/c02-plans-cancelled.svg",
+      "positions": ["front", "back", "neck_outer", "left_sleeve"],
+      "gpsr": "dtg",
+      "material": "100% Cotton (Gildan 5000)",
+      "care": "Machine wash cold inside out. Tumble dry low. Do not iron on print.",
+      "printTechnique": "DTG",
+      "tags": ["t-shirt", "humor", "introvert", "cancelled", "plans"],
+      "desc": {
+        "en": "The notification you secretly hope for. Introvert approved.",
+        "es": "La notificación que secretamente esperas. Aprobado por introvertidos.",
+        "de": "Die Benachrichtigung, auf die du insgeheim hoffst. Von Introvertierten genehmigt."
+      }
+    },
+    {
+      "id": "T05", "designId": "D03", "name": "Self-Care Mode",
+      "variantSet": "BP6_P26", "priceCents": 3799,
+      "category": "t-shirts",
+      "svg": "tshirts/d03-self-care-aggressive.svg",
+      "positions": ["front", "back", "neck_outer", "left_sleeve"],
+      "gpsr": "dtg",
+      "material": "100% Cotton (Gildan 5000)",
+      "care": "Machine wash cold inside out. Tumble dry low. Do not iron on print.",
+      "printTechnique": "DTG",
+      "tags": ["t-shirt", "selfcare", "wellness", "boundaries", "humor"],
+      "desc": {
+        "en": "Setting boundaries like a firewall. Self-care is not optional — it's mandatory.",
+        "es": "Poniendo límites como un firewall. El autocuidado no es opcional — es obligatorio.",
+        "de": "Grenzen setzen wie eine Firewall. Selbstfürsorge ist keine Option — sie ist Pflicht."
+      }
+    },
+    {
+      "id": "T06", "designId": "F02", "name": "Caffeine Anxiety",
+      "variantSet": "BP6_P26", "priceCents": 3799,
+      "category": "t-shirts",
+      "svg": "tshirts/f02-caffeine-anxiety.svg",
+      "positions": ["front", "back", "neck_outer", "left_sleeve"],
+      "gpsr": "dtg",
+      "material": "100% Cotton (Gildan 5000)",
+      "care": "Machine wash cold inside out. Tumble dry low. Do not iron on print.",
+      "printTechnique": "DTG",
+      "tags": ["t-shirt", "humor", "coffee", "caffeine", "anxiety"],
+      "desc": {
+        "en": "The two fuels that keep modern life running. Warning: explosive combination.",
+        "es": "Los dos combustibles que mueven la vida moderna. Advertencia: combinación explosiva.",
+        "de": "Die zwei Treibstoffe des modernen Lebens. Warnung: explosive Mischung."
+      }
+    },
+    {
+      "id": "T07", "designId": "G04", "name": "Next Line",
+      "variantSet": "BP6_P26", "priceCents": 3799,
+      "category": "t-shirts",
+      "svg": "tshirts/g04-do-not-read.svg",
+      "positions": ["front", "back", "neck_outer", "left_sleeve"],
+      "gpsr": "dtg",
+      "material": "100% Cotton (Gildan 5000)",
+      "care": "Machine wash cold inside out. Tumble dry low. Do not iron on print.",
+      "printTechnique": "DTG",
+      "tags": ["t-shirt", "humor", "typography", "minimal", "clever"],
+      "desc": {
+        "en": "You read it anyway. We knew you would. Welcome to the club.",
+        "es": "Lo leíste de todas formas. Sabíamos que lo harías. Bienvenido al club.",
+        "de": "Du hast es trotzdem gelesen. Wir wussten es. Willkommen im Club."
+      }
+    },
+    {
+      "id": "T08", "designId": "H03", "name": "Just For You",
+      "variantSet": "BP6_P26", "priceCents": 3799,
+      "category": "t-shirts",
+      "svg": "tshirts/h03-made-just-for-you.svg",
+      "positions": ["front", "back", "neck_outer", "left_sleeve"],
+      "gpsr": "dtg",
+      "material": "100% Cotton (Gildan 5000)",
+      "care": "Machine wash cold inside out. Tumble dry low. Do not iron on print.",
+      "printTechnique": "DTG",
+      "tags": ["t-shirt", "ethical", "sustainable", "pod", "ondemand"],
+      "desc": {
+        "en": "No warehouse. No overstock. Made when you wanted it, just for you.",
+        "es": "Sin almacén. Sin excedentes. Hecha cuando la pediste, solo para ti.",
+        "de": "Kein Lager. Keine Überproduktion. Hergestellt als du sie wolltest, nur für dich."
+      }
+    },
+    {
+      "id": "H01", "designId": "A03", "name": "Hang In There",
+      "variantSet": "BP77_P26", "priceCents": 6099,
+      "category": "pullover-hoodies",
+      "svg": "hoodies/a03-hang-in-there.svg",
+      "positions": ["front", "back"],
+      "gpsr": "dtg",
+      "material": "50% Cotton / 50% Polyester (Gildan 18500)",
+      "care": "Machine wash cold inside out. Tumble dry low. Do not iron on print.",
+      "printTechnique": "DTG",
+      "tags": ["hoodie", "humor", "motivation", "sarcasm", "dark"],
+      "desc": {
+        "en": "Motivational poster energy — with an honest twist. The hoodie that understands you.",
+        "es": "Energía de póster motivacional — con un giro honesto. La hoodie que te entiende.",
+        "de": "Motivationsposter-Vibes — mit einer ehrlichen Wendung. Der Hoodie, der dich versteht."
+      }
+    },
+    {
+      "id": "H02", "designId": "D01", "name": "Nervous System",
+      "variantSet": "BP77_P26", "priceCents": 6099,
+      "category": "pullover-hoodies",
+      "svg": "hoodies/d01-regulate-nervous-system.svg",
+      "positions": ["front", "back"],
+      "gpsr": "dtg",
+      "material": "50% Cotton / 50% Polyester (Gildan 18500)",
+      "care": "Machine wash cold inside out. Tumble dry low. Do not iron on print.",
+      "printTechnique": "DTG",
+      "tags": ["hoodie", "wellness", "nervous-system", "ecg", "mindfulness"],
+      "desc": {
+        "en": "A gentle reminder with an ECG heartbeat. Regulate, breathe, repeat.",
+        "es": "Un recordatorio suave con latido ECG. Regula, respira, repite.",
+        "de": "Eine sanfte Erinnerung mit EKG-Herzschlag. Regulieren, atmen, wiederholen."
+      }
+    },
+    {
+      "id": "H03", "designId": "E05", "name": "Main Character",
+      "variantSet": "BP77_P26", "priceCents": 6099,
+      "category": "pullover-hoodies",
+      "svg": "hoodies/e05-main-character.svg",
+      "positions": ["front", "back"],
+      "gpsr": "dtg",
+      "material": "50% Cotton / 50% Polyester (Gildan 18500)",
+      "care": "Machine wash cold inside out. Tumble dry low. Do not iron on print.",
+      "printTechnique": "DTG",
+      "tags": ["hoodie", "confidence", "main-character", "energy", "vibes"],
+      "desc": {
+        "en": "Main character energy on a side character budget. Own every scene anyway.",
+        "es": "Energía de protagonista con presupuesto de secundario. Domina cada escena de todos modos.",
+        "de": "Hauptrollen-Energie mit Nebenrollen-Budget. Beherrsche trotzdem jede Szene."
+      }
+    },
+    {
+      "id": "H04", "designId": "G01", "name": "Nope",
+      "variantSet": "BP77_P26", "priceCents": 6099,
+      "category": "pullover-hoodies",
+      "svg": "hoodies/g01-nope.svg",
+      "positions": ["front", "back"],
+      "gpsr": "dtg",
+      "material": "50% Cotton / 50% Polyester (Gildan 18500)",
+      "care": "Machine wash cold inside out. Tumble dry low. Do not iron on print.",
+      "printTechnique": "DTG",
+      "tags": ["hoodie", "humor", "nope", "minimal", "bold"],
+      "desc": {
+        "en": "One word. Full sentence. Absolutely not.",
+        "es": "Una palabra. Frase completa. Absolutamente no.",
+        "de": "Ein Wort. Ganzer Satz. Absolut nicht."
+      }
+    },
+    {
+      "id": "C01", "designId": "B07", "name": "Loading Motivation",
+      "variantSet": "BP49_P26", "priceCents": 5099,
+      "category": "crewnecks",
+      "svg": "crewnecks/b07-loading-motivation.svg",
+      "positions": ["front", "back"],
+      "gpsr": "dtg",
+      "material": "50% Cotton / 50% Polyester (Gildan 18000)",
+      "care": "Machine wash cold inside out. Tumble dry low. Do not iron on print.",
+      "printTechnique": "DTG",
+      "tags": ["crewneck", "humor", "loading", "motivation", "ui"],
+      "desc": {
+        "en": "ETA: undefined. Still loading that Monday motivation since 2019.",
+        "es": "ETA: indefinido. Cargando la motivación del lunes desde 2019.",
+        "de": "ETA: undefiniert. Montags-Motivation wird seit 2019 geladen."
+      }
+    },
+    {
+      "id": "C02", "designId": "A07", "name": "404 Purpose",
+      "variantSet": "BP49_P26", "priceCents": 5099,
+      "category": "crewnecks",
+      "svg": "crewnecks/a07-404-purpose.svg",
+      "positions": ["front", "back"],
+      "gpsr": "dtg",
+      "material": "50% Cotton / 50% Polyester (Gildan 18000)",
+      "care": "Machine wash cold inside out. Tumble dry low. Do not iron on print.",
+      "printTechnique": "DTG",
+      "tags": ["crewneck", "humor", "404", "purpose", "terminal"],
+      "desc": {
+        "en": "The meaning you were looking for has been permanently deleted. Try again tomorrow.",
+        "es": "El significado que buscabas fue eliminado permanentemente. Inténtalo mañana.",
+        "de": "Die Bedeutung, die du gesucht hast, wurde dauerhaft gelöscht. Versuch's morgen nochmal."
+      }
+    },
+    {
+      "id": "C03", "designId": "E01", "name": "New 2016",
+      "variantSet": "BP49_P26", "priceCents": 5099,
+      "category": "crewnecks",
+      "svg": "crewnecks/e01-2026-new-2016.svg",
+      "positions": ["front", "back"],
+      "gpsr": "dtg",
+      "material": "50% Cotton / 50% Polyester (Gildan 18000)",
+      "care": "Machine wash cold inside out. Tumble dry low. Do not iron on print.",
+      "printTechnique": "DTG",
+      "tags": ["crewneck", "humor", "nostalgia", "2026", "2016"],
+      "desc": {
+        "en": "Same chaos, different year. At least the fashion is better this time.",
+        "es": "Mismo caos, año diferente. Al menos la moda es mejor esta vez.",
+        "de": "Gleiches Chaos, anderes Jahr. Wenigstens ist die Mode diesmal besser."
+      }
+    },
+    {
+      "id": "L01", "designId": "B01", "name": "On Mute",
+      "variantSet": "BP80_P26", "priceCents": 4499,
+      "category": "long-sleeves",
+      "svg": "longsleeves/b01-youre-on-mute.svg",
+      "positions": ["front", "back"],
+      "gpsr": "dtg",
+      "material": "100% Cotton (Gildan 2400)",
+      "care": "Machine wash cold inside out. Tumble dry low. Do not iron on print.",
+      "printTechnique": "DTG",
+      "tags": ["longsleeve", "humor", "remote", "mute", "zoom"],
+      "desc": {
+        "en": "The most repeated phrase of the remote era. We still can't hear you.",
+        "es": "La frase más repetida de la era remota. Seguimos sin oírte.",
+        "de": "Der meistgesagte Satz der Remote-Ära. Wir können dich immer noch nicht hören."
+      }
+    },
+    {
+      "id": "L02", "designId": "H02", "name": "On Demand",
+      "variantSet": "BP80_P26", "priceCents": 4499,
+      "category": "long-sleeves",
+      "svg": "longsleeves/h02-made-on-demand.svg",
+      "positions": ["front", "back"],
+      "gpsr": "dtg",
+      "material": "100% Cotton (Gildan 2400)",
+      "care": "Machine wash cold inside out. Tumble dry low. Do not iron on print.",
+      "printTechnique": "DTG",
+      "tags": ["longsleeve", "ethical", "sustainable", "pod", "ondemand"],
+      "desc": {
+        "en": "Ethical fashion that says it out loud. Made when you order, where workers are paid fairly.",
+        "es": "Moda ética que lo dice en voz alta. Hecha cuando pides, donde los trabajadores cobran justo.",
+        "de": "Ethische Mode, die es laut sagt. Hergestellt auf Bestellung, wo Arbeiter fair bezahlt werden."
+      }
+    },
+    {
+      "id": "M01", "designId": "B02", "name": "Seven Seconds",
+      "variantSet": "BP1018_P26", "priceCents": 1699,
+      "category": "mugs",
+      "svg": "mugs/b02-my-commute.svg",
+      "positions": ["front"],
+      "gpsr": "sublimation",
+      "material": "Ceramic with sublimation coating",
+      "care": "Dishwasher and microwave safe.",
+      "printTechnique": "Sublimation",
+      "tags": ["mug", "humor", "remote", "commute", "wfh"],
+      "desc": {
+        "en": "Remote work in a mug. Seven seconds from bed to desk — no traffic, no pants required.",
+        "es": "Trabajo remoto en una taza. Siete segundos de la cama al escritorio — sin tráfico, sin pantalones.",
+        "de": "Remote-Arbeit in einer Tasse. Sieben Sekunden vom Bett zum Schreibtisch — kein Verkehr, keine Hose nötig."
+      }
+    },
+    {
+      "id": "M02", "designId": "A05", "name": "Nihilist Penguin",
+      "variantSet": "BP1018_P26", "priceCents": 1699,
+      "category": "mugs",
+      "svg": "mugs/a05-nihilist-penguin.svg",
+      "positions": ["front"],
+      "gpsr": "sublimation",
+      "material": "Ceramic with sublimation coating",
+      "care": "Dishwasher and microwave safe.",
+      "printTechnique": "Sublimation",
+      "tags": ["mug", "humor", "penguin", "nihilist", "cute"],
+      "desc": {
+        "en": "Going my own way — just slowly and without purpose. The existential penguin on your desk.",
+        "es": "Yendo a mi aire — despacio y sin propósito. El pingüino existencial en tu escritorio.",
+        "de": "Meinen eigenen Weg gehen — langsam und ohne Ziel. Der existenzielle Pinguin auf deinem Schreibtisch."
+      }
+    },
+    {
+      "id": "K01", "designId": "E03", "name": "Assignment",
+      "variantSet": "BP1744_P410", "priceCents": 3099,
+      "category": "caps",
+      "svg": "caps/e03-assignment-understood.svg",
+      "positions": ["front", "back_hat", "left_hat", "right_hat"],
+      "gpsr": "embroidery",
+      "material": "100% Acrylic front, Nylon Mesh back (Yupoong 6089M)",
+      "care": "Spot clean only. Do not machine wash.",
+      "printTechnique": "Embroidery",
+      "tags": ["cap", "snapback", "embroidery", "assignment", "understood"],
+      "desc": {
+        "en": "The cap for those who show up prepared. Understood the assignment — every single time.",
+        "es": "La gorra para los que llegan preparados. Entendió la tarea — cada vez.",
+        "de": "Die Cap für alle, die vorbereitet sind. Aufgabe verstanden — jedes Mal."
+      }
+    }
+  ]
+}

@@ -7,6 +7,8 @@ import type { Metadata } from 'next'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 
+const DEFAULT_FONTS_URL = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap'
+
 const locales = ['en', 'es', 'de'] as const
 
 export function generateStaticParams() {
@@ -27,7 +29,7 @@ export async function generateMetadata({
   const title = brandConfig.seoTitles[localeKey] || brandConfig.seoTitles.en
   const description = brandConfig.seoDescriptions[localeKey] || brandConfig.seoDescriptions.en
 
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://podai.com'
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://skapara.com'
 
   return {
     title,
@@ -47,6 +49,11 @@ export async function generateMetadata({
       siteName: brandConfig.brandName,
       locale: locale === 'es' ? 'es_ES' : locale === 'de' ? 'de_DE' : 'en_US',
       type: 'website',
+      images: [{ url: '/brand/og-image.png', width: 1200, height: 630 }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      images: ['/brand/og-image.png'],
     },
   }
 }
@@ -63,14 +70,12 @@ export default async function LocaleLayout({
   // Fetch theme server-side for zero FOUC
   const theme = await getActiveTheme()
   const themeCSS = theme ? themeToInlineCSS(theme) : ''
-  const fontsURL = theme ? themeGoogleFontsURL(theme) : null
+  const fontsURL = theme ? themeGoogleFontsURL(theme) : DEFAULT_FONTS_URL
 
   return (
     <html lang={locale} suppressHydrationWarning>
       <head>
-        {themeCSS && (
-          <style id="server-theme-style" dangerouslySetInnerHTML={{ __html: themeCSS }} />
-        )}
+        <style id="server-theme-style" dangerouslySetInnerHTML={{ __html: themeCSS }} />
         {fontsURL && (
           <>
             <link rel="preconnect" href="https://fonts.googleapis.com" />

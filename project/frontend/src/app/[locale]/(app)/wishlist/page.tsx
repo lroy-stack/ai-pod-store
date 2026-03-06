@@ -260,7 +260,7 @@ export default function WishlistPage() {
   }
 
   // ==================== AUTH MODE ====================
-  const productGridClasses = 'grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-4';
+  const productGridClasses = 'neu-grid';
 
   return (
     <div className="container mx-auto px-4 py-8">

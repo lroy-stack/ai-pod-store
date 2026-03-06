@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useState, type ReactNode } from 'react'
+import { createContext, useContext, useState, useCallback, type ReactNode } from 'react'
 
 export interface Artifact {
   id: string
@@ -18,8 +18,6 @@ interface StorefrontContextType {
   clearArtifacts: () => void
   activeArtifactId: string | null
   setActiveArtifactId: (id: string | null) => void
-  pendingChatMessage: string
-  setPendingChatMessage: (message: string) => void
 }
 
 const StorefrontContext = createContext<StorefrontContextType | null>(null)
@@ -28,40 +26,33 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
   const [selectedProduct, setSelectedProduct] = useState<string | null>(null)
   const [artifacts, setArtifacts] = useState<Artifact[]>([])
   const [activeArtifactId, setActiveArtifactId] = useState<string | null>(null)
-  const [pendingChatMessage, setPendingChatMessage] = useState('')
 
-  const addArtifact = (artifact: Artifact) => {
+  const addArtifact = useCallback((artifact: Artifact) => {
     setArtifacts((prev) => {
-      // Check if artifact already exists
       const exists = prev.find((a) => a.id === artifact.id)
       if (exists) {
-        // Update existing artifact
         return prev.map((a) => (a.id === artifact.id ? artifact : a))
       }
-      // Add new artifact
       return [...prev, artifact]
     })
-    // Set as active
     setActiveArtifactId(artifact.id)
-  }
+  }, [])
 
-  const removeArtifact = (id: string) => {
+  const removeArtifact = useCallback((id: string) => {
     setArtifacts((prev) => {
       const filtered = prev.filter((a) => a.id !== id)
-      // If we removed the active artifact, set a new active one
-      if (activeArtifactId === id && filtered.length > 0) {
-        setActiveArtifactId(filtered[filtered.length - 1].id)
-      } else if (filtered.length === 0) {
-        setActiveArtifactId(null)
-      }
       return filtered
     })
-  }
+    setActiveArtifactId((currentId) => {
+      if (currentId === id) return null
+      return currentId
+    })
+  }, [])
 
-  const clearArtifacts = () => {
+  const clearArtifacts = useCallback(() => {
     setArtifacts([])
     setActiveArtifactId(null)
-  }
+  }, [])
 
   return (
     <StorefrontContext.Provider
@@ -74,8 +65,6 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
         clearArtifacts,
         activeArtifactId,
         setActiveArtifactId,
-        pendingChatMessage,
-        setPendingChatMessage,
       }}
     >
       {children}

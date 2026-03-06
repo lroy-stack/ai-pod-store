@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { X, Download } from 'lucide-react'
+import { BRAND } from '@/lib/store-config'
 
 interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>
@@ -59,7 +60,7 @@ export function InstallPrompt() {
     <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-80 z-50 bg-card border border-border rounded-lg shadow-lg p-4 flex items-start gap-3">
       <Download className="h-5 w-5 text-primary mt-0.5 shrink-0" />
       <div className="flex-1 min-w-0">
-        <p className="font-medium text-sm">Install Skapara</p>
+        <p className="font-medium text-sm">Install {BRAND.name}</p>
         <p className="text-xs text-muted-foreground mt-0.5">
           Add to your home screen for a faster experience
         </p>

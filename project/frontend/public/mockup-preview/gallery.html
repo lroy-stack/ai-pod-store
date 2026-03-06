@@ -1,0 +1,1373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>SKAPARA — Branded Mockup Gallery Preview</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: #0F172A; color: #F0EDE8; padding: 24px; }
+  h1 { text-align: center; font-size: 28px; margin-bottom: 8px; letter-spacing: 3px; }
+  .subtitle { text-align: center; color: #94A3B8; margin-bottom: 24px; font-size: 14px; }
+  .controls { display: flex; gap: 12px; justify-content: center; margin-bottom: 24px; flex-wrap: wrap; }
+  .controls button { background: #1E293B; color: #F0EDE8; border: 1px solid #334155; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+  .controls button:hover { background: #334155; }
+  .controls button.active { background: #40ACCC; color: #0F172A; border-color: #40ACCC; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(500px, 1fr)); gap: 16px; }
+  .card { background: #1E293B; border-radius: 10px; overflow: hidden; border: 1px solid #334155; }
+  .compare { display: flex; gap: 2px; }
+  .img-box { flex: 1; position: relative; }
+  .img-box img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; }
+  .label { position: absolute; top: 6px; left: 6px; background: rgba(0,0,0,0.6); color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; letter-spacing: 1px; }
+  .label.branded { background: rgba(64,172,204,0.8); }
+  .info { padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 13px; }
+  .info label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+  .bg-tag { background: #334155; padding: 2px 8px; border-radius: 4px; font-size: 11px; color: #94A3B8; }
+  .approve-cb { accent-color: #40ACCC; width: 16px; height: 16px; }
+  #export-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #0F172A; border-top: 1px solid #334155; padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; z-index: 10; }
+  #export-bar .count { font-size: 14px; color: #94A3B8; }
+  #export-bar button { background: #10B981; color: #fff; border: none; padding: 10px 24px; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; }
+  #export-bar button:hover { background: #059669; }
+</style>
+</head>
+<body>
+<h1>SKAPARA MOCKUP GALLERY</h1>
+<p class="subtitle">Branded mockup preview — select products to approve, then export IDs</p>
+<div class="controls">
+  <button onclick="selectAll(true)" class="active">Select All</button>
+  <button onclick="selectAll(false)">Deselect All</button>
+  <button onclick="toggleView()">Toggle Before/After</button>
+</div>
+<div class="grid">
+<h2 style="grid-column:1/-1;margin:24px 0 8px;font-size:20px;color:#40ACCC;text-transform:uppercase;letter-spacing:2px;">baby-clothing (2)</h2>
+
+      <div class="card" data-id="c53017eb-9ef4-4432-867d-d8c8a37e9c95" data-cat="baby-clothing">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/c53017eb-9ef4-4432-867d-d8c8a37e9c95.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/c53017eb-9ef4-4432-867d-d8c8a37e9c95.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="c53017eb-9ef4-4432-867d-d8c8a37e9c95" checked/> Bug Reporter</label>
+          <span class="bg-tag">soft-pastel</span>
+        </div>
+      </div>
+      <div class="card" data-id="5ec0fb1a-fae1-48e4-926a-8e99625fc68b" data-cat="baby-clothing">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/5ec0fb1a-fae1-48e4-926a-8e99625fc68b.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/5ec0fb1a-fae1-48e4-926a-8e99625fc68b.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="5ec0fb1a-fae1-48e4-926a-8e99625fc68b" checked/> Compiling Tears</label>
+          <span class="bg-tag">soft-pastel</span>
+        </div>
+      </div><h2 style="grid-column:1/-1;margin:24px 0 8px;font-size:20px;color:#40ACCC;text-transform:uppercase;letter-spacing:2px;">beanies (1)</h2>
+
+      <div class="card" data-id="497fc4c5-b0ec-4159-84d5-fc6d050e19f6" data-cat="beanies">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/497fc4c5-b0ec-4159-84d5-fc6d050e19f6.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/497fc4c5-b0ec-4159-84d5-fc6d050e19f6.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="497fc4c5-b0ec-4159-84d5-fc6d050e19f6" checked/> Vibe Coded</label>
+          <span class="bg-tag">kraft-paper</span>
+        </div>
+      </div><h2 style="grid-column:1/-1;margin:24px 0 8px;font-size:20px;color:#40ACCC;text-transform:uppercase;letter-spacing:2px;">bottles (2)</h2>
+
+      <div class="card" data-id="aa2547a4-6dc6-4bb2-8d37-891b8bc39d59" data-cat="bottles">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/aa2547a4-6dc6-4bb2-8d37-891b8bc39d59.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/aa2547a4-6dc6-4bb2-8d37-891b8bc39d59.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="aa2547a4-6dc6-4bb2-8d37-891b8bc39d59" checked/> Refactor Anyway</label>
+          <span class="bg-tag">dark-marble</span>
+        </div>
+      </div>
+      <div class="card" data-id="e71c98f2-7105-4a41-a01c-8408dffa3b95" data-cat="bottles">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/e71c98f2-7105-4a41-a01c-8408dffa3b95.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/e71c98f2-7105-4a41-a01c-8408dffa3b95.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="e71c98f2-7105-4a41-a01c-8408dffa3b95" checked/> SKAPARA Signal</label>
+          <span class="bg-tag">dark-marble</span>
+        </div>
+      </div><h2 style="grid-column:1/-1;margin:24px 0 8px;font-size:20px;color:#40ACCC;text-transform:uppercase;letter-spacing:2px;">bucket-hats (3)</h2>
+
+      <div class="card" data-id="a95942a5-b8c3-4bd9-b0c8-181f521d009c" data-cat="bucket-hats">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/a95942a5-b8c3-4bd9-b0c8-181f521d009c.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/a95942a5-b8c3-4bd9-b0c8-181f521d009c.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="a95942a5-b8c3-4bd9-b0c8-181f521d009c" checked/> GPT</label>
+          <span class="bg-tag">kraft-paper</span>
+        </div>
+      </div>
+      <div class="card" data-id="fce92789-c074-4d97-9c52-c17167a63e93" data-cat="bucket-hats">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/fce92789-c074-4d97-9c52-c17167a63e93.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/fce92789-c074-4d97-9c52-c17167a63e93.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="fce92789-c074-4d97-9c52-c17167a63e93" checked/> NPC</label>
+          <span class="bg-tag">kraft-paper</span>
+        </div>
+      </div>
+      <div class="card" data-id="6af8991e-dbbc-4d91-a406-7ad8c5284038" data-cat="bucket-hats">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/6af8991e-dbbc-4d91-a406-7ad8c5284038.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/6af8991e-dbbc-4d91-a406-7ad8c5284038.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="6af8991e-dbbc-4d91-a406-7ad8c5284038" checked/> Flux</label>
+          <span class="bg-tag">kraft-paper</span>
+        </div>
+      </div><h2 style="grid-column:1/-1;margin:24px 0 8px;font-size:20px;color:#40ACCC;text-transform:uppercase;letter-spacing:2px;">caps (4)</h2>
+
+      <div class="card" data-id="6e6e03c4-2942-496c-b2b5-e36ad73c87f5" data-cat="caps">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/6e6e03c4-2942-496c-b2b5-e36ad73c87f5.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/6e6e03c4-2942-496c-b2b5-e36ad73c87f5.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="6e6e03c4-2942-496c-b2b5-e36ad73c87f5" checked/> Assignment</label>
+          <span class="bg-tag">kraft-paper</span>
+        </div>
+      </div>
+      <div class="card" data-id="429ebeff-db5e-44d5-ba8c-de952d769fef" data-cat="caps">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/429ebeff-db5e-44d5-ba8c-de952d769fef.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/429ebeff-db5e-44d5-ba8c-de952d769fef.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="429ebeff-db5e-44d5-ba8c-de952d769fef" checked/> AI Wrote This</label>
+          <span class="bg-tag">kraft-paper</span>
+        </div>
+      </div>
+      <div class="card" data-id="9a15e2b3-5940-4e60-9338-9e4c603d6192" data-cat="caps">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/9a15e2b3-5940-4e60-9338-9e4c603d6192.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/9a15e2b3-5940-4e60-9338-9e4c603d6192.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="9a15e2b3-5940-4e60-9338-9e4c603d6192" checked/> Dark Mode</label>
+          <span class="bg-tag">kraft-paper</span>
+        </div>
+      </div>
+      <div class="card" data-id="4f1a7d21-3881-430e-b695-53daf9e7ed8e" data-cat="caps">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/4f1a7d21-3881-430e-b695-53daf9e7ed8e.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/4f1a7d21-3881-430e-b695-53daf9e7ed8e.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="4f1a7d21-3881-430e-b695-53daf9e7ed8e" checked/> It Works</label>
+          <span class="bg-tag">kraft-paper</span>
+        </div>
+      </div><h2 style="grid-column:1/-1;margin:24px 0 8px;font-size:20px;color:#40ACCC;text-transform:uppercase;letter-spacing:2px;">crewnecks (6)</h2>
+
+      <div class="card" data-id="720e8b42-87c1-4d38-876c-eefc559f4077" data-cat="crewnecks">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/720e8b42-87c1-4d38-876c-eefc559f4077.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/720e8b42-87c1-4d38-876c-eefc559f4077.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="720e8b42-87c1-4d38-876c-eefc559f4077" checked/> New 2016</label>
+          <span class="bg-tag">navy-gradient</span>
+        </div>
+      </div>
+      <div class="card" data-id="178fc47c-a2c6-4166-98da-25e297339564" data-cat="crewnecks">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/178fc47c-a2c6-4166-98da-25e297339564.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/178fc47c-a2c6-4166-98da-25e297339564.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="178fc47c-a2c6-4166-98da-25e297339564" checked/> 404 Purpose</label>
+          <span class="bg-tag">navy-gradient</span>
+        </div>
+      </div>
+      <div class="card" data-id="58f6f10b-de52-43c6-8beb-5c6fe65108e2" data-cat="crewnecks">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/58f6f10b-de52-43c6-8beb-5c6fe65108e2.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/58f6f10b-de52-43c6-8beb-5c6fe65108e2.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="58f6f10b-de52-43c6-8beb-5c6fe65108e2" checked/> Loading Motivation</label>
+          <span class="bg-tag">navy-gradient</span>
+        </div>
+      </div>
+      <div class="card" data-id="eef36931-35fd-4c8c-9295-f1c3be297fcb" data-cat="crewnecks">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/eef36931-35fd-4c8c-9295-f1c3be297fcb.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/eef36931-35fd-4c8c-9295-f1c3be297fcb.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="eef36931-35fd-4c8c-9295-f1c3be297fcb" checked/> AI Personalities</label>
+          <span class="bg-tag">navy-gradient</span>
+        </div>
+      </div>
+      <div class="card" data-id="7e1cbae1-9621-4f3f-9680-fb3148f6786b" data-cat="crewnecks">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/7e1cbae1-9621-4f3f-9680-fb3148f6786b.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/7e1cbae1-9621-4f3f-9680-fb3148f6786b.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="7e1cbae1-9621-4f3f-9680-fb3148f6786b" checked/> SKAPARA Core</label>
+          <span class="bg-tag">navy-gradient</span>
+        </div>
+      </div>
+      <div class="card" data-id="76bcd12a-ef12-405f-a6c6-bc1bd1eba64d" data-cat="crewnecks">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/76bcd12a-ef12-405f-a6c6-bc1bd1eba64d.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/76bcd12a-ef12-405f-a6c6-bc1bd1eba64d.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="76bcd12a-ef12-405f-a6c6-bc1bd1eba64d" checked/> Bug Free</label>
+          <span class="bg-tag">navy-gradient</span>
+        </div>
+      </div><h2 style="grid-column:1/-1;margin:24px 0 8px;font-size:20px;color:#40ACCC;text-transform:uppercase;letter-spacing:2px;">dad-hats (1)</h2>
+
+      <div class="card" data-id="5cacafc5-5398-441d-9424-251f823e3712" data-cat="dad-hats">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/5cacafc5-5398-441d-9424-251f823e3712.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/5cacafc5-5398-441d-9424-251f823e3712.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="5cacafc5-5398-441d-9424-251f823e3712" checked/> Prompt Me</label>
+          <span class="bg-tag">kraft-paper</span>
+        </div>
+      </div><h2 style="grid-column:1/-1;margin:24px 0 8px;font-size:20px;color:#40ACCC;text-transform:uppercase;letter-spacing:2px;">desk-mats (1)</h2>
+
+      <div class="card" data-id="c42644f0-f3c4-4447-a094-3196cce0079a" data-cat="desk-mats">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/c42644f0-f3c4-4447-a094-3196cce0079a.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/c42644f0-f3c4-4447-a094-3196cce0079a.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="c42644f0-f3c4-4447-a094-3196cce0079a" checked/> SKAPARA Grip</label>
+          <span class="bg-tag">desk-surface</span>
+        </div>
+      </div><h2 style="grid-column:1/-1;margin:24px 0 8px;font-size:20px;color:#40ACCC;text-transform:uppercase;letter-spacing:2px;">drinkware (4)</h2>
+
+      <div class="card" data-id="d3244717-e6cf-4353-b7d3-d9d4e6ad8930" data-cat="drinkware">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/d3244717-e6cf-4353-b7d3-d9d4e6ad8930.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/d3244717-e6cf-4353-b7d3-d9d4e6ad8930.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="d3244717-e6cf-4353-b7d3-d9d4e6ad8930" checked/> Caffeine Anxiety</label>
+          <span class="bg-tag">wood-dark</span>
+        </div>
+      </div>
+      <div class="card" data-id="6a10f06c-f15d-4b9c-a102-f05afcca8984" data-cat="drinkware">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/6a10f06c-f15d-4b9c-a102-f05afcca8984.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/6a10f06c-f15d-4b9c-a102-f05afcca8984.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="6a10f06c-f15d-4b9c-a102-f05afcca8984" checked/> Hang In There</label>
+          <span class="bg-tag">wood-dark</span>
+        </div>
+      </div>
+      <div class="card" data-id="86fbe870-8132-493c-9667-7b688d1ace88" data-cat="drinkware">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/86fbe870-8132-493c-9667-7b688d1ace88.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/86fbe870-8132-493c-9667-7b688d1ace88.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="86fbe870-8132-493c-9667-7b688d1ace88" checked/> Self-Care</label>
+          <span class="bg-tag">wood-dark</span>
+        </div>
+      </div>
+      <div class="card" data-id="931cb0ed-591b-472f-8511-22f54698b704" data-cat="drinkware">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/931cb0ed-591b-472f-8511-22f54698b704.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/931cb0ed-591b-472f-8511-22f54698b704.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="931cb0ed-591b-472f-8511-22f54698b704" checked/> Soup Fork</label>
+          <span class="bg-tag">wood-dark</span>
+        </div>
+      </div><h2 style="grid-column:1/-1;margin:24px 0 8px;font-size:20px;color:#40ACCC;text-transform:uppercase;letter-spacing:2px;">home-decor (2)</h2>
+
+      <div class="card" data-id="a166180b-d854-49fc-973d-45ec84d9be36" data-cat="home-decor">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/a166180b-d854-49fc-973d-45ec84d9be36.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/a166180b-d854-49fc-973d-45ec84d9be36.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="a166180b-d854-49fc-973d-45ec84d9be36" checked/> 404 Purpose</label>
+          <span class="bg-tag">clean-white</span>
+        </div>
+      </div>
+      <div class="card" data-id="f45a934d-05b5-4c6f-93db-b23bb7f381af" data-cat="home-decor">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/f45a934d-05b5-4c6f-93db-b23bb7f381af.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/f45a934d-05b5-4c6f-93db-b23bb7f381af.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="f45a934d-05b5-4c6f-93db-b23bb7f381af" checked/> NOPE</label>
+          <span class="bg-tag">clean-white</span>
+        </div>
+      </div><h2 style="grid-column:1/-1;margin:24px 0 8px;font-size:20px;color:#40ACCC;text-transform:uppercase;letter-spacing:2px;">kids-sweatshirts (2)</h2>
+
+      <div class="card" data-id="c0036a6e-f697-4ac1-bee2-8a2433127650" data-cat="kids-sweatshirts">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/c0036a6e-f697-4ac1-bee2-8a2433127650.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/c0036a6e-f697-4ac1-bee2-8a2433127650.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="c0036a6e-f697-4ac1-bee2-8a2433127650" checked/> Code Works</label>
+          <span class="bg-tag">soft-pastel</span>
+        </div>
+      </div>
+      <div class="card" data-id="756fc09b-8ad8-4a6a-a422-e09fd92af24d" data-cat="kids-sweatshirts">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/756fc09b-8ad8-4a6a-a422-e09fd92af24d.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/756fc09b-8ad8-4a6a-a422-e09fd92af24d.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="756fc09b-8ad8-4a6a-a422-e09fd92af24d" checked/> AI Raised Me</label>
+          <span class="bg-tag">soft-pastel</span>
+        </div>
+      </div><h2 style="grid-column:1/-1;margin:24px 0 8px;font-size:20px;color:#40ACCC;text-transform:uppercase;letter-spacing:2px;">kids-tshirts (3)</h2>
+
+      <div class="card" data-id="cce5134c-b444-4be9-8d62-5bb22e28858d" data-cat="kids-tshirts">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/cce5134c-b444-4be9-8d62-5bb22e28858d.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/cce5134c-b444-4be9-8d62-5bb22e28858d.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="cce5134c-b444-4be9-8d62-5bb22e28858d" checked/> Ctrl+Z Homework</label>
+          <span class="bg-tag">soft-pastel</span>
+        </div>
+      </div>
+      <div class="card" data-id="d27d9e55-f50f-43ce-92ae-4ff8d9a936af" data-cat="kids-tshirts">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/d27d9e55-f50f-43ce-92ae-4ff8d9a936af.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/d27d9e55-f50f-43ce-92ae-4ff8d9a936af.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="d27d9e55-f50f-43ce-92ae-4ff8d9a936af" checked/> Bedtime 404</label>
+          <span class="bg-tag">soft-pastel</span>
+        </div>
+      </div>
+      <div class="card" data-id="84e01ffc-68c9-4151-b5cf-3a98e4cf28ee" data-cat="kids-tshirts">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/84e01ffc-68c9-4151-b5cf-3a98e4cf28ee.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/84e01ffc-68c9-4151-b5cf-3a98e4cf28ee.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="84e01ffc-68c9-4151-b5cf-3a98e4cf28ee" checked/> Sudo Ice Cream</label>
+          <span class="bg-tag">soft-pastel</span>
+        </div>
+      </div><h2 style="grid-column:1/-1;margin:24px 0 8px;font-size:20px;color:#40ACCC;text-transform:uppercase;letter-spacing:2px;">long-sleeves (3)</h2>
+
+      <div class="card" data-id="57767721-c991-4899-a6a6-38e7d06ea47e" data-cat="long-sleeves">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/57767721-c991-4899-a6a6-38e7d06ea47e.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/57767721-c991-4899-a6a6-38e7d06ea47e.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="57767721-c991-4899-a6a6-38e7d06ea47e" checked/> On Demand</label>
+          <span class="bg-tag">navy-gradient</span>
+        </div>
+      </div>
+      <div class="card" data-id="2b6d7ed2-eb53-469c-bf27-c686115bffc2" data-cat="long-sleeves">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/2b6d7ed2-eb53-469c-bf27-c686115bffc2.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/2b6d7ed2-eb53-469c-bf27-c686115bffc2.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="2b6d7ed2-eb53-469c-bf27-c686115bffc2" checked/> On Mute</label>
+          <span class="bg-tag">navy-gradient</span>
+        </div>
+      </div>
+      <div class="card" data-id="e5729beb-6e20-4795-ab1c-6ea5d741c2d3" data-cat="long-sleeves">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/e5729beb-6e20-4795-ab1c-6ea5d741c2d3.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/e5729beb-6e20-4795-ab1c-6ea5d741c2d3.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="e5729beb-6e20-4795-ab1c-6ea5d741c2d3" checked/> Prompt Injection</label>
+          <span class="bg-tag">navy-gradient</span>
+        </div>
+      </div><h2 style="grid-column:1/-1;margin:24px 0 8px;font-size:20px;color:#40ACCC;text-transform:uppercase;letter-spacing:2px;">mugs (5)</h2>
+
+      <div class="card" data-id="e9a11c50-1610-4516-a53e-7196ab79ce93" data-cat="mugs">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/e9a11c50-1610-4516-a53e-7196ab79ce93.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/e9a11c50-1610-4516-a53e-7196ab79ce93.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="e9a11c50-1610-4516-a53e-7196ab79ce93" checked/> Nihilist Penguin</label>
+          <span class="bg-tag">wood-light</span>
+        </div>
+      </div>
+      <div class="card" data-id="21f93128-a9e3-4900-afec-a2effb186c90" data-cat="mugs">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/21f93128-a9e3-4900-afec-a2effb186c90.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/21f93128-a9e3-4900-afec-a2effb186c90.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="21f93128-a9e3-4900-afec-a2effb186c90" checked/> Seven Seconds</label>
+          <span class="bg-tag">wood-light</span>
+        </div>
+      </div>
+      <div class="card" data-id="d4b99ced-99ac-4d54-975e-f121be3dc28b" data-cat="mugs">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/d4b99ced-99ac-4d54-975e-f121be3dc28b.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/d4b99ced-99ac-4d54-975e-f121be3dc28b.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="d4b99ced-99ac-4d54-975e-f121be3dc28b" checked/> Prompt Engineer</label>
+          <span class="bg-tag">wood-light</span>
+        </div>
+      </div>
+      <div class="card" data-id="9457e54d-4caa-4338-aa14-6ec57d7bbea4" data-cat="mugs">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/9457e54d-4caa-4338-aa14-6ec57d7bbea4.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/9457e54d-4caa-4338-aa14-6ec57d7bbea4.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="9457e54d-4caa-4338-aa14-6ec57d7bbea4" checked/> Full Credit</label>
+          <span class="bg-tag">wood-light</span>
+        </div>
+      </div>
+      <div class="card" data-id="8345cf03-55ef-4a74-842f-b669df39fac8" data-cat="mugs">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/8345cf03-55ef-4a74-842f-b669df39fac8.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/8345cf03-55ef-4a74-842f-b669df39fac8.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="8345cf03-55ef-4a74-842f-b669df39fac8" checked/> SKAPARA Noir</label>
+          <span class="bg-tag">wood-light</span>
+        </div>
+      </div><h2 style="grid-column:1/-1;margin:24px 0 8px;font-size:20px;color:#40ACCC;text-transform:uppercase;letter-spacing:2px;">pullover-hoodies (10)</h2>
+
+      <div class="card" data-id="e7bca6fa-c39f-47bc-8ab8-399bb03e7ce6" data-cat="pullover-hoodies">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/e7bca6fa-c39f-47bc-8ab8-399bb03e7ce6.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/e7bca6fa-c39f-47bc-8ab8-399bb03e7ce6.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="e7bca6fa-c39f-47bc-8ab8-399bb03e7ce6" checked/> Nope</label>
+          <span class="bg-tag">warm-gray</span>
+        </div>
+      </div>
+      <div class="card" data-id="44f77f0a-0058-47c2-aeae-f33038a6c30d" data-cat="pullover-hoodies">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/44f77f0a-0058-47c2-aeae-f33038a6c30d.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/44f77f0a-0058-47c2-aeae-f33038a6c30d.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="44f77f0a-0058-47c2-aeae-f33038a6c30d" checked/> Main Character</label>
+          <span class="bg-tag">warm-gray</span>
+        </div>
+      </div>
+      <div class="card" data-id="c79a87b1-39bd-47ba-a47c-59ef758a04d0" data-cat="pullover-hoodies">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/c79a87b1-39bd-47ba-a47c-59ef758a04d0.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/c79a87b1-39bd-47ba-a47c-59ef758a04d0.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="c79a87b1-39bd-47ba-a47c-59ef758a04d0" checked/> Nervous System</label>
+          <span class="bg-tag">warm-gray</span>
+        </div>
+      </div>
+      <div class="card" data-id="36541f8c-f878-4ef0-8916-2c5a268f2cf2" data-cat="pullover-hoodies">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/36541f8c-f878-4ef0-8916-2c5a268f2cf2.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/36541f8c-f878-4ef0-8916-2c5a268f2cf2.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="36541f8c-f878-4ef0-8916-2c5a268f2cf2" checked/> Hang In There</label>
+          <span class="bg-tag">warm-gray</span>
+        </div>
+      </div>
+      <div class="card" data-id="77f23767-4128-4fab-9270-f7af79375940" data-cat="pullover-hoodies">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/77f23767-4128-4fab-9270-f7af79375940.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/77f23767-4128-4fab-9270-f7af79375940.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="77f23767-4128-4fab-9270-f7af79375940" checked/> Just One Button</label>
+          <span class="bg-tag">warm-gray</span>
+        </div>
+      </div>
+      <div class="card" data-id="a88e3871-f55c-44da-9ae2-7c7c8c170bd5" data-cat="pullover-hoodies">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/a88e3871-f55c-44da-9ae2-7c7c8c170bd5.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/a88e3871-f55c-44da-9ae2-7c7c8c170bd5.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="a88e3871-f55c-44da-9ae2-7c7c8c170bd5" checked/> Origin</label>
+          <span class="bg-tag">warm-gray</span>
+        </div>
+      </div>
+      <div class="card" data-id="cb929167-921f-4aeb-b246-8b9fa8c24c5b" data-cat="pullover-hoodies">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/cb929167-921f-4aeb-b246-8b9fa8c24c5b.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/cb929167-921f-4aeb-b246-8b9fa8c24c5b.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="cb929167-921f-4aeb-b246-8b9fa8c24c5b" checked/> Synapse</label>
+          <span class="bg-tag">warm-gray</span>
+        </div>
+      </div>
+      <div class="card" data-id="af8bd871-30ec-4997-99cf-72ebb9dcc249" data-cat="pullover-hoodies">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/af8bd871-30ec-4997-99cf-72ebb9dcc249.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/af8bd871-30ec-4997-99cf-72ebb9dcc249.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="af8bd871-30ec-4997-99cf-72ebb9dcc249" checked/> Ultra Hood</label>
+          <span class="bg-tag">warm-gray</span>
+        </div>
+      </div>
+      <div class="card" data-id="cdfc800e-9936-4608-8d86-ae938b1a70a6" data-cat="pullover-hoodies">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/cdfc800e-9936-4608-8d86-ae938b1a70a6.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/cdfc800e-9936-4608-8d86-ae938b1a70a6.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="cdfc800e-9936-4608-8d86-ae938b1a70a6" checked/> Phantom Hood</label>
+          <span class="bg-tag">warm-gray</span>
+        </div>
+      </div>
+      <div class="card" data-id="65aea0f7-a037-4aab-a4ec-d87c500f9474" data-cat="pullover-hoodies">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/65aea0f7-a037-4aab-a4ec-d87c500f9474.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/65aea0f7-a037-4aab-a4ec-d87c500f9474.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="65aea0f7-a037-4aab-a4ec-d87c500f9474" checked/> Abyss Hood</label>
+          <span class="bg-tag">warm-gray</span>
+        </div>
+      </div><h2 style="grid-column:1/-1;margin:24px 0 8px;font-size:20px;color:#40ACCC;text-transform:uppercase;letter-spacing:2px;">snapbacks (1)</h2>
+
+      <div class="card" data-id="ceafc0f9-80bd-4ccf-8d0b-f93dc2d81774" data-cat="snapbacks">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/ceafc0f9-80bd-4ccf-8d0b-f93dc2d81774.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/ceafc0f9-80bd-4ccf-8d0b-f93dc2d81774.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="ceafc0f9-80bd-4ccf-8d0b-f93dc2d81774" checked/> Friday Deploy</label>
+          <span class="bg-tag">kraft-paper</span>
+        </div>
+      </div><h2 style="grid-column:1/-1;margin:24px 0 8px;font-size:20px;color:#40ACCC;text-transform:uppercase;letter-spacing:2px;">sneakers (2)</h2>
+
+      <div class="card" data-id="62e3a996-7c85-4952-a15d-96d0910d6963" data-cat="sneakers">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/62e3a996-7c85-4952-a15d-96d0910d6963.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/62e3a996-7c85-4952-a15d-96d0910d6963.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="62e3a996-7c85-4952-a15d-96d0910d6963" checked/> Prompt Engineer</label>
+          <span class="bg-tag">urban-gray</span>
+        </div>
+      </div>
+      <div class="card" data-id="a313eaea-4758-417c-aa26-350bcf899bb5" data-cat="sneakers">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/a313eaea-4758-417c-aa26-350bcf899bb5.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/a313eaea-4758-417c-aa26-350bcf899bb5.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="a313eaea-4758-417c-aa26-350bcf899bb5" checked/> SKAPARA Step — Low Top Sneaker</label>
+          <span class="bg-tag">urban-gray</span>
+        </div>
+      </div><h2 style="grid-column:1/-1;margin:24px 0 8px;font-size:20px;color:#40ACCC;text-transform:uppercase;letter-spacing:2px;">t-shirts (20)</h2>
+
+      <div class="card" data-id="4fff5d51-0b07-4fed-98f6-455d5c4e3d28" data-cat="t-shirts">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/4fff5d51-0b07-4fed-98f6-455d5c4e3d28.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/4fff5d51-0b07-4fed-98f6-455d5c4e3d28.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="4fff5d51-0b07-4fed-98f6-455d5c4e3d28" checked/> Just For You</label>
+          <span class="bg-tag">navy-gradient</span>
+        </div>
+      </div>
+      <div class="card" data-id="a5867c4e-7f7d-48f0-82d4-052c0072ee6b" data-cat="t-shirts">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/a5867c4e-7f7d-48f0-82d4-052c0072ee6b.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/a5867c4e-7f7d-48f0-82d4-052c0072ee6b.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="a5867c4e-7f7d-48f0-82d4-052c0072ee6b" checked/> Next Line</label>
+          <span class="bg-tag">navy-gradient</span>
+        </div>
+      </div>
+      <div class="card" data-id="922c9543-91b7-4530-9393-bee5db079626" data-cat="t-shirts">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/922c9543-91b7-4530-9393-bee5db079626.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/922c9543-91b7-4530-9393-bee5db079626.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="922c9543-91b7-4530-9393-bee5db079626" checked/> Caffeine Anxiety</label>
+          <span class="bg-tag">navy-gradient</span>
+        </div>
+      </div>
+      <div class="card" data-id="465edf9a-3abb-48d4-a7dc-68e6698eee87" data-cat="t-shirts">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/465edf9a-3abb-48d4-a7dc-68e6698eee87.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/465edf9a-3abb-48d4-a7dc-68e6698eee87.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="465edf9a-3abb-48d4-a7dc-68e6698eee87" checked/> Self-Care Mode</label>
+          <span class="bg-tag">navy-gradient</span>
+        </div>
+      </div>
+      <div class="card" data-id="a3b37e0f-636c-4a05-b680-b0f1151ff79b" data-cat="t-shirts">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/a3b37e0f-636c-4a05-b680-b0f1151ff79b.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/a3b37e0f-636c-4a05-b680-b0f1151ff79b.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="a3b37e0f-636c-4a05-b680-b0f1151ff79b" checked/> Plans Cancelled</label>
+          <span class="bg-tag">navy-gradient</span>
+        </div>
+      </div>
+      <div class="card" data-id="2326f734-8025-42f7-82bf-847d0a5fb22c" data-cat="t-shirts">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/2326f734-8025-42f7-82bf-847d0a5fb22c.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/2326f734-8025-42f7-82bf-847d0a5fb22c.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="2326f734-8025-42f7-82bf-847d0a5fb22c" checked/> Social Battery</label>
+          <span class="bg-tag">navy-gradient</span>
+        </div>
+      </div>
+      <div class="card" data-id="152676b0-4818-458b-8ffe-55e1b0a87877" data-cat="t-shirts">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/152676b0-4818-458b-8ffe-55e1b0a87877.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/152676b0-4818-458b-8ffe-55e1b0a87877.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="152676b0-4818-458b-8ffe-55e1b0a87877" checked/> Existential Dread</label>
+          <span class="bg-tag">navy-gradient</span>
+        </div>
+      </div>
+      <div class="card" data-id="7d6f605a-df7c-4d63-b9f6-5f530035d3f2" data-cat="t-shirts">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/7d6f605a-df7c-4d63-b9f6-5f530035d3f2.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/7d6f605a-df7c-4d63-b9f6-5f530035d3f2.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="7d6f605a-df7c-4d63-b9f6-5f530035d3f2" checked/> Soup Fork</label>
+          <span class="bg-tag">navy-gradient</span>
+        </div>
+      </div>
+      <div class="card" data-id="0a0085ac-be8b-4e68-b194-c448d1af2b09" data-cat="t-shirts">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/0a0085ac-be8b-4e68-b194-c448d1af2b09.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/0a0085ac-be8b-4e68-b194-c448d1af2b09.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="0a0085ac-be8b-4e68-b194-c448d1af2b09" checked/> Three Models</label>
+          <span class="bg-tag">navy-gradient</span>
+        </div>
+      </div>
+      <div class="card" data-id="49d3093b-abf5-46a5-82cb-362ffe6c863c" data-cat="t-shirts">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/49d3093b-abf5-46a5-82cb-362ffe6c863c.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/49d3093b-abf5-46a5-82cb-362ffe6c863c.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="49d3093b-abf5-46a5-82cb-362ffe6c863c" checked/> Scope Creep</label>
+          <span class="bg-tag">navy-gradient</span>
+        </div>
+      </div>
+      <div class="card" data-id="052903d6-8b14-4373-832a-4a04df2f495e" data-cat="t-shirts">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/052903d6-8b14-4373-832a-4a04df2f495e.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/052903d6-8b14-4373-832a-4a04df2f495e.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="052903d6-8b14-4373-832a-4a04df2f495e" checked/> Dangerous Flag</label>
+          <span class="bg-tag">navy-gradient</span>
+        </div>
+      </div>
+      <div class="card" data-id="13bc1ffc-a703-4a9b-96fb-a460c429990c" data-cat="t-shirts">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/13bc1ffc-a703-4a9b-96fb-a460c429990c.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/13bc1ffc-a703-4a9b-96fb-a460c429990c.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="13bc1ffc-a703-4a9b-96fb-a460c429990c" checked/> Option Two</label>
+          <span class="bg-tag">navy-gradient</span>
+        </div>
+      </div>
+      <div class="card" data-id="725e1aec-2b65-49da-ac56-2054740de2e0" data-cat="t-shirts">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/725e1aec-2b65-49da-ac56-2054740de2e0.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/725e1aec-2b65-49da-ac56-2054740de2e0.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="725e1aec-2b65-49da-ac56-2054740de2e0" checked/> Under Where</label>
+          <span class="bg-tag">navy-gradient</span>
+        </div>
+      </div>
+      <div class="card" data-id="02ab1785-1c65-41a6-bf6a-bc40d4a31494" data-cat="t-shirts">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/02ab1785-1c65-41a6-bf6a-bc40d4a31494.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/02ab1785-1c65-41a6-bf6a-bc40d4a31494.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="02ab1785-1c65-41a6-bf6a-bc40d4a31494" checked/> Strawberry Count</label>
+          <span class="bg-tag">navy-gradient</span>
+        </div>
+      </div>
+      <div class="card" data-id="75c19f30-003b-4a95-812a-852ae5aa337d" data-cat="t-shirts">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/75c19f30-003b-4a95-812a-852ae5aa337d.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/75c19f30-003b-4a95-812a-852ae5aa337d.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="75c19f30-003b-4a95-812a-852ae5aa337d" checked/> Shadow Tee</label>
+          <span class="bg-tag">navy-gradient</span>
+        </div>
+      </div>
+      <div class="card" data-id="7024ef34-abff-47b5-b6aa-23b4f3b588a0" data-cat="t-shirts">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/7024ef34-abff-47b5-b6aa-23b4f3b588a0.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/7024ef34-abff-47b5-b6aa-23b4f3b588a0.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="7024ef34-abff-47b5-b6aa-23b4f3b588a0" checked/> Prism Tee</label>
+          <span class="bg-tag">navy-gradient</span>
+        </div>
+      </div>
+      <div class="card" data-id="168731f6-75db-4075-bb30-c1ec8fead998" data-cat="t-shirts">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/168731f6-75db-4075-bb30-c1ec8fead998.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/168731f6-75db-4075-bb30-c1ec8fead998.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="168731f6-75db-4075-bb30-c1ec8fead998" checked/> Absolutely Right</label>
+          <span class="bg-tag">navy-gradient</span>
+        </div>
+      </div>
+      <div class="card" data-id="60f6ceb4-46a7-4bd3-92c0-2e67c4cf0f66" data-cat="t-shirts">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/60f6ceb4-46a7-4bd3-92c0-2e67c4cf0f66.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/60f6ceb4-46a7-4bd3-92c0-2e67c4cf0f66.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="60f6ceb4-46a7-4bd3-92c0-2e67c4cf0f66" checked/> Vibe Coder</label>
+          <span class="bg-tag">navy-gradient</span>
+        </div>
+      </div>
+      <div class="card" data-id="e4867449-08b1-408a-b85b-b6ecd9b4274c" data-cat="t-shirts">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/e4867449-08b1-408a-b85b-b6ecd9b4274c.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/e4867449-08b1-408a-b85b-b6ecd9b4274c.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="e4867449-08b1-408a-b85b-b6ecd9b4274c" checked/> Zero Bugs</label>
+          <span class="bg-tag">navy-gradient</span>
+        </div>
+      </div>
+      <div class="card" data-id="28523f37-23ca-4087-a7e1-511ea8da54eb" data-cat="t-shirts">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/28523f37-23ca-4087-a7e1-511ea8da54eb.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/28523f37-23ca-4087-a7e1-511ea8da54eb.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="28523f37-23ca-4087-a7e1-511ea8da54eb" checked/> Ghost Tee</label>
+          <span class="bg-tag">navy-gradient</span>
+        </div>
+      </div><h2 style="grid-column:1/-1;margin:24px 0 8px;font-size:20px;color:#40ACCC;text-transform:uppercase;letter-spacing:2px;">tote-bags (4)</h2>
+
+      <div class="card" data-id="55d50a79-2b9c-44cc-8fa0-29fbab07438e" data-cat="tote-bags">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/55d50a79-2b9c-44cc-8fa0-29fbab07438e.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/55d50a79-2b9c-44cc-8fa0-29fbab07438e.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="55d50a79-2b9c-44cc-8fa0-29fbab07438e" checked/> NOPE</label>
+          <span class="bg-tag">sand-beige</span>
+        </div>
+      </div>
+      <div class="card" data-id="a1797b7a-d26c-4640-b91f-26fe651a60a1" data-cat="tote-bags">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/a1797b7a-d26c-4640-b91f-26fe651a60a1.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/a1797b7a-d26c-4640-b91f-26fe651a60a1.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="a1797b7a-d26c-4640-b91f-26fe651a60a1" checked/> Plans Cancelled</label>
+          <span class="bg-tag">sand-beige</span>
+        </div>
+      </div>
+      <div class="card" data-id="5580367f-3ebe-4d65-8627-e45a22689e1e" data-cat="tote-bags">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/5580367f-3ebe-4d65-8627-e45a22689e1e.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/5580367f-3ebe-4d65-8627-e45a22689e1e.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="5580367f-3ebe-4d65-8627-e45a22689e1e" checked/> Social Battery</label>
+          <span class="bg-tag">sand-beige</span>
+        </div>
+      </div>
+      <div class="card" data-id="c910de54-975e-407d-8d86-2a1e19b3d524" data-cat="tote-bags">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/c910de54-975e-407d-8d86-2a1e19b3d524.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/c910de54-975e-407d-8d86-2a1e19b3d524.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="c910de54-975e-407d-8d86-2a1e19b3d524" checked/> Soup Fork</label>
+          <span class="bg-tag">sand-beige</span>
+        </div>
+      </div><h2 style="grid-column:1/-1;margin:24px 0 8px;font-size:20px;color:#40ACCC;text-transform:uppercase;letter-spacing:2px;">tumblers (2)</h2>
+
+      <div class="card" data-id="23cbb77f-c756-418d-aa66-410d1365bbc2" data-cat="tumblers">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/23cbb77f-c756-418d-aa66-410d1365bbc2.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/23cbb77f-c756-418d-aa66-410d1365bbc2.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="23cbb77f-c756-418d-aa66-410d1365bbc2" checked/> Git Reset</label>
+          <span class="bg-tag">dark-marble</span>
+        </div>
+      </div>
+      <div class="card" data-id="0f38cb07-a036-40df-95ae-306d161c8b4e" data-cat="tumblers">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/0f38cb07-a036-40df-95ae-306d161c8b4e.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/0f38cb07-a036-40df-95ae-306d161c8b4e.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="0f38cb07-a036-40df-95ae-306d161c8b4e" checked/> 404 Dev</label>
+          <span class="bg-tag">dark-marble</span>
+        </div>
+      </div><h2 style="grid-column:1/-1;margin:24px 0 8px;font-size:20px;color:#40ACCC;text-transform:uppercase;letter-spacing:2px;">zip-hoodies (1)</h2>
+
+      <div class="card" data-id="4c5c39bb-92d8-4e5a-8079-86f6561fc58c" data-cat="zip-hoodies">
+        <div class="compare">
+          <div class="img-box">
+            <div class="label">BEFORE</div>
+            <img src="original/4c5c39bb-92d8-4e5a-8079-86f6561fc58c.jpg" alt="Original" loading="lazy"/>
+          </div>
+          <div class="img-box">
+            <div class="label branded">AFTER</div>
+            <img src="branded/4c5c39bb-92d8-4e5a-8079-86f6561fc58c.webp" alt="Branded" loading="lazy"/>
+          </div>
+        </div>
+        <div class="info">
+          <label><input type="checkbox" class="approve-cb" value="4c5c39bb-92d8-4e5a-8079-86f6561fc58c" checked/> GPU</label>
+          <span class="bg-tag">warm-gray</span>
+        </div>
+      </div>
+</div>
+<div id="export-bar">
+  <span class="count" id="count-display">0 selected</span>
+  <button onclick="exportIds()">Copy Approved IDs</button>
+</div>
+<script>
+  function updateCount() {
+    const cbs = document.querySelectorAll('.approve-cb');
+    const checked = [...cbs].filter(c => c.checked).length;
+    document.getElementById('count-display').textContent = checked + ' / ' + cbs.length + ' selected';
+  }
+  document.querySelectorAll('.approve-cb').forEach(cb => cb.addEventListener('change', updateCount));
+  updateCount();
+
+  function selectAll(state) {
+    document.querySelectorAll('.approve-cb').forEach(cb => cb.checked = state);
+    updateCount();
+  }
+
+  function exportIds() {
+    const ids = [...document.querySelectorAll('.approve-cb:checked')].map(cb => cb.value);
+    const text = ids.join(',');
+    navigator.clipboard.writeText(text).then(() => {
+      alert('Copied ' + ids.length + ' product IDs to clipboard!\n\nRun:\nnode scripts/generate-branded-mockups.mjs --upload --ids "' + text.slice(0, 80) + '..."');
+    });
+  }
+
+  let showBranded = true;
+  function toggleView() {
+    showBranded = !showBranded;
+    document.querySelectorAll('.compare').forEach(el => {
+      const boxes = el.querySelectorAll('.img-box');
+      if (showBranded) {
+        boxes[0].style.display = '';
+        boxes[1].style.display = '';
+      } else {
+        // Show only branded
+        boxes[0].style.display = 'none';
+        boxes[1].style.display = '';
+        boxes[1].querySelector('img').style.width = '100%';
+      }
+    });
+  }
+</script>
+</body>
+</html>

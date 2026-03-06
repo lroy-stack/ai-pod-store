@@ -25,23 +25,23 @@ import {
   CarouselPrevious,
 } from '@/components/ui/carousel'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Badge } from '@/components/ui/badge'
 import { Testimonials } from '@/components/landing/Testimonials'
 import { NewsletterSignup } from '@/components/landing/NewsletterSignup'
 import { formatPrice } from '@/lib/currency'
 import { cn } from '@/lib/utils'
+import { BrandMark } from '@/components/ui/brand-mark'
 
 const MetaballsBackground = dynamic(
   () => import('@/components/landing/MetaballsBackground').then((mod) => ({ default: mod.MetaballsBackground })),
   { ssr: false }
 )
 
-interface Product {
-  id: string
-  title: string
-  price: number
-  currency: string
+import type { ProductBase } from '@/types/product'
+
+interface Product extends ProductBase {
   rating: number
-  image: string | null
+  compareAtPrice?: number
 }
 
 interface Review {
@@ -110,14 +110,21 @@ export function LandingPageClient({
       {/* ─── Hero ─── */}
       <section className="relative flex flex-col items-center justify-center text-center px-6 min-h-dvh">
         <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+          {/* CSS gradient fallback — visible instantly while WebGL loads */}
+          <div
+            className="absolute inset-0 opacity-60"
+            style={{
+              background: 'radial-gradient(ellipse at 30% 50%, var(--primary) 0%, transparent 50%), radial-gradient(ellipse at 70% 30%, var(--chart-2) 0%, transparent 50%), radial-gradient(ellipse at 50% 80%, var(--chart-5) 0%, transparent 50%), var(--background)',
+            }}
+          />
           <MetaballsBackground />
         </div>
         <div className="absolute inset-x-0 bottom-0 h-40 shader-fade-bottom pointer-events-none" aria-hidden="true" />
 
         <div className="relative z-10 flex flex-col items-center max-w-4xl">
           <div className="bg-card/50 backdrop-blur-2xl border border-border/60 rounded-3xl shadow-xl ring-1 ring-foreground/10 px-8 py-10 md:px-12 md:py-12 flex flex-col items-center">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center mb-8 landing-float shadow-lg shadow-primary/20">
-              <span className="text-primary-foreground font-bold text-xl">P</span>
+            <div className="mb-8 landing-float">
+              <BrandMark size={56} />
             </div>
 
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.08] text-balance text-foreground">
@@ -238,9 +245,28 @@ export function LandingPageClient({
                           {product.title}
                         </h3>
                         <div className="flex items-center justify-between">
-                          <span className="text-sm font-semibold text-foreground tracking-tight">
-                            {formatPrice(product.price, locale, product.currency || 'EUR')}
-                          </span>
+                          {product.compareAtPrice ? (
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-1">
+                                <span className="text-[11px] line-through text-muted-foreground">
+                                  {formatPrice(product.compareAtPrice, locale, product.currency || 'EUR')}
+                                </span>
+                                {(() => {
+                                  const pct = Math.round(((product.compareAtPrice! - product.price) / product.compareAtPrice!) * 100)
+                                  return pct > 0 ? (
+                                    <Badge variant="destructive" className="text-[10px] leading-none px-1 py-0.5">-{pct}%</Badge>
+                                  ) : null
+                                })()}
+                              </div>
+                              <span className="text-sm font-bold text-destructive tracking-tight">
+                                {formatPrice(product.price, locale, product.currency || 'EUR')}
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-sm font-semibold text-foreground tracking-tight">
+                              {formatPrice(product.price, locale, product.currency || 'EUR')}
+                            </span>
+                          )}
                           {product.rating > 0 && (
                             <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
                               <Star className="h-3 w-3 fill-rating text-rating" />
@@ -257,7 +283,7 @@ export function LandingPageClient({
               <CarouselNext className="hidden md:flex -right-5" />
             </Carousel>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-6">
               {Array.from({ length: 3 }).map((_, i) => (
                 <div key={i} className="rounded-2xl bg-card overflow-hidden border border-border/40">
                   <Skeleton className="aspect-square w-full" />

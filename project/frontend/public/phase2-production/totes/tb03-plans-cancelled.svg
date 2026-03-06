@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2953" height="3543" viewBox="0 0 2953 3543">
+
+  <!-- TB03: "Plans Cancelled" Tote — BP731 2953×3543, DTG -->
+  <!-- Adapted from C02 (4606×5787) — scale ~0.64 -->
+  <!-- Palette: Amber/Orange (#F59E0B) + Gray (#6B7280) -->
+
+  <!-- "PLANS" — gray, dead -->
+  <text x="1477" y="760"
+        font-family="'Oswald', sans-serif"
+        font-size="640" font-weight="700"
+        fill="#6B7280" text-anchor="middle">PLANS</text>
+
+  <!-- Diagonal slash through PLANS -->
+  <line x1="512" y1="825" x2="2435" y2="440"
+        stroke="#F59E0B" stroke-width="22" stroke-linecap="round"/>
+
+  <!-- "cancelled" -->
+  <text x="1477" y="1015"
+        font-family="'Caveat', cursive"
+        font-size="256"
+        fill="#D97706" text-anchor="middle">cancelled</text>
+
+  <!-- "BEST" — 3D amber -->
+  <text x="1490" y="1805"
+        font-family="'Oswald', sans-serif"
+        font-size="640" font-weight="700"
+        fill="#92400E" text-anchor="middle">BEST</text>
+  <text x="1483" y="1798"
+        font-family="'Oswald', sans-serif"
+        font-size="640" font-weight="700"
+        fill="#D97706" text-anchor="middle">BEST</text>
+  <text x="1477" y="1791"
+        font-family="'Oswald', sans-serif"
+        font-size="640" font-weight="700"
+        fill="#F59E0B" text-anchor="middle">BEST</text>
+
+  <!-- "DAY" — 3D amber -->
+  <text x="1490" y="2445"
+        font-family="'Oswald', sans-serif"
+        font-size="640" font-weight="700"
+        fill="#92400E" text-anchor="middle">DAY</text>
+  <text x="1483" y="2438"
+        font-family="'Oswald', sans-serif"
+        font-size="640" font-weight="700"
+        fill="#D97706" text-anchor="middle">DAY</text>
+  <text x="1477" y="2431"
+        font-family="'Oswald', sans-serif"
+        font-size="640" font-weight="700"
+        fill="#F59E0B" text-anchor="middle">DAY</text>
+
+  <!-- "EVER" — 3D amber -->
+  <text x="1490" y="3085"
+        font-family="'Oswald', sans-serif"
+        font-size="640" font-weight="700"
+        fill="#92400E" text-anchor="middle">EVER</text>
+  <text x="1483" y="3078"
+        font-family="'Oswald', sans-serif"
+        font-size="640" font-weight="700"
+        fill="#D97706" text-anchor="middle">EVER</text>
+  <text x="1477" y="3071"
+        font-family="'Oswald', sans-serif"
+        font-size="640" font-weight="700"
+        fill="#F59E0B" text-anchor="middle">EVER</text>
+
+</svg>

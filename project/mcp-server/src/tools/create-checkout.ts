@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import type { AuthInfo } from '@modelcontextprotocol/sdk/server/auth/types.js';
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseClient } from '../lib/supabase.js';
 import Stripe from 'stripe';
 
 /**
@@ -32,8 +32,6 @@ export interface CreateCheckoutResult {
   expires_at?: string;
 }
 
-const SUPABASE_URL = process.env.SUPABASE_URL || '';
-const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY || '';
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || '';
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
 
@@ -52,13 +50,7 @@ export async function createCheckout(
   const userId = authInfo.extra.userId as string;
 
   try {
-    // Create Supabase client
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-      },
-    });
+    const supabase = getSupabaseClient();
 
     // Fetch user's cart items with product details
     const { data: cartItems, error: cartError } = await supabase

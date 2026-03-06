@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1260" height="1260" viewBox="0 0 1260 1260">
+
+  <!-- CC02: "404 Purpose" Coaster — BP1523 1260×1260, sublimation on ceramic -->
+  <!-- Terminal mini — centered for round/square compatibility -->
+  <!-- Dark background (terminal window) -->
+
+  <!-- Terminal window background -->
+  <rect x="100" y="100" width="1060" height="1060" rx="30" fill="#1E293B"/>
+
+  <!-- Title bar -->
+  <rect x="100" y="168" width="1060" height="3" fill="#374151"/>
+
+  <!-- Traffic lights -->
+  <circle cx="170" cy="140" r="12" fill="#EF4444"/>
+  <circle cx="210" cy="140" r="12" fill="#F59E0B"/>
+  <circle cx="250" cy="140" r="12" fill="#10B981"/>
+
+  <!-- URL -->
+  <text x="310" y="147"
+        font-family="'Courier New', monospace"
+        font-size="24" font-weight="bold"
+        fill="#6B7280">life://purpose</text>
+
+  <!-- $ find /purpose -->
+  <text x="180" y="280"
+        font-family="'Courier New', monospace"
+        font-size="56" font-weight="bold"
+        fill="#10B981">$ find /purpose</text>
+
+  <!-- Error -->
+  <text x="180" y="370"
+        font-family="'Courier New', monospace"
+        font-size="44" font-weight="bold"
+        fill="#EF4444">Error: not in $PATH</text>
+
+  <!-- Separator -->
+  <rect x="180" y="420" width="900" height="2" fill="#374151"/>
+
+  <!-- "404" — big red centered -->
+  <text x="637" y="680"
+        font-family="'Permanent Marker', cursive"
+        font-size="300"
+        fill="#7F1D1D" text-anchor="middle">404</text>
+  <text x="634" y="677"
+        font-family="'Permanent Marker', cursive"
+        font-size="300"
+        fill="#EF4444" text-anchor="middle">404</text>
+
+  <!-- "PURPOSE NOT FOUND" -->
+  <text x="630" y="820"
+        font-family="'Bebas Neue', sans-serif"
+        font-size="110"
+        fill="#F0EDE8" text-anchor="middle"
+        letter-spacing="5">PURPOSE NOT FOUND</text>
+
+  <!-- "try again tomorrow" button -->
+  <rect x="400" y="910" width="460" height="60" rx="30" fill="#374151"/>
+  <text x="630" y="948"
+        font-family="'Courier New', monospace"
+        font-size="36" font-weight="bold"
+        fill="#F0EDE8" text-anchor="middle">try again tomorrow</text>
+
+  <!-- Cursor -->
+  <text x="180" y="1080"
+        font-family="'Courier New', monospace"
+        font-size="56" font-weight="bold"
+        fill="#10B981">$ _</text>
+
+</svg>

@@ -1,8 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
-import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -14,12 +13,29 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { toast } from 'sonner'
+import { DeletionCountdownBanner } from './DeletionCountdownBanner'
 
 export function DeleteAccountSection() {
   const t = useTranslations('Profile')
-  const router = useRouter()
   const [isOpen, setIsOpen] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [pendingDeletion, setPendingDeletion] = useState<string | null>(null)
+
+  useEffect(() => {
+    async function fetchDeletionStatus() {
+      try {
+        const res = await fetch('/api/user/profile', { credentials: 'include' })
+        if (!res.ok) return
+        const data = await res.json()
+        if (data.profile?.deletion_requested_at) {
+          setPendingDeletion(data.profile.deletion_requested_at)
+        }
+      } catch {
+        // Ignore — profile page handles auth redirect
+      }
+    }
+    fetchDeletionStatus()
+  }, [])
 
   const handleDeleteAccount = async () => {
     setIsDeleting(true)
@@ -41,7 +57,6 @@ export function DeleteAccountSection() {
       // Close dialog and redirect to home after a short delay
       setIsOpen(false)
       setTimeout(() => {
-        // Force a full page reload to clear all client-side state
         window.location.href = '/en'
       }, 1500)
     } catch (err: any) {
@@ -50,6 +65,16 @@ export function DeleteAccountSection() {
     } finally {
       setIsDeleting(false)
     }
+  }
+
+  // If deletion is pending, show countdown banner instead of delete button
+  if (pendingDeletion) {
+    return (
+      <DeletionCountdownBanner
+        deletionRequestedAt={pendingDeletion}
+        onCancelled={() => setPendingDeletion(null)}
+      />
+    )
   }
 
   return (

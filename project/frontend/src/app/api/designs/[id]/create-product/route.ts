@@ -2,18 +2,19 @@
  * Design → Product Pipeline
  *
  * POST /api/designs/:id/create-product
- * Converts an approved design into a Printify product:
+ * Converts an approved design into a POD provider product:
  *   1. Validate design is approved
- *   2. Upload image to Printify (if not already uploaded)
+ *   2. Upload image to provider (if not already uploaded)
  *   3. Create product with the uploaded image
  *   4. Publish product
- *   5. Save printify_id to products table
+ *   5. Save provider_product_id to products table
  */
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { printify } from '@/lib/printify'
+import { getProvider, initializeProviders } from '@/lib/pod'
 import { verifyCronSecret } from '@/lib/rate-limit'
+import { isEUProvider } from '@/lib/store-config'
 
 const supabase = createClient(
   process.env.SUPABASE_URL!,
@@ -53,9 +54,13 @@ export async function POST(
   }
 
   // Parse request body for product config
+  // Accepts both legacy (blueprint_id, print_provider_id) and
+  // provider-agnostic (product_template_id, provider_facility_id) field names
   let body: {
-    blueprint_id: number
-    print_provider_id: number
+    blueprint_id?: number
+    print_provider_id?: number
+    product_template_id?: number
+    provider_facility_id?: number
     variants: Array<{ id: number; price: number; is_enabled: boolean }>
     title?: string
     description?: string
@@ -67,19 +72,33 @@ export async function POST(
     body = await req.json()
   } catch {
     return NextResponse.json(
-      { error: 'Request body required with blueprint_id, print_provider_id, variants' },
+      { error: 'Request body required with blueprint_id/product_template_id, print_provider_id/provider_facility_id, variants' },
       { status: 400 }
     )
   }
 
-  if (!body.blueprint_id || !body.print_provider_id || !body.variants) {
+  // Resolve provider-agnostic aliases
+  const blueprintId = body.blueprint_id ?? body.product_template_id
+  const printProviderId = body.print_provider_id ?? body.provider_facility_id
+
+  if (!blueprintId || !printProviderId || !body.variants) {
     return NextResponse.json(
-      { error: 'Missing required fields: blueprint_id, print_provider_id, variants' },
+      { error: 'Missing required fields: blueprint_id/product_template_id, print_provider_id/provider_facility_id, variants' },
+      { status: 400 }
+    )
+  }
+
+  if (!isEUProvider(printProviderId)) {
+    return NextResponse.json(
+      { error: `Provider ${printProviderId} not approved for EU shipping` },
       { status: 400 }
     )
   }
 
   try {
+    initializeProviders()
+    const provider = getProvider()
+
     // 2. Transparency guarantee: prefer bg-removed version
     let imageUrl = design.bg_removed_url || design.image_url || design.url
     if (!imageUrl) {
@@ -115,25 +134,25 @@ export async function POST(
       }
     }
 
-    // 3. Upload image to Printify if not already uploaded
-    let printifyUploadId = design.printify_upload_id
-    if (!printifyUploadId) {
+    // 3. Upload image to provider if not already uploaded
+    let providerUploadId = design.provider_upload_id
+    if (!providerUploadId) {
 
       const fileName = `design-${designId}.png`
-      const uploadResult = await printify.uploadImage(imageUrl, fileName)
-      printifyUploadId = uploadResult.id
+      const uploadResult = await provider.uploadDesign({ url: imageUrl, fileName })
+      providerUploadId = uploadResult.id
 
       // Save upload ID to design
       await supabase
         .from('designs')
         .update({
-          printify_upload_id: printifyUploadId,
-          printify_image_url: uploadResult.preview_url,
+          provider_upload_id: providerUploadId,
+          pod_upload_url: uploadResult.previewUrl,
         })
         .eq('id', designId)
     }
 
-    // 3. Create product in Printify
+    // 4. Create product via provider
     const productTitle = body.title || design.title || `Design ${designId.slice(0, 8)}`
     const productDescription = body.description || design.description || ''
 
@@ -143,7 +162,7 @@ export async function POST(
         position: 'front',
         images: [
           {
-            id: printifyUploadId,
+            id: providerUploadId,
             x: 0.5,
             y: 0.5,
             scale: 1,
@@ -177,23 +196,31 @@ export async function POST(
       }
     }
 
-    const printifyProduct = await printify.createProduct({
+    const printifyProduct = await provider.createProduct({
       title: productTitle,
       description: productDescription,
-      blueprint_id: body.blueprint_id,
-      print_provider_id: body.print_provider_id,
-      variants: body.variants,
-      print_areas: [
-        {
-          variant_ids: body.variants.map((v: { id: number }) => v.id),
-          placeholders,
-        },
-      ],
+      blueprintId: blueprintId,
+      printProviderId: printProviderId,
+      variants: body.variants.map((v: { id: number; price: number; is_enabled: boolean }) => ({
+        variantId: v.id,
+        priceCents: v.price,
+        isEnabled: v.is_enabled,
+      })),
+      printAreas: placeholders.map((ph: Record<string, unknown>) => ({
+        position: ph.position as string,
+        images: (ph.images as any[]).map((img: any) => ({
+          id: img.id as string,
+          x: img.x as number,
+          y: img.y as number,
+          scale: img.scale as number,
+          angle: img.angle as number,
+        })),
+      })),
       tags: body.tags || [],
     })
 
     // 4. Publish product
-    await printify.publishProduct(printifyProduct.id)
+    await provider.publishProduct!(printifyProduct.externalId)
 
     // 5. Save to products table (before publishingSucceeded so we have the UUID)
     const { data: product, error: productError } = await supabase
@@ -201,7 +228,10 @@ export async function POST(
       .insert({
         title: productTitle,
         description: productDescription,
-        printify_id: printifyProduct.id,
+        provider_product_id: printifyProduct.externalId,
+        product_template_id: String(blueprintId),
+        provider_facility_id: String(printProviderId),
+        pod_provider: 'printful',
         status: 'draft',
         currency: 'EUR',
       })
@@ -212,11 +242,11 @@ export async function POST(
       console.error('Failed to save product to DB:', productError)
     }
 
-    // 6. Confirm publishing to Printify (custom integration requirement)
+    // 6. Confirm publishing (custom integration requirement)
     if (product) {
       try {
-        await printify.publishingSucceeded(
-          printifyProduct.id,
+        await provider.confirmPublishing!(
+          printifyProduct.externalId,
           product.id,
           `/shop/${product.id}`
         )
@@ -228,9 +258,9 @@ export async function POST(
 
     return NextResponse.json({
       success: true,
-      printify_product_id: printifyProduct.id,
+      provider_product_id: printifyProduct.externalId,
       product_id: product?.id,
-      printify_upload_id: printifyUploadId,
+      provider_upload_id: providerUploadId,
     })
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error'

@@ -1,0 +1,1005 @@
+{
+  "6": {
+    "printfulId": 4,
+    "title": null,
+    "euVariants": 0,
+    "totalVariants": 0,
+    "sizes": [],
+    "colors": [],
+    "confirmed": false,
+    "provider": "P26",
+    "skaparaCount": 16,
+    "notes": "API error: Printful 404: {\"code\":404,\"result\":\"Not Found\",\"error\":{\"reason\":\"NotFound\",\"message\":\"Not Found\"}}"
+  },
+  "12": {
+    "printfulId": 64,
+    "title": null,
+    "euVariants": 0,
+    "totalVariants": 0,
+    "sizes": [],
+    "colors": [],
+    "confirmed": false,
+    "provider": "P26",
+    "skaparaCount": 1,
+    "notes": "API error: Printful 404: {\"code\":404,\"result\":\"Not Found\",\"error\":{\"reason\":\"NotFound\",\"message\":\"Not Found\"}}"
+  },
+  "49": {
+    "printfulId": 28,
+    "title": null,
+    "euVariants": 0,
+    "totalVariants": 0,
+    "sizes": [],
+    "colors": [],
+    "confirmed": false,
+    "provider": "P26",
+    "skaparaCount": 4,
+    "notes": "API error: Printful 404: {\"code\":404,\"result\":\"Not Found\",\"error\":{\"reason\":\"NotFound\",\"message\":\"Not Found\"}}"
+  },
+  "65": {
+    "printfulId": 476,
+    "title": "Organic Cotton Kids T-Shirt | Stanley/Stella STTK184",
+    "euVariants": 15,
+    "totalVariants": 15,
+    "sizes": [
+      "12-13",
+      "3-4",
+      "5-6",
+      "7-8",
+      "9-11"
+    ],
+    "colors": [
+      "Black",
+      "French Navy",
+      "White"
+    ],
+    "confirmed": false,
+    "provider": "P26",
+    "skaparaCount": 1,
+    "notes": "TBD — search for Stanley/Stella kids sweatshirt",
+    "searchCandidates": [
+      {
+        "id": 476,
+        "title": "Organic Cotton Kids T-Shirt | Stanley/Stella STTK184",
+        "matchScore": 2
+      },
+      {
+        "id": 506,
+        "title": "Unisex Organic Sweatshirt | SOL'S 03574",
+        "matchScore": 2
+      },
+      {
+        "id": 826,
+        "title": "Unisex Organic Sweatshirt | Stanley/Stella SASU004",
+        "matchScore": 2
+      }
+    ],
+    "needsReview": true
+  },
+  "67": {
+    "printfulId": 512,
+    "title": "Organic Cotton Baby Bodysuit | Babybugz BZ10",
+    "euVariants": 9,
+    "totalVariants": 9,
+    "sizes": [
+      "12-18M",
+      "3-6M",
+      "6-12M"
+    ],
+    "colors": [
+      "Black",
+      "Organic Natural",
+      "White"
+    ],
+    "confirmed": false,
+    "provider": "P26",
+    "skaparaCount": 1,
+    "notes": "TBD — may need alternative",
+    "searchCandidates": [
+      {
+        "id": 512,
+        "title": "Organic Cotton Baby Bodysuit | Babybugz BZ10",
+        "matchScore": 2
+      },
+      {
+        "id": 506,
+        "title": "Unisex Organic Sweatshirt | SOL'S 03574",
+        "matchScore": 2
+      },
+      {
+        "id": 826,
+        "title": "Unisex Organic Sweatshirt | Stanley/Stella SASU004",
+        "matchScore": 2
+      }
+    ],
+    "needsReview": true
+  },
+  "77": {
+    "printfulId": 18,
+    "title": null,
+    "euVariants": 0,
+    "totalVariants": 0,
+    "sizes": [],
+    "colors": [],
+    "confirmed": false,
+    "provider": "P26",
+    "skaparaCount": 5,
+    "notes": "API error: Printful 404: {\"code\":404,\"result\":\"Not Found\",\"error\":{\"reason\":\"NotFound\",\"message\":\"Not Found\"}}"
+  },
+  "80": {
+    "printfulId": 2,
+    "title": "Enhanced Matte Paper Framed Poster (in)",
+    "euVariants": 16,
+    "totalVariants": 39,
+    "sizes": [
+      "10″×10″",
+      "11″×14″",
+      "12″×16″",
+      "12″×18″",
+      "16″×20″",
+      "18″×24″",
+      "24″×36″",
+      "8″×10″",
+      "20″×30″"
+    ],
+    "colors": [
+      "Black",
+      "White"
+    ],
+    "confirmed": true,
+    "provider": "P26",
+    "skaparaCount": 3,
+    "notes": ""
+  },
+  "81": {
+    "printfulId": 7,
+    "title": null,
+    "euVariants": 0,
+    "totalVariants": 0,
+    "sizes": [],
+    "colors": [],
+    "confirmed": false,
+    "provider": "P26",
+    "skaparaCount": 2,
+    "notes": "API error: Printful 404: {\"code\":404,\"result\":\"Not Found\",\"error\":{\"reason\":\"NotFound\",\"message\":\"Not Found\"}}"
+  },
+  "145": {
+    "printfulId": 2,
+    "title": "Enhanced Matte Paper Framed Poster (in)",
+    "euVariants": 16,
+    "totalVariants": 39,
+    "sizes": [
+      "10″×10″",
+      "11″×14″",
+      "12″×16″",
+      "12″×18″",
+      "16″×20″",
+      "18″×24″",
+      "24″×36″",
+      "8″×10″",
+      "20″×30″"
+    ],
+    "colors": [
+      "Black",
+      "White"
+    ],
+    "confirmed": true,
+    "provider": "P26",
+    "skaparaCount": 1,
+    "notes": "Verify exact spec matches BP80"
+  },
+  "157": {
+    "printfulId": 303,
+    "title": "All-Over Print Crop Tee",
+    "euVariants": 7,
+    "totalVariants": 7,
+    "sizes": [
+      "2XL",
+      "3XL",
+      "L",
+      "M",
+      "S",
+      "XL",
+      "XS"
+    ],
+    "colors": [
+      "White"
+    ],
+    "confirmed": false,
+    "provider": "P26",
+    "skaparaCount": 1,
+    "notes": "TBD — B&C brand available at Printful EU",
+    "searchCandidates": [
+      {
+        "id": 303,
+        "title": "All-Over Print Crop Tee",
+        "matchScore": 1
+      },
+      {
+        "id": 1416,
+        "title": "All-Over Print Kids Cotton Crew Neck T-Shirt",
+        "matchScore": 1
+      },
+      {
+        "id": 384,
+        "title": "All-Over Print Kids Crew Neck T-Shirt",
+        "matchScore": 1
+      }
+    ],
+    "needsReview": true
+  },
+  "454": {
+    "printfulId": 679,
+    "title": "Unisex Performance Crew Neck T-Shirt | A4 N3142",
+    "euVariants": 0,
+    "totalVariants": 70,
+    "sizes": [],
+    "colors": [],
+    "confirmed": false,
+    "provider": "P26",
+    "skaparaCount": 1,
+    "notes": "TBD — may not be in Printful catalog",
+    "searchCandidates": [
+      {
+        "id": 679,
+        "title": "Unisex Performance Crew Neck T-Shirt | A4 N3142",
+        "matchScore": 1
+      },
+      {
+        "id": 1416,
+        "title": "All-Over Print Kids Cotton Crew Neck T-Shirt",
+        "matchScore": 1
+      },
+      {
+        "id": 384,
+        "title": "All-Over Print Kids Crew Neck T-Shirt",
+        "matchScore": 1
+      }
+    ],
+    "needsReview": true
+  },
+  "455": {
+    "printfulId": 717,
+    "title": "All-Over Print Recycled Unisex Zip Hoodie",
+    "euVariants": 11,
+    "totalVariants": 11,
+    "sizes": [
+      "2XL",
+      "2XS",
+      "3XL",
+      "4XL",
+      "5XL",
+      "6XL",
+      "L",
+      "M",
+      "S",
+      "XL",
+      "XS"
+    ],
+    "colors": [
+      "White"
+    ],
+    "confirmed": false,
+    "provider": "P26",
+    "skaparaCount": 1,
+    "notes": "HIGH RISK — specific model may not be available",
+    "searchCandidates": [
+      {
+        "id": 717,
+        "title": "All-Over Print Recycled Unisex Zip Hoodie",
+        "matchScore": 2
+      },
+      {
+        "id": 692,
+        "title": "Unisex Heavy Blend Zip Hoodie | Gildan 18600",
+        "matchScore": 2
+      },
+      {
+        "id": 584,
+        "title": "Unisex Fleece Zip Up Hoodie | Independent Trading Co. SS4500Z",
+        "matchScore": 2
+      }
+    ],
+    "needsReview": true
+  },
+  "457": {
+    "printfulId": 845,
+    "title": "Lane Seven LS14004 | Premium Crewneck Sweatshirt",
+    "euVariants": 36,
+    "totalVariants": 36,
+    "sizes": [
+      "2XL",
+      "3XL",
+      "L",
+      "M",
+      "S",
+      "XL"
+    ],
+    "colors": [
+      "Black",
+      "Heather Grey",
+      "Navy",
+      "Oatmeal Heather",
+      "Sandshell",
+      "White"
+    ],
+    "confirmed": false,
+    "provider": "P26",
+    "skaparaCount": 2,
+    "notes": "TBD",
+    "searchCandidates": [
+      {
+        "id": 845,
+        "title": "Lane Seven LS14004 | Premium Crewneck Sweatshirt",
+        "matchScore": 2
+      },
+      {
+        "id": 1383,
+        "title": "Lane Seven LS16004 I Urban Crewneck Sweatshirt",
+        "matchScore": 2
+      },
+      {
+        "id": 971,
+        "title": "Unisex Garment-Dyed Lightweight Fleece Crewneck Sweatshirt I Comfort Colors 1466",
+        "matchScore": 2
+      }
+    ],
+    "needsReview": true
+  },
+  "620": {
+    "printfulId": 848,
+    "title": "Flip Straw Water Bottle | CamelBak Thrive®",
+    "euVariants": 0,
+    "totalVariants": 5,
+    "sizes": [],
+    "colors": [],
+    "confirmed": false,
+    "provider": "P86",
+    "skaparaCount": 2,
+    "notes": "TBD — search for Printful 12oz bottle",
+    "searchCandidates": [
+      {
+        "id": 848,
+        "title": "Flip Straw Water Bottle | CamelBak Thrive®",
+        "matchScore": 2
+      },
+      {
+        "id": 382,
+        "title": "Stainless Steel Water Bottle",
+        "matchScore": 2
+      },
+      {
+        "id": 788,
+        "title": "Stainless Steel Water Bottle with a Straw Lid",
+        "matchScore": 2
+      }
+    ],
+    "needsReview": true
+  },
+  "633": {
+    "printfulId": 663,
+    "title": "Travel Mug with a Handle",
+    "euVariants": 2,
+    "totalVariants": 2,
+    "sizes": [
+      "25 oz",
+      "40 oz"
+    ],
+    "colors": [
+      "White"
+    ],
+    "confirmed": false,
+    "provider": "P86",
+    "skaparaCount": 2,
+    "notes": "TBD — search for 16oz travel mug",
+    "searchCandidates": [
+      {
+        "id": 663,
+        "title": "Travel Mug with a Handle",
+        "matchScore": 2
+      },
+      {
+        "id": 300,
+        "title": "Black Glossy Mug",
+        "matchScore": 1
+      },
+      {
+        "id": 403,
+        "title": "White Ceramic Mug with Color Inside",
+        "matchScore": 1
+      }
+    ],
+    "needsReview": true
+  },
+  "731": {
+    "printfulId": 73,
+    "title": null,
+    "euVariants": 0,
+    "totalVariants": 0,
+    "sizes": [],
+    "colors": [],
+    "confirmed": false,
+    "provider": "P26",
+    "skaparaCount": 4,
+    "notes": "API error: Printful 404: {\"code\":404,\"result\":\"Not Found\",\"error\":{\"reason\":\"NotFound\",\"message\":\"Not Found\"}}"
+  },
+  "767": {
+    "printfulId": 513,
+    "title": "Men's High Top Canvas Shoes",
+    "euVariants": 0,
+    "totalVariants": 34,
+    "sizes": [],
+    "colors": [],
+    "confirmed": false,
+    "provider": "P90",
+    "skaparaCount": 1,
+    "notes": "CRITICAL — no direct Printful equivalent",
+    "searchCandidates": [
+      {
+        "id": 513,
+        "title": "Men's High Top Canvas Shoes",
+        "matchScore": 2
+      },
+      {
+        "id": 578,
+        "title": "Men's Lace-Up Canvas Shoes",
+        "matchScore": 2
+      },
+      {
+        "id": 574,
+        "title": "Men's Slip-On Canvas Shoes",
+        "matchScore": 2
+      }
+    ],
+    "needsReview": true
+  },
+  "793": {
+    "printfulId": 380,
+    "title": "Cotton Heritage M2580 I Unisex Premium Pullover Hoodie",
+    "euVariants": 77,
+    "totalVariants": 138,
+    "sizes": [
+      "3XL",
+      "L",
+      "S",
+      "XL",
+      "2XL",
+      "M"
+    ],
+    "colors": [
+      "Black",
+      "Bone",
+      "Carbon Grey",
+      "Charcoal Heather",
+      "Dusty Rose",
+      "Forest Green",
+      "Maroon",
+      "Military Green",
+      "Navy Blazer",
+      "Purple",
+      "Sky Blue",
+      "Team Red",
+      "Team Royal",
+      "Vintage Black",
+      "White"
+    ],
+    "confirmed": false,
+    "provider": "P410",
+    "skaparaCount": 5,
+    "notes": "Already Printful — search by model name",
+    "searchCandidates": [
+      {
+        "id": 380,
+        "title": "Cotton Heritage M2580 I Unisex Premium Pullover Hoodie",
+        "matchScore": 3
+      },
+      {
+        "id": 953,
+        "title": "Men's Box Hoodie I Cotton Heritage M2635",
+        "matchScore": 2
+      },
+      {
+        "id": 533,
+        "title": "Kids Fleece Hoodie | Cotton Heritage Y2550",
+        "matchScore": 2
+      }
+    ],
+    "needsReview": true
+  },
+  "854": {
+    "printfulId": 382,
+    "title": "Stainless Steel Water Bottle",
+    "euVariants": 2,
+    "totalVariants": 2,
+    "sizes": [
+      "17 oz"
+    ],
+    "colors": [
+      "Black",
+      "White"
+    ],
+    "confirmed": false,
+    "provider": "P23",
+    "skaparaCount": 2,
+    "notes": "TBD — search Printful stainless bottle",
+    "searchCandidates": [
+      {
+        "id": 382,
+        "title": "Stainless Steel Water Bottle",
+        "matchScore": 2
+      },
+      {
+        "id": 788,
+        "title": "Stainless Steel Water Bottle with a Straw Lid",
+        "matchScore": 2
+      },
+      {
+        "id": 848,
+        "title": "Flip Straw Water Bottle | CamelBak Thrive®",
+        "matchScore": 1
+      }
+    ],
+    "needsReview": true
+  },
+  "966": {
+    "printfulId": 388,
+    "title": "All-Over Print Recycled Unisex Hoodie",
+    "euVariants": 11,
+    "totalVariants": 11,
+    "sizes": [
+      "2XS",
+      "4XL",
+      "5XL",
+      "6XL",
+      "2XL",
+      "3XL",
+      "L",
+      "M",
+      "S",
+      "XL",
+      "XS"
+    ],
+    "colors": [
+      "White"
+    ],
+    "confirmed": true,
+    "provider": "P86",
+    "skaparaCount": 1,
+    "notes": ""
+  },
+  "969": {
+    "printfulId": 853,
+    "title": "Desk Mat",
+    "euVariants": 0,
+    "totalVariants": 3,
+    "sizes": [],
+    "colors": [],
+    "confirmed": false,
+    "provider": "P90",
+    "skaparaCount": 1,
+    "notes": "MEDIUM — search for Printful desk mat / mousepad",
+    "searchCandidates": [
+      {
+        "id": 853,
+        "title": "Desk Mat",
+        "matchScore": 2
+      },
+      {
+        "id": 894,
+        "title": "All-Over Print Apron",
+        "matchScore": 1
+      },
+      {
+        "id": 884,
+        "title": "Bath Mat",
+        "matchScore": 1
+      }
+    ],
+    "needsReview": true
+  },
+  "1018": {
+    "printfulId": 19,
+    "title": "White Glossy Mug",
+    "euVariants": 3,
+    "totalVariants": 3,
+    "sizes": [
+      "11 oz",
+      "15 oz",
+      "20 oz"
+    ],
+    "colors": [
+      "White"
+    ],
+    "confirmed": true,
+    "provider": "P26",
+    "skaparaCount": 5,
+    "notes": "WARNING: Printful may have only 2 colors (White, Black)"
+  },
+  "1025": {
+    "printfulId": 512,
+    "title": "Organic Cotton Baby Bodysuit | Babybugz BZ10",
+    "euVariants": 9,
+    "totalVariants": 9,
+    "sizes": [
+      "12-18M",
+      "3-6M",
+      "6-12M"
+    ],
+    "colors": [
+      "Black",
+      "Organic Natural",
+      "White"
+    ],
+    "confirmed": false,
+    "provider": "P26",
+    "skaparaCount": 1,
+    "notes": "TBD",
+    "searchCandidates": [
+      {
+        "id": 512,
+        "title": "Organic Cotton Baby Bodysuit | Babybugz BZ10",
+        "matchScore": 3
+      },
+      {
+        "id": 843,
+        "title": "Baby Jersey Bodysuit | Rabbit Skins 4424",
+        "matchScore": 2
+      },
+      {
+        "id": 234,
+        "title": "Baby Short Sleeve Bodysuit | Rabbit Skins 4400",
+        "matchScore": 2
+      }
+    ],
+    "needsReview": true
+  },
+  "1045": {
+    "printfulId": 843,
+    "title": "Baby Jersey Bodysuit | Rabbit Skins 4424",
+    "euVariants": 15,
+    "totalVariants": 28,
+    "sizes": [
+      "12M",
+      "18M",
+      "24M"
+    ],
+    "colors": [
+      "Black",
+      "Pink",
+      "Red",
+      "Royal",
+      "White"
+    ],
+    "confirmed": false,
+    "provider": "P26",
+    "skaparaCount": 1,
+    "notes": "TBD",
+    "searchCandidates": [
+      {
+        "id": 843,
+        "title": "Baby Jersey Bodysuit | Rabbit Skins 4424",
+        "matchScore": 2
+      },
+      {
+        "id": 512,
+        "title": "Organic Cotton Baby Bodysuit | Babybugz BZ10",
+        "matchScore": 2
+      },
+      {
+        "id": 234,
+        "title": "Baby Short Sleeve Bodysuit | Rabbit Skins 4400",
+        "matchScore": 2
+      }
+    ],
+    "needsReview": true
+  },
+  "1462": {
+    "printfulId": 476,
+    "title": "Organic Cotton Kids T-Shirt | Stanley/Stella STTK184",
+    "euVariants": 15,
+    "totalVariants": 15,
+    "sizes": [
+      "12-13",
+      "3-4",
+      "5-6",
+      "7-8",
+      "9-11"
+    ],
+    "colors": [
+      "Black",
+      "French Navy",
+      "White"
+    ],
+    "confirmed": false,
+    "provider": "P26",
+    "skaparaCount": 1,
+    "notes": "TBD",
+    "searchCandidates": [
+      {
+        "id": 476,
+        "title": "Organic Cotton Kids T-Shirt | Stanley/Stella STTK184",
+        "matchScore": 4
+      },
+      {
+        "id": 826,
+        "title": "Unisex Organic Sweatshirt | Stanley/Stella SASU004",
+        "matchScore": 4
+      },
+      {
+        "id": 821,
+        "title": "Unisex Organic Mid-Weight Hoodie | Stanley/Stella SASU009",
+        "matchScore": 4
+      }
+    ],
+    "needsReview": true
+  },
+  "1523": {
+    "printfulId": 358,
+    "title": "Kiss-Cut Stickers",
+    "euVariants": 4,
+    "totalVariants": 4,
+    "sizes": [
+      "3″×3″",
+      "4″×4″",
+      "5.5″×5.5″",
+      "15″×3.75″"
+    ],
+    "colors": [
+      "White"
+    ],
+    "confirmed": true,
+    "provider": "P23",
+    "skaparaCount": 2,
+    "notes": ""
+  },
+  "1534": {
+    "printfulId": 1416,
+    "title": "All-Over Print Kids Cotton Crew Neck T-Shirt",
+    "euVariants": 0,
+    "totalVariants": 7,
+    "sizes": [],
+    "colors": [],
+    "confirmed": false,
+    "provider": "P90",
+    "skaparaCount": 1,
+    "notes": "CRITICAL — niche product type",
+    "searchCandidates": [
+      {
+        "id": 1416,
+        "title": "All-Over Print Kids Cotton Crew Neck T-Shirt",
+        "matchScore": 1
+      },
+      {
+        "id": 384,
+        "title": "All-Over Print Kids Crew Neck T-Shirt",
+        "matchScore": 1
+      },
+      {
+        "id": 322,
+        "title": "All-Over Print Kids Leggings",
+        "matchScore": 1
+      }
+    ],
+    "needsReview": true
+  },
+  "1691": {
+    "printfulId": 266,
+    "title": "Cuffed Beanie | Yupoong 1501KC",
+    "euVariants": 12,
+    "totalVariants": 12,
+    "sizes": [
+      "One size"
+    ],
+    "colors": [
+      "Baby Pink",
+      "Black",
+      "Brown",
+      "Dark Grey",
+      "Gold",
+      "Heather Grey",
+      "Navy",
+      "Olive",
+      "Red",
+      "Royal",
+      "Spruce",
+      "White"
+    ],
+    "confirmed": false,
+    "provider": "P410",
+    "skaparaCount": 1,
+    "notes": "Already Printful — search by name",
+    "searchCandidates": [
+      {
+        "id": 266,
+        "title": "Cuffed Beanie | Yupoong 1501KC",
+        "matchScore": 2
+      },
+      {
+        "id": 458,
+        "title": "All-Over Print Beanie",
+        "matchScore": 1
+      },
+      {
+        "id": 519,
+        "title": "Ribbed Knit Beanie | Atlantis",
+        "matchScore": 1
+      }
+    ],
+    "needsReview": true
+  },
+  "1729": {
+    "printfulId": 638,
+    "title": "adidas Dad Hat",
+    "euVariants": 2,
+    "totalVariants": 2,
+    "sizes": [
+      "One size"
+    ],
+    "colors": [
+      "Black",
+      "White"
+    ],
+    "confirmed": false,
+    "provider": "P410",
+    "skaparaCount": 1,
+    "notes": "Already Printful — search by name",
+    "searchCandidates": [
+      {
+        "id": 638,
+        "title": "adidas Dad Hat",
+        "matchScore": 2
+      },
+      {
+        "id": 396,
+        "title": "Distressed Dad Hat | Otto Cap 104-1018",
+        "matchScore": 2
+      },
+      {
+        "id": 755,
+        "title": "Under Armour® Dad Hat",
+        "matchScore": 2
+      }
+    ],
+    "needsReview": true
+  },
+  "1743": {
+    "printfulId": 77,
+    "title": "Snapback | Otto Cap 125-978",
+    "euVariants": 12,
+    "totalVariants": 17,
+    "sizes": [
+      "One size"
+    ],
+    "colors": [
+      "Aqua blue / Black / Black",
+      "Black",
+      "Black / Charcoal gray / Charcoal gray",
+      "Black / White / White",
+      "Charcoal gray",
+      "Gold / Black / Black",
+      "Gray / Black / Black",
+      "Kelly green",
+      "Navy blue",
+      "Red",
+      "Red / Black / Black",
+      "White"
+    ],
+    "confirmed": false,
+    "provider": "P410",
+    "skaparaCount": 1,
+    "notes": "Already Printful — search by name",
+    "searchCandidates": [
+      {
+        "id": 77,
+        "title": "Snapback | Otto Cap 125-978",
+        "matchScore": 2
+      },
+      {
+        "id": 422,
+        "title": "Snapback Trucker Cap | Richardson 112",
+        "matchScore": 2
+      },
+      {
+        "id": 91,
+        "title": "Flat Bill Cap | Yupoong 6007",
+        "matchScore": 2
+      }
+    ],
+    "needsReview": true
+  },
+  "1744": {
+    "printfulId": 627,
+    "title": "Foam Trucker Hat | Otto Cap 39-165",
+    "euVariants": 0,
+    "totalVariants": 13,
+    "sizes": [],
+    "colors": [],
+    "confirmed": false,
+    "provider": "P410",
+    "skaparaCount": 4,
+    "notes": "Already Printful — search by name",
+    "searchCandidates": [
+      {
+        "id": 627,
+        "title": "Foam Trucker Hat | Otto Cap 39-165",
+        "matchScore": 3
+      },
+      {
+        "id": 596,
+        "title": "Closed-Back Trucker Cap | Flexfit 6511",
+        "matchScore": 2
+      },
+      {
+        "id": 680,
+        "title": "Camouflage Trucker Hat | Otto Cap 105-1247",
+        "matchScore": 2
+      }
+    ],
+    "needsReview": true
+  },
+  "1910": {
+    "printfulId": 654,
+    "title": "All-Over Print Reversible Bucket Hat",
+    "euVariants": 3,
+    "totalVariants": 3,
+    "sizes": [
+      "L/XL",
+      "S/M",
+      "XS"
+    ],
+    "colors": [
+      "White"
+    ],
+    "confirmed": false,
+    "provider": "P410",
+    "skaparaCount": 3,
+    "notes": "Already Printful — search by name",
+    "searchCandidates": [
+      {
+        "id": 654,
+        "title": "All-Over Print Reversible Bucket Hat",
+        "matchScore": 2
+      },
+      {
+        "id": 379,
+        "title": "Bucket Hat I Big Accessories BX003",
+        "matchScore": 2
+      },
+      {
+        "id": 501,
+        "title": "Denim Bucket Hat",
+        "matchScore": 2
+      }
+    ],
+    "needsReview": true
+  },
+  "1927": {
+    "printfulId": 742,
+    "title": "Insulated Tumbler with a Straw",
+    "euVariants": 0,
+    "totalVariants": 5,
+    "sizes": [],
+    "colors": [],
+    "confirmed": false,
+    "provider": "P410",
+    "skaparaCount": 1,
+    "notes": "Already Printful via P410 — search by name",
+    "searchCandidates": [
+      {
+        "id": 742,
+        "title": "Insulated Tumbler with a Straw",
+        "matchScore": 2
+      },
+      {
+        "id": 751,
+        "title": "Double Wall Clear Plastic Tumbler (16 oz)",
+        "matchScore": 1
+      },
+      {
+        "id": 909,
+        "title": "Tapered Stainless Steel Tumbler 20 oz",
+        "matchScore": 1
+      }
+    ],
+    "needsReview": true
+  }
+}

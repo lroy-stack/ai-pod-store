@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1890" height="765" viewBox="0 0 1890 765">
+
+  <!-- Assignment — Yupoong 6089M Snapback (Cat 99) EMBROIDERY -->
+  <!-- Canvas: 1890×765 @300dpi — Printful PF#478 front placement -->
+  <!-- 2 thread colors: White #FFFFFF + Aqua #3399FF -->
+  <!-- Adapted from e03-assignment-understood.svg (1770×600) -->
+  <!-- Refined proportions, teal→Aqua, better vertical balance -->
+
+  <!-- Checkmark — Aqua thread, bold stroke, centered above text -->
+  <path d="M800,115 L920,245 L1150,55"
+        fill="none" stroke="#3399FF" stroke-width="38"
+        stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- "UNDERSTOOD" — Aqua thread, centered, tracked -->
+  <text x="945" y="420"
+        font-family="'Bebas Neue', 'Roboto', sans-serif"
+        font-size="115" font-weight="700"
+        fill="#3399FF" text-anchor="middle"
+        letter-spacing="8">UNDERSTOOD</text>
+
+  <!-- "the assignment" — White thread, script feel, centered below -->
+  <text x="945" y="600"
+        font-family="'Pacifico', 'Dancing Script', cursive"
+        font-size="95"
+        fill="#FFFFFF" text-anchor="middle">the assignment</text>
+
+</svg>

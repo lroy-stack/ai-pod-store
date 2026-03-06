@@ -1,5 +1,6 @@
 import { AuthBackground } from '@/components/auth/AuthBackground'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
+import { FocusedFooter } from '@/components/FocusedFooter'
 
 export default function FocusedLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -11,6 +12,7 @@ export default function FocusedLayout({ children }: { children: React.ReactNode 
             {children}
           </ErrorBoundary>
         </div>
+        <FocusedFooter />
       </div>
     </div>
   )

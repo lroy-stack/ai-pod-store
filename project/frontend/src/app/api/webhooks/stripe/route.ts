@@ -8,10 +8,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { headers } from 'next/headers'
 import { stripe } from '@/lib/stripe'
-import { printify, buildPrintifyAddress } from '@/lib/printify'
+import { getProvider, initializeProviders } from '@/lib/pod'
+import { canonicalAddressFromStripe } from '@/lib/pod/printify/mapper'
 import { sendOrderConfirmationEmail, sendCreditPurchaseEmail } from '@/lib/resend'
 import { createClient } from '@supabase/supabase-js'
 import { triggerDripSequence } from '@/lib/email-drip'
+import { BASE_URL } from '@/lib/store-config'
 import Stripe from 'stripe'
 
 // Initialize Supabase client with service role key for webhook
@@ -159,10 +161,22 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
       return // Idempotent: order already processed
     }
 
+    // Look up user by email (for authenticated users)
+    let userId: string | null = null
+    if (customerEmail) {
+      const { data: userByEmail } = await supabase
+        .from('users')
+        .select('id')
+        .eq('email', customerEmail)
+        .single()
+      userId = userByEmail?.id || null
+    }
+
     // Create order record
     const { data: order, error: orderError } = await supabase
       .from('orders')
       .insert({
+        user_id: userId,
         stripe_session_id: session.id,
         stripe_payment_intent_id: paymentIntentId,
         status: 'paid',
@@ -193,6 +207,7 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
         product_id: cartItem.product_id || null,
         variant_id: cartItem.variant_id,
         personalization_id: cartItem.personalization_id || null,
+        composition_id: cartItem.composition_id || null,
         quantity: item.quantity || 1,
         unit_price_cents: Math.round((item.amount_total || 0) / (item.quantity || 1)),
       }
@@ -236,26 +251,19 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
       is_read: false,
     }
 
-    // Try to find user by email to link notification
-    const { data: user } = await supabase
-      .from('users')
-      .select('id')
-      .eq('email', customerEmail)
-      .single()
-
-    if (user) {
-      // Create notification for authenticated user
+    // Create notification for authenticated user (reuse userId from earlier lookup)
+    if (userId) {
       const { error: notifError } = await supabase
         .from('notifications')
         .insert({
-          user_id: user.id,
+          user_id: userId,
           ...notificationData,
         })
 
       if (notifError) {
         console.error('Failed to create notification:', notifError)
       } else {
-        console.log('Created notification for user:', user.id)
+        console.log('Created notification for user:', userId)
       }
     } else {
       console.log('No user found for email - skipping notification (guest checkout)')
@@ -289,121 +297,153 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
       console.log('Created audit log entry for order:', order.id)
     }
 
-    // Submit order to Printify
+    // Increment coupon usage counter if a coupon was applied
+    const couponCode = session.metadata?.coupon_code
+    if (couponCode) {
+      const { data: coupon } = await supabase
+        .from('coupons')
+        .select('id, times_used')
+        .eq('code', couponCode)
+        .single()
+
+      if (coupon) {
+        const { error: couponError } = await supabase
+          .from('coupons')
+          .update({ times_used: (coupon.times_used || 0) + 1 })
+          .eq('id', coupon.id)
+
+        if (couponError) {
+          console.error('Failed to increment coupon usage:', couponError)
+        } else {
+          console.log(`Incremented coupon "${couponCode}" usage to ${(coupon.times_used || 0) + 1}`)
+        }
+      }
+    }
+
+    // Submit order to POD provider
     if (validOrderItems.length > 0 && shippingAddress && customerEmail) {
       try {
-        console.log('Submitting order to Printify...')
+        initializeProviders()
+        const provider = getProvider()
+        console.log('Submitting order to POD provider...')
 
-        // Fetch product and variant Printify IDs
+        // Fetch product and variant provider IDs
         const productIds = validOrderItems.map(item => item.product_id)
         const variantIds = validOrderItems.map(item => item.variant_id).filter(Boolean)
-        const personalizationIds = validOrderItems.map(item => item.personalization_id).filter(Boolean)
 
         const { data: products } = await supabase
           .from('products')
-          .select('id, printify_id')
+          .select('id, provider_product_id')
           .in('id', productIds)
 
         const { data: variants } = await supabase
           .from('product_variants')
-          .select('id, printify_variant_id')
+          .select('id, external_variant_id')
           .in('id', variantIds)
 
-        // Fetch personalization details (for temporary Printify product IDs)
-        let personalizations: any[] = []
-        if (personalizationIds.length > 0) {
-          const { data } = await supabase
-            .from('personalizations')
-            .select('id, printify_temp_product_id')
-            .in('id', personalizationIds)
-          personalizations = data || []
-        }
-
         // Create lookup maps
-        const productMap = new Map(products?.map(p => [p.id, p.printify_id]) || [])
-        const variantMap = new Map(variants?.map(v => [v.id, v.printify_variant_id]) || [])
-        const personalizationMap = new Map(personalizations.map(p => [p.id, p.printify_temp_product_id]))
+        const productMap = new Map(products?.map(p => [p.id, p.provider_product_id]) || [])
+        const variantMap = new Map(variants?.map(v => [v.id, v.external_variant_id]) || [])
 
-        // Guard: verify all items have valid Printify variant mappings
-        const itemsMissingPrintifyVariant = validOrderItems.filter(item => {
+        // Guard: verify all items have valid provider variant mappings
+        const itemsMissingProviderVariant = validOrderItems.filter(item => {
           const pvId = variantMap.get(item.variant_id)
           return !pvId || pvId === '0'
         })
 
-        if (itemsMissingPrintifyVariant.length > 0) {
-          console.error('Order items missing printify_variant_id:', itemsMissingPrintifyVariant)
+        if (itemsMissingProviderVariant.length > 0) {
+          console.error('Order items missing provider variant mapping:', itemsMissingProviderVariant)
           await supabase.from('orders').update({
-            printify_error: 'Items missing Printify variant mapping',
+            pod_error: 'Items missing provider variant mapping',
             status: 'requires_review',
           }).eq('id', order.id)
 
-          await notifyAdminOfPrintifyFailure(order.id, 'variant_mapping', 'One or more items have no Printify variant mapping')
+          await notifyAdminOfProviderFailure(order.id, 'variant_mapping', 'One or more items have no provider variant mapping')
           if (customerEmail) {
             await sendOrderIssueEmail(customerEmail, order.id, order.locale || 'en')
           }
           return
         }
 
-        // Build Printify line items (variant_id is guaranteed non-null)
-        const printifyLineItems = validOrderItems
+        // Build production URLs map from cart metadata (keyed by composition_id)
+        const productionUrlsMap = new Map<string, Record<string, string>>()
+        for (const ci of cartItems) {
+          if (ci.composition_id && ci.production_urls) {
+            productionUrlsMap.set(ci.composition_id, ci.production_urls)
+          }
+        }
+
+        // Build provider line items (variant_id is guaranteed non-null)
+        const providerLineItems = validOrderItems
           .filter(item => {
-            const printifyProductId = item.personalization_id
-              ? personalizationMap.get(item.personalization_id)
-              : productMap.get(item.product_id)
-            const printifyVariantId = variantMap.get(item.variant_id)
-            return printifyProductId && printifyVariantId
+            const providerProductId = productMap.get(item.product_id)
+            const providerVariantId = variantMap.get(item.variant_id)
+            return providerProductId && providerVariantId
           })
           .map(item => {
-            const printifyProductId = item.personalization_id
-              ? personalizationMap.get(item.personalization_id)!
-              : productMap.get(item.product_id)!
-
-            return {
-              product_id: printifyProductId,
+            const base = {
+              product_id: productMap.get(item.product_id)!,
               variant_id: parseInt(variantMap.get(item.variant_id)!, 10),
               quantity: item.quantity,
             }
+            // If custom design, include production file URLs
+            const prodUrls = item.composition_id ? productionUrlsMap.get(item.composition_id) : null
+            if (prodUrls) {
+              return {
+                ...base,
+                files: Object.entries(prodUrls).map(([placement, url]) => ({
+                  type: placement,
+                  url: url as string,
+                })),
+              }
+            }
+            return base
           })
 
-        if (printifyLineItems.length === 0) {
-          console.log('No valid Printify line items - skipping Printify submission')
+        if (providerLineItems.length === 0) {
+          console.log('No valid provider line items - skipping POD submission')
         } else {
-          // Create Printify order
-          const printifyAddress = buildPrintifyAddress(shippingAddress, customerEmail)
+          // Create POD provider order
+          const canonicalAddress = canonicalAddressFromStripe(shippingAddress, customerEmail)
 
-          const printifyOrder = await printify.createOrder({
-            external_id: order.id, // Link to our order ID
+          const printifyOrder = await provider.createOrder({
+            internalOrderId: order.id,
             label: `Order ${order.id.slice(0, 8)}`,
-            line_items: printifyLineItems,
-            shipping_method: 1, // Standard shipping (most common default)
-            send_shipping_notification: true,
-            address_to: printifyAddress,
+            lineItems: providerLineItems.map((li) => ({
+              productExternalId: li.product_id,
+              variantExternalId: String(li.variant_id),
+              quantity: li.quantity,
+              ...('files' in li && li.files ? { files: li.files } : {}),
+            })),
+            shippingAddress: canonicalAddress,
+            suppressShippingNotification: false,
           })
 
-          console.log('Created Printify order:', printifyOrder.id)
+          console.log('Created POD provider order:', printifyOrder.externalId)
 
-          // Update order with Printify order ID
+          // Update order with provider order ID
           const { error: updateError } = await supabase
             .from('orders')
             .update({
-              printify_order_id: printifyOrder.id,
+              external_order_id: printifyOrder.externalId,
+              pod_provider: 'printful',
               status: 'submitted', // Update status to submitted
-              printify_last_attempt_at: new Date().toISOString(),
+              pod_last_attempt_at: new Date().toISOString(),
             })
             .eq('id', order.id)
 
           if (updateError) {
-            console.error('Failed to update order with Printify ID:', updateError)
+            console.error('Failed to update order with provider order ID:', updateError)
           } else {
-            console.log('Updated order with Printify order ID')
+            console.log('Updated order with provider order ID')
           }
 
           // Submit order for production
           try {
-            await printify.submitOrderForProduction(printifyOrder.id)
-            console.log('Submitted Printify order for production')
+            await provider.submitForProduction(printifyOrder.externalId)
+            console.log('Submitted POD order for production')
           } catch (productionError) {
-            console.error('Failed to submit Printify order for production:', productionError)
+            console.error('Failed to submit POD order for production:', productionError)
 
             // Mark order for retry
             const errorMessage = productionError instanceof Error
@@ -413,38 +453,38 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
             await supabase
               .from('orders')
               .update({
-                printify_error: errorMessage,
-                printify_retry_count: 1,
-                printify_last_attempt_at: new Date().toISOString(),
+                pod_error: errorMessage,
+                pod_retry_count: 1,
+                pod_last_attempt_at: new Date().toISOString(),
               })
               .eq('id', order.id)
 
             // Notify admin and customer of production failure
-            await notifyAdminOfPrintifyFailure(order.id, 'production', errorMessage)
+            await notifyAdminOfProviderFailure(order.id, 'production', errorMessage)
             if (customerEmail) {
               await sendOrderIssueEmail(customerEmail, order.id, order.locale || 'en')
             }
           }
         }
       } catch (printifyError) {
-        console.error('Error submitting order to Printify:', printifyError)
+        console.error('Error submitting order to POD provider:', printifyError)
 
         // Mark order for retry with error details
         const errorMessage = printifyError instanceof Error
           ? printifyError.message
-          : 'Unknown Printify error'
+          : 'Unknown POD provider error'
 
         await supabase
           .from('orders')
           .update({
-            printify_error: errorMessage,
-            printify_retry_count: 1,
-            printify_last_attempt_at: new Date().toISOString(),
+            pod_error: errorMessage,
+            pod_retry_count: 1,
+            pod_last_attempt_at: new Date().toISOString(),
           })
           .eq('id', order.id)
 
         // Notify admin and customer of the failure
-        await notifyAdminOfPrintifyFailure(order.id, 'submission', errorMessage)
+        await notifyAdminOfProviderFailure(order.id, 'submission', errorMessage)
         if (customerEmail) {
           await sendOrderIssueEmail(customerEmail, order.id, order.locale || 'en')
         }
@@ -453,7 +493,7 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
         // The order is still created in our system and marked for retry
       }
     } else {
-      console.log('Missing shipping address or items - skipping Printify submission')
+      console.log('Missing shipping address or items - skipping POD submission')
     }
 
     // Handle credit pack purchases
@@ -719,22 +759,21 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          from: process.env.RESEND_FROM_EMAIL || 'Skapara <noreply@podai.com>',
+          from: process.env.RESEND_FROM_EMAIL || 'SKAPARA <noreply@skapara.com>',
           to: user.email,
           subject: 'Payment Failed — Please Update Your Payment Method',
           html: `
             <h1>Payment Failed</h1>
             <p>We were unable to process your subscription payment.</p>
             <p>Please update your payment method to keep your Premium features active.</p>
-            <p><a href="${process.env.NEXT_PUBLIC_BASE_URL || 'https://podai.com'}/profile">Update Payment Method →</a></p>
+            <p><a href="${BASE_URL}/profile">Update Payment Method →</a></p>
           `,
         }),
       }).catch((err) => console.error('Failed to send payment failure email:', err))
     }
 
     // Alert admin
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
-    fetch(`${baseUrl}/api/admin/alert`, {
+    fetch(`${BASE_URL}/api/admin/alert`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -751,7 +790,7 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
 }
 
 /**
- * Notify admin of Printify submission failure
+ * Notify admin of POD provider submission failure
  * Creates a notification for all admin users
  */
 /**
@@ -764,7 +803,6 @@ async function sendOrderIssueEmail(email: string, orderId: string, locale: strin
     if (!resendKey) return
 
     const orderNumber = orderId.slice(0, 8)
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://podai.com'
 
     await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -773,7 +811,7 @@ async function sendOrderIssueEmail(email: string, orderId: string, locale: strin
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: process.env.RESEND_FROM_EMAIL || 'Skapara <noreply@podai.com>',
+        from: process.env.RESEND_FROM_EMAIL || 'SKAPARA <noreply@skapara.com>',
         to: email,
         subject: locale === 'es'
           ? `Pedido #${orderNumber} — Revisión necesaria`
@@ -781,10 +819,10 @@ async function sendOrderIssueEmail(email: string, orderId: string, locale: strin
             ? `Bestellung #${orderNumber} — Überprüfung erforderlich`
             : `Order #${orderNumber} — Review Required`,
         html: locale === 'es'
-          ? `<h1>Tu pedido requiere revisión</h1><p>Estamos revisando tu pedido #${orderNumber}. Nuestro equipo te contactará pronto con una actualización.</p><p><a href="${baseUrl}/es/orders">Ver tus pedidos →</a></p>`
+          ? `<h1>Tu pedido requiere revisión</h1><p>Estamos revisando tu pedido #${orderNumber}. Nuestro equipo te contactará pronto con una actualización.</p><p><a href="${BASE_URL}/es/orders">Ver tus pedidos →</a></p>`
           : locale === 'de'
-            ? `<h1>Deine Bestellung wird überprüft</h1><p>Wir überprüfen deine Bestellung #${orderNumber}. Unser Team wird sich bald mit einem Update bei dir melden.</p><p><a href="${baseUrl}/de/orders">Bestellungen ansehen →</a></p>`
-            : `<h1>Your order is under review</h1><p>We're reviewing your order #${orderNumber}. Our team will contact you shortly with an update.</p><p><a href="${baseUrl}/en/orders">View your orders →</a></p>`,
+            ? `<h1>Deine Bestellung wird überprüft</h1><p>Wir überprüfen deine Bestellung #${orderNumber}. Unser Team wird sich bald mit einem Update bei dir melden.</p><p><a href="${BASE_URL}/de/orders">Bestellungen ansehen →</a></p>`
+            : `<h1>Your order is under review</h1><p>We're reviewing your order #${orderNumber}. Our team will contact you shortly with an update.</p><p><a href="${BASE_URL}/en/orders">View your orders →</a></p>`,
       }),
     })
     console.log(`Order issue email sent to ${email} for order ${orderNumber}`)
@@ -793,7 +831,7 @@ async function sendOrderIssueEmail(email: string, orderId: string, locale: strin
   }
 }
 
-async function notifyAdminOfPrintifyFailure(
+async function notifyAdminOfProviderFailure(
   orderId: string,
   failureType: 'submission' | 'production' | 'variant_mapping',
   errorMessage: string
@@ -806,16 +844,16 @@ async function notifyAdminOfPrintifyFailure(
       .eq('role', 'admin')
 
     if (!admins || admins.length === 0) {
-      console.warn('No admin users found - cannot send Printify failure notification')
+      console.warn('No admin users found - cannot send provider failure notification')
       return
     }
 
     // Create notification for each admin
     const notifications = admins.map(admin => ({
       user_id: admin.id,
-      type: 'printify_error',
-      title: `Printify ${failureType} failed`,
-      body: `Order ${orderId.slice(0, 8)} failed to submit to Printify: ${errorMessage}`,
+      type: 'pod_error',
+      title: `Provider ${failureType} failed`,
+      body: `Order ${orderId.slice(0, 8)} failed to submit to provider: ${errorMessage}`,
       data: {
         order_id: orderId,
         failure_type: failureType,
@@ -831,10 +869,10 @@ async function notifyAdminOfPrintifyFailure(
     if (error) {
       console.error('Failed to create admin notifications:', error)
     } else {
-      console.log(`Created ${notifications.length} admin notifications for Printify failure`)
+      console.log(`Created ${notifications.length} admin notifications for provider failure`)
     }
   } catch (error) {
-    console.error('Error notifying admin of Printify failure:', error)
+    console.error('Error notifying admin of provider failure:', error)
   }
 }
 
@@ -941,8 +979,7 @@ async function handleChargeDisputeCreated(dispute: Stripe.Dispute) {
     }
 
     // Alert admin via API endpoint (fallback)
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
-    fetch(`${baseUrl}/api/admin/alert`, {
+    fetch(`${BASE_URL}/api/admin/alert`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

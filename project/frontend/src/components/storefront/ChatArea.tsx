@@ -16,7 +16,10 @@ import { User, Send, Paperclip, Package, Heart, X, Mic } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import Image from 'next/image'
+import { BRAND } from '@/lib/store-config'
+import { BrandMark } from '@/components/ui/brand-mark'
 import { Card, CardContent } from '@/components/ui/card'
 import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport, isToolUIPart, getToolName } from 'ai'
@@ -24,6 +27,7 @@ import { SafeMarkdown } from '@/components/common/SafeMarkdown'
 import { getArtifact } from '@/components/artifacts/registry'
 import { toast } from 'sonner'
 import { useStorefront } from './StorefrontContext'
+import { useChatMessage } from './ChatMessageContext'
 import { useCart } from '@/hooks/useCart'
 import { useWishlist } from '@/hooks/useWishlist'
 import { SignupBanner } from '@/components/engagement/SignupBanner'
@@ -32,10 +36,14 @@ import { UpgradeModal } from '@/components/engagement/UpgradeModal'
 import { useSpeechToText } from '@/hooks/useSpeechToText'
 import { useParams } from 'next/navigation'
 
+type SerializedPart =
+  | { type: 'text'; text: string }
+  | { type: string; toolCallId: string; state: string; input?: any; output?: any }
+
 type SerializedMessage = {
   id: string
   role: 'user' | 'assistant'
-  parts: Array<{ type: 'text'; text: string }>
+  parts: SerializedPart[]
   createdAt?: string
 }
 
@@ -44,8 +52,17 @@ function serializeMessages(messages: Array<{ id: string; role: string; parts: Ar
     id: m.id,
     role: m.role as 'user' | 'assistant',
     parts: m.parts
-      .filter((p: any) => p.type === 'text')
-      .map((p: any) => ({ type: 'text' as const, text: p.text })),
+      .filter((p: any) => p.type === 'text' || (p.type.startsWith('tool-') && p.state === 'output-available'))
+      .map((p: any) => {
+        if (p.type === 'text') return { type: 'text' as const, text: p.text }
+        return {
+          type: p.type,
+          toolCallId: p.toolCallId,
+          state: p.state,
+          input: p.input,
+          output: p.output,
+        }
+      }),
     createdAt: m.createdAt ? String(m.createdAt) : undefined,
   }))
   return JSON.stringify(slim)
@@ -93,7 +110,8 @@ export function ChatArea() {
   const tEngagement = useTranslations('engagement.chat')
   const params = useParams()
   const locale = (params.locale as string) || 'en'
-  const { setSelectedProduct, pendingChatMessage, setPendingChatMessage, addArtifact } = useStorefront()
+  const { setSelectedProduct, addArtifact } = useStorefront()
+  const { pendingChatMessage, setPendingChatMessage } = useChatMessage()
   const { addToCart } = useCart()
   const { toggleWishlist } = useWishlist()
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -129,10 +147,17 @@ export function ChatArea() {
     userRef.current = userData.user
   }, [userData.user])
 
-  // Custom fetch wrapper to intercept conversation ID header and engagement errors
+  // Custom fetch wrapper to inject CSRF + conversation ID headers
   const customFetch = useCallback(async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
-    // Inject conversation ID header if available
     const headers = new Headers(init?.headers)
+
+    // CSRF token — required by middleware for POST requests
+    const csrfToken = document.cookie.match(/(?:^|;\s*)csrf-token=([^;]*)/)?.[1]
+    if (csrfToken) {
+      headers.set('x-csrf-token', csrfToken)
+    }
+
+    // Conversation ID for session continuity
     if (conversationIdRef.current) {
       headers.set('x-conversation-id', conversationIdRef.current)
     }
@@ -179,8 +204,7 @@ export function ChatArea() {
   )
   const { messages, setMessages, sendMessage, status, addToolApprovalResponse, error } = useChat({
     transport,
-    // Restore text-only snapshots from sessionStorage; cast needed because
-    // SerializedMessage is a subset of UIMessage (tool parts are omitted).
+    // Restore messages + tool parts from sessionStorage
     messages: initialMessages as any,
   })
 
@@ -448,18 +472,16 @@ export function ChatArea() {
           /* Welcome Screen */
           <div className="flex flex-col items-center justify-center min-h-[60vh]">
             <div className="text-center space-y-6 w-full max-w-2xl mx-auto">
-              <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary/60">
-                <span className="text-3xl font-bold text-primary-foreground">P</span>
-              </div>
+              <BrandMark size={40} showName nameClass="text-2xl" className="justify-center gap-3" />
 
               <div>
-                <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground mb-2">
+                <h1 className="text-xl md:text-2xl font-bold tracking-tight text-foreground mb-2">
                   {userData.user
                     ? t('welcomeBackTitle', { name: userData.user.name?.split(' ')[0] || 'there' })
-                    : t('welcomeTitle', { brandName: process.env.NEXT_PUBLIC_SITE_NAME || 'Skapara' })}
+                    : t('welcomeSubtitle')}
                 </h1>
                 <p className="text-muted-foreground">
-                  {userData.user ? t('welcomeBackSubtitle') : t('welcomeSubtitle')}
+                  {userData.user ? t('welcomeBackSubtitle') : null}
                 </p>
               </div>
 
@@ -550,9 +572,9 @@ export function ChatArea() {
               >
                 {message.role === 'assistant' && (
                   <Avatar className="h-8 w-8 flex-shrink-0">
-                    <AvatarFallback className="bg-primary text-primary-foreground text-sm">
-                      P
-                    </AvatarFallback>
+                    <AvatarImage src={BRAND.logoLight} alt={BRAND.name} className="dark:hidden p-1" />
+                    <AvatarImage src={BRAND.logoDark} alt={BRAND.name} className="hidden dark:block p-1" />
+                    <AvatarFallback className="bg-muted text-muted-foreground text-sm">{BRAND.name[0]}</AvatarFallback>
                   </Avatar>
                 )}
                 <div
@@ -756,9 +778,9 @@ export function ChatArea() {
             {isLoading && (
               <div className="flex gap-3 justify-start">
                 <Avatar className="h-8 w-8 flex-shrink-0">
-                  <AvatarFallback className="bg-primary text-primary-foreground text-sm">
-                    P
-                  </AvatarFallback>
+                  <AvatarImage src={BRAND.logoLight} alt={BRAND.name} className="dark:hidden p-1" />
+                  <AvatarImage src={BRAND.logoDark} alt={BRAND.name} className="hidden dark:block p-1" />
+                  <AvatarFallback className="bg-muted text-muted-foreground text-sm">{BRAND.name[0]}</AvatarFallback>
                 </Avatar>
                 <div className="rounded-lg px-4 py-3 bg-muted">
                   <div className="flex gap-1">

@@ -25,6 +25,7 @@ export interface ComparisonProduct {
   title: string
   category: string
   price: number
+  compareAtPrice?: number
   currency: string
   image: string | null
   rating: number
@@ -96,9 +97,20 @@ export function ComparisonTableArtifact({
                 </td>
                 {products.map((product) => (
                   <td key={product.id} className="p-4 text-center">
-                    <div className="text-lg font-bold">
-                      {formatPrice(product.price, locale, product.currency)}
-                    </div>
+                    {product.compareAtPrice ? (
+                      <div>
+                        <span className="text-sm line-through text-muted-foreground">
+                          {formatPrice(product.compareAtPrice, locale, product.currency)}
+                        </span>
+                        <div className="text-lg font-bold text-destructive">
+                          {formatPrice(product.price, locale, product.currency)}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-lg font-bold">
+                        {formatPrice(product.price, locale, product.currency)}
+                      </div>
+                    )}
                   </td>
                 ))}
               </tr>

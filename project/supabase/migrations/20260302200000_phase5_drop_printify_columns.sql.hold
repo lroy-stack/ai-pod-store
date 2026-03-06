@@ -1,0 +1,143 @@
+-- ============================================================
+-- Phase 5: DROP legacy Printify-specific columns
+--
+-- WARNING: DO NOT RUN until ALL of the following are true:
+--   1. All products migrated to pod_provider='printful'
+--   2. All orders backfilled to external_order_id
+--   3. All product_variants backfilled to external_variant_id
+--   4. All consumers updated to use provider-agnostic columns
+--   5. Monitoring confirms zero reads of printify_* columns
+--
+-- This migration is IRREVERSIBLE. Take a full backup first.
+-- ============================================================
+
+BEGIN;
+
+-- -----------------------------------------------
+-- Safety Guard 1: No products still on 'printify'
+-- -----------------------------------------------
+DO $$
+DECLARE
+  cnt INTEGER;
+BEGIN
+  SELECT COUNT(*) INTO cnt
+  FROM products
+  WHERE pod_provider = 'printify';
+
+  IF cnt > 0 THEN
+    RAISE EXCEPTION
+      'ABORT: % products still have pod_provider=printify. '
+      'Migrate them before running this migration.', cnt;
+  END IF;
+END $$;
+
+-- -----------------------------------------------
+-- Safety Guard 2: No orders with un-backfilled IDs
+-- -----------------------------------------------
+DO $$
+DECLARE
+  cnt INTEGER;
+BEGIN
+  SELECT COUNT(*) INTO cnt
+  FROM orders
+  WHERE printify_order_id IS NOT NULL
+    AND external_order_id IS NULL;
+
+  IF cnt > 0 THEN
+    RAISE EXCEPTION
+      'ABORT: % orders have printify_order_id but no external_order_id. '
+      'Backfill them before running this migration.', cnt;
+  END IF;
+END $$;
+
+-- -----------------------------------------------
+-- Safety Guard 3: No variants with un-backfilled IDs
+-- -----------------------------------------------
+DO $$
+DECLARE
+  cnt INTEGER;
+BEGIN
+  SELECT COUNT(*) INTO cnt
+  FROM product_variants
+  WHERE printify_variant_id IS NOT NULL
+    AND external_variant_id IS NULL;
+
+  IF cnt > 0 THEN
+    RAISE EXCEPTION
+      'ABORT: % product_variants have printify_variant_id but no external_variant_id. '
+      'Backfill them before running this migration.', cnt;
+  END IF;
+END $$;
+
+-- -----------------------------------------------
+-- DROP legacy indexes first
+-- -----------------------------------------------
+DROP INDEX IF EXISTS idx_products_printify_id;
+DROP INDEX IF EXISTS idx_orders_printify_retry;
+DROP INDEX IF EXISTS idx_orders_printify_order_id;
+
+-- -----------------------------------------------
+-- DROP columns: products (3 columns)
+-- -----------------------------------------------
+ALTER TABLE products
+  DROP COLUMN IF EXISTS printify_id,
+  DROP COLUMN IF EXISTS blueprint_id,
+  DROP COLUMN IF EXISTS print_provider_id;
+
+-- -----------------------------------------------
+-- DROP columns: product_variants (1 column)
+-- -----------------------------------------------
+ALTER TABLE product_variants
+  DROP COLUMN IF EXISTS printify_variant_id;
+
+-- -----------------------------------------------
+-- DROP columns: orders (5 columns)
+-- -----------------------------------------------
+ALTER TABLE orders
+  DROP COLUMN IF EXISTS printify_order_id,
+  DROP COLUMN IF EXISTS printify_cost_cents,
+  DROP COLUMN IF EXISTS printify_retry_count,
+  DROP COLUMN IF EXISTS printify_error,
+  DROP COLUMN IF EXISTS printify_last_attempt_at;
+
+-- -----------------------------------------------
+-- DROP columns: order_items (1 column)
+-- -----------------------------------------------
+ALTER TABLE order_items
+  DROP COLUMN IF EXISTS printify_line_item_id;
+
+-- -----------------------------------------------
+-- DROP columns: designs (2 columns)
+-- -----------------------------------------------
+ALTER TABLE designs
+  DROP COLUMN IF EXISTS printify_upload_id,
+  DROP COLUMN IF EXISTS printify_image_url;
+
+-- -----------------------------------------------
+-- DROP columns: personalizations (1 column)
+-- -----------------------------------------------
+ALTER TABLE personalizations
+  DROP COLUMN IF EXISTS printify_temp_product_id;
+
+-- -----------------------------------------------
+-- Update defaults: new provider is printful
+-- -----------------------------------------------
+ALTER TABLE products
+  ALTER COLUMN pod_provider SET DEFAULT 'printful';
+
+ALTER TABLE orders
+  ALTER COLUMN pod_provider SET DEFAULT 'printful';
+
+-- -----------------------------------------------
+-- Summary: 14 columns dropped from 6 tables
+--   products:          printify_id, blueprint_id, print_provider_id
+--   product_variants:  printify_variant_id
+--   orders:            printify_order_id, printify_cost_cents,
+--                      printify_retry_count, printify_error,
+--                      printify_last_attempt_at
+--   order_items:       printify_line_item_id
+--   designs:           printify_upload_id, printify_image_url
+--   personalizations:  printify_temp_product_id
+-- -----------------------------------------------
+
+COMMIT;

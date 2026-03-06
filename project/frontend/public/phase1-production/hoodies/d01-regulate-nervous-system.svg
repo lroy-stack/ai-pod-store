@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="4016" height="3307" viewBox="0 0 4016 3307">
+
+  <!-- D01: "Regulate Your Nervous System" — BP77 Hoodie 4016×3307 LANDSCAPE -->
+  <!-- SAME design language as original — ECG + 3D purple + turquoise -->
+  <!-- Palette: Purple (#A78BFA → #3B0764) + Turquoise (#40ACCC) -->
+  <!-- Fonts: Playfair Display, Great Vibes, Montserrat — SAME as original -->
+
+  <!-- ===== ECG Heartbeat — full width ===== -->
+  <path d="M50,750 L550,750 L620,640 L690,750 L730,870 L870,250 L1010,890 L1100,750 L1230,610 L1360,750 L2050,750 L2120,640 L2190,750 L2230,870 L2370,250 L2510,890 L2600,750 L2730,610 L2860,750 L3960,750"
+        fill="none" stroke="#40ACCC" stroke-width="38"
+        stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Pulse glow dots -->
+  <circle cx="870" cy="250" r="30" fill="#40ACCC"/>
+  <circle cx="2370" cy="250" r="30" fill="#40ACCC"/>
+
+  <!-- "REGULATE" — Playfair Display, 4-layer 3D purple -->
+  <text x="2032" y="1520"
+        font-family="'Playfair Display', serif"
+        font-size="520"
+        fill="#3B0764" text-anchor="middle">REGULATE</text>
+  <text x="2024" y="1512"
+        font-family="'Playfair Display', serif"
+        font-size="520"
+        fill="#5B21B6" text-anchor="middle">REGULATE</text>
+  <text x="2016" y="1504"
+        font-family="'Playfair Display', serif"
+        font-size="520"
+        fill="#7C3AED" text-anchor="middle">REGULATE</text>
+  <text x="2008" y="1500"
+        font-family="'Playfair Display', serif"
+        font-size="520"
+        fill="#A78BFA" text-anchor="middle">REGULATE</text>
+
+  <!-- "your" — Great Vibes, off-white -->
+  <text x="2008" y="1880"
+        font-family="'Great Vibes', cursive"
+        font-size="350"
+        fill="#F0EDE8" text-anchor="middle">your</text>
+
+  <!-- "NERVOUS" — Montserrat turquoise 2-layer -->
+  <text x="2018" y="2350"
+        font-family="'Montserrat', sans-serif"
+        font-size="420" font-weight="700"
+        fill="#1A5C6B" text-anchor="middle"
+        letter-spacing="8">NERVOUS</text>
+  <text x="2008" y="2340"
+        font-family="'Montserrat', sans-serif"
+        font-size="420" font-weight="700"
+        fill="#40ACCC" text-anchor="middle"
+        letter-spacing="8">NERVOUS</text>
+
+  <!-- "SYSTEM" — Montserrat turquoise 2-layer -->
+  <text x="2018" y="2770"
+        font-family="'Montserrat', sans-serif"
+        font-size="420" font-weight="700"
+        fill="#1A5C6B" text-anchor="middle"
+        letter-spacing="8">SYSTEM</text>
+  <text x="2008" y="2760"
+        font-family="'Montserrat', sans-serif"
+        font-size="420" font-weight="700"
+        fill="#40ACCC" text-anchor="middle"
+        letter-spacing="8">SYSTEM</text>
+
+</svg>

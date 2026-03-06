@@ -4,10 +4,15 @@
  * Uses service key for server-side access
  */
 
+import { cache } from 'react'
 import { createClient } from '@supabase/supabase-js'
+import { getCachedBrandConfig, setCachedBrandConfig } from '@/lib/cached-queries'
 
 export interface BrandConfig {
   brandName: string
+  brandTagline: string
+  logoLightUrl: string
+  logoDarkUrl: string
   seoTitles: {
     en: string
     es: string
@@ -21,11 +26,14 @@ export interface BrandConfig {
 }
 
 const fallbackConfig: BrandConfig = {
-  brandName: 'Skapara',
+  brandName: 'SKAPARA',
+  brandTagline: 'AI-Powered Print on Demand',
+  logoLightUrl: '/brand/skapara-mark-dark.svg',
+  logoDarkUrl: '/brand/skapara-mark-white.svg',
   seoTitles: {
-    en: 'Skapara — AI-Powered Print on Demand Store',
-    es: 'Skapara — Tienda de Impresión bajo Demanda con IA',
-    de: 'Skapara — KI-gestützter Print-on-Demand-Shop',
+    en: 'SKAPARA — AI-Powered Print on Demand Store',
+    es: 'SKAPARA — Tienda de Impresión bajo Demanda con IA',
+    de: 'SKAPARA — KI-gestützter Print-on-Demand-Shop',
   },
   seoDescriptions: {
     en: 'Create custom designs with AI and get them printed on premium products. Your AI-powered print-on-demand marketplace.',
@@ -38,7 +46,11 @@ const fallbackConfig: BrandConfig = {
  * Fetches brand config from database
  * Falls back to hardcoded defaults if fetch fails
  */
-export async function getBrandConfig(): Promise<BrandConfig> {
+export const getBrandConfig = cache(async function getBrandConfig(): Promise<BrandConfig> {
+  // Check Redis cache first
+  const cached = await getCachedBrandConfig()
+  if (cached) return cached as BrandConfig
+
   try {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const supabaseKey = process.env.SUPABASE_SERVICE_KEY
@@ -52,7 +64,7 @@ export async function getBrandConfig(): Promise<BrandConfig> {
 
     const { data, error } = await supabase
       .from('brand_config')
-      .select('brand_name, seo_titles, seo_descriptions')
+      .select('brand_name, brand_tagline, logo_light_url, logo_dark_url, seo_titles, seo_descriptions')
       .eq('is_active', true)
       .single()
 
@@ -61,13 +73,21 @@ export async function getBrandConfig(): Promise<BrandConfig> {
       return fallbackConfig
     }
 
-    return {
+    const result = {
       brandName: data.brand_name || fallbackConfig.brandName,
+      brandTagline: data.brand_tagline || fallbackConfig.brandTagline,
+      logoLightUrl: data.logo_light_url || fallbackConfig.logoLightUrl,
+      logoDarkUrl: data.logo_dark_url || fallbackConfig.logoDarkUrl,
       seoTitles: data.seo_titles || fallbackConfig.seoTitles,
       seoDescriptions: data.seo_descriptions || fallbackConfig.seoDescriptions,
     }
+
+    // Store in Redis for cross-request caching (fire-and-forget)
+    setCachedBrandConfig(result)
+
+    return result
   } catch (error) {
     console.error('Exception fetching brand config:', error)
     return fallbackConfig
   }
-}
+})

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { requireAdmin, authErrorResponse } from '@/lib/auth-guard';
 
 const supabase = createClient(
   process.env.SUPABASE_URL!,
@@ -13,6 +14,12 @@ const supabase = createClient(
 );
 
 export async function GET(req: NextRequest) {
+  try {
+    await requireAdmin(req)
+  } catch (error) {
+    return authErrorResponse(error)
+  }
+
   try {
     const searchParams = req.nextUrl.searchParams;
     const status = searchParams.get('status'); // Filter by status

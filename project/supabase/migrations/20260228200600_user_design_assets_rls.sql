@@ -1,0 +1,1 @@
+ALTER TABLE user_design_assets ENABLE ROW LEVEL SECURITY;

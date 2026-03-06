@@ -1,0 +1,110 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="4606" height="5787" viewBox="0 0 4606 5787">
+
+  <!-- ============================================= -->
+  <!-- "Ctrl+Z My Homework"                          -->
+  <!-- Kids Heavy Cotton Tee — Black, Navy, White     -->
+  <!-- Hero: 2 teclas ENORMES 3D estilo juguete       -->
+  <!-- Canvas grande 4606x5787                        -->
+  <!-- ============================================= -->
+
+  <!-- === Undo arrow — simple y limpia === -->
+  <g transform="translate(2303, 500)" opacity="0.7">
+    <!-- Trazo curvo grueso -->
+    <path d="M300,140 C320,-220 -320,-220 -300,140" fill="none" stroke="#2DD4BF" stroke-width="60" stroke-linecap="round"/>
+    <!-- Triángulo punta izquierda — bajada -->
+    <polygon points="-300,200 -430,50 -170,50" fill="#2DD4BF"/>
+  </g>
+
+  <!-- === TECLA CTRL — enorme, 3D, estilo juguete === -->
+  <g transform="translate(900, 1700)">
+    <!-- Sombra/profundidad -->
+    <rect x="0" y="30" width="1500" height="1200" rx="120" fill="#0F172A" opacity="0.2"/>
+    <!-- Base de la tecla (lateral 3D) -->
+    <rect x="0" y="0" width="1500" height="1250" rx="120" fill="#0D9668"/>
+    <!-- Cara superior (key cap) -->
+    <rect x="40" y="20" width="1420" height="1100" rx="100" fill="#10B981"/>
+    <!-- Brillo superior -->
+    <rect x="80" y="50" width="600" height="200" rx="60" fill="white" opacity="0.15"/>
+    <!-- Texto CTRL -->
+    <text x="750" y="700" font-family="'Helvetica Neue', 'Arial', sans-serif" font-size="480" font-weight="900" fill="white" text-anchor="middle">Ctrl</text>
+  </g>
+
+  <!-- === SIGNO + centrado — turquesa para contraste universal === -->
+  <text x="2550" y="2400" font-family="'Helvetica Neue', 'Arial', sans-serif" font-size="500" font-weight="700" fill="#2DD4BF" text-anchor="middle" opacity="0.8">+</text>
+
+  <!-- === TECLA Z — enorme, color diferente === -->
+  <g transform="translate(2700, 1700)">
+    <!-- Sombra -->
+    <rect x="0" y="30" width="1200" height="1200" rx="120" fill="#0F172A" opacity="0.2"/>
+    <!-- Base 3D -->
+    <rect x="0" y="0" width="1200" height="1250" rx="120" fill="#7C3AED"/>
+    <!-- Key cap -->
+    <rect x="40" y="20" width="1120" height="1100" rx="100" fill="#A78BFA"/>
+    <!-- Brillo -->
+    <rect x="80" y="50" width="480" height="200" rx="60" fill="white" opacity="0.15"/>
+    <!-- Texto Z -->
+    <text x="600" y="750" font-family="'Helvetica Neue', 'Arial', sans-serif" font-size="600" font-weight="900" fill="white" text-anchor="middle">Z</text>
+  </g>
+
+  <!-- === MY HOMEWORK — masivo con tachado rojo === -->
+
+  <!-- Texto -->
+  <text x="2303" y="3600" font-family="'Helvetica Neue', 'Arial', sans-serif" font-size="440" font-weight="900" fill="#C9956B" text-anchor="middle" letter-spacing="-6">MY HOMEWORK</text>
+  <!-- Tachado rojo — línea gruesa atravesando el texto -->
+  <line x1="350" y1="3480" x2="4250" y2="3480" stroke="#EF4444" stroke-width="30" stroke-linecap="round" opacity="0.8"/>
+
+  <!-- === Undo action line — monospace === -->
+  <g transform="translate(2303, 4100)">
+    <!-- Background pill -->
+    <rect x="-1450" y="-120" width="2900" height="240" rx="120" fill="#0F172A" opacity="0.08"/>
+    <text x="0" y="30" font-family="'Courier New', monospace" font-size="220" fill="#2DD4BF" text-anchor="middle" opacity="0.7">Undo: Homework.docx</text>
+  </g>
+
+  <!-- === Papeles volando — grandes === -->
+  <!-- Papel izquierda -->
+  <g transform="translate(300, 4400) rotate(-12)">
+    <rect x="0" y="0" width="700" height="900" rx="30" fill="white" opacity="0.18"/>
+    <line x1="80" y1="140" x2="530" y2="140" stroke="#A78BFA" stroke-width="18" opacity="0.4"/>
+    <line x1="80" y1="240" x2="450" y2="240" stroke="#A78BFA" stroke-width="18" opacity="0.35"/>
+    <line x1="80" y1="340" x2="560" y2="340" stroke="#A78BFA" stroke-width="18" opacity="0.3"/>
+    <line x1="80" y1="440" x2="380" y2="440" stroke="#A78BFA" stroke-width="18" opacity="0.25"/>
+    <text x="350" y="750" font-family="'Helvetica Neue', 'Arial', sans-serif" font-size="400" font-weight="900" fill="#EF4444" text-anchor="middle" opacity="0.35">✗</text>
+  </g>
+
+  <!-- Papel derecha -->
+  <g transform="translate(3600, 4350) rotate(10)">
+    <rect x="0" y="0" width="680" height="860" rx="30" fill="white" opacity="0.15"/>
+    <line x1="75" y1="130" x2="500" y2="130" stroke="#10B981" stroke-width="18" opacity="0.35"/>
+    <line x1="75" y1="230" x2="440" y2="230" stroke="#10B981" stroke-width="18" opacity="0.3"/>
+    <line x1="75" y1="330" x2="530" y2="330" stroke="#10B981" stroke-width="18" opacity="0.25"/>
+    <text x="340" y="700" font-family="'Helvetica Neue', 'Arial', sans-serif" font-size="380" font-weight="900" fill="#EF4444" text-anchor="middle" opacity="0.35">✗</text>
+  </g>
+
+  <!-- === Bottom closer — GRANDE y visible === -->
+  <text x="2303" y="5400" font-family="'Courier New', monospace" font-size="280" fill="#EF4444" text-anchor="middle" opacity="0.55">Action cannot be undone.</text>
+
+  <!-- === Estrellas más grandes alrededor de las teclas === -->
+  <g transform="translate(500, 1150)" opacity="0.6">
+    <polygon points="0,-70 18,-22 70,-22 28,8 44,58 0,30 -44,58 -28,8 -70,-22 -18,-22" fill="#FDE047"/>
+  </g>
+  <g transform="translate(4200, 1050)" opacity="0.55">
+    <polygon points="0,-65 17,-21 65,-21 26,7 41,54 0,28 -41,54 -26,7 -65,-21 -17,-21" fill="#FDE047"/>
+  </g>
+  <g transform="translate(2303, 1050)" opacity="0.5">
+    <polygon points="0,-55 14,-18 55,-18 22,6 35,46 0,24 -35,46 -22,6 -55,-18 -14,-18" fill="#FDE047"/>
+  </g>
+  <g transform="translate(350, 3100)" opacity="0.4">
+    <polygon points="0,-50 13,-16 50,-16 20,6 31,42 0,22 -31,42 -20,6 -50,-16 -13,-16" fill="#FDE047"/>
+  </g>
+  <g transform="translate(4300, 3050)" opacity="0.45">
+    <polygon points="0,-55 14,-18 55,-18 22,6 35,46 0,24 -35,46 -22,6 -55,-18 -14,-18" fill="#FDE047"/>
+  </g>
+
+  <!-- Lápiz grande cerca del homework -->
+  <g transform="translate(450, 3300) rotate(-25)">
+    <rect x="0" y="0" width="420" height="90" rx="12" fill="#F59E0B" opacity="0.5"/>
+    <polygon points="420,0 500,45 420,90" fill="#FDE047" opacity="0.5"/>
+    <rect x="-15" y="12" width="45" height="66" rx="6" fill="#F472B6" opacity="0.45"/>
+  </g>
+
+</svg>

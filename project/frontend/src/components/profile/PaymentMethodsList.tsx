@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
-import { CreditCard, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { CreditCard, Loader2, Trash2 } from 'lucide-react';
 import {
   Card,
   CardHeader,
@@ -11,6 +12,17 @@ import {
   CardContent,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 interface PaymentMethod {
   id: string;
@@ -64,6 +76,7 @@ export function PaymentMethodsList() {
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [removingId, setRemovingId] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchPaymentMethods() {
@@ -94,6 +107,28 @@ export function PaymentMethodsList() {
 
     fetchPaymentMethods();
   }, [t]);
+
+  const handleRemove = async (pmId: string) => {
+    setRemovingId(pmId);
+    try {
+      const response = await fetch(`/api/profile/payment-methods/${pmId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to remove payment method');
+      }
+
+      setPaymentMethods((prev) => prev.filter((pm) => pm.id !== pmId));
+      toast.success(t('cardRemoved'));
+    } catch (err) {
+      console.error('Error removing payment method:', err);
+      toast.error(t('errorRemovingCard'));
+    } finally {
+      setRemovingId(null);
+    }
+  };
 
   if (loading) {
     return (
@@ -163,9 +198,39 @@ export function PaymentMethodsList() {
                     )}
                   </div>
                 </div>
-                <Button variant="outline" size="sm" disabled>
-                  {t('removeCard')}
-                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={removingId === pm.id}
+                    >
+                      {removingId === pm.id ? (
+                        <Loader2 className="size-4 animate-spin" />
+                      ) : (
+                        <Trash2 className="size-4" />
+                      )}
+                      {t('removeCard')}
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>{t('removeCardConfirmTitle')}</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        {t('removeCardConfirmDescription', { last4: pm.card?.last4 || '****' })}
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={() => handleRemove(pm.id)}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        {t('confirmRemoveCard')}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
             ))}
           </div>

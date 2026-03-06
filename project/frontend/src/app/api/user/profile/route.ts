@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
     // Get user profile from users table
     let { data: profile, error: profileError } = await supabaseAdmin
       .from('users')
-      .select('id, email, name, avatar_url, locale, currency, phone, email_verified, notification_preferences')
+      .select('id, email, name, avatar_url, locale, currency, phone, email_verified, notification_preferences, deletion_requested_at')
       .eq('email', user.email)
       .single();
 
@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
           email_verified: !!user.email_confirmed_at,
           notification_preferences: { email: true, push: true, sms: false },
         })
-        .select('id, email, name, avatar_url, locale, currency, phone, email_verified, notification_preferences')
+        .select('id, email, name, avatar_url, locale, currency, phone, email_verified, notification_preferences, deletion_requested_at')
         .single();
 
       if (insertError) {
@@ -102,7 +102,7 @@ export async function PATCH(request: NextRequest) {
       .from('users')
       .update(updates)
       .eq('email', user.email)
-      .select('id, email, name, avatar_url, locale, currency, phone, email_verified, notification_preferences')
+      .select('id, email, name, avatar_url, locale, currency, phone, email_verified, notification_preferences, deletion_requested_at')
       .single();
 
     if (updateError) {

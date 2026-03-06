@@ -1,0 +1,142 @@
+[
+  {
+    "id": "168731f6-75db-4075-bb30-c1ec8fead998",
+    "title": "Absolutely Right",
+    "printify_id": "69a3036509542fc7920317d3",
+    "status": "failed",
+    "error": "Supabase 400: {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'metadata' column of 'products' in the schema cache\"}"
+  },
+  {
+    "id": "922c9543-91b7-4530-9393-bee5db079626",
+    "title": "Caffeine Anxiety",
+    "printify_id": "69a4418621b032c3770336a2",
+    "status": "failed",
+    "error": "Supabase 400: {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'metadata' column of 'products' in the schema cache\"}"
+  },
+  {
+    "id": "052903d6-8b14-4373-832a-4a04df2f495e",
+    "title": "Dangerous Flag",
+    "printify_id": "69a355feeb470f86b105c51d",
+    "status": "failed",
+    "error": "Supabase 400: {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'metadata' column of 'products' in the schema cache\"}"
+  },
+  {
+    "id": "152676b0-4818-458b-8ffe-55e1b0a87877",
+    "title": "Existential Dread",
+    "printify_id": "69a4411a414758b6c6031723",
+    "status": "failed",
+    "error": "Supabase 400: {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'metadata' column of 'products' in the schema cache\"}"
+  },
+  {
+    "id": "28523f37-23ca-4087-a7e1-511ea8da54eb",
+    "title": "Ghost Tee",
+    "printify_id": "69a300327fc2996b8d0a7780",
+    "status": "failed",
+    "error": "Supabase 400: {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'metadata' column of 'products' in the schema cache\"}"
+  },
+  {
+    "id": "4fff5d51-0b07-4fed-98f6-455d5c4e3d28",
+    "title": "Just For You",
+    "printify_id": "69a441b91ec5ca402c037655",
+    "status": "failed",
+    "error": "Supabase 400: {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'metadata' column of 'products' in the schema cache\"}"
+  },
+  {
+    "id": "a5867c4e-7f7d-48f0-82d4-052c0072ee6b",
+    "title": "Next Line",
+    "printify_id": "69a4419feb470f86b105f44f",
+    "status": "failed",
+    "error": "Supabase 400: {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'metadata' column of 'products' in the schema cache\"}"
+  },
+  {
+    "id": "13bc1ffc-a703-4a9b-96fb-a460c429990c",
+    "title": "Option Two",
+    "printify_id": "69a355e57fc2996b8d0a8a69",
+    "status": "failed",
+    "error": "Supabase 400: {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'metadata' column of 'products' in the schema cache\"}"
+  },
+  {
+    "id": "a3b37e0f-636c-4a05-b680-b0f1151ff79b",
+    "title": "Plans Cancelled",
+    "printify_id": "69a4415046730b56700a63ce",
+    "status": "failed",
+    "error": "Supabase 400: {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'metadata' column of 'products' in the schema cache\"}"
+  },
+  {
+    "id": "7024ef34-abff-47b5-b6aa-23b4f3b588a0",
+    "title": "Prism Tee",
+    "printify_id": "69a303589f7e893e8a0e0c2d",
+    "status": "failed",
+    "error": "Supabase 400: {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'metadata' column of 'products' in the schema cache\"}"
+  },
+  {
+    "id": "49d3093b-abf5-46a5-82cb-362ffe6c863c",
+    "title": "Scope Creep",
+    "printify_id": "69a356193f2bfa5bde0865f6",
+    "status": "failed",
+    "error": "Supabase 400: {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'metadata' column of 'products' in the schema cache\"}"
+  },
+  {
+    "id": "465edf9a-3abb-48d4-a7dc-68e6698eee87",
+    "title": "Self-Care Mode",
+    "printify_id": "69a4416e414758b6c6031733",
+    "status": "failed",
+    "error": "Supabase 400: {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'metadata' column of 'products' in the schema cache\"}"
+  },
+  {
+    "id": "75c19f30-003b-4a95-812a-852ae5aa337d",
+    "title": "Shadow Tee",
+    "printify_id": "69a3034c46730b56700a23a5",
+    "status": "failed",
+    "error": "Supabase 400: {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'metadata' column of 'products' in the schema cache\"}"
+  },
+  {
+    "id": "2326f734-8025-42f7-82bf-847d0a5fb22c",
+    "title": "Social Battery",
+    "printify_id": "69a441377fc2996b8d0ab73b",
+    "status": "failed",
+    "error": "Supabase 400: {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'metadata' column of 'products' in the schema cache\"}"
+  },
+  {
+    "id": "7d6f605a-df7c-4d63-b9f6-5f530035d3f2",
+    "title": "Soup Fork",
+    "printify_id": "69a441003b12a90c8e08b5a5",
+    "status": "failed",
+    "error": "Supabase 400: {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'metadata' column of 'products' in the schema cache\"}"
+  },
+  {
+    "id": "02ab1785-1c65-41a6-bf6a-bc40d4a31494",
+    "title": "Strawberry Count",
+    "printify_id": "69a355b3f4bd86b0d2086940",
+    "status": "failed",
+    "error": "Supabase 400: {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'metadata' column of 'products' in the schema cache\"}"
+  },
+  {
+    "id": "0a0085ac-be8b-4e68-b194-c448d1af2b09",
+    "title": "Three Models",
+    "printify_id": "69a356321ec5ca402c034860",
+    "status": "failed",
+    "error": "Supabase 400: {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'metadata' column of 'products' in the schema cache\"}"
+  },
+  {
+    "id": "725e1aec-2b65-49da-ac56-2054740de2e0",
+    "title": "Under Where",
+    "printify_id": "69a355cc7fc2996b8d0a8a5f",
+    "status": "failed",
+    "error": "Supabase 400: {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'metadata' column of 'products' in the schema cache\"}"
+  },
+  {
+    "id": "60f6ceb4-46a7-4bd3-92c0-2e67c4cf0f66",
+    "title": "Vibe Coder",
+    "printify_id": "69a303707ab6ca007408cd3b",
+    "status": "failed",
+    "error": "Supabase 400: {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'metadata' column of 'products' in the schema cache\"}"
+  },
+  {
+    "id": "e4867449-08b1-408a-b85b-b6ecd9b4274c",
+    "title": "Zero Bugs",
+    "printify_id": "69a303797fc2996b8d0a785c",
+    "status": "failed",
+    "error": "Supabase 400: {\"code\":\"PGRST204\",\"details\":null,\"hint\":null,\"message\":\"Could not find the 'metadata' column of 'products' in the schema cache\"}"
+  }
+]

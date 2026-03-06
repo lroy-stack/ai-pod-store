@@ -1,0 +1,97 @@
+{
+  "product": {
+    "title": "New Wave Crewneck",
+    "description": "Premium heavyweight crewneck sweatshirt featuring the New Wave design — bold typography and vibrant multicolor details on a silky-soft 8.5 oz/yd² fleece body. Designed to stand out.",
+    "translations": {
+      "es": {
+        "title": "Crewneck New Wave",
+        "description": "Sudadera premium de peso pesado con el diseño New Wave — tipografía audaz y detalles multicolor vibrantes sobre un cuerpo de felpa suave de 288 g/m². Diseñada para destacar."
+      },
+      "de": {
+        "title": "New Wave Crewneck",
+        "description": "Premium Heavyweight Crewneck Sweatshirt mit dem New Wave Design — markante Typografie und lebendige mehrfarbige Details auf einem seidig-weichen 288 g/m² Fleece-Körper. Entworfen, um aufzufallen."
+      }
+    },
+    "category": "crewnecks",
+    "category_id": "3213a34b-0eeb-4195-8531-29e65f442384",
+    "tags": ["new-wave", "crewneck", "premium", "heavyweight"],
+    "tier": "PREMIUM",
+    "collection": "New Wave"
+  },
+  "catalog": {
+    "id": 411,
+    "model": "Cotton Heritage M2480",
+    "canvases": {
+      "front": { "w": 1800, "h": 2400 },
+      "back": { "w": 1800, "h": 2400 },
+      "sleeve_left": { "w": 450, "h": 1800 }
+    }
+  },
+  "designs": {
+    "front": {
+      "svg": "public/brand-designs/new-wave/chest-smark.svg",
+      "renderArgs": "-density 300 -background none -resize 1800x2400"
+    },
+    "back": {
+      "svg": "public/brand-designs/new-wave/back-new-wave.svg",
+      "renderArgs": "-density 150 -background none"
+    },
+    "sleeve_left": {
+      "svg": "public/brand-designs/new-wave/sleeve-skapara-multicolor.svg",
+      "renderArgs": "-density 300 -background none -resize 360x -rotate 90 -gravity center -extent 450x1800"
+    }
+  },
+  "colors": [
+    {
+      "name": "Black",
+      "hex": "#101010",
+      "slug": "black",
+      "variants": { "S": 11254, "M": 11255, "L": 11256, "XL": 11257, "2XL": 11258, "3XL": 13258 }
+    },
+    {
+      "name": "Navy Blazer",
+      "hex": "#171f2c",
+      "slug": "navy-blazer",
+      "variants": { "S": 13252, "M": 13253, "L": 13254, "XL": 13255, "2XL": 13256, "3XL": 13257 }
+    },
+    {
+      "name": "Charcoal Heather",
+      "hex": "#3a3a38",
+      "slug": "charcoal-heather",
+      "variants": { "S": 11259, "M": 11260, "L": 11261, "XL": 11262, "2XL": 11263, "3XL": 13260 }
+    },
+    {
+      "name": "Vintage Black",
+      "hex": "#43413D",
+      "slug": "vintage-black",
+      "variants": { "S": 20363, "M": 20362, "L": 20361, "XL": 20360, "2XL": 20359, "3XL": 20358 }
+    }
+  ],
+  "pricing": {
+    "tiers": {
+      "S-L": { "sale": 4499, "original": 6499 },
+      "XL-3XL": { "sale": 4999, "original": 6999 }
+    },
+    "retailPrices": {
+      "S-L": "44.99",
+      "XL-3XL": "49.99"
+    }
+  },
+  "gpsr": {
+    "material": "65% ring-spun cotton, 35% polyester, 8.5 oz/yd² (288.2 g/m²)",
+    "manufacturer": "Printful Inc., Gandijas Iela 35, Ventspils, LV-3601, Latvia",
+    "compliance": "REACH, OEKO-TEX Standard 100",
+    "care_instructions": "Machine wash cold, inside out. Tumble dry low. Do not bleach. Iron on low heat, avoid print area.",
+    "print_technique": "DTG (Direct-to-Garment)",
+    "manufacturing_country": "Latvia"
+  },
+  "mockups": {
+    "option_groups": ["Ghost"],
+    "options": ["Front", "Back", "Left"],
+    "dedup": true
+  },
+  "branding": {
+    "sleeve_left_file_id": 950653078,
+    "label_inside_note": "Add via Printful Dashboard — API rejects label_inside placement"
+  }
+}

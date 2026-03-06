@@ -19,6 +19,7 @@ export default defineConfig({
         'src/lib/currency.ts',
         'src/lib/utils.ts',
         'src/components/common/SafeMarkdown.tsx',
+        'src/lib/pod/**/*.ts',
       ],
       exclude: [
         'node_modules/**',

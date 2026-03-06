@@ -65,11 +65,12 @@ export async function GET(req: NextRequest) {
       return NextResponse.json([], { status: 200, headers: getCorsHeaders(origin) })
     }
 
-    // Fetch product counts for each category (grouped by category slug)
+    // Fetch product counts by category_id FK (not legacy VARCHAR)
     const { data: productCounts, error: countError } = await supabaseAdmin
       .from('products')
-      .select('category')
+      .select('category_id')
       .eq('status', 'active')
+      .not('category_id', 'is', null)
 
     if (countError) {
       console.error('Error fetching product counts:', countError)
@@ -79,29 +80,63 @@ export async function GET(req: NextRequest) {
       )
     }
 
-    // Build a map of category slug -> product count
+    // Build a map of category_id -> direct product count
     const countMap = new Map<string, number>()
     if (productCounts) {
       for (const product of productCounts) {
-        const category = product.category
-        if (category) {
-          countMap.set(category, (countMap.get(category) || 0) + 1)
+        if (product.category_id) {
+          countMap.set(product.category_id, (countMap.get(product.category_id) || 0) + 1)
         }
       }
     }
 
-    // Build response with localized names and product counts
+    // Build parent->children map for hierarchical counting
+    const childrenMap = new Map<string, typeof categories>()
+    for (const cat of categories) {
+      if (cat.parent_id) {
+        const siblings = childrenMap.get(cat.parent_id) || []
+        siblings.push(cat)
+        childrenMap.set(cat.parent_id, siblings)
+      }
+    }
+
+    // Calculate hierarchical count (own + children's products)
+    function getTotalCount(catId: string): number {
+      const ownCount = countMap.get(catId) || 0
+      const children = childrenMap.get(catId) || []
+      const childCount = children.reduce((sum, c) => sum + (countMap.get(c.id) || 0), 0)
+      return ownCount + childCount
+    }
+
+    // Build response with localized names, hierarchical counts, and children
     const nameField = `name_${normalizedLocale}` as 'name_en' | 'name_es' | 'name_de'
-    const response = categories.map((cat) => ({
-      id: cat.id,
-      slug: cat.slug,
-      name: cat[nameField] || cat.name_en, // Fallback to English
-      icon: cat.icon,
-      image_url: cat.image_url,
-      parent_id: cat.parent_id,
-      product_count: countMap.get(cat.slug) || 0,
-      sort_order: cat.sort_order,
-    }))
+    const response = categories
+      .filter((cat) => !cat.parent_id) // Only return top-level categories
+      .map((cat) => {
+        const children = (childrenMap.get(cat.id) || [])
+          .sort((a, b) => a.sort_order - b.sort_order)
+          .map((child) => ({
+            id: child.id,
+            slug: child.slug,
+            name: child[nameField] || child.name_en,
+            icon: child.icon,
+            product_count: countMap.get(child.id) || 0,
+            sort_order: child.sort_order,
+          }))
+
+        return {
+          id: cat.id,
+          slug: cat.slug,
+          name: cat[nameField] || cat.name_en,
+          icon: cat.icon,
+          image_url: cat.image_url,
+          parent_id: cat.parent_id,
+          product_count: countMap.get(cat.id) || 0,
+          total_product_count: getTotalCount(cat.id),
+          sort_order: cat.sort_order,
+          children,
+        }
+      })
 
     return NextResponse.json(response, {
       status: 200,

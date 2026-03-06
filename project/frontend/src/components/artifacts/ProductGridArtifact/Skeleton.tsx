@@ -15,8 +15,8 @@ export function ProductGridSkeleton({ count = 6, variant = 'inline' }: ProductGr
     <div
       className={`grid gap-3 ${
         variant === 'inline'
-          ? 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-3'
-          : 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4'
+          ? 'grid-cols-[repeat(auto-fill,minmax(200px,1fr))]'
+          : 'grid-cols-[repeat(auto-fill,minmax(200px,1fr))]'
       }`}
     >
       {Array.from({ length: count }).map((_, index) => (

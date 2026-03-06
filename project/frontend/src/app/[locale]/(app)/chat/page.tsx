@@ -1,8 +1,13 @@
 import type { Metadata } from 'next'
+import { getTranslations } from 'next-intl/server'
 
-export const metadata: Metadata = {
-  title: 'Chat — Skapara',
-  description: 'Chat with our AI assistant to design custom print-on-demand products.',
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params
+  const t = await getTranslations({ locale, namespace: 'storefront' })
+  return {
+    title: t('chatMetaTitle'),
+    description: t('chatMetaDescription'),
+  }
 }
 
 /**

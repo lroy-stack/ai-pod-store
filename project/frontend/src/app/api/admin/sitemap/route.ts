@@ -1,11 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@supabase/supabase-js'
+import { requireAdmin, authErrorResponse } from '@/lib/auth-guard'
+import { BASE_URL } from '@/lib/store-config'
 
 const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY!
 
 export async function POST(request: NextRequest) {
+  try {
+    await requireAdmin(request)
+  } catch (error) {
+    return authErrorResponse(error)
+  }
+
   try {
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
@@ -44,7 +52,13 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  try {
+    await requireAdmin(request)
+  } catch (error) {
+    return authErrorResponse(error)
+  }
+
   try {
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
@@ -53,7 +67,7 @@ export async function GET() {
       .from('products')
       .select('*', { count: 'exact', head: true })
 
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://podai.com'
+    const baseUrl = BASE_URL
     const locales = ['en', 'es', 'de']
 
     return NextResponse.json({

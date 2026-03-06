@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="4606" height="5787" viewBox="0 0 4606 5787">
+
+  <!-- G01: "NOPE." — BP6 T-Shirt 4606x5787 -->
+  <!-- Maximal impact single word — HUGE 3D red -->
+  <!-- Palette: Red (#EF4444) -->
+  <!-- Fonts: Bebas Neue (hero) -->
+  <!-- RULE: No text below 200px -->
+
+  <!-- ===== Thick red bar — left accent ===== -->
+  <rect x="300" y="1000" width="60" height="3200" fill="#EF4444"/>
+
+  <!-- ===== X marks — corners, red, thick strokes ===== -->
+  <!-- Top-left X -->
+  <line x1="600" y1="700" x2="900" y2="1000" stroke="#EF4444" stroke-width="25" stroke-linecap="round"/>
+  <line x1="900" y1="700" x2="600" y2="1000" stroke="#EF4444" stroke-width="25" stroke-linecap="round"/>
+
+  <!-- Top-right X -->
+  <line x1="3700" y1="700" x2="4000" y2="1000" stroke="#EF4444" stroke-width="25" stroke-linecap="round"/>
+  <line x1="4000" y1="700" x2="3700" y2="1000" stroke="#EF4444" stroke-width="25" stroke-linecap="round"/>
+
+  <!-- Bottom-left X -->
+  <line x1="600" y1="4400" x2="900" y2="4700" stroke="#EF4444" stroke-width="25" stroke-linecap="round"/>
+  <line x1="900" y1="4400" x2="600" y2="4700" stroke="#EF4444" stroke-width="25" stroke-linecap="round"/>
+
+  <!-- Bottom-right X -->
+  <line x1="3700" y1="4400" x2="4000" y2="4700" stroke="#EF4444" stroke-width="25" stroke-linecap="round"/>
+  <line x1="4000" y1="4400" x2="3700" y2="4700" stroke="#EF4444" stroke-width="25" stroke-linecap="round"/>
+
+  <!-- ===== "NOPE." — 4-layer 3D red, Bebas Neue MASSIVE ===== -->
+  <text x="2327" y="3224"
+        font-family="'Bebas Neue', sans-serif"
+        font-size="1200"
+        fill="#7F1D1D" text-anchor="middle">NOPE.</text>
+  <text x="2319" y="3216"
+        font-family="'Bebas Neue', sans-serif"
+        font-size="1200"
+        fill="#991B1B" text-anchor="middle">NOPE.</text>
+  <text x="2311" y="3208"
+        font-family="'Bebas Neue', sans-serif"
+        font-size="1200"
+        fill="#DC2626" text-anchor="middle">NOPE.</text>
+  <text x="2303" y="3200"
+        font-family="'Bebas Neue', sans-serif"
+        font-size="1200"
+        fill="#EF4444" text-anchor="middle">NOPE.</text>
+
+  <!-- ===== Thick red bar — bottom accent ===== -->
+  <rect x="800" y="3600" width="3000" height="40" fill="#EF4444"/>
+
+  <!-- ===== "absolutely not." — Courier New footer ===== -->
+  <text x="2303" y="4100"
+        font-family="'Courier New', monospace"
+        font-size="250" font-weight="bold"
+        fill="#F0EDE8" text-anchor="middle">absolutely not.</text>
+
+</svg>

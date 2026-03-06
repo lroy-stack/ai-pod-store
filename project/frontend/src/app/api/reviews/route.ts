@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
+import { reviewLimiter } from '@/lib/rate-limit'
 
 const supabaseUrl = process.env.SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY!
@@ -38,6 +39,12 @@ export async function POST(request: NextRequest) {
         { error: 'Unauthorized', message: 'Invalid session' },
         { status: 401 }
       )
+    }
+
+    // Rate limit check
+    const { success } = reviewLimiter.check(`review:${user.id}`)
+    if (!success) {
+      return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
     }
 
     // Validation
@@ -111,6 +118,39 @@ export async function POST(request: NextRequest) {
         { error: 'Database error', message: 'Failed to save review' },
         { status: 500 }
       )
+    }
+
+    // Award 1 credit for first review per product (idempotent)
+    try {
+      const { data: existingCredit } = await supabaseAdmin
+        .from('credit_transactions')
+        .select('id')
+        .eq('user_id', user.id)
+        .like('reason', `review_reward:${productId}`)
+        .limit(1)
+        .single()
+
+      if (!existingCredit) {
+        // First review for this product — award credit
+        await supabaseAdmin.rpc('add_credits', { p_user_id: user.id, p_amount: 1 })
+
+        // Get updated balance for logging
+        const { data: profile } = await supabaseAdmin
+          .from('users')
+          .select('credits')
+          .eq('id', user.id)
+          .single()
+
+        await supabaseAdmin.from('credit_transactions').insert({
+          user_id: user.id,
+          amount: 1,
+          reason: `review_reward:${productId}`,
+          balance_after: profile?.credits ?? 0,
+        })
+      }
+    } catch (creditError) {
+      // Non-fatal: log but don't fail the review submission
+      console.error('[Reviews] Failed to award review credit:', creditError)
     }
 
     return NextResponse.json(

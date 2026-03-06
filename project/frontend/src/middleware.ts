@@ -10,6 +10,7 @@ import {
   CSRF_HEADER_NAME,
   CSRF_COOKIE_OPTIONS,
 } from './lib/csrf'
+import { PRIMARY_DOMAINS } from './lib/store-config'
 
 // Protected routes that require authentication
 // Note: /cart and /checkout allow guest access for guest checkout feature
@@ -32,8 +33,7 @@ function simpleHash(str: string): number {
   return hash
 }
 
-// Domains treated as the primary/default tenant — no custom domain lookup
-const PRIMARY_DOMAINS = ['localhost', '127.0.0.1', '0.0.0.0', 'podai.com', 'skapara.com']
+// PRIMARY_DOMAINS imported from @/lib/store-config (canonical source)
 
 // Internal paths that must skip tenant resolution to avoid infinite loops
 const SKIP_TENANT_PATHS = ['/api/tenant-resolve', '/api/verify-domain']
@@ -53,7 +53,11 @@ export default async function middleware(request: NextRequest) {
   )
   const skipTenantResolution = SKIP_TENANT_PATHS.some((p) => pathname.startsWith(p))
 
-  if (!isPrimaryDomain && !skipTenantResolution) {
+  // Check cookie cache first to avoid HTTP roundtrip on every request
+  const cachedTenantId = request.cookies.get('x-tenant-id')?.value
+  if (cachedTenantId) {
+    requestHeaders.set('x-tenant-id', cachedTenantId)
+  } else if (!isPrimaryDomain && !skipTenantResolution) {
     try {
       const resolveUrl = new URL(
         `/api/tenant-resolve?domain=${encodeURIComponent(hostname)}`,
@@ -87,6 +91,16 @@ export default async function middleware(request: NextRequest) {
     const tenantId = requestHeaders.get('x-tenant-id')
     if (tenantId) {
       response.headers.set('x-tenant-id', tenantId)
+      // Cache tenant resolution in cookie (5 min TTL) to skip HTTP fetch on next request
+      if (!cachedTenantId) {
+        response.cookies.set('x-tenant-id', tenantId, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          maxAge: 300,
+          path: '/',
+        })
+      }
     }
   }
 
@@ -155,9 +169,10 @@ export default async function middleware(request: NextRequest) {
   }
 
   // Validate CSRF token for mutation requests to API routes
-  // Skip CSRF for webhooks (they have their own auth mechanisms)
+  // Skip CSRF for webhooks, admin, and cron routes (they have their own auth mechanisms)
   const isWebhook = pathname.startsWith('/api/webhooks/')
-  if (pathname.startsWith('/api') && requiresCSRFProtection(request.method) && !isWebhook) {
+  const isAdminOrCron = pathname.startsWith('/api/admin/') || pathname.startsWith('/api/cron/')
+  if (pathname.startsWith('/api') && requiresCSRFProtection(request.method) && !isWebhook && !isAdminOrCron) {
     const headerToken = request.headers.get(CSRF_HEADER_NAME)
     const cookieToken = request.cookies.get(CSRF_COOKIE_NAME)?.value
 

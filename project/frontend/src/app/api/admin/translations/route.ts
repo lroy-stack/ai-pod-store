@@ -6,8 +6,15 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { requireAdmin, authErrorResponse } from '@/lib/auth-guard'
 
 export async function GET(request: NextRequest) {
+  try {
+    await requireAdmin(request)
+  } catch (error) {
+    return authErrorResponse(error)
+  }
+
   const { searchParams } = new URL(request.url)
   const locale = searchParams.get('locale') || 'en'
 

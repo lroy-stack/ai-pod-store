@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2953" height="3543" viewBox="0 0 2953 3543">
+
+  <!-- TB01: "Soup Fork" Tote — BP731 2953×3543, DTG on Organic Cotton -->
+  <!-- Adapted from A01 (4606×5787) — scale ~0.64 -->
+  <!-- Accents: #10B981 (green) + #F59E0B (amber) -->
+
+  <!-- "LIFE" -->
+  <text x="1477" y="620"
+        font-family="'Permanent Marker', cursive"
+        font-size="544"
+        fill="#F0EDE8" text-anchor="middle">LIFE</text>
+
+  <!-- "is" -->
+  <text x="1477" y="975"
+        font-family="'Caveat', cursive"
+        font-size="288"
+        fill="#F0EDE8" text-anchor="middle">is</text>
+
+  <!-- "SOUP." shadow -->
+  <text x="1485" y="1587"
+        font-family="'Bebas Neue', sans-serif"
+        font-size="608"
+        fill="#0A7B5C" text-anchor="middle">SOUP.</text>
+
+  <!-- "SOUP." -->
+  <text x="1477" y="1580"
+        font-family="'Bebas Neue', sans-serif"
+        font-size="608"
+        fill="#10B981" text-anchor="middle">SOUP.</text>
+
+  <!-- Fork separator -->
+  <g transform="translate(1477, 1900)">
+    <rect x="-83" y="-102" width="22" height="102" rx="11" fill="#F0EDE8"/>
+    <rect x="-11" y="-115" width="22" height="115" rx="11" fill="#F0EDE8"/>
+    <rect x="61" y="-102" width="22" height="102" rx="11" fill="#F0EDE8"/>
+    <rect x="-93" y="0" width="186" height="22" rx="11" fill="#F0EDE8"/>
+    <rect x="-11" y="22" width="22" height="115" rx="11" fill="#F0EDE8"/>
+  </g>
+
+  <!-- "I am" -->
+  <text x="1477" y="2285"
+        font-family="'Caveat', cursive"
+        font-size="288"
+        fill="#F0EDE8" text-anchor="middle">I am</text>
+
+  <!-- "FORK." shadow -->
+  <text x="1485" y="2805"
+        font-family="'Permanent Marker', cursive"
+        font-size="544"
+        fill="#B8860B" text-anchor="middle">FORK.</text>
+
+  <!-- "FORK." -->
+  <text x="1477" y="2798"
+        font-family="'Permanent Marker', cursive"
+        font-size="544"
+        fill="#F59E0B" text-anchor="middle">FORK.</text>
+
+  <!-- "EXISTENTIAL CUISINE" footer -->
+  <text x="1477" y="3150"
+        font-family="'Courier New', monospace"
+        font-size="128" font-weight="bold"
+        fill="#F0EDE8" text-anchor="middle"
+        letter-spacing="16">EXISTENTIAL CUISINE</text>
+
+</svg>

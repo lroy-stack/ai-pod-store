@@ -1,0 +1,241 @@
+{
+  "version": "1.0",
+  "phase": 2,
+  "created": "2026-03-01",
+  "totalProducts": 10,
+
+  "variantSets": {
+    "BP731_P26": {
+      "blueprint_id": 731, "provider_id": 26,
+      "canvas": { "front": [2953, 3543], "back": [2953, 3543] },
+      "colors": {
+        "Black":       { "One size": 79434 },
+        "Classic Red": { "One size": 79435 },
+        "French Navy": { "One size": 79436 }
+      }
+    },
+    "BP633_P86": {
+      "blueprint_id": 633, "provider_id": 86,
+      "canvas": { "front": [2738, 1276] },
+      "colors": {
+        "Clear": { "16oz": 72174 }
+      }
+    },
+    "BP620_P86": {
+      "blueprint_id": 620, "provider_id": 86,
+      "canvas": { "front": [3279, 900] },
+      "colors": {
+        "White": { "12oz": 72113 },
+        "Steel": { "12oz": 148005 }
+      }
+    },
+    "BP1523_P23": {
+      "blueprint_id": 1523, "provider_id": 23,
+      "canvas": { "front": [1260, 1260] },
+      "colors": {
+        "Round":  { "One size": 109346 },
+        "Square": { "One size": 109347 }
+      }
+    }
+  },
+
+  "brandingAssets": {
+    "backWordmarkBP731": "branding/back-wordmark-bp731.svg"
+  },
+
+  "gpsrTemplates": {
+    "dtg_tote": {
+      "manufacturer": "Textildruck Europa GmbH, Germany",
+      "compliance": "REACH (EC) 1907/2006, OEKO-TEX Standard 100, GOTS certified",
+      "eu_responsible": "Textildruck Europa GmbH, Germany"
+    },
+    "uv_glass": {
+      "manufacturer": "Dream Junction EU (Chill)",
+      "compliance": "REACH (EC) 1907/2006, FDA food-contact",
+      "eu_responsible": "Dream Junction EU"
+    },
+    "sublimation_tumbler": {
+      "manufacturer": "Dream Junction EU (Chill)",
+      "compliance": "REACH (EC) 1907/2006, FDA food-contact",
+      "eu_responsible": "Dream Junction EU"
+    },
+    "sublimation_coaster": {
+      "manufacturer": "WOYC, EU",
+      "compliance": "REACH (EC) 1907/2006",
+      "eu_responsible": "WOYC, EU"
+    }
+  },
+
+  "products": [
+    {
+      "id": "TB01", "designId": "A01", "name": "Soup Fork",
+      "variantSet": "BP731_P26", "priceCents": 2499,
+      "category": "tote-bags",
+      "svg": "totes/tb01-soup-fork.svg",
+      "positions": ["front", "back"],
+      "gpsr": "dtg_tote",
+      "material": "100% Organic Cotton (Westford Mill W801)",
+      "care": "Machine wash cold. Do not tumble dry. Iron on reverse.",
+      "printTechnique": "DTG — water-based eco-friendly inks",
+      "tags": ["tote bag", "organic cotton", "funny", "existential", "soup fork", "meme", "skapara"],
+      "desc": {
+        "en": "Life is soup. I am fork. The existential crisis you can carry to the grocery store. Organic cotton tote, because even your bag should question existence.",
+        "es": "La vida es sopa. Yo soy tenedor. La crisis existencial que puedes llevar al supermercado. Tote de algodón orgánico, porque hasta tu bolsa debería cuestionar la existencia.",
+        "de": "Das Leben ist Suppe. Ich bin Gabel. Die existenzielle Krise, die du zum Supermarkt tragen kannst. Bio-Baumwolltasche, weil sogar deine Tasche die Existenz hinterfragen sollte."
+      }
+    },
+    {
+      "id": "TB02", "designId": "C01", "name": "Social Battery",
+      "variantSet": "BP731_P26", "priceCents": 2499,
+      "category": "tote-bags",
+      "svg": "totes/tb02-social-battery.svg",
+      "positions": ["front", "back"],
+      "gpsr": "dtg_tote",
+      "material": "100% Organic Cotton (Westford Mill W801)",
+      "care": "Machine wash cold. Do not tumble dry. Iron on reverse.",
+      "printTechnique": "DTG — water-based eco-friendly inks",
+      "tags": ["tote bag", "organic cotton", "introvert", "social battery", "funny", "meme", "skapara"],
+      "desc": {
+        "en": "Social battery at 3%. Do not disturb. The perfect tote for when you need to carry stuff but definitely not conversations. Organic cotton.",
+        "es": "Batería social al 3%. No molestar. La tote perfecta para cuando necesitas llevar cosas pero definitivamente no conversaciones. Algodón orgánico.",
+        "de": "Sozialer Akku bei 3%. Bitte nicht stören. Die perfekte Tasche für wenn du Sachen tragen musst, aber definitiv keine Gespräche. Bio-Baumwolle."
+      }
+    },
+    {
+      "id": "TB03", "designId": "C02", "name": "Plans Cancelled",
+      "variantSet": "BP731_P26", "priceCents": 2499,
+      "category": "tote-bags",
+      "svg": "totes/tb03-plans-cancelled.svg",
+      "positions": ["front", "back"],
+      "gpsr": "dtg_tote",
+      "material": "100% Organic Cotton (Westford Mill W801)",
+      "care": "Machine wash cold. Do not tumble dry. Iron on reverse.",
+      "printTechnique": "DTG — water-based eco-friendly inks",
+      "tags": ["tote bag", "organic cotton", "plans cancelled", "introvert", "funny", "meme", "skapara"],
+      "desc": {
+        "en": "Plans cancelled. Best day ever. Carry your groceries with the same energy you carry your relief. Organic cotton tote for professional plan cancellers.",
+        "es": "Planes cancelados. Mejor día de todos. Lleva tus compras con la misma energía que llevas tu alivio. Tote de algodón orgánico para canceladores profesionales.",
+        "de": "Pläne abgesagt. Bester Tag aller Zeiten. Trage deine Einkäufe mit der gleichen Energie wie deine Erleichterung. Bio-Baumwolltasche für professionelle Planabsager."
+      }
+    },
+    {
+      "id": "TB04", "designId": "G01", "name": "NOPE",
+      "variantSet": "BP731_P26", "priceCents": 2499,
+      "category": "tote-bags",
+      "svg": "totes/tb04-nope.svg",
+      "positions": ["front", "back"],
+      "gpsr": "dtg_tote",
+      "material": "100% Organic Cotton (Westford Mill W801)",
+      "care": "Machine wash cold. Do not tumble dry. Iron on reverse.",
+      "printTechnique": "DTG — water-based eco-friendly inks",
+      "tags": ["tote bag", "organic cotton", "nope", "attitude", "funny", "bold", "skapara"],
+      "desc": {
+        "en": "NOPE. Absolutely not. The loudest tote in the room. Organic cotton, maximum attitude. For when your bag needs to speak before you do.",
+        "es": "NOPE. Rotundamente no. La tote más ruidosa de la sala. Algodón orgánico, máxima actitud. Para cuando tu bolsa necesita hablar antes que tú.",
+        "de": "NOPE. Absolut nicht. Die lauteste Tasche im Raum. Bio-Baumwolle, maximale Attitude. Für wenn deine Tasche vor dir sprechen muss."
+      }
+    },
+    {
+      "id": "PG01", "designId": "A01", "name": "Soup Fork",
+      "variantSet": "BP633_P86", "priceCents": 1999,
+      "category": "drinkware",
+      "svg": "pint-glasses/pg01-soup-fork.svg",
+      "positions": ["front"],
+      "gpsr": "uv_glass",
+      "material": "Glass, 16oz (473ml) capacity",
+      "care": "Dishwasher safe. Do not microwave.",
+      "printTechnique": "UV printing — scratch and dishwasher resistant",
+      "tags": ["pint glass", "beer glass", "funny", "existential", "soup fork", "drinkware", "skapara"],
+      "desc": {
+        "en": "Life is soup. I am fork. Now on a 16oz pint glass, because existential crises pair well with beer. UV printed, dishwasher safe.",
+        "es": "La vida es sopa. Yo soy tenedor. Ahora en un vaso pinta de 16oz, porque las crisis existenciales combinan bien con cerveza. Impresión UV, apto lavavajillas.",
+        "de": "Das Leben ist Suppe. Ich bin Gabel. Jetzt auf einem 16oz Pintglas, weil existenzielle Krisen gut zu Bier passen. UV-Druck, spülmaschinenfest."
+      }
+    },
+    {
+      "id": "PG02", "designId": "F02", "name": "Caffeine Anxiety",
+      "variantSet": "BP633_P86", "priceCents": 1999,
+      "category": "drinkware",
+      "svg": "pint-glasses/pg02-caffeine-anxiety.svg",
+      "positions": ["front"],
+      "gpsr": "uv_glass",
+      "material": "Glass, 16oz (473ml) capacity",
+      "care": "Dishwasher safe. Do not microwave.",
+      "printTechnique": "UV printing — scratch and dishwasher resistant",
+      "tags": ["pint glass", "beer glass", "caffeine", "anxiety", "funny", "drinkware", "skapara"],
+      "desc": {
+        "en": "Powered by caffeine and anxiety. A 16oz pint glass for your favorite fuel. UV printed, because your coping mechanism deserves nice glassware.",
+        "es": "Alimentado por cafeína y ansiedad. Un vaso pinta de 16oz para tu combustible favorito. Impresión UV, porque tu mecanismo de defensa merece buena cristalería.",
+        "de": "Angetrieben von Koffein und Angst. Ein 16oz Pintglas für deinen Lieblingstreibstoff. UV-Druck, weil dein Bewältigungsmechanismus schöne Gläser verdient."
+      }
+    },
+    {
+      "id": "WT01", "designId": "D03", "name": "Self-Care",
+      "variantSet": "BP620_P86", "priceCents": 2499,
+      "category": "drinkware",
+      "svg": "wine-tumblers/wt01-self-care.svg",
+      "positions": ["front"],
+      "gpsr": "sublimation_tumbler",
+      "material": "Stainless steel, double-wall vacuum insulated, 12oz (355ml)",
+      "care": "Hand wash recommended. Do not microwave.",
+      "printTechnique": "Dye-sublimation — full wrap",
+      "tags": ["wine tumbler", "self care", "insulated", "stainless steel", "funny", "drinkware", "skapara"],
+      "desc": {
+        "en": "Self-care level: aggressive. A 12oz wine tumbler for when your relaxation is intense. Insulated stainless steel with sublimation wrap.",
+        "es": "Nivel de autocuidado: agresivo. Un vaso de vino de 12oz para cuando tu relajación es intensa. Acero inoxidable aislante con sublimación envolvente.",
+        "de": "Selbstpflege-Level: aggressiv. Ein 12oz Weintumbler für wenn deine Entspannung intensiv ist. Isolierter Edelstahl mit Sublimationsdruck."
+      }
+    },
+    {
+      "id": "WT02", "designId": "A03", "name": "Hang In There",
+      "variantSet": "BP620_P86", "priceCents": 2499,
+      "category": "drinkware",
+      "svg": "wine-tumblers/wt02-hang-in-there.svg",
+      "positions": ["front"],
+      "gpsr": "sublimation_tumbler",
+      "material": "Stainless steel, double-wall vacuum insulated, 12oz (355ml)",
+      "care": "Hand wash recommended. Do not microwave.",
+      "printTechnique": "Dye-sublimation — full wrap",
+      "tags": ["wine tumbler", "hang in there", "insulated", "stainless steel", "funny", "dark humor", "skapara"],
+      "desc": {
+        "en": "Hang in there — it gets worse. :) A 12oz insulated wine tumbler for your daily dose of optimism. Stainless steel, sublimation wrap.",
+        "es": "Aguanta ahí — se pone peor. :) Un vaso de vino aislante de 12oz para tu dosis diaria de optimismo. Acero inoxidable, sublimación envolvente.",
+        "de": "Halt durch — es wird schlimmer. :) Ein 12oz isolierter Weintumbler für deine tägliche Dosis Optimismus. Edelstahl, Sublimationsdruck."
+      }
+    },
+    {
+      "id": "CC01", "designId": "G01", "name": "NOPE",
+      "variantSet": "BP1523_P23", "priceCents": 1299,
+      "category": "home-decor",
+      "svg": "coasters/cc01-nope.svg",
+      "positions": ["front"],
+      "gpsr": "sublimation_coaster",
+      "material": "Ceramic with cork backing",
+      "care": "Wipe clean. Not dishwasher safe.",
+      "printTechnique": "Dye-sublimation on ceramic",
+      "tags": ["coaster", "ceramic", "nope", "funny", "home decor", "drinkware", "skapara"],
+      "desc": {
+        "en": "NOPE. Absolutely not. A ceramic coaster that says what you're thinking. Available in round and square. Because your coffee table needs boundaries too.",
+        "es": "NOPE. Rotundamente no. Un posavasos de cerámica que dice lo que piensas. Disponible en redondo y cuadrado. Porque tu mesa de café también necesita límites.",
+        "de": "NOPE. Absolut nicht. Ein Keramik-Untersetzer, der sagt was du denkst. In rund und quadratisch erhältlich. Weil dein Couchtisch auch Grenzen braucht."
+      }
+    },
+    {
+      "id": "CC02", "designId": "A07", "name": "404 Purpose",
+      "variantSet": "BP1523_P23", "priceCents": 1299,
+      "category": "home-decor",
+      "svg": "coasters/cc02-404-purpose.svg",
+      "positions": ["front"],
+      "gpsr": "sublimation_coaster",
+      "material": "Ceramic with cork backing",
+      "care": "Wipe clean. Not dishwasher safe.",
+      "printTechnique": "Dye-sublimation on ceramic",
+      "tags": ["coaster", "ceramic", "404", "developer", "terminal", "funny", "home decor", "skapara"],
+      "desc": {
+        "en": "404: Purpose Not Found. A ceramic coaster with a terminal window for your existential coffee break. Round or square, your drinks are covered.",
+        "es": "404: Propósito No Encontrado. Un posavasos de cerámica con ventana de terminal para tu pausa existencial de café. Redondo o cuadrado, tus bebidas cubiertas.",
+        "de": "404: Sinn Nicht Gefunden. Ein Keramik-Untersetzer mit Terminal-Fenster für deine existenzielle Kaffeepause. Rund oder quadratisch, deine Getränke sind geschützt."
+      }
+    }
+  ]
+}

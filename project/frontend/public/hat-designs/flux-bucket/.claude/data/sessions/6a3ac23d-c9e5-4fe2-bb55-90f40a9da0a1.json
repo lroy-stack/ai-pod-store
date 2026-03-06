@@ -1,0 +1,23 @@
+{
+  "session_id": "6a3ac23d-c9e5-4fe2-bb55-90f40a9da0a1",
+  "prompts": [
+    "el render en png no ha funcionaado",
+    "ademas estas agregadno unos rayos bastante mal elegidos, uno esta encima del S mark grande rompiendo totalmente, no me gustan. el sk9 tampoco me gusta",
+    "ejem? me tomas el pleo? no por supuesto no avs a hacer eso, vas a usar el brandname correctamente ya esta probado. ",
+    "bien ya tenemos el font perfectamente dise\u00f1ado. ahora tenemos que redise\u00f1ar el outsidefornt, debes pensar que es la continuacion de esta dis\u00f1o en un hat de pescador, que cubriran todo el outside de la gorra. debe ser complementario ",
+    "bien ya tenemos el font perfectamente dise\u00f1ado. ahora tenemos que redise\u00f1ar el outsidefornt, debes pensar que es la continuacion de esta dis\u00f1o en un hat de pescador, que cubriran todo el outside de la gorra. debe ser complementario . TOCA REDISE\u00d1AR EL OUTSIDEBACK AHORA , NO EL OUSIDE FRONT. ENTENDIDO?",
+    "QUITATE ESA TAREA QUE LLEVAS ENCIMA DE REDISE\u00d1AR EL FRONT",
+    "OLA??? LA TAREA   1 tasks (0 done, 1 in progress, 0 open)                               \n  \u25fc Redise\u00f1ar outside-front.svg con est\u00e9tica cubista densa , NO ES LA QUE TENEMOS AHORA.",
+    "BIE  AHORA CENTRATE PORFAVOR. ENTIENDE EL FRINT OPARA CREAR EL BACK COMPLEMENTARIO CORRECTO",
+    "debes entender que deben complementarse no? no colores invertidos? debe aorecer un solo dise\u00f1o ",
+    "sabes para que prenda estas dise\u00f1ando? porque debe encajar correctamente mejor revisas la referncia antes de seguir improvisando",
+    "perfecto, ahora seguimos con label-ouside y label-inside",
+    "quda solo redise\u00f1ar pod_workspace/project/frontend/public/hat-designs/flux-bucket/inside-front.svg y pod_workspace/project/frontend/public/hat-designs/flux-bucket/inside-back.svg, aqui no queremos nada con nuestro branding, es el reverso, debe contrastar completamente con el dise\u00f1o exterior, en color e todo aspecto.. actualmente tiene dos dis\u00f1eos azul muy basicos. apostaremos por dise\u00f1o de patterns coloridos sin branding ni brandname algo mas parecido al ejemplo que te estoy mostrando",
+    "no estan mal la verda pero pensaste en el hecho de como se posicionaran en e producto y que deben parecer una sola pieza? actualmente no creo que rendericen bien asi",
+    "hablamos del insede. las dos que acabs de hacer con pattern zigzag geometrico si?",
+    "si porfavor",
+    "bien pero mejor si entiendes las carateristicas que pide el producto que dise\u00f1amos el bucket hat el modeloe specifico, para ver los patrones reales",
+    "adelante",
+    "perfecto, vamos a renerizar los 6 dise\u00f1os en png y vamos a crear el producto"
+  ]
+}

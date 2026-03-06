@@ -6,6 +6,7 @@ import { ThemeProvider } from 'next-themes'
 import { Toaster } from '@/components/ui/toaster'
 import { CartProvider } from '@/hooks/useCart'
 import { WishlistProvider } from '@/hooks/useWishlist'
+import { DesignProvider } from '@/components/storefront/DesignContext'
 import { CommandPalette } from '@/components/CommandPalette'
 import { ServiceWorkerRegistration } from '@/components/ServiceWorkerRegistration'
 import { ThemeLoader } from '@/components/ThemeLoader'
@@ -40,6 +41,7 @@ async function ProvidersContent({
       >
         <CartProvider>
           <WishlistProvider>
+            <DesignProvider>
             <ErrorBoundary>
               <ServiceWorkerRegistration />
               <ThemeLoader />
@@ -48,6 +50,7 @@ async function ProvidersContent({
               <CommandPalette />
               <CookieConsent />
             </ErrorBoundary>
+            </DesignProvider>
           </WishlistProvider>
         </CartProvider>
       </ThemeProvider>

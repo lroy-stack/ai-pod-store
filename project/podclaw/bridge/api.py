@@ -431,7 +431,7 @@ def create_app(
             logger.error("agent_run_failed", task_id=task_id[:8], agent=agent_name, error=str(e))
 
     @app.post("/agents/{name}/run", dependencies=[Depends(require_auth)])
-    async def run_agent(name: str, body: AgentRunRequest | None = None, background_tasks: BackgroundTasks | None = None):
+    async def run_agent(name: str, body: AgentRunRequest | None = None, background_tasks: BackgroundTasks = None):
         """Trigger an agent manually (non-blocking).
 
         Returns immediately with a task_id for status polling via GET /task/{task_id}.
@@ -473,7 +473,7 @@ def create_app(
     # ----- Sub-agent alias (tests expect /subagent/{name}/run) -----
 
     @app.post("/subagent/{name}/run", dependencies=[Depends(require_auth)])
-    async def run_subagent(name: str, body: AgentRunRequest | None = None, background_tasks: BackgroundTasks | None = None):
+    async def run_subagent(name: str, body: AgentRunRequest | None = None, background_tasks: BackgroundTasks = None):
         """Trigger a sub-agent manually (non-blocking alias for /agents/{name}/run).
 
         Returns immediately with a task_id for status polling via GET /task/{task_id}.

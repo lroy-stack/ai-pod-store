@@ -301,10 +301,10 @@ export default function SEOPage() {
             <div className="rounded-lg bg-muted/50 p-4">
               <p className="text-sm font-medium mb-2">Example Implementation:</p>
               <pre className="text-xs overflow-x-auto">
-{`<link rel="alternate" hreflang="en" href="https://podai.com/en/products" />
-<link rel="alternate" hreflang="es" href="https://podai.com/es/products" />
-<link rel="alternate" hreflang="de" href="https://podai.com/de/products" />
-<link rel="alternate" hreflang="x-default" href="https://podai.com/en/products" />`}
+{`<link rel="alternate" hreflang="en" href="https://skapara.com/en/products" />
+<link rel="alternate" hreflang="es" href="https://skapara.com/es/products" />
+<link rel="alternate" hreflang="de" href="https://skapara.com/de/products" />
+<link rel="alternate" hreflang="x-default" href="https://skapara.com/en/products" />`}
               </pre>
             </div>
           </div>

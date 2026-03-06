@@ -1,80 +1,81 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
 /* Class-based dark mode for next-themes */
 @custom-variant dark (&:is(.dark *));
 
 /* ===== Layer 1: Real values (overridden at runtime by theme-loader) ===== */
-/* Default: Ocean Blue theme */
+/* Default: Warm Slate theme — burnt orange accent, cool gray-blue surfaces */
 :root {
-  --background: oklch(0.985 0.003 245);
-  --foreground: oklch(0.15 0.01 245);
-  --card: oklch(1.0 0 0);
-  --card-foreground: oklch(0.15 0.01 245);
-  --popover: oklch(1.0 0 0);
-  --popover-foreground: oklch(0.15 0.01 245);
-  --primary: oklch(0.55 0.20 245);
+  --background: oklch(0.93 0.008 260);
+  --foreground: oklch(0.30 0.025 255);
+  --card: oklch(0.95 0.009 260);
+  --card-foreground: oklch(0.30 0.025 255);
+  --popover: oklch(0.95 0.009 260);
+  --popover-foreground: oklch(0.30 0.025 255);
+  --primary: oklch(0.58 0.19 38);
   --primary-foreground: oklch(1.0 0 0);
-  --secondary: oklch(0.96 0.005 245);
-  --secondary-foreground: oklch(0.15 0.01 245);
-  --muted: oklch(0.955 0.008 245);
-  --muted-foreground: oklch(0.55 0.02 245);
-  --accent: oklch(0.94 0.015 245);
-  --accent-foreground: oklch(0.15 0.01 245);
+  --secondary: oklch(0.91 0.006 260);
+  --secondary-foreground: oklch(0.30 0.025 255);
+  --muted: oklch(0.90 0.008 260);
+  --muted-foreground: oklch(0.53 0.015 260);
+  --accent: oklch(0.92 0.006 260);
+  --accent-foreground: oklch(0.30 0.025 255);
   --destructive: oklch(0.55 0.22 25);
   --destructive-foreground: oklch(1.0 0 0);
-  --success: oklch(0.60 0.18 145);
+  --success: oklch(0.65 0.19 155);
   --success-foreground: oklch(1.0 0 0);
   --warning: oklch(0.75 0.16 70);
   --warning-foreground: oklch(0.25 0.05 70);
-  --border: oklch(0.90 0.005 245);
-  --input: oklch(0.96 0.005 245);
-  --ring: oklch(0.55 0.20 245);
+  --border: oklch(0.87 0.008 260);
+  --input: oklch(0.93 0.006 260);
+  --ring: oklch(0.58 0.19 38);
   --rating: oklch(0.80 0.16 85);
   --rating-foreground: oklch(0.40 0.08 85);
-  --chart-1: oklch(0.55 0.20 245);
+  --chart-1: oklch(0.58 0.19 38);
   --chart-2: oklch(0.55 0.18 280);
   --chart-3: oklch(0.65 0.15 200);
-  --chart-4: oklch(0.60 0.18 145);
+  --chart-4: oklch(0.65 0.19 155);
   --chart-5: oklch(0.75 0.16 70);
-  --radius: 0.75rem;
-  --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-  --font-sans: "Inter", system-ui, sans-serif;
-  --font-heading: "Inter", system-ui, sans-serif;
+  --radius: 1rem;
+  --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-heading: "Inter", system-ui, -apple-system, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
 }
 
 .dark {
-  --background: oklch(0.13 0.005 245);
-  --foreground: oklch(0.95 0.005 245);
-  --card: oklch(0.18 0.008 245);
-  --card-foreground: oklch(0.95 0.005 245);
-  --popover: oklch(0.18 0.008 245);
-  --popover-foreground: oklch(0.95 0.005 245);
-  --primary: oklch(0.65 0.20 245);
+  --background: oklch(0.20 0.010 260);
+  --foreground: oklch(0.93 0.005 260);
+  --card: oklch(0.24 0.012 260);
+  --card-foreground: oklch(0.93 0.005 260);
+  --popover: oklch(0.24 0.012 260);
+  --popover-foreground: oklch(0.93 0.005 260);
+  --primary: oklch(0.65 0.19 38);
   --primary-foreground: oklch(1.0 0 0);
-  --secondary: oklch(0.20 0.008 245);
-  --secondary-foreground: oklch(0.95 0.005 245);
-  --muted: oklch(0.22 0.01 245);
-  --muted-foreground: oklch(0.65 0.015 245);
-  --accent: oklch(0.25 0.015 245);
-  --accent-foreground: oklch(0.95 0.005 245);
+  --secondary: oklch(0.26 0.010 260);
+  --secondary-foreground: oklch(0.93 0.005 260);
+  --muted: oklch(0.28 0.012 260);
+  --muted-foreground: oklch(0.65 0.012 260);
+  --accent: oklch(0.26 0.010 260);
+  --accent-foreground: oklch(0.93 0.005 260);
   --destructive: oklch(0.60 0.22 25);
   --destructive-foreground: oklch(1.0 0 0);
-  --success: oklch(0.65 0.18 145);
+  --success: oklch(0.65 0.19 155);
   --success-foreground: oklch(1.0 0 0);
   --warning: oklch(0.78 0.16 70);
   --warning-foreground: oklch(0.20 0.05 70);
-  --border: oklch(0.25 0.01 245);
-  --input: oklch(0.20 0.008 245);
-  --ring: oklch(0.65 0.20 245);
+  --border: oklch(0.34 0.012 260);
+  --input: oklch(0.26 0.010 260);
+  --ring: oklch(0.65 0.19 38);
   --rating: oklch(0.80 0.16 85);
   --rating-foreground: oklch(0.40 0.08 85);
-  --chart-1: oklch(0.65 0.20 245);
+  --chart-1: oklch(0.65 0.19 38);
   --chart-2: oklch(0.60 0.18 280);
   --chart-3: oklch(0.70 0.15 200);
-  --chart-4: oklch(0.65 0.18 145);
+  --chart-4: oklch(0.65 0.19 155);
   --chart-5: oklch(0.78 0.16 70);
-  --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.3), 0 1px 2px -1px rgb(0 0 0 / 0.3);
+  --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.3);
 }
 
 /* ===== Layer 2: Reactive bridge to Tailwind utilities ===== */
@@ -151,6 +152,96 @@ p {
   @apply bg-card/80 backdrop-blur-xl border border-border rounded-2xl shadow-sm;
 }
 
+/* ===== Neumorphic theme classes ===== */
+/* These use var() fallbacks so they degrade gracefully when the active
+   theme does NOT provide --neu-* variables (i.e., every theme except Warm Slate). */
+
+.neu-card {
+  padding: var(--neu-card-pad, 0px);
+  border-width: var(--neu-border-w, 1px);
+  border-style: solid;
+  border-color: var(--border);
+  border-radius: var(--neu-card-radius, var(--radius));
+  box-shadow: var(--neu-out, 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1));
+}
+
+.neu-image {
+  position: relative;
+  background: var(--neu-image-bg, var(--muted));
+  border-radius: var(--neu-image-radius, 0px);
+}
+.neu-image::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: var(--neu-in, none);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.neu-btn-accent {
+  box-shadow: var(--neu-accent-glow, none);
+  border-radius: var(--neu-image-radius, 0.5rem);
+  border-width: var(--neu-border-w, 1px);
+  transition: all 0.2s ease;
+}
+.neu-btn-accent:hover {
+  box-shadow: var(--neu-accent-glow-hover, none);
+  transform: var(--neu-hover-lift, none);
+}
+.neu-btn-accent:active {
+  box-shadow: var(--neu-in, none);
+  transform: translateY(0);
+}
+
+.neu-btn-soft {
+  box-shadow: var(--neu-btn, none);
+  border-radius: var(--neu-image-radius, 0.5rem);
+  border-width: var(--neu-border-w, 1px);
+  transition: all 0.2s ease;
+}
+.neu-btn-soft:hover {
+  box-shadow: var(--neu-in, none);
+  transform: var(--neu-hover-lift, none);
+}
+.neu-btn-soft:active {
+  box-shadow: var(--neu-in, none);
+  transform: translateY(1px);
+}
+
+.neu-fav {
+  background: var(--neu-fav-bg, transparent);
+  box-shadow: var(--neu-btn, none);
+  border: none;
+}
+.neu-fav:hover {
+  box-shadow: var(--neu-in, none);
+}
+
+.neu-input {
+  box-shadow: var(--neu-in, none);
+  border-width: var(--neu-border-w, 1px);
+  border-radius: var(--neu-input-radius, var(--radius));
+}
+
+.neu-chip {
+  box-shadow: var(--neu-btn, none);
+  border-width: var(--neu-border-w, 1px);
+}
+.neu-chip:hover {
+  box-shadow: var(--neu-in, none);
+}
+.neu-chip-active {
+  box-shadow: var(--neu-accent-glow, none);
+}
+
+.neu-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--grid-card-min, 200px), 1fr));
+  gap: var(--grid-gap, 1rem);
+}
+
 .gen-gradient {
   background: linear-gradient(135deg, var(--color-chart-1) 0%, var(--color-chart-2) 100%);
 }
@@ -204,52 +295,9 @@ p {
 .tab-scroll::-webkit-scrollbar { display: none; }
 
 /* ===== View Transitions (React 19) ===== */
-/* Define smooth cross-fade transition for page navigation */
-@view-transition {
-  navigation: auto;
-}
-
-/* Root transition - fade between pages */
-::view-transition-old(root),
-::view-transition-new(root) {
-  animation-duration: 300ms;
-  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Fade out old page */
-::view-transition-old(root) {
-  animation-name: fade-out;
-}
-
-/* Fade in new page */
-::view-transition-new(root) {
-  animation-name: fade-in;
-}
-
-@keyframes fade-out {
-  from { opacity: 1; }
-  to { opacity: 0; }
-}
-
-@keyframes fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-/* Prevent jarring layout shifts */
-::view-transition-group(*) {
-  animation-duration: 300ms;
-  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Respect user's motion preferences */
-@media (prefers-reduced-motion: reduce) {
-  ::view-transition-old(root),
-  ::view-transition-new(root),
-  ::view-transition-group(*) {
-    animation-duration: 0.01ms !important;
-  }
-}
+/* Disabled: the 300ms cross-fade caused visible ghosting of the previous
+   page when navigating between routes (chat → shop, etc.).  Re-enable only
+   with per-element transitions, NOT a full-root fade. */
 
 /* ===== Landing page ===== */
 .shader-fade-bottom {

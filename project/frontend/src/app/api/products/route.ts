@@ -2,8 +2,38 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 import { sanitizeForLike, sanitizeForPostgrest } from '@/lib/query-sanitizer'
 import { checkPlanGate } from '@/lib/plan-gates'
+import { sortSizes } from '@/lib/size-order'
 
 export const dynamic = 'force-dynamic'
+
+/**
+ * Resolve a category slug to category_id(s) for proper DB filtering.
+ * For parent categories, returns IDs of parent + all children.
+ * Returns null if category not found.
+ */
+async function resolveCategoryIds(slug: string): Promise<string[] | null> {
+  const { data: catRow } = await supabaseAdmin
+    .from('categories')
+    .select('id, parent_id')
+    .eq('slug', slug)
+    .eq('is_active', true)
+    .single()
+
+  if (!catRow) return null
+
+  if (!catRow.parent_id) {
+    // Parent: include children
+    const { data: children } = await supabaseAdmin
+      .from('categories')
+      .select('id')
+      .eq('parent_id', catRow.id)
+      .eq('is_active', true)
+
+    return [catRow.id, ...(children || []).map((c: any) => c.id)]
+  }
+
+  return [catRow.id]
+}
 
 /**
  * Apply locale-specific translations to product title and description
@@ -39,23 +69,24 @@ function applyTranslations(product: any, locale: string) {
  * Batch-fetch product variants grouped by product ID
  * Returns sizes, colors, and colorImages (first image_url per color)
  */
-async function fetchVariantsByProductId(productIds: string[]): Promise<Map<string, { sizes: string[]; colors: string[]; colorImages: Record<string, string> }>> {
+async function fetchVariantsByProductId(productIds: string[]): Promise<Map<string, { sizes: string[]; colors: string[]; colorImages: Record<string, string>; minPrice?: number; maxPrice?: number; hasVariantPricing?: boolean }>> {
   if (productIds.length === 0) return new Map()
 
   const { data: allVariants } = await supabaseAdmin
     .from('product_variants')
-    .select('product_id, size, color, image_url')
+    .select('product_id, size, color, image_url, price_cents')
     .in('product_id', productIds)
     .eq('is_enabled', true)
     .eq('is_available', true)
 
-  const grouped = new Map<string, { sizes: Set<string>; colors: Set<string>; colorImages: Map<string, string> }>()
+  const grouped = new Map<string, { sizes: Set<string>; colors: Set<string>; colorImages: Map<string, string>; prices: Set<number> }>()
   for (const v of allVariants || []) {
     if (!grouped.has(v.product_id)) {
-      grouped.set(v.product_id, { sizes: new Set(), colors: new Set(), colorImages: new Map() })
+      grouped.set(v.product_id, { sizes: new Set(), colors: new Set(), colorImages: new Map(), prices: new Set() })
     }
     const entry = grouped.get(v.product_id)!
     if (v.size) entry.sizes.add(v.size)
+    if (v.price_cents != null) entry.prices.add(v.price_cents)
     if (v.color) {
       entry.colors.add(v.color)
       // Keep first image_url per color
@@ -65,18 +96,49 @@ async function fetchVariantsByProductId(productIds: string[]): Promise<Map<strin
     }
   }
 
-  const result = new Map<string, { sizes: string[]; colors: string[]; colorImages: Record<string, string> }>()
-  for (const [id, { sizes, colors, colorImages }] of grouped) {
+  const result = new Map<string, { sizes: string[]; colors: string[]; colorImages: Record<string, string>; minPrice?: number; maxPrice?: number; hasVariantPricing?: boolean }>()
+  for (const [id, { sizes, colors, colorImages, prices }] of grouped) {
+    const priceArr = [...prices]
+    const hasVariantPricing = priceArr.length > 1 && Math.min(...priceArr) !== Math.max(...priceArr)
     result.set(id, {
-      sizes: [...sizes],
+      sizes: sortSizes([...sizes]),
       colors: [...colors],
       colorImages: Object.fromEntries(colorImages),
+      ...(hasVariantPricing ? {
+        minPrice: Math.min(...priceArr) / 100,
+        maxPrice: Math.max(...priceArr) / 100,
+        hasVariantPricing: true,
+      } : {}),
     })
   }
   return result
 }
 
-function buildVariantsField(variantsMap: Map<string, { sizes: string[]; colors: string[]; colorImages: Record<string, string> }>, productId: string) {
+/**
+ * Batch-fetch product labels grouped by product ID
+ */
+async function fetchLabelsByProductId(productIds: string[]): Promise<Map<string, string[]>> {
+  if (productIds.length === 0) return new Map()
+  const { data } = await supabaseAdmin
+    .from('product_labels')
+    .select('product_id, label_type')
+    .in('product_id', productIds)
+  const result = new Map<string, string[]>()
+  for (const row of data || []) {
+    const existing = result.get(row.product_id) || []
+    existing.push(row.label_type)
+    result.set(row.product_id, existing)
+  }
+  return result
+}
+
+function buildPricingFields(variantsMap: Map<string, { sizes: string[]; colors: string[]; colorImages: Record<string, string>; minPrice?: number; maxPrice?: number; hasVariantPricing?: boolean }>, productId: string): { maxPrice?: number; hasVariantPricing?: boolean } {
+  const pv = variantsMap.get(productId)
+  if (!pv?.hasVariantPricing) return {}
+  return { maxPrice: pv.maxPrice, hasVariantPricing: true }
+}
+
+function buildVariantsField(variantsMap: Map<string, { sizes: string[]; colors: string[]; colorImages: Record<string, string>; minPrice?: number; maxPrice?: number; hasVariantPricing?: boolean }>, productId: string) {
   const pv = variantsMap.get(productId)
   if (!pv) return {}
   return {
@@ -166,8 +228,9 @@ async function hybridSearch(
         title,
         description,
         price: p.base_price_cents / 100,
+        ...buildPricingFields(variantsMap, p.id),
         currency: p.currency?.toUpperCase() || 'EUR',
-        image: Array.isArray(p.images) && p.images.length > 0 ? (p.images[0].src || p.images[0].url) : '',
+        image: p.branded_hero_url || (Array.isArray(p.images) && p.images.length > 0 ? (p.images[0].src || p.images[0].url) : ''),
         images: Array.isArray(p.images) ? p.images.map((img: { src?: string; url?: string; alt?: string }) => img.src || img.url || '') : [],
         rating: Number(p.avg_rating) || 0,
         reviewCount: p.review_count || 0,
@@ -265,13 +328,16 @@ async function getVectorSearchResults(
     // Fetch full product details
     let query = supabaseAdmin
       .from('products')
-      .select('id, title, description, category_id, categories(slug), tags, base_price_cents, currency, images, status, avg_rating, review_count, created_at, translations')
+      .select('id, title, description, category_id, categories(slug), tags, base_price_cents, compare_at_price_cents, currency, images, branded_hero_url, status, avg_rating, review_count, created_at, translations')
       .eq('status', 'active')
       .is('deleted_at', null)
       .in('id', productIds)
 
     if (category && category !== 'all') {
-      query = query.eq('categories.slug', category)
+      const catIds = await resolveCategoryIds(category)
+      if (catIds) {
+        query = query.in('category_id', catIds)
+      }
     }
 
     const { data: products, error: productsError } = await query
@@ -303,13 +369,15 @@ async function getKeywordSearchResults(
   try {
     let query = supabaseAdmin
       .from('products')
-      .select('id, title, description, category_id, categories(slug), tags, base_price_cents, currency, images, status, avg_rating, review_count, created_at, translations')
+      .select('id, title, description, category_id, categories(slug), tags, base_price_cents, compare_at_price_cents, currency, images, branded_hero_url, status, avg_rating, review_count, created_at, translations')
       .eq('status', 'active')
       .is('deleted_at', null)
 
     if (category && category !== 'all') {
-      // Join with categories table to filter by slug
-      query = query.eq('categories.slug', category)
+      const catIds = await resolveCategoryIds(category)
+      if (catIds) {
+        query = query.in('category_id', catIds)
+      }
     }
 
     // PostgreSQL full-text search on title, description, category
@@ -342,12 +410,15 @@ async function fallbackTextSearch(
 ) {
   let query = supabaseAdmin
     .from('products')
-    .select('id, title, description, category_id, categories(slug), tags, base_price_cents, currency, images, status, avg_rating, review_count, created_at, translations', { count: 'exact' })
+    .select('id, title, description, category_id, categories(slug), tags, base_price_cents, compare_at_price_cents, currency, images, branded_hero_url, status, avg_rating, review_count, created_at, translations', { count: 'exact' })
     .eq('status', 'active')
     .is('deleted_at', null)
 
   if (category && category !== 'all') {
-    query = query.eq('categories.slug', category)
+    const catIds = await resolveCategoryIds(category)
+    if (catIds) {
+      query = query.in('category_id', catIds)
+    }
   }
 
   if (searchQuery) {
@@ -396,8 +467,9 @@ async function fallbackTextSearch(
       title,
       description,
       price: p.base_price_cents / 100,
+      ...buildPricingFields(variantsMap, p.id),
       currency: p.currency?.toUpperCase() || 'EUR',
-      image: Array.isArray(p.images) && p.images.length > 0 ? (p.images[0].src || p.images[0].url) : '',
+      image: p.branded_hero_url || (Array.isArray(p.images) && p.images.length > 0 ? (p.images[0].src || p.images[0].url) : ''),
       images: Array.isArray(p.images) ? p.images.map((img: { src?: string; url?: string; alt?: string }) => img.src || img.url || '') : [],
       rating: Number(p.avg_rating) || 0,
       reviewCount: p.review_count || 0,
@@ -464,7 +536,7 @@ export async function GET(request: NextRequest) {
 
       const { data: products, error: idsError } = await supabaseAdmin
         .from('products')
-        .select('id, title, description, category_id, categories(slug), tags, base_price_cents, currency, images, status, avg_rating, review_count, created_at, translations')
+        .select('id, title, description, category_id, categories(slug), tags, base_price_cents, compare_at_price_cents, currency, images, branded_hero_url, status, avg_rating, review_count, created_at, translations')
         .eq('status', 'active')
         .is('deleted_at', null)
         .in('id', idList)
@@ -482,8 +554,9 @@ export async function GET(request: NextRequest) {
           title,
           description,
           price: p.base_price_cents / 100,
+          ...buildPricingFields(idsVariantsMap, p.id),
           currency: p.currency?.toUpperCase() || 'EUR',
-          image: Array.isArray(p.images) && p.images.length > 0 ? (p.images[0].src || p.images[0].url) : '',
+          image: p.branded_hero_url || (Array.isArray(p.images) && p.images.length > 0 ? (p.images[0].src || p.images[0].url) : ''),
           images: Array.isArray(p.images) ? p.images.map((img: any) => img.src || img.url || '') : [],
           rating: Number(p.avg_rating) || 0,
           reviewCount: p.review_count || 0,
@@ -503,7 +576,7 @@ export async function GET(request: NextRequest) {
     // Otherwise, use traditional database query
     let query = supabaseAdmin
       .from('products')
-      .select('id, title, description, category_id, categories(slug), tags, base_price_cents, currency, images, status, avg_rating, review_count, created_at, translations', { count: 'exact' })
+      .select('id, title, description, category_id, categories(slug), tags, base_price_cents, compare_at_price_cents, currency, images, branded_hero_url, status, avg_rating, review_count, created_at, translations', { count: 'exact' })
       .eq('status', 'active')
       .is('deleted_at', null)
 
@@ -512,9 +585,33 @@ export async function GET(request: NextRequest) {
       query = query.eq('tenant_id', tenantId)
     }
 
-    // Filter by category slug
+    // Filter by category slug → resolve to category_id(s) for proper filtering
     if (category && category !== 'all') {
-      query = query.eq('categories.slug', category)
+      const { data: catRow } = await supabaseAdmin
+        .from('categories')
+        .select('id, parent_id')
+        .eq('slug', category)
+        .eq('is_active', true)
+        .single()
+
+      if (catRow) {
+        if (!catRow.parent_id) {
+          // Parent category: include products from parent + all children
+          const { data: children } = await supabaseAdmin
+            .from('categories')
+            .select('id')
+            .eq('parent_id', catRow.id)
+            .eq('is_active', true)
+
+          const allIds = [catRow.id, ...(children || []).map(c => c.id)]
+          query = query.in('category_id', allIds)
+        } else {
+          query = query.eq('category_id', catRow.id)
+        }
+      } else {
+        // Unknown category slug — return empty results
+        query = query.eq('category_id', '00000000-0000-0000-0000-000000000000')
+      }
     }
 
     // Filter new arrivals (last 14 days)
@@ -556,23 +653,25 @@ export async function GET(request: NextRequest) {
     const total = count || 0
     const totalPages = Math.ceil(total / limit)
 
-    // Batch-fetch variants for returned products
-    const variantsMap = await fetchVariantsByProductId((products || []).map(p => p.id))
+    // Batch-fetch variants and labels for returned products
+    const productIds = (products || []).map(p => p.id)
+    const [variantsMap, labelsMap] = await Promise.all([
+      fetchVariantsByProductId(productIds),
+      fetchLabelsByProductId(productIds),
+    ])
 
     // Map DB schema to frontend format
     const items = (products || []).map((p) => {
-      // Debug: log translations field for Classic T-Shirt
-      if (p.title === 'Classic T-Shirt') {
-        console.log('[DEBUG] Classic T-Shirt translations:', JSON.stringify(p.translations))
-      }
       const { title, description } = applyTranslations(p, locale)
       return {
         id: p.id,
         title,
         description,
         price: p.base_price_cents / 100,
+        ...buildPricingFields(variantsMap, p.id),
+        compareAtPrice: p.compare_at_price_cents ? p.compare_at_price_cents / 100 : undefined,
         currency: p.currency?.toUpperCase() || 'EUR',
-        image: Array.isArray(p.images) && p.images.length > 0 ? (p.images[0].src || p.images[0].url) : '',
+        image: p.branded_hero_url || (Array.isArray(p.images) && p.images.length > 0 ? (p.images[0].src || p.images[0].url) : ''),
         images: Array.isArray(p.images) ? p.images.map((img: { src?: string; url?: string; alt?: string }) => img.src || img.url || '') : [],
         rating: Number(p.avg_rating) || 0,
         reviewCount: p.review_count || 0,
@@ -580,6 +679,7 @@ export async function GET(request: NextRequest) {
         tags: p.tags || [],
         inStock: variantsMap.has(p.id),
         createdAt: p.created_at,
+        labels: labelsMap.get(p.id) || undefined,
         variants: buildVariantsField(variantsMap, p.id),
       }
     })

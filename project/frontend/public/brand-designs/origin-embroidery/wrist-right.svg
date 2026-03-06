@@ -1,0 +1,21 @@
+<!-- SKAPARA Origin — Wrist Right Embroidery Design
+     Canvas: 600×900 @300dpi (2" × 3")
+     Placement: embroidery_wrist_right
+     Threads: Black #000000 (1800), Purple #6B5294 (1832), Red #CC3333 (1839) — 3 colors
+     Content: Play triangle + purple bar + red dot
+     Min line width: 1.5mm = 18px @300dpi — all elements exceed this
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 900" width="600" height="900">
+  <!-- Play triangle — Black thread -->
+  <!-- Centered at x=270, y=300, pointing right -->
+  <!-- Base height: 300px, width: 260px — well above 1.5mm minimum -->
+  <polygon points="130,150 420,330 130,510" fill="#000000"/>
+
+  <!-- Horizontal bar — Purple thread -->
+  <!-- Width: 260px, height: 40px, rounded corners -->
+  <rect x="140" y="570" width="280" height="40" rx="8" ry="8" fill="#6B5294"/>
+
+  <!-- Dot — Red thread -->
+  <!-- Diameter: 50px (radius 25) — well above minimum -->
+  <circle cx="280" cy="680" r="28" fill="#CC3333"/>
+</svg>

@@ -1,7 +1,8 @@
 import type { Metadata } from 'next'
+import { BRAND } from '@/lib/store-config'
 
 export const metadata: Metadata = {
-  title: 'Skapara Store',
+  title: `${BRAND.name} Store`,
   description: 'AI-Managed Print-on-Demand Ecommerce Platform',
 }
 

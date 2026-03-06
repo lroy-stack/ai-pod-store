@@ -104,11 +104,11 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
   // Sync guest wishlist to server on login
   useEffect(() => {
     if (user && localItems.length > 0) {
-      syncGuestWishlistToServer(localItems).then(() => {
-        // Clear localStorage after sync
-        localStorage.removeItem(GUEST_WISHLIST_KEY)
-        setLocalItems([])
-        // Refresh server items to include synced ones
+      syncGuestWishlistToServer(localItems).then((success) => {
+        if (success) {
+          localStorage.removeItem(GUEST_WISHLIST_KEY)
+          setLocalItems([])
+        }
         refreshWishlist()
       })
     }
@@ -259,15 +259,18 @@ export function useWishlist() {
 
 /**
  * Sync guest wishlist items to server.
+ * Returns true if the sync was successful, false otherwise.
  */
-async function syncGuestWishlistToServer(items: GuestWishlistItem[]) {
+async function syncGuestWishlistToServer(items: GuestWishlistItem[]): Promise<boolean> {
   try {
-    await fetch('/api/wishlist/sync', {
+    const res = await fetch('/api/wishlist/sync', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ items }),
     })
+    return res.ok
   } catch (error) {
     console.error('Failed to sync guest wishlist:', error)
+    return false
   }
 }

@@ -1,6 +1,7 @@
 import { Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
+import { BRAND, BASE_URL } from '@/lib/store-config'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ShopPageClient } from '@/components/shop/ShopPageClient'
@@ -30,19 +31,19 @@ interface Product {
 
 /** Batch-fetch variants from product_variants table, grouped by product_id */
 async function fetchVariantsByProductId(productIds: string[]) {
-  if (productIds.length === 0) return new Map<string, { sizes: string[]; colors: string[]; colorImages: Record<string, string> }>()
+  if (productIds.length === 0) return new Map<string, { sizes: string[]; colors: string[]; colorImages: Record<string, string>; hasVariantPricing?: boolean; maxPrice?: number }>()
 
   const { data: allVariants } = await supabaseAdmin
     .from('product_variants')
-    .select('product_id, size, color, image_url')
+    .select('product_id, size, color, image_url, price_cents')
     .in('product_id', productIds)
     .eq('is_enabled', true)
     .eq('is_available', true)
 
-  const grouped = new Map<string, { sizes: Set<string>; colors: Set<string>; colorImages: Map<string, string> }>()
+  const grouped = new Map<string, { sizes: Set<string>; colors: Set<string>; colorImages: Map<string, string>; prices: Set<number> }>()
   for (const v of allVariants || []) {
     if (!grouped.has(v.product_id)) {
-      grouped.set(v.product_id, { sizes: new Set(), colors: new Set(), colorImages: new Map() })
+      grouped.set(v.product_id, { sizes: new Set(), colors: new Set(), colorImages: new Map(), prices: new Set() })
     }
     const entry = grouped.get(v.product_id)!
     if (v.size) entry.sizes.add(v.size)
@@ -52,14 +53,18 @@ async function fetchVariantsByProductId(productIds: string[]) {
         entry.colorImages.set(v.color, v.image_url)
       }
     }
+    if (v.price_cents != null) entry.prices.add(v.price_cents)
   }
 
-  const result = new Map<string, { sizes: string[]; colors: string[]; colorImages: Record<string, string> }>()
-  for (const [id, { sizes, colors, colorImages }] of grouped) {
+  const result = new Map<string, { sizes: string[]; colors: string[]; colorImages: Record<string, string>; hasVariantPricing?: boolean; maxPrice?: number }>()
+  for (const [id, { sizes, colors, colorImages, prices }] of grouped) {
+    const priceArr = [...prices]
+    const hasVariantPricing = priceArr.length > 1 && Math.min(...priceArr) !== Math.max(...priceArr)
     result.set(id, {
       sizes: [...sizes],
       colors: [...colors],
       colorImages: Object.fromEntries(colorImages),
+      ...(hasVariantPricing ? { hasVariantPricing: true, maxPrice: Math.max(...priceArr) / 100 } : {}),
     })
   }
   return result
@@ -74,37 +79,33 @@ type SortOption = 'featured' | 'priceLowToHigh' | 'priceHighToLow' | 'newest' | 
 
 const PRODUCTS_PER_PAGE = 20
 
-// Valid category slugs (from translations)
-const VALID_CATEGORIES = [
-  'apparel',
-  'home-decor',
-  'drinkware',
-  'accessories',
-  't-shirts',
-  'hoodies',
-  'stickers',
-  'phone-cases',
-  'posters',
-  'bags',
-  'hats',
-  'mugs',
-  'wall-art',
-  'stationery',
-  'sweatshirts',
-  'kitchen',
-  'kids',
-  'games',
-]
+// ISR: revalidate category pages every 10 minutes
+export const revalidate = 600
+
+// Allow dynamic slugs not generated at build time
+export const dynamicParams = true
+
+// Pre-render known category pages at build time (fetched from DB)
+export async function generateStaticParams() {
+  const { data: categories } = await supabaseAdmin
+    .from('categories')
+    .select('slug')
+    .eq('is_active', true)
+
+  const locales = ['en', 'es', 'de']
+  return (categories || []).flatMap((cat) =>
+    locales.map((locale) => ({ locale, slug: cat.slug }))
+  )
+}
 
 // Server Component - generates metadata for SEO
-export async function generateMetadata({ params, searchParams }: CategoryPageProps): Promise<Metadata> {
+export async function generateMetadata({ params }: CategoryPageProps): Promise<Metadata> {
   const { locale, slug } = await params
   const t = await getTranslations({ locale, namespace: 'shop' })
 
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://podai.com'
-  const siteName = process.env.NEXT_PUBLIC_SITE_NAME || 'Skapara'
+  const baseUrl = BASE_URL
+  const siteName = BRAND.name
 
-  // Get category name from translations
   const categoryName = t.has(`category.${slug}`) ? t(`category.${slug}`) : slug
 
   const title = `${categoryName} - ${siteName}`
@@ -142,33 +143,102 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   const { locale, slug } = await params
   const search = await searchParams
 
-  // Validate category slug
-  if (!VALID_CATEGORIES.includes(slug)) {
-    notFound()
-  }
+  // Validate locale for name field
+  const validLocales = ['en', 'es', 'de']
+  const normalizedLocale = validLocales.includes(locale) ? locale : 'en'
+  const nameField = `name_${normalizedLocale}` as 'name_en' | 'name_es' | 'name_de'
+
+  // Validate category exists in DB (replaces hardcoded VALID_CATEGORIES)
+  const { data: categoryRow } = await supabaseAdmin
+    .from('categories')
+    .select('id, slug, parent_id, name_en, name_es, name_de, icon, image_url')
+    .eq('slug', slug)
+    .eq('is_active', true)
+    .single()
+
+  if (!categoryRow) notFound()
+
+  const categoryName = categoryRow[nameField] || categoryRow.name_en
+  const isParent = !categoryRow.parent_id
 
   // Extract search parameters
   const query = search.q as string | undefined
   const sort = (search.sort as SortOption) || 'featured'
-  const newArrivals = search.newArrivals === 'true'
+  const selectedSub = search.sub as string | undefined
 
-  // Build query - filter by category slug (service key bypasses RLS — safe in Server Components)
+  // Determine category IDs to fetch products from
+  let categoryIds: string[] = [categoryRow.id]
+  let subcategories: Array<{ slug: string; name: string; productCount: number }> = []
+  let parentInfo: { slug: string; name: string } | null = null
+
+  if (isParent) {
+    // Fetch children for subcategory chips
+    const { data: children } = await supabaseAdmin
+      .from('categories')
+      .select('id, slug, name_en, name_es, name_de')
+      .eq('parent_id', categoryRow.id)
+      .eq('is_active', true)
+      .order('sort_order')
+
+    const childList = children || []
+    categoryIds = [categoryRow.id, ...childList.map(c => c.id)]
+
+    // If a subcategory is selected, filter to just that one
+    if (selectedSub) {
+      const subCat = childList.find(c => c.slug === selectedSub)
+      if (subCat) {
+        categoryIds = [subCat.id]
+      }
+    }
+
+    // Count products per subcategory for chips
+    if (childList.length > 0) {
+      const { data: subCounts } = await supabaseAdmin
+        .from('products')
+        .select('category_id')
+        .eq('status', 'active')
+        .in('category_id', childList.map(c => c.id))
+
+      const subCountMap = new Map<string, number>()
+      for (const p of subCounts || []) {
+        if (p.category_id) {
+          subCountMap.set(p.category_id, (subCountMap.get(p.category_id) || 0) + 1)
+        }
+      }
+
+      subcategories = childList
+        .map(c => ({
+          slug: c.slug,
+          name: c[nameField] || c.name_en,
+          productCount: subCountMap.get(c.id) || 0,
+        }))
+        .filter(s => s.productCount > 0)
+    }
+  } else {
+    // Child category — fetch parent info for breadcrumb
+    const { data: parent } = await supabaseAdmin
+      .from('categories')
+      .select('slug, name_en, name_es, name_de')
+      .eq('id', categoryRow.parent_id)
+      .single()
+
+    if (parent) {
+      parentInfo = {
+        slug: parent.slug,
+        name: parent[nameField] || parent.name_en,
+      }
+    }
+  }
+
+  // Build products query
   let productsQuery = supabaseAdmin
     .from('products')
     .select('id, title, description, base_price_cents, currency, avg_rating, review_count, category_id, categories(slug), status, created_at, images', { count: 'exact' })
     .eq('status', 'active')
-    .eq('categories.slug', slug)
+    .in('category_id', categoryIds)
 
-  // Apply search filter if provided
   if (query && query.trim()) {
     productsQuery = productsQuery.or(`title.ilike.%${query}%,description.ilike.%${query}%`)
-  }
-
-  // Apply new arrivals filter if enabled
-  if (newArrivals) {
-    const thirtyDaysAgo = new Date()
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
-    productsQuery = productsQuery.gte('created_at', thirtyDaysAgo.toISOString())
   }
 
   // Apply sorting
@@ -191,57 +261,39 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
       break
   }
 
-  // Paginate
   productsQuery = productsQuery.range(0, PRODUCTS_PER_PAGE - 1)
 
   const { data: productsData, count: totalCount } = await productsQuery
 
-  // Fetch all categories for filters (JOIN with categories table for slug)
-  const { data: allProductsData } = await supabaseAdmin
-    .from('products')
-    .select('category_id, categories(slug)')
-    .eq('status', 'active')
-
-  // Calculate category counts
-  const categoryCounts: Record<string, number> = { all: 0 }
-  if (allProductsData) {
-    categoryCounts.all = allProductsData.length
-    for (const p of allProductsData) {
-      const cat = (p.categories as any)?.slug || 'other'
-      categoryCounts[cat] = (categoryCounts[cat] || 0) + 1
-    }
-  }
-
-  const categories = ['all', ...Object.keys(categoryCounts).filter(c => c !== 'all')]
-
-  // Batch-fetch variants from product_variants table (same pattern as /api/products)
+  // Batch-fetch variants
   const variantsMap = await fetchVariantsByProductId((productsData || []).map((p: any) => p.id))
 
   // Transform products for client component
-  const products = (productsData || []).map((p: Product) => ({
-    id: p.id,
-    title: p.title,
-    description: p.description,
-    price: p.base_price_cents / 100, // Convert cents to currency units
-    currency: p.currency || 'EUR',
-    rating: p.avg_rating || 0,
-    reviewCount: p.review_count || 0,
-    category: (p.categories as any)?.slug || 'other',
-    inStock: p.status === 'active',
-    createdAt: p.created_at,
-    image: p.images?.[0]?.src || '',
-    variants: variantsMap.get(p.id),
-  }))
+  const products = (productsData || []).map((p: Product) => {
+    const vm = variantsMap.get(p.id)
+    return {
+      id: p.id,
+      title: p.title,
+      description: p.description,
+      price: p.base_price_cents / 100,
+      currency: p.currency || 'EUR',
+      rating: p.avg_rating || 0,
+      reviewCount: p.review_count || 0,
+      category: (p.categories as any)?.slug || 'other',
+      inStock: variantsMap.has(p.id),
+      createdAt: p.created_at,
+      image: p.images?.[0]?.src || '',
+      variants: vm,
+      ...(vm?.hasVariantPricing ? { hasVariantPricing: true, maxPrice: vm.maxPrice } : {}),
+    }
+  })
 
-  // Get translations for JSON-LD and UI
+  // Get translations for JSON-LD
   const t = await getTranslations({ locale, namespace: 'shop' })
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://podai.com'
-  const siteName = process.env.NEXT_PUBLIC_SITE_NAME || 'Skapara'
+  const baseUrl = BASE_URL
+  const siteName = BRAND.name
 
-  // Get category name from translations
-  const categoryName = t.has(`category.${slug}`) ? t(`category.${slug}`) : slug
-
-  // JSON-LD structured data for SEO - ItemList schema
+  // JSON-LD structured data
   const itemListSchema = {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
@@ -257,7 +309,14 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
         name: product.title,
         description: product.description,
         image: product.image,
-        offers: {
+        offers: product.hasVariantPricing && product.maxPrice ? {
+          '@type': 'AggregateOffer',
+          lowPrice: product.price,
+          highPrice: product.maxPrice,
+          priceCurrency: product.currency,
+          availability: product.inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+          url: `${baseUrl}/${locale}/products/${product.id}`,
+        } : {
           '@type': 'Offer',
           price: product.price,
           priceCurrency: product.currency,
@@ -275,7 +334,6 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
 
   return (
     <>
-      {/* JSON-LD structured data */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListSchema) }}
@@ -293,9 +351,21 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
             <BreadcrumbSeparator />
             <BreadcrumbItem>
               <BreadcrumbLink asChild>
-                <Link href={`/${locale}/shop`}>Shop</Link>
+                <Link href={`/${locale}/shop`}>{t('title')}</Link>
               </BreadcrumbLink>
             </BreadcrumbItem>
+            {parentInfo && (
+              <>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                  <BreadcrumbLink asChild>
+                    <Link href={`/${locale}/shop/category/${parentInfo.slug}`}>
+                      {parentInfo.name}
+                    </Link>
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+              </>
+            )}
             <BreadcrumbSeparator />
             <BreadcrumbItem>
               <BreadcrumbPage>{categoryName}</BreadcrumbPage>
@@ -304,16 +374,20 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
         </Breadcrumb>
       </div>
 
-      {/* Shop page content */}
       <ShopPageClient
+        key={`${slug}-${selectedSub || 'all'}-${sort}`}
         locale={locale}
         initialProducts={products}
         initialTotal={totalCount || 0}
-        initialCategories={categories}
-        initialCategoryCounts={categoryCounts}
+        initialCategories={[]}
+        initialCategoryCounts={{}}
         searchQuery={query}
-        category={slug}
+        category={selectedSub || slug}
         sort={sort}
+        subcategories={subcategories.length > 0 ? subcategories : undefined}
+        selectedSubcategory={selectedSub}
+        parentCategorySlug={isParent ? slug : parentInfo?.slug}
+        categoryTitle={categoryName}
       />
     </>
   )

@@ -1,5 +1,6 @@
 import { Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
+import { BRAND, BASE_URL } from '@/lib/store-config'
 import { SizeGuideContent } from './size-guide-content'
 
 interface SizeGuidePageProps {
@@ -10,8 +11,8 @@ export async function generateMetadata({ params }: SizeGuidePageProps): Promise<
   const { locale } = await params
   const t = await getTranslations({ locale, namespace: 'sizeGuide' })
 
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://podai.com'
-  const siteName = process.env.NEXT_PUBLIC_SITE_NAME || 'Skapara'
+  const baseUrl = BASE_URL
+  const siteName = BRAND.name
 
   return {
     title: `${t('title')} - ${siteName}`,

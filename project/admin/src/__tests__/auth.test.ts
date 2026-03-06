@@ -53,7 +53,7 @@ describe('Admin Auth API', () => {
       (supabaseAdmin.single as any).mockResolvedValue({
         data: {
           id: 'admin-id',
-          email: 'admin@podstore.local',
+          email: 'admin@skapara.com',
           password_hash: '$2a$10$hashedpassword',
           role: 'admin',
           name: 'Admin User',
@@ -72,7 +72,7 @@ describe('Admin Auth API', () => {
         method: 'POST',
         url: 'http://localhost:3001/api/auth/login',
         body: {
-          email: 'admin@podstore.local',
+          email: 'admin@skapara.com',
           password: 'admin123',
         },
       });
@@ -82,7 +82,7 @@ describe('Admin Auth API', () => {
 
       expect(response.status).toBe(200);
       expect(data.success).toBe(true);
-      expect(data.user.email).toBe('admin@podstore.local');
+      expect(data.user.email).toBe('admin@skapara.com');
       expect(mockSession.save).toHaveBeenCalled();
     });
 
@@ -94,7 +94,7 @@ describe('Admin Auth API', () => {
       (supabaseAdmin.single as any).mockResolvedValue({
         data: {
           id: 'admin-id',
-          email: 'admin@podstore.local',
+          email: 'admin@skapara.com',
           password_hash: '$2a$10$hashedpassword',
           role: 'admin',
           name: 'Admin User',
@@ -109,7 +109,7 @@ describe('Admin Auth API', () => {
         method: 'POST',
         url: 'http://localhost:3001/api/auth/login',
         body: {
-          email: 'admin@podstore.local',
+          email: 'admin@skapara.com',
           password: 'wrongpassword',
         },
       });
@@ -165,7 +165,7 @@ describe('Admin Auth API', () => {
         method: 'POST',
         url: 'http://localhost:3001/api/auth/login',
         body: {
-          email: 'admin@podstore.local',
+          email: 'admin@skapara.com',
           password: 'admin123',
         },
       });

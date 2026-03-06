@@ -8,6 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { sanitizeForLike, sanitizeForPostgrest } from '@/lib/query-sanitizer';
+import { requireAdmin, authErrorResponse } from '@/lib/auth-guard';
 
 const supabase = createClient(
   process.env.SUPABASE_URL!,
@@ -21,6 +22,12 @@ const supabase = createClient(
 );
 
 export async function GET(req: NextRequest) {
+  try {
+    await requireAdmin(req)
+  } catch (error) {
+    return authErrorResponse(error)
+  }
+
   try {
     // Parse query parameters
     const searchParams = req.nextUrl.searchParams;
@@ -40,7 +47,8 @@ export async function GET(req: NextRequest) {
         user_id,
         stripe_session_id,
         stripe_payment_intent_id,
-        printify_order_id,
+        external_order_id,
+        pod_provider,
         status,
         total_cents,
         currency,
@@ -55,8 +63,9 @@ export async function GET(req: NextRequest) {
         paid_at,
         shipped_at,
         delivered_at,
-        printify_retry_count,
-        printify_error,
+        pod_retry_count,
+        pod_error,
+        pod_cost_cents,
         user:users(
           id,
           email,

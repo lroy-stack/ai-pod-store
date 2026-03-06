@@ -11,7 +11,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
-import { printify } from '@/lib/printify'
+import { getProvider, initializeProviders } from '@/lib/pod'
 import { verifyCronSecret } from '@/lib/rate-limit'
 import { acquireLock, recordRun } from '@/lib/reliability/cron-lock'
 
@@ -38,13 +38,15 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    // Find orphaned temp products: >24h old, not ordered, has printify_temp_product_id
+    initializeProviders()
+
+    // Find orphaned temp products: >24h old, not ordered, has provider_temp_product_id
     const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000)
 
     const { data: orphaned, error: fetchError } = await supabaseAdmin
       .from('personalizations')
-      .select('id, printify_temp_product_id, status, created_at')
-      .not('printify_temp_product_id', 'is', null)
+      .select('id, provider_temp_product_id, status, created_at')
+      .not('provider_temp_product_id', 'is', null)
       .neq('status', 'ordered')
       .lt('created_at', twentyFourHoursAgo.toISOString())
       .limit(50) // Process in batches to avoid timeouts
@@ -65,8 +67,8 @@ export async function GET(req: NextRequest) {
     // Delete temp products from Printify
     for (const personalization of orphaned) {
       try {
-        // Delete from Printify
-        await printify.deleteProduct(personalization.printify_temp_product_id!)
+        const tempProductId = personalization.provider_temp_product_id!
+        await getProvider().deleteProduct(tempProductId)
 
         // Update personalization status to 'expired'
         await supabaseAdmin
@@ -79,22 +81,23 @@ export async function GET(req: NextRequest) {
 
         results.push({
           id: personalization.id,
-          productId: personalization.printify_temp_product_id!,
+          productId: tempProductId,
           success: true,
         })
 
-        console.log('[cleanup-temp-products] Deleted temp product:', personalization.printify_temp_product_id)
+        console.log('[cleanup-temp-products] Deleted temp product:', tempProductId)
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Unknown error'
 
+        const failedTempId = personalization.provider_temp_product_id!
         results.push({
           id: personalization.id,
-          productId: personalization.printify_temp_product_id!,
+          productId: failedTempId,
           success: false,
           error: errorMessage,
         })
 
-        console.error('[cleanup-temp-products] Failed to delete temp product:', personalization.printify_temp_product_id, errorMessage)
+        console.error('[cleanup-temp-products] Failed to delete temp product:', failedTempId, errorMessage)
       }
     }
 

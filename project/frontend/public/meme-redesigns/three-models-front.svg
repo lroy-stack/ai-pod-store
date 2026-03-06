@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1800 2400" width="1800" height="2400">
+  <!--
+    THREE MODELS v3 — FILLS CANVAS, bigger text, more spacing
+    Labels: 90px bold colored
+    Response: 76px bold italic ghost
+    Content fills y=200 to y=2100 (79% of canvas)
+  -->
+
+  <!-- Me -->
+  <text x="120" y="260"
+        font-family="Helvetica Neue, Arial, sans-serif"
+        font-size="90" font-weight="bold"
+        fill="white" opacity="0.65">Me:</text>
+  <text x="120" y="370"
+        font-family="Helvetica Neue, Arial, sans-serif"
+        font-size="76" font-weight="bold" font-style="italic"
+        fill="white" opacity="0.55">"Hey AI go do a thing."</text>
+
+  <!-- Separator 1 -->
+  <line x1="120" y1="450" x2="1500" y2="450"
+        stroke="white" stroke-opacity="0.20" stroke-width="3"/>
+
+  <!-- Haiku -->
+  <text x="120" y="600"
+        font-family="Helvetica Neue, Arial, sans-serif"
+        font-size="90" font-weight="bold"
+        fill="#10B981">Haiku:</text>
+  <text x="120" y="710"
+        font-family="Helvetica Neue, Arial, sans-serif"
+        font-size="76" font-weight="bold" font-style="italic"
+        fill="white" opacity="0.55">"OK I go do the thing."</text>
+
+  <!-- Separator 2 -->
+  <line x1="120" y1="800" x2="1500" y2="800"
+        stroke="white" stroke-opacity="0.20" stroke-width="3"/>
+
+  <!-- Sonnet -->
+  <text x="120" y="950"
+        font-family="Helvetica Neue, Arial, sans-serif"
+        font-size="90" font-weight="bold"
+        fill="#6366F1">Sonnet:</text>
+  <text x="120" y="1060"
+        font-family="Helvetica Neue, Arial, sans-serif"
+        font-size="76" font-weight="bold" font-style="italic"
+        fill="white" opacity="0.55">"OK but let me think about</text>
+  <text x="140" y="1155"
+        font-family="Helvetica Neue, Arial, sans-serif"
+        font-size="76" font-weight="bold" font-style="italic"
+        fill="white" opacity="0.55">the best way to do the thing."</text>
+
+  <!-- Separator 3 -->
+  <line x1="120" y1="1260" x2="1500" y2="1260"
+        stroke="white" stroke-opacity="0.20" stroke-width="3"/>
+
+  <!-- Opus -->
+  <text x="120" y="1410"
+        font-family="Helvetica Neue, Arial, sans-serif"
+        font-size="90" font-weight="bold"
+        fill="#F97316">Opus:</text>
+  <text x="120" y="1530"
+        font-family="Helvetica Neue, Arial, sans-serif"
+        font-size="76" font-weight="bold" font-style="italic"
+        fill="white" opacity="0.55">"Before we do the thing...</text>
+  <text x="140" y="1640"
+        font-family="Helvetica Neue, Arial, sans-serif"
+        font-size="76" font-weight="bold" font-style="italic"
+        fill="white" opacity="0.55">are you sure it is the</text>
+  <text x="140" y="1750"
+        font-family="Helvetica Neue, Arial, sans-serif"
+        font-size="86" font-weight="900" font-style="italic"
+        fill="white" opacity="0.75">right choice</text>
+  <text x="140" y="1860"
+        font-family="Helvetica Neue, Arial, sans-serif"
+        font-size="76" font-weight="bold" font-style="italic"
+        fill="white" opacity="0.55">to do the thing?"</text>
+</svg>

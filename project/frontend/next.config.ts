@@ -40,6 +40,11 @@ const nextConfig: NextConfig = {
   },
   // Webpack-based optimizations (when not using Turbopack)
   webpack: (config, { isServer }) => {
+    // Fabric.js requires 'canvas' package server-side — mark as external
+    if (isServer) {
+      config.externals = [...(config.externals || []), 'canvas']
+    }
+
     if (!isServer) {
       // Split vendor chunks to keep each under 500KB
       config.optimization = {
@@ -98,6 +103,14 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'images.unsplash.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'pfy-prod-image-storage.s3.us-east-2.amazonaws.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'files.cdn.printful.com',
+      },
     ],
   },
   async headers() {
@@ -110,12 +123,13 @@ const nextConfig: NextConfig = {
       { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
       {
         key: 'Content-Security-Policy',
-        value: "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://images.printify.com https://images-api.printify.com https://*.supabase.co https://via.placeholder.com https://placehold.co https://*.fal.ai https://fal.media https://images.unsplash.com; connect-src 'self' https://*.supabase.co https://generativelanguage.googleapis.com https://*.fal.ai https://images-api.printify.com https://api.printify.com; font-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com; frame-ancestors 'none'",
+        value: "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com; img-src 'self' data: blob: https://images.printify.com https://images-api.printify.com https://pfy-prod-image-storage.s3.us-east-2.amazonaws.com https://*.supabase.co https://via.placeholder.com https://placehold.co https://*.fal.ai https://fal.media https://images.unsplash.com https://files.cdn.printful.com; connect-src 'self' https://*.supabase.co https://generativelanguage.googleapis.com https://*.fal.ai https://images-api.printify.com https://api.printify.com; font-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com; frame-ancestors 'none'",
       },
     ]
     return [
       { source: '/:path*', headers: securityHeaders },
-      { source: '/api/:path*', headers: [{ key: 'Cache-Control', value: 'no-store' }] },
+      // Note: Cache-Control is set per-route — authenticated routes use no-store internally.
+      // Public data routes (categories, branding) set their own Cache-Control headers.
     ]
   },
 }

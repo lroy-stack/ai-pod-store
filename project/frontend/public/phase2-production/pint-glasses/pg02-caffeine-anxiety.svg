@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2738" height="1276" viewBox="0 0 2738 1276">
+
+  <!-- PG02: "Caffeine Anxiety" Pint Glass — BP633 2738×1276, UV on glass -->
+  <!-- Landscape wrap — text dark for clear glass -->
+  <!-- v4: safe margins, no overlap -->
+
+  <!-- "POWERED BY" — small, top center -->
+  <text x="1369" y="320"
+        font-family="'Courier New', monospace"
+        font-size="80" font-weight="bold"
+        fill="#6B7280" text-anchor="middle"
+        letter-spacing="16">POWERED BY</text>
+
+  <!-- "CAFFEINE" — left zone, amber 3D -->
+  <text x="650" y="720"
+        font-family="'Georgia', serif"
+        font-size="180" font-weight="bold"
+        fill="#92400E" text-anchor="middle">CAFFEINE</text>
+  <text x="647" y="717"
+        font-family="'Georgia', serif"
+        font-size="180" font-weight="bold"
+        fill="#B45309" text-anchor="middle">CAFFEINE</text>
+  <text x="644" y="714"
+        font-family="'Georgia', serif"
+        font-size="180" font-weight="bold"
+        fill="#D97706" text-anchor="middle">CAFFEINE</text>
+
+  <!-- "&" — center, generous spacing -->
+  <text x="1369" y="720"
+        font-family="'Georgia', serif"
+        font-size="180" font-weight="bold"
+        fill="#374151" text-anchor="middle">&amp;</text>
+
+  <!-- "Anxiety" — right zone, violet 3D -->
+  <text x="2080" y="720"
+        font-family="'Permanent Marker', cursive"
+        font-size="180"
+        fill="#4C1D95" text-anchor="middle">Anxiety</text>
+  <text x="2077" y="717"
+        font-family="'Permanent Marker', cursive"
+        font-size="180"
+        fill="#6D28D9" text-anchor="middle">Anxiety</text>
+  <text x="2074" y="714"
+        font-family="'Permanent Marker', cursive"
+        font-size="180"
+        fill="#8B5CF6" text-anchor="middle">Anxiety</text>
+
+  <!-- Underline accent -->
+  <rect x="1700" y="780" width="760" height="4" rx="2" fill="#8B5CF6" opacity="0.4"/>
+
+  <!-- SKAPARA branding — bottom center -->
+  <text x="1369" y="1060"
+        font-family="'Courier New', monospace"
+        font-size="52" font-weight="bold"
+        fill="#9CA3AF" text-anchor="middle">SKAPARA</text>
+
+</svg>

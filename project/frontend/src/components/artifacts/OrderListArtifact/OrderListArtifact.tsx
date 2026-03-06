@@ -74,7 +74,7 @@ export function OrderListArtifact({
           <p className="text-sm text-muted-foreground mb-4 text-center">
             {t('noOrdersDescription')}
           </p>
-          <Button onClick={() => router.push(`/${locale}/shop`)}>
+          <Button className="neu-btn-accent" onClick={() => router.push(`/${locale}/shop`)}>
             {t('browseProducts')}
           </Button>
         </CardContent>
@@ -123,6 +123,7 @@ export function OrderListArtifact({
                 <Button
                   variant="outline"
                   size="sm"
+                  className="neu-btn-soft"
                   onClick={() => router.push(`/${locale}/orders/${order.id}`)}
                 >
                   {t('viewDetails')}
@@ -131,6 +132,7 @@ export function OrderListArtifact({
                   <Button
                     variant="default"
                     size="sm"
+                    className="neu-btn-accent"
                     onClick={() => {
                       router.push(`/${locale}/orders/${order.id}`)
                     }}

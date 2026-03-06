@@ -44,10 +44,10 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({
           id: 1,
           settings: {
-            store_name: 'PodClaw Store',
+            store_name: 'SKAPARA',
             store_description: 'AI-powered Print-on-Demand store',
-            contact_email: 'contact@podstore.local',
-            support_email: 'support@podstore.local',
+            contact_email: 'contact@skapara.com',
+            support_email: 'support@skapara.com',
             currency: 'USD',
             timezone: 'UTC',
           },

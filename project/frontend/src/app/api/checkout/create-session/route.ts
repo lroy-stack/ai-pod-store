@@ -8,70 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
 import { supabaseAdmin } from '@/lib/supabase-admin';
-import { printify } from '@/lib/printify';
-import { STORE_DEFAULTS, ALLOWED_SHIPPING_COUNTRIES } from '@/lib/store-config';
-import { createCanvas, registerFont } from 'canvas';
-import path from 'path';
-import fs from 'fs';
-
-// Font mapping for personalization
-const FONT_FILES: Record<string, string> = {
-  'Inter': 'Inter-Regular.ttf',
-  'Roboto': 'Roboto-Regular.ttf',
-  'Playfair Display': 'PlayfairDisplay-Regular.ttf',
-  'Montserrat': 'Montserrat-Regular.ttf',
-  'Oswald': 'Oswald-Regular.ttf',
-  'Lato': 'Lato-Regular.ttf',
-};
-
-// Register all fonts once at module load
-Object.entries(FONT_FILES).forEach(([fontName, fileName]) => {
-  const fontPath = path.join(process.cwd(), 'public', 'fonts', fileName);
-  if (fs.existsSync(fontPath)) {
-    registerFont(fontPath, { family: fontName });
-  }
-});
-
-/**
- * Generate a high-resolution PNG with personalization text
- * Returns base64 string (without data:image/png;base64, prefix)
- */
-function generatePersonalizationPNG(
-  text: string,
-  font: string,
-  fontSize: number,
-  fontColor: string,
-  width: number,
-  height: number
-): string {
-  const canvas = createCanvas(width, height);
-  const ctx = canvas.getContext('2d');
-
-  // Transparent background
-  ctx.clearRect(0, 0, width, height);
-
-  // Set font properties
-  const selectedFont = FONT_FILES[font] ? font : 'Inter';
-  ctx.font = `${fontSize}px "${selectedFont}"`;
-  ctx.fillStyle = fontColor;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-
-  // Render multi-line text
-  const lineHeight = fontSize * 1.3;
-  const textLines = text.split('\n');
-  const totalHeight = textLines.length * lineHeight;
-  const startY = (height / 2) - (totalHeight / 2) + (lineHeight / 2);
-
-  textLines.forEach((line, index) => {
-    const y = startY + (index * lineHeight);
-    ctx.fillText(line, width / 2, y);
-  });
-
-  // Convert to base64 (without data URL prefix)
-  const buffer = canvas.toBuffer('image/png');
-  return buffer.toString('base64');
-}
+import { STORE_DEFAULTS, ALLOWED_SHIPPING_COUNTRIES, BASE_URL } from '@/lib/store-config';
 
 /**
  * POST /api/checkout/create-session
@@ -91,7 +28,7 @@ function generatePersonalizationPNG(
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { cartItems, shippingAddress, locale = 'en', currency = STORE_DEFAULTS.stripeCurrency, customerEmail, gift_message } = body;
+    const { cartItems, shippingAddress, locale = 'en', currency = STORE_DEFAULTS.stripeCurrency, customerEmail, gift_message, couponCode } = body;
 
     // Validate required fields
     if (!cartItems || !Array.isArray(cartItems) || cartItems.length === 0) {
@@ -147,7 +84,7 @@ export async function POST(req: NextRequest) {
     if (productIds.length > 0) {
       const { data: variants } = await supabaseAdmin
         .from('product_variants')
-        .select('product_id, color, size, is_available')
+        .select('product_id, color, size, is_available, price_cents')
         .in('product_id', productIds)
         .eq('is_enabled', true);
 
@@ -187,119 +124,83 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // --- Personalization: create Printify temp products for personalized items ---
-    const yMap: Record<string, number> = { top: 0.15, center: 0.5, bottom: 0.85 }
-    const sizeMap: Record<string, number> = { small: 72, medium: 96, large: 120 } // High-res sizes
+    // --- Coupon validation ---
+    let validatedCoupon: { code: string; discount_type: string; discount_value: number } | null = null;
+    if (couponCode && typeof couponCode === 'string') {
+      const { data: coupon } = await supabaseAdmin
+        .from('coupons')
+        .select('code, discount_type, discount_value, active, min_purchase_amount, usage_limit, times_used')
+        .eq('code', couponCode.trim().toUpperCase())
+        .eq('active', true)
+        .single();
 
+      if (coupon) {
+        const cartTotalForValidation = cartItems.reduce(
+          (sum: number, item: any) => sum + ((item.product_price || 0) * (item.quantity || 1)),
+          0
+        );
+        const meetsMinimum = !coupon.min_purchase_amount || cartTotalForValidation >= coupon.min_purchase_amount;
+        const hasUsesLeft = !coupon.usage_limit || (coupon.times_used || 0) < coupon.usage_limit;
+        if (meetsMinimum && hasUsesLeft) {
+          validatedCoupon = {
+            code: coupon.code,
+            discount_type: coupon.discount_type,
+            discount_value: coupon.discount_value,
+          };
+        }
+      }
+    }
+
+    // --- Compositions: resolve production URLs for custom designs ---
+    // Instead of creating temp products, we pass production file URLs directly
+    // to the Printful order via the `files` parameter on each line item.
     for (const item of cartItems) {
-      const personalizationId = item.personalization_id
-      if (!personalizationId) continue
+      const compositionId = item.composition_id
+      if (!compositionId) continue
 
       try {
-        // Load personalization from DB
-        const { data: pz } = await supabaseAdmin
-          .from('personalizations')
-          .select('*')
-          .eq('id', personalizationId)
+        const { data: comp } = await supabaseAdmin
+          .from('design_compositions')
+          .select('production_url')
+          .eq('id', compositionId)
           .single()
 
-        if (!pz || !pz.text_content) continue
-        // Skip if already has a Printify temp product
-        if (pz.printify_temp_product_id) continue
-
-        // Load product from DB
-        const { data: dbProduct } = await supabaseAdmin
-          .from('products')
-          .select('id, printify_id, blueprint_id, print_provider_id, title')
-          .eq('id', pz.product_id)
-          .is('deleted_at', null)
-          .single()
-
-        if (!dbProduct?.printify_id || !dbProduct?.blueprint_id || !dbProduct?.print_provider_id) continue
-
-        // Get original product from Printify
-        const printifyProduct = await printify.getProduct(dbProduct.printify_id)
-        const originalPrintAreas = (printifyProduct as any).print_areas || []
-
-        // Get placeholder dimensions from the first front placeholder
-        let placeholderWidth = 3000 // Default high-res width
-        let placeholderHeight = 3000 // Default high-res height
-        const frontPlaceholder = originalPrintAreas[0]?.placeholders?.find((p: any) => p.position === 'front')
-        if (frontPlaceholder?.width && frontPlaceholder?.height) {
-          placeholderWidth = frontPlaceholder.width
-          placeholderHeight = frontPlaceholder.height
+        if (comp?.production_url) {
+          // Parse production_url: direct URL for single panel, JSON for multi-panel
+          if (comp.production_url.startsWith('{')) {
+            item._production_urls = JSON.parse(comp.production_url)
+          } else {
+            item._production_urls = { default: comp.production_url }
+          }
         }
+      } catch (compError) {
+        console.error(`Failed to resolve production URLs for composition ${compositionId}:`, compError)
+      }
+    }
 
-        // Generate high-resolution PNG with personalization text
-        const fontSize = sizeMap[pz.font_size || 'medium'] ?? 96
-        const base64PNG = generatePersonalizationPNG(
-          pz.text_content,
-          pz.font_family || 'Inter',
-          fontSize,
-          pz.font_color || '#000000',
-          placeholderWidth,
-          placeholderHeight
-        )
+    // Server-side price authority: override client prices with DB variant prices
+    if (productIds.length > 0) {
+      const { data: pricingVariants } = await supabaseAdmin
+        .from('product_variants')
+        .select('product_id, color, size, price_cents')
+        .in('product_id', productIds)
+        .eq('is_enabled', true)
+        .eq('is_available', true)
 
-        // Upload PNG to Printify
-        const uploadResult = await printify.uploadImageFromBase64(
-          base64PNG,
-          `personalization-${personalizationId}.png`
-        )
-
-        // Build modified print_areas with uploaded image
-        const modifiedPrintAreas = originalPrintAreas.map((area: any) => {
-          const modifiedPlaceholders = area.placeholders.map((placeholder: any) => {
-            if (placeholder.position === 'front') {
-              const images = [...(placeholder.images || [])]
-              // Add personalization image overlay
-              images.push({
-                id: uploadResult.id, // Use upload_id from Printify
-                x: 0.5,
-                y: yMap[pz.position || 'bottom'] ?? 0.85,
-                scale: 0.3,
-                angle: 0,
-                // DO NOT include input_text, font_family, font_size, font_color (READ-ONLY)
-              })
-              return { ...placeholder, images }
-            }
-            return placeholder
-          })
-          return { ...area, placeholders: modifiedPlaceholders }
-        })
-
-        // Get variants from original Printify product
-        const originalVariants = (printifyProduct as any).variants || []
-        const enabledVariants = originalVariants
-          .filter((v: any) => v.is_enabled)
-          .map((v: any) => ({ id: v.id, price: v.price, is_enabled: true }))
-
-        // Create temp product in Printify
-        const tempProduct = await printify.createProduct({
-          title: `${dbProduct.title} (Personalized)`,
-          description: `Personalized: ${pz.text_content}`,
-          blueprint_id: dbProduct.blueprint_id,
-          print_provider_id: dbProduct.print_provider_id,
-          variants: enabledVariants,
-          print_areas: modifiedPrintAreas,
-          tags: ['personalized'],
-        })
-
-        // Update personalization record
-        await supabaseAdmin
-          .from('personalizations')
-          .update({
-            printify_temp_product_id: tempProduct.id,
-            printify_upload_id: uploadResult.id,
-            status: 'ready',
-          })
-          .eq('id', personalizationId)
-
-        // Attach temp product ID to the cart item for order metadata
-        item._printify_temp_id = tempProduct.id
-      } catch (pzError) {
-        console.error(`Personalization ${personalizationId} Printify creation failed:`, pzError)
-        // Continue with checkout even if personalization fails
+      if (pricingVariants) {
+        for (const item of cartItems) {
+          if (!item.product_id) continue
+          const itemColor = item.variant_details?.color || item.color
+          const itemSize = item.variant_details?.size || item.size
+          const match = pricingVariants.find((v: any) =>
+            v.product_id === item.product_id &&
+            (!itemColor || v.color === itemColor) &&
+            (!itemSize || v.size === itemSize)
+          )
+          if (match?.price_cents) {
+            item.product_price = match.price_cents / 100
+          }
+        }
       }
     }
 
@@ -317,10 +218,7 @@ export async function POST(req: NextRequest) {
         productData.images = [item.product_image];
       }
 
-      // Calculate unit amount including personalization surcharge
-      const basePrice = item.product_price || 0;
-      const personalizationSurcharge = item.personalization?.surcharge || 0;
-      const totalUnitPrice = basePrice + personalizationSurcharge;
+      const totalUnitPrice = item.product_price || 0;
 
       return {
         price_data: {
@@ -332,8 +230,38 @@ export async function POST(req: NextRequest) {
       };
     });
 
+    // Apply coupon discount as a negative line item
+    if (validatedCoupon) {
+      const totalAmountCents = lineItems.reduce(
+        (sum: number, item: any) => sum + item.price_data.unit_amount * item.quantity,
+        0
+      );
+      let discountCents = 0;
+      if (validatedCoupon.discount_type === 'percentage') {
+        discountCents = Math.round(totalAmountCents * (validatedCoupon.discount_value / 100));
+      } else {
+        // fixed amount — discount_value is in the same currency unit (e.g., euros)
+        discountCents = Math.round(validatedCoupon.discount_value * 100);
+      }
+      // Cap discount at the cart total
+      discountCents = Math.min(discountCents, totalAmountCents);
+
+      if (discountCents > 0) {
+        // Use Stripe coupons via the discounts parameter
+        // First create a one-time Stripe coupon
+        const stripeCoupon = await stripe.coupons.create({
+          amount_off: discountCents,
+          currency: currency.toLowerCase(),
+          duration: 'once',
+          name: `Coupon: ${validatedCoupon.code}`,
+        });
+        // We'll attach it to the session config later
+        (lineItems as any)._stripeCouponId = stripeCoupon.id;
+      }
+    }
+
     // Build success and cancel URLs
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || `http://localhost:${process.env.PORT || 3000}`;
+    const baseUrl = BASE_URL;
     const successUrl = `${baseUrl}/${locale}/checkout/success?session_id={CHECKOUT_SESSION_ID}`;
     const cancelUrl = `${baseUrl}/${locale}/checkout/cancel`;
 
@@ -395,6 +323,14 @@ export async function POST(req: NextRequest) {
     }
     // --- End Stripe Connect ---
 
+    // Calculate cart subtotal in euros for shipping threshold check
+    const cartSubtotalCents = lineItems.reduce(
+      (sum: number, item: any) => sum + item.price_data.unit_amount * item.quantity,
+      0
+    );
+    const cartSubtotalEuros = cartSubtotalCents / 100;
+    const isFreeShipping = cartSubtotalEuros >= STORE_DEFAULTS.freeShippingThreshold;
+
     // Create Stripe Checkout session
     const sessionConfig: any = {
       mode: 'payment',
@@ -415,37 +351,35 @@ export async function POST(req: NextRequest) {
       automatic_tax: {
         enabled: false, // Disabled for now, will enable when Stripe Tax is activated
       },
-      // Shipping address collection
+      // Shipping address collection (let Stripe collect it if not pre-filled)
       shipping_address_collection: shippingAddress
         ? undefined
         : {
             allowed_countries: ALLOWED_SHIPPING_COUNTRIES as unknown as string[],
           },
-      // Pre-fill shipping address if provided
-      ...(shippingAddress && {
-        shipping_options: [
-          {
-            shipping_rate_data: {
-              type: 'fixed_amount',
-              fixed_amount: {
-                amount: 0, // Free shipping for now
-                currency: currency.toLowerCase(),
+      // Shipping: free for orders >= €50, otherwise €4.99 (EU standard)
+      shipping_options: [
+        {
+          shipping_rate_data: {
+            type: 'fixed_amount' as const,
+            fixed_amount: {
+              amount: isFreeShipping ? 0 : 499, // €0 or €4.99
+              currency: currency.toLowerCase(),
+            },
+            display_name: isFreeShipping ? 'Free Shipping' : 'Standard Shipping (€4.99)',
+            delivery_estimate: {
+              minimum: {
+                unit: 'business_day' as const,
+                value: 5,
               },
-              display_name: 'Standard Shipping',
-              delivery_estimate: {
-                minimum: {
-                  unit: 'business_day',
-                  value: 5,
-                },
-                maximum: {
-                  unit: 'business_day',
-                  value: 7,
-                },
+              maximum: {
+                unit: 'business_day' as const,
+                value: 7,
               },
             },
           },
-        ],
-      }),
+        },
+      ],
       metadata: {
         locale,
         cart_items: JSON.stringify(cartItems.map((item: any) => ({
@@ -453,7 +387,8 @@ export async function POST(req: NextRequest) {
           variant_id: item.variant_id,
           quantity: item.quantity,
           personalization_id: item.personalization_id || null,
-          printify_temp_id: item._printify_temp_id || null,
+          composition_id: item.composition_id || null,
+          production_urls: item._production_urls || null,
         }))),
         ...(gift_message && typeof gift_message === 'string' && { gift_message: gift_message.slice(0, 200) }),
       },
@@ -462,6 +397,14 @@ export async function POST(req: NextRequest) {
     // Add customer email for guest checkout
     if (customerEmail && typeof customerEmail === 'string') {
       sessionConfig.customer_email = customerEmail;
+    }
+
+    // Apply coupon discount to session
+    const stripeCouponId = (lineItems as any)._stripeCouponId;
+    if (stripeCouponId) {
+      sessionConfig.discounts = [{ coupon: stripeCouponId }];
+      // Store coupon code in metadata for order tracking
+      sessionConfig.metadata.coupon_code = validatedCoupon!.code;
     }
 
     const session = await stripe.checkout.sessions.create(sessionConfig);

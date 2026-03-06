@@ -4,6 +4,7 @@
  */
 
 import { v4 as uuidv4 } from 'uuid';
+import { isConsentGranted } from '@/lib/cookie-consent';
 
 // Session ID persists for the browser session
 let sessionId: string = '';
@@ -36,6 +37,7 @@ export interface TrackEventParams {
  */
 export async function trackEvent({ eventName, properties = {} }: TrackEventParams): Promise<void> {
   if (typeof window === 'undefined') return;
+  if (!isConsentGranted('analytics')) return;
 
   try {
     const payload = {

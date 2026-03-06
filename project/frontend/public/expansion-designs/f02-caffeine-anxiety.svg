@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="4606" height="5787" viewBox="0 0 4606 5787">
+
+  <!-- F02: "Powered by Caffeine & Anxiety" — BP6 T-Shirt 4606x5787 -->
+  <!-- Palette: Amber (#F59E0B) + Violet (#8B5CF6) — energy vs chaos -->
+  <!-- Fonts: Montserrat (setup), Playfair Display (caffeine), Dancing Script (anxiety) -->
+  <!-- RULE: No text below 200px -->
+
+  <!-- ===== "POWERED BY" — Montserrat clean, off-white ===== -->
+  <text x="2303" y="1200"
+        font-family="'Montserrat', sans-serif"
+        font-size="450" font-weight="700"
+        fill="#F0EDE8" text-anchor="middle"
+        letter-spacing="30">POWERED BY</text>
+
+  <!-- ===== "CAFFEINE" — 3D amber, Playfair Display serif ===== -->
+  <text x="2323" y="2420"
+        font-family="'Playfair Display', serif"
+        font-size="900"
+        fill="#92400E" text-anchor="middle">CAFFEINE</text>
+  <text x="2313" y="2410"
+        font-family="'Playfair Display', serif"
+        font-size="900"
+        fill="#D97706" text-anchor="middle">CAFFEINE</text>
+  <text x="2303" y="2400"
+        font-family="'Playfair Display', serif"
+        font-size="900"
+        fill="#F59E0B" text-anchor="middle">CAFFEINE</text>
+
+  <!-- ===== "&" — Playfair Display, off-white ===== -->
+  <text x="2303" y="3100"
+        font-family="'Playfair Display', serif"
+        font-size="500"
+        fill="#F0EDE8" text-anchor="middle">&amp;</text>
+
+  <!-- ===== "ANXIETY" — 3D violet, Dancing Script for chaotic feel ===== -->
+  <text x="2323" y="4220"
+        font-family="'Dancing Script', cursive"
+        font-size="900"
+        fill="#4C1D95" text-anchor="middle">Anxiety</text>
+  <text x="2313" y="4210"
+        font-family="'Dancing Script', cursive"
+        font-size="900"
+        fill="#6D28D9" text-anchor="middle">Anxiety</text>
+  <text x="2303" y="4200"
+        font-family="'Dancing Script', cursive"
+        font-size="900"
+        fill="#8B5CF6" text-anchor="middle">Anxiety</text>
+
+</svg>

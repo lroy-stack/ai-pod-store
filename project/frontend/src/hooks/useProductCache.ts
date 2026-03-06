@@ -1,22 +1,9 @@
 import { useEffect, useState } from 'react'
 import { cacheProducts, getCachedProducts } from '@/lib/idb-cache'
-
-interface Product {
-  id: string
-  title: string
-  description: string
-  price: number
-  currency: string
-  image: string
-  rating: number
-  reviewCount: number
-  category: string
-  inStock: boolean
-  createdAt: string
-}
+import type { ProductCard } from '@/types/product'
 
 export function useProductCache(locale: string) {
-  const [cachedProducts, setCachedProducts] = useState<Product[]>([])
+  const [cachedProducts, setCachedProducts] = useState<ProductCard[]>([])
   const [isLoadingCache, setIsLoadingCache] = useState(true)
 
   useEffect(() => {
@@ -25,7 +12,7 @@ export function useProductCache(locale: string) {
         // First, try to load from IndexedDB cache
         const cached = await getCachedProducts()
         if (cached.length > 0) {
-          setCachedProducts(cached as unknown as Product[])
+          setCachedProducts(cached as unknown as ProductCard[])
         }
 
         // Then fetch fresh data from API

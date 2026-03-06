@@ -32,12 +32,12 @@ export async function GET() {
       if (error.code === 'PGRST116') {
         return NextResponse.json({
           settings: {
-            company_name: 'PodClaw Store',
+            company_name: 'SKAPARA',
             company_address: '123 Commerce Street, San Francisco, CA 94105, USA',
             tax_id: 'XX-XXXXXXX',
-            company_email: 'legal@podstore.local',
+            company_email: 'legal@skapara.com',
             dpo_name: 'Data Protection Officer',
-            dpo_email: 'dpo@podstore.local',
+            dpo_email: 'dpo@skapara.com',
             privacy_policy_url: '/privacy',
             terms_of_service_url: '/terms',
             cookie_policy_url: '/privacy#cookies',

@@ -1,0 +1,132 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="3400" height="4264" viewBox="0 0 3400 4264">
+
+  <!-- ============================================= -->
+  <!-- "sudo give me ice cream"                      -->
+  <!-- DARK garments — Flow correcto:                 -->
+  <!-- command → password → HELADO → ICE CREAM → ok  -->
+  <!-- Todo GRANDE. Sprinkles enormes. Canvas lleno.  -->
+  <!-- ============================================= -->
+
+  <!-- 1. Command — GRANDE -->
+  <text x="1700" y="300" font-family="'Courier New', monospace" font-size="230" fill="#10B981" text-anchor="middle" font-weight="bold">$ sudo give me</text>
+
+  <!-- === GIANT KAWAII ICE CREAM — domina el canvas === -->
+  <g transform="translate(1700, 1950)">
+
+    <!-- Waffle cone — grande -->
+    <polygon points="-340,-120 340,-120 55,900 -55,900" fill="#D97706"/>
+    <!-- Waffle grid grueso -->
+    <line x1="-270" y1="-20" x2="75" y2="780" stroke="#B45309" stroke-width="10" opacity="0.35"/>
+    <line x1="-160" y1="-70" x2="65" y2="850" stroke="#B45309" stroke-width="10" opacity="0.35"/>
+    <line x1="-40" y1="-100" x2="50" y2="890" stroke="#B45309" stroke-width="10" opacity="0.35"/>
+    <line x1="90" y1="-100" x2="40" y2="890" stroke="#B45309" stroke-width="10" opacity="0.35"/>
+    <line x1="220" y1="-50" x2="48" y2="860" stroke="#B45309" stroke-width="10" opacity="0.35"/>
+    <!-- Cross lines gruesas -->
+    <line x1="-310" y1="10" x2="310" y2="10" stroke="#B45309" stroke-width="8" opacity="0.25"/>
+    <line x1="-270" y1="150" x2="270" y2="150" stroke="#B45309" stroke-width="8" opacity="0.25"/>
+    <line x1="-220" y1="300" x2="220" y2="300" stroke="#B45309" stroke-width="8" opacity="0.25"/>
+    <line x1="-170" y1="450" x2="170" y2="450" stroke="#B45309" stroke-width="8" opacity="0.25"/>
+    <line x1="-120" y1="600" x2="120" y2="600" stroke="#B45309" stroke-width="8" opacity="0.25"/>
+
+    <!-- Drips — gordos y jugosos -->
+    <ellipse cx="-220" cy="-30" rx="55" ry="90" fill="#F472B6" opacity="0.8"/>
+    <ellipse cx="240" cy="-15" rx="48" ry="78" fill="#F472B6" opacity="0.75"/>
+    <ellipse cx="50" cy="-50" rx="40" ry="60" fill="#F472B6" opacity="0.65"/>
+    <ellipse cx="-80" cy="-40" rx="35" ry="55" fill="#F472B6" opacity="0.55"/>
+
+    <!-- Bottom scoop: PINK/Strawberry -->
+    <ellipse cx="0" cy="-230" rx="380" ry="230" fill="#F472B6"/>
+    <ellipse cx="-100" cy="-330" rx="100" ry="50" fill="white" opacity="0.2"/>
+
+    <!-- Middle scoop: TURQUOISE/Mint -->
+    <ellipse cx="0" cy="-520" rx="360" ry="220" fill="#2DD4BF"/>
+    <ellipse cx="-85" cy="-610" rx="90" ry="45" fill="white" opacity="0.2"/>
+    <!-- Chocolate chips — grandes -->
+    <circle cx="-150" cy="-480" r="28" fill="#78350F" opacity="0.5"/>
+    <circle cx="100" cy="-445" r="24" fill="#78350F" opacity="0.45"/>
+    <circle cx="185" cy="-540" r="22" fill="#78350F" opacity="0.4"/>
+    <circle cx="-70" cy="-570" r="26" fill="#78350F" opacity="0.45"/>
+    <circle cx="20" cy="-440" r="20" fill="#78350F" opacity="0.35"/>
+
+    <!-- Top scoop: YELLOW/Vanilla -->
+    <ellipse cx="0" cy="-800" rx="320" ry="210" fill="#FDE047"/>
+    <ellipse cx="-75" cy="-880" rx="85" ry="42" fill="white" opacity="0.25"/>
+
+    <!-- KAWAII FACE — ojos más grandes y expresivos -->
+    <!-- Eyes -->
+    <circle cx="-100" cy="-800" r="48" fill="#0F172A"/>
+    <circle cx="100" cy="-800" r="48" fill="#0F172A"/>
+    <!-- Eye shines big -->
+    <circle cx="-114" cy="-816" r="20" fill="white" opacity="0.9"/>
+    <circle cx="86" cy="-816" r="20" fill="white" opacity="0.9"/>
+    <!-- Secondary shine -->
+    <circle cx="-88" cy="-786" r="10" fill="white" opacity="0.5"/>
+    <circle cx="112" cy="-786" r="10" fill="white" opacity="0.5"/>
+    <!-- Big happy mouth -->
+    <path d="M-70,-735 Q0,-685 70,-735" fill="none" stroke="#0F172A" stroke-width="16" stroke-linecap="round"/>
+    <!-- Blush cheeks grandes -->
+    <circle cx="-185" cy="-755" r="42" fill="#F472B6" opacity="0.35"/>
+    <circle cx="185" cy="-755" r="42" fill="#F472B6" opacity="0.35"/>
+
+    <!-- Cherry on top — grande -->
+    <circle cx="0" cy="-1050" r="68" fill="#EF4444"/>
+    <ellipse cx="-18" cy="-1075" rx="22" ry="15" fill="white" opacity="0.35"/>
+    <!-- Stem -->
+    <path d="M0,-1118 Q38,-1180 22,-1215" fill="none" stroke="#15803D" stroke-width="14" stroke-linecap="round"/>
+    <!-- Leaf grande -->
+    <ellipse cx="28" cy="-1215" rx="48" ry="20" fill="#15803D" transform="rotate(-20,28,-1215)"/>
+  </g>
+
+  <!-- === SPRINKLES ENORMES — como confetti volando === -->
+  <!-- Cada sprinkle: rectángulo redondeado, colores vivos, rotados -->
+
+  <!-- Izquierda arriba -->
+  <rect x="180" y="700" width="120" height="45" rx="22" fill="#EF4444" opacity="0.7" transform="rotate(25,240,722)"/>
+  <rect x="100" y="1100" width="110" height="42" rx="21" fill="#A78BFA" opacity="0.6" transform="rotate(-30,155,1121)"/>
+  <rect x="250" y="1500" width="130" height="48" rx="24" fill="#FDE047" opacity="0.65" transform="rotate(50,315,1524)"/>
+  <rect x="150" y="1900" width="115" height="44" rx="22" fill="#2DD4BF" opacity="0.55" transform="rotate(-15,207,1922)"/>
+  <rect x="200" y="2350" width="125" height="46" rx="23" fill="#F472B6" opacity="0.6" transform="rotate(40,262,2373)"/>
+
+  <!-- Derecha arriba -->
+  <rect x="3080" y="750" width="120" height="45" rx="22" fill="#FDE047" opacity="0.65" transform="rotate(-35,3140,772)"/>
+  <rect x="3100" y="1150" width="115" height="42" rx="21" fill="#10B981" opacity="0.6" transform="rotate(20,3157,1171)"/>
+  <rect x="3000" y="1550" width="130" height="48" rx="24" fill="#EF4444" opacity="0.55" transform="rotate(-45,3065,1574)"/>
+  <rect x="3050" y="1950" width="110" height="44" rx="22" fill="#A78BFA" opacity="0.6" transform="rotate(30,3105,1972)"/>
+  <rect x="3080" y="2400" width="125" height="46" rx="23" fill="#2DD4BF" opacity="0.55" transform="rotate(-25,3142,2423)"/>
+
+  <!-- Centro flotando alrededor del helado -->
+  <rect x="550" y="650" width="140" height="50" rx="25" fill="#10B981" opacity="0.5" transform="rotate(60,620,675)"/>
+  <rect x="2650" y="620" width="135" height="48" rx="24" fill="#F472B6" opacity="0.55" transform="rotate(-40,2717,644)"/>
+  <rect x="480" y="2600" width="130" height="46" rx="23" fill="#EF4444" opacity="0.45" transform="rotate(35,545,2623)"/>
+  <rect x="2750" y="2650" width="125" height="44" rx="22" fill="#FDE047" opacity="0.5" transform="rotate(-55,2812,2672)"/>
+
+  <!-- === STARS / SPARKLES grandes === -->
+  <!-- Estrella izq arriba -->
+  <g transform="translate(350, 900)" opacity="0.6">
+    <polygon points="0,-45 12,-15 45,-15 18,5 28,40 0,20 -28,40 -18,5 -45,-15 -12,-15" fill="#FDE047"/>
+  </g>
+  <!-- Estrella der -->
+  <g transform="translate(3050, 950)" opacity="0.5">
+    <polygon points="0,-40 10,-13 40,-13 16,4 24,35 0,18 -24,35 -16,4 -40,-13 -10,-13" fill="#FDE047"/>
+  </g>
+  <!-- Estrella izq abajo -->
+  <g transform="translate(280, 2800)" opacity="0.45">
+    <polygon points="0,-35 9,-11 35,-11 14,4 21,30 0,16 -21,30 -14,4 -35,-11 -9,-11" fill="#FDE047"/>
+  </g>
+  <!-- Estrella der abajo -->
+  <g transform="translate(3100, 2850)" opacity="0.4">
+    <polygon points="0,-38 10,-12 38,-12 15,4 23,33 0,17 -23,33 -15,4 -38,-12 -10,-12" fill="#FDE047"/>
+  </g>
+
+  <!-- === BOTTOM TEXT === -->
+
+  <!-- 3. ICE CREAM — punchline masivo -->
+  <text x="1700" y="3450" font-family="'Helvetica Neue', 'Arial', sans-serif" font-size="420" font-weight="900" fill="white" text-anchor="middle" letter-spacing="-8">ICE CREAM</text>
+
+  <!-- 4. Password prompt — VISIBLE -->
+  <text x="1700" y="3700" font-family="'Courier New', monospace" font-size="200" fill="white" text-anchor="middle" opacity="0.6">[sudo] password: ****</text>
+
+  <!-- 5. Permission granted — cierre del chiste GRANDE -->
+  <text x="1700" y="3980" font-family="'Courier New', monospace" font-size="230" fill="#10B981" text-anchor="middle" font-weight="bold">Permission granted.</text>
+
+</svg>

@@ -13,6 +13,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { verifyCronSecret } from '@/lib/rate-limit'
+import { BASE_URL, BRAND, CONTACT } from '@/lib/store-config'
 
 const supabase = createClient(
   process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -21,7 +22,6 @@ const supabase = createClient(
 )
 
 const CRON_SECRET = process.env.CRON_SECRET || process.env.PODCLAW_BRIDGE_AUTH_TOKEN
-const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
 
 // Email color palette
 const EMAIL_COLORS = {
@@ -106,7 +106,7 @@ async function sendAbandonedCartEmail(params: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: process.env.RESEND_FROM_EMAIL || 'Skapara <onboarding@resend.dev>',
+        from: process.env.RESEND_FROM_EMAIL || `${BRAND.name} <${CONTACT.general}>`,
         to,
         subject,
         html: `
@@ -119,7 +119,7 @@ async function sendAbandonedCartEmail(params: {
 </head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: ${EMAIL_COLORS.bodyText}; max-width: 600px; margin: 0 auto; padding: 20px;">
   <div style="background: linear-gradient(135deg, ${EMAIL_COLORS.gradientStart} 0%, ${EMAIL_COLORS.gradientEnd} 100%); color: white; padding: 30px; border-radius: 8px 8px 0 0; text-align: center;">
-    <h1 style="margin: 0; font-size: 28px;">Skapara</h1>
+    <h1 style="margin: 0; font-size: 28px;">${BRAND.name}</h1>
   </div>
 
   <div style="background: ${EMAIL_COLORS.panelBg}; padding: 30px; border-radius: 0 0 8px 8px;">
@@ -128,16 +128,16 @@ async function sendAbandonedCartEmail(params: {
     <p style="font-size: 16px; margin: 20px 0;">${body}</p>
 
     <div style="text-align: center; margin: 30px 0;">
-      <a href="${baseUrl}/${locale}/cart" style="display: inline-block; background: ${EMAIL_COLORS.ctaButton}; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: 600;">${ctaText}</a>
+      <a href="${BASE_URL}/${locale}/cart" style="display: inline-block; background: ${EMAIL_COLORS.ctaButton}; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: 600;">${ctaText}</a>
     </div>
 
     <p style="font-size: 14px; color: ${EMAIL_COLORS.mutedText}; margin-top: 30px;">
-      ${locale === 'es' ? 'Gracias por elegir Skapara' : locale === 'de' ? 'Danke, dass du Skapara gewählt hast' : 'Thank you for choosing Skapara'}!
+      ${locale === 'es' ? `Gracias por elegir ${BRAND.name}` : locale === 'de' ? `Danke, dass du ${BRAND.name} gewählt hast` : `Thank you for choosing ${BRAND.name}`}!
     </p>
   </div>
 
   <div style="text-align: center; margin-top: 20px; padding: 20px; font-size: 12px; color: ${EMAIL_COLORS.footerText};">
-    <p>Skapara ${locale === 'es' ? '— Tu tienda de impresión bajo demanda impulsada por IA' : locale === 'de' ? '— Dein KI-gesteuerter Print-on-Demand-Marktplatz' : '— Your AI-powered print-on-demand marketplace'}</p>
+    <p>${BRAND.name} ${locale === 'es' ? '— Tu tienda de impresión bajo demanda impulsada por IA' : locale === 'de' ? '— Dein KI-gesteuerter Print-on-Demand-Marktplatz' : '— AI-Powered Print on Demand'}</p>
   </div>
 </body>
 </html>

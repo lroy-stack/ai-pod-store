@@ -1,0 +1,369 @@
+<!-- SKAPARA New Wave — Back Design v7 (DTG-Optimized)
+     Canvas: 1800x2400 @150dpi (12" x 16")
+     Placement: back (M2480 Cat 411)
+     Style: Streetwear poster — bold geometric, dense, aggressive
+     Colors: White #FFFFFF, Turquoise #40ACCC, Amber #F59E0B
+     For use on: M2480 dark colors (Black, Navy Blazer, Charcoal Heather, Vintage Black)
+
+     DTG optimization: All thin elements thickened to min 6px (~1mm @150dpi)
+     Changed: lines 2-4px → 6-8px, stroke-widths 3-4 → 6, plus marks 4 → 6
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1800 2400" width="1800" height="2400">
+  <defs>
+    <style>
+      .wh { fill: #FFFFFF; }
+      .tq { fill: #40ACCC; }
+      .am { fill: #F59E0B; }
+    </style>
+  </defs>
+
+  <!-- ===== ZONE A: Dense Header ===== -->
+
+  <!-- Chevron arrows left -->
+  <polygon class="tq" points="140,100 175,125 140,150"/>
+  <polygon class="wh" points="190,100 225,125 190,150"/>
+  <polygon class="tq" points="240,100 275,125 240,150"/>
+  <polygon class="am" points="290,100 325,125 290,150"/>
+
+  <!-- Checkerboard 4x2 top-left -->
+  <rect class="wh" x="370" y="95" width="24" height="24"/>
+  <rect class="tq" x="398" y="95" width="24" height="24"/>
+  <rect class="wh" x="426" y="95" width="24" height="24"/>
+  <rect class="am" x="454" y="95" width="24" height="24"/>
+  <rect class="tq" x="370" y="123" width="24" height="24"/>
+  <rect class="am" x="398" y="123" width="24" height="24"/>
+  <rect class="tq" x="426" y="123" width="24" height="24"/>
+  <rect class="wh" x="454" y="123" width="24" height="24"/>
+
+  <!-- Horizontal accent bars center (was 8/4/4 → 8/6/6) -->
+  <rect class="am" x="520" y="108" width="340" height="8" rx="4"/>
+  <rect class="wh" x="520" y="124" width="220" height="6" rx="3"/>
+  <rect class="tq" x="760" y="124" width="100" height="6" rx="3"/>
+
+  <!-- Plus marks (was 4px arms → 6px) -->
+  <rect class="wh" x="920" y="104" width="20" height="6"/>
+  <rect class="wh" x="927" y="96" width="6" height="20"/>
+  <rect class="am" x="960" y="104" width="20" height="6"/>
+  <rect class="am" x="967" y="96" width="6" height="20"/>
+  <rect class="tq" x="1000" y="104" width="20" height="6"/>
+  <rect class="tq" x="1007" y="96" width="6" height="20"/>
+
+  <!-- Mini S mark (right, ghost) -->
+  <g transform="translate(1340,68) scale(0.06)" opacity="0.35">
+    <g transform="translate(-241.6,1623.4) scale(0.1,-0.1)" fill="#40ACCC" stroke="none">
+      <path d="M7650 16230 c-185 -6 -231 -11 -445 -46 -195 -33 -362 -80 -570 -161 -321 -127 -594 -320 -761 -542 -35 -46 -64 -90 -64 -96 0 -7 9 -24 21 -39 20 -25 20 -28 5 -67 -22 -55 -22 -298 0 -377 61 -220 130 -319 316 -459 147 -110 299 -186 608 -307 52 -20 111 -43 130 -51 19 -7 89 -34 155 -60 66 -25 136 -52 155 -60 218 -84 326 -126 390 -150 22 -8 57 -21 78 -29 20 -8 80 -31 132 -51 52 -20 133 -54 180 -75 47 -21 173 -75 280 -120 107 -45 222 -95 254 -112 l59 -29 111 11 c80 8 939 11 3106 10 l2995 -2 80 21 c114 30 227 88 322 165 100 81 121 107 215 271 41 72 119 207 173 300 54 94 154 269 222 390 69 121 139 243 157 270 18 28 63 106 101 175 108 197 268 477 346 607 66 109 216 373 296 520 31 56 32 63 17 77 -14 15 -206 16 -2067 17 -1129 1 -3121 2 -4427 3 -1306 1 -2463 -1 -2570 -4z"/>
+    </g>
+  </g>
+
+  <!-- Dots + line right side (lines were 3 → 6) -->
+  <circle class="am" cx="1520" cy="100" r="7"/>
+  <circle class="wh" cx="1546" cy="100" r="7"/>
+  <circle class="am" cx="1572" cy="100" r="7"/>
+  <circle class="tq" cx="1598" cy="100" r="7"/>
+  <circle class="wh" cx="1624" cy="100" r="7"/>
+  <rect class="wh" x="1520" y="116" width="120" height="6"/>
+  <rect class="am" x="1520" y="128" width="80" height="6"/>
+
+  <!-- Chevrons right (pointing left, mirror) -->
+  <polygon class="am" points="1670,100 1640,125 1670,150"/>
+  <polygon class="wh" points="1700,100 1670,125 1700,150"/>
+
+  <!-- ===== ZONE B: "SKAPARA" Header Block ===== -->
+
+  <!-- Outer border frame (was stroke-width 4 → 6) -->
+  <rect x="160" y="195" width="1480" height="210" rx="6" fill="none" stroke="#40ACCC" stroke-width="6"/>
+
+  <!-- Turquoise fill bar -->
+  <rect class="tq" x="175" y="210" width="1450" height="180" rx="4"/>
+
+  <!-- Black cutout -->
+  <rect x="185" y="218" width="1430" height="164" rx="3" fill="#000000" opacity="0.88"/>
+
+  <!-- Corner accents on the frame (already 6px — OK) -->
+  <rect class="am" x="160" y="195" width="40" height="6"/>
+  <rect class="am" x="160" y="195" width="6" height="40"/>
+  <rect class="am" x="1600" y="195" width="40" height="6"/>
+  <rect class="am" x="1634" y="195" width="6" height="40"/>
+  <rect class="am" x="160" y="399" width="40" height="6"/>
+  <rect class="am" x="160" y="365" width="6" height="40"/>
+  <rect class="am" x="1600" y="399" width="40" height="6"/>
+  <rect class="am" x="1634" y="365" width="6" height="40"/>
+
+  <!-- "SKAPARA" text -->
+  <text x="900" y="335" text-anchor="middle" font-family="Impact, 'Arial Black', sans-serif"
+        font-size="88" font-weight="900" letter-spacing="4" class="wh">SKAPARA</text>
+
+  <!-- Flanking arrows -->
+  <polygon class="am" points="125,275 155,300 125,325"/>
+  <rect class="am" x="100" y="294" width="20" height="12"/>
+  <polygon class="am" points="1675,275 1645,300 1675,325"/>
+  <rect class="am" x="1680" y="294" width="20" height="12"/>
+
+  <!-- Flanking checkerboard (right) — 18px blocks OK -->
+  <rect class="wh" x="1700" y="230" width="18" height="18"/>
+  <rect class="am" x="1722" y="230" width="18" height="18"/>
+  <rect class="am" x="1700" y="252" width="18" height="18"/>
+  <rect class="wh" x="1722" y="252" width="18" height="18"/>
+  <rect class="wh" x="1700" y="274" width="18" height="18"/>
+  <rect class="am" x="1722" y="274" width="18" height="18"/>
+  <rect class="am" x="1700" y="296" width="18" height="18"/>
+  <rect class="wh" x="1722" y="296" width="18" height="18"/>
+
+  <!-- Flanking checkerboard (left) — 18px blocks OK -->
+  <rect class="tq" x="60" y="230" width="18" height="18"/>
+  <rect class="wh" x="82" y="230" width="18" height="18"/>
+  <rect class="wh" x="60" y="252" width="18" height="18"/>
+  <rect class="tq" x="82" y="252" width="18" height="18"/>
+  <rect class="tq" x="60" y="274" width="18" height="18"/>
+  <rect class="wh" x="82" y="274" width="18" height="18"/>
+  <rect class="wh" x="60" y="296" width="18" height="18"/>
+  <rect class="tq" x="82" y="296" width="18" height="18"/>
+
+  <!-- Sub-header accent lines (was 6/3/3 → 8/6/6) -->
+  <rect class="am" x="240" y="420" width="1320" height="8" rx="3"/>
+  <rect class="tq" x="340" y="434" width="500" height="6" rx="3"/>
+  <rect class="wh" x="860" y="434" width="500" height="6" rx="3" opacity="0.6"/>
+
+  <!-- ===== ZONE C: S Mark Hero ===== -->
+
+  <!-- Background turquoise circle -->
+  <circle class="tq" cx="900" cy="840" r="400" opacity="0.12"/>
+
+  <!-- Secondary amber circle ring (was stroke-width 3 → 6) -->
+  <circle cx="900" cy="840" r="440" fill="none" stroke="#F59E0B" stroke-width="6" opacity="0.25"/>
+
+  <!-- Diagonal slash accents -->
+  <rect class="am" x="500" y="510" width="700" height="10" rx="5"
+        transform="rotate(-22 850 515)" opacity="0.5"/>
+  <rect class="tq" x="520" y="540" width="600" height="8" rx="4"
+        transform="rotate(-22 820 543)" opacity="0.3"/>
+
+  <!-- S Mark SHADOW — turquoise offset -->
+  <g transform="translate(405,498) scale(0.70)" opacity="0.35">
+    <g transform="translate(-241.6,1623.4) scale(0.1,-0.1)" fill="#40ACCC" stroke="none">
+      <path d="M7650 16230 c-185 -6 -231 -11 -445 -46 -195 -33 -362 -80 -570 -161 -321 -127 -594 -320 -761 -542 -35 -46 -64 -90 -64 -96 0 -7 9 -24 21 -39 20 -25 20 -28 5 -67 -22 -55 -22 -298 0 -377 61 -220 130 -319 316 -459 147 -110 299 -186 608 -307 52 -20 111 -43 130 -51 19 -7 89 -34 155 -60 66 -25 136 -52 155 -60 218 -84 326 -126 390 -150 22 -8 57 -21 78 -29 20 -8 80 -31 132 -51 52 -20 133 -54 180 -75 47 -21 173 -75 280 -120 107 -45 222 -95 254 -112 l59 -29 111 11 c80 8 939 11 3106 10 l2995 -2 80 21 c114 30 227 88 322 165 100 81 121 107 215 271 41 72 119 207 173 300 54 94 154 269 222 390 69 121 139 243 157 270 18 28 63 106 101 175 108 197 268 477 346 607 66 109 216 373 296 520 31 56 32 63 17 77 -14 15 -206 16 -2067 17 -1129 1 -3121 2 -4427 3 -1306 1 -2463 -1 -2570 -4z"/>
+      <path d="M5675 15202 c-26 -29 -111 -172 -178 -297 -35 -66 -78 -140 -94 -165 -17 -25 -61 -99 -98 -165 -37 -66 -103 -181 -145 -255 -43 -74 -114 -200 -158 -280 -43 -80 -94 -170 -112 -200 -19 -30 -63 -109 -100 -175 -37 -66 -105 -190 -153 -275 -112 -202 -226 -485 -263 -654 -22 -103 -44 -280 -44 -361 0 -190 50 -397 133 -558 126 -240 276 -422 497 -599 74 -59 251 -173 330 -213 77 -39 355 -161 400 -175 14 -5 50 -18 80 -30 64 -24 207 -73 365 -123 61 -20 135 -45 165 -57 30 -12 127 -46 215 -75 161 -55 468 -160 625 -216 47 -16 157 -54 245 -84 88 -30 225 -78 305 -106 80 -28 179 -61 220 -74 167 -54 446 -148 665 -226 127 -45 618 -212 745 -254 106 -34 507 -171 555 -189 83 -31 337 -120 535 -186 543 -183 830 -281 880 -300 80 -31 490 -177 590 -210 14 -5 70 -25 125 -45 55 -20 172 -60 260 -90 88 -30 246 -84 350 -120 105 -36 242 -83 305 -105 63 -21 153 -53 200 -71 47 -17 110 -39 140 -49 30 -10 118 -47 195 -82 77 -36 201 -91 275 -124 179 -78 546 -265 635 -322 278 -179 372 -253 501 -396 132 -146 228 -318 265 -471 18 -78 21 -110 16 -240 -2 -82 -9 -162 -15 -177 -21 -52 13 -83 49 -45 30 31 563 929 659 1110 23 44 77 136 119 205 43 70 99 168 126 217 26 50 73 132 102 183 77 132 126 239 173 383 165 498 180 869 53 1249 -83 246 -174 401 -386 653 -50 59 -271 257 -348 310 -168 119 -471 292 -604 345 -119 48 -285 112 -340 131 -115 39 -253 90 -306 111 -279 114 -295 119 -579 216 -91 31 -185 66 -210 76 -25 11 -76 30 -115 43 -38 13 -95 33 -125 45 -30 12 -68 25 -85 30 -16 4 -95 31 -175 60 -80 29 -181 65 -225 80 -44 16 -118 42 -165 60 -47 17 -137 48 -200 70 -63 21 -155 53 -205 71 -205 73 -286 101 -395 139 -169 58 -300 105 -345 125 -22 9 -58 23 -80 30 -22 7 -74 25 -115 40 -41 15 -156 56 -255 91 -99 34 -259 90 -355 124 -96 34 -206 72 -245 85 -38 13 -115 40 -170 60 -55 19 -138 49 -185 65 -141 48 -312 108 -370 130 -30 12 -74 28 -97 36 -23 8 -79 28 -125 45 -46 17 -117 41 -158 54 -41 13 -120 40 -175 60 -55 20 -131 47 -170 60 -38 13 -108 38 -155 56 -125 46 -202 73 -320 108 -127 39 -351 117 -520 181 -30 11 -82 30 -115 41 -33 11 -94 34 -135 51 -41 16 -91 35 -110 42 -46 18 -196 74 -240 91 -19 7 -89 34 -155 60 -174 67 -181 70 -280 105 -242 86 -575 219 -650 259 -296 157 -401 232 -527 376 -84 97 -154 223 -179 325 -18 71 -18 277 -2 307 23 40 -14 79 -42 45z"/>
+      <path d="M4580 8224 c-159 -24 -336 -86 -477 -165 -85 -49 -263 -255 -322 -374 -19 -38 -60 -113 -91 -165 -31 -52 -92 -160 -135 -240 -43 -80 -89 -163 -103 -184 -13 -21 -56 -98 -96 -170 -40 -72 -107 -192 -150 -266 -171 -297 -330 -579 -368 -655 -22 -44 -77 -143 -122 -220 -46 -77 -116 -198 -156 -270 -40 -71 -85 -149 -101 -172 -48 -73 -51 -80 -33 -97 14 -15 482 -16 5122 -16 5302 1 5361 1 5672 40 158 20 352 56 485 90 489 126 1016 425 1223 694 41 53 47 68 48 111 1 27 14 84 29 125 27 73 28 82 29 275 1 209 -6 256 -59 380 -70 166 -343 456 -560 597 -75 48 -480 259 -580 301 -33 14 -125 56 -205 92 -164 74 -273 121 -375 160 -38 15 -117 52 -175 83 l-105 56 -4160 1 c-3037 0 -4180 -3 -4235 -11z"/>
+    </g>
+  </g>
+
+  <!-- S Mark MAIN — White -->
+  <g transform="translate(390,480) scale(0.70)">
+    <g transform="translate(-241.6,1623.4) scale(0.1,-0.1)" fill="#FFFFFF" stroke="none">
+      <path d="M7650 16230 c-185 -6 -231 -11 -445 -46 -195 -33 -362 -80 -570 -161 -321 -127 -594 -320 -761 -542 -35 -46 -64 -90 -64 -96 0 -7 9 -24 21 -39 20 -25 20 -28 5 -67 -22 -55 -22 -298 0 -377 61 -220 130 -319 316 -459 147 -110 299 -186 608 -307 52 -20 111 -43 130 -51 19 -7 89 -34 155 -60 66 -25 136 -52 155 -60 218 -84 326 -126 390 -150 22 -8 57 -21 78 -29 20 -8 80 -31 132 -51 52 -20 133 -54 180 -75 47 -21 173 -75 280 -120 107 -45 222 -95 254 -112 l59 -29 111 11 c80 8 939 11 3106 10 l2995 -2 80 21 c114 30 227 88 322 165 100 81 121 107 215 271 41 72 119 207 173 300 54 94 154 269 222 390 69 121 139 243 157 270 18 28 63 106 101 175 108 197 268 477 346 607 66 109 216 373 296 520 31 56 32 63 17 77 -14 15 -206 16 -2067 17 -1129 1 -3121 2 -4427 3 -1306 1 -2463 -1 -2570 -4z"/>
+      <path d="M5675 15202 c-26 -29 -111 -172 -178 -297 -35 -66 -78 -140 -94 -165 -17 -25 -61 -99 -98 -165 -37 -66 -103 -181 -145 -255 -43 -74 -114 -200 -158 -280 -43 -80 -94 -170 -112 -200 -19 -30 -63 -109 -100 -175 -37 -66 -105 -190 -153 -275 -112 -202 -226 -485 -263 -654 -22 -103 -44 -280 -44 -361 0 -190 50 -397 133 -558 126 -240 276 -422 497 -599 74 -59 251 -173 330 -213 77 -39 355 -161 400 -175 14 -5 50 -18 80 -30 64 -24 207 -73 365 -123 61 -20 135 -45 165 -57 30 -12 127 -46 215 -75 161 -55 468 -160 625 -216 47 -16 157 -54 245 -84 88 -30 225 -78 305 -106 80 -28 179 -61 220 -74 167 -54 446 -148 665 -226 127 -45 618 -212 745 -254 106 -34 507 -171 555 -189 83 -31 337 -120 535 -186 543 -183 830 -281 880 -300 80 -31 490 -177 590 -210 14 -5 70 -25 125 -45 55 -20 172 -60 260 -90 88 -30 246 -84 350 -120 105 -36 242 -83 305 -105 63 -21 153 -53 200 -71 47 -17 110 -39 140 -49 30 -10 118 -47 195 -82 77 -36 201 -91 275 -124 179 -78 546 -265 635 -322 278 -179 372 -253 501 -396 132 -146 228 -318 265 -471 18 -78 21 -110 16 -240 -2 -82 -9 -162 -15 -177 -21 -52 13 -83 49 -45 30 31 563 929 659 1110 23 44 77 136 119 205 43 70 99 168 126 217 26 50 73 132 102 183 77 132 126 239 173 383 165 498 180 869 53 1249 -83 246 -174 401 -386 653 -50 59 -271 257 -348 310 -168 119 -471 292 -604 345 -119 48 -285 112 -340 131 -115 39 -253 90 -306 111 -279 114 -295 119 -579 216 -91 31 -185 66 -210 76 -25 11 -76 30 -115 43 -38 13 -95 33 -125 45 -30 12 -68 25 -85 30 -16 4 -95 31 -175 60 -80 29 -181 65 -225 80 -44 16 -118 42 -165 60 -47 17 -137 48 -200 70 -63 21 -155 53 -205 71 -205 73 -286 101 -395 139 -169 58 -300 105 -345 125 -22 9 -58 23 -80 30 -22 7 -74 25 -115 40 -41 15 -156 56 -255 91 -99 34 -259 90 -355 124 -96 34 -206 72 -245 85 -38 13 -115 40 -170 60 -55 19 -138 49 -185 65 -141 48 -312 108 -370 130 -30 12 -74 28 -97 36 -23 8 -79 28 -125 45 -46 17 -117 41 -158 54 -41 13 -120 40 -175 60 -55 20 -131 47 -170 60 -38 13 -108 38 -155 56 -125 46 -202 73 -320 108 -127 39 -351 117 -520 181 -30 11 -82 30 -115 41 -33 11 -94 34 -135 51 -41 16 -91 35 -110 42 -46 18 -196 74 -240 91 -19 7 -89 34 -155 60 -174 67 -181 70 -280 105 -242 86 -575 219 -650 259 -296 157 -401 232 -527 376 -84 97 -154 223 -179 325 -18 71 -18 277 -2 307 23 40 -14 79 -42 45z"/>
+      <path d="M4580 8224 c-159 -24 -336 -86 -477 -165 -85 -49 -263 -255 -322 -374 -19 -38 -60 -113 -91 -165 -31 -52 -92 -160 -135 -240 -43 -80 -89 -163 -103 -184 -13 -21 -56 -98 -96 -170 -40 -72 -107 -192 -150 -266 -171 -297 -330 -579 -368 -655 -22 -44 -77 -143 -122 -220 -46 -77 -116 -198 -156 -270 -40 -71 -85 -149 -101 -172 -48 -73 -51 -80 -33 -97 14 -15 482 -16 5122 -16 5302 1 5361 1 5672 40 158 20 352 56 485 90 489 126 1016 425 1223 694 41 53 47 68 48 111 1 27 14 84 29 125 27 73 28 82 29 275 1 209 -6 256 -59 380 -70 166 -343 456 -560 597 -75 48 -480 259 -580 301 -33 14 -125 56 -205 92 -164 74 -273 121 -375 160 -38 15 -117 52 -175 83 l-105 56 -4160 1 c-3037 0 -4180 -3 -4235 -11z"/>
+    </g>
+  </g>
+
+  <!-- ===== Dense side elements LEFT ===== -->
+
+  <!-- Vertical bar group left (already 10px wide — OK) -->
+  <rect class="am" x="110" y="480" width="10" height="140" rx="5"/>
+  <rect class="tq" x="128" y="520" width="10" height="180" rx="5"/>
+  <rect class="wh" x="146" y="480" width="10" height="120" rx="5" opacity="0.6"/>
+  <rect class="am" x="110" y="640" width="10" height="220" rx="5"/>
+  <rect class="tq" x="128" y="720" width="10" height="260" rx="5"/>
+  <rect class="wh" x="146" y="620" width="10" height="140" rx="5" opacity="0.4"/>
+
+  <!-- Square blocks left (32px — OK) -->
+  <rect class="tq" x="170" y="500" width="32" height="32" rx="4"/>
+  <rect class="am" x="170" y="542" width="32" height="32" rx="4"/>
+  <rect class="wh" x="170" y="584" width="32" height="32" rx="4" opacity="0.5"/>
+  <rect class="tq" x="170" y="626" width="32" height="32" rx="4" opacity="0.7"/>
+
+  <!-- Checkerboard left tall (was 20px → 22px for safer DTG) -->
+  <rect class="wh" x="170" y="700" width="22" height="22"/>
+  <rect class="tq" x="196" y="700" width="22" height="22"/>
+  <rect class="tq" x="170" y="726" width="22" height="22"/>
+  <rect class="wh" x="196" y="726" width="22" height="22"/>
+  <rect class="wh" x="170" y="752" width="22" height="22"/>
+  <rect class="tq" x="196" y="752" width="22" height="22"/>
+  <rect class="tq" x="170" y="778" width="22" height="22"/>
+  <rect class="wh" x="196" y="778" width="22" height="22"/>
+  <rect class="wh" x="170" y="804" width="22" height="22"/>
+  <rect class="tq" x="196" y="804" width="22" height="22"/>
+  <rect class="tq" x="170" y="830" width="22" height="22"/>
+  <rect class="wh" x="196" y="830" width="22" height="22"/>
+
+  <!-- Horizontal bars left (was 6/4/4 → 8/6/6) -->
+  <rect class="am" x="120" y="880" width="100" height="8" rx="3"/>
+  <rect class="wh" x="120" y="896" width="70" height="6" rx="3"/>
+  <rect class="tq" x="120" y="910" width="50" height="6" rx="3"/>
+
+  <!-- Arrow left -->
+  <polygon class="tq" points="130,960 160,980 130,1000"/>
+  <rect class="tq" x="110" y="974" width="16" height="12"/>
+
+  <!-- More squares left lower (28px — OK) -->
+  <rect class="am" x="160" y="1040" width="28" height="28" rx="3"/>
+  <rect class="wh" x="160" y="1076" width="28" height="28" rx="3" opacity="0.5"/>
+  <rect class="tq" x="160" y="1112" width="28" height="28" rx="3"/>
+  <rect class="am" x="160" y="1148" width="28" height="28" rx="3" opacity="0.7"/>
+
+  <!-- ===== Dense side elements RIGHT ===== -->
+
+  <!-- Vertical bar group right (already 10px — OK) -->
+  <rect class="tq" x="1660" y="480" width="10" height="160" rx="5"/>
+  <rect class="am" x="1678" y="520" width="10" height="200" rx="5"/>
+  <rect class="wh" x="1644" y="500" width="10" height="100" rx="5" opacity="0.5"/>
+  <rect class="tq" x="1660" y="660" width="10" height="240" rx="5"/>
+  <rect class="am" x="1678" y="740" width="10" height="240" rx="5"/>
+  <rect class="wh" x="1644" y="680" width="10" height="120" rx="5" opacity="0.4"/>
+
+  <!-- Square blocks right (32px — OK) -->
+  <rect class="am" x="1598" y="520" width="32" height="32" rx="4"/>
+  <rect class="tq" x="1598" y="562" width="32" height="32" rx="4"/>
+  <rect class="wh" x="1598" y="604" width="32" height="32" rx="4" opacity="0.5"/>
+  <rect class="am" x="1598" y="646" width="32" height="32" rx="4" opacity="0.7"/>
+
+  <!-- Checkerboard right tall (was 20px → 22px) -->
+  <rect class="wh" x="1586" y="720" width="22" height="22"/>
+  <rect class="am" x="1612" y="720" width="22" height="22"/>
+  <rect class="am" x="1586" y="746" width="22" height="22"/>
+  <rect class="wh" x="1612" y="746" width="22" height="22"/>
+  <rect class="wh" x="1586" y="772" width="22" height="22"/>
+  <rect class="am" x="1612" y="772" width="22" height="22"/>
+  <rect class="am" x="1586" y="798" width="22" height="22"/>
+  <rect class="wh" x="1612" y="798" width="22" height="22"/>
+  <rect class="wh" x="1586" y="824" width="22" height="22"/>
+  <rect class="am" x="1612" y="824" width="22" height="22"/>
+  <rect class="am" x="1586" y="850" width="22" height="22"/>
+  <rect class="wh" x="1612" y="850" width="22" height="22"/>
+
+  <!-- Horizontal bars right (was 6/4/4 → 8/6/6) -->
+  <rect class="tq" x="1580" y="900" width="100" height="8" rx="3"/>
+  <rect class="wh" x="1610" y="916" width="70" height="6" rx="3"/>
+  <rect class="am" x="1630" y="930" width="50" height="6" rx="3"/>
+
+  <!-- Arrow right (pointing left) -->
+  <polygon class="am" points="1670,960 1640,980 1670,1000"/>
+  <rect class="am" x="1674" y="974" width="16" height="12"/>
+
+  <!-- More squares right lower (28px — OK) -->
+  <rect class="tq" x="1612" y="1060" width="28" height="28" rx="3"/>
+  <rect class="wh" x="1612" y="1096" width="28" height="28" rx="3" opacity="0.5"/>
+  <rect class="am" x="1612" y="1132" width="28" height="28" rx="3"/>
+  <rect class="tq" x="1612" y="1168" width="28" height="28" rx="3" opacity="0.7"/>
+
+  <!-- ===== Transition lines above PUSH FORWARD (was 3px → 6px) ===== -->
+  <rect class="wh" x="200" y="1280" width="1400" height="6" opacity="0.25"/>
+  <rect class="am" x="300" y="1294" width="1200" height="6" opacity="0.4"/>
+  <rect class="tq" x="400" y="1308" width="1000" height="6" opacity="0.3"/>
+
+  <!-- Small geometric row (16px blocks — OK) -->
+  <rect class="tq" x="440" y="1325" width="16" height="16" rx="2"/>
+  <rect class="am" x="464" y="1325" width="16" height="16" rx="2"/>
+  <rect class="wh" x="488" y="1325" width="16" height="16" rx="2"/>
+  <polygon class="am" points="540,1325 556,1333 540,1341"/>
+  <polygon class="tq" points="1260,1325 1244,1333 1260,1341"/>
+  <rect class="wh" x="1296" y="1325" width="16" height="16" rx="2"/>
+  <rect class="am" x="1320" y="1325" width="16" height="16" rx="2"/>
+  <rect class="tq" x="1344" y="1325" width="16" height="16" rx="2"/>
+
+  <!-- ===== ZONE D: "PUSH FORWARD" ===== -->
+
+  <!-- Amber bar above (already 8px — OK) -->
+  <rect class="am" x="240" y="1355" width="1320" height="8" rx="4"/>
+
+  <!-- Turquoise block -->
+  <rect class="tq" x="240" y="1380" width="1320" height="180" rx="6"/>
+
+  <!-- "PUSH" white -->
+  <text x="470" y="1500" text-anchor="middle" font-family="Impact, 'Arial Black', sans-serif"
+        font-size="80" font-weight="900" letter-spacing="2" class="wh">PUSH</text>
+
+  <!-- "FORWARD" amber -->
+  <text x="1060" y="1500" text-anchor="middle" font-family="Impact, 'Arial Black', sans-serif"
+        font-size="80" font-weight="900" letter-spacing="2" class="am">FORWARD</text>
+
+  <!-- Flanking arrows -->
+  <polygon class="wh" points="1600,1430 1640,1470 1600,1510"/>
+  <polygon class="am" points="1640,1440 1670,1470 1640,1500" opacity="0.7"/>
+  <polygon class="wh" points="200,1430 160,1470 200,1510"/>
+  <polygon class="tq" points="160,1440 130,1470 160,1500" opacity="0.7"/>
+
+  <!-- Side marks (already 6px height — OK) -->
+  <rect class="wh" x="170" y="1400" width="36" height="6"/>
+  <rect class="am" x="170" y="1414" width="26" height="6"/>
+  <rect class="wh" x="170" y="1428" width="16" height="6"/>
+  <rect class="wh" x="1594" y="1400" width="36" height="6"/>
+  <rect class="am" x="1604" y="1414" width="26" height="6"/>
+  <rect class="wh" x="1614" y="1428" width="16" height="6"/>
+
+  <!-- ===== ZONE E: "STAY AHEAD" Banner ===== -->
+
+  <!-- White bar -->
+  <rect class="wh" x="260" y="1620" width="1280" height="110" rx="4"/>
+
+  <!-- "STAY AHEAD" black text -->
+  <text x="900" y="1695" text-anchor="middle" font-family="Impact, 'Arial Black', sans-serif"
+        font-size="58" font-weight="900" letter-spacing="3" fill="#000000">STAY AHEAD</text>
+
+  <!-- Five stars (larger — was ~46px span → 56px for DTG) -->
+  <polygon class="wh" points="760,1765 768,1790 792,1790 773,1803 780,1828 760,1815 740,1828 747,1803 728,1790 752,1790"/>
+  <polygon class="tq" points="830,1765 838,1790 862,1790 843,1803 850,1828 830,1815 810,1828 817,1803 798,1790 822,1790"/>
+  <polygon class="wh" points="900,1765 908,1790 932,1790 913,1803 920,1828 900,1815 880,1828 887,1803 868,1790 892,1790"/>
+  <polygon class="tq" points="970,1765 978,1790 1002,1790 983,1803 990,1828 970,1815 950,1828 957,1803 938,1790 962,1790"/>
+  <polygon class="wh" points="1040,1765 1048,1790 1072,1790 1053,1803 1060,1828 1040,1815 1020,1828 1027,1803 1008,1790 1032,1790"/>
+
+  <!-- ===== ZONE F: Dense Footer ===== -->
+
+  <!-- Multi-line set (was 4/3/2 → 8/6/6) -->
+  <rect class="tq" x="200" y="1860" width="1400" height="8"/>
+  <rect class="am" x="300" y="1876" width="1200" height="6"/>
+  <rect class="wh" x="400" y="1890" width="1000" height="6" opacity="0.5"/>
+
+  <!-- Dashed line (was 4px → 6px) -->
+  <rect class="wh" x="240" y="1910" width="50" height="6"/>
+  <rect class="wh" x="310" y="1910" width="50" height="6"/>
+  <rect class="wh" x="380" y="1910" width="50" height="6"/>
+  <rect class="wh" x="450" y="1910" width="50" height="6"/>
+  <rect class="wh" x="520" y="1910" width="50" height="6"/>
+  <rect class="wh" x="590" y="1910" width="50" height="6"/>
+  <rect class="wh" x="660" y="1910" width="50" height="6"/>
+
+  <!-- Bottom checkerboard wide (26px blocks — OK) -->
+  <rect class="wh" x="240" y="1940" width="26" height="26"/>
+  <rect class="tq" x="270" y="1940" width="26" height="26"/>
+  <rect class="am" x="300" y="1940" width="26" height="26"/>
+  <rect class="wh" x="330" y="1940" width="26" height="26"/>
+  <rect class="tq" x="240" y="1970" width="26" height="26"/>
+  <rect class="am" x="270" y="1970" width="26" height="26"/>
+  <rect class="wh" x="300" y="1970" width="26" height="26"/>
+  <rect class="tq" x="330" y="1970" width="26" height="26"/>
+
+  <!-- Bottom chevrons right -->
+  <polygon class="am" points="1420,1920 1455,1945 1420,1970"/>
+  <polygon class="wh" points="1470,1920 1505,1945 1470,1970"/>
+  <polygon class="tq" points="1520,1920 1555,1945 1520,1970"/>
+  <polygon class="am" points="1570,1920 1605,1945 1570,1970"/>
+
+  <!-- Bottom chevrons left -->
+  <polygon class="tq" points="780,1920 745,1945 780,1970"/>
+  <polygon class="wh" points="830,1920 795,1945 830,1970"/>
+
+  <!-- Bottom bars (was 10/6/4 → 10/8/6) -->
+  <rect class="tq" x="400" y="2020" width="1000" height="10" rx="5"/>
+  <rect class="am" x="500" y="2042" width="800" height="8" rx="4"/>
+  <rect class="wh" x="600" y="2060" width="600" height="6" rx="3" opacity="0.5"/>
+
+  <!-- Arrow lines bottom (was stroke-width 4 → 6) -->
+  <line x1="180" y1="2050" x2="280" y2="2050" stroke="#40ACCC" stroke-width="6"/>
+  <polygon class="tq" points="280,2040 300,2050 280,2060"/>
+  <line x1="1520" y1="2050" x2="1620" y2="2050" stroke="#F59E0B" stroke-width="6"/>
+  <polygon class="am" points="1620,2040 1640,2050 1620,2060"/>
+
+  <!-- Vertical pulse lines center (was 4px → 6px) -->
+  <rect class="tq" x="839" y="2090" width="6" height="100" opacity="0.3"/>
+  <rect class="am" x="859" y="2080" width="6" height="120" opacity="0.4"/>
+  <rect class="wh" x="879" y="2090" width="6" height="100" opacity="0.5"/>
+  <rect class="tq" x="899" y="2085" width="6" height="110" opacity="0.4"/>
+  <rect class="am" x="919" y="2090" width="6" height="100" opacity="0.3"/>
+  <rect class="wh" x="939" y="2080" width="6" height="120" opacity="0.4"/>
+  <rect class="tq" x="959" y="2090" width="6" height="100" opacity="0.3"/>
+
+  <!-- Bottom-most line (was 2px → 6px) -->
+  <rect class="wh" x="300" y="2220" width="1200" height="6" opacity="0.15"/>
+
+</svg>

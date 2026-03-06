@@ -14,6 +14,7 @@ interface AuthState {
   user: User | null
   authenticated: boolean
   loading: boolean
+  error: string | null
 }
 
 // Storage key for cross-tab auth sync
@@ -27,6 +28,7 @@ export function useAuth() {
     user: null,
     authenticated: false,
     loading: true,
+    error: null,
   })
 
   useEffect(() => {
@@ -55,6 +57,7 @@ export function useAuth() {
                 user: null,
                 authenticated: false,
                 loading: false,
+                error: null,
               })
             } else if (event.type === 'login' || event.type === 'session-check') {
               // Another tab logged in — re-check session
@@ -113,6 +116,7 @@ export function useAuth() {
         user: data.user,
         authenticated: data.authenticated,
         loading: false,
+        error: null,
       })
 
       // Broadcast session check event to other tabs
@@ -125,6 +129,7 @@ export function useAuth() {
         user: null,
         authenticated: false,
         loading: false,
+        error: 'Session check failed',
       })
     }
   }
@@ -140,6 +145,7 @@ export function useAuth() {
         user: null,
         authenticated: false,
         loading: false,
+        error: null,
       })
 
       // Broadcast logout event to other tabs

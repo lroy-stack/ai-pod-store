@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 import { getAuthUser } from '@/lib/auth-guard'
 import { z } from 'zod'
+import { designSaveLimiter } from '@/lib/rate-limit'
 
 const saveDesignSchema = z.object({
   prompt: z.string().min(1),
@@ -94,6 +95,14 @@ export async function POST(req: NextRequest) {
 
     // Get user from auth token (not from request body)
     const user = await getAuthUser(req)
+
+    // Rate limit check
+    const ip = req.headers.get('x-forwarded-for') || 'unknown'
+    const rateLimitKey = `design:save:${user?.id || ip}`
+    const { success } = designSaveLimiter.check(rateLimitKey)
+    if (!success) {
+      return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+    }
 
     // Insert design with moderation_status='pending' (default in DB schema)
     const { data, error } = await supabaseAdmin

@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1260" height="1260" viewBox="0 0 1260 1260">
+
+  <!-- CC01: "NOPE" Coaster — BP1523 1260×1260, sublimation on ceramic -->
+  <!-- Must work both round and square — centered, no corners -->
+  <!-- Navy background for sublimation -->
+
+  <!-- Full background -->
+  <rect width="1260" height="1260" fill="#0F172A"/>
+
+  <!-- Inner ring/circle guide (decorative, subtle) -->
+  <circle cx="630" cy="630" r="530" fill="none" stroke="#1E293B" stroke-width="3"/>
+
+  <!-- "NOPE." — 4-layer 3D red, MASSIVE centered -->
+  <text x="638" y="690"
+        font-family="'Bebas Neue', sans-serif"
+        font-size="380"
+        fill="#7F1D1D" text-anchor="middle">NOPE.</text>
+  <text x="635" y="687"
+        font-family="'Bebas Neue', sans-serif"
+        font-size="380"
+        fill="#991B1B" text-anchor="middle">NOPE.</text>
+  <text x="633" y="684"
+        font-family="'Bebas Neue', sans-serif"
+        font-size="380"
+        fill="#DC2626" text-anchor="middle">NOPE.</text>
+  <text x="630" y="680"
+        font-family="'Bebas Neue', sans-serif"
+        font-size="380"
+        fill="#EF4444" text-anchor="middle">NOPE.</text>
+
+  <!-- "absolutely not." — below -->
+  <text x="630" y="860"
+        font-family="'Courier New', monospace"
+        font-size="68" font-weight="bold"
+        fill="#F0EDE8" text-anchor="middle">absolutely not.</text>
+
+  <!-- SKAPARA micro branding — bottom -->
+  <text x="630" y="1100"
+        font-family="'Courier New', monospace"
+        font-size="36" font-weight="bold"
+        fill="#334155" text-anchor="middle">SKAPARA</text>
+
+</svg>

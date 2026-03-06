@@ -1,7 +1,18 @@
+import { cache } from 'react'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 
-// Cached function to get all active products from Supabase
-export async function getCatalogProducts() {
+/** Extract image URL from images array — handles both string[] and {src}[] formats */
+export function extractImageUrl(images: unknown, index = 0): string | null {
+  if (!Array.isArray(images) || images.length === 0) return null
+  const item = images[index] ?? images[0]
+  if (!item) return null
+  if (typeof item === 'string') return item
+  if (typeof item === 'object' && item !== null) return (item as any).src || (item as any).url || null
+  return null
+}
+
+// Get all active products from Supabase (React.cache deduplicates within same request)
+export const getCatalogProducts = cache(async function getCatalogProducts() {
   const { data: products, error } = await supabaseAdmin
     .from('products')
     .select('id, title, description, category, tags, base_price_cents, currency, images, avg_rating, review_count, created_at')
@@ -19,26 +30,26 @@ export async function getCatalogProducts() {
     description: p.description,
     price: p.base_price_cents / 100,
     currency: p.currency?.toUpperCase() || 'EUR',
-    image: Array.isArray(p.images) && p.images.length > 0 ? (p.images[0].src || p.images[0].url) : null,
+    image: extractImageUrl(p.images, 0),
     rating: Number(p.avg_rating) || 0,
     reviewCount: p.review_count || 0,
     category: p.category?.toLowerCase(),
     createdAt: p.created_at,
   }))
-}
+})
 
-// Cached function to get product categories
-export async function getProductCategories() {
+// Get product categories (React.cache deduplicates within same request)
+export const getProductCategories = cache(async function getProductCategories() {
   const products = await getCatalogProducts()
   const categories = Array.from(new Set(products.map((p) => p.category)))
   return ['all', ...categories]
-}
+})
 
-// Cached function to get product count per category
-export async function getCategoryProductCount(category: string) {
+// Get product count per category (React.cache deduplicates within same request)
+export const getCategoryProductCount = cache(async function getCategoryProductCount(category: string) {
   const products = await getCatalogProducts()
   if (category === 'all') {
     return products.length
   }
   return products.filter((p) => p.category === category).length
-}
+})

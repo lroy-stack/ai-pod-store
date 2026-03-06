@@ -9,6 +9,7 @@ import { NextRequest } from 'next/server'
 import { requireAuth, authErrorResponse } from '@/lib/auth-guard'
 import { stripe } from '@/lib/stripe'
 import { createClient } from '@supabase/supabase-js'
+import { BASE_URL } from '@/lib/store-config'
 
 const supabase = createClient(
   process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -33,8 +34,6 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       )
     }
-
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
 
     // Get or create Stripe customer
     let customerId = profile?.stripe_customer_id
@@ -62,8 +61,8 @@ export async function POST(req: NextRequest) {
           quantity: 1,
         },
       ],
-      success_url: `${baseUrl}/en/pricing?success=true`,
-      cancel_url: `${baseUrl}/en/pricing?cancelled=true`,
+      success_url: `${BASE_URL}/en/pricing?success=true`,
+      cancel_url: `${BASE_URL}/en/pricing?cancelled=true`,
       metadata: {
         user_id: user.id,
         type: 'subscription',

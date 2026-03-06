@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="4016" height="3307" viewBox="0 0 4016 3307">
+
+  <!-- A03: "Hang In There — It Gets Worse" — BP77 Hoodie 4016×3307 LANDSCAPE -->
+  <!-- SAME design as original, recomposed for landscape: vertical stack centered -->
+  <!-- Accents: #A78BFA (purple) + #EF4444 (red) -->
+  <!-- Fonts: Oswald, Caveat, Permanent Marker — SAME as original -->
+
+  <!-- "HANG" — Oswald condensed, purple -->
+  <text x="2008" y="700"
+        font-family="'Oswald', sans-serif"
+        font-size="650"
+        fill="#A78BFA" text-anchor="middle"
+        letter-spacing="25">HANG</text>
+
+  <!-- "IN THERE" — Oswald condensed, purple -->
+  <text x="2008" y="1200"
+        font-family="'Oswald', sans-serif"
+        font-size="480"
+        fill="#A78BFA" text-anchor="middle"
+        letter-spacing="12">IN THERE</text>
+
+  <!-- Separator bar — off-white -->
+  <rect x="1000" y="1420" width="2016" height="20" rx="10" fill="#F0EDE8"/>
+
+  <!-- "it gets" — Caveat handwritten -->
+  <text x="2008" y="1800"
+        font-family="'Caveat', cursive"
+        font-size="400"
+        fill="#F0EDE8" text-anchor="middle">it gets</text>
+
+  <!-- "WORSE" shadow -->
+  <text x="2023" y="2515"
+        font-family="'Permanent Marker', cursive"
+        font-size="680"
+        fill="#991B1B" text-anchor="middle">WORSE</text>
+
+  <!-- "WORSE" — Permanent Marker, red -->
+  <text x="2008" y="2500"
+        font-family="'Permanent Marker', cursive"
+        font-size="680"
+        fill="#EF4444" text-anchor="middle">WORSE</text>
+
+  <!-- ":)" — ironic smiley -->
+  <text x="2008" y="3000"
+        font-family="'Courier New', monospace"
+        font-size="250" font-weight="bold"
+        fill="#F0EDE8" opacity="0.4" text-anchor="middle">:)</text>
+
+</svg>

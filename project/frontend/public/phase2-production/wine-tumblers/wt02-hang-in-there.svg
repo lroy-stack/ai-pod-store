@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="3279" height="900" viewBox="0 0 3279 900">
+
+  <!-- WT02: "Hang In There" Wine Tumbler — BP620 3279×900, sublimation -->
+  <!-- Ultra-wide wrap 3.6:1 ratio — v2 fixed overlap -->
+  <!-- Navy background for sublimation -->
+
+  <!-- Full background -->
+  <rect width="3279" height="900" fill="#0F172A"/>
+
+  <!-- "HANG IN THERE" — left, purple -->
+  <text x="600" y="490"
+        font-family="'Bebas Neue', sans-serif"
+        font-size="180"
+        fill="#A78BFA" text-anchor="middle"
+        letter-spacing="8">HANG IN THERE</text>
+
+  <!-- Separator bar -->
+  <rect x="1200" y="280" width="4" height="340" rx="2" fill="#F0EDE8"/>
+
+  <!-- "it gets" — center -->
+  <text x="1450" y="480"
+        font-family="'Caveat', cursive"
+        font-size="140"
+        fill="#F0EDE8" text-anchor="middle">it gets</text>
+
+  <!-- "WORSE" — right, 3D red -->
+  <text x="2100" y="530"
+        font-family="'Permanent Marker', cursive"
+        font-size="260"
+        fill="#7F1D1D" text-anchor="middle">WORSE</text>
+  <text x="2096" y="526"
+        font-family="'Permanent Marker', cursive"
+        font-size="260"
+        fill="#991B1B" text-anchor="middle">WORSE</text>
+  <text x="2092" y="522"
+        font-family="'Permanent Marker', cursive"
+        font-size="260"
+        fill="#EF4444" text-anchor="middle">WORSE</text>
+
+  <!-- ":)" smiley — far right -->
+  <text x="2650" y="500"
+        font-family="'Courier New', monospace"
+        font-size="100" font-weight="bold"
+        fill="#F0EDE8" text-anchor="middle">:)</text>
+
+  <!-- SKAPARA branding — far right bottom -->
+  <text x="3100" y="830"
+        font-family="'Courier New', monospace"
+        font-size="44" font-weight="bold"
+        fill="#475569" text-anchor="middle">SKAPARA</text>
+
+</svg>

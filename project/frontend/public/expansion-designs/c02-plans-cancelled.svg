@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="4606" height="5787" viewBox="0 0 4606 5787">
+
+  <!-- C02: "Plans Cancelled → Best Day Ever" — BP6 T-Shirt 4606x5787 -->
+  <!-- Palette: Amber/Orange (#F59E0B) + Gray (#6B7280) — warm celebration -->
+  <!-- 3D block text + diagonal slash — dynamic composition -->
+
+  <!-- ===== "PLANS" — gray, dead, with diagonal amber slash ===== -->
+  <text x="2303" y="1400"
+        font-family="'Oswald', sans-serif"
+        font-size="1000" font-weight="700"
+        fill="#6B7280" text-anchor="middle">PLANS</text>
+
+  <!-- Diagonal slash through PLANS — amber, dynamic angle -->
+  <line x1="800" y1="1500" x2="3800" y2="900"
+        stroke="#F59E0B" stroke-width="35" stroke-linecap="round"/>
+
+  <!-- "cancelled" — Caveat, amber -->
+  <text x="2303" y="1800"
+        font-family="'Caveat', cursive"
+        font-size="400"
+        fill="#D97706" text-anchor="middle">cancelled</text>
+
+  <!-- ===== "BEST" — 3D block extrusion, amber ===== -->
+
+  <text x="2323" y="3120"
+        font-family="'Oswald', sans-serif"
+        font-size="1000" font-weight="700"
+        fill="#92400E" text-anchor="middle">BEST</text>
+
+  <text x="2313" y="3110"
+        font-family="'Oswald', sans-serif"
+        font-size="1000" font-weight="700"
+        fill="#D97706" text-anchor="middle">BEST</text>
+
+  <text x="2303" y="3100"
+        font-family="'Oswald', sans-serif"
+        font-size="1000" font-weight="700"
+        fill="#F59E0B" text-anchor="middle">BEST</text>
+
+  <!-- ===== "DAY" — 3D block, amber ===== -->
+
+  <text x="2323" y="4120"
+        font-family="'Oswald', sans-serif"
+        font-size="1000" font-weight="700"
+        fill="#92400E" text-anchor="middle">DAY</text>
+
+  <text x="2313" y="4110"
+        font-family="'Oswald', sans-serif"
+        font-size="1000" font-weight="700"
+        fill="#D97706" text-anchor="middle">DAY</text>
+
+  <text x="2303" y="4100"
+        font-family="'Oswald', sans-serif"
+        font-size="1000" font-weight="700"
+        fill="#F59E0B" text-anchor="middle">DAY</text>
+
+  <!-- ===== "EVER" — 3D block, amber ===== -->
+
+  <text x="2323" y="5120"
+        font-family="'Oswald', sans-serif"
+        font-size="1000" font-weight="700"
+        fill="#92400E" text-anchor="middle">EVER</text>
+
+  <text x="2313" y="5110"
+        font-family="'Oswald', sans-serif"
+        font-size="1000" font-weight="700"
+        fill="#D97706" text-anchor="middle">EVER</text>
+
+  <text x="2303" y="5100"
+        font-family="'Oswald', sans-serif"
+        font-size="1000" font-weight="700"
+        fill="#F59E0B" text-anchor="middle">EVER</text>
+
+</svg>

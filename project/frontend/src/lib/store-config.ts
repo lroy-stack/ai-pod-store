@@ -1,15 +1,24 @@
+/** Brand identity — single source of truth for name + logos */
+const _brandName = process.env.NEXT_PUBLIC_SITE_NAME || 'SKAPARA'
+
+export const BRAND = {
+  name: _brandName,
+  logoLight: '/brand/skapara-mark-dark.svg',
+  logoDark: '/brand/skapara-mark-white.svg',
+} as const
+
 /** Store-wide defaults — single source of truth */
 export const STORE_DEFAULTS = {
-  platformName: 'Skapara',
-  storeName: 'Skapara Store',
-  assistantName: 'Skapara Assistant',
+  platformName: _brandName,
+  storeName: `${_brandName} Store`,
+  assistantName: `${_brandName} Assistant`,
   currency: 'EUR',
   country: 'DE',
   measurementUnit: 'cm',
   freeShippingThreshold: 50,
   stripeCurrency: 'eur',
   maxCartQuantity: 99,
-} as const
+}
 
 /** Locale → default country (used when user has no saved address) */
 export const LOCALE_COUNTRY: Record<string, string> = {
@@ -47,6 +56,13 @@ export const PRICING = {
   },
 } as const
 
+/** EU-approved Printify providers (only these ship from EU fulfillment centers) */
+export const EU_APPROVED_PROVIDERS = new Set([26, 410, 90, 23, 30, 255, 86])
+
+export function isEUProvider(providerId: number): boolean {
+  return EU_APPROVED_PROVIDERS.has(providerId)
+}
+
 /** Shipping rates in store currency */
 export const SHIPPING_RATES: Record<string, Array<{ method: string; price: number; days: string }>> = {
   DE: [
@@ -74,3 +90,22 @@ export const SHIPPING_RATES: Record<string, Array<{ method: string; price: numbe
     { method: 'Express', price: 24.99, days: '5-7 business days' },
   ],
 }
+
+/** Canonical base URL — single source of truth */
+export const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://skapara.com'
+
+/** Contact emails */
+export const CONTACT = {
+  general: 'hello@skapara.com',
+  support: 'support@skapara.com',
+} as const
+
+/** Social media links */
+export const SOCIAL_LINKS = {
+  instagram: 'https://instagram.com/skapara',
+  twitter: 'https://twitter.com/skapara',
+  facebook: 'https://facebook.com/skapara',
+} as const
+
+/** Primary domains — used by middleware and tenant resolution */
+export const PRIMARY_DOMAINS = ['localhost', '127.0.0.1', '0.0.0.0', 'skapara.com'] as const

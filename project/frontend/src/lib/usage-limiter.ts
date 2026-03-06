@@ -8,6 +8,7 @@
 
 import { createHash } from 'crypto'
 import { createClient } from '@supabase/supabase-js'
+import { BASE_URL } from '@/lib/store-config'
 
 const supabase = createClient(
   process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -16,7 +17,7 @@ const supabase = createClient(
 )
 
 export type UserTier = 'anonymous' | 'free' | 'premium'
-export type UsageAction = 'chat' | 'chat:messages' | 'chat:tokens' | 'design:generate' | 'design:mockup' | 'design:save'
+export type UsageAction = 'chat' | 'chat:messages' | 'chat:tokens' | 'design:generate' | 'design:mockup' | 'design:save' | 'design:ai-generate' | 'design:refine' | 'design:upload'
 
 type PeriodType = 'daily' | 'monthly'
 type LimitConfig = { limit: number; period: PeriodType }
@@ -29,6 +30,9 @@ export const USAGE_TIERS: Record<UserTier, Record<UsageAction, LimitConfig>> = {
     'design:generate': { limit: 0,   period: 'monthly' },
     'design:mockup':   { limit: 3,   period: 'daily' },
     'design:save':     { limit: 0,   period: 'daily' },
+    'design:ai-generate': { limit: 0, period: 'monthly' },
+    'design:refine':   { limit: 0,   period: 'monthly' },
+    'design:upload':   { limit: 0,   period: 'daily' },
   },
   free: {
     chat:              { limit: 30,  period: 'daily' },
@@ -37,6 +41,9 @@ export const USAGE_TIERS: Record<UserTier, Record<UsageAction, LimitConfig>> = {
     'design:generate': { limit: 5,   period: 'monthly' },
     'design:mockup':   { limit: 10,  period: 'monthly' },
     'design:save':     { limit: 20,  period: 'daily' },
+    'design:ai-generate': { limit: 5, period: 'monthly' },
+    'design:refine':   { limit: 10,  period: 'monthly' },
+    'design:upload':   { limit: 5,   period: 'daily' },
   },
   premium: {
     chat:              { limit: 100, period: 'daily' },
@@ -45,6 +52,9 @@ export const USAGE_TIERS: Record<UserTier, Record<UsageAction, LimitConfig>> = {
     'design:generate': { limit: 50,  period: 'monthly' },
     'design:mockup':   { limit: 100, period: 'monthly' },
     'design:save':     { limit: -1,  period: 'daily' },
+    'design:ai-generate': { limit: 50, period: 'monthly' },
+    'design:refine':   { limit: 100, period: 'monthly' },
+    'design:upload':   { limit: 20,  period: 'daily' },
   },
 }
 
@@ -275,8 +285,7 @@ export async function checkAndIncrementUsage(
   console.error(`[UsageLimiter] Supabase failed for ${id}:${action}. DENYING request (fail-closed).`)
 
   // Fire-and-forget alert to admin
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
-  fetch(`${baseUrl}/api/admin/alert`, {
+  fetch(`${BASE_URL}/api/admin/alert`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -374,7 +383,7 @@ export async function getUsageForTier(
   tier: UserTier
 ): Promise<Record<UsageAction, { used: number; limit: number; remaining: number; periodType: PeriodType; resetAt: string }>> {
   const id = normalizeIdentifier(identifier)
-  const actions: UsageAction[] = ['chat', 'chat:messages', 'chat:tokens', 'design:generate', 'design:mockup', 'design:save']
+  const actions: UsageAction[] = ['chat', 'chat:messages', 'chat:tokens', 'design:generate', 'design:mockup', 'design:save', 'design:ai-generate', 'design:refine', 'design:upload']
   const result = {} as Record<UsageAction, { used: number; limit: number; remaining: number; periodType: PeriodType; resetAt: string }>
 
   for (const action of actions) {

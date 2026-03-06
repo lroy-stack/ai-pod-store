@@ -1,0 +1,94 @@
+<!-- SKAPARA Recycled — Wrist "26" Embroidery Design
+     Canvas: 600×900 @300dpi (2" × 3")
+     Placement: embroidery_wrist_right
+     Threads: Black #000000 (1800), Kelly Green #01784E (1751), Kiwi Green #7BA35A (1848) — 3 colors
+     Content: "26" in pixel/block style — "2" Black, "6" Kelly Green, Kiwi Green underline
+
+     Adapted from origin-embroidery/chest-left.svg (1200×1200) to wrist canvas (600×900)
+
+     Block: 70×50px, rx=4 — exceeds 1.5mm minimum (4.2mm @300dpi)
+     Gap between blocks: 11px
+     Gap between digits: 24px
+     10% margin on all sides (60px)
+
+     Embroidery constraints applied:
+     - No gradients — flat fills only
+     - Closed paths (rect elements)
+     - 3 thread colors
+     - All blocks >= 1.5mm (4.2mm actual)
+
+     For use on: STSU177 (Cat 479) — Desert Dust (primary), French Navy (swap Black→White)
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 900" width="600" height="900">
+  <defs>
+    <style>
+      .blk { fill: #000000; }
+      .grn { fill: #01784E; }
+    </style>
+  </defs>
+
+  <!-- Layout: 2 digits × 3 cols × 5 rows
+       Block: 70×50px, gap: 11px, digit gap: 24px
+       Digit width: 3×70 + 2×11 = 232px
+       Total width: 2×232 + 24 = 488px
+       Start x: (600-488)/2 = 56
+       Row heights: 5×50 + 4×11 = 294px
+       Underline: gap 22px, height 12px
+       Total height: 294 + 22 + 12 = 328px
+       Start y: (900-328)/2 = 286
+  -->
+
+  <!-- ===== DIGIT "2" (Black) ===== -->
+  <!-- x0=56, x1=137, x2=218 -->
+  <!-- y0=286, y1=347, y2=408, y3=469, y4=530 -->
+
+  <!-- Row 0: ■ ■ ■ -->
+  <rect class="blk" x="56" y="286" width="70" height="50" rx="4"/>
+  <rect class="blk" x="137" y="286" width="70" height="50" rx="4"/>
+  <rect class="blk" x="218" y="286" width="70" height="50" rx="4"/>
+
+  <!-- Row 1: _ _ ■ -->
+  <rect class="blk" x="218" y="347" width="70" height="50" rx="4"/>
+
+  <!-- Row 2: ■ ■ ■ -->
+  <rect class="blk" x="56" y="408" width="70" height="50" rx="4"/>
+  <rect class="blk" x="137" y="408" width="70" height="50" rx="4"/>
+  <rect class="blk" x="218" y="408" width="70" height="50" rx="4"/>
+
+  <!-- Row 3: ■ _ _ -->
+  <rect class="blk" x="56" y="469" width="70" height="50" rx="4"/>
+
+  <!-- Row 4: ■ ■ ■ -->
+  <rect class="blk" x="56" y="530" width="70" height="50" rx="4"/>
+  <rect class="blk" x="137" y="530" width="70" height="50" rx="4"/>
+  <rect class="blk" x="218" y="530" width="70" height="50" rx="4"/>
+
+  <!-- ===== DIGIT "6" (Kelly Green) ===== -->
+  <!-- x0=312, x1=393, x2=474 -->
+
+  <!-- Row 0: ■ ■ ■ -->
+  <rect class="grn" x="312" y="286" width="70" height="50" rx="4"/>
+  <rect class="grn" x="393" y="286" width="70" height="50" rx="4"/>
+  <rect class="grn" x="474" y="286" width="70" height="50" rx="4"/>
+
+  <!-- Row 1: ■ _ _ -->
+  <rect class="grn" x="312" y="347" width="70" height="50" rx="4"/>
+
+  <!-- Row 2: ■ ■ ■ -->
+  <rect class="grn" x="312" y="408" width="70" height="50" rx="4"/>
+  <rect class="grn" x="393" y="408" width="70" height="50" rx="4"/>
+  <rect class="grn" x="474" y="408" width="70" height="50" rx="4"/>
+
+  <!-- Row 3: ■ _ ■ -->
+  <rect class="grn" x="312" y="469" width="70" height="50" rx="4"/>
+  <rect class="grn" x="474" y="469" width="70" height="50" rx="4"/>
+
+  <!-- Row 4: ■ ■ ■ -->
+  <rect class="grn" x="312" y="530" width="70" height="50" rx="4"/>
+  <rect class="grn" x="393" y="530" width="70" height="50" rx="4"/>
+  <rect class="grn" x="474" y="530" width="70" height="50" rx="4"/>
+
+  <!-- ===== KIWI GREEN UNDERLINE ===== -->
+  <!-- Full width under both digits, 12px thick -->
+  <rect x="56" y="602" width="488" height="12" rx="3" fill="#7BA35A"/>
+</svg>

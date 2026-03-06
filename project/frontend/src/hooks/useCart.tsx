@@ -30,13 +30,19 @@ interface CartItem {
   }
 }
 
+interface AvailableVariants {
+  [productId: string]: { sizes: string[]; colors: string[] }
+}
+
 interface CartContextType {
   items: CartItem[]
   itemCount: number
   loading: boolean
-  addToCart: (productId: string, quantity: number, variant?: { size?: string; color?: string }, productTitle?: string, productPrice?: number) => Promise<void>
+  availableVariants: AvailableVariants
+  addToCart: (productId: string, quantity: number, variant?: { size?: string; color?: string }, productTitle?: string, productPrice?: number, personalizationId?: string, compositionId?: string) => Promise<void>
   removeFromCart: (itemId: string) => Promise<void>
   updateQuantity: (itemId: string, quantity: number) => Promise<void>
+  updateVariant: (itemId: string, variant: { size?: string; color?: string }) => Promise<void>
   clearCart: () => Promise<void>
   refreshCart: () => Promise<void>
 }
@@ -46,6 +52,7 @@ const CartContext = createContext<CartContextType | undefined>(undefined)
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([])
   const [loading, setLoading] = useState(false)
+  const [availableVariants, setAvailableVariants] = useState<AvailableVariants>({})
   const { user } = useAuth()
 
   const refreshCart = useCallback(async () => {
@@ -55,6 +62,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       if (response.ok) {
         const data = await response.json()
         setItems(data.items || [])
+        setAvailableVariants(data.available_variants || {})
       }
     } catch (error) {
       console.error('Failed to fetch cart:', error)
@@ -73,7 +81,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
     quantity: number,
     variant?: { size?: string; color?: string },
     productTitle?: string,
-    productPrice?: number
+    productPrice?: number,
+    personalizationId?: string,
+    compositionId?: string
   ) => {
     try {
       const response = await fetch('/api/cart', {
@@ -85,6 +95,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
           variant_details: variant,
           product_title: productTitle,
           product_price: productPrice,
+          ...(personalizationId ? { personalization_id: personalizationId } : {}),
+          ...(compositionId ? { composition_id: compositionId } : {}),
         }),
       })
 
@@ -181,6 +193,27 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, [items])
 
+  const updateVariant = useCallback(async (itemId: string, variant: { size?: string; color?: string }) => {
+    try {
+      const response = await fetch('/api/cart', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ item_id: itemId, variant_details: variant }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || errorData.error || 'Failed to update variant')
+      }
+
+      await refreshCart()
+    } catch (error) {
+      console.error('Update variant error:', error)
+      toast.error('Failed to update variant')
+      throw error
+    }
+  }, [refreshCart])
+
   const clearCart = useCallback(async () => {
     try {
       const response = await fetch('/api/cart', {
@@ -208,9 +241,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
         items,
         itemCount,
         loading,
+        availableVariants,
         addToCart,
         removeFromCart,
         updateQuantity,
+        updateVariant,
         clearCart,
         refreshCart,
       }}

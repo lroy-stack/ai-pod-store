@@ -8,6 +8,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { requireAdmin, authErrorResponse } from '@/lib/auth-guard'
 
 const supabase = createClient(
   process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -20,6 +21,12 @@ const alertDedup = new Map<string, number>()
 const DEDUP_WINDOW_MS = 5 * 60 * 1000 // 5 minutes
 
 export async function POST(req: NextRequest) {
+  try {
+    await requireAdmin(req)
+  } catch (error) {
+    return authErrorResponse(error)
+  }
+
   try {
     const { type, message, severity } = await req.json()
 

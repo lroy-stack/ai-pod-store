@@ -43,7 +43,7 @@ export async function GET(
     }
 
     // Ownership check: user can only view their own orders (admins see all)
-    if (order.user_id && order.user_id !== user.id && user.role !== 'admin') {
+    if (order.user_id !== user.id && user.role !== 'admin') {
       return NextResponse.json(
         { error: 'Order not found' },
         { status: 404 }

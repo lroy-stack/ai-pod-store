@@ -30,12 +30,12 @@ export async function POST() {
           <h1>Welcome!</h1>
           <p>We're thrilled to have you here at Skapara.</p>
           <p>Use code <strong>FIRSTORDER</strong> for 10% off your first purchase.</p>
-          <a href="https://podai.com/en/shop">Start Shopping</a>
+          <a href="https://skapara.com/en/shop">Start Shopping</a>
           <p>Best regards,<br>The Skapara Team</p>
           <hr>
           <p style="font-size:12px;color:#666;">
             Skapara Store, Friedrichstraße 123, 10117 Berlin, Germany<br>
-            <a href="https://podai.com/en/unsubscribe">Unsubscribe</a>
+            <a href="https://skapara.com/en/unsubscribe">Unsubscribe</a>
           </p>
         </body></html>`,
         cta_a: 'Shop Bestsellers',
@@ -56,12 +56,12 @@ export async function POST() {
           <h1>¡Bienvenido!</h1>
           <p>Estamos encantados de tenerte aquí en Skapara.</p>
           <p>Usa el código <strong>FIRSTORDER</strong> para obtener un 10% de descuento en tu primera compra.</p>
-          <a href="https://podai.com/es/shop">Comenzar a Comprar</a>
+          <a href="https://skapara.com/es/shop">Comenzar a Comprar</a>
           <p>Saludos cordiales,<br>El Equipo de Skapara</p>
           <hr>
           <p style="font-size:12px;color:#666;">
             Skapara Store, Friedrichstraße 123, 10117 Berlín, Alemania<br>
-            <a href="https://podai.com/es/unsubscribe">Darse de baja</a>
+            <a href="https://skapara.com/es/unsubscribe">Darse de baja</a>
           </p>
         </body></html>`,
         cta_a: 'Ver Más Vendidos',
@@ -82,12 +82,12 @@ export async function POST() {
           <h1>Willkommen!</h1>
           <p>Wir freuen uns, dich bei Skapara zu haben.</p>
           <p>Verwende den Code <strong>FIRSTORDER</strong> für 10% Rabatt auf deinen ersten Einkauf.</p>
-          <a href="https://podai.com/de/shop">Jetzt Einkaufen</a>
+          <a href="https://skapara.com/de/shop">Jetzt Einkaufen</a>
           <p>Mit freundlichen Grüßen,<br>Das Skapara Team</p>
           <hr>
           <p style="font-size:12px;color:#666;">
             Skapara Store, Friedrichstraße 123, 10117 Berlin, Deutschland<br>
-            <a href="https://podai.com/de/unsubscribe">Abmelden</a>
+            <a href="https://skapara.com/de/unsubscribe">Abmelden</a>
           </p>
         </body></html>`,
         cta_a: 'Bestseller Ansehen',
@@ -109,12 +109,12 @@ export async function POST() {
           <p>We noticed it's been a while since your last visit. We miss you!</p>
           <p>Here's a special <strong>20% discount</strong> code just for you: <strong>COMEBACK20</strong></p>
           <p>Valid for the next 7 days.</p>
-          <a href="https://podai.com/en/shop">Rediscover Your Style</a>
+          <a href="https://skapara.com/en/shop">Rediscover Your Style</a>
           <p>❤️ The Skapara Team</p>
           <hr>
           <p style="font-size:12px;color:#666;">
             Skapara Store, Friedrichstraße 123, 10117 Berlin, Germany<br>
-            <a href="https://podai.com/en/unsubscribe">Unsubscribe</a>
+            <a href="https://skapara.com/en/unsubscribe">Unsubscribe</a>
           </p>
         </body></html>`,
         cta_a: 'Shop Now with 20% Off',
@@ -135,12 +135,12 @@ export async function POST() {
           <p>Notamos que ha pasado un tiempo desde tu última visita. ¡Te extrañamos!</p>
           <p>Aquí tienes un código de <strong>20% de descuento</strong> especial solo para ti: <strong>COMEBACK20</strong></p>
           <p>Válido por los próximos 7 días.</p>
-          <a href="https://podai.com/es/shop">Redescubre Tu Estilo</a>
+          <a href="https://skapara.com/es/shop">Redescubre Tu Estilo</a>
           <p>❤️ El Equipo de Skapara</p>
           <hr>
           <p style="font-size:12px;color:#666;">
             Skapara Store, Friedrichstraße 123, 10117 Berlín, Alemania<br>
-            <a href="https://podai.com/es/unsubscribe">Darse de baja</a>
+            <a href="https://skapara.com/es/unsubscribe">Darse de baja</a>
           </p>
         </body></html>`,
         cta_a: 'Comprar con 20% de Descuento',
@@ -161,12 +161,12 @@ export async function POST() {
           <p>Wir haben bemerkt, dass es eine Weile her ist seit deinem letzten Besuch. Wir vermissen dich!</p>
           <p>Hier ist ein spezieller <strong>20% Rabattcode</strong> nur für dich: <strong>COMEBACK20</strong></p>
           <p>Gültig für die nächsten 7 Tage.</p>
-          <a href="https://podai.com/de/shop">Entdecke Deinen Stil Neu</a>
+          <a href="https://skapara.com/de/shop">Entdecke Deinen Stil Neu</a>
           <p>❤️ Das Skapara Team</p>
           <hr>
           <p style="font-size:12px;color:#666;">
             Skapara Store, Friedrichstraße 123, 10117 Berlin, Deutschland<br>
-            <a href="https://podai.com/de/unsubscribe">Abmelden</a>
+            <a href="https://skapara.com/de/unsubscribe">Abmelden</a>
           </p>
         </body></html>`,
         cta_a: 'Mit 20% Rabatt Einkaufen',

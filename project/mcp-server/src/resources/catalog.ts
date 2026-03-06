@@ -28,7 +28,7 @@ export async function readProductsCatalog(
     // Build query
     let query = supabase
       .from('products')
-      .select('id, title, description, base_price_cents, currency, images, category, tags, printify_id, status, avg_rating, review_count, created_at, updated_at')
+      .select('id, title, description, base_price_cents, currency, images, category, tags, provider_product_id, status, avg_rating, review_count, created_at, updated_at')
       .eq('status', 'active')
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);

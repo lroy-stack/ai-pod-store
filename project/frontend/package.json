@@ -60,6 +60,7 @@
     "dompurify": "^3.3.1",
     "embla-carousel-autoplay": "^8.6.0",
     "embla-carousel-react": "^8.6.0",
+    "fabric": "^6.9.1",
     "idb": "^8.0.1",
     "ioredis": "^5.9.3",
     "jszip": "^3.10.1",
@@ -79,7 +80,8 @@
     "stripe": "^20.3.1",
     "tailwind-merge": "^2.5.5",
     "web-push": "^3.6.7",
-    "zod": "^3.23.8"
+    "zod": "^3.23.8",
+    "zustand": "^5.0.11"
   },
   "devDependencies": {
     "@next/bundle-analyzer": "^16.1.6",

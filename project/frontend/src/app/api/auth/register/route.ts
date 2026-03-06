@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 import { registerLimiter } from '@/lib/rate-limit'
 import { verifyTurnstileToken } from '@/lib/turnstile'
+import { BASE_URL } from '@/lib/store-config'
 
 export async function POST(request: NextRequest) {
   try {
@@ -60,7 +61,7 @@ export async function POST(request: NextRequest) {
           const referer = request.headers.get('referer') || ''
           const localeMatch = referer.match(/\/(en|es|de)\//)
           const locale = localeMatch?.[1] || 'en'
-          return `${process.env.NEXT_PUBLIC_APP_URL}/${locale}/auth/verify-email`
+          return `${BASE_URL}/${locale}/auth/verify-email`
         })(),
       },
     })

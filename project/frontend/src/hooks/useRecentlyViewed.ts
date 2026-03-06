@@ -11,6 +11,8 @@ export interface RecentlyViewedProduct {
   price: number
   currency: string
   image: string | null
+  compareAtPrice?: number
+  colorImages?: Record<string, string>
   viewedAt: number
 }
 

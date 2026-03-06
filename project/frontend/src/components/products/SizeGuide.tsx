@@ -79,9 +79,17 @@ export function SizeGuide({ productType }: SizeGuideProps) {
   const t = useTranslations('product.sizeGuide')
   const [open, setOpen] = useState(false)
 
-  // Normalize product type to match size guide keys
-  const normalizedType = productType.toLowerCase().replace(/\s+/g, '')
-  const guideData = sizeGuideData[normalizedType] || sizeGuideData['tshirt'] // Default to t-shirt guide
+  // Map real category slugs to size guide keys
+  const categoryMap: Record<string, string> = {
+    't-shirts': 'tshirt',
+    'pullover-hoodies': 'hoodie',
+    'zip-hoodies': 'hoodie',
+    'crewnecks': 'hoodie',
+    'tanks': 'tank',
+    'sweatpants': 'sweatpants',
+  }
+  const normalizedType = categoryMap[productType.toLowerCase()] || productType.toLowerCase().replace(/[-\s]+/g, '')
+  const guideData = sizeGuideData[normalizedType] || sizeGuideData['tshirt']
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

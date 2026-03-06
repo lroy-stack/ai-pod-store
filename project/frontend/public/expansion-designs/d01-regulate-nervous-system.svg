@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="4606" height="5787" viewBox="0 0 4606 5787">
+
+  <!-- D01: "Regulate Your Nervous System" — BP6 T-Shirt 4606x5787 -->
+  <!-- Dramatic ECG heartbeat + new font variety -->
+  <!-- Palette: Purple (#A78BFA → #3B0764) + Turquoise (#40ACCC) -->
+  <!-- Fonts: Playfair Display (hero), Great Vibes (connector), Montserrat (body) -->
+
+  <!-- ===== ECG Heartbeat — 2 full beats, dramatic peaks ===== -->
+  <path d="M100,1300 L750,1300 L810,1180 L870,1300 L920,1480 L1050,450 L1180,1520 L1280,1300 L1420,1130 L1560,1300 L2250,1300 L2310,1180 L2370,1300 L2420,1480 L2550,450 L2680,1520 L2780,1300 L2920,1130 L3060,1300 L4500,1300"
+        fill="none" stroke="#40ACCC" stroke-width="45"
+        stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Pulse glow dots at peak of each R-wave -->
+  <circle cx="1050" cy="450" r="35" fill="#40ACCC"/>
+  <circle cx="2550" cy="450" r="35" fill="#40ACCC"/>
+
+  <!-- ===== "REGULATE" — Playfair Display serif, 3D purple extrusion ===== -->
+
+  <!-- Layer 4 (deepest) -->
+  <text x="2327" y="2824"
+        font-family="'Playfair Display', serif"
+        font-size="700"
+        fill="#3B0764" text-anchor="middle">REGULATE</text>
+
+  <!-- Layer 3 -->
+  <text x="2319" y="2816"
+        font-family="'Playfair Display', serif"
+        font-size="700"
+        fill="#5B21B6" text-anchor="middle">REGULATE</text>
+
+  <!-- Layer 2 -->
+  <text x="2311" y="2808"
+        font-family="'Playfair Display', serif"
+        font-size="700"
+        fill="#7C3AED" text-anchor="middle">REGULATE</text>
+
+  <!-- Layer 1 (front) -->
+  <text x="2303" y="2800"
+        font-family="'Playfair Display', serif"
+        font-size="700"
+        fill="#A78BFA" text-anchor="middle">REGULATE</text>
+
+  <!-- ===== "your" — Great Vibes calligraphy, off-white ===== -->
+  <text x="2303" y="3350"
+        font-family="'Great Vibes', cursive"
+        font-size="500"
+        fill="#F0EDE8" text-anchor="middle">your</text>
+
+  <!-- ===== "NERVOUS" — Montserrat geometric, turquoise 3D ===== -->
+  <text x="2315" y="4112"
+        font-family="'Montserrat', sans-serif"
+        font-size="650" font-weight="700"
+        fill="#1A5C6B" text-anchor="middle"
+        letter-spacing="15">NERVOUS</text>
+
+  <text x="2303" y="4100"
+        font-family="'Montserrat', sans-serif"
+        font-size="650" font-weight="700"
+        fill="#40ACCC" text-anchor="middle"
+        letter-spacing="15">NERVOUS</text>
+
+  <!-- ===== "SYSTEM" — Montserrat, turquoise 3D ===== -->
+  <text x="2315" y="4812"
+        font-family="'Montserrat', sans-serif"
+        font-size="650" font-weight="700"
+        fill="#1A5C6B" text-anchor="middle"
+        letter-spacing="15">SYSTEM</text>
+
+  <text x="2303" y="4800"
+        font-family="'Montserrat', sans-serif"
+        font-size="650" font-weight="700"
+        fill="#40ACCC" text-anchor="middle"
+        letter-spacing="15">SYSTEM</text>
+
+  <!-- Decorative dots — purple to turquoise gradient -->
+  <circle cx="2003" cy="5300" r="25" fill="#A78BFA"/>
+  <circle cx="2103" cy="5300" r="25" fill="#7C3AED"/>
+  <circle cx="2203" cy="5300" r="25" fill="#5B21B6"/>
+  <circle cx="2303" cy="5300" r="25" fill="#40ACCC"/>
+  <circle cx="2403" cy="5300" r="25" fill="#5B21B6"/>
+  <circle cx="2503" cy="5300" r="25" fill="#7C3AED"/>
+  <circle cx="2603" cy="5300" r="25" fill="#A78BFA"/>
+
+</svg>

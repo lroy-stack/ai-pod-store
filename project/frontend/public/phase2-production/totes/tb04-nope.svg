@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2953" height="3543" viewBox="0 0 2953 3543">
+
+  <!-- TB04: "NOPE" Tote — BP731 2953×3543, DTG -->
+  <!-- Adapted from G01 (4606×5787) — scale ~0.64 -->
+  <!-- Palette: Red (#EF4444) -->
+
+  <!-- Thick red bar — left accent -->
+  <rect x="192" y="570" width="38" height="2048" fill="#EF4444"/>
+
+  <!-- X marks — corners -->
+  <line x1="384" y1="378" x2="576" y2="570" stroke="#EF4444" stroke-width="16" stroke-linecap="round"/>
+  <line x1="576" y1="378" x2="384" y2="570" stroke="#EF4444" stroke-width="16" stroke-linecap="round"/>
+
+  <line x1="2370" y1="378" x2="2562" y2="570" stroke="#EF4444" stroke-width="16" stroke-linecap="round"/>
+  <line x1="2562" y1="378" x2="2370" y2="570" stroke="#EF4444" stroke-width="16" stroke-linecap="round"/>
+
+  <line x1="384" y1="2744" x2="576" y2="2936" stroke="#EF4444" stroke-width="16" stroke-linecap="round"/>
+  <line x1="576" y1="2744" x2="384" y2="2936" stroke="#EF4444" stroke-width="16" stroke-linecap="round"/>
+
+  <line x1="2370" y1="2744" x2="2562" y2="2936" stroke="#EF4444" stroke-width="16" stroke-linecap="round"/>
+  <line x1="2562" y1="2744" x2="2370" y2="2936" stroke="#EF4444" stroke-width="16" stroke-linecap="round"/>
+
+  <!-- "NOPE." — 4-layer 3D red -->
+  <text x="1492" y="1960"
+        font-family="'Bebas Neue', sans-serif"
+        font-size="768"
+        fill="#7F1D1D" text-anchor="middle">NOPE.</text>
+  <text x="1487" y="1955"
+        font-family="'Bebas Neue', sans-serif"
+        font-size="768"
+        fill="#991B1B" text-anchor="middle">NOPE.</text>
+  <text x="1482" y="1950"
+        font-family="'Bebas Neue', sans-serif"
+        font-size="768"
+        fill="#DC2626" text-anchor="middle">NOPE.</text>
+  <text x="1477" y="1945"
+        font-family="'Bebas Neue', sans-serif"
+        font-size="768"
+        fill="#EF4444" text-anchor="middle">NOPE.</text>
+
+  <!-- Bottom bar -->
+  <rect x="512" y="2200" width="1922" height="26" fill="#EF4444"/>
+
+  <!-- "absolutely not." -->
+  <text x="1477" y="2520"
+        font-family="'Courier New', monospace"
+        font-size="160" font-weight="bold"
+        fill="#F0EDE8" text-anchor="middle">absolutely not.</text>
+
+</svg>

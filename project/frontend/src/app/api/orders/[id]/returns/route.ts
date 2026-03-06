@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { z } from 'zod';
+import { requireAuth, authErrorResponse } from '@/lib/auth-guard';
 
 const supabase = createClient(
   process.env.SUPABASE_URL!,
@@ -16,7 +17,6 @@ const supabase = createClient(
 // Validation schema for return request
 const returnRequestSchema = z.object({
   reason: z.string().min(10, 'Reason must be at least 10 characters'),
-  user_id: z.string().uuid().optional(),
 });
 
 export async function POST(
@@ -24,6 +24,13 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    let user;
+    try {
+      user = await requireAuth(req);
+    } catch (error) {
+      return authErrorResponse(error);
+    }
+
     const { id: orderId } = await params;
 
     // Parse and validate request body
@@ -37,7 +44,7 @@ export async function POST(
       );
     }
 
-    const { reason, user_id } = validation.data;
+    const { reason } = validation.data;
 
     // Check if order exists and get order details
     const { data: order, error: orderError } = await supabase
@@ -47,6 +54,14 @@ export async function POST(
       .single();
 
     if (orderError || !order) {
+      return NextResponse.json(
+        { error: 'Order not found' },
+        { status: 404 }
+      );
+    }
+
+    // Ownership check: user can only create returns for their own orders (admins can for any)
+    if (order.user_id !== user.id && user.role !== 'admin') {
       return NextResponse.json(
         { error: 'Order not found' },
         { status: 404 }
@@ -83,7 +98,7 @@ export async function POST(
       .from('return_requests')
       .insert({
         order_id: orderId,
-        user_id: user_id || order.user_id,
+        user_id: user.id,
         reason,
         refund_amount_cents: order.total_cents,
         refund_currency: order.currency,
@@ -123,7 +138,36 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    let user;
+    try {
+      user = await requireAuth(req);
+    } catch (error) {
+      return authErrorResponse(error);
+    }
+
     const { id: orderId } = await params;
+
+    // Verify order exists and user owns it
+    const { data: order, error: orderError } = await supabase
+      .from('orders')
+      .select('id, user_id')
+      .eq('id', orderId)
+      .single();
+
+    if (orderError || !order) {
+      return NextResponse.json(
+        { error: 'Order not found' },
+        { status: 404 }
+      );
+    }
+
+    // Ownership check: user can only view returns for their own orders (admins can for any)
+    if (order.user_id !== user.id && user.role !== 'admin') {
+      return NextResponse.json(
+        { error: 'Order not found' },
+        { status: 404 }
+      );
+    }
 
     // Fetch all return requests for this order
     const { data: returnRequests, error } = await supabase

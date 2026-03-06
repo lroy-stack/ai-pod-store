@@ -19,6 +19,7 @@ import dynamic from 'next/dynamic'
 import { usePathname, useParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { StorefrontProvider, useStorefront } from './StorefrontContext'
+import { ChatMessageProvider, useChatMessage } from './ChatMessageContext'
 import { StorefrontSidebar } from './StorefrontSidebar'
 import { StorefrontHeader } from './StorefrontHeader'
 import { DetailPanel } from './DetailPanel'
@@ -49,8 +50,9 @@ const ChatArea = dynamic(
 )
 
 function StorefrontShell({ children }: { children: React.ReactNode }) {
-  const { selectedProduct, setSelectedProduct, setPendingChatMessage, artifacts, clearArtifacts } =
+  const { selectedProduct, setSelectedProduct, artifacts, clearArtifacts } =
     useStorefront()
+  const { setPendingChatMessage } = useChatMessage()
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const { isCollapsed, toggle: toggleDesktopSidebar } = useSidebarCollapsed()
   const pathname = usePathname()
@@ -106,10 +108,10 @@ function StorefrontShell({ children }: { children: React.ReactNode }) {
         />
         <OfflineBanner />
         <SubscriptionStatusBanner />
-        {/* ChatArea always mounted — CSS visibility toggle preserves SSE/state */}
+        {/* ChatArea always mounted — collapse to h-0 when hidden to preserve SSE/state */}
         <div className={cn(
-          "flex flex-1 flex-col min-h-0",
-          isChatPage ? "visible" : "invisible absolute inset-0 pointer-events-none"
+          "flex flex-col min-h-0",
+          isChatPage ? "flex-1" : "h-0 overflow-hidden pointer-events-none"
         )}>
           <ErrorBoundary>
             <ChatArea />
@@ -149,7 +151,9 @@ function StorefrontShell({ children }: { children: React.ReactNode }) {
 export function StorefrontLayout({ children }: { children: React.ReactNode }) {
   return (
     <StorefrontProvider>
-      <StorefrontShell>{children}</StorefrontShell>
+      <ChatMessageProvider>
+        <StorefrontShell>{children}</StorefrontShell>
+      </ChatMessageProvider>
     </StorefrontProvider>
   )
 }

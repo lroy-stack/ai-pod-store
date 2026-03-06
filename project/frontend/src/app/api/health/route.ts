@@ -135,49 +135,62 @@ export async function GET(req: Request) {
     }
   }
 
-  // Check Printify API with latency
-  const printifyToken = process.env.PRINTIFY_API_TOKEN
-  const printifyShopId = process.env.PRINTIFY_SHOP_ID
-
-  if (printifyToken && printifyShopId) {
-    try {
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 5000)
-
-      const { result: response, latency } = await measureLatency(async () => {
-        return await fetch(`https://api.printify.com/v1/shops/${printifyShopId}.json`, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${printifyToken}`,
-          },
-          signal: controller.signal,
-        })
-      })
-
-      clearTimeout(timeoutId)
-
-      if (response.ok) {
-        health.printify = {
-          status: 'connected',
-          latency,
-        }
-      } else {
-        health.printify = {
-          status: 'error',
-          error: `HTTP ${response.status}: ${response.statusText}`,
-        }
-      }
-    } catch (error: unknown) {
-      health.printify = {
-        status: 'error',
-        error: error instanceof Error
-          ? (error.name === 'AbortError' ? 'Connection timeout (5s)' : error.message)
-          : 'Unknown error',
-      }
+  // Check POD Provider (Printify/Printful) with latency
+  try {
+    const { initializeProviders, getProvider } = await import('@/lib/pod')
+    initializeProviders()
+    const provider = getProvider()
+    const { result: healthResult, latency } = await measureLatency(async () => {
+      return await provider.healthCheck()
+    })
+    // Token expiry check (Printful OAuth tokens expire)
+    const tokenExpiresAt = process.env.PRINTFUL_TOKEN_EXPIRES_AT
+    let daysUntilExpiry: number | undefined
+    let tokenExpiryDegraded = false
+    if (tokenExpiresAt) {
+      const expiryDate = new Date(tokenExpiresAt)
+      daysUntilExpiry = Math.round((expiryDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+      if (daysUntilExpiry < 7) tokenExpiryDegraded = true
     }
-  } else {
-    health.printify = {
-      status: 'not_configured',
+
+    // Last sync staleness check
+    let lastSyncStale = false
+    try {
+      const supabaseUrl = process.env.SUPABASE_URL
+      const serviceKey = process.env.SUPABASE_SERVICE_KEY
+      if (supabaseUrl && serviceKey) {
+        const { createClient } = await import('@supabase/supabase-js')
+        const adminClient = createClient(supabaseUrl, serviceKey)
+        const { data: lastRun } = await adminClient
+          .from('cron_runs')
+          .select('completed_at')
+          .eq('cron_name', 'sync-printify')
+          .eq('status', 'completed')
+          .order('completed_at', { ascending: false })
+          .limit(1)
+          .single()
+        if (lastRun?.completed_at) {
+          const minutesSince = (Date.now() - new Date(lastRun.completed_at).getTime()) / (1000 * 60)
+          lastSyncStale = minutesSince > 90
+        }
+      }
+    } catch {
+      // Non-critical — ignore staleness check errors
+    }
+
+    health.pod = {
+      status: healthResult.ok && !tokenExpiryDegraded ? 'connected' : (healthResult.ok ? 'degraded' : 'error'),
+      provider: healthResult.provider,
+      latency,
+      ...(healthResult.error && { error: healthResult.error }),
+      ...(daysUntilExpiry !== undefined && { daysUntilExpiry }),
+      ...(tokenExpiryDegraded && { tokenExpiryWarning: `Token expires in ${daysUntilExpiry} days` }),
+      lastSyncStale,
+    }
+  } catch (error: unknown) {
+    health.pod = {
+      status: 'error',
+      error: error instanceof Error ? error.message : 'Unknown error',
     }
   }
 
@@ -230,10 +243,10 @@ export async function GET(req: Request) {
   const supabaseStatus = (health.supabase as any)?.status
   const redisStatus = (health.redis as any)?.status
   const stripeStatus = (health.stripe as any)?.status
-  const printifyStatus = (health.printify as any)?.status
+  const podStatus = (health.pod as any)?.status
 
   // Critical dependencies: Supabase (database is essential)
-  // Non-critical: Redis (optional cache), Printify (fulfillment), Stripe (payments can queue)
+  // Non-critical: Redis (optional cache), POD provider (fulfillment), Stripe (payments can queue)
   let overallStatus: 'healthy' | 'degraded' | 'unhealthy' = 'healthy'
   let statusCode = 200
 
@@ -245,7 +258,7 @@ export async function GET(req: Request) {
     redisStatus === 'error' ||
     redisStatus === 'disconnected' ||
     stripeStatus === 'error' ||
-    printifyStatus === 'error'
+    podStatus === 'error'
   ) {
     // Non-critical dependencies down - system is degraded but functional
     overallStatus = 'degraded'
@@ -262,7 +275,7 @@ export async function GET(req: Request) {
     supabase: supabaseStatus,
     redis: redisStatus,
     stripe: stripeStatus,
-    printify: printifyStatus,
+    pod: podStatus,
   })
 
   return NextResponse.json(health, {

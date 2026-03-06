@@ -17,27 +17,17 @@
 import { useState } from 'react'
 import { Star, ShoppingCart, ImageOff, Heart, Eye } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { useTranslations, useLocale } from 'next-intl'
 import { formatPrice } from '@/lib/currency'
 import { useCart } from '@/hooks/useCart'
 import { useWishlist } from '@/hooks/useWishlist'
 import { cn } from '@/lib/utils'
-
-export interface Product {
-  id: string
-  title: string
-  description?: string
-  category: string
-  price: number
-  currency: string
-  image: string | null
-  rating: number
-  reviewCount: number
-}
+import type { ProductCard } from '@/types/product'
 
 interface ProductGridArtifactProps {
-  products: Product[]
-  onSelectProduct: (productId: string, productData?: Product) => void
+  products: ProductCard[]
+  onSelectProduct: (productId: string, productData?: ProductCard) => void
   variant?: 'inline' | 'full'
 }
 
@@ -62,13 +52,7 @@ export function ProductGridArtifact({
   }
 
   return (
-    <div
-      className={`grid gap-3 ${
-        variant === 'inline'
-          ? 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-3'
-          : 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4'
-      }`}
-    >
+    <div className="neu-grid">
       {displayProducts.map((product) => (
         <ProductCard
           key={product.id}
@@ -90,7 +74,7 @@ function ProductCard({
   onSelect,
   onAddToCart,
 }: {
-  product: Product
+  product: ProductCard
   locale: string
   t: ReturnType<typeof useTranslations>
   onSelect: () => void
@@ -102,11 +86,11 @@ function ProductCard({
 
   return (
     <div
-      className="group relative rounded-2xl bg-card overflow-hidden border border-border/40 hover:border-border/80 shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer"
+      className="group relative neu-card bg-card overflow-hidden cursor-pointer"
       onClick={onSelect}
     >
       {/* Image — square */}
-      <div className="aspect-square bg-muted relative overflow-hidden">
+      <div className="aspect-square relative neu-image overflow-hidden">
         {product.image && !imgError ? (
           <img
             src={product.image}
@@ -125,7 +109,7 @@ function ProductCard({
         <Button
           variant="ghost"
           size="icon"
-          className="absolute top-2.5 right-2.5 h-8 w-8 rounded-full bg-card/80 backdrop-blur-sm hover:bg-card/90"
+          className="absolute top-2.5 right-2.5 h-8 w-8 rounded-full neu-fav"
           onClick={(e) => {
             e.stopPropagation()
             toggleWishlist(product.id)
@@ -136,47 +120,66 @@ function ProductCard({
       </div>
 
       {/* Info + Actions */}
-      <div className="px-3.5 py-3 space-y-1.5">
-        <h3 className="font-medium text-[13px] leading-snug line-clamp-1 text-foreground">
+      <div className="flex flex-col flex-1 px-3 pt-2.5 pb-2 space-y-1">
+        {(product.rating ?? 0) > 0 && (
+          <div className="flex items-center gap-1 text-[11px] text-muted-foreground ml-auto">
+            <Star className="h-3 w-3 fill-rating text-rating" />
+            <span>{(product.rating ?? 0).toFixed(1)}</span>
+          </div>
+        )}
+        <h3 className="font-medium text-sm leading-snug line-clamp-1 text-foreground">
           {product.title}
         </h3>
-        <div className="flex items-center justify-between">
-          <p className="text-sm font-semibold text-foreground tracking-tight">
-            {formatPrice(product.price, locale, product.currency)}
-          </p>
-          {product.rating > 0 && (
-            <div className="flex items-center gap-0.5 text-[11px] text-muted-foreground">
-              <Star className="h-3 w-3 fill-rating text-rating" />
-              <span>{product.rating.toFixed(1)}</span>
-            </div>
-          )}
-        </div>
 
-        {/* Action buttons — always visible, touch-friendly */}
-        <div className="flex gap-1.5 pt-0.5">
-          <Button
-            size="sm"
-            className="flex-1 h-8 text-xs font-medium rounded-lg"
-            onClick={(e) => {
-              e.stopPropagation()
-              onAddToCart()
-            }}
-          >
-            <ShoppingCart className="h-3.5 w-3.5 mr-1.5" />
-            {t('addToCart')}
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-8 w-8 rounded-lg flex-shrink-0"
-            onClick={(e) => {
-              e.stopPropagation()
-              onSelect()
-            }}
-            title={t('viewDetails')}
-          >
-            <Eye className="h-3.5 w-3.5" />
-          </Button>
+        {/* Price left + icon CTAs right */}
+        <div className="flex items-center justify-between mt-auto">
+          {product.compareAtPrice ? (
+            <div className="min-w-0">
+              <div className="flex items-center gap-1">
+                <span className="text-[11px] line-through text-muted-foreground">
+                  {formatPrice(product.compareAtPrice, locale, product.currency)}
+                </span>
+                {(() => {
+                  const pct = Math.round(((product.compareAtPrice! - product.price) / product.compareAtPrice!) * 100)
+                  return pct > 0 ? (
+                    <Badge variant="destructive" className="text-[10px] leading-none px-1 py-0.5">-{pct}%</Badge>
+                  ) : null
+                })()}
+              </div>
+              <p className="text-sm font-bold text-destructive tracking-tight">
+                {formatPrice(product.price, locale, product.currency)}
+              </p>
+            </div>
+          ) : (
+            <p className="text-sm font-semibold text-foreground tracking-tight">
+              {formatPrice(product.price, locale, product.currency)}
+            </p>
+          )}
+          <div className="flex gap-1.5">
+            <Button
+              size="icon"
+              className="h-8 w-8 neu-btn-accent"
+              onClick={(e) => {
+                e.stopPropagation()
+                onAddToCart()
+              }}
+              title={t('addToCart')}
+            >
+              <ShoppingCart className="h-3.5 w-3.5" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8 neu-btn-soft"
+              onClick={(e) => {
+                e.stopPropagation()
+                onSelect()
+              }}
+              title={t('viewDetails')}
+            >
+              <Eye className="h-3.5 w-3.5" />
+            </Button>
+          </div>
         </div>
       </div>
     </div>

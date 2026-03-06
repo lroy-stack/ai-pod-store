@@ -234,7 +234,7 @@ export function OrderTimelineArtifact({
       <CardFooter className="flex flex-col sm:flex-row gap-2">
         <Button
           variant="outline"
-          className="w-full sm:w-auto"
+          className="w-full sm:w-auto neu-btn-soft"
           onClick={() => router.push(`/${locale}/orders/${orderId}`)}
         >
           {t('viewOrderDetails')}
@@ -242,7 +242,7 @@ export function OrderTimelineArtifact({
         {trackingNumber && (
           <Button
             variant="default"
-            className="w-full sm:w-auto"
+            className="w-full sm:w-auto neu-btn-accent"
             onClick={() => {
               // In a real app, this would link to carrier tracking page
               window.open(`https://www.google.com/search?q=track+${trackingNumber}`, '_blank')

@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1890" height="765" viewBox="0 0 1890 765">
+
+  <!-- AI Wrote This — Yupoong 6089M Snapback (Cat 99) EMBROIDERY -->
+  <!-- Canvas: 1890×765 @300dpi — Printful PF#478 embroidery_front_large -->
+  <!-- Physical: 6.3" x 2.55" -->
+  <!-- 2 thread colors: White #FFFFFF + Gold #FFCC00 -->
+  <!-- Costura central del panel a x=945 — gap generoso entre A e I -->
+  <!-- Ratio: AI/WROTE THIS = π (3.14) -->
+
+  <!-- "A" — izquierda de la costura -->
+  <text x="820" y="470"
+        font-family="'Bebas Neue', 'Impact', sans-serif"
+        font-size="480"
+        fill="#FFFFFF" text-anchor="middle">A</text>
+
+  <!-- "I" — derecha de la costura -->
+  <text x="1040" y="470"
+        font-family="'Bebas Neue', 'Impact', sans-serif"
+        font-size="480"
+        fill="#FFFFFF" text-anchor="middle">I</text>
+
+  <!-- Gold cursor "|" — proporción con AI (altura alineada, ancho mínimo bordado) -->
+  <rect x="1080" y="130" width="18" height="340" rx="4"
+        fill="#FFCC00"/>
+
+  <!-- "WROTE THIS" — 480/π ≈ 153px, centrado bajo AI -->
+  <text x="930" y="640"
+        font-family="'Bebas Neue', 'Impact', sans-serif"
+        font-size="153"
+        fill="#FFFFFF" text-anchor="middle"
+        letter-spacing="8">WROTE THIS</text>
+
+</svg>

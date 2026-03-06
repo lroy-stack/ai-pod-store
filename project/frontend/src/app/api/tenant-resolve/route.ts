@@ -13,6 +13,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 import { getCached, setCached } from '@/lib/redis'
+import { PRIMARY_DOMAINS } from '@/lib/store-config'
 
 const CACHE_TTL_SECONDS = 300 // 5-minute cache TTL
 
@@ -29,9 +30,8 @@ export async function GET(request: NextRequest) {
   // Normalize domain
   const normalizedDomain = domain.toLowerCase().replace(/\.$/, '').trim()
 
-  // Skip common local/dev domains — no tenant lookup needed
-  const localDomains = ['localhost', '127.0.0.1', '0.0.0.0', 'podai.com']
-  if (localDomains.some((d) => normalizedDomain === d || normalizedDomain.endsWith(`.${d}`))) {
+  // Skip primary domains — no tenant lookup needed
+  if (PRIMARY_DOMAINS.some((d) => normalizedDomain === d || normalizedDomain.endsWith(`.${d}`))) {
     return NextResponse.json({ error: 'not_found' }, { status: 404 })
   }
 

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import type { AuthInfo } from '@modelcontextprotocol/sdk/server/auth/types.js';
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseClient } from '../lib/supabase.js';
 
 /**
  * MCP Tool: get_order_status
@@ -50,9 +50,6 @@ export interface GetOrderStatusResult {
   order?: OrderDetails;
 }
 
-const SUPABASE_URL = process.env.SUPABASE_URL || '';
-const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY || '';
-
 export async function getOrderStatus(
   input: GetOrderStatusInput,
   authInfo?: AuthInfo
@@ -69,13 +66,7 @@ export async function getOrderStatus(
   const { order_id } = input;
 
   try {
-    // Create Supabase client
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-      },
-    });
+    const supabase = getSupabaseClient();
 
     // Fetch the order
     const { data: orderData, error: orderError } = await supabase

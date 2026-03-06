@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="3319" height="3761" viewBox="0 0 3319 3761">
+
+  <!-- ============================================= -->
+  <!-- "My Code Works (I Have No Idea Why)"          -->
+  <!-- Kids Crewneck BP65 — Jet Black, Charcoal,     -->
+  <!-- Oxford Navy (todos oscuros → texto blanco)    -->
+  <!-- Canvas 3319x3761                              -->
+  <!-- Terminal test results + kaomoji confuso        -->
+  <!-- ============================================= -->
+
+  <!-- === TERMINAL WINDOW — grande, ocupa el tercio superior === -->
+  <g transform="translate(200, 150)">
+    <!-- Terminal frame -->
+    <rect x="0" y="0" width="2919" height="1350" rx="50" fill="#1E293B"/>
+    <!-- Title bar -->
+    <rect x="0" y="0" width="2919" height="120" rx="50" fill="#334155"/>
+    <rect x="0" y="60" width="2919" height="60" fill="#334155"/>
+    <!-- Traffic lights -->
+    <circle cx="80" cy="60" r="22" fill="#EF4444"/>
+    <circle cx="150" cy="60" r="22" fill="#F59E0B"/>
+    <circle cx="220" cy="60" r="22" fill="#10B981"/>
+    <!-- Title bar text -->
+    <text x="1459" y="75" font-family="'Courier New', monospace" font-size="55" fill="white" text-anchor="middle" opacity="0.5">test_results.sh</text>
+
+    <!-- Test results — grandes y legibles -->
+    <!-- Pass 1 -->
+    <text x="100" y="280" font-family="'Courier New', monospace" font-size="120" fill="#10B981" font-weight="bold">&#x2713;</text>
+    <text x="220" y="280" font-family="'Courier New', monospace" font-size="110" fill="white" opacity="0.9">math.test</text>
+    <text x="1050" y="280" font-family="'Courier New', monospace" font-size="110" fill="#10B981">passed</text>
+
+    <!-- Pass 2 -->
+    <text x="100" y="450" font-family="'Courier New', monospace" font-size="120" fill="#10B981" font-weight="bold">&#x2713;</text>
+    <text x="220" y="450" font-family="'Courier New', monospace" font-size="110" fill="white" opacity="0.9">reading.test</text>
+    <text x="1050" y="450" font-family="'Courier New', monospace" font-size="110" fill="#10B981">passed</text>
+
+    <!-- Pass 3 -->
+    <text x="100" y="620" font-family="'Courier New', monospace" font-size="120" fill="#10B981" font-weight="bold">&#x2713;</text>
+    <text x="220" y="620" font-family="'Courier New', monospace" font-size="110" fill="white" opacity="0.9">code.test</text>
+    <text x="1050" y="620" font-family="'Courier New', monospace" font-size="110" fill="#10B981">passed</text>
+
+    <!-- FAIL — rojo y destacado -->
+    <text x="100" y="790" font-family="'Courier New', monospace" font-size="120" fill="#EF4444" font-weight="bold">&#x2717;</text>
+    <text x="220" y="790" font-family="'Courier New', monospace" font-size="110" fill="white" opacity="0.9">explain_how.test</text>
+    <text x="1800" y="790" font-family="'Courier New', monospace" font-size="110" fill="#EF4444" font-weight="bold">FAILED</text>
+
+    <!-- Summary line -->
+    <rect x="50" y="880" width="2820" height="4" fill="white" opacity="0.1"/>
+    <text x="100" y="990" font-family="'Courier New', monospace" font-size="100" fill="white" opacity="0.5">Tests: 3 passed, 1 failed</text>
+    <text x="100" y="1120" font-family="'Courier New', monospace" font-size="100" fill="#F59E0B" opacity="0.6">Understanding: 0%</text>
+  </g>
+
+  <!-- === KAOMOJI CONFUSO — grande entre terminal y título === -->
+  <text x="1659" y="1850" font-family="'Courier New', monospace" font-size="280" fill="white" text-anchor="middle" opacity="0.7">&#xAF;\_(&#x30C4;)_/&#xAF;</text>
+
+  <!-- === TÍTULO PRINCIPAL === -->
+
+  <!-- MY CODE WORKS — blanco enorme -->
+  <text x="1659" y="2300" font-family="'Helvetica Neue', 'Arial', sans-serif" font-size="340" font-weight="900" fill="white" text-anchor="middle" letter-spacing="-8">MY CODE</text>
+  <text x="1659" y="2630" font-family="'Helvetica Neue', 'Arial', sans-serif" font-size="340" font-weight="900" fill="white" text-anchor="middle" letter-spacing="-8">WORKS</text>
+
+  <!-- (I Have No Idea Why) — púrpura, más pequeño pero legible -->
+  <text x="1659" y="2900" font-family="'Helvetica Neue', 'Arial', sans-serif" font-size="200" font-weight="700" fill="#A78BFA" text-anchor="middle">(I Have No Idea Why)</text>
+
+  <!-- === BOTTOM — console output BOLD === -->
+  <text x="1659" y="3200" font-family="'Courier New', monospace" font-size="200" fill="#10B981" text-anchor="middle" opacity="0.7" font-weight="bold">$ node trust_the_process.js</text>
+
+  <!-- === DECORACIONES === -->
+
+  <!-- Estrellas -->
+  <g transform="translate(250, 1650)" opacity="0.5">
+    <polygon points="0,-55 14,-18 55,-18 22,6 35,46 0,24 -35,46 -22,6 -55,-18 -14,-18" fill="#FDE047"/>
+  </g>
+  <g transform="translate(3100, 1600)" opacity="0.45">
+    <polygon points="0,-50 13,-16 50,-16 20,6 31,42 0,22 -31,42 -20,6 -50,-16 -13,-16" fill="#FDE047"/>
+  </g>
+  <g transform="translate(200, 3400)" opacity="0.55">
+    <polygon points="0,-45 12,-15 45,-15 18,5 28,38 0,20 -28,38 -18,5 -45,-15 -12,-15" fill="#FDE047"/>
+  </g>
+  <g transform="translate(3150, 3350)" opacity="0.5">
+    <polygon points="0,-50 13,-16 50,-16 20,6 31,42 0,22 -31,42 -20,6 -50,-16 -13,-16" fill="#FDE047"/>
+  </g>
+
+  <!-- Signos de interrogación flotando — GRANDES y visibles -->
+  <text x="350" y="2500" font-family="'Helvetica Neue', 'Arial', sans-serif" font-size="300" font-weight="900" fill="#A78BFA" opacity="0.55">?</text>
+  <text x="2950" y="2200" font-family="'Helvetica Neue', 'Arial', sans-serif" font-size="350" font-weight="900" fill="#A78BFA" opacity="0.5">?</text>
+  <text x="3050" y="2900" font-family="'Helvetica Neue', 'Arial', sans-serif" font-size="250" font-weight="900" fill="#F59E0B" opacity="0.45">?</text>
+  <text x="200" y="3100" font-family="'Helvetica Neue', 'Arial', sans-serif" font-size="270" font-weight="900" fill="#40ACCC" opacity="0.45">?</text>
+
+  <!-- Sprinkles de código flotando — BOLD -->
+  <text x="1900" y="3550" font-family="'Courier New', monospace" font-size="180" fill="#10B981" opacity="0.65" font-weight="bold" transform="rotate(5,1900,3550)">if (works) {</text>
+  <text x="250" y="3600" font-family="'Courier New', monospace" font-size="180" fill="#EF4444" opacity="0.6" font-weight="bold" transform="rotate(-3,250,3600)">// don't touch</text>
+
+</svg>

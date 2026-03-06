@@ -267,7 +267,7 @@ export function handleAuthorize(
   <div class="container">
     <h1>Sign in to continue</h1>
     <p><span class="app-name">${escapeHtml(client_id)}</span> wants to access your POD AI Store account</p>
-    <form action="${FRONTEND_URL}/en/auth/oauth-callback" method="GET">
+    <form action="${FRONTEND_URL}/en/auth/oauth-callback" method="POST">
       <input type="hidden" name="request_id" value="${escapeHtml(requestId)}">
       <input type="hidden" name="mcp_base" value="${escapeHtml(MCP_BASE_URL)}">
       <div>
@@ -480,7 +480,17 @@ export async function handleToken(
 function parseTokenBody(req: IncomingMessage): Promise<any> {
   return new Promise((resolve, reject) => {
     const chunks: Buffer[] = [];
-    req.on('data', (chunk: Buffer) => chunks.push(chunk));
+    let totalBytes = 0;
+    const MAX_TOKEN_BODY_SIZE = 16 * 1024; // 16KB
+    req.on('data', (chunk: Buffer) => {
+      totalBytes += chunk.length;
+      if (totalBytes > MAX_TOKEN_BODY_SIZE) {
+        req.destroy();
+        reject(new Error('Request body too large'));
+        return;
+      }
+      chunks.push(chunk);
+    });
     req.on('end', () => {
       try {
         const raw = Buffer.concat(chunks).toString();

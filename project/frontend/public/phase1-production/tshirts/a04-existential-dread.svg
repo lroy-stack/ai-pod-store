@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="4606" height="5787" viewBox="0 0 4606 5787">
+
+  <!-- A04: "Existential Dread? In This Economy?" — BP6 T-Shirt 4606x5787 -->
+  <!-- Accent: #F59E0B (amber) only -->
+  <!-- Fonts: Bebas Neue (long words), Permanent Marker (hero), Caveat (transition) -->
+
+  <!-- "EXISTENTIAL" — Bebas Neue condensed, off-white -->
+  <text x="2303" y="1100"
+        font-family="'Bebas Neue', sans-serif"
+        font-size="700"
+        fill="#F0EDE8" text-anchor="middle"
+        letter-spacing="15">EXISTENTIAL</text>
+
+  <!-- "DREAD?" shadow -->
+  <text x="2318" y="2015"
+        font-family="'Permanent Marker', cursive"
+        font-size="900"
+        fill="#6B6B6B" text-anchor="middle">DREAD?</text>
+
+  <!-- "DREAD?" — Permanent Marker, hero question, off-white -->
+  <text x="2303" y="2000"
+        font-family="'Permanent Marker', cursive"
+        font-size="900"
+        fill="#F0EDE8" text-anchor="middle">DREAD?</text>
+
+  <!-- Thick amber separator bar -->
+  <rect x="1000" y="2500" width="2600" height="25" rx="12" fill="#F59E0B"/>
+
+  <!-- "in this" — Caveat handwritten, amber -->
+  <text x="2303" y="3200"
+        font-family="'Caveat', cursive"
+        font-size="550"
+        fill="#F59E0B" text-anchor="middle">in this</text>
+
+  <!-- "ECONOMY?" shadow -->
+  <text x="2315" y="4312"
+        font-family="'Bebas Neue', sans-serif"
+        font-size="850"
+        fill="#B8860B" text-anchor="middle">ECONOMY?</text>
+
+  <!-- "ECONOMY?" — Bebas Neue condensed, amber punchline -->
+  <text x="2303" y="4300"
+        font-family="'Bebas Neue', sans-serif"
+        font-size="850"
+        fill="#F59E0B" text-anchor="middle">ECONOMY?</text>
+
+</svg>

@@ -16,7 +16,7 @@ cd pod_workspace/project
 ../../venv/bin/python -m podclaw.main --workspace ../../ --dry-run
 
 # Full run — start scheduler + FastAPI bridge (port 8000)
-../../venv/bin/python -m podclaw.main --workspace ../../
+../../venv/bin/python3 -m podclaw.main --workspace ../../
 
 # No bridge — scheduler only
 ../../venv/bin/python -m podclaw.main --workspace ../../ --no-bridge

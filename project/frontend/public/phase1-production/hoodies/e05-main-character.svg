@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="4016" height="3307" viewBox="0 0 4016 3307">
+
+  <!-- E05: "Main Character Energy" — BP77 Hoodie 4016×3307 LANDSCAPE -->
+  <!-- Bold stacked, centered, fills width -->
+  <!-- Palette: Amber (#F59E0B) + Violet (#8B5CF6) -->
+  <!-- Fonts: Lato (hero), Montserrat (energy), Dancing Script (subtitle) -->
+
+  <!-- ===== "MAIN" — 3D amber ===== -->
+  <text x="2028" y="1000"
+        font-family="'Lato', sans-serif"
+        font-size="900" font-weight="700"
+        fill="#92400E" text-anchor="middle">MAIN</text>
+  <text x="2018" y="990"
+        font-family="'Lato', sans-serif"
+        font-size="900" font-weight="700"
+        fill="#D97706" text-anchor="middle">MAIN</text>
+  <text x="2008" y="980"
+        font-family="'Lato', sans-serif"
+        font-size="900" font-weight="700"
+        fill="#F59E0B" text-anchor="middle">MAIN</text>
+
+  <!-- ===== "CHARACTER" — 3D amber ===== -->
+  <text x="2028" y="1750"
+        font-family="'Lato', sans-serif"
+        font-size="600" font-weight="700"
+        fill="#92400E" text-anchor="middle">CHARACTER</text>
+  <text x="2018" y="1740"
+        font-family="'Lato', sans-serif"
+        font-size="600" font-weight="700"
+        fill="#D97706" text-anchor="middle">CHARACTER</text>
+  <text x="2008" y="1730"
+        font-family="'Lato', sans-serif"
+        font-size="600" font-weight="700"
+        fill="#F59E0B" text-anchor="middle">CHARACTER</text>
+
+  <!-- ===== "ENERGY" — 3D violet ===== -->
+  <text x="2028" y="2520"
+        font-family="'Montserrat', sans-serif"
+        font-size="800" font-weight="700"
+        fill="#4C1D95" text-anchor="middle"
+        letter-spacing="15">ENERGY</text>
+  <text x="2018" y="2510"
+        font-family="'Montserrat', sans-serif"
+        font-size="800" font-weight="700"
+        fill="#6D28D9" text-anchor="middle"
+        letter-spacing="15">ENERGY</text>
+  <text x="2008" y="2500"
+        font-family="'Montserrat', sans-serif"
+        font-size="800" font-weight="700"
+        fill="#8B5CF6" text-anchor="middle"
+        letter-spacing="15">ENERGY</text>
+
+  <!-- ===== "*side character budget" ===== -->
+  <text x="2008" y="2950"
+        font-family="'Dancing Script', cursive"
+        font-size="270"
+        fill="#F0EDE8" text-anchor="middle">*side character budget</text>
+
+</svg>

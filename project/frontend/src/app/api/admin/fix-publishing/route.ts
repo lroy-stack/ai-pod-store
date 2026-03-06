@@ -10,7 +10,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
-import { printify } from '@/lib/printify'
+import { getProvider, initializeProviders } from '@/lib/pod'
 import { verifyCronSecret } from '@/lib/rate-limit'
 
 const CRON_SECRET = process.env.CRON_SECRET || process.env.PODCLAW_BRIDGE_AUTH_TOKEN
@@ -32,17 +32,18 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    // 1. Fetch ALL products from Printify (paginated)
+    initializeProviders()
+
+    // 1. Fetch ALL products from provider (paginated)
     const allPrintifyProducts: Record<string, unknown>[] = []
     let page = 1
     let hasMore = true
 
     while (hasMore) {
-      const result = await printify.listProducts(page, 100)
-      const products = result.data || []
-      allPrintifyProducts.push(...products)
+      const result = await getProvider().listProducts({ offset: (page - 1) * 50, limit: 50 })
+      allPrintifyProducts.push(...result.data.map(p => (p as any)._raw || p))
 
-      if (products.length < 100) {
+      if (result.data.length < 50) {
         hasMore = false
       } else {
         page++
@@ -52,16 +53,17 @@ export async function GET(req: NextRequest) {
 
     report.printifyTotal = allPrintifyProducts.length
 
-    // 2. Build Supabase product map by printify_id
+    // 2. Build Supabase product map by provider_product_id
     const { data: supabaseProducts } = await supabaseAdmin
       .from('products')
-      .select('id, printify_id, status')
-      .not('printify_id', 'is', null)
+      .select('id, provider_product_id, status')
+      .not('provider_product_id', 'is', null)
 
     const supabaseMap = new Map<string, { id: string; status: string }>()
     for (const p of supabaseProducts || []) {
-      if (p.printify_id) {
-        supabaseMap.set(p.printify_id, { id: p.id, status: p.status })
+      const key = p.provider_product_id
+      if (key) {
+        supabaseMap.set(key, { id: p.id, status: p.status })
       }
     }
 
@@ -71,7 +73,7 @@ export async function GET(req: NextRequest) {
       const existing = supabaseMap.get(pid)
 
       try {
-        await printify.publishingSucceeded(
+        await getProvider().confirmPublishing!(
           pid,
           existing?.id || pid,
           existing ? `/shop/${existing.id}` : `/products/${pid}`

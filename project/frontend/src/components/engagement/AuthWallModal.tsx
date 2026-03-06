@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { Check } from 'lucide-react'
+import { BrandMark } from '@/components/ui/brand-mark'
 
 interface AuthWallModalProps {
   open: boolean
@@ -29,9 +30,7 @@ export function AuthWallModal({ open, onOpenChange, reason, variant = 'subtle' }
       <DialogContent className={isWall ? 'sm:max-w-2xl' : 'sm:max-w-md'}>
         <DialogHeader className={isWall ? 'text-center items-center' : ''}>
           {isWall && (
-            <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary/60 mb-2">
-              <span className="text-2xl font-bold text-primary-foreground">P</span>
-            </div>
+            <BrandMark size={56} className="justify-center mb-2" />
           )}
           <DialogTitle className={isWall ? 'text-2xl' : 'text-xl'}>
             {isWall ? t('wallTitle', { count: 5 }) : t('title')}

@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
 
       try {
         await resend.emails.send({
-          from: process.env.RESEND_FROM_EMAIL || 'noreply@podstore.local',
+          from: process.env.RESEND_FROM_EMAIL || 'SKAPARA <noreply@skapara.com>',
           to: userData.email,
           subject: 'Account Deletion Confirmation - 30 Day Grace Period',
           html: `

@@ -29,7 +29,7 @@ export async function POST() {
           <h1>Hi {{first_name}},</h1>
           <p>As a valued VIP customer, we're giving you exclusive early access to our Spring Collection.</p>
           <p>Your loyalty means everything to us. Shop the collection 48 hours before anyone else.</p>
-          <a href="https://podai.com/en/collection/spring-preview">Browse Exclusive Preview</a>
+          <a href="https://skapara.com/en/collection/spring-preview">Browse Exclusive Preview</a>
           <p><strong>Plus: Free shipping on your next order!</strong></p>
         </body></html>`,
         cta_a: 'Shop VIP Preview',
@@ -50,7 +50,7 @@ export async function POST() {
           <p>We noticed it's been a while since your last visit. We miss you!</p>
           <p>Here's a special 20% discount code just for you: <strong>COMEBACK20</strong></p>
           <p>Valid for the next 7 days on your favorite designs.</p>
-          <a href="https://podai.com/en/shop">Rediscover Your Style</a>
+          <a href="https://skapara.com/en/shop">Rediscover Your Style</a>
           <p>❤️ The Skapara Team</p>
         </body></html>`,
         cta_a: 'Shop Now with 20% Off',
@@ -70,7 +70,7 @@ export async function POST() {
           <h1>Welcome, {{first_name}}! 👋</h1>
           <p>We're thrilled to have you here. At Skapara, every design tells a story - yours.</p>
           <p>Get started with <strong>10% off</strong> your first order: <strong>FIRSTORDER</strong></p>
-          <a href="https://podai.com/en/shop">Start Shopping</a>
+          <a href="https://skapara.com/en/shop">Start Shopping</a>
           <p>Our most popular designs this week:</p>
           <ul>
             <li>Classic Cat T-Shirt</li>

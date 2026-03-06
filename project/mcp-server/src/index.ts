@@ -614,7 +614,17 @@ function createMcpServer(): McpServer {
 function parseBody(req: IncomingMessage): Promise<unknown> {
   return new Promise((resolve, reject) => {
     const chunks: Buffer[] = [];
-    req.on('data', (chunk: Buffer) => chunks.push(chunk));
+    let totalBytes = 0;
+    const MAX_BODY_SIZE = 1 * 1024 * 1024; // 1MB
+    req.on('data', (chunk: Buffer) => {
+      totalBytes += chunk.length;
+      if (totalBytes > MAX_BODY_SIZE) {
+        req.destroy();
+        reject(new Error('Request body too large'));
+        return;
+      }
+      chunks.push(chunk);
+    });
     req.on('end', () => {
       try {
         const raw = Buffer.concat(chunks).toString();
@@ -664,6 +674,9 @@ async function handleMcpPost(
     }
   }
 
+  // Inject auth info from JWT (if Bearer token present)
+  await injectAuthInfo(req);
+
   // Handle completion/complete request
   if (
     body &&
@@ -673,7 +686,8 @@ async function handleMcpPost(
   ) {
     try {
       const params = (body as any).params as CompletionRequest;
-      const result = await getCompletions(params);
+      const userId = (req as any).auth?.extra?.userId as string | undefined;
+      const result = await getCompletions(params, userId);
 
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(
@@ -702,9 +716,6 @@ async function handleMcpPost(
       return;
     }
   }
-
-  // Inject auth info from JWT (if Bearer token present)
-  await injectAuthInfo(req);
 
   // Extract tool name from request body for per-tool rate limiting
   let toolName: string | undefined;
@@ -943,8 +954,13 @@ const server = http.createServer(async (req, res) => {
     } catch (error) {
       console.error('[MCP Server] Error handling request:', error);
       if (!res.headersSent) {
-        res.writeHead(500, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ jsonrpc: '2.0', error: { code: -32603, message: 'Internal server error' }, id: null }));
+        if (error instanceof Error && error.message === 'Request body too large') {
+          res.writeHead(413, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ jsonrpc: '2.0', error: { code: -32000, message: 'Request body too large' }, id: null }));
+        } else {
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ jsonrpc: '2.0', error: { code: -32603, message: 'Internal server error' }, id: null }));
+        }
       }
     }
     return;

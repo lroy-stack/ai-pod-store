@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="525" viewBox="0 0 1200 525">
+
+  <!-- Dark Mode — Beechfield B682 Corduroy Cap (Cat 532) EMBROIDERY -->
+  <!-- Canvas: 1200×525 @300dpi — Printful PF#78 front placement -->
+  <!-- 2 thread colors: White #FFFFFF + Purple #6B5294 -->
+  <!-- Compact vertical layout: crescent moon + stacked text -->
+
+  <!-- Crescent moon — Purple thread, clean path for embroidery -->
+  <path d="M555,110 A55,55 0 1,1 600,165 A42,42 0 1,0 555,110Z"
+        fill="#6B5294" stroke="none"/>
+
+  <!-- "DARK" — White thread, centered, bold -->
+  <text x="600" y="310"
+        font-family="'Bebas Neue', 'Impact', sans-serif"
+        font-size="110" font-weight="400"
+        fill="#FFFFFF" text-anchor="middle"
+        letter-spacing="14">DARK</text>
+
+  <!-- "MODE" — White thread, centered below, matched weight -->
+  <text x="600" y="440"
+        font-family="'Bebas Neue', 'Impact', sans-serif"
+        font-size="110" font-weight="400"
+        fill="#FFFFFF" text-anchor="middle"
+        letter-spacing="14">MODE</text>
+
+</svg>

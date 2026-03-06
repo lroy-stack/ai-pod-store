@@ -100,14 +100,14 @@ export function ApprovalCardArtifact({
         <Button
           onClick={onDeny}
           variant="outline"
-          className="flex-1"
+          className="flex-1 neu-btn-soft"
           disabled={!onDeny}
         >
           {t('approvalDeny')}
         </Button>
         <Button
           onClick={onApprove}
-          className="flex-1 bg-primary hover:bg-primary/90"
+          className="flex-1 bg-primary hover:bg-primary/90 neu-btn-accent"
           disabled={!onApprove}
         >
           {t('approvalApprove')}

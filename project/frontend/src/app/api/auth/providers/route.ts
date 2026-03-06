@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { BASE_URL } from '@/lib/store-config'
 
 /**
  * GET /api/auth/providers
@@ -46,7 +47,7 @@ export async function GET() {
       const { data: googleData, error: googleError } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/en/auth/callback`,
+          redirectTo: `${BASE_URL}/en/auth/callback`,
           skipBrowserRedirect: true,
         },
       })
@@ -67,7 +68,7 @@ export async function GET() {
       const { data: appleData, error: appleError } = await supabase.auth.signInWithOAuth({
         provider: 'apple',
         options: {
-          redirectTo: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/en/auth/callback`,
+          redirectTo: `${BASE_URL}/en/auth/callback`,
           skipBrowserRedirect: true,
         },
       })
@@ -86,7 +87,7 @@ export async function GET() {
     return NextResponse.json({
       providers,
       supabaseUrl,
-      callbackUrl: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/en/auth/callback`,
+      callbackUrl: `${BASE_URL}/en/auth/callback`,
       setupInstructions: {
         google: {
           step1: 'Go to https://console.cloud.google.com/ and create OAuth 2.0 credentials',

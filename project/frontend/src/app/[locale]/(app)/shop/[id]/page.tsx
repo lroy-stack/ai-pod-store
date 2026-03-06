@@ -2,9 +2,26 @@ import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { ProductDetailClient } from '@/components/products/ProductDetailClient'
 import { getProduct, getProductReviews, getRelatedProducts } from '@/lib/product-detail-cache'
+import { supabaseAdmin } from '@/lib/supabase-admin'
+import { BASE_URL } from '@/lib/store-config'
 
 // Enable ISR with 1-hour revalidation
 export const revalidate = 3600
+
+// Pre-render top products at build time (3 locales x 50 products = 150 pages)
+export async function generateStaticParams() {
+  const { data } = await supabaseAdmin
+    .from('products')
+    .select('id')
+    .eq('status', 'active')
+    .order('review_count', { ascending: false })
+    .limit(50)
+
+  const locales = ['en', 'es', 'de']
+  return (data || []).flatMap((p) =>
+    locales.map((locale) => ({ locale, id: p.id }))
+  )
+}
 
 // Generate metadata for SEO
 export async function generateMetadata({
@@ -17,16 +34,18 @@ export async function generateMetadata({
 
   if (!product) {
     return {
-      title: 'Product Not Found | Skapara Store',
+      title: 'Product Not Found | SKAPARA Store',
       description: 'The product you are looking for could not be found.',
     }
   }
 
-  const title = `${product.title} - €${product.price} | Skapara Store`
-  const description = product.description || `Buy ${product.title} at Skapara Store`
+  const title = product.hasVariantPricing
+    ? `${product.title} - from €${product.price} | SKAPARA Store`
+    : `${product.title} - €${product.price} | SKAPARA Store`
+  const description = product.description || `Buy ${product.title} at SKAPARA Store`
   const images = product.images && product.images.length > 0 ? [product.images[0]] : []
 
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+  const baseUrl = BASE_URL
   const productPath = `/shop/${id}`
 
   return {
@@ -74,7 +93,7 @@ export default async function ProductDetailPage({
   const reviews = await getProductReviews(id)
 
   // Generate JSON-LD structured data for SEO
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+  const baseUrl = BASE_URL
   const productJsonLd = product ? {
     '@context': 'https://schema.org',
     '@type': 'Product',
@@ -82,7 +101,19 @@ export default async function ProductDetailPage({
     description: product.description,
     image: product.images,
     sku: product.id,
-    offers: {
+    offers: product.hasVariantPricing && product.maxPrice ? {
+      '@type': 'AggregateOffer',
+      url: `${baseUrl}/${locale}/shop/${id}`,
+      priceCurrency: product.currency || 'EUR',
+      lowPrice: product.price,
+      highPrice: product.maxPrice,
+      offerCount: product.variants?.sizes?.length || 1,
+      availability: product.inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+      seller: {
+        '@type': 'Organization',
+        name: 'SKAPARA Store',
+      },
+    } : {
       '@type': 'Offer',
       url: `${baseUrl}/${locale}/shop/${id}`,
       priceCurrency: product.currency || 'EUR',
@@ -90,7 +121,7 @@ export default async function ProductDetailPage({
       availability: product.inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
       seller: {
         '@type': 'Organization',
-        name: 'Skapara Store',
+        name: 'SKAPARA Store',
       },
     },
     aggregateRating: product.reviewCount > 0 ? {

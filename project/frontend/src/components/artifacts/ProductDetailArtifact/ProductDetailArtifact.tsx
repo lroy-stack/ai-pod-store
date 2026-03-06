@@ -30,6 +30,7 @@ export interface ProductDetail {
   description: string
   category: string
   price: number
+  compareAtPrice?: number
   currency: string
   images: { src: string; alt: string }[]
   rating: number
@@ -94,9 +95,28 @@ export function ProductDetailArtifact({
                 </Badge>
               </div>
               <div className="text-right">
-                <div className="text-3xl font-bold">
-                  {formatPrice(product.price, locale, product.currency)}
-                </div>
+                {product.compareAtPrice ? (
+                  <div>
+                    <div className="flex items-center justify-end gap-2">
+                      <span className="text-sm line-through text-muted-foreground">
+                        {formatPrice(product.compareAtPrice, locale, product.currency)}
+                      </span>
+                      {(() => {
+                        const pct = Math.round(((product.compareAtPrice! - product.price) / product.compareAtPrice!) * 100)
+                        return pct > 0 ? (
+                          <Badge variant="destructive" className="text-xs px-1.5 py-0.5">-{pct}%</Badge>
+                        ) : null
+                      })()}
+                    </div>
+                    <div className="text-3xl font-bold text-destructive">
+                      {formatPrice(product.price, locale, product.currency)}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-3xl font-bold">
+                    {formatPrice(product.price, locale, product.currency)}
+                  </div>
+                )}
                 {product.rating > 0 && (
                   <div className="mt-2 flex items-center gap-1 text-sm text-muted-foreground">
                     <Star className="h-4 w-4 fill-rating text-rating" />
@@ -221,7 +241,7 @@ export function ProductDetailArtifact({
 
           <CardFooter className="flex gap-2">
             <Button
-              className="flex-1"
+              className="flex-1 neu-btn-accent"
               onClick={() => onAddToCart?.(product.id)}
               disabled={!product.available}
             >
@@ -231,6 +251,7 @@ export function ProductDetailArtifact({
             <Button
               variant="outline"
               size="icon"
+              className="neu-btn-soft"
               onClick={() => toggleWishlist(product.id)}
             >
               <Heart className={cn('h-4 w-4', wishlisted ? 'fill-destructive text-destructive' : 'text-muted-foreground')} />

@@ -33,12 +33,28 @@ function getThemeColorHex(varName: string, fallback: string): string {
   return cssColorToHex(raw)
 }
 
+interface Colors {
+  back: string
+  blob1: string
+  blob2: string
+  blob3: string
+}
+
+function readColorsFromDOM(isDark: boolean): Colors {
+  return {
+    back: getThemeColorHex('--background', isDark ? '#1a1a2e' : '#dcdde0'),
+    blob1: getThemeColorHex('--primary', '#2b00ff'),
+    blob2: getThemeColorHex('--chart-2', '#ae00ff'),
+    blob3: getThemeColorHex('--chart-5', '#ffc105'),
+  }
+}
+
 export function MetaballsBackground() {
   const { resolvedTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
   const [supportsWebGL, setSupportsWebGL] = useState(true)
   const [reducedMotion, setReducedMotion] = useState(false)
-  const [isMobile, setIsMobile] = useState(false)
+  const [colors, setColors] = useState<Colors | null>(null)
 
   useEffect(() => {
     setMounted(true)
@@ -46,29 +62,25 @@ export function MetaballsBackground() {
     setReducedMotion(
       window.matchMedia('(prefers-reduced-motion: reduce)').matches
     )
-
-    // Check if viewport is mobile (<768px)
-    const checkMobile = () => setIsMobile(window.innerWidth < 768)
-    checkMobile()
-
-    // Re-check on resize
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
   }, [])
 
-  // Disable canvas on mobile, no WebGL, or if not mounted
-  if (!mounted || !supportsWebGL || isMobile) return null
+  // Read CSS variables AFTER DOM commit (useEffect, not useMemo).
+  // requestAnimationFrame ensures the browser has fully computed styles
+  // after next-themes toggles the .dark class on <html>.
+  useEffect(() => {
+    if (!mounted) return
+    const raf = requestAnimationFrame(() => {
+      setColors(readColorsFromDOM(resolvedTheme === 'dark'))
+    })
+    return () => cancelAnimationFrame(raf)
+  }, [mounted, resolvedTheme])
 
-  // Read unprefixed theme variables from :root and convert oklch→hex for shader
-  const colorBack = getThemeColorHex('--background', resolvedTheme === 'dark' ? '#0a0a0b' : '#dcdde0')
-  const blobColor1 = getThemeColorHex('--primary', '#2b00ff')
-  const blobColor2 = getThemeColorHex('--chart-2', '#ae00ff')
-  const blobColor3 = getThemeColorHex('--chart-5', '#ffc105')
+  if (!mounted || !supportsWebGL || !colors) return null
 
   return (
     <Metaballs
-      colors={[blobColor1, blobColor2, blobColor3]}
-      colorBack={colorBack}
+      colors={[colors.blob1, colors.blob2, colors.blob3]}
+      colorBack={colors.back}
       count={19.8}
       size={0.05}
       speed={reducedMotion ? 0 : 0.5}

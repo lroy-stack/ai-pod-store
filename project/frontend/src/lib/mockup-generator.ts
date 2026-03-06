@@ -100,7 +100,7 @@ export async function generateMockup(options: MockupOptions): Promise<MockupResu
         <text x="512" y="512" font-size="80" font-family="Arial, sans-serif"
               fill="rgba(255,255,255,0.35)" text-anchor="middle"
               dominant-baseline="middle"
-              transform="rotate(-30 512 512)">Skapara</text>
+              transform="rotate(-30 512 512)">SKAPARA</text>
         <text x="512" y="620" font-size="40" font-family="Arial, sans-serif"
               fill="rgba(255,255,255,0.25)" text-anchor="middle"
               dominant-baseline="middle"
@@ -158,38 +158,26 @@ export async function generateMockup(options: MockupOptions): Promise<MockupResu
 }
 
 /**
- * Generate mockup using Printify's product images (if product already exists in Printify)
+ * Generate mockup using POD provider's product images (if product already exists)
  */
 export async function generatePrintifyMockup(options: {
   printifyProductId: string
 }): Promise<MockupResult> {
   try {
-    const PRINTIFY_TOKEN = process.env.PRINTIFY_TOKEN
-    const PRINTIFY_SHOP_ID = process.env.PRINTIFY_SHOP_ID
+    const { getProvider, initializeProviders } = await import('@/lib/pod')
+    initializeProviders()
+    const provider = getProvider()
 
-    if (!PRINTIFY_TOKEN || !PRINTIFY_SHOP_ID) {
-      return { success: false, error: 'Printify not configured' }
-    }
-
-    const response = await fetch(
-      `https://api.printify.com/v1/shops/${PRINTIFY_SHOP_ID}/products/${options.printifyProductId}.json`,
-      { headers: { 'Authorization': `Bearer ${PRINTIFY_TOKEN}` } }
-    )
-
-    if (!response.ok) {
-      return { success: false, error: 'Failed to fetch Printify product' }
-    }
-
-    const product = await response.json()
+    const product = await provider.getProduct(options.printifyProductId)
     const mockupUrl = product.images?.[0]?.src
 
     if (!mockupUrl) {
-      return { success: false, error: 'No mockups available from Printify' }
+      return { success: false, error: 'No mockups available from provider' }
     }
 
     return { success: true, mockupUrl, placeholder: false }
   } catch (error) {
-    console.error('Printify mockup error:', error)
-    return { success: false, error: 'Failed to fetch Printify mockup' }
+    console.error('POD provider mockup error:', error)
+    return { success: false, error: 'Failed to fetch provider mockup' }
   }
 }

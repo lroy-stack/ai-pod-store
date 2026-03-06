@@ -122,7 +122,7 @@ export function ProductMockupArtifact({
         <Button
           onClick={handleDownload}
           variant="outline"
-          className="w-full sm:flex-1"
+          className="w-full sm:flex-1 neu-btn-soft"
           disabled={!mockupUrl}
         >
           <Download className="h-4 w-4 mr-2" />
@@ -130,7 +130,7 @@ export function ProductMockupArtifact({
         </Button>
         <Button
           onClick={onAddToCart}
-          className="w-full sm:flex-1 bg-primary hover:bg-primary/90"
+          className="w-full sm:flex-1 bg-primary hover:bg-primary/90 neu-btn-accent"
           disabled={!mockupUrl || !onAddToCart}
         >
           <ShoppingCart className="h-4 w-4 mr-2" />

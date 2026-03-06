@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
     const { data: adminUser } = await supabaseAdmin
       .from('users')
       .select('id')
-      .eq('email', 'admin@podstore.local')
+      .eq('email', 'admin@skapara.com')
       .single();
 
     if (!adminUser) {

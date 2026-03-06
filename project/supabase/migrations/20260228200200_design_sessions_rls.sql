@@ -1,0 +1,1 @@
+ALTER TABLE design_sessions ENABLE ROW LEVEL SECURITY;

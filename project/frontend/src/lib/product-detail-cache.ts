@@ -1,33 +1,78 @@
+import { cache } from 'react'
 import { supabaseAdmin } from '@/lib/supabase-admin'
+import { extractImageUrl } from '@/lib/product-cache'
+import { getCachedProductDetail, setCachedProductDetail, getCachedRelatedProducts, setCachedRelatedProducts } from '@/lib/cached-queries'
+import { sortSizes } from '@/lib/size-order'
 
 /**
- * Build variant → image indices map by matching printify_variant_id in image URLs.
- * Printify mockup URLs contain the variant ID: /mockup/{product_id}/{variant_id}/{image_id}/...
+ * Build variant → image indices map.
+ * Strategy 1: Match external_variant_id in image URLs
+ * Strategy 2: Match by variant image_url + alt text
  *
  * @param field - 'color' or 'size' — the variant dimension to group by
  */
 function buildVariantImageMap(
   images: string[],
-  variants: Array<{ color: string | null; size: string | null; printify_variant_id: string | null }>,
+  imageAlts: string[],
+  variants: Array<{ color: string | null; size: string | null; external_variant_id?: string | null; image_url?: string | null }>,
   field: 'color' | 'size',
 ): Record<string, number[]> {
   const variantIdToValue = new Map<string, string>()
   for (const v of variants) {
     const value = v[field]
-    if (value && v.printify_variant_id) {
-      variantIdToValue.set(v.printify_variant_id, value)
+    const vid = v.external_variant_id
+    if (value && vid) {
+      variantIdToValue.set(vid, value)
     }
   }
 
   const indices: Record<string, number[]> = {}
+
+  // Strategy 1: Match variant ID in image URLs
   for (let i = 0; i < images.length; i++) {
     const url = images[i]
     for (const [pvid, value] of variantIdToValue) {
       if (url.includes('/' + pvid + '/')) {
         if (!indices[value]) indices[value] = []
-        // Avoid duplicates (multiple variants of same color/size point to same image)
         if (!indices[value].includes(i)) indices[value].push(i)
         break
+      }
+    }
+  }
+
+  // Strategy 2: If no matches via URL, use image_url + alt text matching
+  if (Object.keys(indices).length === 0) {
+    const fieldValues = new Set<string>()
+    const valueToImageUrls = new Map<string, Set<string>>()
+    for (const v of variants) {
+      const val = v[field]
+      if (val) {
+        fieldValues.add(val)
+        if (v.image_url) {
+          if (!valueToImageUrls.has(val)) valueToImageUrls.set(val, new Set())
+          valueToImageUrls.get(val)!.add(v.image_url)
+        }
+      }
+    }
+    for (let i = 0; i < images.length; i++) {
+      // Direct URL match
+      for (const [val, urls] of valueToImageUrls) {
+        if (urls.has(images[i])) {
+          if (!indices[val]) indices[val] = []
+          if (!indices[val].includes(i)) indices[val].push(i)
+        }
+      }
+      // Alt text match: "Title - Color" or "Title - Color - Sleeve" pattern (skip blank images)
+      // Use exact boundary matching to prevent "Black" matching inside "Vintage Black"
+      const alt = imageAlts[i] || ''
+      if (alt && !alt.includes('(blank)')) {
+        for (const val of fieldValues) {
+          const pattern = new RegExp(`- ${val.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?:$| - )`)
+          if (pattern.test(alt)) {
+            if (!indices[val]) indices[val] = []
+            if (!indices[val].includes(i)) indices[val].push(i)
+          }
+        }
       }
     }
   }
@@ -35,8 +80,12 @@ function buildVariantImageMap(
   return indices
 }
 
-// Fetch product by ID from Supabase
-export async function getProduct(id: string) {
+// Fetch product by ID — Redis cache (cross-request) + React.cache (same-request dedup)
+export const getProduct = cache(async function getProduct(id: string) {
+  // Check Redis cache first (returns null if Redis unavailable or miss)
+  const cached = await getCachedProductDetail(id)
+  if (cached) return cached
+
   const [productResult, variantsResult, allEnabledResult] = await Promise.all([
     supabaseAdmin
       .from('products')
@@ -47,13 +96,13 @@ export async function getProduct(id: string) {
       .single(),
     supabaseAdmin
       .from('product_variants')
-      .select('size, color, price_cents, is_enabled, is_available, image_url, printify_variant_id')
+      .select('title, size, color, price_cents, is_enabled, is_available, image_url, external_variant_id')
       .eq('product_id', id)
       .eq('is_enabled', true)
       .eq('is_available', true),
     supabaseAdmin
       .from('product_variants')
-      .select('size, color, is_available, printify_variant_id')
+      .select('size, color, is_available, external_variant_id')
       .eq('product_id', id)
       .eq('is_enabled', true),
   ])
@@ -64,37 +113,58 @@ export async function getProduct(id: string) {
   }
 
   const variants = variantsResult.data || []
-  const sizes = [...new Set(variants.map((v) => v.size).filter(Boolean))] as string[]
+  const sizes = sortSizes([...new Set(variants.map((v) => v.size).filter(Boolean))] as string[])
   const colors = [...new Set(variants.map((v) => v.color).filter(Boolean))] as string[]
 
-  const allImages: string[] = Array.isArray(product.images)
-    ? product.images.map((img: { src?: string; url?: string }) => img.src || img.url || '').filter(Boolean)
-    : []
+  // Build variant prices (only when prices differ across variants)
+  const variantPricesRaw = variants
+    .filter((v: any) => v.price_cents != null)
+    .map((v: any) => ({ size: v.size || '', color: v.color || '', price: v.price_cents / 100 }))
+  const uniquePrices = new Set(variantPricesRaw.map((v: any) => v.price))
+  const hasVariantPricing = uniquePrices.size > 1
+  const maxPriceVal = variantPricesRaw.length > 0
+    ? Math.max(...variantPricesRaw.map((v: any) => v.price)) : undefined
+
+  const rawImageObjects: Array<{ src?: string; url?: string; alt?: string }> = Array.isArray(product.images) ? product.images : []
+  const allImages: string[] = rawImageObjects.map((img) => img.src || img.url || '').filter(Boolean)
+  const allAlts: string[] = rawImageObjects.map((img) => img.alt || '')
 
   // Build variant→image indices maps (only when multiple options exist per dimension)
   const colorImageIndices = colors.length > 1
-    ? buildVariantImageMap(allImages, variants, 'color')
+    ? buildVariantImageMap(allImages, allAlts, variants, 'color')
     : {}
   const sizeImageIndices = sizes.length > 1
-    ? buildVariantImageMap(allImages, variants, 'size')
+    ? buildVariantImageMap(allImages, allAlts, variants, 'size')
     : {}
 
   const details = product.product_details || {}
 
+  // Extract unique finishes from variant titles (e.g. "11oz / Black / Glossy" → "Glossy")
+  const finishes = [...new Set(variants.map((v) => {
+    const parts = String(v.title || '').split(' / ').map((p: string) => p.trim())
+    return parts.length === 3 ? parts[2] : null
+  }).filter(Boolean))] as string[]
+  if (finishes.length > 0 && !details.finish) {
+    details.finish = finishes.join(', ')
+  }
+
   // Build unavailable combinations from all enabled variants
   const allEnabled = allEnabledResult.data || []
   const allEnabledColors = [...new Set(allEnabled.map(v => v.color).filter(Boolean))] as string[]
-  const allEnabledSizes = [...new Set(allEnabled.map(v => v.size).filter(Boolean))] as string[]
+  const allEnabledSizes = sortSizes([...new Set(allEnabled.map(v => v.size).filter(Boolean))] as string[])
   const unavailableCombinations = allEnabled
     .filter(v => !v.is_available)
     .map(v => ({ color: v.color || '', size: v.size || '' }))
 
-  return {
+  const result = {
     id: product.id,
     title: product.title,
     description: product.description,
     longDescription: product.description,
     price: product.base_price_cents / 100,
+    ...(product.compare_at_price_cents ? { compareAtPrice: product.compare_at_price_cents / 100 } : {}),
+    ...(hasVariantPricing ? { maxPrice: maxPriceVal } : {}),
+    ...(hasVariantPricing ? { hasVariantPricing } : {}),
     currency: product.currency?.toUpperCase() || 'EUR',
     images: allImages,
     rating: Number(product.avg_rating) || 0,
@@ -102,7 +172,7 @@ export async function getProduct(id: string) {
     category: product.category?.toLowerCase(),
     tags: product.tags || [],
     inStock: variants.length > 0,
-    printifyId: product.printify_id,
+    printifyId: product.provider_product_id,
     createdAt: product.created_at,
     materials: details.material || null,
     careInstructions: details.care_instructions || null,
@@ -110,6 +180,7 @@ export async function getProduct(id: string) {
     manufacturingCountry: details.manufacturing_country || null,
     brand: details.brand || null,
     safetyInformation: details.safety_information || null,
+    finish: details.finish || null,
     productDetails: details,
     variants: {
       ...(sizes.length > 0 ? { sizes } : {}),
@@ -119,12 +190,18 @@ export async function getProduct(id: string) {
       ...(allEnabledColors.length > 0 ? { allColors: allEnabledColors } : {}),
       ...(allEnabledSizes.length > 0 ? { allSizes: allEnabledSizes } : {}),
       ...(unavailableCombinations.length > 0 ? { unavailableCombinations } : {}),
+      ...(hasVariantPricing ? { prices: variantPricesRaw } : {}),
     },
   }
-}
 
-// Fetch product reviews from Supabase
-export async function getProductReviews(productId: string) {
+  // Store in Redis for cross-request caching (fire-and-forget)
+  setCachedProductDetail(id, result)
+
+  return result
+})
+
+// Fetch product reviews from Supabase (React.cache deduplicates within same request)
+export const getProductReviews = cache(async function getProductReviews(productId: string) {
   const { data: reviews, error } = await supabaseAdmin
     .from('product_reviews')
     .select('id, rating, title, body, is_verified_purchase, created_at, user_id')
@@ -144,10 +221,45 @@ export async function getProductReviews(productId: string) {
     verified: r.is_verified_purchase,
     comment: r.body || r.title || '',
   }))
+})
+
+// Batch-fetch color variants for a set of product IDs
+async function fetchColorVariants(productIds: string[]) {
+  if (productIds.length === 0) return new Map<string, { colors: string[]; colorImages: Record<string, string> }>()
+
+  const { data: allVariants } = await supabaseAdmin
+    .from('product_variants')
+    .select('product_id, color, image_url')
+    .in('product_id', productIds)
+    .eq('is_enabled', true)
+    .eq('is_available', true)
+
+  const grouped = new Map<string, { colors: Set<string>; colorImages: Map<string, string> }>()
+  for (const v of allVariants || []) {
+    if (!v.color) continue
+    if (!grouped.has(v.product_id)) {
+      grouped.set(v.product_id, { colors: new Set(), colorImages: new Map() })
+    }
+    const entry = grouped.get(v.product_id)!
+    entry.colors.add(v.color)
+    if (v.image_url && !entry.colorImages.has(v.color)) {
+      entry.colorImages.set(v.color, v.image_url)
+    }
+  }
+
+  const result = new Map<string, { colors: string[]; colorImages: Record<string, string> }>()
+  for (const [id, { colors, colorImages }] of grouped) {
+    result.set(id, { colors: [...colors], colorImages: Object.fromEntries(colorImages) })
+  }
+  return result
 }
 
-// Fetch related products using co-purchase analysis from association_rules
-export async function getRelatedProducts(productId: string) {
+// Fetch related products — Redis cache + React.cache dedup
+export const getRelatedProducts = cache(async function getRelatedProducts(productId: string) {
+  // Check Redis cache first
+  const cachedRelated = await getCachedRelatedProducts(productId)
+  if (cachedRelated) return cachedRelated
+
   // First, try to get recommendations from association rules (co-purchase data)
   const { data: rules, error: rulesError } = await supabaseAdmin
     .from('association_rules')
@@ -179,17 +291,21 @@ export async function getRelatedProducts(productId: string) {
       .in('id', recommendedIds)
 
     if (!productsError && products && products.length > 0) {
-      return products.map((p) => ({
+      const variantsMap = await fetchColorVariants(products.map((p) => p.id))
+      const result = products.map((p) => ({
         id: p.id,
         title: p.title,
         description: p.description,
         price: p.base_price_cents / 100,
         currency: p.currency?.toUpperCase() || 'EUR',
-        image: Array.isArray(p.images) && p.images.length > 0 ? (p.images[0].src || p.images[0].url) : null,
+        image: extractImageUrl(p.images, 0),
         rating: Number(p.avg_rating) || 0,
         reviewCount: p.review_count || 0,
         category: p.category?.toLowerCase(),
+        variants: variantsMap.has(p.id) ? variantsMap.get(p.id) : undefined,
       }))
+      setCachedRelatedProducts(productId, result)
+      return result
     }
   }
 
@@ -210,15 +326,19 @@ export async function getRelatedProducts(productId: string) {
     return []
   }
 
-  return related.map((p) => ({
+  const variantsMap = await fetchColorVariants(related.map((p) => p.id))
+  const result = related.map((p) => ({
     id: p.id,
     title: p.title,
     description: p.description,
     price: p.base_price_cents / 100,
     currency: p.currency?.toUpperCase() || 'EUR',
-    image: Array.isArray(p.images) && p.images.length > 0 ? (p.images[0].src || p.images[0].url) : null,
+    image: extractImageUrl(p.images, 0),
     rating: Number(p.avg_rating) || 0,
     reviewCount: p.review_count || 0,
     category: p.category?.toLowerCase(),
+    variants: variantsMap.has(p.id) ? variantsMap.get(p.id) : undefined,
   }))
-}
+  setCachedRelatedProducts(productId, result)
+  return result
+})

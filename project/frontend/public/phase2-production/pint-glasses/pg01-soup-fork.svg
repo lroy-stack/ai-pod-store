@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2738" height="1276" viewBox="0 0 2738 1276">
+
+  <!-- PG01: "Soup Fork" Pint Glass — BP633 2738×1276, UV on glass -->
+  <!-- Landscape wrap — text dark for clear glass -->
+  <!-- Horizontal recomposition of A01 -->
+
+  <!-- "LIFE is" — left side -->
+  <text x="400" y="480"
+        font-family="'Permanent Marker', cursive"
+        font-size="300"
+        fill="#1E293B" text-anchor="middle">LIFE</text>
+
+  <text x="400" y="640"
+        font-family="'Caveat', cursive"
+        font-size="180"
+        fill="#374151" text-anchor="middle">is</text>
+
+  <!-- "SOUP." — left-center, green -->
+  <text x="400" y="950"
+        font-family="'Bebas Neue', sans-serif"
+        font-size="340"
+        fill="#10B981" text-anchor="middle">SOUP.</text>
+
+  <!-- Fork icon — center divider -->
+  <g transform="translate(1100, 638)">
+    <rect x="-50" y="-200" width="14" height="200" rx="7" fill="#374151"/>
+    <rect x="-7" y="-220" width="14" height="220" rx="7" fill="#374151"/>
+    <rect x="36" y="-200" width="14" height="200" rx="7" fill="#374151"/>
+    <rect x="-57" y="0" width="114" height="14" rx="7" fill="#374151"/>
+    <rect x="-7" y="14" width="14" height="180" rx="7" fill="#374151"/>
+  </g>
+
+  <!-- "I am" — right-center -->
+  <text x="1800" y="480"
+        font-family="'Caveat', cursive"
+        font-size="180"
+        fill="#374151" text-anchor="middle">I am</text>
+
+  <!-- "FORK." — right side, amber -->
+  <text x="1800" y="780"
+        font-family="'Permanent Marker', cursive"
+        font-size="340"
+        fill="#D97706" text-anchor="middle">FORK.</text>
+
+  <!-- "existential cuisine" — far right, small -->
+  <text x="1800" y="1000"
+        font-family="'Courier New', monospace"
+        font-size="70" font-weight="bold"
+        fill="#6B7280" text-anchor="middle">existential cuisine</text>
+
+  <!-- S mark — far right wrap area -->
+  <text x="2500" y="700"
+        font-family="'Courier New', monospace"
+        font-size="60" font-weight="bold"
+        fill="#9CA3AF" text-anchor="middle">SKAPARA</text>
+
+</svg>

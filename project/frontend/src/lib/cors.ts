@@ -3,9 +3,11 @@
  * Allows the frontend origin and common development/production scenarios
  */
 
+import { BASE_URL } from '@/lib/store-config'
+
 export function getCorsHeaders(origin?: string | null): Record<string, string> {
   const allowedOrigins = [
-    process.env.NEXT_PUBLIC_BASE_URL || 'https://podai.com',
+    BASE_URL,
     'http://localhost:3000',
     'http://localhost:3001', // Admin panel
   ]

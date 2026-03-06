@@ -53,13 +53,21 @@ export async function GET(request: NextRequest) {
           return response
         }
 
-        // Fetch user profile from users table to get locale and currency
+        // Fetch user profile from users table
         const refreshedUser = refreshData.user!
         const { data: profile } = await supabase
           .from('users')
-          .select('locale, currency')
+          .select('locale, currency, email, deletion_requested_at')
           .eq('id', refreshedUser.id)
           .single()
+
+        // Sync email if changed
+        if (profile && profile.email !== refreshedUser.email) {
+          await supabase
+            .from('users')
+            .update({ email: refreshedUser.email })
+            .eq('id', refreshedUser.id)
+        }
 
         // Update cookies with new tokens
         const response = NextResponse.json(
@@ -71,6 +79,7 @@ export async function GET(request: NextRequest) {
               name: refreshedUser.user_metadata?.name,
               locale: profile?.locale || 'en',
               currency: profile?.currency || 'EUR',
+              deletion_requested_at: profile?.deletion_requested_at || null,
             },
           },
           { status: 200 }
@@ -109,12 +118,20 @@ export async function GET(request: NextRequest) {
       return response
     }
 
-    // Token is valid, fetch user profile from users table to get locale and currency
+    // Token is valid, fetch user profile from users table
     const { data: profile } = await supabase
       .from('users')
-      .select('locale, currency')
+      .select('locale, currency, email, deletion_requested_at')
       .eq('id', user.id)
       .single()
+
+    // Sync email if it changed (e.g., after confirming email change via Supabase)
+    if (profile && profile.email !== user.email) {
+      await supabase
+        .from('users')
+        .update({ email: user.email })
+        .eq('id', user.id)
+    }
 
     // Return user data
     return NextResponse.json(
@@ -126,6 +143,7 @@ export async function GET(request: NextRequest) {
           name: user.user_metadata?.name,
           locale: profile?.locale || 'en',
           currency: profile?.currency || 'EUR',
+          deletion_requested_at: profile?.deletion_requested_at || null,
         },
       },
       { status: 200 }

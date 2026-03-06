@@ -10,7 +10,7 @@ vi.mock('@supabase/supabase-js', () => ({
 vi.mock('@/lib/rbac', () => ({
   getAdminSession: vi.fn().mockResolvedValue({
     userId: 'admin-id',
-    email: 'admin@podstore.local',
+    email: 'admin@skapara.com',
     role: 'admin',
   }),
 }));

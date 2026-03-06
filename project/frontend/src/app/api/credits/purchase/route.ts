@@ -9,6 +9,7 @@ import { NextRequest } from 'next/server'
 import { requireAuth, authErrorResponse } from '@/lib/auth-guard'
 import { stripe } from '@/lib/stripe'
 import { createClient } from '@supabase/supabase-js'
+import { BASE_URL, BRAND } from '@/lib/store-config'
 
 const supabase = createClient(
   process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -47,7 +48,6 @@ export async function POST(req: NextRequest) {
     }
 
     const packInfo = CREDIT_PACKS[pack as PackSize]
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
 
     // Get or create Stripe customer
     const { data: profile } = await supabase
@@ -80,7 +80,7 @@ export async function POST(req: NextRequest) {
           price_data: {
             currency: 'eur',
             product_data: {
-              name: `Skapara ${packInfo.label}`,
+              name: `${BRAND.name} ${packInfo.label}`,
               description: `${packInfo.credits} design credits for AI-powered designs`,
             },
             unit_amount: packInfo.priceCents,
@@ -88,8 +88,8 @@ export async function POST(req: NextRequest) {
           quantity: 1,
         },
       ],
-      success_url: `${baseUrl}/en/pricing?credits=success`,
-      cancel_url: `${baseUrl}/en/pricing?credits=cancelled`,
+      success_url: `${BASE_URL}/en/pricing?credits=success`,
+      cancel_url: `${BASE_URL}/en/pricing?credits=cancelled`,
       metadata: {
         user_id: user.id,
         type: 'credit_pack',

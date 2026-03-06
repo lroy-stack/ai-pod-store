@@ -1,0 +1,1549 @@
+{
+  "generatedAt": "2026-03-02T14:26:43.419Z",
+  "totalChecked": 20,
+  "passed": 20,
+  "failed": 0,
+  "warnings": 0,
+  "checks": [
+    {
+      "productId": "168731f6-75db-4075-bb30-c1ec8fead998",
+      "title": "Absolutely Right",
+      "tier": "signature",
+      "checks": {
+        "pod_provider": {
+          "pass": true,
+          "value": "printful",
+          "expected": "printful"
+        },
+        "provider_product_id": {
+          "pass": true,
+          "value": "422030294"
+        },
+        "printify_archived": {
+          "pass": true,
+          "value": null,
+          "expected": null,
+          "note": "cleared"
+        },
+        "brand": {
+          "pass": true,
+          "value": "SKAPARA"
+        },
+        "model": {
+          "pass": true,
+          "value": "Comfort Colors 1717"
+        },
+        "material": {
+          "pass": true,
+          "value": "100% ring-spun cotton, 6.1oz (207gsm), g"
+        },
+        "safety_information": {
+          "pass": true,
+          "hasValue": true
+        },
+        "manufacturing_country": {
+          "pass": true,
+          "value": "LV"
+        },
+        "care_instructions": {
+          "pass": true,
+          "hasValue": true
+        },
+        "description_en": {
+          "pass": true,
+          "length": 187
+        },
+        "description_es": {
+          "pass": true,
+          "length": 203
+        },
+        "description_de": {
+          "pass": true,
+          "length": 207
+        },
+        "margin": {
+          "pass": true,
+          "margin": 47.4,
+          "price": 3499,
+          "cost": 1840
+        },
+        "variants_count": {
+          "pass": true,
+          "count": 35
+        },
+        "variants_external_id": {
+          "pass": true,
+          "mapped": 35,
+          "total": 35
+        },
+        "printful_exists": {
+          "pass": true,
+          "syncProductId": "422030294"
+        }
+      }
+    },
+    {
+      "productId": "922c9543-91b7-4530-9393-bee5db079626",
+      "title": "Caffeine Anxiety",
+      "tier": "premium",
+      "checks": {
+        "pod_provider": {
+          "pass": true,
+          "value": "printful",
+          "expected": "printful"
+        },
+        "provider_product_id": {
+          "pass": true,
+          "value": "422030458"
+        },
+        "printify_archived": {
+          "pass": true,
+          "value": null,
+          "expected": null,
+          "note": "cleared"
+        },
+        "brand": {
+          "pass": true,
+          "value": "SKAPARA"
+        },
+        "model": {
+          "pass": true,
+          "value": "Cotton Heritage MC1087"
+        },
+        "material": {
+          "pass": true,
+          "value": "100% combed ringspun cotton, 7oz (237gsm"
+        },
+        "safety_information": {
+          "pass": true,
+          "hasValue": true
+        },
+        "manufacturing_country": {
+          "pass": true,
+          "value": "LV"
+        },
+        "care_instructions": {
+          "pass": true,
+          "hasValue": true
+        },
+        "description_en": {
+          "pass": true,
+          "length": 190
+        },
+        "description_es": {
+          "pass": true,
+          "length": 223
+        },
+        "description_de": {
+          "pass": true,
+          "length": 224
+        },
+        "margin": {
+          "pass": true,
+          "margin": 44.2,
+          "price": 4499,
+          "cost": 2510
+        },
+        "variants_count": {
+          "pass": true,
+          "count": 35
+        },
+        "variants_external_id": {
+          "pass": true,
+          "mapped": 35,
+          "total": 35
+        },
+        "printful_exists": {
+          "pass": true,
+          "syncProductId": "422030458"
+        }
+      }
+    },
+    {
+      "productId": "052903d6-8b14-4373-832a-4a04df2f495e",
+      "title": "Dangerous Flag",
+      "tier": "signature",
+      "checks": {
+        "pod_provider": {
+          "pass": true,
+          "value": "printful",
+          "expected": "printful"
+        },
+        "provider_product_id": {
+          "pass": true,
+          "value": "422030313"
+        },
+        "printify_archived": {
+          "pass": true,
+          "value": null,
+          "expected": null,
+          "note": "cleared"
+        },
+        "brand": {
+          "pass": true,
+          "value": "SKAPARA"
+        },
+        "model": {
+          "pass": true,
+          "value": "Comfort Colors 1717"
+        },
+        "material": {
+          "pass": true,
+          "value": "100% ring-spun cotton, 6.1oz (207gsm), g"
+        },
+        "safety_information": {
+          "pass": true,
+          "hasValue": true
+        },
+        "manufacturing_country": {
+          "pass": true,
+          "value": "LV"
+        },
+        "care_instructions": {
+          "pass": true,
+          "hasValue": true
+        },
+        "description_en": {
+          "pass": true,
+          "length": 192
+        },
+        "description_es": {
+          "pass": true,
+          "length": 196
+        },
+        "description_de": {
+          "pass": true,
+          "length": 206
+        },
+        "margin": {
+          "pass": true,
+          "margin": 47.4,
+          "price": 3499,
+          "cost": 1840
+        },
+        "variants_count": {
+          "pass": true,
+          "count": 35
+        },
+        "variants_external_id": {
+          "pass": true,
+          "mapped": 35,
+          "total": 35
+        },
+        "printful_exists": {
+          "pass": true,
+          "syncProductId": "422030313"
+        }
+      }
+    },
+    {
+      "productId": "152676b0-4818-458b-8ffe-55e1b0a87877",
+      "title": "Existential Dread",
+      "tier": "premium",
+      "checks": {
+        "pod_provider": {
+          "pass": true,
+          "value": "printful",
+          "expected": "printful"
+        },
+        "provider_product_id": {
+          "pass": true,
+          "value": "422030462"
+        },
+        "printify_archived": {
+          "pass": true,
+          "value": null,
+          "expected": null,
+          "note": "cleared"
+        },
+        "brand": {
+          "pass": true,
+          "value": "SKAPARA"
+        },
+        "model": {
+          "pass": true,
+          "value": "Cotton Heritage MC1087"
+        },
+        "material": {
+          "pass": true,
+          "value": "100% combed ringspun cotton, 7oz (237gsm"
+        },
+        "safety_information": {
+          "pass": true,
+          "hasValue": true
+        },
+        "manufacturing_country": {
+          "pass": true,
+          "value": "LV"
+        },
+        "care_instructions": {
+          "pass": true,
+          "hasValue": true
+        },
+        "description_en": {
+          "pass": true,
+          "length": 234
+        },
+        "description_es": {
+          "pass": true,
+          "length": 258
+        },
+        "description_de": {
+          "pass": true,
+          "length": 276
+        },
+        "margin": {
+          "pass": true,
+          "margin": 44.2,
+          "price": 4499,
+          "cost": 2510
+        },
+        "variants_count": {
+          "pass": true,
+          "count": 35
+        },
+        "variants_external_id": {
+          "pass": true,
+          "mapped": 35,
+          "total": 35
+        },
+        "printful_exists": {
+          "pass": true,
+          "syncProductId": "422030462"
+        }
+      }
+    },
+    {
+      "productId": "28523f37-23ca-4087-a7e1-511ea8da54eb",
+      "title": "Ghost Tee",
+      "tier": "signature",
+      "checks": {
+        "pod_provider": {
+          "pass": true,
+          "value": "printful",
+          "expected": "printful"
+        },
+        "provider_product_id": {
+          "pass": true,
+          "value": "422030327"
+        },
+        "printify_archived": {
+          "pass": true,
+          "value": null,
+          "expected": null,
+          "note": "cleared"
+        },
+        "brand": {
+          "pass": true,
+          "value": "SKAPARA"
+        },
+        "model": {
+          "pass": true,
+          "value": "Comfort Colors 1717"
+        },
+        "material": {
+          "pass": true,
+          "value": "100% ring-spun cotton, 6.1oz (207gsm), g"
+        },
+        "safety_information": {
+          "pass": true,
+          "hasValue": true
+        },
+        "manufacturing_country": {
+          "pass": true,
+          "value": "LV"
+        },
+        "care_instructions": {
+          "pass": true,
+          "hasValue": true
+        },
+        "description_en": {
+          "pass": true,
+          "length": 186
+        },
+        "description_es": {
+          "pass": true,
+          "length": 193
+        },
+        "description_de": {
+          "pass": true,
+          "length": 215
+        },
+        "margin": {
+          "pass": true,
+          "margin": 47.4,
+          "price": 3499,
+          "cost": 1840
+        },
+        "variants_count": {
+          "pass": true,
+          "count": 35
+        },
+        "variants_external_id": {
+          "pass": true,
+          "mapped": 35,
+          "total": 35
+        },
+        "printful_exists": {
+          "pass": true,
+          "syncProductId": "422030327"
+        }
+      }
+    },
+    {
+      "productId": "4fff5d51-0b07-4fed-98f6-455d5c4e3d28",
+      "title": "Just For You",
+      "tier": "signature",
+      "checks": {
+        "pod_provider": {
+          "pass": true,
+          "value": "printful",
+          "expected": "printful"
+        },
+        "provider_product_id": {
+          "pass": true,
+          "value": "422030329"
+        },
+        "printify_archived": {
+          "pass": true,
+          "value": null,
+          "expected": null,
+          "note": "cleared"
+        },
+        "brand": {
+          "pass": true,
+          "value": "SKAPARA"
+        },
+        "model": {
+          "pass": true,
+          "value": "Comfort Colors 1717"
+        },
+        "material": {
+          "pass": true,
+          "value": "100% ring-spun cotton, 6.1oz (207gsm), g"
+        },
+        "safety_information": {
+          "pass": true,
+          "hasValue": true
+        },
+        "manufacturing_country": {
+          "pass": true,
+          "value": "LV"
+        },
+        "care_instructions": {
+          "pass": true,
+          "hasValue": true
+        },
+        "description_en": {
+          "pass": true,
+          "length": 229
+        },
+        "description_es": {
+          "pass": true,
+          "length": 227
+        },
+        "description_de": {
+          "pass": true,
+          "length": 246
+        },
+        "margin": {
+          "pass": true,
+          "margin": 47.4,
+          "price": 3499,
+          "cost": 1840
+        },
+        "variants_count": {
+          "pass": true,
+          "count": 35
+        },
+        "variants_external_id": {
+          "pass": true,
+          "mapped": 35,
+          "total": 35
+        },
+        "printful_exists": {
+          "pass": true,
+          "syncProductId": "422030329"
+        }
+      }
+    },
+    {
+      "productId": "a5867c4e-7f7d-48f0-82d4-052c0072ee6b",
+      "title": "Next Line",
+      "tier": "signature",
+      "checks": {
+        "pod_provider": {
+          "pass": true,
+          "value": "printful",
+          "expected": "printful"
+        },
+        "provider_product_id": {
+          "pass": true,
+          "value": "422030332"
+        },
+        "printify_archived": {
+          "pass": true,
+          "value": null,
+          "expected": null,
+          "note": "cleared"
+        },
+        "brand": {
+          "pass": true,
+          "value": "SKAPARA"
+        },
+        "model": {
+          "pass": true,
+          "value": "Comfort Colors 1717"
+        },
+        "material": {
+          "pass": true,
+          "value": "100% ring-spun cotton, 6.1oz (207gsm), g"
+        },
+        "safety_information": {
+          "pass": true,
+          "hasValue": true
+        },
+        "manufacturing_country": {
+          "pass": true,
+          "value": "LV"
+        },
+        "care_instructions": {
+          "pass": true,
+          "hasValue": true
+        },
+        "description_en": {
+          "pass": true,
+          "length": 200
+        },
+        "description_es": {
+          "pass": true,
+          "length": 206
+        },
+        "description_de": {
+          "pass": true,
+          "length": 220
+        },
+        "margin": {
+          "pass": true,
+          "margin": 47.4,
+          "price": 3499,
+          "cost": 1840
+        },
+        "variants_count": {
+          "pass": true,
+          "count": 35
+        },
+        "variants_external_id": {
+          "pass": true,
+          "mapped": 35,
+          "total": 35
+        },
+        "printful_exists": {
+          "pass": true,
+          "syncProductId": "422030332"
+        }
+      }
+    },
+    {
+      "productId": "13bc1ffc-a703-4a9b-96fb-a460c429990c",
+      "title": "Option Two",
+      "tier": "signature",
+      "checks": {
+        "pod_provider": {
+          "pass": true,
+          "value": "printful",
+          "expected": "printful"
+        },
+        "provider_product_id": {
+          "pass": true,
+          "value": "422030337"
+        },
+        "printify_archived": {
+          "pass": true,
+          "value": null,
+          "expected": null,
+          "note": "cleared"
+        },
+        "brand": {
+          "pass": true,
+          "value": "SKAPARA"
+        },
+        "model": {
+          "pass": true,
+          "value": "Comfort Colors 1717"
+        },
+        "material": {
+          "pass": true,
+          "value": "100% ring-spun cotton, 6.1oz (207gsm), g"
+        },
+        "safety_information": {
+          "pass": true,
+          "hasValue": true
+        },
+        "manufacturing_country": {
+          "pass": true,
+          "value": "LV"
+        },
+        "care_instructions": {
+          "pass": true,
+          "hasValue": true
+        },
+        "description_en": {
+          "pass": true,
+          "length": 185
+        },
+        "description_es": {
+          "pass": true,
+          "length": 178
+        },
+        "description_de": {
+          "pass": true,
+          "length": 198
+        },
+        "margin": {
+          "pass": true,
+          "margin": 47.4,
+          "price": 3499,
+          "cost": 1840
+        },
+        "variants_count": {
+          "pass": true,
+          "count": 35
+        },
+        "variants_external_id": {
+          "pass": true,
+          "mapped": 35,
+          "total": 35
+        },
+        "printful_exists": {
+          "pass": true,
+          "syncProductId": "422030337"
+        }
+      }
+    },
+    {
+      "productId": "a3b37e0f-636c-4a05-b680-b0f1151ff79b",
+      "title": "Plans Cancelled",
+      "tier": "premium",
+      "checks": {
+        "pod_provider": {
+          "pass": true,
+          "value": "printful",
+          "expected": "printful"
+        },
+        "provider_product_id": {
+          "pass": true,
+          "value": "422030466"
+        },
+        "printify_archived": {
+          "pass": true,
+          "value": null,
+          "expected": null,
+          "note": "cleared"
+        },
+        "brand": {
+          "pass": true,
+          "value": "SKAPARA"
+        },
+        "model": {
+          "pass": true,
+          "value": "Cotton Heritage MC1087"
+        },
+        "material": {
+          "pass": true,
+          "value": "100% combed ringspun cotton, 7oz (237gsm"
+        },
+        "safety_information": {
+          "pass": true,
+          "hasValue": true
+        },
+        "manufacturing_country": {
+          "pass": true,
+          "value": "LV"
+        },
+        "care_instructions": {
+          "pass": true,
+          "hasValue": true
+        },
+        "description_en": {
+          "pass": true,
+          "length": 193
+        },
+        "description_es": {
+          "pass": true,
+          "length": 213
+        },
+        "description_de": {
+          "pass": true,
+          "length": 233
+        },
+        "margin": {
+          "pass": true,
+          "margin": 44.2,
+          "price": 4499,
+          "cost": 2510
+        },
+        "variants_count": {
+          "pass": true,
+          "count": 35
+        },
+        "variants_external_id": {
+          "pass": true,
+          "mapped": 35,
+          "total": 35
+        },
+        "printful_exists": {
+          "pass": true,
+          "syncProductId": "422030466"
+        }
+      }
+    },
+    {
+      "productId": "7024ef34-abff-47b5-b6aa-23b4f3b588a0",
+      "title": "Prism Tee",
+      "tier": "signature",
+      "checks": {
+        "pod_provider": {
+          "pass": true,
+          "value": "printful",
+          "expected": "printful"
+        },
+        "provider_product_id": {
+          "pass": true,
+          "value": "422030345"
+        },
+        "printify_archived": {
+          "pass": true,
+          "value": null,
+          "expected": null,
+          "note": "cleared"
+        },
+        "brand": {
+          "pass": true,
+          "value": "SKAPARA"
+        },
+        "model": {
+          "pass": true,
+          "value": "Comfort Colors 1717"
+        },
+        "material": {
+          "pass": true,
+          "value": "100% ring-spun cotton, 6.1oz (207gsm), g"
+        },
+        "safety_information": {
+          "pass": true,
+          "hasValue": true
+        },
+        "manufacturing_country": {
+          "pass": true,
+          "value": "LV"
+        },
+        "care_instructions": {
+          "pass": true,
+          "hasValue": true
+        },
+        "description_en": {
+          "pass": true,
+          "length": 191
+        },
+        "description_es": {
+          "pass": true,
+          "length": 200
+        },
+        "description_de": {
+          "pass": true,
+          "length": 203
+        },
+        "margin": {
+          "pass": true,
+          "margin": 47.4,
+          "price": 3499,
+          "cost": 1840
+        },
+        "variants_count": {
+          "pass": true,
+          "count": 35
+        },
+        "variants_external_id": {
+          "pass": true,
+          "mapped": 35,
+          "total": 35
+        },
+        "printful_exists": {
+          "pass": true,
+          "syncProductId": "422030345"
+        }
+      }
+    },
+    {
+      "productId": "49d3093b-abf5-46a5-82cb-362ffe6c863c",
+      "title": "Scope Creep",
+      "tier": "signature",
+      "checks": {
+        "pod_provider": {
+          "pass": true,
+          "value": "printful",
+          "expected": "printful"
+        },
+        "provider_product_id": {
+          "pass": true,
+          "value": "422030382"
+        },
+        "printify_archived": {
+          "pass": true,
+          "value": null,
+          "expected": null,
+          "note": "cleared"
+        },
+        "brand": {
+          "pass": true,
+          "value": "SKAPARA"
+        },
+        "model": {
+          "pass": true,
+          "value": "Comfort Colors 1717"
+        },
+        "material": {
+          "pass": true,
+          "value": "100% ring-spun cotton, 6.1oz (207gsm), g"
+        },
+        "safety_information": {
+          "pass": true,
+          "hasValue": true
+        },
+        "manufacturing_country": {
+          "pass": true,
+          "value": "LV"
+        },
+        "care_instructions": {
+          "pass": true,
+          "hasValue": true
+        },
+        "description_en": {
+          "pass": true,
+          "length": 204
+        },
+        "description_es": {
+          "pass": true,
+          "length": 211
+        },
+        "description_de": {
+          "pass": true,
+          "length": 232
+        },
+        "margin": {
+          "pass": true,
+          "margin": 47.4,
+          "price": 3499,
+          "cost": 1840
+        },
+        "variants_count": {
+          "pass": true,
+          "count": 35
+        },
+        "variants_external_id": {
+          "pass": true,
+          "mapped": 35,
+          "total": 35
+        },
+        "printful_exists": {
+          "pass": true,
+          "syncProductId": "422030382"
+        }
+      }
+    },
+    {
+      "productId": "465edf9a-3abb-48d4-a7dc-68e6698eee87",
+      "title": "Self-Care Mode",
+      "tier": "premium",
+      "checks": {
+        "pod_provider": {
+          "pass": true,
+          "value": "printful",
+          "expected": "printful"
+        },
+        "provider_product_id": {
+          "pass": true,
+          "value": "422030469"
+        },
+        "printify_archived": {
+          "pass": true,
+          "value": null,
+          "expected": null,
+          "note": "cleared"
+        },
+        "brand": {
+          "pass": true,
+          "value": "SKAPARA"
+        },
+        "model": {
+          "pass": true,
+          "value": "Cotton Heritage MC1087"
+        },
+        "material": {
+          "pass": true,
+          "value": "100% combed ringspun cotton, 7oz (237gsm"
+        },
+        "safety_information": {
+          "pass": true,
+          "hasValue": true
+        },
+        "manufacturing_country": {
+          "pass": true,
+          "value": "LV"
+        },
+        "care_instructions": {
+          "pass": true,
+          "hasValue": true
+        },
+        "description_en": {
+          "pass": true,
+          "length": 215
+        },
+        "description_es": {
+          "pass": true,
+          "length": 237
+        },
+        "description_de": {
+          "pass": true,
+          "length": 248
+        },
+        "margin": {
+          "pass": true,
+          "margin": 44.2,
+          "price": 4499,
+          "cost": 2510
+        },
+        "variants_count": {
+          "pass": true,
+          "count": 35
+        },
+        "variants_external_id": {
+          "pass": true,
+          "mapped": 35,
+          "total": 35
+        },
+        "printful_exists": {
+          "pass": true,
+          "syncProductId": "422030469"
+        }
+      }
+    },
+    {
+      "productId": "75c19f30-003b-4a95-812a-852ae5aa337d",
+      "title": "Shadow Tee",
+      "tier": "signature",
+      "checks": {
+        "pod_provider": {
+          "pass": true,
+          "value": "printful",
+          "expected": "printful"
+        },
+        "provider_product_id": {
+          "pass": true,
+          "value": "422030396"
+        },
+        "printify_archived": {
+          "pass": true,
+          "value": null,
+          "expected": null,
+          "note": "cleared"
+        },
+        "brand": {
+          "pass": true,
+          "value": "SKAPARA"
+        },
+        "model": {
+          "pass": true,
+          "value": "Comfort Colors 1717"
+        },
+        "material": {
+          "pass": true,
+          "value": "100% ring-spun cotton, 6.1oz (207gsm), g"
+        },
+        "safety_information": {
+          "pass": true,
+          "hasValue": true
+        },
+        "manufacturing_country": {
+          "pass": true,
+          "value": "LV"
+        },
+        "care_instructions": {
+          "pass": true,
+          "hasValue": true
+        },
+        "description_en": {
+          "pass": true,
+          "length": 192
+        },
+        "description_es": {
+          "pass": true,
+          "length": 201
+        },
+        "description_de": {
+          "pass": true,
+          "length": 200
+        },
+        "margin": {
+          "pass": true,
+          "margin": 47.4,
+          "price": 3499,
+          "cost": 1840
+        },
+        "variants_count": {
+          "pass": true,
+          "count": 35
+        },
+        "variants_external_id": {
+          "pass": true,
+          "mapped": 35,
+          "total": 35
+        },
+        "printful_exists": {
+          "pass": true,
+          "syncProductId": "422030396"
+        }
+      }
+    },
+    {
+      "productId": "2326f734-8025-42f7-82bf-847d0a5fb22c",
+      "title": "Social Battery",
+      "tier": "premium",
+      "checks": {
+        "pod_provider": {
+          "pass": true,
+          "value": "printful",
+          "expected": "printful"
+        },
+        "provider_product_id": {
+          "pass": true,
+          "value": "422030473"
+        },
+        "printify_archived": {
+          "pass": true,
+          "value": null,
+          "expected": null,
+          "note": "cleared"
+        },
+        "brand": {
+          "pass": true,
+          "value": "SKAPARA"
+        },
+        "model": {
+          "pass": true,
+          "value": "Cotton Heritage MC1087"
+        },
+        "material": {
+          "pass": true,
+          "value": "100% combed ringspun cotton, 7oz (237gsm"
+        },
+        "safety_information": {
+          "pass": true,
+          "hasValue": true
+        },
+        "manufacturing_country": {
+          "pass": true,
+          "value": "LV"
+        },
+        "care_instructions": {
+          "pass": true,
+          "hasValue": true
+        },
+        "description_en": {
+          "pass": true,
+          "length": 206
+        },
+        "description_es": {
+          "pass": true,
+          "length": 240
+        },
+        "description_de": {
+          "pass": true,
+          "length": 245
+        },
+        "margin": {
+          "pass": true,
+          "margin": 44.2,
+          "price": 4499,
+          "cost": 2510
+        },
+        "variants_count": {
+          "pass": true,
+          "count": 35
+        },
+        "variants_external_id": {
+          "pass": true,
+          "mapped": 35,
+          "total": 35
+        },
+        "printful_exists": {
+          "pass": true,
+          "syncProductId": "422030473"
+        }
+      }
+    },
+    {
+      "productId": "7d6f605a-df7c-4d63-b9f6-5f530035d3f2",
+      "title": "Soup Fork",
+      "tier": "premium",
+      "checks": {
+        "pod_provider": {
+          "pass": true,
+          "value": "printful",
+          "expected": "printful"
+        },
+        "provider_product_id": {
+          "pass": true,
+          "value": "422030479"
+        },
+        "printify_archived": {
+          "pass": true,
+          "value": null,
+          "expected": null,
+          "note": "cleared"
+        },
+        "brand": {
+          "pass": true,
+          "value": "SKAPARA"
+        },
+        "model": {
+          "pass": true,
+          "value": "Cotton Heritage MC1087"
+        },
+        "material": {
+          "pass": true,
+          "value": "100% combed ringspun cotton, 7oz (237gsm"
+        },
+        "safety_information": {
+          "pass": true,
+          "hasValue": true
+        },
+        "manufacturing_country": {
+          "pass": true,
+          "value": "LV"
+        },
+        "care_instructions": {
+          "pass": true,
+          "hasValue": true
+        },
+        "description_en": {
+          "pass": true,
+          "length": 205
+        },
+        "description_es": {
+          "pass": true,
+          "length": 234
+        },
+        "description_de": {
+          "pass": true,
+          "length": 248
+        },
+        "margin": {
+          "pass": true,
+          "margin": 44.2,
+          "price": 4499,
+          "cost": 2510
+        },
+        "variants_count": {
+          "pass": true,
+          "count": 35
+        },
+        "variants_external_id": {
+          "pass": true,
+          "mapped": 35,
+          "total": 35
+        },
+        "printful_exists": {
+          "pass": true,
+          "syncProductId": "422030479"
+        }
+      }
+    },
+    {
+      "productId": "02ab1785-1c65-41a6-bf6a-bc40d4a31494",
+      "title": "Strawberry Count",
+      "tier": "signature",
+      "checks": {
+        "pod_provider": {
+          "pass": true,
+          "value": "printful",
+          "expected": "printful"
+        },
+        "provider_product_id": {
+          "pass": true,
+          "value": "422030403"
+        },
+        "printify_archived": {
+          "pass": true,
+          "value": null,
+          "expected": null,
+          "note": "cleared"
+        },
+        "brand": {
+          "pass": true,
+          "value": "SKAPARA"
+        },
+        "model": {
+          "pass": true,
+          "value": "Comfort Colors 1717"
+        },
+        "material": {
+          "pass": true,
+          "value": "100% ring-spun cotton, 6.1oz (207gsm), g"
+        },
+        "safety_information": {
+          "pass": true,
+          "hasValue": true
+        },
+        "manufacturing_country": {
+          "pass": true,
+          "value": "LV"
+        },
+        "care_instructions": {
+          "pass": true,
+          "hasValue": true
+        },
+        "description_en": {
+          "pass": true,
+          "length": 181
+        },
+        "description_es": {
+          "pass": true,
+          "length": 191
+        },
+        "description_de": {
+          "pass": true,
+          "length": 196
+        },
+        "margin": {
+          "pass": true,
+          "margin": 47.4,
+          "price": 3499,
+          "cost": 1840
+        },
+        "variants_count": {
+          "pass": true,
+          "count": 35
+        },
+        "variants_external_id": {
+          "pass": true,
+          "mapped": 35,
+          "total": 35
+        },
+        "printful_exists": {
+          "pass": true,
+          "syncProductId": "422030403"
+        }
+      }
+    },
+    {
+      "productId": "0a0085ac-be8b-4e68-b194-c448d1af2b09",
+      "title": "Three Models",
+      "tier": "signature",
+      "checks": {
+        "pod_provider": {
+          "pass": true,
+          "value": "printful",
+          "expected": "printful"
+        },
+        "provider_product_id": {
+          "pass": true,
+          "value": "422030406"
+        },
+        "printify_archived": {
+          "pass": true,
+          "value": null,
+          "expected": null,
+          "note": "cleared"
+        },
+        "brand": {
+          "pass": true,
+          "value": "SKAPARA"
+        },
+        "model": {
+          "pass": true,
+          "value": "Comfort Colors 1717"
+        },
+        "material": {
+          "pass": true,
+          "value": "100% ring-spun cotton, 6.1oz (207gsm), g"
+        },
+        "safety_information": {
+          "pass": true,
+          "hasValue": true
+        },
+        "manufacturing_country": {
+          "pass": true,
+          "value": "LV"
+        },
+        "care_instructions": {
+          "pass": true,
+          "hasValue": true
+        },
+        "description_en": {
+          "pass": true,
+          "length": 187
+        },
+        "description_es": {
+          "pass": true,
+          "length": 194
+        },
+        "description_de": {
+          "pass": true,
+          "length": 210
+        },
+        "margin": {
+          "pass": true,
+          "margin": 47.4,
+          "price": 3499,
+          "cost": 1840
+        },
+        "variants_count": {
+          "pass": true,
+          "count": 35
+        },
+        "variants_external_id": {
+          "pass": true,
+          "mapped": 35,
+          "total": 35
+        },
+        "printful_exists": {
+          "pass": true,
+          "syncProductId": "422030406"
+        }
+      }
+    },
+    {
+      "productId": "725e1aec-2b65-49da-ac56-2054740de2e0",
+      "title": "Under Where",
+      "tier": "signature",
+      "checks": {
+        "pod_provider": {
+          "pass": true,
+          "value": "printful",
+          "expected": "printful"
+        },
+        "provider_product_id": {
+          "pass": true,
+          "value": "422030411"
+        },
+        "printify_archived": {
+          "pass": true,
+          "value": null,
+          "expected": null,
+          "note": "cleared"
+        },
+        "brand": {
+          "pass": true,
+          "value": "SKAPARA"
+        },
+        "model": {
+          "pass": true,
+          "value": "Comfort Colors 1717"
+        },
+        "material": {
+          "pass": true,
+          "value": "100% ring-spun cotton, 6.1oz (207gsm), g"
+        },
+        "safety_information": {
+          "pass": true,
+          "hasValue": true
+        },
+        "manufacturing_country": {
+          "pass": true,
+          "value": "LV"
+        },
+        "care_instructions": {
+          "pass": true,
+          "hasValue": true
+        },
+        "description_en": {
+          "pass": true,
+          "length": 205
+        },
+        "description_es": {
+          "pass": true,
+          "length": 222
+        },
+        "description_de": {
+          "pass": true,
+          "length": 228
+        },
+        "margin": {
+          "pass": true,
+          "margin": 47.4,
+          "price": 3499,
+          "cost": 1840
+        },
+        "variants_count": {
+          "pass": true,
+          "count": 35
+        },
+        "variants_external_id": {
+          "pass": true,
+          "mapped": 35,
+          "total": 35
+        },
+        "printful_exists": {
+          "pass": true,
+          "syncProductId": "422030411"
+        }
+      }
+    },
+    {
+      "productId": "60f6ceb4-46a7-4bd3-92c0-2e67c4cf0f66",
+      "title": "Vibe Coder",
+      "tier": "signature",
+      "checks": {
+        "pod_provider": {
+          "pass": true,
+          "value": "printful",
+          "expected": "printful"
+        },
+        "provider_product_id": {
+          "pass": true,
+          "value": "422030415"
+        },
+        "printify_archived": {
+          "pass": true,
+          "value": null,
+          "expected": null,
+          "note": "cleared"
+        },
+        "brand": {
+          "pass": true,
+          "value": "SKAPARA"
+        },
+        "model": {
+          "pass": true,
+          "value": "Comfort Colors 1717"
+        },
+        "material": {
+          "pass": true,
+          "value": "100% ring-spun cotton, 6.1oz (207gsm), g"
+        },
+        "safety_information": {
+          "pass": true,
+          "hasValue": true
+        },
+        "manufacturing_country": {
+          "pass": true,
+          "value": "LV"
+        },
+        "care_instructions": {
+          "pass": true,
+          "hasValue": true
+        },
+        "description_en": {
+          "pass": true,
+          "length": 186
+        },
+        "description_es": {
+          "pass": true,
+          "length": 195
+        },
+        "description_de": {
+          "pass": true,
+          "length": 211
+        },
+        "margin": {
+          "pass": true,
+          "margin": 47.4,
+          "price": 3499,
+          "cost": 1840
+        },
+        "variants_count": {
+          "pass": true,
+          "count": 35
+        },
+        "variants_external_id": {
+          "pass": true,
+          "mapped": 35,
+          "total": 35
+        },
+        "printful_exists": {
+          "pass": true,
+          "syncProductId": "422030415"
+        }
+      }
+    },
+    {
+      "productId": "e4867449-08b1-408a-b85b-b6ecd9b4274c",
+      "title": "Zero Bugs",
+      "tier": "signature",
+      "checks": {
+        "pod_provider": {
+          "pass": true,
+          "value": "printful",
+          "expected": "printful"
+        },
+        "provider_product_id": {
+          "pass": true,
+          "value": "422030426"
+        },
+        "printify_archived": {
+          "pass": true,
+          "value": null,
+          "expected": null,
+          "note": "cleared"
+        },
+        "brand": {
+          "pass": true,
+          "value": "SKAPARA"
+        },
+        "model": {
+          "pass": true,
+          "value": "Comfort Colors 1717"
+        },
+        "material": {
+          "pass": true,
+          "value": "100% ring-spun cotton, 6.1oz (207gsm), g"
+        },
+        "safety_information": {
+          "pass": true,
+          "hasValue": true
+        },
+        "manufacturing_country": {
+          "pass": true,
+          "value": "LV"
+        },
+        "care_instructions": {
+          "pass": true,
+          "hasValue": true
+        },
+        "description_en": {
+          "pass": true,
+          "length": 203
+        },
+        "description_es": {
+          "pass": true,
+          "length": 202
+        },
+        "description_de": {
+          "pass": true,
+          "length": 229
+        },
+        "margin": {
+          "pass": true,
+          "margin": 47.4,
+          "price": 3499,
+          "cost": 1840
+        },
+        "variants_count": {
+          "pass": true,
+          "count": 35
+        },
+        "variants_external_id": {
+          "pass": true,
+          "mapped": 35,
+          "total": 35
+        },
+        "printful_exists": {
+          "pass": true,
+          "syncProductId": "422030426"
+        }
+      }
+    }
+  ]
+}

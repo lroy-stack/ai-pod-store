@@ -1,11 +1,16 @@
 'use client'
 
 import { useEffect } from 'react'
+import { toast } from 'sonner'
 
 export function ServiceWorkerRegistration() {
   useEffect(() => {
-    // Only register service worker in the browser
-    if (typeof window === 'undefined' || !('serviceWorker' in navigator)) {
+    // Only register in production — Serwist generates sw.js at build time only
+    if (
+      typeof window === 'undefined' ||
+      !('serviceWorker' in navigator) ||
+      process.env.NODE_ENV !== 'production'
+    ) {
       return
     }
 
@@ -26,7 +31,11 @@ export function ServiceWorkerRegistration() {
           if (newWorker) {
             newWorker.addEventListener('statechange', () => {
               if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                console.log('[SW] New content available; please refresh.')
+                toast('New version available', {
+                  description: 'A new version is available.',
+                  action: { label: 'Refresh', onClick: () => window.location.reload() },
+                  duration: Infinity,
+                })
               }
             })
           }

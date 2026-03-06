@@ -173,7 +173,7 @@ export async function POST(request: NextRequest) {
               chatId,
               '🔗 Account Linking\n\n' +
               'To link your Skapara account:\n' +
-              '1. Visit https://podai.com/account/linking\n' +
+              '1. Visit https://skapara.com/account/linking\n' +
               '2. Enter this code: ' + userId.toString().slice(-6) + '\n\n' +
               'This will connect your Telegram to your Skapara account.'
             );

@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="4606" height="5787" viewBox="0 0 4606 5787">
+
+  <!-- A01: "Life is soup. I am fork." — BP6 T-Shirt 4606x5787 -->
+  <!-- Accents: #10B981 (green/soup) + #F59E0B (amber/fork) -->
+  <!-- Fonts: Permanent Marker (hero), Caveat (connectors), Bebas Neue (accent words) -->
+  <!-- Off-white #F0EDE8 instead of pure white. Shadow offset on accent words. -->
+
+  <!-- "LIFE" — Permanent Marker, hand-drawn energy -->
+  <text x="2303" y="1100"
+        font-family="'Permanent Marker', cursive"
+        font-size="850"
+        fill="#F0EDE8" text-anchor="middle">LIFE</text>
+
+  <!-- "is" — Caveat handwritten connector -->
+  <text x="2303" y="1650"
+        font-family="'Caveat', cursive"
+        font-size="450"
+        fill="#F0EDE8" text-anchor="middle">is</text>
+
+  <!-- "SOUP." shadow (offset +12,+12) for depth -->
+  <text x="2315" y="2612"
+        font-family="'Bebas Neue', sans-serif"
+        font-size="950"
+        fill="#0A7B5C" text-anchor="middle">SOUP.</text>
+
+  <!-- "SOUP." — Bebas Neue condensed, green -->
+  <text x="2303" y="2600"
+        font-family="'Bebas Neue', sans-serif"
+        font-size="950"
+        fill="#10B981" text-anchor="middle">SOUP.</text>
+
+  <!-- Fork separator — simple, bold, thematic -->
+  <g transform="translate(2303, 3100)">
+    <rect x="-130" y="-160" width="35" height="160" rx="17" fill="#F0EDE8"/>
+    <rect x="-17" y="-180" width="35" height="180" rx="17" fill="#F0EDE8"/>
+    <rect x="95" y="-160" width="35" height="160" rx="17" fill="#F0EDE8"/>
+    <rect x="-145" y="0" width="290" height="35" rx="17" fill="#F0EDE8"/>
+    <rect x="-17" y="35" width="35" height="180" rx="17" fill="#F0EDE8"/>
+  </g>
+
+  <!-- "I am" — Caveat handwritten connector -->
+  <text x="2303" y="3700"
+        font-family="'Caveat', cursive"
+        font-size="450"
+        fill="#F0EDE8" text-anchor="middle">I am</text>
+
+  <!-- "FORK." shadow (offset +12,+12) for depth -->
+  <text x="2315" y="4512"
+        font-family="'Permanent Marker', cursive"
+        font-size="850"
+        fill="#B8860B" text-anchor="middle">FORK.</text>
+
+  <!-- "FORK." — Permanent Marker, amber punchline -->
+  <text x="2303" y="4500"
+        font-family="'Permanent Marker', cursive"
+        font-size="850"
+        fill="#F59E0B" text-anchor="middle">FORK.</text>
+
+  <!-- "EXISTENTIAL CUISINE" — monospace footer -->
+  <text x="2303" y="5050"
+        font-family="'Courier New', monospace"
+        font-size="200" font-weight="bold"
+        fill="#F0EDE8" text-anchor="middle"
+        letter-spacing="25">EXISTENTIAL CUISINE</text>
+
+</svg>

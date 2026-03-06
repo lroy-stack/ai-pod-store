@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import type { AuthInfo } from '@modelcontextprotocol/sdk/server/auth/types.js';
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseClient } from '../lib/supabase.js';
 
 /**
  * MCP Tool: get_my_profile
@@ -30,9 +30,6 @@ export interface GetMyProfileResult {
   };
 }
 
-const SUPABASE_URL = process.env.SUPABASE_URL || '';
-const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY || '';
-
 export async function getMyProfile(
   _input: GetMyProfileInput,
   authInfo?: AuthInfo
@@ -48,13 +45,7 @@ export async function getMyProfile(
   const userId = authInfo.extra.userId as string;
 
   try {
-    // Create Supabase client
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-      },
-    });
+    const supabase = getSupabaseClient();
 
     // Fetch user profile from database
     const { data, error } = await supabase

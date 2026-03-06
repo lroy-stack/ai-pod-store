@@ -1,0 +1,15 @@
+{
+  "session_id": "bb7acac3-a439-4e46-b2ac-cd4113c2b0e7",
+  "prompts": [
+    "has arreglado las 3 imagenes que te pedi?",
+    "has arreglado las 3 imagenes que te pedi? solo editalas. encuentra los svgs originales debes encontrarlso en /public si no borresmo estos productos por ahora de la tienda, centremonos en los otros 17 productos, asegurar de usar bien los logos y branding en la prenda",
+    "da igual borralos, ya los recrearemos correctamente, nos centramos en branding poirfavir",
+    "pues solo label_ousite sin back",
+    "y que pasa con el neck?",
+    "que mocks esta generando ahora por cada producto?",
+    "pero habiamos decidido usar el mockup generator para crear variantes del producto ghost si es posible",
+    "como va el script? ya tenemos imagenes nuevas ?",
+    "puedes revisar como va? porque en media hora a subido solo 7 productos y como es posible que le demos asi a los trate limits? estamos algo haciendo mal, porfavor revisa en la documentacion de printful como usar la api correctaente",
+    "se han actyualizado las imagenes del formtend? no veo las nuevas con los logos en sleeve y demas"
+  ]
+}

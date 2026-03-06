@@ -1,0 +1,10 @@
+{
+  "session_id": "bb7acac3-a439-4e46-b2ac-cd4113c2b0e7",
+  "prompts": [
+    "<task-notification>\n<task-id>busppr99z</task-id>\n<tool-use-id>toolu_017PCsqSJFWwJXCiZhEJBzXS</tool-use-id>\n<output-file>/private/tmp/claude-501/-Users-lr0y-POD-AI-PDR-pod-workspace-project/tasks/busppr99z.output</output-file>\n<status>completed</status>\n<summary>Background command \"Generate Flat mockups and fix duplicates for Grape/Navy/Sage/Graphite\" completed (exit code 0)</summary>\n</task-notification>\nRead the output file to retrieve the result: /private/tmp/claude-501/-Users-lr0y-POD-AI-PDR-pod-workspace-project/tasks/busppr99z.output",
+    "amigo coming soon es la carpte que subire a /publci en mi hosting, joder ademas eres tonto, has subido mocks de otra camiseta que no son al producto, van 10 strikes",
+    "ola? porfavor arrregla lo de los mocks, estas haciendo aqui mil vueltas todavia no funciona",
+    "te dije si hay otros mocks disponibles de otra foto del prodctuo, alomejor doblada, o en una percha o yo que putas se pero no meter mocks ajenos que no son del producto menudo disparte?",
+    "te dije revisa la api que mocks nos ofrceen si no estan disponibles las de side y back"
+  ]
+}

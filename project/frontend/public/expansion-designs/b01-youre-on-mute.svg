@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="4606" height="5787" viewBox="0 0 4606 5787">
+
+  <!-- B01: "You're On Mute" — BP6 T-Shirt 4606x5787 -->
+  <!-- Accent: #EF4444 (red) — mic strike + MUTE text -->
+  <!-- Fonts: Caveat (setup), Bebas Neue (punchline), Courier New (footer) -->
+
+  <!-- ===== HERO: Microphone icon — big, thick strokes ===== -->
+
+  <!-- Mic head capsule -->
+  <rect x="2053" y="700" width="500" height="800" rx="250"
+        fill="none" stroke="#F0EDE8" stroke-width="30"/>
+
+  <!-- Cradle arc -->
+  <path d="M1853,1500 Q1853,1950 2303,1950 Q2753,1950 2753,1500"
+        fill="none" stroke="#F0EDE8" stroke-width="25"/>
+
+  <!-- Stand -->
+  <line x1="2303" y1="1950" x2="2303" y2="2200"
+        stroke="#F0EDE8" stroke-width="25"/>
+
+  <!-- Base -->
+  <line x1="2053" y1="2200" x2="2553" y2="2200"
+        stroke="#F0EDE8" stroke-width="25" stroke-linecap="round"/>
+
+  <!-- Red diagonal strike-through -->
+  <line x1="1800" y1="600" x2="2800" y2="2300"
+        stroke="#EF4444" stroke-width="40" stroke-linecap="round"/>
+
+  <!-- ===== TEXT ZONE ===== -->
+
+  <!-- "you're on" — Caveat handwritten, casual -->
+  <text x="2303" y="2900"
+        font-family="'Caveat', cursive"
+        font-size="550"
+        fill="#F0EDE8" text-anchor="middle">you're on</text>
+
+  <!-- "MUTE" shadow (+12,+12) -->
+  <text x="2315" y="4012"
+        font-family="'Bebas Neue', sans-serif"
+        font-size="1200"
+        fill="#7F1D1D" text-anchor="middle">MUTE</text>
+
+  <!-- "MUTE" — Bebas Neue condensed, red -->
+  <text x="2303" y="4000"
+        font-family="'Bebas Neue', sans-serif"
+        font-size="1200"
+        fill="#EF4444" text-anchor="middle">MUTE</text>
+
+  <!-- Footer — monospace, muted solid gray -->
+  <text x="2303" y="4700"
+        font-family="'Courier New', monospace"
+        font-size="180" font-weight="bold"
+        fill="#6B7280" text-anchor="middle">...we still can't hear you</text>
+
+</svg>

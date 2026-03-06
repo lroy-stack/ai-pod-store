@@ -10,6 +10,7 @@ import { NextRequest } from 'next/server'
 import { requireAuth, authErrorResponse } from '@/lib/auth-guard'
 import { stripe } from '@/lib/stripe'
 import { createClient } from '@supabase/supabase-js'
+import { BASE_URL } from '@/lib/store-config'
 
 const supabase = createClient(
   process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -42,12 +43,10 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
-
     // Create a Customer Portal session
     const session = await stripe.billingPortal.sessions.create({
       customer: profile.stripe_customer_id,
-      return_url: `${baseUrl}/en/settings/billing`,
+      return_url: `${BASE_URL}/en/settings/billing`,
     })
 
     return Response.json({ url: session.url })

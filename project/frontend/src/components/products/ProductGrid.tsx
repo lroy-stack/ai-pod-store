@@ -2,27 +2,10 @@
 
 import { ProductCard } from './ProductCard'
 import { ProductCardSkeleton } from './ProductCardSkeleton'
-
-interface Product {
-  id: string
-  title: string
-  description: string
-  price: number
-  currency: string
-  image: string
-  rating?: number
-  reviewCount?: number
-  category?: string
-  inStock?: boolean
-  variants?: {
-    sizes?: string[]
-    colors?: string[]
-    colorImages?: Record<string, string>
-  }
-}
+import type { ProductCard as ProductCardType } from '@/types/product'
 
 interface ProductGridProps {
-  products: Product[]
+  products: ProductCardType[]
   isLoading?: boolean
   emptyMessage?: string
   skeletonCount?: number
@@ -35,8 +18,9 @@ export function ProductGrid({
   skeletonCount = 8
 }: ProductGridProps) {
   // CSS grid with auto-fill so columns adapt to available container width
-  // min 200px per card → naturally goes from 1→2→3→4 cols as space allows
-  const gridClasses = 'grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-4'
+  // min 200px per card → naturally goes from 1→2→3→4→5 cols as space allows
+  // neu-grid class in globals.css allows theme override via --grid-card-min / --grid-gap
+  const gridClasses = 'neu-grid'
 
   // Show loading skeletons
   if (isLoading) {

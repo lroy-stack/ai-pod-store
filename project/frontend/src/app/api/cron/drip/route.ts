@@ -12,6 +12,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { generateUnsubscribeToken } from '@/lib/unsubscribe-token'
 import { verifyCronSecret } from '@/lib/rate-limit'
+import { BASE_URL } from '@/lib/store-config'
 
 const supabase = createClient(
   process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -33,7 +34,7 @@ const TEMPLATES: Record<string, (email: string, unsubscribeUrl: string) => { htm
         <li>Generate up to 5 custom designs per month</li>
         <li>Preview mockups on real products</li>
       </ul>
-      <p><a href="${process.env.NEXT_PUBLIC_BASE_URL || 'https://podai.com'}">Start Designing →</a></p>
+      <p><a href="${BASE_URL}">Start Designing →</a></p>
       <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
       <p style="font-size: 12px; color: #999; text-align: center;">
         You received this email because you signed up for Skapara Store.<br>
@@ -50,7 +51,7 @@ const TEMPLATES: Record<string, (email: string, unsubscribeUrl: string) => { htm
         <li><strong>Try different styles</strong> — Ask for "minimalist", "cartoon", or "realistic"</li>
         <li><strong>Preview on products</strong> — Generate mockups to see how your design looks on a t-shirt</li>
       </ol>
-      <p><a href="${process.env.NEXT_PUBLIC_BASE_URL || 'https://podai.com'}">Try It Now →</a></p>
+      <p><a href="${BASE_URL}">Try It Now →</a></p>
       <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
       <p style="font-size: 12px; color: #999; text-align: center;">
         You received this email because you signed up for Skapara Store.<br>
@@ -63,7 +64,7 @@ const TEMPLATES: Record<string, (email: string, unsubscribeUrl: string) => { htm
       <h1>Unlock More Designs with Premium</h1>
       <p>Want to create more? Upgrade to Premium for 50 designs/month, 100 mockups/month, and bonus credits.</p>
       <p>Premium subscribers also get overflow credits for extra designs when they need them.</p>
-      <p><a href="${process.env.NEXT_PUBLIC_BASE_URL || 'https://podai.com'}/en/pricing">See Premium Plans →</a></p>
+      <p><a href="${BASE_URL}/en/pricing">See Premium Plans →</a></p>
       <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
       <p style="font-size: 12px; color: #999; text-align: center;">
         You received this email because you signed up for Skapara Store.<br>
@@ -130,8 +131,7 @@ export async function GET(req: NextRequest) {
 
         // Generate one-click unsubscribe token (RFC 8058)
         const unsubscribeToken = generateUnsubscribeToken(item.email)
-        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
-        const unsubscribeUrl = `${baseUrl}/api/newsletter/unsubscribe?token=${unsubscribeToken}`
+        const unsubscribeUrl = `${BASE_URL}/api/newsletter/unsubscribe?token=${unsubscribeToken}`
 
         const { html } = templateFn(item.email, unsubscribeUrl)
 
@@ -147,7 +147,7 @@ export async function GET(req: NextRequest) {
               'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
             },
             body: JSON.stringify({
-              from: process.env.RESEND_FROM_EMAIL || 'Skapara <noreply@podai.com>',
+              from: process.env.RESEND_FROM_EMAIL || 'SKAPARA <noreply@skapara.com>',
               to: item.email,
               subject: item.subject,
               html,

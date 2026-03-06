@@ -4,6 +4,7 @@ import { getTranslations } from 'next-intl/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { SafeMarkdown } from '@/components/common/SafeMarkdown'
 
 type BlogPost = {
   id: string
@@ -105,7 +106,7 @@ export default async function BlogPostPage({
     image: post.featured_image || undefined,
     author: {
       '@type': 'Organization',
-      name: 'Skapara',
+      name: 'SKAPARA',
     },
   }
 
@@ -143,7 +144,7 @@ export default async function BlogPostPage({
           {/* Content */}
           <Card>
             <CardContent className="p-8 prose prose-lg max-w-none dark:prose-invert">
-              <div dangerouslySetInnerHTML={{ __html: content }} />
+              <SafeMarkdown variant="legal">{content}</SafeMarkdown>
             </CardContent>
           </Card>
         </div>

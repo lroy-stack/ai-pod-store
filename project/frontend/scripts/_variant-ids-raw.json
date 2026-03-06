@@ -1,0 +1,2961 @@
+{
+  "380": {
+    "byColor": {
+      "Adobe": {
+        "hex": "#d06e26",
+        "variants": [
+          {
+            "size": "2XL",
+            "id": 24991,
+            "price": "24.95"
+          },
+          {
+            "size": "3XL",
+            "id": 24992,
+            "price": "26.75"
+          },
+          {
+            "size": "L",
+            "id": 24989,
+            "price": "23.25"
+          },
+          {
+            "size": "M",
+            "id": 24988,
+            "price": "23.25"
+          },
+          {
+            "size": "S",
+            "id": 24987,
+            "price": "23.25"
+          },
+          {
+            "size": "XL",
+            "id": 24990,
+            "price": "23.25"
+          }
+        ],
+        "eu": false,
+        "L": 131,
+        "isDark": false
+      },
+      "Carolina Blue": {
+        "hex": "#98b7ee",
+        "variants": [
+          {
+            "size": "2XL",
+            "id": 11500,
+            "price": "24.95"
+          },
+          {
+            "size": "3XL",
+            "id": 13422,
+            "price": "26.75"
+          },
+          {
+            "size": "L",
+            "id": 11498,
+            "price": "21.25"
+          },
+          {
+            "size": "M",
+            "id": 11497,
+            "price": "23.25"
+          },
+          {
+            "size": "S",
+            "id": 11496,
+            "price": "23.25"
+          },
+          {
+            "size": "XL",
+            "id": 11499,
+            "price": "21.25"
+          }
+        ],
+        "eu": false,
+        "L": 180,
+        "isDark": false
+      },
+      "Khaki": {
+        "hex": "#d2a26f",
+        "variants": [
+          {
+            "size": "2XL",
+            "id": 13903,
+            "price": "24.95"
+          },
+          {
+            "size": "3XL",
+            "id": 13904,
+            "price": "26.75"
+          },
+          {
+            "size": "L",
+            "id": 13901,
+            "price": "23.25"
+          },
+          {
+            "size": "M",
+            "id": 13900,
+            "price": "23.25"
+          },
+          {
+            "size": "S",
+            "id": 13899,
+            "price": "23.25"
+          },
+          {
+            "size": "XL",
+            "id": 13902,
+            "price": "23.25"
+          }
+        ],
+        "eu": false,
+        "L": 171,
+        "isDark": false
+      },
+      "Latte": {
+        "hex": "#b28a68",
+        "variants": [
+          {
+            "size": "2XL",
+            "id": 24985,
+            "price": "24.95"
+          },
+          {
+            "size": "3XL",
+            "id": 24986,
+            "price": "26.75"
+          },
+          {
+            "size": "L",
+            "id": 24983,
+            "price": "23.25"
+          },
+          {
+            "size": "M",
+            "id": 24982,
+            "price": "23.25"
+          },
+          {
+            "size": "S",
+            "id": 24981,
+            "price": "23.25"
+          },
+          {
+            "size": "XL",
+            "id": 24984,
+            "price": "23.25"
+          }
+        ],
+        "eu": false,
+        "L": 146,
+        "isDark": false
+      },
+      "Lavender": {
+        "hex": "#ffdcf3",
+        "variants": [
+          {
+            "size": "2XL",
+            "id": 25009,
+            "price": "24.95"
+          },
+          {
+            "size": "3XL",
+            "id": 25010,
+            "price": "26.75"
+          },
+          {
+            "size": "L",
+            "id": 25007,
+            "price": "23.25"
+          },
+          {
+            "size": "M",
+            "id": 25006,
+            "price": "23.25"
+          },
+          {
+            "size": "S",
+            "id": 25005,
+            "price": "23.25"
+          },
+          {
+            "size": "XL",
+            "id": 25008,
+            "price": "23.25"
+          }
+        ],
+        "eu": false,
+        "L": 233,
+        "isDark": false
+      },
+      "Light Pink": {
+        "hex": "#ffd0cc",
+        "variants": [
+          {
+            "size": "2XL",
+            "id": 24997,
+            "price": "24.95"
+          },
+          {
+            "size": "3XL",
+            "id": 24998,
+            "price": "26.75"
+          },
+          {
+            "size": "L",
+            "id": 24995,
+            "price": "23.25"
+          },
+          {
+            "size": "M",
+            "id": 24994,
+            "price": "23.25"
+          },
+          {
+            "size": "S",
+            "id": 24993,
+            "price": "23.25"
+          },
+          {
+            "size": "XL",
+            "id": 24996,
+            "price": "23.25"
+          }
+        ],
+        "eu": false,
+        "L": 222,
+        "isDark": false
+      },
+      "Oatmeal Heather": {
+        "hex": "#fbf2e1",
+        "variants": [
+          {
+            "size": "2XL",
+            "id": 24979,
+            "price": "24.95"
+          },
+          {
+            "size": "3XL",
+            "id": 24980,
+            "price": "26.75"
+          },
+          {
+            "size": "L",
+            "id": 24977,
+            "price": "23.25"
+          },
+          {
+            "size": "M",
+            "id": 24976,
+            "price": "23.25"
+          },
+          {
+            "size": "S",
+            "id": 24975,
+            "price": "23.25"
+          },
+          {
+            "size": "XL",
+            "id": 24978,
+            "price": "23.25"
+          }
+        ],
+        "eu": false,
+        "L": 243,
+        "isDark": false
+      },
+      "Team Gold": {
+        "hex": "#ffa912",
+        "variants": [
+          {
+            "size": "2XL",
+            "id": 25003,
+            "price": "24.95"
+          },
+          {
+            "size": "3XL",
+            "id": 25004,
+            "price": "26.75"
+          },
+          {
+            "size": "L",
+            "id": 25001,
+            "price": "23.25"
+          },
+          {
+            "size": "M",
+            "id": 25000,
+            "price": "23.25"
+          },
+          {
+            "size": "S",
+            "id": 24999,
+            "price": "23.25"
+          },
+          {
+            "size": "XL",
+            "id": 25002,
+            "price": "23.25"
+          }
+        ],
+        "eu": false,
+        "L": 177,
+        "isDark": false
+      },
+      "Black": {
+        "hex": "#080808",
+        "variants": [
+          {
+            "size": "2XL",
+            "id": 10783,
+            "price": "24.95"
+          },
+          {
+            "size": "3XL",
+            "id": 13416,
+            "price": "23.85"
+          },
+          {
+            "size": "L",
+            "id": 10781,
+            "price": "21.25"
+          },
+          {
+            "size": "M",
+            "id": 10780,
+            "price": "23.25"
+          },
+          {
+            "size": "S",
+            "id": 10779,
+            "price": "21.25"
+          },
+          {
+            "size": "XL",
+            "id": 10782,
+            "price": "21.25"
+          }
+        ],
+        "eu": true,
+        "L": 8,
+        "isDark": true
+      },
+      "Bone": {
+        "hex": "#f5e8ce",
+        "variants": [
+          {
+            "size": "2XL",
+            "id": 20288,
+            "price": "22.55"
+          },
+          {
+            "size": "3XL",
+            "id": 20289,
+            "price": "23.85"
+          },
+          {
+            "size": "L",
+            "id": 20286,
+            "price": "21.25"
+          },
+          {
+            "size": "M",
+            "id": 20285,
+            "price": "21.25"
+          },
+          {
+            "size": "S",
+            "id": 20284,
+            "price": "21.25"
+          },
+          {
+            "size": "XL",
+            "id": 20287,
+            "price": "21.25"
+          }
+        ],
+        "eu": true,
+        "L": 233,
+        "isDark": false
+      },
+      "Carbon Grey": {
+        "hex": "#c7c3be",
+        "variants": [
+          {
+            "size": "2XL",
+            "id": 10788,
+            "price": "22.55"
+          },
+          {
+            "size": "3XL",
+            "id": 13420,
+            "price": "23.85"
+          },
+          {
+            "size": "L",
+            "id": 10786,
+            "price": "21.25"
+          },
+          {
+            "size": "M",
+            "id": 10785,
+            "price": "21.25"
+          },
+          {
+            "size": "S",
+            "id": 10784,
+            "price": "21.25"
+          },
+          {
+            "size": "XL",
+            "id": 10787,
+            "price": "21.25"
+          }
+        ],
+        "eu": true,
+        "L": 196,
+        "isDark": false
+      },
+      "Charcoal Heather": {
+        "hex": "#463e3d",
+        "variants": [
+          {
+            "size": "2XL",
+            "id": 11485,
+            "price": "22.55"
+          },
+          {
+            "size": "3XL",
+            "id": 13419,
+            "price": "23.85"
+          },
+          {
+            "size": "L",
+            "id": 11483,
+            "price": "21.25"
+          },
+          {
+            "size": "M",
+            "id": 11482,
+            "price": "21.25"
+          },
+          {
+            "size": "S",
+            "id": 11481,
+            "price": "23.25"
+          },
+          {
+            "size": "XL",
+            "id": 11484,
+            "price": "21.25"
+          }
+        ],
+        "eu": true,
+        "L": 64,
+        "isDark": true
+      },
+      "Dusty Rose": {
+        "hex": "#d27e6f",
+        "variants": [
+          {
+            "size": "2XL",
+            "id": 13891,
+            "price": "22.55"
+          },
+          {
+            "size": "3XL",
+            "id": 13892,
+            "price": "23.85"
+          },
+          {
+            "size": "L",
+            "id": 13889,
+            "price": "21.25"
+          },
+          {
+            "size": "M",
+            "id": 13888,
+            "price": "21.25"
+          },
+          {
+            "size": "S",
+            "id": 13887,
+            "price": "21.25"
+          },
+          {
+            "size": "XL",
+            "id": 13890,
+            "price": "21.25"
+          }
+        ],
+        "eu": true,
+        "L": 149,
+        "isDark": false
+      },
+      "Forest Green": {
+        "hex": "#335231",
+        "variants": [
+          {
+            "size": "2XL",
+            "id": 16166,
+            "price": "22.55"
+          },
+          {
+            "size": "3XL",
+            "id": 16167,
+            "price": "23.85"
+          },
+          {
+            "size": "L",
+            "id": 16164,
+            "price": "21.25"
+          },
+          {
+            "size": "M",
+            "id": 16163,
+            "price": "21.25"
+          },
+          {
+            "size": "S",
+            "id": 16162,
+            "price": "23.25"
+          },
+          {
+            "size": "XL",
+            "id": 16165,
+            "price": "23.25"
+          }
+        ],
+        "eu": true,
+        "L": 69,
+        "isDark": true
+      },
+      "Maroon": {
+        "hex": "#7d263a",
+        "variants": [
+          {
+            "size": "2XL",
+            "id": 11490,
+            "price": "22.55"
+          },
+          {
+            "size": "3XL",
+            "id": 13418,
+            "price": "23.85"
+          },
+          {
+            "size": "L",
+            "id": 11488,
+            "price": "21.25"
+          },
+          {
+            "size": "M",
+            "id": 11487,
+            "price": "21.25"
+          },
+          {
+            "size": "S",
+            "id": 11486,
+            "price": "21.25"
+          },
+          {
+            "size": "XL",
+            "id": 11489,
+            "price": "21.25"
+          }
+        ],
+        "eu": true,
+        "L": 66,
+        "isDark": true
+      },
+      "Military Green": {
+        "hex": "#5c4f32",
+        "variants": [
+          {
+            "size": "2XL",
+            "id": 13897,
+            "price": "24.95"
+          },
+          {
+            "size": "3XL",
+            "id": 13898,
+            "price": "23.85"
+          },
+          {
+            "size": "L",
+            "id": 13895,
+            "price": "21.25"
+          },
+          {
+            "size": "M",
+            "id": 13894,
+            "price": "23.25"
+          },
+          {
+            "size": "S",
+            "id": 13893,
+            "price": "21.25"
+          },
+          {
+            "size": "XL",
+            "id": 13896,
+            "price": "23.25"
+          }
+        ],
+        "eu": true,
+        "L": 80,
+        "isDark": true
+      },
+      "Navy Blazer": {
+        "hex": "#171f2c",
+        "variants": [
+          {
+            "size": "2XL",
+            "id": 11495,
+            "price": "24.95"
+          },
+          {
+            "size": "3XL",
+            "id": 13417,
+            "price": "23.85"
+          },
+          {
+            "size": "L",
+            "id": 11493,
+            "price": "21.25"
+          },
+          {
+            "size": "M",
+            "id": 11492,
+            "price": "21.25"
+          },
+          {
+            "size": "S",
+            "id": 11491,
+            "price": "23.25"
+          },
+          {
+            "size": "XL",
+            "id": 11494,
+            "price": "21.25"
+          }
+        ],
+        "eu": true,
+        "L": 30,
+        "isDark": true
+      },
+      "Purple": {
+        "hex": "#623a7a",
+        "variants": [
+          {
+            "size": "2XL",
+            "id": 13915,
+            "price": "22.55"
+          },
+          {
+            "size": "3XL",
+            "id": 13916,
+            "price": "23.85"
+          },
+          {
+            "size": "L",
+            "id": 13913,
+            "price": "21.25"
+          },
+          {
+            "size": "M",
+            "id": 13912,
+            "price": "21.25"
+          },
+          {
+            "size": "S",
+            "id": 13911,
+            "price": "21.25"
+          },
+          {
+            "size": "XL",
+            "id": 13914,
+            "price": "21.25"
+          }
+        ],
+        "eu": true,
+        "L": 77,
+        "isDark": true
+      },
+      "Sky Blue": {
+        "hex": "#d6edf7",
+        "variants": [
+          {
+            "size": "2XL",
+            "id": 13921,
+            "price": "22.55"
+          },
+          {
+            "size": "3XL",
+            "id": 13922,
+            "price": "23.85"
+          },
+          {
+            "size": "L",
+            "id": 13919,
+            "price": "21.25"
+          },
+          {
+            "size": "M",
+            "id": 13918,
+            "price": "21.25"
+          },
+          {
+            "size": "S",
+            "id": 13917,
+            "price": "21.25"
+          },
+          {
+            "size": "XL",
+            "id": 13920,
+            "price": "21.25"
+          }
+        ],
+        "eu": true,
+        "L": 231,
+        "isDark": false
+      },
+      "Team Red": {
+        "hex": "#FF2D41",
+        "variants": [
+          {
+            "size": "2XL",
+            "id": 20282,
+            "price": "22.55"
+          },
+          {
+            "size": "3XL",
+            "id": 20283,
+            "price": "23.85"
+          },
+          {
+            "size": "L",
+            "id": 20280,
+            "price": "21.25"
+          },
+          {
+            "size": "M",
+            "id": 20279,
+            "price": "21.25"
+          },
+          {
+            "size": "S",
+            "id": 20278,
+            "price": "21.25"
+          },
+          {
+            "size": "XL",
+            "id": 20281,
+            "price": "21.25"
+          }
+        ],
+        "eu": true,
+        "L": 110,
+        "isDark": false
+      },
+      "Team Royal": {
+        "hex": "#1b43ae",
+        "variants": [
+          {
+            "size": "2XL",
+            "id": 13909,
+            "price": "24.95"
+          },
+          {
+            "size": "3XL",
+            "id": 13910,
+            "price": "23.85"
+          },
+          {
+            "size": "L",
+            "id": 13907,
+            "price": "21.25"
+          },
+          {
+            "size": "M",
+            "id": 13906,
+            "price": "23.25"
+          },
+          {
+            "size": "S",
+            "id": 13905,
+            "price": "23.25"
+          },
+          {
+            "size": "XL",
+            "id": 13908,
+            "price": "21.25"
+          }
+        ],
+        "eu": true,
+        "L": 67,
+        "isDark": true
+      },
+      "Vintage Black": {
+        "hex": "#43413D",
+        "variants": [
+          {
+            "size": "2XL",
+            "id": 20276,
+            "price": "22.55"
+          },
+          {
+            "size": "3XL",
+            "id": 20277,
+            "price": "23.85"
+          },
+          {
+            "size": "L",
+            "id": 20274,
+            "price": "21.25"
+          },
+          {
+            "size": "M",
+            "id": 20273,
+            "price": "21.25"
+          },
+          {
+            "size": "S",
+            "id": 20272,
+            "price": "21.25"
+          },
+          {
+            "size": "XL",
+            "id": 20275,
+            "price": "21.25"
+          }
+        ],
+        "eu": true,
+        "L": 65,
+        "isDark": true
+      },
+      "White": {
+        "hex": "#ffffff",
+        "variants": [
+          {
+            "size": "2XL",
+            "id": 10778,
+            "price": "22.55"
+          },
+          {
+            "size": "3XL",
+            "id": 13421,
+            "price": "23.85"
+          },
+          {
+            "size": "L",
+            "id": 10776,
+            "price": "21.25"
+          },
+          {
+            "size": "M",
+            "id": 10775,
+            "price": "21.25"
+          },
+          {
+            "size": "S",
+            "id": 10774,
+            "price": "21.25"
+          },
+          {
+            "size": "XL",
+            "id": 10777,
+            "price": "21.25"
+          }
+        ],
+        "eu": true,
+        "L": 255,
+        "isDark": false
+      }
+    },
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL",
+      "3XL"
+    ],
+    "product": {
+      "id": 380,
+      "main_category_id": 28,
+      "type": "T-SHIRT",
+      "description": "Who knew that the softest hoodie you'll ever own comes with such a cool design. You won't regret buying this classic streetwear piece of apparel with a convenient pouch pocket and warm hood for chilly evenings.\n\n• 100% cotton face\n• 65% ring-spun cotton, 35% polyester\n• Front pouch pocket\n• Self-fabric patch on the back\n• Matching flat drawstrings\n• 3-panel hood\n• Blank product sourced from Pakistan\n\nDisclaimer: This hoodie runs small. For the perfect fit, we recommend ordering one size larger than your usual size.",
+      "type_name": "Hoodie",
+      "title": "Cotton Heritage M2580 I Unisex Premium Pullover Hoodie",
+      "brand": "Cotton Heritage",
+      "model": "M2580",
+      "image": "https://files.cdn.printful.com/o/upload/product-catalog-img/0e/0e62ae87da7d32dfb60d6dadc3744346_l",
+      "variant_count": 138,
+      "currency": "EUR",
+      "options": [
+        {
+          "id": "thread_colors_chest_left",
+          "title": "Left chest thread colors",
+          "type": "multi_select",
+          "values": {
+            "#FFFFFF": "1801 White",
+            "#000000": "1800 Black",
+            "#96A1A8": "1718 Grey",
+            "#A67843": "1672 Old Gold",
+            "#FFCC00": "1951 Gold",
+            "#E25C27": "1987 Orange",
+            "#CC3366": "1910 Flamingo",
+            "#CC3333": "1839 Red",
+            "#660000": "1784 Maroon",
+            "#333366": "1966 Navy",
+            "#005397": "1842 Royal",
+            "#3399FF": "1695 Aqua/Teal",
+            "#6B5294": "1832 Purple",
+            "#01784E": "1751 Kelly Green",
+            "#7BA35A": "1848 Kiwi Green"
+          },
+          "additional_price": null,
+          "additional_price_breakdown": []
+        },
+        {
+          "id": "thread_colors_chest_center",
+          "title": "Center chest thread colors",
+          "type": "multi_select",
+          "values": {
+            "#FFFFFF": "1801 White",
+            "#000000": "1800 Black",
+            "#96A1A8": "1718 Grey",
+            "#A67843": "1672 Old Gold",
+            "#FFCC00": "1951 Gold",
+            "#E25C27": "1987 Orange",
+            "#CC3366": "1910 Flamingo",
+            "#CC3333": "1839 Red",
+            "#660000": "1784 Maroon",
+            "#333366": "1966 Navy",
+            "#005397": "1842 Royal",
+            "#3399FF": "1695 Aqua/Teal",
+            "#6B5294": "1832 Purple",
+            "#01784E": "1751 Kelly Green",
+            "#7BA35A": "1848 Kiwi Green"
+          },
+          "additional_price": null,
+          "additional_price_breakdown": []
+        },
+        {
+          "id": "thread_colors_wrist_left",
+          "title": "Wrist left thread colors",
+          "type": "multi_select",
+          "values": {
+            "#FFFFFF": "1801 White",
+            "#000000": "1800 Black",
+            "#96A1A8": "1718 Grey",
+            "#A67843": "1672 Old Gold",
+            "#FFCC00": "1951 Gold",
+            "#E25C27": "1987 Orange",
+            "#CC3366": "1910 Flamingo",
+            "#CC3333": "1839 Red",
+            "#660000": "1784 Maroon",
+            "#333366": "1966 Navy",
+            "#005397": "1842 Royal",
+            "#3399FF": "1695 Aqua/Teal",
+            "#6B5294": "1832 Purple",
+            "#01784E": "1751 Kelly Green",
+            "#7BA35A": "1848 Kiwi Green"
+          },
+          "additional_price": null,
+          "additional_price_breakdown": []
+        },
+        {
+          "id": "thread_colors_wrist_right",
+          "title": "Wrist right thread colors",
+          "type": "multi_select",
+          "values": {
+            "#FFFFFF": "1801 White",
+            "#000000": "1800 Black",
+            "#96A1A8": "1718 Grey",
+            "#A67843": "1672 Old Gold",
+            "#FFCC00": "1951 Gold",
+            "#E25C27": "1987 Orange",
+            "#CC3366": "1910 Flamingo",
+            "#CC3333": "1839 Red",
+            "#660000": "1784 Maroon",
+            "#333366": "1966 Navy",
+            "#005397": "1842 Royal",
+            "#3399FF": "1695 Aqua/Teal",
+            "#6B5294": "1832 Purple",
+            "#01784E": "1751 Kelly Green",
+            "#7BA35A": "1848 Kiwi Green"
+          },
+          "additional_price": null,
+          "additional_price_breakdown": []
+        },
+        {
+          "id": "notes",
+          "title": "Embroidery notes",
+          "type": "text",
+          "values": null,
+          "additional_price": null,
+          "additional_price_breakdown": []
+        },
+        {
+          "id": "lifelike",
+          "title": "Lifelike",
+          "type": "bool",
+          "values": null,
+          "additional_price": null,
+          "additional_price_breakdown": []
+        }
+      ],
+      "dimensions": null,
+      "is_discontinued": false,
+      "avg_fulfillment_time": null,
+      "techniques": [
+        {
+          "key": "DTG",
+          "display_name": "DTG printing",
+          "is_default": true
+        },
+        {
+          "key": "EMBROIDERY",
+          "display_name": "Embroidery",
+          "is_default": false
+        },
+        {
+          "key": "DTFILM",
+          "display_name": "DTF printing",
+          "is_default": false
+        }
+      ],
+      "files": [
+        {
+          "id": "embroidery_chest_left",
+          "type": "embroidery_chest_left",
+          "title": "Left chest",
+          "additional_price": "2.60",
+          "options": [
+            {
+              "id": "full_color",
+              "type": "bool",
+              "title": "Unlimited color",
+              "additional_price": 3.25
+            }
+          ]
+        },
+        {
+          "id": "embroidery_chest_center",
+          "type": "embroidery_chest_center",
+          "title": "Center chest",
+          "additional_price": "2.60",
+          "options": [
+            {
+              "id": "full_color",
+              "type": "bool",
+              "title": "Unlimited color",
+              "additional_price": 3.25
+            }
+          ]
+        },
+        {
+          "id": "embroidery_wrist_left",
+          "type": "embroidery_wrist_left",
+          "title": "Left wrist",
+          "additional_price": "2.60",
+          "options": []
+        },
+        {
+          "id": "embroidery_wrist_right",
+          "type": "embroidery_wrist_right",
+          "title": "Right wrist",
+          "additional_price": "2.60",
+          "options": []
+        },
+        {
+          "id": "default",
+          "type": "front",
+          "title": "Front print",
+          "additional_price": null,
+          "options": []
+        },
+        {
+          "id": "back",
+          "type": "back",
+          "title": "Back print",
+          "additional_price": "5.25",
+          "options": []
+        },
+        {
+          "id": "label_outside",
+          "type": "label_outside",
+          "title": "Outside label",
+          "additional_price": "2.20",
+          "options": []
+        },
+        {
+          "id": "label_inside",
+          "type": "label_inside",
+          "title": "Inside label",
+          "additional_price": "0.99",
+          "options": []
+        },
+        {
+          "id": "sleeve_left",
+          "type": "sleeve_left",
+          "title": "Left sleeve",
+          "additional_price": "5.25",
+          "options": []
+        },
+        {
+          "id": "sleeve_right",
+          "type": "sleeve_right",
+          "title": "Right sleeve",
+          "additional_price": "5.25",
+          "options": []
+        },
+        {
+          "id": "front_dtf",
+          "type": "front_dtf",
+          "title": "Front print",
+          "additional_price": "5.25",
+          "options": []
+        },
+        {
+          "id": "back_dtf",
+          "type": "back_dtf",
+          "title": "Back print",
+          "additional_price": "5.25",
+          "options": []
+        },
+        {
+          "id": "label_inside_dtf",
+          "type": "label_inside_dtf",
+          "title": "Inside label",
+          "additional_price": "0.99",
+          "options": []
+        },
+        {
+          "id": "long_sleeve_left_dtf",
+          "type": "long_sleeve_left_dtf",
+          "title": "Long left sleeve",
+          "additional_price": "5.25",
+          "options": []
+        },
+        {
+          "id": "long_sleeve_right_dtf",
+          "type": "long_sleeve_right_dtf",
+          "title": "Long right sleeve",
+          "additional_price": "5.25",
+          "options": []
+        },
+        {
+          "id": "preview",
+          "type": "mockup",
+          "title": "Mockup",
+          "additional_price": null,
+          "options": []
+        }
+      ],
+      "origin_country": "Pakistan"
+    }
+  },
+  "411": {
+    "byColor": {
+      "Adobe": {
+        "hex": "#d06e26",
+        "variants": [
+          {
+            "size": "2XL",
+            "id": 25536,
+            "price": "22.25"
+          },
+          {
+            "size": "3XL",
+            "id": 25537,
+            "price": "23.95"
+          },
+          {
+            "size": "L",
+            "id": 25534,
+            "price": "20.50"
+          },
+          {
+            "size": "M",
+            "id": 25533,
+            "price": "20.50"
+          },
+          {
+            "size": "S",
+            "id": 25532,
+            "price": "20.50"
+          },
+          {
+            "size": "XL",
+            "id": 25535,
+            "price": "20.50"
+          }
+        ],
+        "eu": false,
+        "L": 131,
+        "isDark": false
+      },
+      "Agave": {
+        "hex": "#c0d7d2",
+        "variants": [
+          {
+            "size": "2XL",
+            "id": 13954,
+            "price": "22.25"
+          },
+          {
+            "size": "3XL",
+            "id": 13955,
+            "price": "23.95"
+          },
+          {
+            "size": "L",
+            "id": 13952,
+            "price": "20.50"
+          },
+          {
+            "size": "M",
+            "id": 13951,
+            "price": "20.50"
+          },
+          {
+            "size": "S",
+            "id": 13950,
+            "price": "20.50"
+          },
+          {
+            "size": "XL",
+            "id": 13953,
+            "price": "20.50"
+          }
+        ],
+        "eu": false,
+        "L": 208,
+        "isDark": false
+      },
+      "Black": {
+        "hex": "#101010",
+        "variants": [
+          {
+            "size": "2XL",
+            "id": 11258,
+            "price": "22.09"
+          },
+          {
+            "size": "3XL",
+            "id": 13258,
+            "price": "23.39"
+          },
+          {
+            "size": "L",
+            "id": 11256,
+            "price": "20.79"
+          },
+          {
+            "size": "M",
+            "id": 11255,
+            "price": "20.79"
+          },
+          {
+            "size": "S",
+            "id": 11254,
+            "price": "20.79"
+          },
+          {
+            "size": "XL",
+            "id": 11257,
+            "price": "20.79"
+          }
+        ],
+        "eu": true,
+        "L": 16,
+        "isDark": true
+      },
+      "Bone": {
+        "hex": "#f5e8ce",
+        "variants": [
+          {
+            "size": "2XL",
+            "id": 20353,
+            "price": "22.09"
+          },
+          {
+            "size": "3XL",
+            "id": 20352,
+            "price": "23.39"
+          },
+          {
+            "size": "L",
+            "id": 20355,
+            "price": "20.50"
+          },
+          {
+            "size": "M",
+            "id": 20356,
+            "price": "20.79"
+          },
+          {
+            "size": "S",
+            "id": 20357,
+            "price": "20.79"
+          },
+          {
+            "size": "XL",
+            "id": 20354,
+            "price": "20.79"
+          }
+        ],
+        "eu": true,
+        "L": 233,
+        "isDark": false
+      },
+      "Carbon Grey": {
+        "hex": "#b2afaa",
+        "variants": [
+          {
+            "size": "2XL",
+            "id": 11248,
+            "price": "22.09"
+          },
+          {
+            "size": "3XL",
+            "id": 13259,
+            "price": "23.39"
+          },
+          {
+            "size": "L",
+            "id": 11246,
+            "price": "20.79"
+          },
+          {
+            "size": "M",
+            "id": 11245,
+            "price": "20.79"
+          },
+          {
+            "size": "S",
+            "id": 11244,
+            "price": "20.79"
+          },
+          {
+            "size": "XL",
+            "id": 11247,
+            "price": "20.79"
+          }
+        ],
+        "eu": true,
+        "L": 175,
+        "isDark": false
+      },
+      "Cardinal": {
+        "hex": "#9E1510",
+        "variants": [
+          {
+            "size": "2XL",
+            "id": 13879,
+            "price": "22.25"
+          },
+          {
+            "size": "3XL",
+            "id": 13880,
+            "price": "23.95"
+          },
+          {
+            "size": "L",
+            "id": 13877,
+            "price": "20.50"
+          },
+          {
+            "size": "M",
+            "id": 13876,
+            "price": "20.50"
+          },
+          {
+            "size": "S",
+            "id": 13875,
+            "price": "20.50"
+          },
+          {
+            "size": "XL",
+            "id": 13878,
+            "price": "20.50"
+          }
+        ],
+        "eu": false,
+        "L": 61,
+        "isDark": true
+      },
+      "Charcoal Heather": {
+        "hex": "#3a3a38",
+        "variants": [
+          {
+            "size": "2XL",
+            "id": 11263,
+            "price": "22.09"
+          },
+          {
+            "size": "3XL",
+            "id": 13260,
+            "price": "23.39"
+          },
+          {
+            "size": "L",
+            "id": 11261,
+            "price": "20.79"
+          },
+          {
+            "size": "M",
+            "id": 11260,
+            "price": "20.79"
+          },
+          {
+            "size": "S",
+            "id": 11259,
+            "price": "20.79"
+          },
+          {
+            "size": "XL",
+            "id": 11262,
+            "price": "20.79"
+          }
+        ],
+        "eu": true,
+        "L": 58,
+        "isDark": true
+      },
+      "Dusty Rose": {
+        "hex": "#f59382",
+        "variants": [
+          {
+            "size": "2XL",
+            "id": 13867,
+            "price": "22.09"
+          },
+          {
+            "size": "3XL",
+            "id": 13868,
+            "price": "23.39"
+          },
+          {
+            "size": "L",
+            "id": 13865,
+            "price": "20.79"
+          },
+          {
+            "size": "M",
+            "id": 13864,
+            "price": "20.79"
+          },
+          {
+            "size": "S",
+            "id": 13863,
+            "price": "20.79"
+          },
+          {
+            "size": "XL",
+            "id": 13866,
+            "price": "20.79"
+          }
+        ],
+        "eu": true,
+        "L": 174,
+        "isDark": false
+      },
+      "Forest Green": {
+        "hex": "#335231",
+        "variants": [
+          {
+            "size": "2XL",
+            "id": 16160,
+            "price": "22.09"
+          },
+          {
+            "size": "3XL",
+            "id": 16161,
+            "price": "23.39"
+          },
+          {
+            "size": "L",
+            "id": 16158,
+            "price": "20.79"
+          },
+          {
+            "size": "M",
+            "id": 16157,
+            "price": "20.79"
+          },
+          {
+            "size": "S",
+            "id": 16156,
+            "price": "20.79"
+          },
+          {
+            "size": "XL",
+            "id": 16159,
+            "price": "20.79"
+          }
+        ],
+        "eu": true,
+        "L": 69,
+        "isDark": true
+      },
+      "Khaki": {
+        "hex": "#d2a26f",
+        "variants": [
+          {
+            "size": "2XL",
+            "id": 25560,
+            "price": "22.25"
+          },
+          {
+            "size": "3XL",
+            "id": 25561,
+            "price": "23.95"
+          },
+          {
+            "size": "L",
+            "id": 25558,
+            "price": "20.50"
+          },
+          {
+            "size": "M",
+            "id": 25557,
+            "price": "20.50"
+          },
+          {
+            "size": "S",
+            "id": 25556,
+            "price": "20.50"
+          },
+          {
+            "size": "XL",
+            "id": 25559,
+            "price": "20.50"
+          }
+        ],
+        "eu": false,
+        "L": 171,
+        "isDark": false
+      },
+      "Latte": {
+        "hex": "#b28a68",
+        "variants": [
+          {
+            "size": "2XL",
+            "id": 25530,
+            "price": "22.25"
+          },
+          {
+            "size": "3XL",
+            "id": 25531,
+            "price": "23.95"
+          },
+          {
+            "size": "L",
+            "id": 25528,
+            "price": "20.50"
+          },
+          {
+            "size": "M",
+            "id": 25527,
+            "price": "20.50"
+          },
+          {
+            "size": "S",
+            "id": 25526,
+            "price": "20.50"
+          },
+          {
+            "size": "XL",
+            "id": 25529,
+            "price": "20.50"
+          }
+        ],
+        "eu": false,
+        "L": 146,
+        "isDark": false
+      },
+      "Lavender": {
+        "hex": "#ffdcf3",
+        "variants": [
+          {
+            "size": "2XL",
+            "id": 25554,
+            "price": "22.25"
+          },
+          {
+            "size": "3XL",
+            "id": 25555,
+            "price": "23.95"
+          },
+          {
+            "size": "L",
+            "id": 25552,
+            "price": "20.50"
+          },
+          {
+            "size": "M",
+            "id": 25551,
+            "price": "20.50"
+          },
+          {
+            "size": "S",
+            "id": 25550,
+            "price": "20.50"
+          },
+          {
+            "size": "XL",
+            "id": 25553,
+            "price": "20.50"
+          }
+        ],
+        "eu": false,
+        "L": 233,
+        "isDark": false
+      },
+      "Light Pink": {
+        "hex": "#ffd0cc",
+        "variants": [
+          {
+            "size": "2XL",
+            "id": 25548,
+            "price": "22.25"
+          },
+          {
+            "size": "3XL",
+            "id": 25549,
+            "price": "23.95"
+          },
+          {
+            "size": "L",
+            "id": 25546,
+            "price": "20.50"
+          },
+          {
+            "size": "M",
+            "id": 25545,
+            "price": "20.50"
+          },
+          {
+            "size": "S",
+            "id": 25544,
+            "price": "20.50"
+          },
+          {
+            "size": "XL",
+            "id": 25547,
+            "price": "20.50"
+          }
+        ],
+        "eu": false,
+        "L": 222,
+        "isDark": false
+      },
+      "Navy Blazer": {
+        "hex": "#171f2c",
+        "variants": [
+          {
+            "size": "2XL",
+            "id": 13256,
+            "price": "22.09"
+          },
+          {
+            "size": "3XL",
+            "id": 13257,
+            "price": "23.39"
+          },
+          {
+            "size": "L",
+            "id": 13254,
+            "price": "20.79"
+          },
+          {
+            "size": "M",
+            "id": 13253,
+            "price": "20.79"
+          },
+          {
+            "size": "S",
+            "id": 13252,
+            "price": "20.50"
+          },
+          {
+            "size": "XL",
+            "id": 13255,
+            "price": "20.79"
+          }
+        ],
+        "eu": true,
+        "L": 30,
+        "isDark": true
+      },
+      "Sky Blue": {
+        "hex": "#ddf7ff",
+        "variants": [
+          {
+            "size": "2XL",
+            "id": 25542,
+            "price": "22.25"
+          },
+          {
+            "size": "3XL",
+            "id": 25543,
+            "price": "23.95"
+          },
+          {
+            "size": "L",
+            "id": 25540,
+            "price": "20.50"
+          },
+          {
+            "size": "M",
+            "id": 25539,
+            "price": "20.50"
+          },
+          {
+            "size": "S",
+            "id": 25538,
+            "price": "20.50"
+          },
+          {
+            "size": "XL",
+            "id": 25541,
+            "price": "20.50"
+          }
+        ],
+        "eu": false,
+        "L": 240,
+        "isDark": false
+      },
+      "Team Red": {
+        "hex": "#FF2D41",
+        "variants": [
+          {
+            "size": "2XL",
+            "id": 20365,
+            "price": "22.09"
+          },
+          {
+            "size": "3XL",
+            "id": 20364,
+            "price": "23.39"
+          },
+          {
+            "size": "L",
+            "id": 20367,
+            "price": "20.79"
+          },
+          {
+            "size": "M",
+            "id": 20368,
+            "price": "20.79"
+          },
+          {
+            "size": "S",
+            "id": 20369,
+            "price": "20.79"
+          },
+          {
+            "size": "XL",
+            "id": 20366,
+            "price": "20.79"
+          }
+        ],
+        "eu": true,
+        "L": 110,
+        "isDark": false
+      },
+      "Team Royal": {
+        "hex": "#2d407d",
+        "variants": [
+          {
+            "size": "2XL",
+            "id": 13873,
+            "price": "22.09"
+          },
+          {
+            "size": "3XL",
+            "id": 13874,
+            "price": "23.39"
+          },
+          {
+            "size": "L",
+            "id": 13871,
+            "price": "20.79"
+          },
+          {
+            "size": "M",
+            "id": 13870,
+            "price": "20.79"
+          },
+          {
+            "size": "S",
+            "id": 13869,
+            "price": "20.79"
+          },
+          {
+            "size": "XL",
+            "id": 13872,
+            "price": "20.79"
+          }
+        ],
+        "eu": true,
+        "L": 65,
+        "isDark": true
+      },
+      "Vintage Black": {
+        "hex": "#43413D",
+        "variants": [
+          {
+            "size": "2XL",
+            "id": 20359,
+            "price": "22.09"
+          },
+          {
+            "size": "3XL",
+            "id": 20358,
+            "price": "23.39"
+          },
+          {
+            "size": "L",
+            "id": 20361,
+            "price": "20.50"
+          },
+          {
+            "size": "M",
+            "id": 20362,
+            "price": "20.79"
+          },
+          {
+            "size": "S",
+            "id": 20363,
+            "price": "20.79"
+          },
+          {
+            "size": "XL",
+            "id": 20360,
+            "price": "20.79"
+          }
+        ],
+        "eu": true,
+        "L": 65,
+        "isDark": true
+      },
+      "White": {
+        "hex": "#ffffff",
+        "variants": [
+          {
+            "size": "2XL",
+            "id": 11253,
+            "price": "22.09"
+          },
+          {
+            "size": "3XL",
+            "id": 13261,
+            "price": "23.39"
+          },
+          {
+            "size": "L",
+            "id": 11251,
+            "price": "20.79"
+          },
+          {
+            "size": "M",
+            "id": 11250,
+            "price": "20.79"
+          },
+          {
+            "size": "S",
+            "id": 11249,
+            "price": "20.79"
+          },
+          {
+            "size": "XL",
+            "id": 11252,
+            "price": "20.79"
+          }
+        ],
+        "eu": true,
+        "L": 255,
+        "isDark": false
+      }
+    },
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL",
+      "3XL"
+    ],
+    "product": {
+      "id": 411,
+      "main_category_id": 7,
+      "type": "T-SHIRT",
+      "description": "Rock a classic sweatshirt silhouette with ribbed crew neck, long sleeve cuffs, and a flat hem. Layer it up or wear it on its own for a contemporary streetwear look. With the soft fleece inside and comfortable fit, it’s sure to become your favorite everyday sweater right away!\n\n• 100% cotton face\n• 65% cotton, 35% polyester\n• Charcoal Heather is 55% cotton, 45% polyester\n• Fabric weight: 8.5 oz/y² (288.2 g/m²)\n• Tightly knit 3-end fleece \n• Side-seamed construction\n• Self-fabric patch on the back\n• Double-needle stitched rib collar, cuffs, and hem\n• Blank product sourced from Pakistan\n\nDisclaimer: This sweatshirt runs small. For the perfect fit, we recommend ordering one size larger than your usual size.",
+      "type_name": "Sweatshirt",
+      "title": "Unisex Premium Sweatshirt | Cotton Heritage M2480",
+      "brand": "Cotton Heritage",
+      "model": "M2480",
+      "image": "https://files.cdn.printful.com/o/upload/product-catalog-img/ad/ad9ddd4bd72e10797de24da876bb3c6d_l",
+      "variant_count": 114,
+      "currency": "EUR",
+      "options": [
+        {
+          "id": "thread_colors_chest_left",
+          "title": "Left chest thread colors",
+          "type": "multi_select",
+          "values": {
+            "#FFFFFF": "1801 White",
+            "#000000": "1800 Black",
+            "#96A1A8": "1718 Grey",
+            "#A67843": "1672 Old Gold",
+            "#FFCC00": "1951 Gold",
+            "#E25C27": "1987 Orange",
+            "#CC3366": "1910 Flamingo",
+            "#CC3333": "1839 Red",
+            "#660000": "1784 Maroon",
+            "#333366": "1966 Navy",
+            "#005397": "1842 Royal",
+            "#3399FF": "1695 Aqua/Teal",
+            "#6B5294": "1832 Purple",
+            "#01784E": "1751 Kelly Green",
+            "#7BA35A": "1848 Kiwi Green"
+          },
+          "additional_price": null,
+          "additional_price_breakdown": []
+        },
+        {
+          "id": "thread_colors_chest_center",
+          "title": "Center chest thread colors",
+          "type": "multi_select",
+          "values": {
+            "#FFFFFF": "1801 White",
+            "#000000": "1800 Black",
+            "#96A1A8": "1718 Grey",
+            "#A67843": "1672 Old Gold",
+            "#FFCC00": "1951 Gold",
+            "#E25C27": "1987 Orange",
+            "#CC3366": "1910 Flamingo",
+            "#CC3333": "1839 Red",
+            "#660000": "1784 Maroon",
+            "#333366": "1966 Navy",
+            "#005397": "1842 Royal",
+            "#3399FF": "1695 Aqua/Teal",
+            "#6B5294": "1832 Purple",
+            "#01784E": "1751 Kelly Green",
+            "#7BA35A": "1848 Kiwi Green"
+          },
+          "additional_price": null,
+          "additional_price_breakdown": []
+        },
+        {
+          "id": "thread_colors_wrist_left",
+          "title": "Wrist left thread colors",
+          "type": "multi_select",
+          "values": {
+            "#FFFFFF": "1801 White",
+            "#000000": "1800 Black",
+            "#96A1A8": "1718 Grey",
+            "#A67843": "1672 Old Gold",
+            "#FFCC00": "1951 Gold",
+            "#E25C27": "1987 Orange",
+            "#CC3366": "1910 Flamingo",
+            "#CC3333": "1839 Red",
+            "#660000": "1784 Maroon",
+            "#333366": "1966 Navy",
+            "#005397": "1842 Royal",
+            "#3399FF": "1695 Aqua/Teal",
+            "#6B5294": "1832 Purple",
+            "#01784E": "1751 Kelly Green",
+            "#7BA35A": "1848 Kiwi Green"
+          },
+          "additional_price": null,
+          "additional_price_breakdown": []
+        },
+        {
+          "id": "thread_colors_wrist_right",
+          "title": "Wrist right thread colors",
+          "type": "multi_select",
+          "values": {
+            "#FFFFFF": "1801 White",
+            "#000000": "1800 Black",
+            "#96A1A8": "1718 Grey",
+            "#A67843": "1672 Old Gold",
+            "#FFCC00": "1951 Gold",
+            "#E25C27": "1987 Orange",
+            "#CC3366": "1910 Flamingo",
+            "#CC3333": "1839 Red",
+            "#660000": "1784 Maroon",
+            "#333366": "1966 Navy",
+            "#005397": "1842 Royal",
+            "#3399FF": "1695 Aqua/Teal",
+            "#6B5294": "1832 Purple",
+            "#01784E": "1751 Kelly Green",
+            "#7BA35A": "1848 Kiwi Green"
+          },
+          "additional_price": null,
+          "additional_price_breakdown": []
+        },
+        {
+          "id": "notes",
+          "title": "Embroidery notes",
+          "type": "text",
+          "values": null,
+          "additional_price": null,
+          "additional_price_breakdown": []
+        },
+        {
+          "id": "lifelike",
+          "title": "Lifelike",
+          "type": "bool",
+          "values": null,
+          "additional_price": null,
+          "additional_price_breakdown": []
+        }
+      ],
+      "dimensions": null,
+      "is_discontinued": false,
+      "avg_fulfillment_time": null,
+      "techniques": [
+        {
+          "key": "DTG",
+          "display_name": "DTG printing",
+          "is_default": true
+        },
+        {
+          "key": "EMBROIDERY",
+          "display_name": "Embroidery",
+          "is_default": false
+        },
+        {
+          "key": "DTFILM",
+          "display_name": "DTF printing",
+          "is_default": false
+        }
+      ],
+      "files": [
+        {
+          "id": "embroidery_chest_left",
+          "type": "embroidery_chest_left",
+          "title": "Left chest",
+          "additional_price": "2.60",
+          "options": [
+            {
+              "id": "full_color",
+              "type": "bool",
+              "title": "Unlimited color",
+              "additional_price": 3.25
+            }
+          ]
+        },
+        {
+          "id": "embroidery_chest_center",
+          "type": "embroidery_chest_center",
+          "title": "Center chest",
+          "additional_price": "2.60",
+          "options": [
+            {
+              "id": "full_color",
+              "type": "bool",
+              "title": "Unlimited color",
+              "additional_price": 3.25
+            }
+          ]
+        },
+        {
+          "id": "embroidery_wrist_left",
+          "type": "embroidery_wrist_left",
+          "title": "Left wrist",
+          "additional_price": "2.60",
+          "options": []
+        },
+        {
+          "id": "embroidery_wrist_right",
+          "type": "embroidery_wrist_right",
+          "title": "Right wrist",
+          "additional_price": "2.60",
+          "options": []
+        },
+        {
+          "id": "default",
+          "type": "front",
+          "title": "Front print",
+          "additional_price": null,
+          "options": []
+        },
+        {
+          "id": "back",
+          "type": "back",
+          "title": "Back print",
+          "additional_price": "5.25",
+          "options": []
+        },
+        {
+          "id": "label_outside",
+          "type": "label_outside",
+          "title": "Outside label",
+          "additional_price": "2.20",
+          "options": []
+        },
+        {
+          "id": "label_inside",
+          "type": "label_inside",
+          "title": "Inside label",
+          "additional_price": "0.99",
+          "options": []
+        },
+        {
+          "id": "sleeve_left",
+          "type": "sleeve_left",
+          "title": "Left sleeve",
+          "additional_price": "5.25",
+          "options": []
+        },
+        {
+          "id": "sleeve_right",
+          "type": "sleeve_right",
+          "title": "Right sleeve",
+          "additional_price": "5.25",
+          "options": []
+        },
+        {
+          "id": "front_dtf",
+          "type": "front_dtf",
+          "title": "Front print",
+          "additional_price": "5.25",
+          "options": []
+        },
+        {
+          "id": "back_dtf",
+          "type": "back_dtf",
+          "title": "Back print",
+          "additional_price": "5.25",
+          "options": []
+        },
+        {
+          "id": "label_inside_dtf",
+          "type": "label_inside_dtf",
+          "title": "Inside label",
+          "additional_price": "0.99",
+          "options": []
+        },
+        {
+          "id": "long_sleeve_left_dtf",
+          "type": "long_sleeve_left_dtf",
+          "title": "Long left sleeve",
+          "additional_price": "5.25",
+          "options": []
+        },
+        {
+          "id": "long_sleeve_right_dtf",
+          "type": "long_sleeve_right_dtf",
+          "title": "Long right sleeve",
+          "additional_price": "5.25",
+          "options": []
+        },
+        {
+          "id": "preview",
+          "type": "mockup",
+          "title": "Mockup",
+          "additional_price": null,
+          "options": []
+        }
+      ],
+      "origin_country": "Pakistan"
+    }
+  },
+  "692": {
+    "byColor": {
+      "Ash": {
+        "hex": "#f8f8f8",
+        "variants": [
+          {
+            "size": "2XL",
+            "id": 32093,
+            "price": "22.50"
+          },
+          {
+            "size": "3XL",
+            "id": 32099,
+            "price": "24.25"
+          },
+          {
+            "size": "L",
+            "id": 32081,
+            "price": "20.95"
+          },
+          {
+            "size": "M",
+            "id": 32075,
+            "price": "20.95"
+          },
+          {
+            "size": "S",
+            "id": 32069,
+            "price": "20.95"
+          },
+          {
+            "size": "XL",
+            "id": 32087,
+            "price": "20.95"
+          }
+        ],
+        "eu": false,
+        "L": 248,
+        "isDark": false
+      },
+      "Black": {
+        "hex": "#0b0b0b",
+        "variants": [
+          {
+            "size": "2XL",
+            "id": 17299,
+            "price": "24.25"
+          },
+          {
+            "size": "3XL",
+            "id": 17300,
+            "price": "25.55"
+          },
+          {
+            "size": "4XL",
+            "id": 17301,
+            "price": "26.85"
+          },
+          {
+            "size": "5XL",
+            "id": 17302,
+            "price": "28.15"
+          },
+          {
+            "size": "L",
+            "id": 17297,
+            "price": "22.95"
+          },
+          {
+            "size": "M",
+            "id": 17296,
+            "price": "22.95"
+          },
+          {
+            "size": "S",
+            "id": 17295,
+            "price": "22.95"
+          },
+          {
+            "size": "XL",
+            "id": 17298,
+            "price": "22.95"
+          }
+        ],
+        "eu": true,
+        "L": 11,
+        "isDark": true
+      },
+      "Cardinal Red": {
+        "hex": "#aa1f31",
+        "variants": [
+          {
+            "size": "2XL",
+            "id": 32092,
+            "price": "22.50"
+          },
+          {
+            "size": "3XL",
+            "id": 32098,
+            "price": "24.25"
+          },
+          {
+            "size": "L",
+            "id": 32080,
+            "price": "20.95"
+          },
+          {
+            "size": "M",
+            "id": 32074,
+            "price": "20.95"
+          },
+          {
+            "size": "S",
+            "id": 32068,
+            "price": "20.95"
+          },
+          {
+            "size": "XL",
+            "id": 32086,
+            "price": "20.95"
+          }
+        ],
+        "eu": false,
+        "L": 75,
+        "isDark": true
+      },
+      "Carolina Blue": {
+        "hex": "#9cc4ff",
+        "variants": [
+          {
+            "size": "2XL",
+            "id": 17344,
+            "price": "24.25"
+          },
+          {
+            "size": "3XL",
+            "id": 17346,
+            "price": "24.25"
+          },
+          {
+            "size": "L",
+            "id": 17340,
+            "price": "22.95"
+          },
+          {
+            "size": "M",
+            "id": 17338,
+            "price": "22.95"
+          },
+          {
+            "size": "S",
+            "id": 17336,
+            "price": "22.95"
+          },
+          {
+            "size": "XL",
+            "id": 17342,
+            "price": "22.95"
+          }
+        ],
+        "eu": true,
+        "L": 191,
+        "isDark": false
+      },
+      "Dark Chocolate": {
+        "hex": "#483525",
+        "variants": [
+          {
+            "size": "2XL",
+            "id": 32091,
+            "price": "22.50"
+          },
+          {
+            "size": "3XL",
+            "id": 32097,
+            "price": "24.25"
+          },
+          {
+            "size": "L",
+            "id": 32079,
+            "price": "20.95"
+          },
+          {
+            "size": "M",
+            "id": 32073,
+            "price": "20.95"
+          },
+          {
+            "size": "S",
+            "id": 32067,
+            "price": "20.95"
+          },
+          {
+            "size": "XL",
+            "id": 32085,
+            "price": "20.95"
+          }
+        ],
+        "eu": false,
+        "L": 57,
+        "isDark": true
+      },
+      "Dark Heather": {
+        "hex": "#3c3d44",
+        "variants": [
+          {
+            "size": "2XL",
+            "id": 17351,
+            "price": "24.25"
+          },
+          {
+            "size": "3XL",
+            "id": 17352,
+            "price": "25.55"
+          },
+          {
+            "size": "L",
+            "id": 17349,
+            "price": "22.95"
+          },
+          {
+            "size": "M",
+            "id": 17348,
+            "price": "22.95"
+          },
+          {
+            "size": "S",
+            "id": 17347,
+            "price": "22.95"
+          },
+          {
+            "size": "XL",
+            "id": 17350,
+            "price": "22.95"
+          }
+        ],
+        "eu": true,
+        "L": 61,
+        "isDark": true
+      },
+      "Forest Green": {
+        "hex": "#304029",
+        "variants": [
+          {
+            "size": "2XL",
+            "id": 32094,
+            "price": "22.50"
+          },
+          {
+            "size": "3XL",
+            "id": 32100,
+            "price": "24.25"
+          },
+          {
+            "size": "L",
+            "id": 32082,
+            "price": "20.95"
+          },
+          {
+            "size": "M",
+            "id": 32076,
+            "price": "20.95"
+          },
+          {
+            "size": "S",
+            "id": 32070,
+            "price": "20.95"
+          },
+          {
+            "size": "XL",
+            "id": 32088,
+            "price": "20.95"
+          }
+        ],
+        "eu": false,
+        "L": 57,
+        "isDark": true
+      },
+      "Irish Green": {
+        "hex": "#00c85e",
+        "variants": [
+          {
+            "size": "2XL",
+            "id": 32095,
+            "price": "22.50"
+          },
+          {
+            "size": "3XL",
+            "id": 32101,
+            "price": "24.25"
+          },
+          {
+            "size": "L",
+            "id": 32083,
+            "price": "20.95"
+          },
+          {
+            "size": "M",
+            "id": 32077,
+            "price": "20.95"
+          },
+          {
+            "size": "S",
+            "id": 32071,
+            "price": "20.95"
+          },
+          {
+            "size": "XL",
+            "id": 32089,
+            "price": "20.95"
+          }
+        ],
+        "eu": false,
+        "L": 128,
+        "isDark": false
+      },
+      "Navy": {
+        "hex": "#15263c",
+        "variants": [
+          {
+            "size": "2XL",
+            "id": 17315,
+            "price": "24.25"
+          },
+          {
+            "size": "3XL",
+            "id": 17316,
+            "price": "25.55"
+          },
+          {
+            "size": "4XL",
+            "id": 17317,
+            "price": "25.95"
+          },
+          {
+            "size": "5XL",
+            "id": 17318,
+            "price": "27.75"
+          },
+          {
+            "size": "L",
+            "id": 17313,
+            "price": "22.95"
+          },
+          {
+            "size": "M",
+            "id": 17312,
+            "price": "22.95"
+          },
+          {
+            "size": "S",
+            "id": 17311,
+            "price": "22.95"
+          },
+          {
+            "size": "XL",
+            "id": 17314,
+            "price": "22.95"
+          }
+        ],
+        "eu": true,
+        "L": 35,
+        "isDark": true
+      },
+      "Purple": {
+        "hex": "#643285",
+        "variants": [
+          {
+            "size": "2XL",
+            "id": 32096,
+            "price": "22.50"
+          },
+          {
+            "size": "3XL",
+            "id": 32102,
+            "price": "24.25"
+          },
+          {
+            "size": "L",
+            "id": 32084,
+            "price": "20.95"
+          },
+          {
+            "size": "M",
+            "id": 32078,
+            "price": "20.95"
+          },
+          {
+            "size": "S",
+            "id": 32072,
+            "price": "20.95"
+          },
+          {
+            "size": "XL",
+            "id": 32090,
+            "price": "20.95"
+          }
+        ],
+        "eu": false,
+        "L": 74,
+        "isDark": true
+      },
+      "Red": {
+        "hex": "#e01221",
+        "variants": [
+          {
+            "size": "2XL",
+            "id": 17331,
+            "price": "22.50"
+          },
+          {
+            "size": "3XL",
+            "id": 17332,
+            "price": "24.25"
+          },
+          {
+            "size": "4XL",
+            "id": 17333,
+            "price": "25.95"
+          },
+          {
+            "size": "5XL",
+            "id": 17334,
+            "price": "27.75"
+          },
+          {
+            "size": "L",
+            "id": 17329,
+            "price": "20.95"
+          },
+          {
+            "size": "M",
+            "id": 17328,
+            "price": "20.95"
+          },
+          {
+            "size": "S",
+            "id": 17327,
+            "price": "20.95"
+          },
+          {
+            "size": "XL",
+            "id": 17330,
+            "price": "20.95"
+          }
+        ],
+        "eu": false,
+        "L": 81,
+        "isDark": true
+      },
+      "Royal": {
+        "hex": "#1d57a5",
+        "variants": [
+          {
+            "size": "2XL",
+            "id": 17323,
+            "price": "24.25"
+          },
+          {
+            "size": "3XL",
+            "id": 17324,
+            "price": "25.55"
+          },
+          {
+            "size": "4XL",
+            "id": 17325,
+            "price": "25.95"
+          },
+          {
+            "size": "5XL",
+            "id": 17326,
+            "price": "27.75"
+          },
+          {
+            "size": "L",
+            "id": 17321,
+            "price": "22.95"
+          },
+          {
+            "size": "M",
+            "id": 17320,
+            "price": "22.95"
+          },
+          {
+            "size": "S",
+            "id": 17319,
+            "price": "22.95"
+          },
+          {
+            "size": "XL",
+            "id": 17322,
+            "price": "22.95"
+          }
+        ],
+        "eu": true,
+        "L": 79,
+        "isDark": true
+      },
+      "Sport Grey": {
+        "hex": "#c0c1c5",
+        "variants": [
+          {
+            "size": "2XL",
+            "id": 17307,
+            "price": "24.25"
+          },
+          {
+            "size": "3XL",
+            "id": 17308,
+            "price": "25.55"
+          },
+          {
+            "size": "4XL",
+            "id": 17309,
+            "price": "25.95"
+          },
+          {
+            "size": "5XL",
+            "id": 17310,
+            "price": "27.75"
+          },
+          {
+            "size": "L",
+            "id": 17305,
+            "price": "22.95"
+          },
+          {
+            "size": "M",
+            "id": 17304,
+            "price": "22.95"
+          },
+          {
+            "size": "S",
+            "id": 17303,
+            "price": "22.95"
+          },
+          {
+            "size": "XL",
+            "id": 17306,
+            "price": "22.95"
+          }
+        ],
+        "eu": true,
+        "L": 193,
+        "isDark": false
+      },
+      "White": {
+        "hex": "#ffffff",
+        "variants": [
+          {
+            "size": "2XL",
+            "id": 17343,
+            "price": "24.25"
+          },
+          {
+            "size": "3XL",
+            "id": 17345,
+            "price": "24.25"
+          },
+          {
+            "size": "L",
+            "id": 17339,
+            "price": "22.95"
+          },
+          {
+            "size": "M",
+            "id": 17337,
+            "price": "22.95"
+          },
+          {
+            "size": "S",
+            "id": 17335,
+            "price": "22.95"
+          },
+          {
+            "size": "XL",
+            "id": 17341,
+            "price": "22.95"
+          }
+        ],
+        "eu": true,
+        "L": 255,
+        "isDark": false
+      }
+    },
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "product": {
+      "id": 692,
+      "main_category_id": 7,
+      "type": "T-SHIRT",
+      "description": "Designed with style and comfort in mind, this hoodie will quickly become your new favorite. It’s made from soft fleece inside and outside, with a sturdy metal zipper, convenient front pockets, and a hood with color-matched drawstrings.\n\n• 50% cotton, 50% polyester\n• Fabric weight: 8 oz/yd² (271 g/m²)\n• Yarn diameter: 20 singles\n• Soft fleece fabric inside and outside\n• Air-jet spun yarn for reduced piling\n• Regular fit\n• Metal zipper\n• Front pouch pockets\n• Unlined hood with color-matched drawcord\n• Double-needle stitching at shoulders, armholes, neck, waistband, and cuffs\n• Safety Green: Compliant with ANSI/ISEA 107\n• Blank products sourced from Honduras and El Salvador\n\nDisclaimer: Due to the fabric properties, the White color variant may appear off-white rather than bright white.",
+      "type_name": "Unisex Heavy Blend Zip Hoodie | Gildan 18600",
+      "title": "Unisex Heavy Blend Zip Hoodie | Gildan 18600",
+      "brand": "Gildan",
+      "model": "Unisex Heavy Blend Zip Hoodie | Gildan 18600",
+      "image": "https://files.cdn.printful.com/o/upload/product-catalog-img/f0/f0f4a79ce7e3067e166ea941f24cdce5_l",
+      "variant_count": 94,
+      "currency": "EUR",
+      "options": [
+        {
+          "id": "thread_colors_chest_left",
+          "title": "Left chest thread colors",
+          "type": "multi_select",
+          "values": {
+            "#FFFFFF": "1801 White",
+            "#000000": "1800 Black",
+            "#96A1A8": "1718 Grey",
+            "#A67843": "1672 Old Gold",
+            "#FFCC00": "1951 Gold",
+            "#E25C27": "1987 Orange",
+            "#CC3366": "1910 Flamingo",
+            "#CC3333": "1839 Red",
+            "#660000": "1784 Maroon",
+            "#333366": "1966 Navy",
+            "#005397": "1842 Royal",
+            "#3399FF": "1695 Aqua/Teal",
+            "#6B5294": "1832 Purple",
+            "#01784E": "1751 Kelly Green",
+            "#7BA35A": "1848 Kiwi Green"
+          },
+          "additional_price": null,
+          "additional_price_breakdown": []
+        },
+        {
+          "id": "thread_colors_wrist_left",
+          "title": "Wrist left thread colors",
+          "type": "multi_select",
+          "values": {
+            "#FFFFFF": "1801 White",
+            "#000000": "1800 Black",
+            "#96A1A8": "1718 Grey",
+            "#A67843": "1672 Old Gold",
+            "#FFCC00": "1951 Gold",
+            "#E25C27": "1987 Orange",
+            "#CC3366": "1910 Flamingo",
+            "#CC3333": "1839 Red",
+            "#660000": "1784 Maroon",
+            "#333366": "1966 Navy",
+            "#005397": "1842 Royal",
+            "#3399FF": "1695 Aqua/Teal",
+            "#6B5294": "1832 Purple",
+            "#01784E": "1751 Kelly Green",
+            "#7BA35A": "1848 Kiwi Green"
+          },
+          "additional_price": null,
+          "additional_price_breakdown": []
+        },
+        {
+          "id": "thread_colors_wrist_right",
+          "title": "Wrist right thread colors",
+          "type": "multi_select",
+          "values": {
+            "#FFFFFF": "1801 White",
+            "#000000": "1800 Black",
+            "#96A1A8": "1718 Grey",
+            "#A67843": "1672 Old Gold",
+            "#FFCC00": "1951 Gold",
+            "#E25C27": "1987 Orange",
+            "#CC3366": "1910 Flamingo",
+            "#CC3333": "1839 Red",
+            "#660000": "1784 Maroon",
+            "#333366": "1966 Navy",
+            "#005397": "1842 Royal",
+            "#3399FF": "1695 Aqua/Teal",
+            "#6B5294": "1832 Purple",
+            "#01784E": "1751 Kelly Green",
+            "#7BA35A": "1848 Kiwi Green"
+          },
+          "additional_price": null,
+          "additional_price_breakdown": []
+        },
+        {
+          "id": "notes",
+          "title": "Embroidery notes",
+          "type": "text",
+          "values": null,
+          "additional_price": null,
+          "additional_price_breakdown": []
+        },
+        {
+          "id": "lifelike",
+          "title": "Lifelike",
+          "type": "bool",
+          "values": null,
+          "additional_price": null,
+          "additional_price_breakdown": []
+        }
+      ],
+      "dimensions": null,
+      "is_discontinued": false,
+      "avg_fulfillment_time": null,
+      "techniques": [
+        {
+          "key": "DTG",
+          "display_name": "DTG printing",
+          "is_default": true
+        },
+        {
+          "key": "EMBROIDERY",
+          "display_name": "Embroidery",
+          "is_default": false
+        }
+      ],
+      "files": [
+        {
+          "id": "embroidery_chest_left",
+          "type": "embroidery_chest_left",
+          "title": "Left chest",
+          "additional_price": "2.60",
+          "options": [
+            {
+              "id": "full_color",
+              "type": "bool",
+              "title": "Unlimited color",
+              "additional_price": 3.25
+            }
+          ]
+        },
+        {
+          "id": "embroidery_wrist_left",
+          "type": "embroidery_wrist_left",
+          "title": "Left wrist",
+          "additional_price": "2.60",
+          "options": []
+        },
+        {
+          "id": "embroidery_wrist_right",
+          "type": "embroidery_wrist_right",
+          "title": "Right wrist",
+          "additional_price": "2.60",
+          "options": []
+        },
+        {
+          "id": "default",
+          "type": "front",
+          "title": "Front print",
+          "additional_price": null,
+          "options": []
+        },
+        {
+          "id": "back",
+          "type": "back",
+          "title": "Back print",
+          "additional_price": "5.25",
+          "options": []
+        },
+        {
+          "id": "sleeve_right",
+          "type": "sleeve_right",
+          "title": "Right sleeve",
+          "additional_price": "5.25",
+          "options": []
+        },
+        {
+          "id": "sleeve_left",
+          "type": "sleeve_left",
+          "title": "Left sleeve",
+          "additional_price": "5.25",
+          "options": []
+        },
+        {
+          "id": "label_outside",
+          "type": "label_outside",
+          "title": "Outside label",
+          "additional_price": "2.20",
+          "options": []
+        },
+        {
+          "id": "preview",
+          "type": "mockup",
+          "title": "Mockup",
+          "additional_price": null,
+          "options": []
+        }
+      ],
+      "origin_country": "Honduras"
+    }
+  }
+}

@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { BASE_URL } from '@/lib/store-config'
 
 const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY!
 
 export async function GET() {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://podai.com'
+  const baseUrl = BASE_URL
   const locale = 'de'
 
   try {
@@ -49,32 +50,16 @@ export async function GET() {
   </url>`)
     })
 
-    // Add category landing pages
-    const categories = [
-      'apparel',
-      'home-decor',
-      'drinkware',
-      'accessories',
-      't-shirts',
-      'hoodies',
-      'stickers',
-      'phone-cases',
-      'posters',
-      'bags',
-      'hats',
-      'mugs',
-      'wall-art',
-      'stationery',
-      'sweatshirts',
-      'kitchen',
-      'kids',
-      'games',
-    ]
+    // Add category landing pages (fetched dynamically from DB)
+    const { data: categories } = await supabase
+      .from('categories')
+      .select('slug')
+      .eq('is_active', true)
 
-    categories.forEach((category) => {
+    ;(categories || []).forEach((cat) => {
       urls.push(`
   <url>
-    <loc>${baseUrl}/${locale}/shop/category/${category}</loc>
+    <loc>${baseUrl}/${locale}/shop/category/${cat.slug}</loc>
     <lastmod>${new Date().toISOString()}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>

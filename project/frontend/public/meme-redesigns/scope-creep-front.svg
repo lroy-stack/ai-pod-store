@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1800 2400" width="1800" height="2400">
+  <!--
+    SCOPE CREEP v3 — bigger stats, more canvas usage
+    Content y=200 to y=2050 (77% canvas)
+    Stats punchline at 140px — the hero moment
+    Products: Scope Creep + Prism Tee
+  -->
+
+  <!-- Prompt -->
+  <text x="120" y="240"
+        font-family="Courier New, Courier, monospace"
+        font-size="66" font-weight="bold"
+        fill="white" opacity="0.60">&gt; claude</text>
+  <text x="120" y="325"
+        font-family="Courier New, Courier, monospace"
+        font-size="66" font-weight="bold"
+        fill="white" opacity="0.60">"change button color to blue"</text>
+
+  <!-- Claude response -->
+  <text x="120" y="530"
+        font-family="Helvetica Neue, Arial, sans-serif"
+        font-size="90" font-weight="bold" font-style="italic"
+        fill="#F97316">I'd be happy to help!</text>
+
+  <!-- File list -->
+  <g font-family="Courier New, Courier, monospace" font-size="64" font-weight="bold" fill="white" opacity="0.55">
+    <text x="140" y="720">Edit</text><text x="420" y="720">src/Button.tsx</text>
+    <text x="140" y="810">Edit</text><text x="420" y="810">src/Layout.tsx</text>
+    <text x="140" y="900">Edit</text><text x="420" y="900">src/theme.ts</text>
+    <text x="140" y="990">Edit</text><text x="420" y="990">src/globals.css</text>
+    <text x="140" y="1080">Edit</text><text x="420" y="1080">src/useTheme.ts</text>
+    <text x="140" y="1170">Edit</text><text x="420" y="1170">src/layout.tsx</text>
+  </g>
+
+  <!-- More files -->
+  <text x="180" y="1290"
+        font-family="Courier New, Courier, monospace"
+        font-size="58" font-weight="bold"
+        fill="white" opacity="0.40">... and 41 more files</text>
+
+  <!-- Separator -->
+  <line x1="120" y1="1400" x2="1680" y2="1400"
+        stroke="white" stroke-opacity="0.25" stroke-width="3"/>
+
+  <!-- PUNCHLINE stats — massive -->
+  <text x="120" y="1680"
+        font-family="Courier New, Courier, monospace"
+        font-size="140" font-weight="bold"
+        fill="#10B981">+9,847 lines</text>
+  <text x="120" y="1920"
+        font-family="Courier New, Courier, monospace"
+        font-size="140" font-weight="bold"
+        fill="#EF4444">-2,103 lines</text>
+</svg>

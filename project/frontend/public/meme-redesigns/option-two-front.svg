@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1800 2400" width="1800" height="2400">
+  <!--
+    OPTION TWO v4 — 3 options, more space, punchline selects #2
+    1. Manually approve (ghost)
+    2. Bypass permissions (BOLD — the one everyone picks)
+    3. Type here to tell Claude (ghost)
+    Punchline: > 2
+  -->
+
+  <!-- Header -->
+  <text x="120" y="260"
+        font-family="Helvetica Neue, Arial, sans-serif"
+        font-size="72" font-weight="bold" font-style="italic"
+        fill="white" opacity="0.55">Claude has written up a plan</text>
+  <text x="120" y="350"
+        font-family="Helvetica Neue, Arial, sans-serif"
+        font-size="72" font-weight="bold" font-style="italic"
+        fill="white" opacity="0.55">and is ready to execute.</text>
+  <text x="120" y="440"
+        font-family="Helvetica Neue, Arial, sans-serif"
+        font-size="72" font-weight="bold" font-style="italic"
+        fill="white" opacity="0.55">Would you like to proceed?</text>
+
+  <!-- Option 1: manually approve (ghost) -->
+  <text x="140" y="660"
+        font-family="Courier New, Courier, monospace"
+        font-size="68" font-weight="bold"
+        fill="white" opacity="0.60">1. Yes, manually</text>
+  <text x="200" y="740"
+        font-family="Courier New, Courier, monospace"
+        font-size="68" font-weight="bold"
+        fill="white" opacity="0.60">approve edits</text>
+
+  <!-- Option 2: bypass permissions (BOLD — highlighted) -->
+  <text x="140" y="960"
+        font-family="Courier New, Courier, monospace"
+        font-size="68" font-weight="900"
+        fill="white" opacity="0.90">2. Yes, and bypass</text>
+  <text x="200" y="1040"
+        font-family="Courier New, Courier, monospace"
+        font-size="68" font-weight="900"
+        fill="white" opacity="0.90">permissions</text>
+
+  <!-- Option 3: type here (ghost) -->
+  <text x="140" y="1260"
+        font-family="Courier New, Courier, monospace"
+        font-size="68" font-weight="bold"
+        fill="white" opacity="0.60">3. Type here to tell</text>
+  <text x="200" y="1340"
+        font-family="Courier New, Courier, monospace"
+        font-size="68" font-weight="bold"
+        fill="white" opacity="0.60">Claude what to change</text>
+
+  <!-- PUNCHLINE: terminal prompt aesthetic -->
+  <!-- Prompt chevron — terminal chrome, dimmer -->
+  <text x="120" y="1900"
+        font-family="Courier New, Courier, monospace"
+        font-size="240" font-weight="bold"
+        fill="white" opacity="0.45">&#x276F;</text>
+  <!-- User input — the bold choice -->
+  <text x="380" y="1900"
+        font-family="Courier New, Courier, monospace"
+        font-size="240" font-weight="bold"
+        fill="#F97316">2</text>
+  <!-- Blinking cursor block -->
+  <text x="560" y="1900"
+        font-family="Courier New, Courier, monospace"
+        font-size="240" font-weight="bold"
+        fill="white" opacity="0.30">&#x2588;</text>
+</svg>

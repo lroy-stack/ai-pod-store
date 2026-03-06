@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import Image from 'next/image'
-import { ShoppingCart, ArrowLeft, MapPin, Check, Package, Paintbrush } from 'lucide-react'
+import { ShoppingCart, ArrowLeft, MapPin, Check, Package, Lock, Shield, Truck, RotateCcw, ShieldCheck } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { useCart } from '@/hooks/useCart'
 import { Button } from '@/components/ui/button'
@@ -20,6 +20,8 @@ import { toast } from 'sonner'
 import { useState, useEffect } from 'react'
 import AddressForm, { AddressFormData } from './AddressForm'
 import CheckoutBreadcrumb from './CheckoutBreadcrumb'
+import { useExitIntent } from '@/hooks/useExitIntent'
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction, AlertDialogCancel } from '@/components/ui/alert-dialog'
 
 interface ShippingAddress {
   id: string
@@ -51,12 +53,29 @@ export default function CheckoutView({ locale }: { locale: string }) {
   const [guestEmailError, setGuestEmailError] = useState('')
   const [giftMessageEnabled, setGiftMessageEnabled] = useState(false)
   const [giftMessageText, setGiftMessageText] = useState('')
+  const [appliedCoupon, setAppliedCoupon] = useState<{
+    code: string
+    discount_amount: number
+    new_total: number
+  } | null>(null)
+  const { triggered: exitIntentTriggered, dismiss: dismissExitIntent } = useExitIntent()
+
+  // Restore coupon from sessionStorage on mount
+  useEffect(() => {
+    try {
+      const saved = sessionStorage.getItem('pod_applied_coupon')
+      if (saved) {
+        setAppliedCoupon(JSON.parse(saved))
+      }
+    } catch {}
+  }, [])
 
   // Get user's preferred currency, fallback to locale default
   const userCurrency = user?.currency || STORE_DEFAULTS.currency
 
   const cartTotal = cartItems.reduce((total, item) => total + (item.product_price * item.quantity), 0)
   const itemCount = cartItems.reduce((count, item) => count + item.quantity, 0)
+  const discountedTotal = appliedCoupon ? cartTotal - appliedCoupon.discount_amount : cartTotal
 
   // Fetch saved addresses for authenticated users
   useEffect(() => {
@@ -192,11 +211,11 @@ export default function CheckoutView({ locale }: { locale: string }) {
     // Validate guest email if not authenticated
     if (!authenticated) {
       if (!guestEmail.trim()) {
-        setGuestEmailError('Email is required for guest checkout')
+        setGuestEmailError(t('emailRequired'))
         return
       }
       if (!validateEmail(guestEmail)) {
-        setGuestEmailError('Please enter a valid email address')
+        setGuestEmailError(t('emailInvalid'))
         return
       }
       setGuestEmailError('')
@@ -218,6 +237,11 @@ export default function CheckoutView({ locale }: { locale: string }) {
       // Add gift message if enabled
       if (giftMessageEnabled && giftMessageText.trim()) {
         body.gift_message = giftMessageText.trim()
+      }
+
+      // Add coupon code if applied
+      if (appliedCoupon) {
+        body.couponCode = appliedCoupon.code
       }
 
       const response = await fetch('/api/checkout/create-session', {
@@ -319,7 +343,7 @@ export default function CheckoutView({ locale }: { locale: string }) {
         <Button variant="ghost" asChild className="mb-4 -ml-2">
           <Link href={`/${locale}/cart`}>
             <ArrowLeft className="size-4 mr-2" />
-            Back to Cart
+            {t('backToCart')}
           </Link>
         </Button>
         <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground">
@@ -479,17 +503,68 @@ export default function CheckoutView({ locale }: { locale: string }) {
             </CardContent>
           </Card>
 
-          {/* Payment Section (placeholder) */}
+          {/* Payment Section */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-foreground">Payment Information</CardTitle>
+              <CardTitle className="text-foreground flex items-center gap-2">
+                <Lock className="h-5 w-5" />
+                {t('paymentTitle')}
+              </CardTitle>
             </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                Payment form (Stripe integration) will be implemented here.
+            <CardContent className="space-y-4">
+              <p className="text-muted-foreground text-sm">
+                {t('paymentRedirectMessage')}
               </p>
+              <div className="flex items-center gap-3 text-muted-foreground">
+                <Shield className="h-4 w-4 text-success" />
+                <span className="text-sm">{t('paymentSecure')}</span>
+              </div>
             </CardContent>
           </Card>
+
+          {/* Trust Badges */}
+          <div className="flex flex-wrap items-center justify-center gap-6 py-4 text-muted-foreground">
+            <div className="flex items-center gap-2 text-sm">
+              <Truck className="h-4 w-4" />
+              <span>{t('trustShipping')}</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm">
+              <RotateCcw className="h-4 w-4" />
+              <span>{t('trustReturns')}</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm">
+              <ShieldCheck className="h-4 w-4" />
+              <span>{t('trustSecure')}</span>
+            </div>
+          </div>
+
+          {/* Payment Method Logos */}
+          <div className="flex flex-col items-center gap-2 py-2">
+            <p className="text-xs text-muted-foreground">{t('acceptedPayments')}</p>
+            <div className="flex items-center gap-3">
+              {/* Visa */}
+              <svg className="h-6 w-auto text-muted-foreground" viewBox="0 0 48 32" fill="currentColor" aria-label="Visa">
+                <rect width="48" height="32" rx="4" fill="currentColor" opacity="0.1"/>
+                <path d="M19.5 21h-2.7l1.7-10.5h2.7L19.5 21zm11.3-10.2c-.5-.2-1.4-.4-2.4-.4-2.7 0-4.5 1.4-4.5 3.4 0 1.5 1.3 2.3 2.4 2.8 1 .5 1.4.8 1.4 1.3 0 .7-.8 1-1.6 1-1.1 0-1.6-.2-2.5-.5l-.3-.2-.4 2.2c.6.3 1.8.5 3 .5 2.8 0 4.7-1.4 4.7-3.5 0-1.2-.7-2.1-2.2-2.8-.9-.5-1.5-.8-1.5-1.3 0-.4.5-.9 1.5-.9.9 0 1.5.2 2 .4l.2.1.4-2.1zm6.8-.3h-2.1c-.6 0-1.1.2-1.4.8L30 21h2.8l.6-1.5h3.5l.3 1.5h2.5l-2.1-10.5zm-3.3 6.8l1.1-2.9.5-1.3.3 1.3.6 2.9h-2.5zM16.3 10.5L13.7 18l-.3-1.4c-.5-1.6-2-3.4-3.7-4.3l2.4 8.7h2.8l4.2-10.5h-2.8z" fill="currentColor"/>
+              </svg>
+              {/* Mastercard */}
+              <svg className="h-6 w-auto text-muted-foreground" viewBox="0 0 48 32" fill="currentColor" aria-label="Mastercard">
+                <rect width="48" height="32" rx="4" fill="currentColor" opacity="0.1"/>
+                <circle cx="19" cy="16" r="8" fill="currentColor" opacity="0.3"/>
+                <circle cx="29" cy="16" r="8" fill="currentColor" opacity="0.2"/>
+              </svg>
+              {/* Amex */}
+              <svg className="h-6 w-auto text-muted-foreground" viewBox="0 0 48 32" fill="currentColor" aria-label="American Express">
+                <rect width="48" height="32" rx="4" fill="currentColor" opacity="0.1"/>
+                <text x="24" y="19" textAnchor="middle" fontSize="8" fontWeight="bold" fill="currentColor" opacity="0.6">AMEX</text>
+              </svg>
+              {/* PayPal */}
+              <svg className="h-6 w-auto text-muted-foreground" viewBox="0 0 48 32" fill="currentColor" aria-label="PayPal">
+                <rect width="48" height="32" rx="4" fill="currentColor" opacity="0.1"/>
+                <text x="24" y="19" textAnchor="middle" fontSize="7" fontWeight="bold" fill="currentColor" opacity="0.6">PayPal</text>
+              </svg>
+            </div>
+          </div>
         </div>
 
         {/* Order Summary - Right Side */}
@@ -510,17 +585,8 @@ export default function CheckoutView({ locale }: { locale: string }) {
               <div className="space-y-3 max-h-[400px] overflow-y-auto">
                 {cartItems.map((item) => (
                   <div key={item.id} className="flex gap-3">
-                    {/* Product Image or Personalized Preview */}
                     <div className="relative size-16 md:size-20 rounded-lg overflow-hidden bg-muted flex-shrink-0">
-                      {/* Show server-generated mockup preview if available, otherwise product image */}
-                      {item.personalization?.preview ? (
-                        /* eslint-disable-next-line @next/next/no-img-element */
-                        <img
-                          src={item.personalization.preview}
-                          alt={`${item.product_title} (Personalized)`}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : item.product_image ? (
+                      {item.product_image ? (
                         <Image
                           src={item.product_image}
                           alt={item.product_title}
@@ -530,15 +596,6 @@ export default function CheckoutView({ locale }: { locale: string }) {
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">
                           <Package className="h-6 w-6" />
-                        </div>
-                      )}
-                      {/* Personalized badge overlay */}
-                      {item.personalization && (
-                        <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 to-transparent flex items-end justify-center pb-1">
-                          <Badge variant="default" className="text-[9px] h-4 px-1 gap-0.5">
-                            <Paintbrush className="size-2" />
-                            <span>Custom</span>
-                          </Badge>
                         </div>
                       )}
                     </div>
@@ -551,15 +608,9 @@ export default function CheckoutView({ locale }: { locale: string }) {
                           {[item.variant_details.size, item.variant_details.color].filter(Boolean).join(' / ')}
                         </p>
                       )}
-                      {/* Personalization details */}
-                      {item.personalization && (
-                        <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
-                          "{item.personalization.text}"
-                        </p>
-                      )}
                       <div className="flex items-center justify-between mt-1">
                         <span className="text-xs text-muted-foreground">
-                          Qty: {item.quantity}
+                          {t('quantityShort')}: {item.quantity}
                         </span>
                         <span className="text-sm font-medium text-foreground">
                           {formatPrice(item.product_price * item.quantity, locale, userCurrency)}
@@ -580,6 +631,12 @@ export default function CheckoutView({ locale }: { locale: string }) {
                     {formatPrice(cartTotal, locale, userCurrency)}
                   </span>
                 </div>
+                {appliedCoupon && (
+                  <div className="flex justify-between text-sm text-success">
+                    <span>{t('discount')} ({appliedCoupon.code})</span>
+                    <span className="font-medium">-{formatPrice(appliedCoupon.discount_amount, locale, userCurrency)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between text-sm">
                   <span className="text-foreground">{t('shipping')}</span>
                   <span className="text-muted-foreground text-sm">
@@ -589,7 +646,7 @@ export default function CheckoutView({ locale }: { locale: string }) {
                 <div className="flex justify-between text-sm">
                   <span className="text-foreground">{t('tax')}</span>
                   {calculatingTax ? (
-                    <span className="text-muted-foreground text-sm">Calculating...</span>
+                    <span className="text-muted-foreground text-sm">{t('calculatingTax')}</span>
                   ) : calculatedTax !== null ? (
                     <span className="text-foreground font-medium">
                       {formatPrice(calculatedTax, locale, userCurrency)}
@@ -609,7 +666,7 @@ export default function CheckoutView({ locale }: { locale: string }) {
                 <span className="text-lg font-bold text-foreground">{t('total')}</span>
                 <span className="text-lg font-bold text-foreground">
                   {formatPrice(
-                    cartTotal + (calculatedTax || 0),
+                    discountedTotal + (calculatedTax || 0),
                     locale,
                     userCurrency
                   )}
@@ -651,12 +708,26 @@ export default function CheckoutView({ locale }: { locale: string }) {
                 className="w-full"
                 size="lg"
               >
-                {creatingSession ? 'Processing...' : t('proceedToPayment')}
+                {creatingSession ? t('processing') : t('proceedToPayment')}
               </Button>
             </CardContent>
           </Card>
         </div>
       </div>
+
+      {/* Exit Intent Dialog */}
+      <AlertDialog open={exitIntentTriggered} onOpenChange={(open) => !open && dismissExitIntent()}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('exitIntentTitle')}</AlertDialogTitle>
+            <AlertDialogDescription>{t('exitIntentDescription')}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('exitIntentLeave')}</AlertDialogCancel>
+            <AlertDialogAction onClick={dismissExitIntent}>{t('exitIntentStay')}</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

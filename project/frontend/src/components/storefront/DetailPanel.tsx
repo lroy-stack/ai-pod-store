@@ -7,66 +7,71 @@
  * - Clicking inline artifacts in chat
  * - Clicking sidebar product cards
  *
- * Contains:
- * - Close button
- * - Tab bar for multiple artifacts
- * - Product images/carousel
- * - Product title, price, rating
- * - Description
- * - Variant selector (size, color) — dynamic from product data
- * - Add to cart button
- * - "Ask about this product" button (injects question into chat)
+ * Sub-components imported from @/components/products/:
+ * - ProductImageGallery, ProductSpecifications, VariantSelector, QuantitySelector
  */
 
 import { useTranslations } from 'next-intl'
 import Image from 'next/image'
+import Link from 'next/link'
 import { useParams } from 'next/navigation'
-import { X, Star, ShoppingCart, MessageCircle, ImageOff, AlertCircle, Heart, Minus, Plus, Shirt, Globe, Printer, Droplets, ShieldCheck } from 'lucide-react'
+import { X, Star, ShoppingCart, MessageCircle, AlertCircle, Heart, Paintbrush2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, memo } from 'react'
 import { formatPrice } from '@/lib/currency'
 import { useStorefront } from './StorefrontContext'
+import { useProductDetail } from '@/hooks/useProductDetail'
 import { useCart } from '@/hooks/useCart'
 import { useWishlist } from '@/hooks/useWishlist'
 import { cn } from '@/lib/utils'
-import { ProductPersonalizer, PersonalizationData } from '@/components/products/ProductPersonalizer'
 import { Badge } from '@/components/ui/badge'
-import { SafeHTML } from '@/components/common/SafeHTML'
+import { ProductImageGallery } from '@/components/products/ProductImageGallery'
+import { ProductSpecifications } from '@/components/products/ProductSpecifications'
+import { VariantSelector } from '@/components/products/VariantSelector'
+import { QuantitySelector } from '@/components/products/QuantitySelector'
+import type { ProductDetail } from '@/types/product'
+
+// ─── Module-level helper components ──────────────────────
+
+function PanelHeader({ title, onClose }: { title: string; onClose: () => void }) {
+  return (
+    <div className="flex items-center justify-between px-4 h-14 border-b border-border">
+      <h2 className="font-semibold text-sm text-foreground tracking-tight">{title}</h2>
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={onClose}
+        className="h-8 w-8 rounded-full hover:bg-muted/80 flex-shrink-0"
+      >
+        <X className="h-4 w-4" />
+        <span className="sr-only">Close</span>
+      </Button>
+    </div>
+  )
+}
+
+function DetailPanelSkeleton() {
+  return (
+    <div className="flex-1 p-5 space-y-4">
+      <div className="aspect-[4/3] w-full bg-muted/30 rounded-2xl animate-pulse" />
+      <div className="space-y-2">
+        <div className="h-5 w-3/4 bg-muted/30 rounded-lg animate-pulse" />
+        <div className="h-4 w-1/3 bg-muted/30 rounded-lg animate-pulse" />
+        <div className="h-7 w-1/2 bg-muted/30 rounded-lg animate-pulse" />
+      </div>
+      <div className="h-px bg-border/30" />
+      <div className="h-16 w-full bg-muted/30 rounded-xl animate-pulse" />
+    </div>
+  )
+}
+
+// ─── Main export ─────────────────────────────────────────
 
 interface DetailPanelProps {
   productId?: string
   onClose: () => void
   onAskAbout?: (question: string) => void
-}
-
-interface Product {
-  id: string
-  title: string
-  description: string
-  category: string
-  price: number
-  currency: string
-  image: string | null
-  images: string[]
-  rating: number
-  reviewCount: number
-  inStock?: boolean
-  materials?: string | null
-  careInstructions?: string | null
-  printTechnique?: string | null
-  manufacturingCountry?: string | null
-  brand?: string | null
-  safetyInformation?: string | null
-  variants?: {
-    sizes?: string[]
-    colors?: string[]
-    allColors?: string[]
-    allSizes?: string[]
-    unavailableCombinations?: Array<{ color: string; size: string }>
-    colorImageIndices?: Record<string, number[]>
-    sizeImageIndices?: Record<string, number[]>
-  }
 }
 
 export function DetailPanel({ productId, onClose, onAskAbout }: DetailPanelProps) {
@@ -75,41 +80,26 @@ export function DetailPanel({ productId, onClose, onAskAbout }: DetailPanelProps
   const locale = (params.locale as string) || 'en'
   const { artifacts, activeArtifactId, setActiveArtifactId, removeArtifact } = useStorefront()
   const { addToCart } = useCart()
-  const [product, setProduct] = useState<Product | null>(null)
-  const [loading, setLoading] = useState(true)
 
-  // Fetch product data for backward compatibility (productId prop)
-  useEffect(() => {
-    if (!productId) {
-      setLoading(false)
-      return
-    }
-    async function fetchProduct() {
-      try {
-        setLoading(true)
-        const response = await fetch(`/api/products/${productId}?locale=${locale}`)
-        if (response.ok) {
-          const data = await response.json()
-          setProduct(data.product || data)
-        } else {
-          console.error('Failed to fetch product:', response.statusText)
-        }
-      } catch (error) {
-        console.error('Error fetching product:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-    fetchProduct()
-  }, [productId, locale])
+  // Backward-compat: fetch product by productId prop when no artifact covers it
+  const skipLegacyFetch = !productId || artifacts.some(a => a.type === 'product' && a.data?.id === productId)
+  const { product, loading } = useProductDetail(skipLegacyFetch ? null : productId, locale)
 
-  // If we have artifacts, use the artifact system
   const hasArtifacts = artifacts.length > 0
   const hasMultipleArtifacts = artifacts.length > 1
 
   const handleAddToCart = async (quantity: number, variants?: { size?: string; color?: string }) => {
     if (!product) return
-    await addToCart(product.id, quantity, variants, product.title, product.price)
+    // Look up variant-specific price if available
+    let price = product.price
+    if (variants && product.variants?.prices) {
+      const match = product.variants.prices.find(
+        (vp: { size: string; color: string; price: number }) =>
+          vp.size === (variants.size || '') && vp.color === (variants.color || '')
+      )
+      if (match) price = match.price
+    }
+    await addToCart(product.id, quantity, variants, product.title, price)
   }
 
   const handleAskAbout = () => {
@@ -123,29 +113,12 @@ export function DetailPanel({ productId, onClose, onAskAbout }: DetailPanelProps
     removeArtifact(artifactId)
   }
 
-  // Reusable panel header
-  const PanelHeader = ({ title }: { title: string }) => (
-    <div className="flex items-center justify-between px-5 py-3.5 border-b border-border/40">
-      <h2 className="font-semibold text-[15px] text-foreground tracking-tight">{title}</h2>
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={onClose}
-        className="h-8 w-8 rounded-full hover:bg-muted/80 flex-shrink-0"
-      >
-        <X className="h-4 w-4" />
-        <span className="sr-only">Close</span>
-      </Button>
-    </div>
-  )
-
-  // If using artifacts system
+  // Artifact system — tabs for multiple artifacts
   if (hasArtifacts) {
     return (
       <div className="flex flex-col h-full w-full bg-card">
-        <PanelHeader title={t('details')} />
+        <PanelHeader title={t('details')} onClose={onClose} />
 
-        {/* Tabs for multiple artifacts */}
         {hasMultipleArtifacts ? (
           <Tabs
             value={activeArtifactId || artifacts[0].id}
@@ -185,7 +158,6 @@ export function DetailPanel({ productId, onClose, onAskAbout }: DetailPanelProps
             ))}
           </Tabs>
         ) : (
-          // Single artifact - no tabs needed
           <div className="flex-1 min-h-0 flex flex-col">
             <ArtifactContent artifact={artifacts[0]} onAskAbout={onAskAbout} />
           </div>
@@ -194,30 +166,21 @@ export function DetailPanel({ productId, onClose, onAskAbout }: DetailPanelProps
     )
   }
 
-  // Backward compatibility: using productId prop — loading skeleton
+  // Backward-compat loading
   if (loading) {
     return (
       <div className="flex flex-col h-full w-full bg-card">
-        <PanelHeader title={t('productDetails')} />
-        <div className="flex-1 p-5 space-y-4">
-          <div className="aspect-[4/3] w-full bg-muted/30 rounded-2xl animate-pulse" />
-          <div className="space-y-2">
-            <div className="h-5 w-3/4 bg-muted/30 rounded-lg animate-pulse" />
-            <div className="h-4 w-1/3 bg-muted/30 rounded-lg animate-pulse" />
-            <div className="h-7 w-1/2 bg-muted/30 rounded-lg animate-pulse" />
-          </div>
-          <div className="h-px bg-border/30" />
-          <div className="h-16 w-full bg-muted/30 rounded-xl animate-pulse" />
-        </div>
+        <PanelHeader title={t('productDetails')} onClose={onClose} />
+        <DetailPanelSkeleton />
       </div>
     )
   }
 
-  // Error state — product not found
+  // Error state
   if (!product && !hasArtifacts) {
     return (
       <div className="flex flex-col h-full w-full bg-card">
-        <PanelHeader title={t('productDetails')} />
+        <PanelHeader title={t('productDetails')} onClose={onClose} />
         <div className="flex-1 flex items-center justify-center p-5">
           <div className="text-center space-y-3">
             <div className="mx-auto w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center">
@@ -235,11 +198,11 @@ export function DetailPanel({ productId, onClose, onAskAbout }: DetailPanelProps
     )
   }
 
-  // If we have a product (backward compatibility), render it
+  // Backward-compat product render
   if (!hasArtifacts && product) {
     return (
       <div className="flex flex-col h-full w-full bg-card">
-        <PanelHeader title={t('productDetails')} />
+        <PanelHeader title={t('productDetails')} onClose={onClose} />
         <ProductView
           product={product}
           locale={locale}
@@ -250,48 +213,18 @@ export function DetailPanel({ productId, onClose, onAskAbout }: DetailPanelProps
     )
   }
 
-  // Fallback - should not reach here
   return null
 }
 
-/**
- * ProductView - Shared product detail template used by both
- * backward-compatible productId path and artifact system
- */
-function ProductView({
+// ─── ProductView ─────────────────────────────────────────
+
+const ProductView = memo(function ProductView({
   product,
   locale,
   onAddToCart,
   onAskAbout,
 }: {
-  product: {
-    id?: string
-    title: string
-    description?: string
-    category?: string
-    price: number
-    currency: string
-    image?: string | null
-    images?: string[]
-    rating?: number
-    reviewCount?: number
-    inStock?: boolean
-    materials?: string | null
-    careInstructions?: string | null
-    printTechnique?: string | null
-    manufacturingCountry?: string | null
-    brand?: string | null
-    safetyInformation?: string | null
-    variants?: {
-      sizes?: string[]
-      colors?: string[]
-      allColors?: string[]
-      allSizes?: string[]
-      unavailableCombinations?: Array<{ color: string; size: string }>
-      colorImageIndices?: Record<string, number[]>
-      sizeImageIndices?: Record<string, number[]>
-    }
-  }
+  product: ProductDetail
   locale: string
   onAddToCart?: (quantity: number, variants?: { size?: string; color?: string }) => void
   onAskAbout?: () => void
@@ -299,7 +232,7 @@ function ProductView({
   const t = useTranslations('storefront')
   const { isWishlisted, toggleWishlist } = useWishlist()
 
-  // Extract variant-to-image mappings
+  // Variant-to-image mappings
   const colorImageIndices = product.variants?.colorImageIndices
   const sizeImageIndices = product.variants?.sizeImageIndices
   const hasColorMapping = !!(colorImageIndices && Object.keys(colorImageIndices).length > 0)
@@ -311,21 +244,21 @@ function ProductView({
   const availableColorSet = new Set(product.variants?.colors || [])
   const availableSizeSet = new Set(product.variants?.sizes || [])
 
-  const hasSizes = (allSizes?.length ?? 0) > 0
-  const hasColors = (allColors?.length ?? 0) > 0
-
-  // Auto-select first variant when mapping exists
+  // Auto-select: single option always, or first option when image mapping exists
   const [selectedSize, setSelectedSize] = useState(
-    hasSizeMapping && product.variants?.sizes?.[0] || ''
+    product.variants?.sizes?.length === 1
+      ? product.variants.sizes[0]
+      : (hasSizeMapping && product.variants?.sizes?.[0] || '')
   )
   const [selectedColor, setSelectedColor] = useState(
-    hasColorMapping && product.variants?.colors?.[0] || ''
+    product.variants?.colors?.length === 1
+      ? product.variants.colors[0]
+      : (hasColorMapping && product.variants?.colors?.[0] || '')
   )
   const [selectedImageIdx, setSelectedImageIdx] = useState(0)
   const [quantity, setQuantity] = useState(1)
-  const [personalization, setPersonalization] = useState<PersonalizationData | null>(null)
 
-  // Filter visible images based on selected variant (color > size > all)
+  // Filter visible images based on selected variant
   const visibleImages = useMemo(() => {
     if (hasColorMapping && selectedColor && colorImageIndices?.[selectedColor]) {
       return colorImageIndices[selectedColor].map(idx => product.images?.[idx]).filter(Boolean) as string[]
@@ -342,8 +275,23 @@ function ProductView({
   // Reset image index when variant changes
   useEffect(() => { setSelectedImageIdx(0) }, [selectedColor, selectedSize])
 
+  const wishlisted = isWishlisted(product.id)
   const currentImage = visibleImages[selectedImageIdx] || visibleImages[0] || null
-  const wishlisted = product.id ? isWishlisted(product.id) : false
+
+  // Variant-reactive price
+  const currentVariantPrice = useMemo(() => {
+    const prices = product.variants?.prices
+    if (!prices?.length) return product.price
+    const map = new Map<string, number>()
+    for (const vp of prices) {
+      map.set(`${vp.size}::${vp.color}`, vp.price)
+    }
+    return map.get(`${selectedSize}::${selectedColor}`)
+      ?? map.get(`${selectedSize}::`)
+      ?? map.get(`::${selectedColor}`)
+      ?? product.price
+  }, [product.variants?.prices, product.price, selectedSize, selectedColor])
+  const showFromPrice = product.hasVariantPricing === true && !selectedSize && !selectedColor
 
   // Check if current combination is available
   const isCurrentCombinationAvailable = (() => {
@@ -369,42 +317,12 @@ function ProductView({
     <>
       {/* Scrollable content */}
       <div className="flex-1 overflow-y-auto detail-scroll px-5 py-4 space-y-4">
-        {/* Product Image */}
-        <div className="aspect-[4/3] w-full rounded-2xl bg-muted overflow-hidden relative group/img">
-          {currentImage ? (
-            <Image
-              src={currentImage}
-              alt={product.title}
-              fill
-              className="object-cover group-hover/img:scale-[1.03] transition-transform duration-500 ease-out"
-              sizes="(max-width: 1024px) 100vw, 40vw"
-            />
-          ) : (
-            <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground/40 gap-2">
-              <ImageOff className="h-12 w-12" />
-            </div>
-          )}
-        </div>
-
-        {/* Thumbnail Gallery */}
-        {visibleImages.length > 1 && (
-          <div className="flex gap-2 overflow-x-auto pb-1">
-            {visibleImages.map((img, idx) => (
-              <button
-                key={img}
-                onClick={() => setSelectedImageIdx(idx)}
-                className={cn(
-                  'relative w-14 h-14 rounded-lg overflow-hidden border-2 transition-all duration-200 flex-shrink-0',
-                  selectedImageIdx === idx
-                    ? 'border-primary'
-                    : 'border-border/40 hover:border-border/80'
-                )}
-              >
-                <Image src={img} alt={`${product.title} ${idx + 1}`} fill className="object-cover" sizes="56px" />
-              </button>
-            ))}
-          </div>
-        )}
+        <ProductImageGallery
+          images={visibleImages}
+          alt={product.title}
+          selectedIndex={selectedImageIdx}
+          onSelectIndex={setSelectedImageIdx}
+        />
 
         {/* Title, Rating & Price */}
         <div className="space-y-2">
@@ -427,9 +345,31 @@ function ProductView({
               ({product.reviewCount || 0})
             </span>
           </div>
-          <span className="text-2xl font-bold text-foreground tracking-tight block">
-            {formatPrice(product.price, locale, product.currency)}
-          </span>
+          {product.compareAtPrice ? (
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm line-through text-muted-foreground">
+                  {formatPrice(product.compareAtPrice, locale, product.currency)}
+                </span>
+                {(() => {
+                  const pct = Math.round(((product.compareAtPrice! - product.price) / product.compareAtPrice!) * 100)
+                  return pct > 0 ? (
+                    <Badge variant="destructive" className="text-xs px-1.5 py-0.5">-{pct}%</Badge>
+                  ) : null
+                })()}
+              </div>
+              <span className="text-2xl font-bold text-destructive tracking-tight block">
+                {formatPrice(currentVariantPrice, locale, product.currency)}
+              </span>
+            </div>
+          ) : (
+            <span className="text-2xl font-bold text-foreground tracking-tight block">
+              {showFromPrice && (
+                <span className="text-sm font-normal text-muted-foreground mr-1">{t('fromPrice')}</span>
+              )}
+              {formatPrice(currentVariantPrice, locale, product.currency)}
+            </span>
+          )}
         </div>
 
         {/* Description */}
@@ -443,208 +383,89 @@ function ProductView({
           </>
         )}
 
-        {/* Product Specifications — dynamic, only shown when data exists */}
-        {(product.materials || product.printTechnique || product.manufacturingCountry || product.careInstructions) && (
+        {/* Specifications */}
+        {(product.materials || product.printTechnique || product.manufacturingCountry || product.careInstructions || product.safetyInformation || product.finish) && (
           <>
             <div className="h-px bg-border/40" />
-            <div className="space-y-2.5">
-              <h4 className="text-[13px] font-medium text-foreground/80">{t('specifications')}</h4>
-
-              {product.materials && (
-                <div className="flex items-start gap-2.5">
-                  <Shirt className="size-4 text-muted-foreground mt-0.5 shrink-0" />
-                  <div>
-                    <p className="text-xs font-medium text-foreground/80">{t('materials')}</p>
-                    <p className="text-xs text-muted-foreground">{product.materials}</p>
-                  </div>
-                </div>
-              )}
-
-              {product.printTechnique && (
-                <div className="flex items-start gap-2.5">
-                  <Printer className="size-4 text-muted-foreground mt-0.5 shrink-0" />
-                  <div>
-                    <p className="text-xs font-medium text-foreground/80">{t('printTechnique')}</p>
-                    <p className="text-xs text-muted-foreground">{product.printTechnique}</p>
-                  </div>
-                </div>
-              )}
-
-              {product.manufacturingCountry && (
-                <div className="flex items-start gap-2.5">
-                  <Globe className="size-4 text-muted-foreground mt-0.5 shrink-0" />
-                  <div>
-                    <p className="text-xs font-medium text-foreground/80">{t('madeIn')}</p>
-                    <p className="text-xs text-muted-foreground">{product.manufacturingCountry}</p>
-                  </div>
-                </div>
-              )}
-
-              {product.careInstructions && (
-                <div className="flex items-start gap-2.5">
-                  <Droplets className="size-4 text-muted-foreground mt-0.5 shrink-0" />
-                  <div>
-                    <p className="text-xs font-medium text-foreground/80">{t('careInstructions')}</p>
-                    <p className="text-xs text-muted-foreground">{product.careInstructions}</p>
-                  </div>
-                </div>
-              )}
-
-              {product.safetyInformation && (
-                <details className="group">
-                  <summary className="flex items-center gap-2 cursor-pointer list-none text-xs font-medium text-muted-foreground hover:text-foreground transition-colors">
-                    <ShieldCheck className="size-3.5 shrink-0" />
-                    {t('safetyInformation')}
-                    <span className="ml-auto text-[10px] group-open:rotate-180 transition-transform">▼</span>
-                  </summary>
-                  <SafeHTML
-                    html={product.safetyInformation}
-                    className="mt-1.5 text-xs text-muted-foreground [&_p]:my-0.5 [&_strong]:text-foreground"
-                  />
-                </details>
-              )}
-            </div>
+            <ProductSpecifications
+              materials={product.materials}
+              finish={product.finish}
+              printTechnique={product.printTechnique}
+              manufacturingCountry={product.manufacturingCountry}
+              careInstructions={product.careInstructions}
+              safetyInformation={product.safetyInformation}
+              labels={{
+                specifications: t('specifications'),
+                materials: t('materials'),
+                printTechnique: t('printTechnique'),
+                madeIn: t('madeIn'),
+                careInstructions: t('careInstructions'),
+                safetyInformation: t('safetyInformation'),
+              }}
+            />
           </>
         )}
 
-        {/* Dynamic Variant Selectors */}
-        {(hasSizes || hasColors) && (
+        {/* Variant Selectors */}
+        {((allSizes?.length ?? 0) > 0 || (allColors?.length ?? 0) > 0) && (
           <>
             <div className="h-px bg-border/40" />
-            <div className="space-y-3">
-              {hasSizes && (
-                <div>
-                  <label className="text-[13px] font-medium text-foreground/80 mb-2 block">
-                    {t('size')}
-                  </label>
-                  <div className="flex flex-wrap gap-1.5">
-                    {allSizes!.map((size) => {
-                      const isSizeAvailable = availableSizeSet.has(size)
-                      return (
-                        <button
-                          key={size}
-                          onClick={() => isSizeAvailable && setSelectedSize(hasSizeMapping ? size : (selectedSize === size ? '' : size))}
-                          disabled={!isSizeAvailable}
-                          className={cn(
-                            'px-3 py-1.5 rounded-lg text-[13px] font-medium border transition-all duration-200',
-                            !isSizeAvailable
-                              ? 'opacity-40 cursor-not-allowed line-through border-border/40 text-muted-foreground'
-                              : selectedSize === size
-                                ? 'bg-foreground text-background border-foreground'
-                                : 'bg-transparent text-foreground border-border/60 hover:border-border'
-                          )}
-                        >
-                          {size}
-                        </button>
-                      )
-                    })}
-                  </div>
-                </div>
-              )}
-              {hasColors && (
-                <div>
-                  <label className="text-[13px] font-medium text-foreground/80 mb-2 block">
-                    {t('color')}
-                  </label>
-                  <div className="flex flex-wrap gap-1.5">
-                    {allColors!.map((color) => {
-                      const isColorAvailable = availableColorSet.has(color)
-                      return (
-                        <button
-                          key={color}
-                          onClick={() => isColorAvailable && setSelectedColor(hasColorMapping ? color : (selectedColor === color ? '' : color))}
-                          disabled={!isColorAvailable}
-                          className={cn(
-                            'px-3 py-1.5 rounded-lg text-[13px] font-medium border transition-all duration-200',
-                            !isColorAvailable
-                              ? 'opacity-40 cursor-not-allowed line-through border-border/40 text-muted-foreground'
-                              : selectedColor === color
-                                ? 'bg-foreground text-background border-foreground'
-                                : 'bg-transparent text-foreground border-border/60 hover:border-border'
-                          )}
-                        >
-                          {color}
-                        </button>
-                      )
-                    })}
-                  </div>
-                </div>
-              )}
-            </div>
+            <VariantSelector
+              allSizes={allSizes}
+              allColors={allColors}
+              availableSizes={availableSizeSet}
+              availableColors={availableColorSet}
+              selectedSize={selectedSize}
+              selectedColor={selectedColor}
+              onSizeChange={(s) => setSelectedSize(hasSizeMapping ? s : (s === selectedSize ? '' : s))}
+              onColorChange={(c) => setSelectedColor(hasColorMapping ? c : (c === selectedColor ? '' : c))}
+              sizeLabel={t('size')}
+              colorLabel={t('color')}
+            />
           </>
         )}
 
-        {/* Quantity Selector */}
+        {/* Quantity */}
         <div className="h-px bg-border/40" />
-        <div className="flex items-center gap-3">
-          <label className="text-[13px] font-medium text-foreground/80">{t('quantity')}</label>
-          <div className="flex items-center border border-border/60 rounded-lg">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 rounded-l-lg rounded-r-none"
-              onClick={() => setQuantity(Math.max(1, quantity - 1))}
-              disabled={quantity <= 1}
-            >
-              <Minus className="h-3.5 w-3.5" />
-            </Button>
-            <span className="w-10 text-center text-sm font-medium tabular-nums">{quantity}</span>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 rounded-r-lg rounded-l-none"
-              onClick={() => setQuantity(Math.min(99, quantity + 1))}
-            >
-              <Plus className="h-3.5 w-3.5" />
-            </Button>
-          </div>
-        </div>
+        <QuantitySelector
+          quantity={quantity}
+          onQuantityChange={setQuantity}
+          label={t('quantity')}
+        />
       </div>
 
       {/* Footer Actions */}
       <div className="px-5 py-4 border-t border-border/40 space-y-2">
-        {/* Personalization badge */}
-        {personalization && (
-          <div className="flex items-center gap-2 mb-1">
-            <Badge variant="secondary" className="text-xs gap-1">
-              Personalized: &quot;{personalization.text.slice(0, 20)}{personalization.text.length > 20 ? '...' : ''}&quot;
-            </Badge>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-5 w-5 rounded-full"
-              onClick={() => setPersonalization(null)}
-            >
-              <X className="h-3 w-3" />
-            </Button>
-          </div>
-        )}
         <div className="flex gap-2">
           <Button
             className="flex-1 h-11 text-sm font-semibold"
             onClick={handleAddToCart}
-            disabled={!isCurrentCombinationAvailable}
+            disabled={
+              !isCurrentCombinationAvailable ||
+              ((product.variants?.sizes?.length ?? 0) > 0 && !selectedSize) ||
+              ((product.variants?.colors?.length ?? 0) > 0 && !selectedColor)
+            }
           >
             <ShoppingCart className="h-4 w-4 mr-2" />
-            {isCurrentCombinationAvailable ? t('addToCart') : t('outOfStock')}
+            {!isCurrentCombinationAvailable ? t('outOfStock') : t('addToCart')}
           </Button>
           {product.id && (
             <>
-              <ProductPersonalizer
-                productId={product.id}
-                productTitle={product.title}
-                productImage={currentImage || product.image || undefined}
-                category={product.category}
-                onPersonalized={setPersonalization}
-                onClear={() => setPersonalization(null)}
-                initialData={personalization || undefined}
-                iconOnly
-              />
               <Button
                 variant="outline"
                 size="icon"
                 className="h-11 w-11 flex-shrink-0 rounded-lg"
-                onClick={() => toggleWishlist(product.id!)}
+                asChild
+              >
+                <Link href={`/${locale}/design/${product.id}`}>
+                  <Paintbrush2 className="h-4 w-4" />
+                </Link>
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-11 w-11 flex-shrink-0 rounded-lg"
+                onClick={() => toggleWishlist(product.id)}
               >
                 <Heart className={cn('h-4 w-4', wishlisted ? 'fill-destructive text-destructive' : 'text-muted-foreground')} />
               </Button>
@@ -664,13 +485,11 @@ function ProductView({
       </div>
     </>
   )
-}
+})
 
-/**
- * ArtifactContent - Renders the content for a single artifact
- * Fetches product data from API when artifact only contains an id
- */
-function ArtifactContent({
+// ─── ArtifactContent ─────────────────────────────────────
+
+const ArtifactContent = memo(function ArtifactContent({
   artifact,
   onAskAbout,
 }: {
@@ -680,55 +499,26 @@ function ArtifactContent({
   const params = useParams()
   const locale = (params.locale as string) || 'en'
   const { addToCart } = useCart()
-  const [fetchedProduct, setFetchedProduct] = useState<any>(null)
-  const [fetchLoading, setFetchLoading] = useState(false)
 
-  // Always fetch full product from detail API (includes colorImageIndices/sizeImageIndices)
-  useEffect(() => {
-    if (artifact.type === 'product' && artifact.data?.id && !fetchedProduct && !fetchLoading) {
-      setFetchLoading(true)
-      fetch(`/api/products/${artifact.data.id}?locale=${locale}`)
-        .then((res) => (res.ok ? res.json() : null))
-        .then((data) => {
-          if (data) setFetchedProduct(data.product || data)
-        })
-        .catch(() => {})
-        .finally(() => setFetchLoading(false))
-    }
-  }, [artifact.data?.id, artifact.type, fetchedProduct, fetchLoading, locale])
+  const { product: fetchedProduct, loading: fetchLoading } = useProductDetail(
+    artifact.type === 'product' ? artifact.data?.id : null,
+    locale
+  )
 
-  // For product artifacts, render the product detail view
   if (artifact.type === 'product') {
-    if (fetchLoading || !fetchedProduct) {
-      return (
-        <div className="flex-1 p-5 space-y-4">
-          <div className="aspect-[4/3] w-full bg-muted/30 rounded-2xl animate-pulse" />
-          <div className="space-y-2">
-            <div className="h-5 w-3/4 bg-muted/30 rounded-lg animate-pulse" />
-            <div className="h-4 w-1/3 bg-muted/30 rounded-lg animate-pulse" />
-            <div className="h-7 w-1/2 bg-muted/30 rounded-lg animate-pulse" />
-          </div>
-          <div className="h-px bg-border/30" />
-          <div className="h-16 w-full bg-muted/30 rounded-xl animate-pulse" />
-        </div>
-      )
-    }
-
-    const handleAddToCart = (quantity: number, variants?: { size?: string; color?: string }) => {
-      addToCart(fetchedProduct.id, quantity, variants, fetchedProduct.title, fetchedProduct.price)
-    }
+    if (fetchLoading || !fetchedProduct) return <DetailPanelSkeleton />
 
     return (
       <ProductView
         product={fetchedProduct}
         locale={locale}
-        onAddToCart={handleAddToCart}
+        onAddToCart={(qty, variants) => addToCart(fetchedProduct.id, qty, variants, fetchedProduct.title, fetchedProduct.price)}
         onAskAbout={onAskAbout ? () => onAskAbout(`Tell me more about ${fetchedProduct.title}`) : undefined}
       />
     )
   }
 
-  // Design artifacts — show image + prompt
+  // Design artifacts
   if (artifact.type === 'design') {
     return (
       <div className="flex-1 overflow-y-auto detail-scroll p-5 space-y-4">
@@ -745,7 +535,7 @@ function ArtifactContent({
     )
   }
 
-  // Other artifact types — formatted JSON
+  // Other artifact types
   return (
     <div className="flex-1 overflow-y-auto detail-scroll p-5 space-y-3">
       <h3 className="font-semibold text-foreground text-[15px]">{artifact.title}</h3>
@@ -755,4 +545,4 @@ function ArtifactContent({
       </pre>
     </div>
   )
-}
+})

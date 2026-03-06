@@ -1,9 +1,9 @@
 /**
- * Printify Order Retry Cron
+ * POD Order Retry Cron
  *
  * GET /api/cron/retry-printify-orders
  * Handles stuck orders and automatic refunds:
- * 1. Retries orders stuck in 'paid' state without printify_order_id (max 3 attempts, 30min window)
+ * 1. Retries orders stuck in 'paid' state without external_order_id (max 3 attempts, 30min window)
  * 2. Auto-refunds after 3 failed attempts OR 2 hours timeout
  * 3. Auto-refunds orders in 'requires_review' > 24 hours
  * Protected by bearer token auth.
@@ -43,12 +43,12 @@ export async function GET(req: NextRequest) {
   const results: Array<{ orderId: string; action: string; success: boolean; error?: string }> = []
 
   // === PART 1: Handle stuck 'paid' orders ===
-  // Find orders in 'paid' status without printify_order_id (stuck after payment)
+  // Find orders in 'paid' status without external_order_id (stuck after payment)
   const { data: stuckPaidOrders, error: paidFetchError } = await supabase
     .from('orders')
-    .select('id, status, stripe_payment_intent_id, total_cents, paid_at, retry_count, currency')
+    .select('id, status, stripe_payment_intent_id, total_cents, paid_at, retry_count, currency, external_order_id')
     .eq('status', 'paid')
-    .is('printify_order_id', null)
+    .is('external_order_id', null)
     .not('stripe_payment_intent_id', 'is', null)
     .order('paid_at', { ascending: true })
     .limit(20)

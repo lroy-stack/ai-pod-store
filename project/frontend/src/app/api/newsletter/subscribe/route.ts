@@ -9,6 +9,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { z } from 'zod'
 import crypto from 'crypto'
+import { BASE_URL } from '@/lib/store-config'
 
 const supabase = createClient(
   process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -80,8 +81,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Send confirmation email via Resend
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
-    const confirmUrl = `${baseUrl}/api/newsletter/confirm/${confirmationToken}`
+    const confirmUrl = `${BASE_URL}/api/newsletter/confirm/${confirmationToken}`
 
     const resendKey = process.env.RESEND_API_KEY
     if (!resendKey) {
@@ -150,7 +150,7 @@ export async function POST(req: NextRequest) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: process.env.RESEND_FROM_EMAIL || 'Skapara <noreply@podai.com>',
+        from: process.env.RESEND_FROM_EMAIL || 'SKAPARA <noreply@skapara.com>',
         to: email,
         subject: content.subject,
         html: content.body,

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1800 2400" width="1800" height="2400">
+  <!--
+    DANGEROUS FLAG v3 — ONE LINE, bold, readable
+    The joke only works as a single unbroken line
+    80px bold mono centered at golden section point
+    Canvas: 1800x2400
+  -->
+
+  <text x="900" y="1100"
+        text-anchor="middle"
+        font-family="Courier New, Courier, monospace"
+        font-size="80" font-weight="bold"
+        fill="white" opacity="0.55"
+        letter-spacing="2">--dangerously-skip-permissions</text>
+</svg>

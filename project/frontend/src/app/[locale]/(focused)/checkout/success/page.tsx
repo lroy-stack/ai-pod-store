@@ -6,6 +6,7 @@ import { Separator } from '@/components/ui/separator'
 import { CheckCircle, Package } from 'lucide-react'
 import { getCheckoutSession } from '@/lib/stripe-checkout'
 import { LOCALE_FORMAT } from '@/lib/store-config'
+import { CartClearer } from './CartClearer'
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
@@ -26,6 +27,7 @@ export default async function CheckoutSuccessPage({
 }) {
   const { locale } = await params
   const { session_id } = await searchParams
+  const t = await getTranslations({ locale, namespace: 'Checkout' })
 
   // Fetch checkout session details from Stripe
   let sessionDetails = null
@@ -43,6 +45,9 @@ export default async function CheckoutSuccessPage({
 
   return (
     <div className="min-h-[60vh] py-12 px-4">
+      {/* Clear cart after successful payment */}
+      <CartClearer />
+
       <div className="max-w-3xl mx-auto space-y-8">
         {/* Success Icon & Message */}
         <div className="text-center space-y-4">
@@ -54,10 +59,10 @@ export default async function CheckoutSuccessPage({
 
           <div className="space-y-2">
             <h1 className="text-3xl font-bold text-foreground">
-              Payment Successful!
+              {t('successTitle')}
             </h1>
             <p className="text-muted-foreground">
-              Your order has been placed successfully. We've sent a confirmation email with your order details.
+              {t('successDescription')}
             </p>
           </div>
         </div>
@@ -68,14 +73,14 @@ export default async function CheckoutSuccessPage({
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Package className="size-5" />
-                Order Details
+                {t('successOrderDetails')}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {/* Customer Email */}
               {sessionDetails.customer_email && (
                 <div>
-                  <p className="text-sm text-muted-foreground">Confirmation sent to:</p>
+                  <p className="text-sm text-muted-foreground">{t('successConfirmationSentTo')}</p>
                   <p className="font-medium">{sessionDetails.customer_email}</p>
                 </div>
               )}
@@ -84,12 +89,12 @@ export default async function CheckoutSuccessPage({
 
               {/* Line Items */}
               <div className="space-y-3">
-                <p className="text-sm font-medium">Items:</p>
+                <p className="text-sm font-medium">{t('successItems')}</p>
                 {sessionDetails.line_items.map((item, index) => (
                   <div key={index} className="flex justify-between text-sm">
                     <div className="flex-1">
                       <p className="font-medium">{item.description}</p>
-                      <p className="text-muted-foreground">Qty: {item.quantity}</p>
+                      <p className="text-muted-foreground">{t('successQuantityShort')} {item.quantity}</p>
                     </div>
                     <p className="font-medium">
                       {formatCurrency(item.amount_total, sessionDetails.currency)}
@@ -102,7 +107,7 @@ export default async function CheckoutSuccessPage({
 
               {/* Total */}
               <div className="flex justify-between items-center">
-                <p className="font-semibold text-lg">Total Paid:</p>
+                <p className="font-semibold text-lg">{t('successTotalPaid')}</p>
                 <p className="font-bold text-2xl text-success">
                   {formatCurrency(sessionDetails.amount_total, sessionDetails.currency)}
                 </p>
@@ -111,10 +116,7 @@ export default async function CheckoutSuccessPage({
               {/* Order Status */}
               <div className="bg-muted/50 p-4 rounded-lg">
                 <p className="text-sm text-muted-foreground">
-                  Payment Status: <span className="font-medium text-success capitalize">{sessionDetails.payment_status}</span>
-                </p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Session ID: <span className="font-mono text-xs">{sessionDetails.id}</span>
+                  {t('successPaymentStatus')} <span className="font-medium text-success capitalize">{sessionDetails.payment_status}</span>
                 </p>
               </div>
             </CardContent>
@@ -125,8 +127,7 @@ export default async function CheckoutSuccessPage({
         {!sessionDetails && session_id && (
           <Card>
             <CardContent className="py-8 text-center text-muted-foreground">
-              <p>Unable to load order details. Please check your email for confirmation.</p>
-              <p className="text-xs mt-2 font-mono break-all">Session: {session_id}</p>
+              <p>{t('successUnableToLoad')}</p>
             </CardContent>
           </Card>
         )}
@@ -135,12 +136,12 @@ export default async function CheckoutSuccessPage({
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Button asChild size="lg" variant="outline">
             <Link href={`/${locale}/shop`}>
-              Continue Shopping
+              {t('successContinueShopping')}
             </Link>
           </Button>
           <Button asChild size="lg">
             <Link href={`/${locale}/orders`}>
-              View My Orders
+              {t('successViewOrders')}
             </Link>
           </Button>
         </div>

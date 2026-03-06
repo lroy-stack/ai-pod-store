@@ -4,8 +4,8 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { useTranslations, useLocale } from 'next-intl'
 import Link from 'next/link'
 import Image from 'next/image'
-import { useState, useEffect } from 'react'
-import { Star, Heart, ShoppingCart, ChevronLeft, Shirt, Droplets, Globe, Printer, ShieldCheck, Paintbrush } from 'lucide-react'
+import { useState, useEffect, useRef, useMemo } from 'react'
+import { Star, Heart, ShoppingCart, ChevronLeft, Shirt, Droplets, Globe, Printer, ShieldCheck, Paintbrush2, Share2 } from 'lucide-react'
 import { useCart } from '@/hooks/useCart'
 import { useWishlist } from '@/hooks/useWishlist'
 import { useRecentlyViewed } from '@/hooks/useRecentlyViewed'
@@ -13,9 +13,9 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
+import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { formatPrice, getLocalizedPrice } from '@/lib/currency'
-import { ProductPersonalizer, PersonalizationData } from './ProductPersonalizer'
 import { SafeHTML } from '@/components/common/SafeHTML'
 import { trackProductView, trackAddToCart as trackAnalyticsAddToCart } from '@/lib/analytics'
 import {
@@ -36,9 +36,13 @@ import {
 import { ProductCard } from '@/components/products/ProductCard'
 import { SizeGuide } from '@/components/products/SizeGuide'
 import { ReviewForm } from '@/components/products/ReviewForm'
+import { SmartStickyCTA } from '@/components/products/SmartStickyCTA'
+import { StrikethroughPrice } from '@/components/products/StrikethroughPrice'
+import { SocialProofIndicator } from '@/components/products/SocialProofIndicator'
+import type { ProductDetail } from '@/types/product'
 
 interface ProductDetailClientProps {
-  product: any
+  product: ProductDetail
   relatedProducts: any[]
   reviews: any[]
 }
@@ -68,27 +72,96 @@ export function ProductDetailClient({ product, relatedProducts, reviews }: Produ
   const hasColorMapping = !!(colorImageIndices && Object.keys(colorImageIndices).length > 0)
   const hasSizeMapping = !!(sizeImageIndices && Object.keys(sizeImageIndices).length > 0)
 
+  // Build variant price lookup for per-size/color pricing
+  const getVariantPrice = useMemo(() => {
+    const prices = product?.variants?.prices
+    if (!prices?.length) return () => product?.price ?? 0
+    const map = new Map<string, number>()
+    for (const vp of prices) {
+      map.set(`${vp.size}::${vp.color}`, vp.price)
+    }
+    return (size: string, color: string): number => {
+      return map.get(`${size}::${color}`)
+        ?? map.get(`${size}::`)
+        ?? map.get(`::${color}`)
+        ?? product?.price ?? 0
+    }
+  }, [product?.variants?.prices, product?.price])
+
   // Available sets for quick lookup
   const availableColorSet = new Set(colors || [])
   const availableSizeSet = new Set(sizes || [])
 
   // Read ?color= from URL to pre-select the variant from ProductCard navigation
   const initialColor = searchParams.get('color')
+  const compositionIdParam = searchParams.get('compositionId')
 
   const [selectedImage, setSelectedImage] = useState(0)
-  // Auto-select first option when variant-to-image mapping exists
+  // Auto-select: single option always, first option when image mapping exists, or URL param
   const [selectedSize, setSelectedSize] = useState<string>(
-    hasSizeMapping && sizes && sizes.length > 0 ? sizes[0] : ''
+    sizes?.length === 1
+      ? sizes[0]
+      : (hasSizeMapping && sizes && sizes.length > 0 ? sizes[0] : '')
   )
   const [selectedColor, setSelectedColor] = useState<string>(
     initialColor && colors?.includes(initialColor)
       ? initialColor
-      : (hasColorMapping && colors && colors.length > 0 ? colors[0] : '')
+      : (colors?.length === 1
+          ? colors[0]
+          : (hasColorMapping && colors && colors.length > 0 ? colors[0] : ''))
   )
   const [quantity, setQuantity] = useState(1)
   const [isAddingToCart, setIsAddingToCart] = useState(false)
   const [showReviewForm, setShowReviewForm] = useState(false)
-  const [personalization, setPersonalization] = useState<PersonalizationData | null>(null)
+  const mainCtaRef = useRef<HTMLDivElement>(null)
+
+  // Cross-filter: when a color is selected, compute which sizes are available for it
+  const availableSizesForColor = useMemo(() => {
+    if (!selectedColor || !unavailableCombinations.length) return availableSizeSet
+    const blocked = new Set(
+      unavailableCombinations
+        .filter(uc => uc.color === selectedColor)
+        .map(uc => uc.size)
+    )
+    return new Set([...availableSizeSet].filter(s => !blocked.has(s)))
+  }, [selectedColor, unavailableCombinations, availableSizeSet])
+
+  // Cross-filter: when a size is selected, compute which colors are available for it
+  const availableColorsForSize = useMemo(() => {
+    if (!selectedSize || !unavailableCombinations.length) return availableColorSet
+    const blocked = new Set(
+      unavailableCombinations
+        .filter(uc => uc.size === selectedSize)
+        .map(uc => uc.color)
+    )
+    return new Set([...availableColorSet].filter(c => !blocked.has(c)))
+  }, [selectedSize, unavailableCombinations, availableColorSet])
+
+  // Auto-reset size when it becomes unavailable for the selected color
+  useEffect(() => {
+    if (selectedSize && availableSizesForColor.size > 0 && !availableSizesForColor.has(selectedSize)) {
+      const first = [...availableSizesForColor][0]
+      if (first) setSelectedSize(first)
+    }
+  }, [availableSizesForColor, selectedSize])
+
+  // Auto-reset color when it becomes unavailable for the selected size
+  useEffect(() => {
+    if (selectedColor && availableColorsForSize.size > 0 && !availableColorsForSize.has(selectedColor)) {
+      const first = [...availableColorsForSize][0]
+      if (first) setSelectedColor(first)
+    }
+  }, [availableColorsForSize, selectedColor])
+
+  // Build colorImages map for recently viewed (color → first image URL)
+  const colorImagesForCard = hasColorMapping && colorImageIndices && product?.images
+    ? Object.fromEntries(
+        Object.entries(colorImageIndices)
+          .filter(([, indices]) => (indices as number[]).length > 0)
+          .map(([color, indices]) => [color, product.images[(indices as number[])[0]]])
+          .filter(([, img]) => img)
+      )
+    : undefined
 
   // Track product view in localStorage
   useEffect(() => {
@@ -99,6 +172,8 @@ export function ProductDetailClient({ product, relatedProducts, reviews }: Produ
         price: product.price,
         currency: product.currency,
         image: product.images && product.images.length > 0 ? product.images[0] : null,
+        compareAtPrice: product.compareAtPrice,
+        colorImages: colorImagesForCard,
       })
       // Track analytics event
       trackProductView(product.id, product.title, product.price)
@@ -141,8 +216,14 @@ export function ProductDetailClient({ product, relatedProducts, reviews }: Produ
     )
   }
 
+  // Compute current variant price reactively
+  const currentVariantPrice = useMemo(
+    () => getVariantPrice(selectedSize, selectedColor),
+    [getVariantPrice, selectedSize, selectedColor]
+  )
+
   // Convert price to locale's currency and format it
-  const localizedPrice = getLocalizedPrice(product.price, product.currency, locale)
+  const localizedPrice = getLocalizedPrice(currentVariantPrice, product.currency, locale)
   const formattedPrice = formatPrice(localizedPrice, locale)
 
   const renderStars = (rating: number) => {
@@ -178,7 +259,7 @@ export function ProductDetailClient({ product, relatedProducts, reviews }: Produ
     if (selectedColor && !availableColorSet.has(selectedColor)) return false
     // If only size matters, check if size is available
     if (selectedSize && !availableSizeSet.has(selectedSize)) return false
-    return product?.inStock !== false
+    return product.inStock ?? true
   })()
 
   const handleAddToCart = async () => {
@@ -202,15 +283,37 @@ export function ProductDetailClient({ product, relatedProducts, reviews }: Produ
           color: selectedColor || undefined,
         },
         product.title,
-        product.price
+        currentVariantPrice,
+        undefined,
+        compositionIdParam || undefined
       )
       // Track analytics event
-      trackAnalyticsAddToCart(product.id, product.title, product.price, quantity)
+      trackAnalyticsAddToCart(product.id, product.title, currentVariantPrice, quantity)
     } catch (error) {
       // Error is already handled by useCart with toast
       console.error('Failed to add to cart:', error)
     } finally {
       setIsAddingToCart(false)
+    }
+  }
+
+  const handleShare = async () => {
+    const url = window.location.href
+    const title = product.title || 'Check out this product'
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ title, url })
+      } catch (err) {
+        // User cancelled or share failed — ignore AbortError
+        if (err instanceof Error && err.name !== 'AbortError') {
+          await navigator.clipboard.writeText(url)
+          toast(t('linkCopied'))
+        }
+      }
+    } else {
+      await navigator.clipboard.writeText(url)
+      toast(t('linkCopied'))
     }
   }
 
@@ -233,8 +336,10 @@ export function ProductDetailClient({ product, relatedProducts, reviews }: Produ
           <BreadcrumbSeparator />
           <BreadcrumbItem>
             <BreadcrumbLink asChild>
-              <Link href={`/${locale}/shop?category=${product.category}`}>
-                {tCategory(product.category)}
+              <Link href={`/${locale}/shop/category/${product.category || ''}`}>
+                {tCategory.has(product.category || '')
+                  ? tCategory(product.category || '')
+                  : (product.category || '').replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
               </Link>
             </BreadcrumbLink>
           </BreadcrumbItem>
@@ -270,7 +375,7 @@ export function ProductDetailClient({ product, relatedProducts, reviews }: Produ
             <div className="grid grid-cols-4 gap-4">
               {visibleImages.map((image: string, index: number) => (
                 <Button
-                  key={image}
+                  key={`img-${index}`}
                   variant="outline"
                   onClick={() => setSelectedImage(index)}
                   className={cn(
@@ -299,12 +404,21 @@ export function ProductDetailClient({ product, relatedProducts, reviews }: Produ
           <div>
             <h1 className="text-3xl md:text-4xl font-bold mb-2">{product.title}</h1>
             <div className="flex items-center gap-4 mb-4">
-              {renderStars(product.rating)}
+              {renderStars(product.rating ?? 0)}
               <span className="text-sm text-muted-foreground">
-                {t('reviewsCount', { count: product.reviewCount })}
+                {t('reviewsCount', { count: product.reviewCount ?? 0 })}
               </span>
             </div>
-            <p className="text-3xl font-bold">{formattedPrice}</p>
+            {product.compareAtPrice ? (
+              <StrikethroughPrice
+                price={localizedPrice}
+                compareAtPrice={getLocalizedPrice(product.compareAtPrice, product.currency, locale)}
+                locale={locale}
+              />
+            ) : (
+              <p className="text-3xl font-bold">{formattedPrice}</p>
+            )}
+            <SocialProofIndicator productId={product.id} />
           </div>
 
           <Separator />
@@ -325,7 +439,7 @@ export function ProductDetailClient({ product, relatedProducts, reviews }: Produ
           {/* Description */}
           <div>
             <h2 className="text-xl font-semibold mb-2">{t('description')}</h2>
-            <p className="text-muted-foreground leading-relaxed">{product.longDescription}</p>
+            <p className="text-muted-foreground leading-relaxed">{product.description}</p>
           </div>
 
           {/* Product Specifications */}
@@ -398,7 +512,7 @@ export function ProductDetailClient({ product, relatedProducts, reviews }: Produ
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <label className="text-sm font-medium">{t('size')}</label>
-                  {product.category === 'apparel' && <SizeGuide productType={product.title} />}
+                  {['t-shirts', 'pullover-hoodies', 'zip-hoodies', 'crewnecks', 'tanks'].some(c => product.category?.includes(c)) && <SizeGuide productType={product.category || ''} />}
                 </div>
                 <Select value={selectedSize} onValueChange={(size) => {
                   setSelectedSize(size)
@@ -409,7 +523,7 @@ export function ProductDetailClient({ product, relatedProducts, reviews }: Produ
                   </SelectTrigger>
                   <SelectContent>
                     {allSizes.map((size: string) => {
-                      const isSizeAvailable = availableSizeSet.has(size)
+                      const isSizeAvailable = availableSizesForColor.has(size)
                       return (
                         <SelectItem
                           key={size}
@@ -439,7 +553,7 @@ export function ProductDetailClient({ product, relatedProducts, reviews }: Produ
                   </SelectTrigger>
                   <SelectContent>
                     {allColors.map((color: string) => {
-                      const isColorAvailable = availableColorSet.has(color)
+                      const isColorAvailable = availableColorsForSize.has(color)
                       return (
                         <SelectItem
                           key={color}
@@ -476,44 +590,41 @@ export function ProductDetailClient({ product, relatedProducts, reviews }: Produ
             </div>
           </div>
 
-          {/* Personalization badge */}
-          {personalization && (
+          {/* Custom design composition badge */}
+          {compositionIdParam && (
             <div className="flex items-center gap-2">
               <Badge variant="secondary" className="gap-1.5">
-                <Paintbrush className="size-3" />
-                &quot;{personalization.text.slice(0, 25)}{personalization.text.length > 25 ? '...' : ''}&quot;
+                <Paintbrush2 className="size-3" />
+                Custom Design
               </Badge>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 px-2 text-xs"
-                onClick={() => setPersonalization(null)}
-              >
-                {t('personalizeClear')}
-              </Button>
             </div>
           )}
 
           {/* Action Buttons */}
-          <div className="flex gap-3">
+          <div ref={mainCtaRef} className="flex gap-3">
             <Button
               className="flex-1"
               size="lg"
-              disabled={!isCurrentCombinationAvailable || isAddingToCart}
+              disabled={
+                !isCurrentCombinationAvailable ||
+                isAddingToCart ||
+                (sizes && sizes.length > 0 && !selectedSize) ||
+                (colors && colors.length > 0 && !selectedColor)
+              }
               onClick={handleAddToCart}
             >
               <ShoppingCart className="size-5 mr-2" />
               {!isCurrentCombinationAvailable ? t('outOfStock') : isAddingToCart ? t('adding') || 'Adding...' : t('addToCart')}
             </Button>
-            <ProductPersonalizer
-              productId={product.id}
-              productTitle={product.title}
-              productImage={visibleImages[selectedImage] || product.image}
-              category={product.category}
-              onPersonalized={setPersonalization}
-              onClear={() => setPersonalization(null)}
-              initialData={personalization || undefined}
-            />
+            <Button
+              variant="outline"
+              size="lg"
+              asChild
+            >
+              <Link href={`/${locale}/design/${product.id}`}>
+                <Paintbrush2 className="size-5" />
+              </Link>
+            </Button>
             <Button
               variant="outline"
               size="lg"
@@ -527,6 +638,14 @@ export function ProductDetailClient({ product, relatedProducts, reviews }: Produ
                 )}
               />
             </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handleShare}
+              aria-label={t('share')}
+            >
+              <Share2 className="h-5 w-5" />
+            </Button>
           </div>
         </div>
       </div>
@@ -538,14 +657,14 @@ export function ProductDetailClient({ product, relatedProducts, reviews }: Produ
         <div className="flex items-baseline justify-between mb-6">
           <h2 className="text-2xl font-bold">{t('reviews')}</h2>
           <div className="flex items-center gap-4">
-            {renderStars(product.rating)}
+            {renderStars(product.rating ?? 0)}
             <span className="text-sm text-muted-foreground">
-              {product.rating.toFixed(1)} {t('outOf')} 5
+              {(product.rating ?? 0).toFixed(1)} {t('outOf')} 5
             </span>
           </div>
         </div>
 
-        {product.reviewCount === 0 || reviews.length === 0 ? (
+        {(product.reviewCount ?? 0) === 0 || reviews.length === 0 ? (
           <Card>
             <CardContent className="py-12 text-center">
               <p className="text-muted-foreground mb-2">{t('noReviews')}</p>
@@ -555,7 +674,7 @@ export function ProductDetailClient({ product, relatedProducts, reviews }: Produ
         ) : (
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground mb-4">
-              {t('showingReviews', { count: reviews.length, total: product.reviewCount })}
+              {t('showingReviews', { count: reviews.length, total: product.reviewCount ?? 0 })}
             </p>
             {reviews.map((review) => (
               <Card key={review.id}>
@@ -612,7 +731,7 @@ export function ProductDetailClient({ product, relatedProducts, reviews }: Produ
 
           <div>
             <h2 className="text-2xl font-bold mb-6">{t('customersAlsoBought')}</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div className="neu-grid">
               {relatedProducts.map((relatedProduct) => (
                 <ProductCard key={relatedProduct.id} product={relatedProduct} />
               ))}
@@ -628,7 +747,7 @@ export function ProductDetailClient({ product, relatedProducts, reviews }: Produ
 
           <div>
             <h2 className="text-2xl font-bold mb-6">{t('recentlyViewed')}</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div className="neu-grid">
               {recentlyViewedProducts.slice(0, 4).map((recentProduct) => (
                 <ProductCard
                   key={recentProduct.id}
@@ -639,8 +758,10 @@ export function ProductDetailClient({ product, relatedProducts, reviews }: Produ
                     price: recentProduct.price,
                     currency: recentProduct.currency,
                     image: recentProduct.image || '',
+                    compareAtPrice: recentProduct.compareAtPrice,
                     rating: 0,
                     reviewCount: 0,
+                    variants: recentProduct.colorImages ? { colorImages: recentProduct.colorImages } : undefined,
                   }}
                 />
               ))}
@@ -648,6 +769,24 @@ export function ProductDetailClient({ product, relatedProducts, reviews }: Produ
           </div>
         </>
       )}
+
+      {/* Mobile Sticky CTA */}
+      <SmartStickyCTA
+        targetRef={mainCtaRef}
+        formattedPrice={formattedPrice}
+        onAddToCart={handleAddToCart}
+        disabled={!isCurrentCombinationAvailable}
+        isAdding={isAddingToCart}
+        compareAtPrice={product.compareAtPrice}
+        price={currentVariantPrice}
+        locale={locale}
+        currency={product.currency}
+        colors={colors}
+        selectedColor={selectedColor}
+        onColorChange={setSelectedColor}
+        quantity={quantity}
+        onQuantityChange={setQuantity}
+      />
     </div>
   )
 }

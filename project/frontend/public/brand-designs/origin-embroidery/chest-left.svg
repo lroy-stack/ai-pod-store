@@ -1,0 +1,80 @@
+<!-- SKAPARA Origin — Chest Left Embroidery Design
+     Canvas: 1200×1200 @300dpi (4" × 4")
+     Placement: embroidery_chest_left
+     Threads: Black #000000 (1800), Purple #6B5294 (1832), Red #CC3333 (1839) — 3 colors
+     Content: "26" in pixel/block style — "2" black, "6" purple + red underline
+     Each block: 120×85px with rx=6 — exceeds 1.5mm minimum
+     Gap between blocks: 20px, between digits: 45px
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1200" width="1200" height="1200">
+  <defs>
+    <style>
+      .blk { fill: #000000; }
+      .pur { fill: #6B5294; }
+    </style>
+  </defs>
+
+  <!-- Layout: 2 digits × 3 cols × 5 rows
+       Digit width: 3×120 + 2×20 = 400px
+       Total width: 2×400 + 45 = 845px
+       Starting x: (1200-845)/2 = 177
+       Block height rows: 5×85 + 4×20 = 505px
+       Red line: y = top + 505 + 40 = top + 545, height 24px
+       Total height: 505 + 40 + 24 = 569
+       Starting y: (1200-569)/2 - 30 = 270 (shifted up slightly)
+  -->
+
+  <!-- ===== DIGIT "2" (Black) ===== -->
+  <!-- x0=177, x1=317, x2=457 (cols 0,1,2 with 120+20 stride) -->
+  <!-- y0=270, y1=375, y2=480, y3=585, y4=690 (rows 0-4 with 85+20 stride) -->
+
+  <!-- Row 0: ■ ■ ■ -->
+  <rect class="blk" x="177" y="270" width="120" height="85" rx="6"/>
+  <rect class="blk" x="317" y="270" width="120" height="85" rx="6"/>
+  <rect class="blk" x="457" y="270" width="120" height="85" rx="6"/>
+
+  <!-- Row 1: _ _ ■ -->
+  <rect class="blk" x="457" y="375" width="120" height="85" rx="6"/>
+
+  <!-- Row 2: ■ ■ ■ -->
+  <rect class="blk" x="177" y="480" width="120" height="85" rx="6"/>
+  <rect class="blk" x="317" y="480" width="120" height="85" rx="6"/>
+  <rect class="blk" x="457" y="480" width="120" height="85" rx="6"/>
+
+  <!-- Row 3: ■ _ _ -->
+  <rect class="blk" x="177" y="585" width="120" height="85" rx="6"/>
+
+  <!-- Row 4: ■ ■ ■ -->
+  <rect class="blk" x="177" y="690" width="120" height="85" rx="6"/>
+  <rect class="blk" x="317" y="690" width="120" height="85" rx="6"/>
+  <rect class="blk" x="457" y="690" width="120" height="85" rx="6"/>
+
+  <!-- ===== DIGIT "6" (Purple) ===== -->
+  <!-- x0=622, x1=762, x2=902 (digit offset = 400+45 = 445) -->
+
+  <!-- Row 0: ■ ■ ■ -->
+  <rect class="pur" x="622" y="270" width="120" height="85" rx="6"/>
+  <rect class="pur" x="762" y="270" width="120" height="85" rx="6"/>
+  <rect class="pur" x="902" y="270" width="120" height="85" rx="6"/>
+
+  <!-- Row 1: ■ _ _ -->
+  <rect class="pur" x="622" y="375" width="120" height="85" rx="6"/>
+
+  <!-- Row 2: ■ ■ ■ -->
+  <rect class="pur" x="622" y="480" width="120" height="85" rx="6"/>
+  <rect class="pur" x="762" y="480" width="120" height="85" rx="6"/>
+  <rect class="pur" x="902" y="480" width="120" height="85" rx="6"/>
+
+  <!-- Row 3: ■ _ ■ -->
+  <rect class="pur" x="622" y="585" width="120" height="85" rx="6"/>
+  <rect class="pur" x="902" y="585" width="120" height="85" rx="6"/>
+
+  <!-- Row 4: ■ ■ ■ -->
+  <rect class="pur" x="622" y="690" width="120" height="85" rx="6"/>
+  <rect class="pur" x="762" y="690" width="120" height="85" rx="6"/>
+  <rect class="pur" x="902" y="690" width="120" height="85" rx="6"/>
+
+  <!-- ===== RED UNDERLINE ===== -->
+  <!-- Full width under both digits, 24px thick -->
+  <rect x="177" y="815" width="845" height="24" rx="4" fill="#CC3333"/>
+</svg>

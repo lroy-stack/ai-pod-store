@@ -1,7 +1,8 @@
 import { MetadataRoute } from 'next'
+import { BASE_URL } from '@/lib/store-config'
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://podai.com'
+  const baseUrl = BASE_URL
 
   // Main sitemap listing the three locale homepages and sitemap references
   const sitemaps: MetadataRoute.Sitemap = [

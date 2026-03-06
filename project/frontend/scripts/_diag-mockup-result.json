@@ -1,0 +1,53 @@
+{
+  "task_key": "gt-888911785",
+  "status": "completed",
+  "mockups": [
+    {
+      "placement": "front",
+      "variant_ids": [
+        15114
+      ],
+      "mockup_url": "https://printful-upload.s3-accelerate.amazonaws.com/tmp/a38a1e6a2040c17b3f1d6e54a3868eed/unisex-garment-dyed-heavyweight-t-shirt-black-front-69a6229517708.png",
+      "generator_mockup_id": 35010
+    },
+    {
+      "placement": "back",
+      "variant_ids": [
+        15114
+      ],
+      "mockup_url": "https://printful-upload.s3-accelerate.amazonaws.com/tmp/4b8f96b80e426311eece5df5aaa9b43a/unisex-garment-dyed-heavyweight-t-shirt-black-back-69a6229518622.png",
+      "generator_mockup_id": 35007
+    },
+    {
+      "placement": "sleeve_left",
+      "variant_ids": [
+        15114
+      ],
+      "mockup_url": "https://printful-upload.s3-accelerate.amazonaws.com/tmp/717a8456cf4e5caf24ea04eddcac963a/unisex-garment-dyed-heavyweight-t-shirt-black-left-69a62295189e8.png",
+      "generator_mockup_id": 35018
+    }
+  ],
+  "printfiles": [
+    {
+      "variant_ids": [
+        15114
+      ],
+      "placement": "front",
+      "url": "https://printful-upload.s3-accelerate.amazonaws.com/tmp/2feff03c37d11e02cd667353d2661ff9/printfile_front.png"
+    },
+    {
+      "variant_ids": [
+        15114
+      ],
+      "placement": "back",
+      "url": "https://printful-upload.s3-accelerate.amazonaws.com/tmp/28c0713201f357cbb0807bb490f673b1/printfile_back.png"
+    },
+    {
+      "variant_ids": [
+        15114
+      ],
+      "placement": "sleeve_left",
+      "url": "https://printful-upload.s3-accelerate.amazonaws.com/tmp/9a3d015e25a22044614ba685adfe0d00/printfile_sleeve_left.png"
+    }
+  ]
+}

@@ -29,7 +29,8 @@ export interface CompletionResult {
  * Get completion suggestions based on the request
  */
 export async function getCompletions(
-  request: CompletionRequest
+  request: CompletionRequest,
+  userId?: string
 ): Promise<CompletionResult> {
   const { ref, argument } = request;
 
@@ -45,7 +46,7 @@ export async function getCompletions(
       argument.name === 'order_id' ||
       ref.argument === 'order_id'
     ) {
-      return await getOrderIdCompletions(argument.value);
+      return await getOrderIdCompletions(argument.value, userId);
     }
 
     // Product ID completions
@@ -104,15 +105,27 @@ async function getCategoryCompletions(partial: string): Promise<CompletionResult
 }
 
 /**
- * Get order ID completions (recent orders)
+ * Get order ID completions (recent orders, scoped to authenticated user)
  */
-async function getOrderIdCompletions(partial: string): Promise<CompletionResult> {
+async function getOrderIdCompletions(partial: string, userId?: string): Promise<CompletionResult> {
+  // If no userId, return empty to prevent cross-user data leak
+  if (!userId) {
+    return {
+      completion: {
+        values: [],
+        total: 0,
+        hasMore: false,
+      },
+    };
+  }
+
   const supabase = getSupabaseClient();
 
-  // Fetch recent orders matching the partial UUID
+  // Fetch recent orders matching the partial UUID, filtered by user
   const { data, error } = await supabase
     .from('orders')
     .select('id, status, created_at')
+    .eq('user_id', userId)
     .ilike('id', `${partial}%`)
     .order('created_at', { ascending: false })
     .limit(5);

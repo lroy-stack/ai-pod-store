@@ -1,15 +1,29 @@
 /**
  * DivergenceDetector — Catalog consistency detection module
  *
- * Detects inconsistencies between Printify catalog data (remote source of truth)
+ * Detects inconsistencies between POD provider catalog data (remote source of truth)
  * and local Supabase database records. Used to identify products that have
  * diverged due to sync failures, webhook drops, or manual changes.
  *
  * @module reliability/divergence-detector
  */
 
-import { printify } from '@/lib/printify'
+import { getProvider, initializeProviders } from '@/lib/pod'
 import { supabaseAdmin } from '@/lib/supabase-admin'
+
+/** Extract blueprint_id from blueprintRef like "printify:6:26" */
+function extractBlueprintId(blueprintRef: string | null): number | null {
+  if (!blueprintRef) return null
+  const parts = blueprintRef.split(':')
+  return parts.length >= 2 ? parseInt(parts[1], 10) : null
+}
+
+/** Extract print_provider_id from blueprintRef like "printify:6:26" */
+function extractProviderId(blueprintRef: string | null): number | null {
+  if (!blueprintRef) return null
+  const parts = blueprintRef.split(':')
+  return parts.length >= 3 ? parseInt(parts[2], 10) : null
+}
 
 export interface Divergence {
   productId: string
@@ -26,41 +40,28 @@ export interface DivergenceDetectionResult {
 }
 
 /**
- * Detect divergences between Printify catalog and local database
+ * Detect divergences between POD provider catalog and local database
  *
- * Compares key fields between remote Printify products and local Supabase products.
- * Only checks products that have a printify_id (i.e., synced products).
+ * Compares key fields between remote provider products and local Supabase products.
+ * Only checks products that have a provider_product_id (i.e., synced products).
  *
  * Fields compared:
- * - Product: title, description, blueprint_id, print_provider_id
+ * - Product: title, description, product_template_id, provider_facility_id
  * - Variants: title, price_cents, is_enabled
- *
- * @returns Promise<DivergenceDetectionResult> - Array of divergences and summary stats
- *
- * @example
- * ```typescript
- * const result = await detectDivergence()
- * if (result.error) {
- *   console.error('Detection failed:', result.error)
- * } else {
- *   console.log(`Found ${result.totalDivergencesFound} divergences across ${result.totalProductsChecked} products`)
- *   result.divergences.forEach(d => {
- *     console.log(`Product ${d.productId}: ${d.field} changed from "${d.localValue}" to "${d.remoteValue}"`)
- *   })
- * }
- * ```
  */
 export async function detectDivergence(): Promise<DivergenceDetectionResult> {
   const divergences: Divergence[] = []
   let totalProductsChecked = 0
 
   try {
-    // Step 1: Fetch all products from local database that have a printify_id
+    initializeProviders()
+
+    // Step 1: Fetch all products from local database that have a provider_product_id
     console.log('[DivergenceDetector] Fetching local products from database')
     const { data: localProducts, error: dbError } = await supabaseAdmin
       .from('products')
-      .select('id, printify_id, title, description, blueprint_id, print_provider_id, base_price_cents')
-      .not('printify_id', 'is', null)
+      .select('id, provider_product_id, title, description, product_template_id, provider_facility_id, base_price_cents')
+      .not('provider_product_id', 'is', null)
 
     if (dbError) {
       console.error('[DivergenceDetector] Database error:', dbError)
@@ -73,7 +74,7 @@ export async function detectDivergence(): Promise<DivergenceDetectionResult> {
     }
 
     if (!localProducts || localProducts.length === 0) {
-      console.log('[DivergenceDetector] No products with printify_id found')
+      console.log('[DivergenceDetector] No products with provider_product_id found')
       return {
         divergences: [],
         totalProductsChecked: 0,
@@ -83,13 +84,13 @@ export async function detectDivergence(): Promise<DivergenceDetectionResult> {
 
     console.log(`[DivergenceDetector] Found ${localProducts.length} local products to check`)
 
-    // Step 2: For each local product, fetch from Printify and compare
+    // Step 2: For each local product, fetch from provider and compare
     for (const localProduct of localProducts) {
       totalProductsChecked++
 
       try {
-        // Fetch remote product data from Printify
-        const remoteProduct = await printify.getProduct(localProduct.printify_id!)
+        const providerProductId = localProduct.provider_product_id!
+        const remoteProduct = await getProvider().getProduct(providerProductId)
 
         // Compare product-level fields
         if (remoteProduct.title && localProduct.title !== remoteProduct.title) {
@@ -110,36 +111,39 @@ export async function detectDivergence(): Promise<DivergenceDetectionResult> {
           })
         }
 
+        const remoteBlueprintId = extractBlueprintId(remoteProduct.blueprintRef)
+        const localBlueprintId = localProduct.product_template_id ? Number(localProduct.product_template_id) : null
         if (
-          remoteProduct.blueprint_id &&
-          localProduct.blueprint_id !== remoteProduct.blueprint_id
+          remoteBlueprintId !== null &&
+          localBlueprintId !== remoteBlueprintId
         ) {
           divergences.push({
             productId: localProduct.id,
             field: 'blueprint_id',
-            localValue: localProduct.blueprint_id,
-            remoteValue: remoteProduct.blueprint_id,
+            localValue: localBlueprintId,
+            remoteValue: remoteBlueprintId,
           })
         }
 
+        const remoteProviderId = extractProviderId(remoteProduct.blueprintRef)
+        const localProviderId = localProduct.provider_facility_id ? Number(localProduct.provider_facility_id) : null
         if (
-          remoteProduct.print_provider_id &&
-          localProduct.print_provider_id !== remoteProduct.print_provider_id
+          remoteProviderId !== null &&
+          localProviderId !== remoteProviderId
         ) {
           divergences.push({
             productId: localProduct.id,
             field: 'print_provider_id',
-            localValue: localProduct.print_provider_id,
-            remoteValue: remoteProduct.print_provider_id,
+            localValue: localProviderId,
+            remoteValue: remoteProviderId,
           })
         }
 
         // Step 3: Compare variants
         if (Array.isArray(remoteProduct.variants)) {
-          // Fetch local variants for this product
           const { data: localVariants, error: variantsError } = await supabaseAdmin
             .from('product_variants')
-            .select('id, printify_variant_id, title, price_cents, is_enabled')
+            .select('id, external_variant_id, title, price_cents, is_enabled')
             .eq('product_id', localProduct.id)
 
           if (variantsError) {
@@ -147,27 +151,20 @@ export async function detectDivergence(): Promise<DivergenceDetectionResult> {
             continue
           }
 
-          // Build a map of printify_variant_id -> local variant
           const variantMap = new Map(
-            localVariants?.map((v) => [v.printify_variant_id?.toString(), v]) || []
+            localVariants?.map((v) => [v.external_variant_id?.toString(), v]) || []
           )
 
-          // Compare each remote variant with local variant
-          for (const remoteVariant of remoteProduct.variants as Array<{
-            id: number
-            title?: string
-            price?: number
-            is_enabled?: boolean
-          }>) {
-            const localVariant = variantMap.get(remoteVariant.id.toString())
+          for (const remoteVariant of remoteProduct.variants) {
+            const localVariant = variantMap.get(remoteVariant.externalId)
 
             if (!localVariant) {
-              // Variant exists in Printify but not in local DB
+              // Variant exists in provider but not in local DB
               divergences.push({
                 productId: localProduct.id,
                 field: 'variant_missing',
                 localValue: null,
-                remoteValue: remoteVariant.id,
+                remoteValue: remoteVariant.externalId,
               })
               continue
             }
@@ -176,35 +173,34 @@ export async function detectDivergence(): Promise<DivergenceDetectionResult> {
             if (remoteVariant.title && localVariant.title !== remoteVariant.title) {
               divergences.push({
                 productId: localProduct.id,
-                field: `variant_${remoteVariant.id}_title`,
+                field: `variant_${remoteVariant.externalId}_title`,
                 localValue: localVariant.title,
                 remoteValue: remoteVariant.title,
               })
             }
 
-            // Compare variant price (convert Printify dollars to cents)
-            if (remoteVariant.price !== undefined) {
-              const remotePriceCents = Math.round(remoteVariant.price * 100)
-              if (localVariant.price_cents !== remotePriceCents) {
+            // Compare variant price (priceCents is already in cents)
+            if (remoteVariant.priceCents !== undefined) {
+              if (localVariant.price_cents !== remoteVariant.priceCents) {
                 divergences.push({
                   productId: localProduct.id,
-                  field: `variant_${remoteVariant.id}_price`,
+                  field: `variant_${remoteVariant.externalId}_price`,
                   localValue: localVariant.price_cents,
-                  remoteValue: remotePriceCents,
+                  remoteValue: remoteVariant.priceCents,
                 })
               }
             }
 
             // Compare variant enabled status
             if (
-              remoteVariant.is_enabled !== undefined &&
-              localVariant.is_enabled !== remoteVariant.is_enabled
+              remoteVariant.isEnabled !== undefined &&
+              localVariant.is_enabled !== remoteVariant.isEnabled
             ) {
               divergences.push({
                 productId: localProduct.id,
-                field: `variant_${remoteVariant.id}_enabled`,
+                field: `variant_${remoteVariant.externalId}_enabled`,
                 localValue: localVariant.is_enabled,
-                remoteValue: remoteVariant.is_enabled,
+                remoteValue: remoteVariant.isEnabled,
               })
             }
           }
@@ -212,11 +208,11 @@ export async function detectDivergence(): Promise<DivergenceDetectionResult> {
       } catch (productError: any) {
         // Log error but continue checking other products
         console.error(
-          `[DivergenceDetector] Error checking product ${localProduct.printify_id}:`,
+          `[DivergenceDetector] Error checking product ${localProduct.provider_product_id}:`,
           productError
         )
 
-        // If product not found in Printify (404), it may have been deleted
+        // If product not found in provider (404), it may have been deleted
         if (productError?.message?.includes('404')) {
           divergences.push({
             productId: localProduct.id,
@@ -260,10 +256,11 @@ export async function detectProductDivergence(productId: string): Promise<Diverg
   const divergences: Divergence[] = []
 
   try {
-    // Fetch local product
+    initializeProviders()
+
     const { data: localProduct, error: dbError } = await supabaseAdmin
       .from('products')
-      .select('id, printify_id, title, description, blueprint_id, print_provider_id, base_price_cents')
+      .select('id, provider_product_id, title, description, product_template_id, provider_facility_id, base_price_cents')
       .eq('id', productId)
       .single()
 
@@ -272,13 +269,14 @@ export async function detectProductDivergence(productId: string): Promise<Diverg
       return divergences
     }
 
-    if (!localProduct.printify_id) {
-      console.log('[DivergenceDetector] Product has no printify_id, skipping')
+    const providerProductId = localProduct.provider_product_id
+    if (!providerProductId) {
+      console.log('[DivergenceDetector] Product has no provider_product_id, skipping')
       return divergences
     }
 
     // Fetch remote product
-    const remoteProduct = await printify.getProduct(localProduct.printify_id)
+    const remoteProduct = await getProvider().getProduct(providerProductId)
 
     // Compare fields (same logic as detectDivergence)
     if (remoteProduct.title && localProduct.title !== remoteProduct.title) {
@@ -299,27 +297,31 @@ export async function detectProductDivergence(productId: string): Promise<Diverg
       })
     }
 
+    const remoteBlueprintId = extractBlueprintId(remoteProduct.blueprintRef)
+    const localBlueprintId2 = localProduct.product_template_id ? Number(localProduct.product_template_id) : null
     if (
-      remoteProduct.blueprint_id &&
-      localProduct.blueprint_id !== remoteProduct.blueprint_id
+      remoteBlueprintId !== null &&
+      localBlueprintId2 !== remoteBlueprintId
     ) {
       divergences.push({
         productId: localProduct.id,
         field: 'blueprint_id',
-        localValue: localProduct.blueprint_id,
-        remoteValue: remoteProduct.blueprint_id,
+        localValue: localBlueprintId2,
+        remoteValue: remoteBlueprintId,
       })
     }
 
+    const remoteProviderId = extractProviderId(remoteProduct.blueprintRef)
+    const localProviderId2 = localProduct.provider_facility_id ? Number(localProduct.provider_facility_id) : null
     if (
-      remoteProduct.print_provider_id &&
-      localProduct.print_provider_id !== remoteProduct.print_provider_id
+      remoteProviderId !== null &&
+      localProviderId2 !== remoteProviderId
     ) {
       divergences.push({
         productId: localProduct.id,
         field: 'print_provider_id',
-        localValue: localProduct.print_provider_id,
-        remoteValue: remoteProduct.print_provider_id,
+        localValue: localProviderId2,
+        remoteValue: remoteProviderId,
       })
     }
 

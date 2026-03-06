@@ -22,7 +22,7 @@ vi.mock('@/lib/rbac', () => ({
   withPermission: (resource: string, action: string, handler: any) => handler,
   getAdminSession: vi.fn().mockResolvedValue({
     userId: 'test-admin-id',
-    email: 'admin@podstore.local',
+    email: 'admin@skapara.com',
     role: 'admin',
     name: 'Test Admin',
   }),

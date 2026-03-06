@@ -191,7 +191,7 @@ export default function MessagingPage() {
               onChange={(e) =>
                 setTelegram((prev) => ({ ...prev, webhookUrl: e.target.value }))
               }
-              placeholder="https://podai.com/api/webhooks/telegram"
+              placeholder="https://skapara.com/api/webhooks/telegram"
               disabled={!telegram.enabled}
             />
             <p className="text-xs text-muted-foreground">

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { stripe } from '@/lib/stripe';
 import { z } from 'zod';
+import { requireAdmin, authErrorResponse } from '@/lib/auth-guard';
 
 const supabase = createClient(
   process.env.SUPABASE_URL!,
@@ -18,13 +19,19 @@ const supabase = createClient(
 const approvalSchema = z.object({
   action: z.enum(['approve', 'reject']),
   admin_notes: z.string().optional(),
-  admin_id: z.string().uuid(),
 });
 
 export async function PUT(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  let admin;
+  try {
+    admin = await requireAdmin(req)
+  } catch (error) {
+    return authErrorResponse(error)
+  }
+
   try {
     const { id: returnRequestId } = await params;
 
@@ -39,7 +46,7 @@ export async function PUT(
       );
     }
 
-    const { action, admin_notes, admin_id } = validation.data;
+    const { action, admin_notes } = validation.data;
 
     // Fetch the return request
     const { data: returnRequest, error: returnError } = await supabase
@@ -72,21 +79,6 @@ export async function PUT(
       );
     }
 
-    // Verify admin user exists and has admin role
-    const { data: admin, error: adminError } = await supabase
-      .from('users')
-      .select('id, role')
-      .eq('id', admin_id)
-      .eq('role', 'admin')
-      .single();
-
-    if (adminError || !admin) {
-      return NextResponse.json(
-        { error: 'Unauthorized: Admin access required' },
-        { status: 403 }
-      );
-    }
-
     if (action === 'reject') {
       // Just update status to rejected
       const { data: updated, error: updateError } = await supabase
@@ -94,7 +86,7 @@ export async function PUT(
         .update({
           status: 'rejected',
           admin_notes,
-          approved_by: admin_id,
+          approved_by: admin.id,
           approved_at: new Date().toISOString(),
         })
         .eq('id', returnRequestId)
@@ -112,7 +104,7 @@ export async function PUT(
       // Log audit trail
       await supabase.from('audit_log').insert({
         actor_type: 'admin',
-        actor_id: admin_id,
+        actor_id: admin.id,
         action: 'return_request.reject',
         resource_type: 'return_request',
         resource_id: returnRequestId,
@@ -157,7 +149,7 @@ export async function PUT(
       .from('return_requests')
       .update({
         status: 'processing',
-        approved_by: admin_id,
+        approved_by: admin.id,
         approved_at: new Date().toISOString(),
         admin_notes,
       })
@@ -174,7 +166,7 @@ export async function PUT(
         metadata: {
           return_request_id: returnRequestId,
           order_id: order.id,
-          admin_id: admin_id,
+          admin_id: admin.id,
         },
       });
 
@@ -205,7 +197,7 @@ export async function PUT(
       // Log audit trail
       await supabase.from('audit_log').insert({
         actor_type: 'admin',
-        actor_id: admin_id,
+        actor_id: admin.id,
         action: 'return_request.approve',
         resource_type: 'return_request',
         resource_id: returnRequestId,

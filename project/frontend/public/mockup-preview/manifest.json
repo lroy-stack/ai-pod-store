@@ -1,0 +1,555 @@
+[
+  {
+    "productId": "d3244717-e6cf-4353-b7d3-d9d4e6ad8930",
+    "title": "Caffeine Anxiety",
+    "categorySlug": "drinkware",
+    "backgroundId": "wood-dark",
+    "originalUrl": "https://images-api.printify.com/mockup/69a457c2b78fd976090d4071/72174/40267/caffeine-anxiety.jpg?camera_label=front"
+  },
+  {
+    "productId": "6a10f06c-f15d-4b9c-a102-f05afcca8984",
+    "title": "Hang In There",
+    "categorySlug": "drinkware",
+    "backgroundId": "wood-dark",
+    "originalUrl": "https://images-api.printify.com/mockup/69a45664d83e082bf3067b32/72113/34777/hang-in-there.jpg?camera_label=front"
+  },
+  {
+    "productId": "86fbe870-8132-493c-9667-7b688d1ace88",
+    "title": "Self-Care",
+    "categorySlug": "drinkware",
+    "backgroundId": "wood-dark",
+    "originalUrl": "https://images-api.printify.com/mockup/69a456429f7e893e8a0e4f69/72113/34777/self-care.jpg?camera_label=front"
+  },
+  {
+    "productId": "a166180b-d854-49fc-973d-45ec84d9be36",
+    "title": "404 Purpose",
+    "categorySlug": "home-decor",
+    "backgroundId": "clean-white",
+    "originalUrl": "https://images-api.printify.com/mockup/69a454a99f7e893e8a0e4f06/109346/109582/404-purpose.jpg?camera_label=front"
+  },
+  {
+    "productId": "f45a934d-05b5-4c6f-93db-b23bb7f381af",
+    "title": "NOPE",
+    "categorySlug": "home-decor",
+    "backgroundId": "clean-white",
+    "originalUrl": "https://images-api.printify.com/mockup/69a454907fc2996b8d0abaed/109346/109582/nope.jpg?camera_label=front"
+  },
+  {
+    "productId": "931cb0ed-591b-472f-8511-22f54698b704",
+    "title": "Soup Fork",
+    "categorySlug": "drinkware",
+    "backgroundId": "wood-dark",
+    "originalUrl": "https://images-api.printify.com/mockup/69a4543e9f7e893e8a0e4eed/72174/40267/soup-fork.jpg?camera_label=front"
+  },
+  {
+    "productId": "55d50a79-2b9c-44cc-8fa0-29fbab07438e",
+    "title": "NOPE",
+    "categorySlug": "tote-bags",
+    "backgroundId": "sand-beige",
+    "originalUrl": "https://images-api.printify.com/mockup/69a4542a46730b56700a6796/79436/45009/nope.jpg?camera_label=front"
+  },
+  {
+    "productId": "a1797b7a-d26c-4640-b91f-26fe651a60a1",
+    "title": "Plans Cancelled",
+    "categorySlug": "tote-bags",
+    "backgroundId": "sand-beige",
+    "originalUrl": "https://images-api.printify.com/mockup/69a454157fc2996b8d0abace/79436/45009/plans-cancelled.jpg?camera_label=front"
+  },
+  {
+    "productId": "5580367f-3ebe-4d65-8627-e45a22689e1e",
+    "title": "Social Battery",
+    "categorySlug": "tote-bags",
+    "backgroundId": "sand-beige",
+    "originalUrl": "https://images-api.printify.com/mockup/69a45401414758b6c6031af3/79436/45009/social-battery.jpg?camera_label=front"
+  },
+  {
+    "productId": "c910de54-975e-407d-8d86-2a1e19b3d524",
+    "title": "Soup Fork",
+    "categorySlug": "tote-bags",
+    "backgroundId": "sand-beige",
+    "originalUrl": "https://images-api.printify.com/mockup/69a453ec46730b56700a678a/79436/45009/soup-fork.jpg?camera_label=front"
+  },
+  {
+    "productId": "6e6e03c4-2942-496c-b2b5-e36ad73c87f5",
+    "title": "Assignment",
+    "categorySlug": "caps",
+    "backgroundId": "kraft-paper",
+    "originalUrl": "https://images-api.printify.com/mockup/69a442c846730b56700a6437/118707/109496/assignment.jpg?camera_label=front"
+  },
+  {
+    "productId": "e9a11c50-1610-4516-a53e-7196ab79ce93",
+    "title": "Nihilist Penguin",
+    "categorySlug": "mugs",
+    "backgroundId": "wood-light",
+    "originalUrl": "https://images-api.printify.com/mockup/69a442b446730b56700a6434/80022/50708/nihilist-penguin.jpg?camera_label=front"
+  },
+  {
+    "productId": "21f93128-a9e3-4900-afec-a2effb186c90",
+    "title": "Seven Seconds",
+    "categorySlug": "mugs",
+    "backgroundId": "wood-light",
+    "originalUrl": "https://images-api.printify.com/mockup/69a442a021b032c37703371f/80022/50708/seven-seconds.jpg?camera_label=front"
+  },
+  {
+    "productId": "57767721-c991-4899-a6a6-38e7d06ea47e",
+    "title": "On Demand",
+    "categorySlug": "long-sleeves",
+    "backgroundId": "navy-gradient",
+    "originalUrl": "https://images-api.printify.com/mockup/69a4428c1ec5ca402c037681/33798/105264/on-demand.jpg?camera_label=front"
+  },
+  {
+    "productId": "2b6d7ed2-eb53-469c-bf27-c686115bffc2",
+    "title": "On Mute",
+    "categorySlug": "long-sleeves",
+    "backgroundId": "navy-gradient",
+    "originalUrl": "https://images-api.printify.com/mockup/69a44277414758b6c603178c/33798/105264/on-mute.jpg?camera_label=front"
+  },
+  {
+    "productId": "720e8b42-87c1-4d38-876c-eefc559f4077",
+    "title": "New 2016",
+    "categorySlug": "crewnecks",
+    "backgroundId": "navy-gradient",
+    "originalUrl": "https://images-api.printify.com/mockup/69a4426121b032c377033711/25459/98502/new-2016.jpg?camera_label=front"
+  },
+  {
+    "productId": "178fc47c-a2c6-4166-98da-25e297339564",
+    "title": "404 Purpose",
+    "categorySlug": "crewnecks",
+    "backgroundId": "navy-gradient",
+    "originalUrl": "https://images-api.printify.com/mockup/69a4424a3b12a90c8e08b607/25459/98502/404-purpose.jpg?camera_label=front"
+  },
+  {
+    "productId": "58f6f10b-de52-43c6-8beb-5c6fe65108e2",
+    "title": "Loading Motivation",
+    "categorySlug": "crewnecks",
+    "backgroundId": "navy-gradient",
+    "originalUrl": "https://images-api.printify.com/mockup/69a442327ab6ca0074090c68/25459/98502/loading-motivation.jpg?camera_label=front"
+  },
+  {
+    "productId": "e7bca6fa-c39f-47bc-8ab8-399bb03e7ce6",
+    "title": "Nope",
+    "categorySlug": "pullover-hoodies",
+    "backgroundId": "warm-gray",
+    "originalUrl": "https://images-api.printify.com/mockup/69a4421746730b56700a6418/32920/98424/nope.jpg?camera_label=front"
+  },
+  {
+    "productId": "44f77f0a-0058-47c2-aeae-f33038a6c30d",
+    "title": "Main Character",
+    "categorySlug": "pullover-hoodies",
+    "backgroundId": "warm-gray",
+    "originalUrl": "https://images-api.printify.com/mockup/69a442017ab6ca0074090c55/32920/98424/main-character.jpg?camera_label=front"
+  },
+  {
+    "productId": "c79a87b1-39bd-47ba-a47c-59ef758a04d0",
+    "title": "Nervous System",
+    "categorySlug": "pullover-hoodies",
+    "backgroundId": "warm-gray",
+    "originalUrl": "https://images-api.printify.com/mockup/69a441e946730b56700a6409/32920/98424/nervous-system.jpg?camera_label=front"
+  },
+  {
+    "productId": "36541f8c-f878-4ef0-8916-2c5a268f2cf2",
+    "title": "Hang In There",
+    "categorySlug": "pullover-hoodies",
+    "backgroundId": "warm-gray",
+    "originalUrl": "https://images-api.printify.com/mockup/69a441d246730b56700a63fe/32920/98424/hang-in-there.jpg?camera_label=front"
+  },
+  {
+    "productId": "4fff5d51-0b07-4fed-98f6-455d5c4e3d28",
+    "title": "Just For You",
+    "categorySlug": "t-shirts",
+    "backgroundId": "navy-gradient",
+    "originalUrl": "https://images-api.printify.com/mockup/69a441b91ec5ca402c037655/12124/92570/just-for-you.jpg?camera_label=front"
+  },
+  {
+    "productId": "a5867c4e-7f7d-48f0-82d4-052c0072ee6b",
+    "title": "Next Line",
+    "categorySlug": "t-shirts",
+    "backgroundId": "navy-gradient",
+    "originalUrl": "https://images-api.printify.com/mockup/69a4419feb470f86b105f44f/12124/92570/next-line.jpg?camera_label=front"
+  },
+  {
+    "productId": "922c9543-91b7-4530-9393-bee5db079626",
+    "title": "Caffeine Anxiety",
+    "categorySlug": "t-shirts",
+    "backgroundId": "navy-gradient",
+    "originalUrl": "https://images-api.printify.com/mockup/69a4418621b032c3770336a2/12124/92570/caffeine-anxiety.jpg?camera_label=front"
+  },
+  {
+    "productId": "465edf9a-3abb-48d4-a7dc-68e6698eee87",
+    "title": "Self-Care Mode",
+    "categorySlug": "t-shirts",
+    "backgroundId": "navy-gradient",
+    "originalUrl": "https://images-api.printify.com/mockup/69a4416e414758b6c6031733/12124/92570/self-care-mode.jpg?camera_label=front"
+  },
+  {
+    "productId": "a3b37e0f-636c-4a05-b680-b0f1151ff79b",
+    "title": "Plans Cancelled",
+    "categorySlug": "t-shirts",
+    "backgroundId": "navy-gradient",
+    "originalUrl": "https://images-api.printify.com/mockup/69a4415046730b56700a63ce/12124/92570/plans-cancelled.jpg?camera_label=front"
+  },
+  {
+    "productId": "2326f734-8025-42f7-82bf-847d0a5fb22c",
+    "title": "Social Battery",
+    "categorySlug": "t-shirts",
+    "backgroundId": "navy-gradient",
+    "originalUrl": "https://images-api.printify.com/mockup/69a441377fc2996b8d0ab73b/12124/92570/social-battery.jpg?camera_label=front"
+  },
+  {
+    "productId": "152676b0-4818-458b-8ffe-55e1b0a87877",
+    "title": "Existential Dread",
+    "categorySlug": "t-shirts",
+    "backgroundId": "navy-gradient",
+    "originalUrl": "https://images-api.printify.com/mockup/69a4411a414758b6c6031723/12124/92570/existential-dread.jpg?camera_label=front"
+  },
+  {
+    "productId": "7d6f605a-df7c-4d63-b9f6-5f530035d3f2",
+    "title": "Soup Fork",
+    "categorySlug": "t-shirts",
+    "backgroundId": "navy-gradient",
+    "originalUrl": "https://images-api.printify.com/mockup/69a441003b12a90c8e08b5a5/12124/92570/soup-fork.jpg?camera_label=front"
+  },
+  {
+    "productId": "c0036a6e-f697-4ac1-bee2-8a2433127650",
+    "title": "Code Works",
+    "categorySlug": "kids-sweatshirts",
+    "backgroundId": "soft-pastel",
+    "originalUrl": "https://images-api.printify.com/mockup/69a39b00a76c862bc906bb58/31739/301/code-works.jpg?camera_label=front"
+  },
+  {
+    "productId": "756fc09b-8ad8-4a6a-a422-e09fd92af24d",
+    "title": "AI Raised Me",
+    "categorySlug": "kids-sweatshirts",
+    "backgroundId": "soft-pastel",
+    "originalUrl": "https://images-api.printify.com/mockup/69a39adba5dcb1b9a904a2df/32256/169/ai-raised-me.jpg?camera_label=front"
+  },
+  {
+    "productId": "cce5134c-b444-4be9-8d62-5bb22e28858d",
+    "title": "Ctrl+Z Homework",
+    "categorySlug": "kids-tshirts",
+    "backgroundId": "soft-pastel",
+    "originalUrl": "https://images-api.printify.com/mockup/69a39ab83b12a90c8e089501/42519/105377/ctrlz-homework.jpg?camera_label=front"
+  },
+  {
+    "productId": "d27d9e55-f50f-43ce-92ae-4ff8d9a936af",
+    "title": "Bedtime 404",
+    "categorySlug": "kids-tshirts",
+    "backgroundId": "soft-pastel",
+    "originalUrl": "https://images-api.printify.com/mockup/69a39a983f0e39248902b348/35036/266/bedtime-404.jpg?camera_label=front"
+  },
+  {
+    "productId": "84e01ffc-68c9-4151-b5cf-3a98e4cf28ee",
+    "title": "Sudo Ice Cream",
+    "categorySlug": "kids-tshirts",
+    "backgroundId": "soft-pastel",
+    "originalUrl": "https://images-api.printify.com/mockup/69a39a76339f8a44c50de734/35036/266/sudo-ice-cream.jpg?camera_label=front"
+  },
+  {
+    "productId": "c53017eb-9ef4-4432-867d-d8c8a37e9c95",
+    "title": "Bug Reporter",
+    "categorySlug": "baby-clothing",
+    "backgroundId": "soft-pastel",
+    "originalUrl": "https://images-api.printify.com/mockup/69a39a529f7e893e8a0e2aeb/79907/99448/bug-reporter.jpg?camera_label=front"
+  },
+  {
+    "productId": "62e3a996-7c85-4952-a15d-96d0910d6963",
+    "title": "Prompt Engineer",
+    "categorySlug": "sneakers",
+    "backgroundId": "urban-gray",
+    "originalUrl": "https://images-api.printify.com/mockup/69a37af03f0e39248902ad2e/109711/105027/prompt-engineer.jpg?camera_label=front"
+  },
+  {
+    "productId": "5ec0fb1a-fae1-48e4-926a-8e99625fc68b",
+    "title": "Compiling Tears",
+    "categorySlug": "baby-clothing",
+    "backgroundId": "soft-pastel",
+    "originalUrl": "https://images-api.printify.com/mockup/69a37a53f7d8be67940cdda1/80277/99453/compiling-tears.jpg?camera_label=front"
+  },
+  {
+    "productId": "77f23767-4128-4fab-9270-f7af79375940",
+    "title": "Just One Button",
+    "categorySlug": "pullover-hoodies",
+    "backgroundId": "warm-gray",
+    "originalUrl": "https://images-api.printify.com/mockup/69a35d1f46730b56700a36e6/32920/98424/just-one-button.jpg?camera_label=front"
+  },
+  {
+    "productId": "e5729beb-6e20-4795-ab1c-6ea5d741c2d3",
+    "title": "Prompt Injection",
+    "categorySlug": "long-sleeves",
+    "backgroundId": "navy-gradient",
+    "originalUrl": "https://images-api.printify.com/mockup/69a356761ec5ca402c034870/33798/105264/prompt-injection.jpg?camera_label=front"
+  },
+  {
+    "productId": "eef36931-35fd-4c8c-9295-f1c3be297fcb",
+    "title": "AI Personalities",
+    "categorySlug": "crewnecks",
+    "backgroundId": "navy-gradient",
+    "originalUrl": "https://images-api.printify.com/mockup/69a35660eb470f86b105c52b/25459/98502/ai-personalities.jpg?camera_label=front"
+  },
+  {
+    "productId": "0a0085ac-be8b-4e68-b194-c448d1af2b09",
+    "title": "Three Models",
+    "categorySlug": "t-shirts",
+    "backgroundId": "navy-gradient",
+    "originalUrl": "https://images-api.printify.com/mockup/69a356321ec5ca402c034860/105894/102330/three-models.jpg?camera_label=front"
+  },
+  {
+    "productId": "49d3093b-abf5-46a5-82cb-362ffe6c863c",
+    "title": "Scope Creep",
+    "categorySlug": "t-shirts",
+    "backgroundId": "navy-gradient",
+    "originalUrl": "https://images-api.printify.com/mockup/69a356193f2bfa5bde0865f6/12124/92570/scope-creep.jpg?camera_label=front"
+  },
+  {
+    "productId": "052903d6-8b14-4373-832a-4a04df2f495e",
+    "title": "Dangerous Flag",
+    "categorySlug": "t-shirts",
+    "backgroundId": "navy-gradient",
+    "originalUrl": "https://images-api.printify.com/mockup/69a355feeb470f86b105c51d/18102/102044/dangerous-flag.jpg?camera_label=front-2"
+  },
+  {
+    "productId": "13bc1ffc-a703-4a9b-96fb-a460c429990c",
+    "title": "Option Two",
+    "categorySlug": "t-shirts",
+    "backgroundId": "navy-gradient",
+    "originalUrl": "https://images-api.printify.com/mockup/69a355e57fc2996b8d0a8a69/63659/23477/option-two.jpg?camera_label=front"
+  },
+  {
+    "productId": "725e1aec-2b65-49da-ac56-2054740de2e0",
+    "title": "Under Where",
+    "categorySlug": "t-shirts",
+    "backgroundId": "navy-gradient",
+    "originalUrl": "https://images-api.printify.com/mockup/69a355cc7fc2996b8d0a8a5f/38194/97992/under-where.jpg?camera_label=front"
+  },
+  {
+    "productId": "02ab1785-1c65-41a6-bf6a-bc40d4a31494",
+    "title": "Strawberry Count",
+    "categorySlug": "t-shirts",
+    "backgroundId": "navy-gradient",
+    "originalUrl": "https://images-api.printify.com/mockup/69a355b3f4bd86b0d2086940/12124/92570/strawberry-count.jpg?camera_label=front"
+  },
+  {
+    "productId": "d4b99ced-99ac-4d54-975e-f121be3dc28b",
+    "title": "Prompt Engineer",
+    "categorySlug": "mugs",
+    "backgroundId": "wood-light",
+    "originalUrl": "https://images-api.printify.com/mockup/69a31663fd1ecc5a800fbcea/80022/50708/prompt-engineer.jpg?camera_label=front"
+  },
+  {
+    "productId": "9457e54d-4caa-4338-aa14-6ec57d7bbea4",
+    "title": "Full Credit",
+    "categorySlug": "mugs",
+    "backgroundId": "wood-light",
+    "originalUrl": "https://images-api.printify.com/mockup/69a316693b12a90c8e0879db/80022/50708/full-credit.jpg?camera_label=front"
+  },
+  {
+    "productId": "23cbb77f-c756-418d-aa66-410d1365bbc2",
+    "title": "Git Reset",
+    "categorySlug": "tumblers",
+    "backgroundId": "dark-marble",
+    "originalUrl": "https://images-api.printify.com/mockup/69a3166e7fc2996b8d0a7cff/119531/109901/git-reset.jpg?camera_label=front"
+  },
+  {
+    "productId": "0f38cb07-a036-40df-95ae-306d161c8b4e",
+    "title": "404 Dev",
+    "categorySlug": "tumblers",
+    "backgroundId": "dark-marble",
+    "originalUrl": "https://images-api.printify.com/mockup/69a31673339f8a44c50dcc41/78458/41628/404-dev.jpg?camera_label=front"
+  },
+  {
+    "productId": "aa2547a4-6dc6-4bb2-8d37-891b8bc39d59",
+    "title": "Refactor Anyway",
+    "categorySlug": "bottles",
+    "backgroundId": "dark-marble",
+    "originalUrl": "https://images-api.printify.com/mockup/69a316813f0e3924890298f8/76801/24233/refactor-anyway.jpg?camera_label=front"
+  },
+  {
+    "productId": "429ebeff-db5e-44d5-ba8c-de952d769fef",
+    "title": "AI Wrote This",
+    "categorySlug": "caps",
+    "backgroundId": "kraft-paper",
+    "originalUrl": "https://images-api.printify.com/mockup/69a307d89f7e893e8a0e0d4b/118701/109496/ai-wrote-this-embroidered-structured-cap.jpg?camera_label=front"
+  },
+  {
+    "productId": "9a15e2b3-5940-4e60-9338-9e4c603d6192",
+    "title": "Dark Mode",
+    "categorySlug": "caps",
+    "backgroundId": "kraft-paper",
+    "originalUrl": "https://images-api.printify.com/mockup/69a307daeb470f86b105b3ff/118707/109496/dark-mode-embroidered-structured-cap.jpg?camera_label=front"
+  },
+  {
+    "productId": "ceafc0f9-80bd-4ccf-8d0b-f93dc2d81774",
+    "title": "Friday Deploy",
+    "categorySlug": "snapbacks",
+    "backgroundId": "kraft-paper",
+    "originalUrl": "https://images-api.printify.com/mockup/69a307db339f8a44c50dc8f0/118987/110260/friday-deploy-embroidered-snapback.jpg?camera_label=front-side"
+  },
+  {
+    "productId": "4f1a7d21-3881-430e-b695-53daf9e7ed8e",
+    "title": "It Works",
+    "categorySlug": "caps",
+    "backgroundId": "kraft-paper",
+    "originalUrl": "https://images-api.printify.com/mockup/69a307dceb470f86b105b401/118724/110130/it-works-embroidered-trucker-cap.jpg?camera_label=front"
+  },
+  {
+    "productId": "5cacafc5-5398-441d-9424-251f823e3712",
+    "title": "Prompt Me",
+    "categorySlug": "dad-hats",
+    "backgroundId": "kraft-paper",
+    "originalUrl": "https://images-api.printify.com/mockup/69a307dd9f7e893e8a0e0d4d/118240/109493/prompt-me-embroidered-dad-hat.jpg?camera_label=front"
+  },
+  {
+    "productId": "497fc4c5-b0ec-4159-84d5-fc6d050e19f6",
+    "title": "Vibe Coded",
+    "categorySlug": "beanies",
+    "backgroundId": "kraft-paper",
+    "originalUrl": "https://images-api.printify.com/mockup/69a307e0414758b6c602d92f/116433/109382/vibe-coded-embroidered-beanie.jpg?camera_label=front"
+  },
+  {
+    "productId": "75c19f30-003b-4a95-812a-852ae5aa337d",
+    "title": "Shadow Tee",
+    "categorySlug": "t-shirts",
+    "backgroundId": "navy-gradient",
+    "originalUrl": "https://images-api.printify.com/mockup/69a3034c46730b56700a23a5/12124/92570/shadow-tee.jpg?camera_label=front"
+  },
+  {
+    "productId": "7024ef34-abff-47b5-b6aa-23b4f3b588a0",
+    "title": "Prism Tee",
+    "categorySlug": "t-shirts",
+    "backgroundId": "navy-gradient",
+    "originalUrl": "https://images-api.printify.com/mockup/69a303589f7e893e8a0e0c2d/12124/92570/prism-tee.jpg?camera_label=front"
+  },
+  {
+    "productId": "168731f6-75db-4075-bb30-c1ec8fead998",
+    "title": "Absolutely Right",
+    "categorySlug": "t-shirts",
+    "backgroundId": "navy-gradient",
+    "originalUrl": "https://images-api.printify.com/mockup/69a3036509542fc7920317d3/12124/92570/absolutely-right.jpg?camera_label=front"
+  },
+  {
+    "productId": "60f6ceb4-46a7-4bd3-92c0-2e67c4cf0f66",
+    "title": "Vibe Coder",
+    "categorySlug": "t-shirts",
+    "backgroundId": "navy-gradient",
+    "originalUrl": "https://images-api.printify.com/mockup/69a303707ab6ca007408cd3b/12124/92570/vibe-coder.jpg?camera_label=front"
+  },
+  {
+    "productId": "e4867449-08b1-408a-b85b-b6ecd9b4274c",
+    "title": "Zero Bugs",
+    "categorySlug": "t-shirts",
+    "backgroundId": "navy-gradient",
+    "originalUrl": "https://images-api.printify.com/mockup/69a303797fc2996b8d0a785c/12124/92570/zero-bugs.jpg?camera_label=front"
+  },
+  {
+    "productId": "28523f37-23ca-4087-a7e1-511ea8da54eb",
+    "title": "Ghost Tee",
+    "categorySlug": "t-shirts",
+    "backgroundId": "navy-gradient",
+    "originalUrl": "https://images-api.printify.com/mockup/69a300327fc2996b8d0a7780/12100/92570/ghost-tee.jpg?camera_label=front"
+  },
+  {
+    "productId": "8345cf03-55ef-4a74-842f-b669df39fac8",
+    "title": "SKAPARA Noir",
+    "categorySlug": "mugs",
+    "backgroundId": "wood-light",
+    "originalUrl": "https://images-api.printify.com/mockup/69a2dd02eb470f86b105a8f4/80022/50708/skapara-noir-two-tone-mug.jpg?camera_label=front"
+  },
+  {
+    "productId": "a313eaea-4758-417c-aa26-350bcf899bb5",
+    "title": "SKAPARA Step — Low Top Sneaker",
+    "categorySlug": "sneakers",
+    "backgroundId": "urban-gray",
+    "originalUrl": "https://images-api.printify.com/mockup/69a2d99619bf4a9b4f097875/74610/81233/skapara-step-low-top-sneaker.jpg?camera_label=both-angle"
+  },
+  {
+    "productId": "c42644f0-f3c4-4447-a094-3196cce0079a",
+    "title": "SKAPARA Grip",
+    "categorySlug": "desk-mats",
+    "backgroundId": "desk-surface",
+    "originalUrl": "https://images-api.printify.com/mockup/69a2d977414758b6c602cd57/78488/40319/skapara-grip-desk-mat.jpg?camera_label=front"
+  },
+  {
+    "productId": "7e1cbae1-9621-4f3f-9680-fb3148f6786b",
+    "title": "SKAPARA Core",
+    "categorySlug": "crewnecks",
+    "backgroundId": "navy-gradient",
+    "originalUrl": "https://images-api.printify.com/mockup/69a2d9459f7e893e8a0e0162/63731/5080/skapara-core.jpg?camera_label=front"
+  },
+  {
+    "productId": "e71c98f2-7105-4a41-a01c-8408dffa3b95",
+    "title": "SKAPARA Signal",
+    "categorySlug": "bottles",
+    "backgroundId": "dark-marble",
+    "originalUrl": "https://images-api.printify.com/mockup/69a2d930eb470f86b105a7ca/76801/24233/skapara-signal-water-bottle.jpg?camera_label=front"
+  },
+  {
+    "productId": "4c5c39bb-92d8-4e5a-8079-86f6561fc58c",
+    "title": "GPU",
+    "categorySlug": "zip-hoodies",
+    "backgroundId": "warm-gray",
+    "originalUrl": "https://images-api.printify.com/mockup/69a244604a3d561dc50f10aa/63498/4798/gpu-zip-up-hoodie.jpg?camera_label=front"
+  },
+  {
+    "productId": "a95942a5-b8c3-4bd9-b0c8-181f521d009c",
+    "title": "GPT",
+    "categorySlug": "bucket-hats",
+    "backgroundId": "kraft-paper",
+    "originalUrl": "https://images-api.printify.com/mockup/69a238303b12a90c8e084040/119317/109645/gpt-embroidered-bucket-hat.jpg?camera_label=front"
+  },
+  {
+    "productId": "fce92789-c074-4d97-9c52-c17167a63e93",
+    "title": "NPC",
+    "categorySlug": "bucket-hats",
+    "backgroundId": "kraft-paper",
+    "originalUrl": "https://images-api.printify.com/mockup/69a233b47fc2996b8d0a413c/119317/109645/npc-embroidered-bucket-hat.jpg?camera_label=front"
+  },
+  {
+    "productId": "6af8991e-dbbc-4d91-a406-7ad8c5284038",
+    "title": "Flux",
+    "categorySlug": "bucket-hats",
+    "backgroundId": "kraft-paper",
+    "originalUrl": "https://images-api.printify.com/mockup/69a22daecf24bdf7260e618a/119317/109645/flux-embroidered-bucket-hat.jpg?camera_label=front"
+  },
+  {
+    "productId": "a88e3871-f55c-44da-9ae2-7c7c8c170bd5",
+    "title": "Origin",
+    "categorySlug": "pullover-hoodies",
+    "backgroundId": "warm-gray",
+    "originalUrl": "https://images-api.printify.com/mockup/69a229f244ef0b5de90cf93c/98666/109520/origin-embroidered-hoodie.jpg?camera_label=front"
+  },
+  {
+    "productId": "cb929167-921f-4aeb-b246-8b9fa8c24c5b",
+    "title": "Synapse",
+    "categorySlug": "pullover-hoodies",
+    "backgroundId": "warm-gray",
+    "originalUrl": "https://images-api.printify.com/mockup/69a22732eb470f86b10579a4/98666/109520/synapse-embroidered-hoodie.jpg?camera_label=front"
+  },
+  {
+    "productId": "76bcd12a-ef12-405f-a6c6-bc1bd1eba64d",
+    "title": "Bug Free",
+    "categorySlug": "crewnecks",
+    "backgroundId": "navy-gradient",
+    "originalUrl": "https://images-api.printify.com/mockup/69a21fe39f7e893e8a0dd0cd/63731/5080/bug-free-crew-neck-sweatshirt.jpg?camera_label=front"
+  },
+  {
+    "productId": "af8bd871-30ec-4997-99cf-72ebb9dcc249",
+    "title": "Ultra Hood",
+    "categorySlug": "pullover-hoodies",
+    "backgroundId": "warm-gray",
+    "originalUrl": "https://images-api.printify.com/mockup/69a2075cee031fa5a302af60/98691/109520/ultra-hood.jpg?camera_label=front"
+  },
+  {
+    "productId": "cdfc800e-9936-4608-8d86-ae938b1a70a6",
+    "title": "Phantom Hood",
+    "categorySlug": "pullover-hoodies",
+    "backgroundId": "warm-gray",
+    "originalUrl": "https://images-api.printify.com/mockup/69a20752414758b6c60296cc/75010/109520/phantom-hood.jpg?camera_label=front"
+  },
+  {
+    "productId": "65aea0f7-a037-4aab-a4ec-d87c500f9474",
+    "title": "Abyss Hood",
+    "categorySlug": "pullover-hoodies",
+    "backgroundId": "warm-gray",
+    "originalUrl": "https://images-api.printify.com/mockup/69a207491ec5ca402c02f418/75009/109520/abyss-hood.jpg?camera_label=front"
+  }
+]

@@ -52,18 +52,18 @@ export async function POST(
       );
     }
 
-    // Check if the order has a failed Printify status
-    if (order.printify_status !== 'failed') {
+    // Check if the order has a failed provider status
+    if (order.provider_status !== 'failed' && order.pod_error === null) {
       return NextResponse.json(
-        { error: 'Order does not have a failed Printify status' },
+        { error: 'Order does not have a failed provider status' },
         { status: 400 }
       );
     }
 
-    // Fetch order items
+    // Fetch order items with provider-agnostic columns
     const { data: items, error: itemsError } = await supabase
       .from('order_items')
-      .select('*')
+      .select('*, product:products(provider_product_id), variant:product_variants(external_variant_id)')
       .eq('order_id', orderId);
 
     if (itemsError || !items || items.length === 0) {
@@ -73,77 +73,47 @@ export async function POST(
       );
     }
 
-    // Prepare Printify order payload
-    const printifyLineItems = items.map((item) => ({
-      product_id: item.printify_product_id,
-      variant_id: item.printify_variant_id,
-      quantity: item.quantity,
-    }));
+    // Use the frontend API to resubmit the order via the provider abstraction layer
+    const frontendUrl = process.env.NEXT_PUBLIC_FRONTEND_URL || 'http://localhost:3000';
+    const cronSecret = process.env.CRON_SECRET || process.env.PODCLAW_BRIDGE_AUTH_TOKEN;
 
-    // Submit to Printify API
-    const printifyResponse = await fetch(
-      `https://api.printify.com/v1/shops/${process.env.PRINTIFY_SHOP_ID}/orders.json`,
+    const retryResponse = await fetch(
+      `${frontendUrl}/api/cron/retry-printify-orders`,
       {
-        method: 'POST',
+        method: 'GET',
         headers: {
-          'Authorization': `Bearer ${process.env.PRINTIFY_API_TOKEN}`,
-          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${cronSecret}`,
         },
-        body: JSON.stringify({
-          external_id: orderId,
-          label: `Order ${orderId.substring(0, 8)}`,
-          line_items: printifyLineItems,
-          shipping_method: 1, // Standard shipping
-          send_shipping_notification: true,
-          address_to: order.shipping_address,
-        }),
       }
     );
 
-    if (!printifyResponse.ok) {
-      const errorData = await printifyResponse.json();
-      throw new Error(errorData.message || 'Printify API error');
+    if (!retryResponse.ok) {
+      throw new Error('Failed to trigger order retry via cron');
     }
 
-    const printifyOrder = await printifyResponse.json();
-
-    // Update order with new Printify order ID and reset status
-    const { error: updateError } = await supabase
-      .from('orders')
-      .update({
-        printify_order_id: printifyOrder.id,
-        printify_status: 'submitted',
-        status: 'submitted',
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', orderId);
-
-    if (updateError) {
-      throw new Error('Failed to update order status');
-    }
+    const retryResult = await retryResponse.json();
 
     // Create audit log entry
     await supabase.from('audit_log').insert({
       user_id: session.id,
-      action: 'order.printify.retry',
+      action: 'order.provider.retry',
       resource_type: 'order',
       resource_id: orderId,
       details: {
-        printify_order_id: printifyOrder.id,
-        previous_status: 'failed',
-        new_status: 'submitted',
+        previous_status: order.provider_status || 'failed',
+        triggered_by: 'admin_manual_retry',
       },
     });
 
     return NextResponse.json({
       success: true,
-      printify_order_id: printifyOrder.id,
-      message: 'Order successfully resubmitted to Printify',
+      message: 'Order retry triggered via provider',
+      result: retryResult,
     });
   } catch (error: any) {
-    console.error('Printify retry error:', error);
+    console.error('Provider retry error:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to retry Printify submission' },
+      { error: error.message || 'Failed to retry provider submission' },
       { status: 500 }
     );
   }

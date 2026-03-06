@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2244" height="945" viewBox="0 0 2244 945">
+
+  <!-- B02: "My Commute Is 7 Seconds" — BP1018 Mug 2244×945 SUBLIMATION -->
+  <!-- DARK TEXT for white ceramic exterior -->
+  <!-- Accent: #10B981 (green) — contrasts well on white -->
+  <!-- Fonts: Caveat, Oswald, Bebas Neue, Courier New — same as original -->
+
+  <!-- "my commute is" — Caveat handwritten, navy -->
+  <text x="1122" y="160"
+        font-family="'Caveat', cursive"
+        font-size="140"
+        fill="#0F172A" text-anchor="middle">my commute is</text>
+
+  <!-- "7" shadow — light green depth (behind main, offset right+down) -->
+  <text x="1130" y="580"
+        font-family="'Oswald', sans-serif"
+        font-size="420" font-weight="700"
+        fill="#A7F3D0" text-anchor="middle">7</text>
+
+  <!-- "7" — Oswald bold, hero number, green -->
+  <text x="1122" y="572"
+        font-family="'Oswald', sans-serif"
+        font-size="420" font-weight="700"
+        fill="#10B981" text-anchor="middle">7</text>
+
+  <!-- "SECONDS" — Bebas Neue condensed, navy -->
+  <text x="1122" y="740"
+        font-family="'Bebas Neue', sans-serif"
+        font-size="160"
+        fill="#0F172A" text-anchor="middle">SECONDS</text>
+
+  <!-- "bed → desk" — Courier New, dark gray -->
+  <text x="1122" y="880"
+        font-family="'Courier New', monospace"
+        font-size="80" font-weight="bold"
+        fill="#374151" text-anchor="middle">bed → desk</text>
+
+</svg>

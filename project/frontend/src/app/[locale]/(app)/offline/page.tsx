@@ -30,7 +30,7 @@ export default function OfflinePage() {
       {products.length > 0 && (
         <div className="mt-8 w-full max-w-4xl">
           <h2 className="text-lg font-semibold mb-4">{t('cachedProducts')}</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-4">
             {products.slice(0, 12).map((product) => (
               <Card key={String(product.id)} className="overflow-hidden">
                 <CardContent className="p-3">

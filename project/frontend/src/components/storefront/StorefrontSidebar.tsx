@@ -13,6 +13,7 @@
 
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
+import { BrandMark } from '@/components/ui/brand-mark'
 import Link from 'next/link'
 import { useParams, usePathname, useSearchParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
@@ -31,6 +32,7 @@ interface SidebarProduct {
   id: string
   title: string
   price: number
+  compareAtPrice?: number
   currency: string
   rating: number
   image: string | null
@@ -147,21 +149,7 @@ export function StorefrontSidebar({ onNavigate, onCollapse }: StorefrontSidebarP
       {/* Logo + Store Name */}
       <div className="px-4 h-14 border-b border-border flex items-center justify-between">
         <Link href={`/${locale}`} className="flex items-center gap-3" onClick={onNavigate}>
-          <div className="relative w-8 h-8 flex-shrink-0">
-            <Image
-              src="/brand/skapara-mark-dark.svg"
-              alt="Skapara"
-              fill
-              className="object-contain dark:hidden"
-            />
-            <Image
-              src="/brand/skapara-mark-white.svg"
-              alt="Skapara"
-              fill
-              className="object-contain hidden dark:block"
-            />
-          </div>
-          <span className="text-sm font-bold tracking-tight uppercase text-foreground">Skapara</span>
+          <BrandMark showName nameClass="text-sm" />
         </Link>
         {onCollapse && (
           <Button variant="ghost" size="icon" className="h-7 w-7 hidden lg:inline-flex" onClick={onCollapse}>
@@ -233,6 +221,7 @@ export function StorefrontSidebar({ onNavigate, onCollapse }: StorefrontSidebarP
                 key={product.id}
                 title={product.title}
                 price={formatPrice(product.price, locale, product.currency)}
+                originalPrice={product.compareAtPrice ? formatPrice(product.compareAtPrice, locale, product.currency) : undefined}
                 rating={product.rating}
                 image={product.image}
                 onClick={() => handleProductClick(product.id, product)}
@@ -251,6 +240,7 @@ export function StorefrontSidebar({ onNavigate, onCollapse }: StorefrontSidebarP
                 key={product.id}
                 title={product.title}
                 price={formatPrice(product.price, locale, product.currency)}
+                originalPrice={product.compareAtPrice ? formatPrice(product.compareAtPrice, locale, product.currency) : undefined}
                 rating={product.rating}
                 image={product.image}
                 onClick={() => handleProductClick(product.id, product)}
@@ -274,12 +264,14 @@ export function StorefrontSidebar({ onNavigate, onCollapse }: StorefrontSidebarP
 function ProductCard({
   title,
   price,
+  originalPrice,
   rating,
   image,
   onClick,
 }: {
   title: string
   price: string
+  originalPrice?: string
   rating: number
   image?: string | null
   onClick: () => void
@@ -300,7 +292,14 @@ function ProductCard({
       <div className="flex-1 min-w-0 text-left">
         <p className="text-sm font-medium text-foreground truncate">{title}</p>
         <div className="flex items-center gap-2 mt-0.5">
-          <span className="text-xs font-medium text-foreground">{price}</span>
+          {originalPrice ? (
+            <>
+              <span className="text-[11px] line-through text-muted-foreground">{originalPrice}</span>
+              <span className="text-xs font-medium text-destructive">{price}</span>
+            </>
+          ) : (
+            <span className="text-xs font-medium text-foreground">{price}</span>
+          )}
           <div className="flex items-center gap-1">
             <span className="text-xs text-muted-foreground">&#9733;</span>
             <span className="text-xs text-muted-foreground">{rating}</span>

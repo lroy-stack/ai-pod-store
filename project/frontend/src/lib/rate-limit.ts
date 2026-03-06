@@ -67,6 +67,12 @@ export const designGenerateLimiter = new RateLimiter(5, 60 * 1000)  // 5 request
 export const mockupGenerateLimiter = new RateLimiter(10, 60 * 1000) // 10 requests / 1 min
 export const newsletterLimiter = new RateLimiter(10, 60 * 1000)     // 10 requests / 1 min
 export const previewTextLimiter = new RateLimiter(20, 60 * 1000)    // 20 requests / 1 min (canvas rendering is CPU-intensive)
+export const changePasswordLimiter = new RateLimiter(5, 15 * 60 * 1000)  // 5 / 15 min
+export const designSaveLimiter = new RateLimiter(30, 60 * 1000)          // 30 / min
+export const personalizeLimiter = new RateLimiter(20, 60 * 1000)         // 20 / min
+export const reviewLimiter = new RateLimiter(5, 60 * 60 * 1000)          // 5 / hora
+export const avatarUploadLimiter = new RateLimiter(5, 15 * 60 * 1000)    // 5 / 15 min
+export const changeEmailLimiter = new RateLimiter(3, 60 * 60 * 1000)     // 3 / hora
 
 /**
  * Timing-safe comparison for bearer tokens (prevents timing attacks).

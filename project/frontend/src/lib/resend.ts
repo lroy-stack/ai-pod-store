@@ -5,7 +5,8 @@
  */
 
 import { Resend } from 'resend'
-import { createClient } from '@supabase/supabase-js'
+import { getBrandConfig } from '@/lib/brand-config-server'
+import { BASE_URL } from '@/lib/store-config'
 
 /** Centralized email color palette — update here to match brand theme */
 const EMAIL_COLORS = {
@@ -42,35 +43,6 @@ export const resend: Resend = new Proxy({} as Resend, {
     return typeof value === 'function' ? value.bind(client) : value
   },
 })
-
-/**
- * Fetch brand configuration from database
- * Returns brand_name and brand_tagline for use in emails
- */
-async function getBrandConfig(): Promise<{ brandName: string; brandTagline: string }> {
-  try {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_KEY!
-    )
-
-    const { data, error } = await supabase
-      .from('brand_config')
-      .select('brand_name, brand_tagline')
-      .eq('is_active', true)
-      .single()
-
-    if (error || !data) {
-      console.warn('Failed to fetch brand config, using fallback:', error)
-      return { brandName: 'Skapara', brandTagline: 'AI-Powered Print on Demand' }
-    }
-
-    return { brandName: data.brand_name, brandTagline: data.brand_tagline }
-  } catch (error) {
-    console.error('Exception fetching brand config:', error)
-    return { brandName: 'Skapara', brandTagline: 'AI-Powered Print on Demand' }
-  }
-}
 
 /**
  * Send order confirmation email
@@ -457,6 +429,252 @@ export async function sendOrderCancelledEmail(params: {
 }
 
 /**
+ * Send order delivered email
+ */
+export async function sendOrderDeliveredEmail(params: {
+  to: string
+  orderId: string
+  orderNumber: string
+  locale: string
+}) {
+  const { to, orderId, orderNumber, locale } = params
+
+  const { brandName, brandTagline } = await getBrandConfig()
+  const baseUrl = BASE_URL
+
+  // Locale-aware email content
+  const subjects = {
+    en: `Your order #${orderNumber} has been delivered!`,
+    es: `¡Tu pedido #${orderNumber} ha sido entregado!`,
+    de: `Deine Bestellung #${orderNumber} wurde zugestellt!`,
+  }
+
+  const headings = {
+    en: 'Your order has been delivered! 🎉',
+    es: '¡Tu pedido ha sido entregado! 🎉',
+    de: 'Deine Bestellung wurde zugestellt! 🎉',
+  }
+
+  const bodies = {
+    en: `Great news! Your order #${orderNumber} has been delivered. We hope you love your new items!`,
+    es: `¡Buenas noticias! Tu pedido #${orderNumber} ha sido entregado. ¡Esperamos que te encanten tus nuevos artículos!`,
+    de: `Gute Nachrichten! Deine Bestellung #${orderNumber} wurde zugestellt. Wir hoffen, dass dir deine neuen Artikel gefallen!`,
+  }
+
+  const reviewTexts = {
+    en: 'Leave a Review',
+    es: 'Dejar una Reseña',
+    de: 'Bewertung Abgeben',
+  }
+
+  const reviewPromptTexts = {
+    en: 'Enjoyed your purchase? We would love to hear your feedback! Leave a review and help other customers find their perfect products.',
+    es: '¿Te gustó tu compra? ¡Nos encantaría conocer tu opinión! Deja una reseña y ayuda a otros clientes a encontrar sus productos perfectos.',
+    de: 'Hat dir dein Kauf gefallen? Wir würden uns über dein Feedback freuen! Hinterlasse eine Bewertung und hilf anderen Kunden, ihre perfekten Produkte zu finden.',
+  }
+
+  const supportTexts = {
+    en: 'If you have any issues with your order, please don\'t hesitate to contact our support team.',
+    es: 'Si tienes algún problema con tu pedido, no dudes en contactar a nuestro equipo de soporte.',
+    de: 'Wenn du Probleme mit deiner Bestellung hast, zögere nicht, unser Support-Team zu kontaktieren.',
+  }
+
+  const contactSupportTexts = {
+    en: 'Contact Support',
+    es: 'Contactar Soporte',
+    de: 'Support Kontaktieren',
+  }
+
+  const subject = subjects[locale as keyof typeof subjects] || subjects.en
+  const heading = headings[locale as keyof typeof headings] || headings.en
+  const body = bodies[locale as keyof typeof bodies] || bodies.en
+  const reviewText = reviewTexts[locale as keyof typeof reviewTexts] || reviewTexts.en
+  const reviewPromptText = reviewPromptTexts[locale as keyof typeof reviewPromptTexts] || reviewPromptTexts.en
+  const supportText = supportTexts[locale as keyof typeof supportTexts] || supportTexts.en
+  const contactSupportText = contactSupportTexts[locale as keyof typeof contactSupportTexts] || contactSupportTexts.en
+
+  try {
+    const { data, error } = await resend.emails.send({
+      from: `${brandName} <${process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev'}>`,
+      to,
+      subject,
+      html: `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${subject}</title>
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: ${EMAIL_COLORS.bodyText}; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <div style="background: linear-gradient(135deg, ${EMAIL_COLORS.gradientStart} 0%, ${EMAIL_COLORS.gradientEnd} 100%); color: white; padding: 30px; border-radius: 8px 8px 0 0; text-align: center;">
+    <h1 style="margin: 0; font-size: 28px;">${brandName}</h1>
+  </div>
+
+  <div style="background: ${EMAIL_COLORS.panelBg}; padding: 30px; border-radius: 0 0 8px 8px;">
+    <h2 style="color: ${EMAIL_COLORS.heading}; margin-top: 0;">${heading}</h2>
+
+    <p style="font-size: 16px; margin: 20px 0;">${body}</p>
+
+    <div style="background: white; border: 1px solid ${EMAIL_COLORS.cardBorder}; border-radius: 6px; padding: 20px; margin: 20px 0;">
+      <p style="margin: 0 0 10px 0;"><strong>${locale === 'es' ? 'Número de Pedido' : locale === 'de' ? 'Bestellnummer' : 'Order Number'}:</strong> #${orderNumber}</p>
+    </div>
+
+    <p style="font-size: 14px; color: ${EMAIL_COLORS.mutedText}; margin-top: 20px; padding: 15px; background: ${EMAIL_COLORS.warningBg}; border-left: 4px solid ${EMAIL_COLORS.warningBorder}; border-radius: 4px;">
+      ${reviewPromptText}
+    </p>
+
+    <div style="text-align: center; margin: 30px 0;">
+      <a href="${baseUrl}/${locale}/shop" style="display: inline-block; background: ${EMAIL_COLORS.ctaButton}; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: 600;">${reviewText}</a>
+    </div>
+
+    <p style="font-size: 14px; color: ${EMAIL_COLORS.mutedText}; margin-top: 20px;">
+      ${supportText}
+    </p>
+
+    <div style="text-align: center; margin: 20px 0;">
+      <a href="${baseUrl}/${locale}/contact" style="display: inline-block; background: white; color: ${EMAIL_COLORS.ctaButton}; padding: 10px 24px; text-decoration: none; border-radius: 6px; font-weight: 600; border: 2px solid ${EMAIL_COLORS.ctaButton};">${contactSupportText}</a>
+    </div>
+
+    <p style="font-size: 14px; color: ${EMAIL_COLORS.mutedText}; margin-top: 30px;">
+      ${locale === 'es' ? 'Gracias por tu compra' : locale === 'de' ? 'Vielen Dank für deinen Einkauf' : 'Thank you for your purchase'}!
+    </p>
+  </div>
+
+  <div style="text-align: center; margin-top: 20px; padding: 20px; font-size: 12px; color: ${EMAIL_COLORS.footerText};">
+    <p>${brandName} — ${brandTagline}</p>
+  </div>
+</body>
+</html>
+      `,
+    })
+
+    if (error) {
+      console.error('Failed to send order delivered email:', error)
+      return { success: false, error }
+    }
+
+    console.log('Order delivered email sent:', data?.id)
+    return { success: true, messageId: data?.id }
+  } catch (error) {
+    console.error('Exception sending order delivered email:', error)
+    return { success: false, error }
+  }
+}
+
+/**
+ * Send order failed email
+ */
+export async function sendOrderFailedEmail(params: {
+  to: string
+  orderId: string
+  orderNumber: string
+  locale: string
+}) {
+  const { to, orderId, orderNumber, locale } = params
+
+  const { brandName, brandTagline } = await getBrandConfig()
+  const baseUrl = BASE_URL
+
+  // Locale-aware email content
+  const subjects = {
+    en: `Issue with your order #${orderNumber}`,
+    es: `Problema con tu pedido #${orderNumber}`,
+    de: `Problem mit deiner Bestellung #${orderNumber}`,
+  }
+
+  const headings = {
+    en: 'There was an issue with your order',
+    es: 'Ha habido un problema con tu pedido',
+    de: 'Es gab ein Problem mit deiner Bestellung',
+  }
+
+  const bodies = {
+    en: `We're sorry, but there was an issue processing your order #${orderNumber}. A full refund has been issued to your original payment method.`,
+    es: `Lo sentimos, pero ha habido un problema al procesar tu pedido #${orderNumber}. Se ha emitido un reembolso completo a tu método de pago original.`,
+    de: `Es tut uns leid, aber es gab ein Problem bei der Bearbeitung deiner Bestellung #${orderNumber}. Eine vollständige Rückerstattung wurde auf deine ursprüngliche Zahlungsmethode ausgestellt.`,
+  }
+
+  const footerTexts = {
+    en: 'The refund will appear on your statement within 5-10 business days. If you have any questions, please contact our support team.',
+    es: 'El reembolso aparecerá en tu estado de cuenta dentro de 5-10 días hábiles. Si tienes alguna pregunta, por favor contacta a nuestro equipo de soporte.',
+    de: 'Die Erstattung wird innerhalb von 5-10 Werktagen auf deinem Kontoauszug erscheinen. Bei Fragen wende dich bitte an unser Support-Team.',
+  }
+
+  const contactSupportTexts = {
+    en: 'Contact Support',
+    es: 'Contactar Soporte',
+    de: 'Support Kontaktieren',
+  }
+
+  const subject = subjects[locale as keyof typeof subjects] || subjects.en
+  const heading = headings[locale as keyof typeof headings] || headings.en
+  const body = bodies[locale as keyof typeof bodies] || bodies.en
+  const footerText = footerTexts[locale as keyof typeof footerTexts] || footerTexts.en
+  const contactSupportText = contactSupportTexts[locale as keyof typeof contactSupportTexts] || contactSupportTexts.en
+
+  try {
+    const { data, error } = await resend.emails.send({
+      from: `${brandName} <${process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev'}>`,
+      to,
+      subject,
+      html: `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${subject}</title>
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: ${EMAIL_COLORS.bodyText}; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <div style="background: linear-gradient(135deg, ${EMAIL_COLORS.gradientStart} 0%, ${EMAIL_COLORS.gradientEnd} 100%); color: white; padding: 30px; border-radius: 8px 8px 0 0; text-align: center;">
+    <h1 style="margin: 0; font-size: 28px;">${brandName}</h1>
+  </div>
+
+  <div style="background: ${EMAIL_COLORS.panelBg}; padding: 30px; border-radius: 0 0 8px 8px;">
+    <h2 style="color: ${EMAIL_COLORS.heading}; margin-top: 0;">${heading}</h2>
+
+    <p style="font-size: 16px; margin: 20px 0;">${body}</p>
+
+    <div style="background: white; border: 1px solid ${EMAIL_COLORS.cardBorder}; border-radius: 6px; padding: 20px; margin: 20px 0;">
+      <p style="margin: 0 0 10px 0;"><strong>${locale === 'es' ? 'Número de Pedido' : locale === 'de' ? 'Bestellnummer' : 'Order Number'}:</strong> #${orderNumber}</p>
+    </div>
+
+    <p style="font-size: 14px; color: ${EMAIL_COLORS.mutedText}; margin-top: 20px; padding: 15px; background: ${EMAIL_COLORS.warningBg}; border-left: 4px solid ${EMAIL_COLORS.warningBorder}; border-radius: 4px;">
+      ${footerText}
+    </p>
+
+    <div style="text-align: center; margin: 30px 0;">
+      <a href="${baseUrl}/${locale}/contact" style="display: inline-block; background: ${EMAIL_COLORS.ctaButton}; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: 600;">${contactSupportText}</a>
+    </div>
+
+    <p style="font-size: 14px; color: ${EMAIL_COLORS.mutedText}; margin-top: 30px;">
+      ${locale === 'es' ? 'Lamentamos las molestias' : locale === 'de' ? 'Wir entschuldigen uns für die Unannehmlichkeiten' : 'We apologize for the inconvenience'}.
+    </p>
+  </div>
+
+  <div style="text-align: center; margin-top: 20px; padding: 20px; font-size: 12px; color: ${EMAIL_COLORS.footerText};">
+    <p>${brandName} — ${brandTagline}</p>
+  </div>
+</body>
+</html>
+      `,
+    })
+
+    if (error) {
+      console.error('Failed to send order failed email:', error)
+      return { success: false, error }
+    }
+
+    console.log('Order failed email sent:', data?.id)
+    return { success: true, messageId: data?.id }
+  } catch (error) {
+    console.error('Exception sending order failed email:', error)
+    return { success: false, error }
+  }
+}
+
+/**
  * Send credit pack purchase confirmation email
  */
 export async function sendCreditPurchaseEmail(params: {
@@ -569,7 +787,7 @@ export async function sendCreditPurchaseEmail(params: {
     </div>
 
     <div style="text-align: center; margin: 30px 0;">
-      <a href="${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/en/chat" style="display: inline-block; background: ${EMAIL_COLORS.ctaButton}; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: 600;">${useCreditsText}</a>
+      <a href="${BASE_URL}/en/chat" style="display: inline-block; background: ${EMAIL_COLORS.ctaButton}; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: 600;">${useCreditsText}</a>
     </div>
 
     <p style="font-size: 14px; color: ${EMAIL_COLORS.mutedText}; margin-top: 20px; padding: 15px; background: ${EMAIL_COLORS.warningBg}; border-left: 4px solid ${EMAIL_COLORS.warningBorder}; border-radius: 4px;">

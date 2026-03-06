@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="3000" height="3800" viewBox="0 0 3000 3800">
+
+  <!-- Big cute robot baby - the star of the design -->
+  <g transform="translate(1500, 700)">
+    <!-- Antenna with bobble -->
+    <line x1="0" y1="-340" x2="0" y2="-460" stroke="#10B981" stroke-width="20"/>
+    <circle cx="0" cy="-485" r="42" fill="#F59E0B"/>
+    <!-- Sparkle on antenna -->
+    <line x1="-20" y1="-485" x2="20" y2="-485" stroke="white" stroke-width="8"/>
+    <line x1="0" y1="-505" x2="0" y2="-465" stroke="white" stroke-width="8"/>
+
+    <!-- Head - big and round -->
+    <rect x="-300" y="-340" width="600" height="520" rx="80" fill="#10B981"/>
+
+    <!-- Cheek blush circles -->
+    <circle cx="-220" cy="30" r="55" fill="#F472B6" opacity="0.4"/>
+    <circle cx="220" cy="30" r="55" fill="#F472B6" opacity="0.4"/>
+
+    <!-- Eyes - big cute rectangles with shine -->
+    <rect x="-195" y="-230" width="150" height="130" rx="22" fill="#0F172A"/>
+    <rect x="45" y="-230" width="150" height="130" rx="22" fill="#0F172A"/>
+    <!-- Eye shines - big -->
+    <rect x="-175" y="-210" width="55" height="45" rx="10" fill="white" opacity="0.9"/>
+    <rect x="65" y="-210" width="55" height="45" rx="10" fill="white" opacity="0.9"/>
+    <!-- Small secondary shine -->
+    <circle cx="-130" cy="-155" r="14" fill="white" opacity="0.5"/>
+    <circle cx="110" cy="-155" r="14" fill="white" opacity="0.5"/>
+
+    <!-- Wobbly cry mouth - bigger -->
+    <path d="M-100,50 Q-50,120 0,50 Q50,120 100,50" fill="none" stroke="#0F172A" stroke-width="18" stroke-linecap="round"/>
+
+    <!-- Big tear drops - blue, cute -->
+    <ellipse cx="-250" cy="-120" rx="32" ry="48" fill="#38BDF8" opacity="0.7"/>
+    <ellipse cx="250" cy="-90" rx="28" ry="42" fill="#38BDF8" opacity="0.55"/>
+    <ellipse cx="-270" cy="20" rx="22" ry="34" fill="#38BDF8" opacity="0.4"/>
+    <ellipse cx="265" cy="40" rx="18" ry="28" fill="#38BDF8" opacity="0.35"/>
+
+    <!-- Ears/bolts -->
+    <circle cx="-320" cy="-80" r="35" fill="#0D9668"/>
+    <circle cx="320" cy="-80" r="35" fill="#0D9668"/>
+    <circle cx="-320" cy="-80" r="14" fill="#0F172A"/>
+    <circle cx="320" cy="-80" r="14" fill="#0F172A"/>
+  </g>
+
+  <!-- Playful progress bar - big and rounded -->
+  <g transform="translate(300, 1350)">
+    <!-- Bar background -->
+    <rect x="0" y="0" width="2400" height="100" rx="50" fill="#E2E8F0"/>
+    <!-- Bar fill -->
+    <rect x="0" y="0" width="1752" height="100" rx="50" fill="#10B981"/>
+    <!-- Percentage text inside bar -->
+    <text x="1850" y="75" font-family="'Courier New', monospace" font-size="70" fill="#10B981" font-weight="bold">73%</text>
+  </g>
+
+  <!-- compiling tears.exe label above bar -->
+  <text x="1500" y="1310" font-family="'Courier New', monospace" font-size="140" fill="#10B981" text-anchor="middle" opacity="0.8" font-weight="bold">
+    compiling tears.exe...
+  </text>
+
+  <!-- Sparkle decorations around the design -->
+  <!-- Star top-left — grande -->
+  <g transform="translate(280, 350)">
+    <polygon points="0,-55 14,-18 55,-18 22,6 35,46 0,24 -35,46 -22,6 -55,-18 -14,-18" fill="#F59E0B" opacity="0.6"/>
+  </g>
+  <!-- Star top-right — grande -->
+  <g transform="translate(2700, 450)">
+    <polygon points="0,-50 13,-16 50,-16 20,6 31,42 0,22 -31,42 -20,6 -50,-16 -13,-16" fill="#F59E0B" opacity="0.55"/>
+  </g>
+  <!-- Hearts near robot — más visibles -->
+  <text x="2100" y="580" font-family="'Arial', sans-serif" font-size="180" fill="#F472B6" opacity="0.55">&lt;3</text>
+  <text x="650" y="520" font-family="'Arial', sans-serif" font-size="160" fill="#F472B6" opacity="0.5">&lt;3</text>
+
+  <!-- ===== MAIN TEXT ===== -->
+
+  <!-- I'M NOT CRYING - big, purple for universal visibility -->
+  <text x="1500" y="1800" font-family="'Helvetica Neue', 'Arial', sans-serif" font-size="280" font-weight="900" fill="#A78BFA" text-anchor="middle" letter-spacing="-4">
+    I'M NOT CRYING
+  </text>
+
+  <!-- I'M COMPILING - green, even bigger -->
+  <text x="1500" y="2150" font-family="'Helvetica Neue', 'Arial', sans-serif" font-size="310" font-weight="900" fill="#10B981" text-anchor="middle" letter-spacing="-5">
+    I'M COMPILING
+  </text>
+
+  <!-- Fun subtitle - monospace, readable -->
+  <text x="1500" y="2400" font-family="'Courier New', monospace" font-size="150" fill="#A78BFA" text-anchor="middle" opacity="0.7" font-weight="bold">
+    // every build has its tears
+  </text>
+
+  <!-- Terminal prompt — grande y visible -->
+  <g transform="translate(350, 2550)">
+    <rect x="0" y="0" width="2300" height="260" rx="40" fill="#0F172A" opacity="0.1"/>
+    <text x="1150" y="180" font-family="'Courier New', monospace" font-size="170" fill="#10B981" opacity="0.8" text-anchor="middle">$ npm start baby</text>
+  </g>
+
+  <!-- Floating code bits — GRANDES, que rompan los ojos -->
+  <text x="200" y="3150" font-family="'Courier New', monospace" font-size="220" fill="#10B981" opacity="0.7" font-weight="bold" transform="rotate(-4,200,3150)">import tears</text>
+  <text x="1400" y="3500" font-family="'Courier New', monospace" font-size="220" fill="#A78BFA" opacity="0.65" font-weight="bold" transform="rotate(3,1400,3500)">sleep(never)</text>
+
+</svg>

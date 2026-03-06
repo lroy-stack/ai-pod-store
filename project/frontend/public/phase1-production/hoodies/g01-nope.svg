@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="4016" height="3307" viewBox="0 0 4016 3307">
+
+  <!-- G01: "NOPE." — BP77 Hoodie 4016×3307 LANDSCAPE -->
+  <!-- Maximal impact single word — HUGE 3D red -->
+  <!-- Palette: Red (#EF4444) -->
+  <!-- Fonts: Bebas Neue (hero), Courier New (footer) -->
+
+  <!-- ===== X marks — corners ===== -->
+  <line x1="250" y1="300" x2="500" y2="550" stroke="#EF4444" stroke-width="25" stroke-linecap="round"/>
+  <line x1="500" y1="300" x2="250" y2="550" stroke="#EF4444" stroke-width="25" stroke-linecap="round"/>
+  <line x1="3516" y1="300" x2="3766" y2="550" stroke="#EF4444" stroke-width="25" stroke-linecap="round"/>
+  <line x1="3766" y1="300" x2="3516" y2="550" stroke="#EF4444" stroke-width="25" stroke-linecap="round"/>
+  <line x1="250" y1="2750" x2="500" y2="3000" stroke="#EF4444" stroke-width="25" stroke-linecap="round"/>
+  <line x1="500" y1="2750" x2="250" y2="3000" stroke="#EF4444" stroke-width="25" stroke-linecap="round"/>
+  <line x1="3516" y1="2750" x2="3766" y2="3000" stroke="#EF4444" stroke-width="25" stroke-linecap="round"/>
+  <line x1="3766" y1="2750" x2="3516" y2="3000" stroke="#EF4444" stroke-width="25" stroke-linecap="round"/>
+
+  <!-- ===== Thick red bar — left ===== -->
+  <rect x="100" y="650" width="55" height="2000" fill="#EF4444"/>
+
+  <!-- ===== "NOPE." — 4-layer 3D red MASSIVE ===== -->
+  <text x="2032" y="1954"
+        font-family="'Bebas Neue', sans-serif"
+        font-size="1200"
+        fill="#7F1D1D" text-anchor="middle">NOPE.</text>
+  <text x="2024" y="1946"
+        font-family="'Bebas Neue', sans-serif"
+        font-size="1200"
+        fill="#991B1B" text-anchor="middle">NOPE.</text>
+  <text x="2016" y="1938"
+        font-family="'Bebas Neue', sans-serif"
+        font-size="1200"
+        fill="#DC2626" text-anchor="middle">NOPE.</text>
+  <text x="2008" y="1930"
+        font-family="'Bebas Neue', sans-serif"
+        font-size="1200"
+        fill="#EF4444" text-anchor="middle">NOPE.</text>
+
+  <!-- ===== Thick red bar — bottom ===== -->
+  <rect x="500" y="2350" width="3000" height="35" fill="#EF4444"/>
+
+  <!-- ===== Footer ===== -->
+  <text x="2008" y="2800"
+        font-family="'Courier New', monospace"
+        font-size="230" font-weight="bold"
+        fill="#F0EDE8" opacity="0.4" text-anchor="middle">absolutely not.</text>
+
+</svg>

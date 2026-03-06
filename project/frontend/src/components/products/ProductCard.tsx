@@ -12,33 +12,17 @@ import { Badge } from '@/components/ui/badge'
 import { useWishlist } from '@/hooks/useWishlist'
 import { useCart } from '@/hooks/useCart'
 import { useStorefront } from '@/components/storefront/StorefrontContext'
-
-interface Product {
-  id: string
-  title: string
-  description: string
-  price: number
-  currency: string
-  image: string
-  rating?: number
-  reviewCount?: number
-  category?: string
-  variants?: {
-    sizes?: string[]
-    colors?: string[]
-    colorImages?: Record<string, string>
-  }
-  stock?: number
-  inStock?: boolean
-}
+import { ProductBadge } from '@/components/products/ProductBadge'
+import type { ProductCard as ProductCardType } from '@/types/product'
 
 interface ProductCardProps {
-  product: Product
+  product: ProductCardType
   priority?: boolean
 }
 
 export function ProductCard({ product, priority }: ProductCardProps) {
   const t = useTranslations('product')
+  const tShop = useTranslations('shop')
   const locale = useLocale()
   const { isWishlisted, toggleWishlist } = useWishlist()
   const { addToCart } = useCart()
@@ -110,121 +94,167 @@ export function ProductCard({ product, priority }: ProductCardProps) {
 
   const localizedPrice = getLocalizedPrice(product.price, product.currency, locale)
   const formattedPrice = formatPrice(localizedPrice, locale)
+  const showFromPrice = product.hasVariantPricing === true
 
-  const productHref = `/shop/${product.id}${displayColor ? `?color=${encodeURIComponent(displayColor)}` : ''}`
+  const productHref = `/${locale}/shop/${product.id}${displayColor ? `?color=${encodeURIComponent(displayColor)}` : ''}`
 
   return (
-    <>
-      <Link
-        href={productHref}
-        className="group flex flex-col rounded-2xl bg-card overflow-hidden border border-border/40 hover:border-border/80 shadow-sm hover:shadow-xl transition-all duration-300"
-      >
-        {/* Image */}
-        <div className="relative aspect-square bg-muted overflow-hidden">
-          {displayImage && !imgError ? (
-            <Image
-              src={displayImage}
-              alt={product.title}
-              fill
-              className="object-cover group-hover:scale-[1.03] transition-transform duration-500 ease-out"
-              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-              priority={priority}
-              onError={() => setImgError(true)}
-            />
-          ) : (
-            <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground/40 gap-2">
-              <ImageOff className="h-10 w-10" />
-              <span className="text-xs font-medium text-muted-foreground/60">{product.title}</span>
+    <Link
+      href={productHref}
+      className="group flex flex-col neu-card bg-card overflow-hidden"
+    >
+      {/* Image — inset shadow via neu-image */}
+      <div className="relative aspect-square neu-image overflow-hidden">
+        {displayImage && !imgError ? (
+          <Image
+            src={displayImage}
+            alt={product.title}
+            fill
+            className="object-cover group-hover:scale-[1.03] transition-transform duration-500 ease-out"
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+            priority={priority}
+            onError={() => setImgError(true)}
+          />
+        ) : (
+          <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground/40 gap-2">
+            <ImageOff className="h-10 w-10" />
+            <span className="text-xs font-medium text-muted-foreground/60">{product.title}</span>
+          </div>
+        )}
+
+        {/* Product labels (trending, bestseller, etc.) */}
+        {product.labels && product.labels.length > 0 && (
+          <ProductBadge labels={product.labels} />
+        )}
+
+        {/* Out of stock overlay */}
+        {product.inStock === false && (
+          <div className="absolute inset-0 bg-background/60 flex items-center justify-center">
+            <Badge variant="secondary" className="text-xs">{t('outOfStock')}</Badge>
+          </div>
+        )}
+
+        {/* Color variant swatches — overlay bottom-left of image */}
+        {hasMultipleColors && (
+          <div className="absolute bottom-2 left-2 flex items-center gap-1 z-10">
+            {colorEntries.map(([color, imgUrl], i) => (
+              <button
+                key={color}
+                className={cn(
+                  'relative w-6 h-6 rounded-full overflow-hidden border-2 transition-all duration-200 flex-shrink-0 shadow-sm',
+                  i === colorIdx
+                    ? 'border-primary ring-1 ring-primary/30 scale-110'
+                    : 'border-card/80 hover:border-card'
+                )}
+                onClick={(e) => handleColorSwatch(e, i)}
+                onMouseEnter={() => handleColorSwatchHover(i)}
+                aria-label={color}
+                title={color}
+              >
+                <Image
+                  src={imgUrl}
+                  alt={color}
+                  fill
+                  className="object-cover"
+                  sizes="24px"
+                />
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Wishlist heart — neumorphic raised circle */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="absolute top-2.5 right-2.5 h-8 w-8 rounded-full neu-fav"
+          onClick={handleToggleWishlist}
+          aria-label={wishlisted ? t('removeFromWishlist') : t('addToWishlist')}
+        >
+          <Heart
+            className={cn(
+              'h-4 w-4',
+              wishlisted ? 'fill-destructive text-destructive' : 'text-muted-foreground'
+            )}
+          />
+        </Button>
+      </div>
+
+      {/* Info + Actions */}
+      <div className="flex flex-col flex-1 px-3 pt-2.5 pb-2 space-y-1">
+        {/* Category + Rating row */}
+        <div className="flex items-center justify-between">
+          {product.category && (
+            <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+              {tShop.has(`category.${product.category}`) ? tShop(`category.${product.category}`) : product.category}
+            </span>
+          )}
+          {product.rating != null && product.rating > 0 && (
+            <div className="flex items-center gap-1 text-[11px] text-muted-foreground ml-auto">
+              <Star className="h-3 w-3 fill-rating text-rating" />
+              <span>{product.rating.toFixed(1)}</span>
+              {product.reviewCount ? <span>({product.reviewCount})</span> : null}
             </div>
           )}
-
-          {/* Out of stock overlay */}
-          {product.inStock === false && (
-            <div className="absolute inset-0 bg-background/60 flex items-center justify-center">
-              <Badge variant="secondary" className="text-xs">{t('outOfStock')}</Badge>
-            </div>
-          )}
-
-          {/* Wishlist heart — always visible */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute top-2.5 right-2.5 h-8 w-8 rounded-full bg-card/80 backdrop-blur-sm hover:bg-card/90"
-            onClick={handleToggleWishlist}
-            aria-label={wishlisted ? t('removeFromWishlist') : t('addToWishlist')}
-          >
-            <Heart
-              className={cn(
-                'h-4 w-4',
-                wishlisted ? 'fill-destructive text-destructive' : 'text-muted-foreground'
-              )}
-            />
-          </Button>
         </div>
 
-        {/* Info + Actions */}
-        <div className="flex flex-col flex-1 px-3.5 py-3 space-y-2">
-          <h3 className="font-medium text-sm leading-snug line-clamp-1 text-foreground group-hover:text-primary transition-colors">
-            {product.title}
-          </h3>
+        {/* Title */}
+        <h3 className="font-medium text-sm leading-snug line-clamp-1 text-foreground group-hover:text-primary transition-colors">
+          {product.title}
+        </h3>
 
-          {/* Color variant swatches — mini product thumbnails */}
-          {hasMultipleColors && (
-            <div className="flex items-center gap-1.5">
-              {colorEntries.map(([color, imgUrl], i) => (
-                <button
-                  key={color}
-                  className={cn(
-                    'relative w-6 h-6 rounded-full overflow-hidden border-2 transition-all duration-200 flex-shrink-0',
-                    i === colorIdx
-                      ? 'border-primary ring-1 ring-primary/30'
-                      : 'border-border/60 hover:border-border'
-                  )}
-                  onClick={(e) => handleColorSwatch(e, i)}
-                  onMouseEnter={() => handleColorSwatchHover(i)}
-                  aria-label={color}
-                  title={color}
-                >
-                  <Image
-                    src={imgUrl}
-                    alt={color}
-                    fill
-                    className="object-cover"
-                    sizes="24px"
-                  />
-                </button>
-              ))}
+        {/* Description */}
+        {product.description && (
+          <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+            {product.description}
+          </p>
+        )}
+
+        {/* Price + Actions */}
+        <div className="flex items-end justify-between gap-2 mt-auto">
+          {product.compareAtPrice ? (
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs line-through text-muted-foreground">
+                  {formatPrice(getLocalizedPrice(product.compareAtPrice, product.currency, locale), locale)}
+                </span>
+                {(() => {
+                  const pct = Math.round(((product.compareAtPrice - product.price) / product.compareAtPrice) * 100)
+                  return pct > 0 ? (
+                    <Badge variant="destructive" className="text-[10px] leading-none px-1.5 py-0.5">
+                      -{pct}%
+                    </Badge>
+                  ) : null
+                })()}
+              </div>
+              <p className="text-sm font-bold text-destructive tracking-tight">
+                {formattedPrice}
+              </p>
             </div>
-          )}
-
-          <div className="flex items-center justify-between">
+          ) : (
             <p className="text-sm font-semibold text-foreground tracking-tight">
+              {showFromPrice && (
+                <span className="text-xs font-normal text-muted-foreground mr-0.5">
+                  {t('fromPrice')}{' '}
+                </span>
+              )}
               {formattedPrice}
             </p>
-            {product.rating != null && product.rating > 0 && (
-              <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
-                <Star className="h-3 w-3 fill-rating text-rating" />
-                <span>{product.rating.toFixed(1)}</span>
-                {product.reviewCount ? <span>({product.reviewCount})</span> : null}
-              </div>
-            )}
-          </div>
-
-          {/* Action buttons — always visible, touch-friendly */}
-          <div className="flex gap-1.5 pt-0.5 mt-auto">
+          )}
+          <div className="flex gap-1.5 shrink-0">
             <Button
-              size="sm"
-              className="flex-1 h-8 text-xs font-medium rounded-lg"
+              size="icon"
+              className="h-8 w-8 neu-btn-accent"
               onClick={handleAddToCart}
               disabled={product.inStock === false}
+              title={product.inStock === false ? t('outOfStock') : t('addToCart')}
             >
-              <ShoppingCart className="h-3.5 w-3.5 mr-1.5" />
-              {product.inStock === false ? t('outOfStock') : t('addToCart')}
+              <ShoppingCart className="h-3.5 w-3.5" />
             </Button>
             <Button
               variant="outline"
               size="icon"
-              className="h-8 w-8 rounded-lg flex-shrink-0"
+              className="h-8 w-8 neu-btn-soft"
               onClick={handleQuickView}
               title={t('quickView')}
             >
@@ -232,7 +262,7 @@ export function ProductCard({ product, priority }: ProductCardProps) {
             </Button>
           </div>
         </div>
-      </Link>
-    </>
+      </div>
+    </Link>
   )
 }

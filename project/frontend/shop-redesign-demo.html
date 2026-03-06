@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SKAPARA Shop — Category Redesign Demo</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..700;1,9..40,300..700&family=Playfair+Display:wght@500;700&display=swap" rel="stylesheet">
+<style>
+/* ===== Design Tokens (Warm Slate Theme) ===== */
+:root {
+  --bg: #e8e5e0;
+  --fg: #3a3630;
+  --card: #efece7;
+  --card-hover: #f4f1ed;
+  --muted: #ddd9d3;
+  --muted-fg: #7a756d;
+  --primary: #c45a20;
+  --primary-fg: #fff;
+  --border: #d6d2cc;
+  --radius: 1rem;
+  --shadow-out: 6px 6px 14px rgba(0,0,0,0.08), -4px -4px 10px rgba(255,255,255,0.7);
+  --shadow-in: inset 2px 2px 6px rgba(0,0,0,0.06), inset -2px -2px 6px rgba(255,255,255,0.5);
+  --shadow-hover: 8px 8px 18px rgba(0,0,0,0.10), -6px -6px 14px rgba(255,255,255,0.8);
+  --font-sans: 'DM Sans', system-ui, sans-serif;
+  --font-heading: 'Playfair Display', serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1c1b19;
+    --fg: #e8e5e0;
+    --card: #262523;
+    --card-hover: #2e2d2a;
+    --muted: #333230;
+    --muted-fg: #9a958e;
+    --primary: #d4672e;
+    --border: #3a3836;
+    --shadow-out: 4px 4px 12px rgba(0,0,0,0.3), -3px -3px 8px rgba(60,58,55,0.15);
+    --shadow-in: inset 2px 2px 6px rgba(0,0,0,0.25), inset -2px -2px 6px rgba(60,58,55,0.1);
+    --shadow-hover: 6px 6px 16px rgba(0,0,0,0.35), -4px -4px 10px rgba(60,58,55,0.2);
+  }
+}
+
+/* ===== Reset ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: var(--font-sans);
+  background: var(--bg);
+  color: var(--fg);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; text-decoration: none; }
+img { display: block; max-width: 100%; }
+
+/* ===== Layout ===== */
+.container { max-width: 1280px; margin: 0 auto; padding: 0 1rem; }
+@media (min-width: 768px) { .container { padding: 0 1.5rem; } }
+
+/* ===== Breadcrumb ===== */
+.breadcrumb {
+  padding: 1rem 0;
+  font-size: 0.8125rem;
+  color: var(--muted-fg);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.breadcrumb a:hover { color: var(--primary); }
+.breadcrumb .sep { opacity: 0.4; }
+
+/* ===== Shop Header ===== */
+.shop-header {
+  padding: 1.5rem 0 1rem;
+}
+.shop-header h1 {
+  font-family: var(--font-heading);
+  font-size: clamp(1.75rem, 4vw, 2.75rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+.shop-header p {
+  margin-top: 0.5rem;
+  color: var(--muted-fg);
+  font-size: 0.9375rem;
+  max-width: 540px;
+}
+
+/* ===== Search Bar ===== */
+.search-bar {
+  position: relative;
+  max-width: 640px;
+  margin: 1.25rem 0 2rem;
+}
+.search-bar input {
+  width: 100%;
+  padding: 0.75rem 1rem 0.75rem 2.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  color: var(--fg);
+  font-size: 0.9375rem;
+  font-family: var(--font-sans);
+  box-shadow: var(--shadow-in);
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+}
+.search-bar input::placeholder { color: var(--muted-fg); }
+.search-bar input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(196,90,32,0.12), var(--shadow-in);
+}
+.search-bar .icon {
+  position: absolute;
+  left: 0.875rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1.125rem;
+  height: 1.125rem;
+  color: var(--muted-fg);
+}
+
+/* ===== Section Label ===== */
+.section-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted-fg);
+  margin-bottom: 1rem;
+}
+
+/* ===== Category Grid (Main Categories) ===== */
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.875rem;
+}
+@media (min-width: 640px) {
+  .category-grid { grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+}
+@media (min-width: 1024px) {
+  .category-grid { grid-template-columns: repeat(4, 1fr); gap: 1.25rem; }
+}
+
+.category-card {
+  position: relative;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--card);
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: var(--shadow-out);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.category-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-hover);
+}
+.category-card:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-in);
+}
+
+.category-card__image {
+  position: relative;
+  aspect-ratio: 4/3;
+  overflow: hidden;
+  background: var(--muted);
+}
+.category-card__image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+.category-card:hover .category-card__image img {
+  transform: scale(1.04);
+}
+/* Gradient overlay for text readability */
+.category-card__image::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.05) 55%, transparent 100%);
+  pointer-events: none;
+}
+
+.category-card__overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 1rem;
+  z-index: 2;
+  color: #fff;
+}
+.category-card__name {
+  font-family: var(--font-heading);
+  font-size: clamp(1rem, 2.2vw, 1.25rem);
+  font-weight: 600;
+  line-height: 1.2;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.3);
+}
+.category-card__count {
+  font-size: 0.75rem;
+  opacity: 0.85;
+  margin-top: 0.15rem;
+}
+/* Subtle icon badge */
+.category-card__icon {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  font-size: 0.875rem;
+}
+
+/* ===== Product Preview Thumbnails inside category card ===== */
+.category-card__previews {
+  display: flex;
+  gap: 0.375rem;
+  padding: 0.625rem 0.75rem;
+  background: var(--card);
+  border-top: 1px solid var(--border);
+}
+.category-card__preview-thumb {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.375rem;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+  background: var(--muted);
+}
+.category-card__preview-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.category-card__preview-more {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.375rem;
+  border: 1px dashed var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: var(--muted-fg);
+  flex-shrink: 0;
+}
+
+/* ===== Divider ===== */
+.divider {
+  height: 1px;
+  background: var(--border);
+  margin: 2rem 0;
+  opacity: 0.6;
+}
+
+/* ===== Subcategory Chips (inside category detail view) ===== */
+.subcategory-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.875rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: var(--shadow-out);
+  transition: all 0.2s;
+}
+.chip:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+.chip--active {
+  background: var(--primary);
+  color: var(--primary-fg);
+  border-color: var(--primary);
+  box-shadow: 0 2px 8px rgba(196,90,32,0.25);
+}
+.chip__count {
+  font-size: 0.6875rem;
+  opacity: 0.65;
+}
+
+/* ===== Product Grid (inside category) ===== */
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.875rem;
+}
+@media (min-width: 768px) {
+  .product-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; }
+}
+
+.product-card {
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--card);
+  overflow: hidden;
+  box-shadow: var(--shadow-out);
+  transition: transform 0.3s, box-shadow 0.3s;
+  cursor: pointer;
+}
+.product-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-hover);
+}
+.product-card__image {
+  aspect-ratio: 1;
+  background: var(--muted);
+  position: relative;
+  overflow: hidden;
+}
+.product-card__image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+.product-card:hover .product-card__image img {
+  transform: scale(1.03);
+}
+.product-card__fav {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.8);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  font-size: 0.75rem;
+  transition: background 0.2s;
+}
+.product-card__fav:hover { background: rgba(255,255,255,1); }
+
+.product-card__info {
+  padding: 0.625rem 0.75rem 0.5rem;
+}
+.product-card__category {
+  font-size: 0.625rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted-fg);
+  font-weight: 500;
+}
+.product-card__title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.3;
+  margin-top: 0.2rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.product-card__bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0.35rem;
+}
+.product-card__price {
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.product-card__actions {
+  display: flex;
+  gap: 0.25rem;
+}
+.product-card__btn {
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border);
+  background: var(--card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.75rem;
+  transition: all 0.2s;
+}
+.product-card__btn--primary {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--primary-fg);
+}
+.product-card__btn:hover { transform: scale(1.08); }
+
+/* ===== View Tabs ===== */
+.view-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+.view-tab {
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--card);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: var(--font-sans);
+  color: var(--fg);
+}
+.view-tab:hover { border-color: var(--primary); color: var(--primary); }
+.view-tab--active {
+  background: var(--primary);
+  color: var(--primary-fg);
+  border-color: var(--primary);
+}
+
+/* ===== Sort & Filter Bar ===== */
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+.filter-bar__count {
+  font-size: 0.8125rem;
+  color: var(--muted-fg);
+}
+.filter-bar__sort {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+}
+.filter-bar__sort select {
+  padding: 0.4rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: var(--card);
+  color: var(--fg);
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  outline: none;
+}
+
+/* ===== Page Footer ===== */
+.page-footer {
+  text-align: center;
+  padding: 3rem 0 2rem;
+  color: var(--muted-fg);
+  font-size: 0.75rem;
+}
+
+/* ===== State Indicator (demo only) ===== */
+.demo-indicator {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  background: var(--primary);
+  color: var(--primary-fg);
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  z-index: 100;
+  box-shadow: 0 4px 12px rgba(196,90,32,0.3);
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.demo-indicator:hover { opacity: 0.9; }
+
+/* ===== Responsive tweaks ===== */
+@media (max-width: 480px) {
+  .category-card__previews { display: none; }
+  .shop-header { padding: 1rem 0 0.5rem; }
+  .search-bar { margin: 1rem 0 1.5rem; }
+}
+
+/* ===== Animations ===== */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-in {
+  animation: fadeInUp 0.5s ease both;
+}
+.delay-1 { animation-delay: 0.05s; }
+.delay-2 { animation-delay: 0.1s; }
+.delay-3 { animation-delay: 0.15s; }
+.delay-4 { animation-delay: 0.2s; }
+.delay-5 { animation-delay: 0.25s; }
+.delay-6 { animation-delay: 0.3s; }
+.delay-7 { animation-delay: 0.35s; }
+.delay-8 { animation-delay: 0.4s; }
+</style>
+</head>
+<body>
+
+<!-- DEMO STATE TOGGLE -->
+<div class="demo-indicator" onclick="toggleView()" id="demoToggle">Vista: Categorias</div>
+
+<div class="container">
+
+  <!-- Breadcrumb -->
+  <nav class="breadcrumb" id="breadcrumb">
+    <a href="#">Home</a>
+    <span class="sep">/</span>
+    <span id="bc-current">Shop</span>
+  </nav>
+
+  <!-- ============================================== -->
+  <!-- VIEW 1: CATEGORY LANDING (default /shop)       -->
+  <!-- ============================================== -->
+  <div id="view-categories">
+    <header class="shop-header">
+      <h1>Explore Our Collections</h1>
+      <p>Discover unique print-on-demand products across all categories. European shipping, sustainable production.</p>
+    </header>
+
+    <!-- Search -->
+    <div class="search-bar">
+      <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      <input type="text" placeholder="Search products, categories, styles...">
+    </div>
+
+    <!-- Section: Main Categories -->
+    <div class="section-label">Browse by Category</div>
+
+    <div class="category-grid">
+
+      <!-- 1. Casual Clothing -->
+      <div class="category-card animate-in delay-1" onclick="showCategory('casual-clothing', 'Casual Clothing')">
+        <div class="category-card__image">
+          <img src="https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=600&h=450&fit=crop" alt="Casual Clothing">
+          <div class="category-card__icon">👕</div>
+          <div class="category-card__overlay">
+            <div class="category-card__name">Casual Clothing</div>
+            <div class="category-card__count">48 products</div>
+          </div>
+        </div>
+        <div class="category-card__previews">
+          <div class="category-card__preview-thumb"><img src="https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=80&h=80&fit=crop" alt=""></div>
+          <div class="category-card__preview-thumb"><img src="https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=80&h=80&fit=crop" alt=""></div>
+          <div class="category-card__preview-thumb"><img src="https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=80&h=80&fit=crop" alt=""></div>
+          <div class="category-card__preview-more">+45</div>
+        </div>
+      </div>
+
+      <!-- 2. Streetwear -->
+      <div class="category-card animate-in delay-2" onclick="showCategory('streetwear', 'Streetwear')">
+        <div class="category-card__image">
+          <img src="https://images.unsplash.com/photo-1588117305388-c2631a279f82?w=600&h=450&fit=crop" alt="Streetwear">
+          <div class="category-card__icon">🔥</div>
+          <div class="category-card__overlay">
+            <div class="category-card__name">Streetwear</div>
+            <div class="category-card__count">32 products</div>
+          </div>
+        </div>
+        <div class="category-card__previews">
+          <div class="category-card__preview-thumb"><img src="https://images.unsplash.com/photo-1578681994506-b8f463449011?w=80&h=80&fit=crop" alt=""></div>
+          <div class="category-card__preview-thumb"><img src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=80&h=80&fit=crop" alt=""></div>
+          <div class="category-card__preview-thumb"><img src="https://images.unsplash.com/photo-1552374196-1ab2a1c593e8?w=80&h=80&fit=crop" alt=""></div>
+          <div class="category-card__preview-more">+29</div>
+        </div>
+      </div>
+
+      <!-- 3. Home & Decor -->
+      <div class="category-card animate-in delay-3" onclick="showCategory('home-decor', 'Home & Decor')">
+        <div class="category-card__image">
+          <img src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=600&h=450&fit=crop" alt="Home Decor">
+          <div class="category-card__icon">🏠</div>
+          <div class="category-card__overlay">
+            <div class="category-card__name">Home & Decor</div>
+            <div class="category-card__count">27 products</div>
+          </div>
+        </div>
+        <div class="category-card__previews">
+          <div class="category-card__preview-thumb"><img src="https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=80&h=80&fit=crop" alt=""></div>
+          <div class="category-card__preview-thumb"><img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop" alt=""></div>
+          <div class="category-card__preview-thumb"><img src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=80&h=80&fit=crop" alt=""></div>
+          <div class="category-card__preview-more">+24</div>
+        </div>
+      </div>
+
+      <!-- 4. Mugs & Drinkware -->
+      <div class="category-card animate-in delay-4" onclick="showCategory('drinkware', 'Mugs & Drinkware')">
+        <div class="category-card__image">
+          <img src="https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?w=600&h=450&fit=crop" alt="Mugs & Drinkware">
+          <div class="category-card__icon">☕</div>
+          <div class="category-card__overlay">
+            <div class="category-card__name">Mugs & Drinkware</div>
+            <div class="category-card__count">19 products</div>
+          </div>
+        </div>
+        <div class="category-card__previews">
+          <div class="category-card__preview-thumb"><img src="https://images.unsplash.com/photo-1572119865084-43c285814d63?w=80&h=80&fit=crop" alt=""></div>
+          <div class="category-card__preview-thumb"><img src="https://images.unsplash.com/photo-1577937927133-66ef06acdf18?w=80&h=80&fit=crop" alt=""></div>
+          <div class="category-card__preview-thumb"><img src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=80&h=80&fit=crop" alt=""></div>
+          <div class="category-card__preview-more">+16</div>
+        </div>
+      </div>
+
+      <!-- 5. Kids -->
+      <div class="category-card animate-in delay-5" onclick="showCategory('kids', 'Kids')">
+        <div class="category-card__image">
+          <img src="https://images.unsplash.com/photo-1503919545889-aef636e10ad4?w=600&h=450&fit=crop" alt="Kids">
+          <div class="category-card__icon">🧸</div>
+          <div class="category-card__overlay">
+            <div class="category-card__name">Kids</div>
+            <div class="category-card__count">15 products</div>
+          </div>
+        </div>
+        <div class="category-card__previews">
+          <div class="category-card__preview-thumb"><img src="https://images.unsplash.com/photo-1471286174890-9c112ffca5b4?w=80&h=80&fit=crop" alt=""></div>
+          <div class="category-card__preview-thumb"><img src="https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?w=80&h=80&fit=crop" alt=""></div>
+          <div class="category-card__preview-thumb"><img src="https://images.unsplash.com/photo-1596870230751-ebdfce98ec42?w=80&h=80&fit=crop" alt=""></div>
+          <div class="category-card__preview-more">+12</div>
+        </div>
+      </div>
+
+      <!-- 6. Accessories -->
+      <div class="category-card animate-in delay-6" onclick="showCategory('accessories', 'Accessories')">
+        <div class="category-card__image">
+          <img src="https://images.unsplash.com/photo-1523170335258-f5ed11844a49?w=600&h=450&fit=crop" alt="Accessories">
+          <div class="category-card__icon">🎒</div>
+          <div class="category-card__overlay">
+            <div class="category-card__name">Accessories</div>
+            <div class="category-card__count">22 products</div>
+          </div>
+        </div>
+        <div class="category-card__previews">
+          <div class="category-card__preview-thumb"><img src="https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=80&h=80&fit=crop" alt=""></div>
+          <div class="category-card__preview-thumb"><img src="https://images.unsplash.com/photo-1588850561407-ed78c334e67a?w=80&h=80&fit=crop" alt=""></div>
+          <div class="category-card__preview-thumb"><img src="https://images.unsplash.com/photo-1611312449408-fcece27cdbb7?w=80&h=80&fit=crop" alt=""></div>
+          <div class="category-card__preview-more">+19</div>
+        </div>
+      </div>
+
+      <!-- 7. Sports & Fitness -->
+      <div class="category-card animate-in delay-7" onclick="showCategory('sports-fitness', 'Sports & Fitness')">
+        <div class="category-card__image">
+          <img src="https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=600&h=450&fit=crop" alt="Sports & Fitness">
+          <div class="category-card__icon">💪</div>
+          <div class="category-card__overlay">
+            <div class="category-card__name">Sports & Fitness</div>
+            <div class="category-card__count">12 products</div>
+          </div>
+        </div>
+        <div class="category-card__previews">
+          <div class="category-card__preview-thumb"><img src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=80&h=80&fit=crop" alt=""></div>
+          <div class="category-card__preview-thumb"><img src="https://images.unsplash.com/photo-1576678927484-cc907957088c?w=80&h=80&fit=crop" alt=""></div>
+          <div class="category-card__preview-thumb"><img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=80&h=80&fit=crop" alt=""></div>
+          <div class="category-card__preview-more">+9</div>
+        </div>
+      </div>
+
+      <!-- 8. Stationery & Games -->
+      <div class="category-card animate-in delay-8" onclick="showCategory('stationery-games', 'Stationery & Games')">
+        <div class="category-card__image">
+          <img src="https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=600&h=450&fit=crop" alt="Stationery & Games">
+          <div class="category-card__icon">🎮</div>
+          <div class="category-card__overlay">
+            <div class="category-card__name">Stationery & Games</div>
+            <div class="category-card__count">11 products</div>
+          </div>
+        </div>
+        <div class="category-card__previews">
+          <div class="category-card__preview-thumb"><img src="https://images.unsplash.com/photo-1611996575749-79a3a250f948?w=80&h=80&fit=crop" alt=""></div>
+          <div class="category-card__preview-thumb"><img src="https://images.unsplash.com/photo-1606092195730-5d7b9af1efc5?w=80&h=80&fit=crop" alt=""></div>
+          <div class="category-card__preview-thumb"><img src="https://images.unsplash.com/photo-1551033406-611cf9a28f67?w=80&h=80&fit=crop" alt=""></div>
+          <div class="category-card__preview-more">+8</div>
+        </div>
+      </div>
+
+    </div><!-- /category-grid -->
+
+    <div class="page-footer">
+      Only categories with active products are shown &middot; Powered by Printify &middot; European Shipping
+    </div>
+  </div>
+
+
+  <!-- ============================================== -->
+  <!-- VIEW 2: CATEGORY DETAIL (e.g. /shop/category/casual-clothing) -->
+  <!-- ============================================== -->
+  <div id="view-detail" style="display:none;">
+    <header class="shop-header">
+      <h1 id="detail-title">Casual Clothing</h1>
+      <p id="detail-desc">Everyday essentials with custom designs. T-shirts, hoodies, sweatshirts and more.</p>
+    </header>
+
+    <!-- Search -->
+    <div class="search-bar">
+      <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      <input type="text" placeholder="Search in Casual Clothing...">
+    </div>
+
+    <!-- Subcategory Chips -->
+    <div class="subcategory-chips" id="subcategory-chips">
+      <div class="chip chip--active">All <span class="chip__count">48</span></div>
+      <div class="chip">T-Shirts <span class="chip__count">22</span></div>
+      <div class="chip">Hoodies <span class="chip__count">14</span></div>
+      <div class="chip">Sweatshirts <span class="chip__count">12</span></div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+      <span class="filter-bar__count">Showing <strong>48</strong> products</span>
+      <div class="filter-bar__sort">
+        <span>Sort by:</span>
+        <select>
+          <option>Featured</option>
+          <option>Price: Low to High</option>
+          <option>Price: High to Low</option>
+          <option>Newest</option>
+          <option>Top Rated</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Product Grid -->
+    <div class="product-grid">
+
+      <div class="product-card animate-in delay-1">
+        <div class="product-card__image">
+          <img src="https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&h=400&fit=crop" alt="Classic White Tee">
+          <button class="product-card__fav">♡</button>
+        </div>
+        <div class="product-card__info">
+          <div class="product-card__category">T-Shirts</div>
+          <div class="product-card__title">Classic White Tee</div>
+          <div class="product-card__bottom">
+            <span class="product-card__price">€19.99</span>
+            <div class="product-card__actions">
+              <button class="product-card__btn product-card__btn--primary" title="Add to cart">🛒</button>
+              <button class="product-card__btn" title="Quick view">👁</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="product-card animate-in delay-2">
+        <div class="product-card__image">
+          <img src="https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=400&h=400&fit=crop" alt="Black Hoodie">
+          <button class="product-card__fav">♡</button>
+        </div>
+        <div class="product-card__info">
+          <div class="product-card__category">Hoodies</div>
+          <div class="product-card__title">Black Hoodie Essential</div>
+          <div class="product-card__bottom">
+            <span class="product-card__price">€39.99</span>
+            <div class="product-card__actions">
+              <button class="product-card__btn product-card__btn--primary">🛒</button>
+              <button class="product-card__btn">👁</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="product-card animate-in delay-3">
+        <div class="product-card__image">
+          <img src="https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=400&h=400&fit=crop" alt="Mint Green Tee">
+          <button class="product-card__fav">♡</button>
+        </div>
+        <div class="product-card__info">
+          <div class="product-card__category">T-Shirts</div>
+          <div class="product-card__title">Mint Green Graphic Tee</div>
+          <div class="product-card__bottom">
+            <span class="product-card__price">€22.99</span>
+            <div class="product-card__actions">
+              <button class="product-card__btn product-card__btn--primary">🛒</button>
+              <button class="product-card__btn">👁</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="product-card animate-in delay-4">
+        <div class="product-card__image">
+          <img src="https://images.unsplash.com/photo-1578681994506-b8f463449011?w=400&h=400&fit=crop" alt="Oversized Crewneck">
+          <button class="product-card__fav">♡</button>
+        </div>
+        <div class="product-card__info">
+          <div class="product-card__category">Sweatshirts</div>
+          <div class="product-card__title">Oversized Crewneck</div>
+          <div class="product-card__bottom">
+            <span class="product-card__price">€34.99</span>
+            <div class="product-card__actions">
+              <button class="product-card__btn product-card__btn--primary">🛒</button>
+              <button class="product-card__btn">👁</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="product-card animate-in delay-5">
+        <div class="product-card__image">
+          <img src="https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=400&h=400&fit=crop" alt="Vintage Print Tee">
+          <button class="product-card__fav">♡</button>
+        </div>
+        <div class="product-card__info">
+          <div class="product-card__category">T-Shirts</div>
+          <div class="product-card__title">Vintage Print Tee</div>
+          <div class="product-card__bottom">
+            <span class="product-card__price">€24.99</span>
+            <div class="product-card__actions">
+              <button class="product-card__btn product-card__btn--primary">🛒</button>
+              <button class="product-card__btn">👁</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="product-card animate-in delay-6">
+        <div class="product-card__image">
+          <img src="https://images.unsplash.com/photo-1620799139507-2a76f79a2f4d?w=400&h=400&fit=crop" alt="Zip-Up Hoodie">
+          <button class="product-card__fav">♡</button>
+        </div>
+        <div class="product-card__info">
+          <div class="product-card__category">Hoodies</div>
+          <div class="product-card__title">Zip-Up Hoodie Navy</div>
+          <div class="product-card__bottom">
+            <span class="product-card__price">€44.99</span>
+            <div class="product-card__actions">
+              <button class="product-card__btn product-card__btn--primary">🛒</button>
+              <button class="product-card__btn">👁</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="product-card animate-in delay-7">
+        <div class="product-card__image">
+          <img src="https://images.unsplash.com/photo-1562157873-818bc0726f68?w=400&h=400&fit=crop" alt="Striped Polo">
+          <button class="product-card__fav">♡</button>
+        </div>
+        <div class="product-card__info">
+          <div class="product-card__category">T-Shirts</div>
+          <div class="product-card__title">Striped Polo Classic</div>
+          <div class="product-card__bottom">
+            <span class="product-card__price">€27.99</span>
+            <div class="product-card__actions">
+              <button class="product-card__btn product-card__btn--primary">🛒</button>
+              <button class="product-card__btn">👁</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="product-card animate-in delay-8">
+        <div class="product-card__image">
+          <img src="https://images.unsplash.com/photo-1578587018452-892bacefd3f2?w=400&h=400&fit=crop" alt="Cozy Fleece">
+          <button class="product-card__fav">♡</button>
+        </div>
+        <div class="product-card__info">
+          <div class="product-card__category">Sweatshirts</div>
+          <div class="product-card__title">Cozy Fleece Sweatshirt</div>
+          <div class="product-card__bottom">
+            <span class="product-card__price">€32.99</span>
+            <div class="product-card__actions">
+              <button class="product-card__btn product-card__btn--primary">🛒</button>
+              <button class="product-card__btn">👁</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /product-grid -->
+
+    <!-- Pagination -->
+    <div style="display:flex; align-items:center; justify-content:center; gap:0.5rem; margin-top:2rem;">
+      <button class="product-card__btn" style="width:2.25rem;height:2.25rem;">←</button>
+      <button class="product-card__btn product-card__btn--primary" style="width:2.25rem;height:2.25rem;">1</button>
+      <button class="product-card__btn" style="width:2.25rem;height:2.25rem;">2</button>
+      <button class="product-card__btn" style="width:2.25rem;height:2.25rem;">3</button>
+      <button class="product-card__btn" style="width:2.25rem;height:2.25rem;">→</button>
+    </div>
+
+    <div class="page-footer">
+      Only categories with active products are shown &middot; Powered by Printify &middot; European Shipping
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<script>
+  const viewCategories = document.getElementById('view-categories');
+  const viewDetail = document.getElementById('view-detail');
+  const bcCurrent = document.getElementById('bc-current');
+  const demoToggle = document.getElementById('demoToggle');
+  let isDetail = false;
+
+  function showCategory(slug, name) {
+    viewCategories.style.display = 'none';
+    viewDetail.style.display = 'block';
+    document.getElementById('detail-title').textContent = name;
+    bcCurrent.innerHTML = '<a href="#" onclick="backToCategories(); return false;">Shop</a> <span class="sep">/</span> ' + name;
+    demoToggle.textContent = 'Vista: ' + name;
+    isDetail = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    // Re-trigger animations
+    viewDetail.querySelectorAll('.animate-in').forEach(el => {
+      el.style.animation = 'none';
+      el.offsetHeight;
+      el.style.animation = '';
+    });
+  }
+
+  function backToCategories() {
+    viewCategories.style.display = 'block';
+    viewDetail.style.display = 'none';
+    bcCurrent.textContent = 'Shop';
+    demoToggle.textContent = 'Vista: Categorias';
+    isDetail = false;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function toggleView() {
+    if (isDetail) {
+      backToCategories();
+    } else {
+      showCategory('casual-clothing', 'Casual Clothing');
+    }
+  }
+
+  // Chip interaction demo
+  document.querySelectorAll('.chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('.chip').forEach(c => c.classList.remove('chip--active'));
+      chip.classList.add('chip--active');
+    });
+  });
+</script>
+
+</body>
+</html>

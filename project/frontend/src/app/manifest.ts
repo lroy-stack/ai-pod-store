@@ -1,4 +1,5 @@
 import { MetadataRoute } from 'next'
+import { BRAND } from '@/lib/store-config'
 
 /**
  * Dynamic PWA manifest
@@ -9,8 +10,8 @@ import { MetadataRoute } from 'next'
  */
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Skapara - AI Print on Demand',
-    short_name: 'Skapara',
+    name: `${BRAND.name} - AI Print on Demand`,
+    short_name: BRAND.name,
     description: 'AI-Powered Print-on-Demand Platform - Create unique custom products with AI design tools',
     start_url: '/',
     display: 'standalone',

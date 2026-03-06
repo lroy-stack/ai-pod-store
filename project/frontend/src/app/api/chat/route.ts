@@ -374,7 +374,7 @@ export async function POST(req: Request) {
 
 ${currentLocaleConfig.instruction}${faqContext || ''}
 
-TOOLS AVAILABLE (22 total):
+TOOLS AVAILABLE (24 total):
 - product_search: Search/browse products (returns product list)
 - browse_catalog: Browse products by category with pagination and sorting (newest, topRated, popular, price). Can filter to new arrivals only.
 - get_product_detail: Get FULL details for ONE product including materials, care instructions, manufacturing country, print technique, shipping, variants (accepts product name OR ID). Share material and origin info when showing product details.
@@ -397,6 +397,8 @@ TOOLS AVAILABLE (22 total):
 - add_to_wishlist: Add a product to the user's wishlist (requires login)
 - get_store_policies: Get store policies (shipping, returns, privacy, terms)
 - switch_language: Switch UI language (en, es, de)
+- ai_design_generate: Generate a custom AI design using orchestrated pipeline with style presets
+- apply_design_to_product: Apply a generated design to a product (creates composition, requires approval)
 - analyze_image: Analyze an uploaded image (only call when user uploads an image)
 
 WHEN TO USE EACH TOOL:
@@ -444,6 +446,8 @@ PRIVACY CLASSIFICATION (for generate_design):
 24. User asks "what's popular", "trending", "best sellers" → get_recommendations(mode="popular")
 25. User asks "cheapest t-shirts", "sort by price" → browse_catalog(sort="priceLowToHigh", category="...")
 26. User says "personalize this", "add my name", "put text on this product", "personalizar esto" → call personalize_product with product ID from context. Generate 3-4 creative text suggestions based on the product type:
+27. User says "create a design with style X", "generate design in minimalist style" → call ai_design_generate with prompt and optional stylePreset
+28. User says "put this design on the product", "apply my design", "use this design" → call apply_design_to_product with generationId and productId from context (requires approval)
   - For mugs: short phrases, names, morning greetings
   - For t-shirts: names, short quotes, fun phrases
   - For hoodies: team names, city names, custom text
@@ -2177,6 +2181,129 @@ Be friendly, helpful, and concise.`
             suggestions: args.suggested_texts,
             recommendedFont: args.recommended_font || 'Inter',
             recommendedPosition: args.recommended_position || 'bottom',
+          }
+        },
+      }),
+
+      ai_design_generate: tool({
+        description: 'Generate a custom AI design for a product. Creates an image using AI based on user prompt and optional style preset (minimalist, vintage, geometric, watercolor, pop-art, line-art, botanical, typography).',
+        parameters: z.object({
+          prompt: z.string().describe('Design description from the user'),
+          stylePreset: z.string().optional().describe('Optional style preset: minimalist, vintage, geometric, watercolor, pop-art, line-art, botanical, typography'),
+          productId: z.string().optional().describe('Product ID to design for'),
+        }),
+        // @ts-expect-error AI SDK 6.0.86 type mismatch — execute works at runtime
+        execute: async (args: { prompt: string; stylePreset?: string; productId?: string }) => {
+          const { prompt, stylePreset, productId } = args
+          try {
+            // Content safety check
+            const safety = checkPromptSafety(prompt)
+            if (!safety.safe) {
+              return { success: false, error: `Content policy violation: ${safety.reason}` }
+            }
+
+            const { orchestrateDesign } = await import('@/lib/ai-design-orchestrator')
+
+            const orchestrated = orchestrateDesign(prompt, 'tshirt', stylePreset)
+            const result = await generateDesign({
+              prompt: orchestrated.engineeredPrompt,
+              negativePrompt: orchestrated.negativePrompt,
+              intent: orchestrated.intent as DesignIntent | undefined,
+            })
+
+            if (!result.success) {
+              return { success: false, error: result.error || 'Design generation failed' }
+            }
+
+            return {
+              success: true,
+              image_url: result.imageUrl,
+              provider: result.provider,
+              inference_ms: result.timings?.inference || null,
+              prompt: orchestrated.engineeredPrompt,
+              productId: productId || null,
+            }
+          } catch (error: any) {
+            console.error('ai_design_generate error:', error)
+            return { success: false, error: error.message || 'Design generation failed' }
+          }
+        },
+      }),
+
+      apply_design_to_product: tool({
+        description: 'Apply a generated design to a product by creating a composition. Requires user approval before proceeding.',
+        parameters: z.object({
+          generationId: z.string().describe('ID of the AI generation to apply'),
+          productId: z.string().describe('Product ID to apply design to'),
+          productType: z.string().optional().describe('Product type (tshirt, hoodie, mug, etc.)'),
+        }),
+        needsApproval: true,
+        // @ts-expect-error AI SDK 6.0.86 type mismatch — execute works at runtime
+        execute: async (args: { generationId: string; productId: string; productType?: string }) => {
+          const { generationId, productId, productType } = args
+          try {
+            // Load generation
+            const { data: gen } = await supabase
+              .from('ai_generations')
+              .select('image_url, user_id')
+              .eq('id', generationId)
+              .single()
+
+            if (!gen?.image_url) {
+              // Fallback: try designs table
+              const { data: design } = await supabase
+                .from('designs')
+                .select('image_url, user_id')
+                .eq('id', generationId)
+                .single()
+
+              if (!design?.image_url) {
+                return { success: false, error: 'Generation not found' }
+              }
+
+              // Create composition from designs table
+              const { data: comp } = await supabase
+                .from('design_compositions')
+                .insert({
+                  user_id: design.user_id,
+                  product_id: productId,
+                  product_type: productType || 'tshirt',
+                  schema_version: 1,
+                  layers: [{ type: 'ai', url: design.image_url, generationId }],
+                  status: 'draft',
+                })
+                .select('id')
+                .single()
+
+              return {
+                success: true,
+                composition_id: comp?.id,
+                message: 'Design applied to product',
+              }
+            }
+
+            // Create composition from ai_generations table
+            const { data: comp } = await supabase
+              .from('design_compositions')
+              .insert({
+                user_id: gen.user_id,
+                product_id: productId,
+                product_type: productType || 'tshirt',
+                schema_version: 1,
+                layers: [{ type: 'ai', url: gen.image_url, generationId }],
+                status: 'draft',
+              })
+              .select('id')
+              .single()
+
+            return {
+              success: true,
+              composition_id: comp?.id,
+              message: 'Design applied to product',
+            }
+          } catch (error: any) {
+            console.error('apply_design_to_product error:', error)
+            return { success: false, error: error.message || 'Failed to apply design' }
           }
         },
       }),

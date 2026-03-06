@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="3279" height="900" viewBox="0 0 3279 900">
+
+  <!-- WT01: "Self-Care" Wine Tumbler — BP620 3279×900, sublimation -->
+  <!-- Ultra-wide wrap 3.6:1 ratio — v2 fixed overflow -->
+  <!-- Navy background for sublimation -->
+
+  <!-- Full background -->
+  <rect width="3279" height="900" fill="#0F172A"/>
+
+  <!-- "self-care" — left, script -->
+  <text x="500" y="380"
+        font-family="'Caveat', cursive"
+        font-size="160"
+        fill="#F0EDE8" text-anchor="middle">self-care</text>
+
+  <!-- "level:" — below, monospace -->
+  <text x="500" y="530"
+        font-family="'Courier New', monospace"
+        font-size="80" font-weight="bold"
+        fill="#94A3B8" text-anchor="middle">level:</text>
+
+  <!-- Mini bar chart — center-left -->
+  <rect x="950" y="520" width="60" height="80" rx="6" fill="#14B8A6"/>
+  <rect x="1030" y="480" width="60" height="120" rx="6" fill="#22D3EE"/>
+  <rect x="1110" y="440" width="60" height="160" rx="6" fill="#FBBF24"/>
+  <rect x="1190" y="400" width="60" height="200" rx="6" fill="#F97316"/>
+  <rect x="1270" y="360" width="60" height="240" rx="6" fill="#EC4899"/>
+
+  <!-- "AGGRESSIVE" — right, 3D pink -->
+  <text x="2200" y="530"
+        font-family="'Arial Black', sans-serif"
+        font-size="160" font-weight="900"
+        fill="#831843" text-anchor="middle"
+        letter-spacing="6">AGGRESSIVE</text>
+  <text x="2196" y="526"
+        font-family="'Arial Black', sans-serif"
+        font-size="160" font-weight="900"
+        fill="#BE185D" text-anchor="middle"
+        letter-spacing="6">AGGRESSIVE</text>
+  <text x="2192" y="522"
+        font-family="'Arial Black', sans-serif"
+        font-size="160" font-weight="900"
+        fill="#EC4899" text-anchor="middle"
+        letter-spacing="6">AGGRESSIVE</text>
+
+  <!-- SKAPARA branding — far right bottom -->
+  <text x="3100" y="830"
+        font-family="'Courier New', monospace"
+        font-size="44" font-weight="bold"
+        fill="#475569" text-anchor="middle">SKAPARA</text>
+
+</svg>

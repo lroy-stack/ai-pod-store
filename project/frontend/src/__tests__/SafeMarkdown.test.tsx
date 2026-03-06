@@ -178,13 +178,10 @@ This is a paragraph.
     )
   })
 
-  it('should pass custom components to ReactMarkdown', () => {
+  it('should render with legal variant', () => {
     const content = '# Heading'
-    const customComponents = {
-      h1: (props: any) => <h1 className="custom-h1" {...props} />,
-    }
 
-    render(<SafeMarkdown components={customComponents}>{content}</SafeMarkdown>)
+    render(<SafeMarkdown variant="legal">{content}</SafeMarkdown>)
 
     // Just verify the component renders without error
     expect(DOMPurify.sanitize).toHaveBeenCalled()

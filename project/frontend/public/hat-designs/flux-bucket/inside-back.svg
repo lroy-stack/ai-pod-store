@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2700 3150" width="2700" height="3150">
+  <defs>
+    <!-- 12 zigzag patterns — IDENTICAL to inside-front for color continuity -->
+    <pattern id="zz1" width="72" height="36" patternUnits="userSpaceOnUse" patternTransform="rotate(15)">
+      <rect width="72" height="36" fill="#000"/>
+      <path d="M0,18 L18,0 L36,18 L54,0 L72,18 L72,36 L54,18 L36,36 L18,18 L0,36 Z" fill="#EF4444"/>
+    </pattern>
+    <pattern id="zz2" width="72" height="36" patternUnits="userSpaceOnUse" patternTransform="rotate(-25)">
+      <rect width="72" height="36" fill="#000"/>
+      <path d="M0,18 L18,0 L36,18 L54,0 L72,18 L72,36 L54,18 L36,36 L18,18 L0,36 Z" fill="#F97316"/>
+    </pattern>
+    <pattern id="zz3" width="72" height="36" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect width="72" height="36" fill="#000"/>
+      <path d="M0,18 L18,0 L36,18 L54,0 L72,18 L72,36 L54,18 L36,36 L18,18 L0,36 Z" fill="#EAB308"/>
+    </pattern>
+    <pattern id="zz4" width="72" height="36" patternUnits="userSpaceOnUse" patternTransform="rotate(-35)">
+      <rect width="72" height="36" fill="#000"/>
+      <path d="M0,18 L18,0 L36,18 L54,0 L72,18 L72,36 L54,18 L36,36 L18,18 L0,36 Z" fill="#84CC16"/>
+    </pattern>
+    <pattern id="zz5" width="72" height="36" patternUnits="userSpaceOnUse" patternTransform="rotate(60)">
+      <rect width="72" height="36" fill="#000"/>
+      <path d="M0,18 L18,0 L36,18 L54,0 L72,18 L72,36 L54,18 L36,36 L18,18 L0,36 Z" fill="#22C55E"/>
+    </pattern>
+    <pattern id="zz6" width="72" height="36" patternUnits="userSpaceOnUse" patternTransform="rotate(0)">
+      <rect width="72" height="36" fill="#000"/>
+      <path d="M0,18 L18,0 L36,18 L54,0 L72,18 L72,36 L54,18 L36,36 L18,18 L0,36 Z" fill="#10B981"/>
+    </pattern>
+    <pattern id="zz7" width="72" height="36" patternUnits="userSpaceOnUse" patternTransform="rotate(-50)">
+      <rect width="72" height="36" fill="#000"/>
+      <path d="M0,18 L18,0 L36,18 L54,0 L72,18 L72,36 L54,18 L36,36 L18,18 L0,36 Z" fill="#06B6D4"/>
+    </pattern>
+    <pattern id="zz8" width="72" height="36" patternUnits="userSpaceOnUse" patternTransform="rotate(30)">
+      <rect width="72" height="36" fill="#000"/>
+      <path d="M0,18 L18,0 L36,18 L54,0 L72,18 L72,36 L54,18 L36,36 L18,18 L0,36 Z" fill="#3B82F6"/>
+    </pattern>
+    <pattern id="zz9" width="72" height="36" patternUnits="userSpaceOnUse" patternTransform="rotate(-15)">
+      <rect width="72" height="36" fill="#000"/>
+      <path d="M0,18 L18,0 L36,18 L54,0 L72,18 L72,36 L54,18 L36,36 L18,18 L0,36 Z" fill="#6366F1"/>
+    </pattern>
+    <pattern id="zz10" width="72" height="36" patternUnits="userSpaceOnUse" patternTransform="rotate(55)">
+      <rect width="72" height="36" fill="#000"/>
+      <path d="M0,18 L18,0 L36,18 L54,0 L72,18 L72,36 L54,18 L36,36 L18,18 L0,36 Z" fill="#8B5CF6"/>
+    </pattern>
+    <pattern id="zz11" width="72" height="36" patternUnits="userSpaceOnUse" patternTransform="rotate(-40)">
+      <rect width="72" height="36" fill="#000"/>
+      <path d="M0,18 L18,0 L36,18 L54,0 L72,18 L72,36 L54,18 L36,36 L18,18 L0,36 Z" fill="#D946EF"/>
+    </pattern>
+    <pattern id="zz12" width="72" height="36" patternUnits="userSpaceOnUse" patternTransform="rotate(10)">
+      <rect width="72" height="36" fill="#000"/>
+      <path d="M0,18 L18,0 L36,18 L54,0 L72,18 L72,36 L54,18 L36,36 L18,18 L0,36 Z" fill="#FF1493"/>
+    </pattern>
+  </defs>
+
+  <!-- BASE BLACK -->
+  <rect width="2700" height="3150" fill="#000"/>
+
+  <!-- ===== PRIMARY DIAGONAL RAINBOW BANDS — rotated +29° (MIRROR of inside-front) ===== -->
+  <!-- Mirrored angle: front at -29°, back at +29° → chevron V at seams -->
+  <!-- Same colors, same Y positions, same band dimensions -->
+  <g transform="rotate(29, 1350, 1575)">
+    <!-- Warm spectrum (top) -->
+    <rect x="-2000" y="-1800" width="6700" height="260" fill="url(#zz1)" stroke="#111" stroke-width="3"/>
+    <rect x="-2000" y="-1500" width="6700" height="260" fill="url(#zz2)" stroke="#111" stroke-width="3"/>
+    <rect x="-2000" y="-1200" width="6700" height="260" fill="url(#zz3)" stroke="#111" stroke-width="3"/>
+    <rect x="-2000" y="-900" width="6700" height="260" fill="url(#zz4)" stroke="#111" stroke-width="3"/>
+    <!-- Cool spectrum (center) -->
+    <rect x="-2000" y="-600" width="6700" height="260" fill="url(#zz5)" stroke="#111" stroke-width="3"/>
+    <rect x="-2000" y="-300" width="6700" height="260" fill="url(#zz6)" stroke="#111" stroke-width="3"/>
+    <rect x="-2000" y="0" width="6700" height="260" fill="url(#zz7)" stroke="#111" stroke-width="3"/>
+    <rect x="-2000" y="300" width="6700" height="260" fill="url(#zz8)" stroke="#111" stroke-width="3"/>
+    <!-- Purple-pink spectrum (center-bottom) -->
+    <rect x="-2000" y="600" width="6700" height="260" fill="url(#zz9)" stroke="#111" stroke-width="3"/>
+    <rect x="-2000" y="900" width="6700" height="260" fill="url(#zz10)" stroke="#111" stroke-width="3"/>
+    <rect x="-2000" y="1200" width="6700" height="260" fill="url(#zz11)" stroke="#111" stroke-width="3"/>
+    <rect x="-2000" y="1500" width="6700" height="260" fill="url(#zz12)" stroke="#111" stroke-width="3"/>
+    <!-- Warm repeat (bottom corners) -->
+    <rect x="-2000" y="1800" width="6700" height="260" fill="url(#zz1)" stroke="#111" stroke-width="3"/>
+    <rect x="-2000" y="2100" width="6700" height="260" fill="url(#zz2)" stroke="#111" stroke-width="3"/>
+    <rect x="-2000" y="2400" width="6700" height="260" fill="url(#zz3)" stroke="#111" stroke-width="3"/>
+  </g>
+
+  <!-- ===== CROSS-CUTTING ACCENT BANDS — rotated -61° (MIRROR of inside-front's 61°) ===== -->
+  <g transform="rotate(-61, 1350, 1575)" opacity="0.3">
+    <rect x="-2000" y="-1200" width="6700" height="120" fill="url(#zz7)"/>
+    <rect x="-2000" y="-400" width="6700" height="120" fill="url(#zz12)"/>
+    <rect x="-2000" y="400" width="6700" height="120" fill="url(#zz4)"/>
+    <rect x="-2000" y="1200" width="6700" height="120" fill="url(#zz9)"/>
+  </g>
+
+  <!-- ===== DIAMOND ACCENTS — mirrored X positions (2700-x) from inside-front ===== -->
+  <!-- Front (600,1200) → Back (2100,1200), Front (2100,1800) → Back (600,1800) -->
+  <!-- Center diamonds (x=1350) stay in same position -->
+  <g opacity="0.45">
+    <polygon points="2100,1200 2300,1400 2100,1600 1900,1400" fill="url(#zz7)" stroke="#06B6D4" stroke-width="3"/>
+    <polygon points="1350,400 1550,600 1350,800 1150,600" fill="url(#zz12)" stroke="#FF1493" stroke-width="3"/>
+    <polygon points="600,1800 800,2000 600,2200 400,2000" fill="url(#zz3)" stroke="#EAB308" stroke-width="3"/>
+    <polygon points="1350,2500 1550,2700 1350,2900 1150,2700" fill="url(#zz10)" stroke="#8B5CF6" stroke-width="3"/>
+  </g>
+</svg>

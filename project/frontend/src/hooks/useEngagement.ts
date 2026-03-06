@@ -26,7 +26,8 @@ export function useEngagement() {
       const data = await res.json()
       setUsage(data)
       return data
-    } catch {
+    } catch (error) {
+      console.error('[useEngagement] fetchUsage failed:', error)
       return null
     }
   }, [])

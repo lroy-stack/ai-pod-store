@@ -30,6 +30,11 @@ export async function getCheckoutSession(
   sessionId: string
 ): Promise<CheckoutSessionDetails | null> {
   try {
+    if (!sessionId || !sessionId.startsWith('cs_')) {
+      console.error('Invalid Stripe session ID format:', sessionId?.slice(0, 10))
+      return null
+    }
+
     const session = await stripe.checkout.sessions.retrieve(sessionId, {
       expand: ['line_items'],
     })

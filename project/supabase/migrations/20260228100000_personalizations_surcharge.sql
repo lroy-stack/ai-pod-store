@@ -1,0 +1,1 @@
+ALTER TABLE personalizations ADD COLUMN IF NOT EXISTS surcharge_amount DECIMAL(10,2) DEFAULT NULL;

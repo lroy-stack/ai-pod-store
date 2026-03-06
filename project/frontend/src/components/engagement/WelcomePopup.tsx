@@ -10,6 +10,8 @@
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
+import { BrandMark } from '@/components/ui/brand-mark'
+import { BRAND } from '@/lib/store-config'
 import {
   Dialog,
   DialogContent,
@@ -56,11 +58,9 @@ export function WelcomePopup() {
     <Dialog open={open} onOpenChange={(v) => { if (!v) dismiss() }}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader className="text-center items-center">
-          <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary/60 mb-2">
-            <span className="text-2xl font-bold text-primary-foreground">P</span>
-          </div>
+          <BrandMark size={56} className="justify-center mb-2" />
           <DialogTitle className="text-2xl">
-            {t('title', { brandName: process.env.NEXT_PUBLIC_SITE_NAME || 'Skapara' })}
+            {t('title', { brandName: BRAND.name })}
           </DialogTitle>
           <DialogDescription className="text-base">
             {t('description')}

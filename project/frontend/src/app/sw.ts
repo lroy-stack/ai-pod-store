@@ -1,6 +1,6 @@
 import { defaultCache } from '@serwist/next/worker'
 import type { PrecacheEntry, SerwistGlobalConfig } from 'serwist'
-import { Serwist, CacheFirst, NetworkFirst, NetworkOnly } from 'serwist'
+import { Serwist, CacheFirst, StaleWhileRevalidate, NetworkFirst, NetworkOnly } from 'serwist'
 
 declare global {
   interface WorkerGlobalScope extends SerwistGlobalConfig {
@@ -22,11 +22,12 @@ const serwist = new Serwist({
       handler: new NetworkOnly(),
     },
     ...defaultCache,
-    // Product images from Printify CDN
+    // Product images from Printify CDN — StaleWhileRevalidate so mockups
+    // refresh after Printify regenerates content at the same URL on republish
     {
       matcher: /^https:\/\/.*\.printify\.me\/.*/i,
-      handler: new CacheFirst({
-        cacheName: 'printify-images',
+      handler: new StaleWhileRevalidate({
+        cacheName: 'printify-images-v2',
         plugins: [
           {
             cacheWillUpdate: async ({ response }) => {
@@ -38,8 +39,7 @@ const serwist = new Serwist({
           },
           {
             cacheDidUpdate: async () => {
-              // Limit cache size to 200 entries
-              const cache = await caches.open('printify-images')
+              const cache = await caches.open('printify-images-v2')
               const keys = await cache.keys()
               if (keys.length > 200) {
                 await cache.delete(keys[0])
@@ -125,6 +125,19 @@ const serwist = new Serwist({
 
 serwist.addEventListeners()
 
+// Clean up old cache names on activation (printify-images → printify-images-v2)
+self.addEventListener('activate', (event: any) => {
+  event.waitUntil(
+    caches.keys().then((names: string[]) =>
+      Promise.all(
+        names
+          .filter((n) => n === 'printify-images')
+          .map((n) => caches.delete(n))
+      )
+    )
+  )
+})
+
 // --- Web Push Notification Handlers (preserved from original sw.js) ---
 self.addEventListener('push', (event: any) => {
   const data = event.data ? event.data.json() : {}
@@ -138,7 +151,7 @@ self.addEventListener('push', (event: any) => {
     vibrate: [100, 50, 100],
   }
   event.waitUntil(
-    self.registration.showNotification(data.title || 'Skapara', options)
+    self.registration.showNotification(data.title || 'SKAPARA', options)
   )
 })
 

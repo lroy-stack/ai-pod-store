@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { forgotPasswordLimiter } from '@/lib/rate-limit'
+import { BASE_URL } from '@/lib/store-config'
 
 // Supabase client with service role key for admin operations
 const supabaseAdmin = createClient(
@@ -35,7 +36,7 @@ export async function POST(request: NextRequest) {
 
     // Send password reset email using Supabase Auth
     const { error } = await supabaseAdmin.auth.resetPasswordForEmail(email, {
-      redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/${locale}/auth/reset-password`,
+      redirectTo: `${BASE_URL}/${locale}/auth/reset-password`,
     })
 
     if (error) {

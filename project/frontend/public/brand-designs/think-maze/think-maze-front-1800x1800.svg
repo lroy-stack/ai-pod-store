@@ -1,0 +1,253 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1800 1800" width="1800" height="1800">
+  <!--
+    "THINK FOR YOURSELF" Maze — SKAPARA M2580 Hoodie Front
+    1800×1800 square canvas, white on transparent.
+
+    Structure:
+    - 8×8 cell grid (cell=165px), origin at (240,240)
+    - 3 concentric rings + internal walls
+    - Entry: bottom-center gap
+    - Exit: top-right gap
+    - "THINK" text follows each wall via <textPath>
+    - "YOURSELF" + "SKAPARA" in corridors and center
+  -->
+
+  <defs>
+    <style>
+      .wall { stroke: #FFFFFF; stroke-width: 5; stroke-linecap: square; fill: none; }
+      .wt { fill: #FFFFFF; font: 900 36px "Arial Black", "Helvetica Neue", Impact, sans-serif; letter-spacing: 2px; }
+      .ys { fill: #FFFFFF; font: 900 58px "Arial Black", Impact, sans-serif; }
+      .ysc { fill: #FFFFFF; font: 900 110px "Arial Black", Impact, sans-serif; }
+      .sk { fill: #FFFFFF; font: 900 46px "Arial Black", Impact, sans-serif; letter-spacing: 6px; }
+      .arr { stroke: #FFFFFF; stroke-width: 4; stroke-linecap: round; fill: none; }
+    </style>
+
+    <!-- ═══ WALL PATHS (used for rendering AND textPath) ═══ -->
+
+    <!-- OUTER BORDER (Ring 0) -->
+    <path id="r0t1" d="M240,240 L1230,240"/>      <!-- top left segment -->
+    <path id="r0t2" d="M1395,240 L1560,240"/>      <!-- top right segment (gap=exit between) -->
+    <path id="r0b1" d="M240,1560 L900,1560"/>      <!-- bottom left segment -->
+    <path id="r0b2" d="M1065,1560 L1560,1560"/>    <!-- bottom right segment (gap=entry between) -->
+    <path id="r0l"  d="M240,240 L240,1560"/>       <!-- left full -->
+    <path id="r0r"  d="M1560,240 L1560,1560"/>     <!-- right full -->
+
+    <!-- RING 1 -->
+    <path id="r1t1" d="M405,405 L735,405"/>        <!-- top-left -->
+    <path id="r1t2" d="M900,405 L1395,405"/>       <!-- top-right (gap at col 3-4 = door to Ring2) -->
+    <path id="r1b1" d="M405,1395 L900,1395"/>      <!-- bottom-left (gap right = door from entry) -->
+    <path id="r1b2" d="M1065,1395 L1395,1395"/>    <!-- bottom-right -->
+    <path id="r1l1" d="M405,405 L405,1065"/>       <!-- left upper -->
+    <path id="r1l2" d="M405,1230 L405,1395"/>      <!-- left lower (gap row 5-6 = dead end) -->
+    <path id="r1r1" d="M1395,405 L1395,735"/>      <!-- right upper (gap mid = door to exit) -->
+    <path id="r1r2" d="M1395,900 L1395,1395"/>     <!-- right lower -->
+
+    <!-- RING 2 -->
+    <path id="r2t1" d="M570,570 L900,570"/>        <!-- top-left (gap right = door from Ring1 top) -->
+    <path id="r2t2" d="M1065,570 L1230,570"/>      <!-- top-right -->
+    <path id="r2b1" d="M570,1230 L735,1230"/>      <!-- bottom-left -->
+    <path id="r2b2" d="M900,1230 L1230,1230"/>     <!-- bottom-right (gap left-center = door from Ring1 bottom) -->
+    <path id="r2l"  d="M570,570 L570,1230"/>       <!-- left full (no gap = dead end wall) -->
+    <path id="r2r1" d="M1230,570 L1230,735"/>      <!-- right upper (gap mid = door to exit corridor) -->
+    <path id="r2r2" d="M1230,900 L1230,1230"/>     <!-- right lower -->
+
+    <!-- INTERNAL STUBS — upper section -->
+    <path id="iu1" d="M570,735 L735,735"/>         <!-- H: dead-end wall upper-left -->
+    <path id="iu2" d="M1065,735 L1230,735"/>       <!-- H: dead-end wall upper-right -->
+    <path id="iu3" d="M735,570 L735,735"/>          <!-- V: blocks left path down from r2t gap -->
+    <path id="iu4" d="M1065,735 L1065,900"/>        <!-- V: forces path left toward center -->
+    <path id="iu5" d="M900,405 L900,570"/>          <!-- V: wall between r1t gap and r2t gap -->
+
+    <!-- INTERNAL STUBS — lower section -->
+    <path id="il1" d="M570,1065 L735,1065"/>        <!-- H: dead-end wall lower-left -->
+    <path id="il2" d="M1065,1065 L1230,1065"/>      <!-- H: blocks direct path up-right -->
+    <path id="il3" d="M735,900 L735,1065"/>          <!-- V: forces path right from center -->
+    <path id="il4" d="M1065,1065 L1065,1230"/>      <!-- V: creates lower-right dead end -->
+    <path id="il5" d="M900,1230 L900,1395"/>         <!-- V: wall between r2b gap and r1b gap -->
+
+    <!-- OUTER CORRIDOR STUBS — horizontal -->
+    <path id="oh1" d="M240,735 L405,735"/>
+    <path id="oh2" d="M1395,900 L1560,900"/>  <!-- moved down to not block exit path -->
+    <path id="oh3" d="M240,1065 L405,1065"/>
+    <path id="oh4" d="M1395,1065 L1560,1065"/>
+
+    <!-- OUTER CORRIDOR STUBS — vertical -->
+    <path id="ov1" d="M735,240 L735,405"/>
+    <path id="ov2" d="M1065,240 L1065,405"/>
+    <path id="ov3" d="M735,1395 L735,1560"/>
+    <path id="ov4" d="M1065,1395 L1065,1560"/>
+
+    <!-- CENTER APPROACH WALLS -->
+    <path id="ca1" d="M570,900 L735,900"/>          <!-- H: center left -->
+    <path id="ca2" d="M1065,900 L1230,900"/>        <!-- H: center right -->
+  </defs>
+
+  <!-- ═══════════════════════════════════════════════ -->
+  <!-- LAYER 1: WALL LINES                            -->
+  <!-- ═══════════════════════════════════════════════ -->
+  <g id="maze-walls">
+    <!-- Outer border -->
+    <use href="#r0t1" class="wall"/>
+    <use href="#r0t2" class="wall"/>
+    <use href="#r0b1" class="wall"/>
+    <use href="#r0b2" class="wall"/>
+    <use href="#r0l"  class="wall"/>
+    <use href="#r0r"  class="wall"/>
+
+    <!-- Ring 1 -->
+    <use href="#r1t1" class="wall"/>
+    <use href="#r1t2" class="wall"/>
+    <use href="#r1b1" class="wall"/>
+    <use href="#r1b2" class="wall"/>
+    <use href="#r1l1" class="wall"/>
+    <use href="#r1l2" class="wall"/>
+    <use href="#r1r1" class="wall"/>
+    <use href="#r1r2" class="wall"/>
+
+    <!-- Ring 2 -->
+    <use href="#r2t1" class="wall"/>
+    <use href="#r2t2" class="wall"/>
+    <use href="#r2b1" class="wall"/>
+    <use href="#r2b2" class="wall"/>
+    <use href="#r2l"  class="wall"/>
+    <use href="#r2r1" class="wall"/>
+    <use href="#r2r2" class="wall"/>
+
+    <!-- Internal stubs upper -->
+    <use href="#iu1" class="wall"/>
+    <use href="#iu2" class="wall"/>
+    <use href="#iu3" class="wall"/>
+    <use href="#iu4" class="wall"/>
+    <use href="#iu5" class="wall"/>
+
+    <!-- Internal stubs lower -->
+    <use href="#il1" class="wall"/>
+    <use href="#il2" class="wall"/>
+    <use href="#il3" class="wall"/>
+    <use href="#il4" class="wall"/>
+    <use href="#il5" class="wall"/>
+
+    <!-- Outer corridor stubs -->
+    <use href="#oh1" class="wall"/>
+    <use href="#oh2" class="wall"/>
+    <use href="#oh3" class="wall"/>
+    <use href="#oh4" class="wall"/>
+    <use href="#ov1" class="wall"/>
+    <use href="#ov2" class="wall"/>
+    <use href="#ov3" class="wall"/>
+    <use href="#ov4" class="wall"/>
+
+    <!-- Center approach -->
+    <use href="#ca1" class="wall"/>
+    <use href="#ca2" class="wall"/>
+  </g>
+
+  <!-- ═══════════════════════════════════════════════ -->
+  <!-- LAYER 2: "THINK" TEXT ALONG WALLS               -->
+  <!-- Text sits just below/beside each wall line      -->
+  <!-- ═══════════════════════════════════════════════ -->
+  <g id="wall-text">
+    <!-- Outer border — horizontal -->
+    <text class="wt" dy="40"><textPath href="#r0t1">THINK THINK THINK THINK THINK</textPath></text>
+    <text class="wt" dy="40"><textPath href="#r0t2">THINK</textPath></text>
+    <text class="wt" dy="-14"><textPath href="#r0b1">THINK THINK THINK THINK</textPath></text>
+    <text class="wt" dy="-14"><textPath href="#r0b2">THINK THINK THINK</textPath></text>
+
+    <!-- Outer border — vertical (reduced to avoid saturation) -->
+    <text class="wt" dy="40"><textPath href="#r0l">THINK THINK THINK THINK THINK</textPath></text>
+    <text class="wt" dy="-14"><textPath href="#r0r">THINK THINK THINK THINK THINK</textPath></text>
+
+    <!-- Ring 1 — horizontal -->
+    <text class="wt" dy="40"><textPath href="#r1t1">THINK THINK</textPath></text>
+    <text class="wt" dy="40"><textPath href="#r1t2">THINK THINK THINK</textPath></text>
+    <text class="wt" dy="-14"><textPath href="#r1b1">THINK THINK THINK</textPath></text>
+    <text class="wt" dy="-14"><textPath href="#r1b2">THINK THINK</textPath></text>
+
+    <!-- Ring 1 — vertical -->
+    <text class="wt" dy="40"><textPath href="#r1l1">THINK THINK THINK</textPath></text>
+    <text class="wt" dy="40"><textPath href="#r1l2">THINK</textPath></text>
+    <text class="wt" dy="-14"><textPath href="#r1r1">THINK THINK</textPath></text>
+    <text class="wt" dy="-14"><textPath href="#r1r2">THINK THINK THINK</textPath></text>
+
+    <!-- Ring 2 — horizontal -->
+    <text class="wt" dy="40"><textPath href="#r2t1">THINK THINK</textPath></text>
+    <text class="wt" dy="40"><textPath href="#r2t2">THINK</textPath></text>
+    <text class="wt" dy="-14"><textPath href="#r2b1">THINK</textPath></text>
+    <text class="wt" dy="-14"><textPath href="#r2b2">THINK THINK</textPath></text>
+
+    <!-- Ring 2 — vertical -->
+    <text class="wt" dy="40"><textPath href="#r2l">THINK THINK THINK THINK</textPath></text>
+    <text class="wt" dy="-14"><textPath href="#r2r1">THINK</textPath></text>
+    <text class="wt" dy="-14"><textPath href="#r2r2">THINK THINK</textPath></text>
+
+    <!-- Internal stubs — upper -->
+    <text class="wt" dy="40"><textPath href="#iu1">THINK</textPath></text>
+    <text class="wt" dy="40"><textPath href="#iu2">THINK</textPath></text>
+    <text class="wt" dy="40"><textPath href="#iu3">THINK</textPath></text>
+    <text class="wt" dy="40"><textPath href="#iu4">THINK</textPath></text>
+    <text class="wt" dy="40"><textPath href="#iu5">THINK</textPath></text>
+
+    <!-- Internal stubs — lower -->
+    <text class="wt" dy="-14"><textPath href="#il1">THINK</textPath></text>
+    <text class="wt" dy="-14"><textPath href="#il2">THINK</textPath></text>
+    <!-- il3 text removed — too close to SKAPARA center -->
+    <text class="wt" dy="-14"><textPath href="#il4">THINK</textPath></text>
+    <text class="wt" dy="-14"><textPath href="#il5">THINK</textPath></text>
+
+    <!-- Outer stubs — horizontal -->
+    <text class="wt" dy="40"><textPath href="#oh1">THINK</textPath></text>
+    <text class="wt" dy="40"><textPath href="#oh2">THINK</textPath></text>
+    <text class="wt" dy="-14"><textPath href="#oh3">THINK</textPath></text>
+    <text class="wt" dy="-14"><textPath href="#oh4">THINK</textPath></text>
+
+    <!-- Outer stubs — vertical -->
+    <text class="wt" dy="40"><textPath href="#ov1">THINK</textPath></text>
+    <text class="wt" dy="-14"><textPath href="#ov2">THINK</textPath></text>
+    <text class="wt" dy="40"><textPath href="#ov3">THINK</textPath></text>
+    <text class="wt" dy="-14"><textPath href="#ov4">THINK</textPath></text>
+
+    <!-- Center approach (no text — too close to SKAPARA center piece) -->
+  </g>
+
+  <!-- ═══════════════════════════════════════════════ -->
+  <!-- LAYER 3: "YOURSELF" IN CORRIDORS                -->
+  <!-- Placed in open corridor spaces between walls    -->
+  <!-- ═══════════════════════════════════════════════ -->
+  <g id="corridor-text">
+    <!-- Top corridor — horizontal -->
+    <text class="ys" text-anchor="middle" x="600" y="340">YOURSELF</text>
+
+    <!-- Bottom corridor — horizontal -->
+    <text class="ys" text-anchor="middle" x="600" y="1495">YOURSELF</text>
+
+    <!-- Left outer corridor — vertical -->
+    <text class="ys" text-anchor="middle" x="322" y="750" transform="rotate(-90,322,750)">YOURSELF</text>
+
+    <!-- Right outer corridor — vertical -->
+    <text class="ys" text-anchor="middle" x="1478" y="1250" transform="rotate(90,1478,1250)">YOURSELF</text>
+
+    <!-- Ring 1→2 corridor top — horizontal -->
+    <text class="ys" text-anchor="middle" x="1150" y="505">YOURSELF</text>
+
+    <!-- Ring 1→2 corridor bottom — horizontal -->
+    <text class="ys" text-anchor="middle" x="650" y="1320">YOURSELF</text>
+  </g>
+
+  <!-- ═══════════════════════════════════════════════ -->
+  <!-- LAYER 4: CENTER PIECE                           -->
+  <!-- ═══════════════════════════════════════════════ -->
+  <g id="center">
+    <text class="ysc" text-anchor="middle" x="900" y="880">YOURSELF</text>
+    <text class="sk" text-anchor="middle" x="900" y="945">SKAPARA</text>
+  </g>
+
+  <!-- ═══════════════════════════════════════════════ -->
+  <!-- LAYER 5: ENTRY / EXIT ARROWS                    -->
+  <!-- ═══════════════════════════════════════════════ -->
+  <g id="arrows">
+    <!-- Entry arrow (bottom, pointing up) -->
+    <path class="arr" d="M982,1600 L982,1572 M974,1582 L982,1572 L990,1582"/>
+    <!-- Exit arrow (top-right, pointing up) -->
+    <path class="arr" d="M1312,200 L1312,172 M1304,182 L1312,172 L1320,182"/>
+  </g>
+</svg>

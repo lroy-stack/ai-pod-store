@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
     // Fetch cart items (either by user_id or session_id)
     const query = supabase
       .from('cart_items')
-      .select('id, product_id, quantity, variant_id, personalization_id, created_at, updated_at')
+      .select('id, product_id, quantity, variant_id, personalization_id, composition_id, created_at, updated_at')
       .order('created_at', { ascending: false })
 
     if (userId) {
@@ -120,15 +120,15 @@ export async function GET(request: NextRequest) {
       .map((item: any) => item.variant_id)
       .filter(Boolean)
 
-    let variantMap = new Map<string, { size?: string; color?: string }>()
+    let variantMap = new Map<string, { size?: string; color?: string; price_cents?: number }>()
     if (variantIds.length > 0) {
       const { data: variants } = await supabase
         .from('product_variants')
-        .select('id, size, color')
+        .select('id, size, color, price_cents')
         .in('id', variantIds)
 
       variantMap = new Map(
-        (variants || []).map((v: any) => [v.id, { size: v.size, color: v.color }])
+        (variants || []).map((v: any) => [v.id, { size: v.size, color: v.color, price_cents: v.price_cents }])
       )
     }
 
@@ -161,6 +161,28 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    // Fetch available variants for each product in the cart (for variant editing)
+    const uniqueProductIds = [...new Set(productIds)]
+    const availableVariants: Record<string, { sizes: string[]; colors: string[] }> = {}
+
+    if (uniqueProductIds.length > 0) {
+      const { data: allVariants } = await supabase
+        .from('product_variants')
+        .select('product_id, size, color')
+        .in('product_id', uniqueProductIds)
+        .eq('is_enabled', true)
+        .eq('is_available', true)
+
+      for (const pid of uniqueProductIds) {
+        const productVariants = (allVariants || []).filter((v: any) => v.product_id === pid)
+        const sizes = [...new Set(productVariants.map((v: any) => v.size).filter(Boolean))] as string[]
+        const colors = [...new Set(productVariants.map((v: any) => v.color).filter(Boolean))] as string[]
+        if (sizes.length > 0 || colors.length > 0) {
+          availableVariants[pid] = { sizes, colors }
+        }
+      }
+    }
+
     // Transform cart items to include product details
     const items = (cartItems || []).map((item: any) => {
       const productDetails = productMap.get(item.product_id) || {
@@ -177,19 +199,26 @@ export async function GET(request: NextRequest) {
         variant_id: item.variant_id,
         quantity: item.quantity,
         product_title: productDetails.title,
-        product_price: productDetails.price,
+        product_price: (() => {
+          if (item.variant_id) {
+            const vd = variantMap.get(item.variant_id)
+            if (vd?.price_cents) return vd.price_cents / 100
+          }
+          return productDetails.price
+        })(),
         product_image: productDetails.image || '',
         product_currency: productDetails.currency || 'EUR',
         unavailable: productDetails.unavailable || false,
         variant_details: item.variant_id ? (variantMap.get(item.variant_id) || {}) : {},
         personalization_id: item.personalization_id,
+        composition_id: item.composition_id,
         personalization: item.personalization_id
           ? personalizationMap.get(item.personalization_id)
           : undefined,
       }
     })
 
-    const response = NextResponse.json({ items })
+    const response = NextResponse.json({ items, available_variants: availableVariants })
     if (needsSessionCookie) {
       response.cookies.set('cart-session-id', sessionId, {
         httpOnly: true,
@@ -232,7 +261,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { product_id, quantity, variant_details, personalization_id } = body
+    const { product_id, quantity, variant_details, personalization_id, composition_id } = body
 
     if (!product_id || !quantity || quantity < 1) {
       return NextResponse.json(
@@ -323,6 +352,12 @@ export async function POST(request: NextRequest) {
       existingQuery.is('personalization_id', null)
     }
 
+    if (composition_id) {
+      existingQuery.eq('composition_id', composition_id)
+    } else {
+      existingQuery.is('composition_id', null)
+    }
+
     if (userId) {
       existingQuery.eq('user_id', userId)
     } else {
@@ -369,6 +404,7 @@ export async function POST(request: NextRequest) {
       session_id: userId ? null : sessionId,
       user_id: userId,
       ...(personalization_id ? { personalization_id } : {}),
+      ...(composition_id ? { composition_id } : {}),
     }
 
     const { error: insertError } = await supabase
@@ -419,51 +455,142 @@ export async function PATCH(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { item_id, quantity } = body
+    const { item_id, quantity, variant_details } = body
 
-    if (!item_id || typeof quantity !== 'number' || quantity < 0) {
+    if (!item_id) {
       return NextResponse.json(
-        { error: 'Invalid request', message: 'item_id and quantity are required' },
+        { error: 'Invalid request', message: 'item_id is required' },
         { status: 400 }
       )
     }
 
-    // Enforce maximum quantity limit
-    if (quantity > MAX_CART_QUANTITY) {
-      return NextResponse.json(
-        { error: 'Quantity exceeds maximum', message: `Maximum quantity is ${MAX_CART_QUANTITY}` },
-        { status: 400 }
-      )
-    }
-
-    // If quantity is 0, delete the item
-    if (quantity === 0) {
-      const { error } = await supabase
-        .from('cart_items')
-        .delete()
-        .eq('id', item_id)
-
-      if (error) {
-        console.error('Cart item delete error:', error)
+    // If quantity is provided, validate it
+    if (typeof quantity === 'number') {
+      if (quantity < 0) {
         return NextResponse.json(
-          { error: 'Failed to remove item', message: error.message },
-          { status: 500 }
+          { error: 'Invalid request', message: 'quantity must be >= 0' },
+          { status: 400 }
         )
       }
 
-      return NextResponse.json({ success: true, deleted: true })
+      // Enforce maximum quantity limit
+      if (quantity > MAX_CART_QUANTITY) {
+        return NextResponse.json(
+          { error: 'Quantity exceeds maximum', message: `Maximum quantity is ${MAX_CART_QUANTITY}` },
+          { status: 400 }
+        )
+      }
+
+      // If quantity is 0, delete the item
+      if (quantity === 0) {
+        const deleteQuery = supabase
+          .from('cart_items')
+          .delete()
+          .eq('id', item_id)
+
+        if (userId) {
+          deleteQuery.eq('user_id', userId)
+        } else if (sessionId) {
+          deleteQuery.eq('session_id', sessionId)
+        }
+
+        const { error } = await deleteQuery
+
+        if (error) {
+          console.error('Cart item delete error:', error)
+          return NextResponse.json(
+            { error: 'Failed to remove item', message: error.message },
+            { status: 500 }
+          )
+        }
+
+        return NextResponse.json({ success: true, deleted: true })
+      }
     }
 
-    // Update quantity
-    const { error } = await supabase
+    // Build update payload
+    const updatePayload: Record<string, any> = { updated_at: new Date().toISOString() }
+
+    if (typeof quantity === 'number') {
+      updatePayload.quantity = quantity
+    }
+
+    // Handle variant change
+    if (variant_details && (variant_details.size || variant_details.color)) {
+      // Get the cart item to find its product_id (with ownership check)
+      const cartItemQuery = supabase
+        .from('cart_items')
+        .select('product_id')
+        .eq('id', item_id)
+
+      if (userId) {
+        cartItemQuery.eq('user_id', userId)
+      } else if (sessionId) {
+        cartItemQuery.eq('session_id', sessionId)
+      }
+
+      const { data: cartItem } = await cartItemQuery.single()
+
+      if (!cartItem) {
+        return NextResponse.json(
+          { error: 'Cart item not found', code: 'ITEM_NOT_FOUND' },
+          { status: 404 }
+        )
+      }
+
+      // Resolve new variant_id from variant_details
+      let variantQuery = supabase
+        .from('product_variants')
+        .select('id')
+        .eq('product_id', cartItem.product_id)
+        .eq('is_enabled', true)
+        .eq('is_available', true)
+
+      if (variant_details.size) {
+        variantQuery = variantQuery.eq('size', variant_details.size)
+      }
+      if (variant_details.color) {
+        variantQuery = variantQuery.eq('color', variant_details.color)
+      }
+
+      const { data: matchedVariants } = await variantQuery.limit(1)
+
+      if (!matchedVariants || matchedVariants.length === 0) {
+        return NextResponse.json(
+          { error: 'Variant not available', code: 'VARIANT_UNAVAILABLE' },
+          { status: 400 }
+        )
+      }
+
+      updatePayload.variant_id = matchedVariants[0].id
+    }
+
+    // Must have something to update
+    if (Object.keys(updatePayload).length <= 1) {
+      return NextResponse.json(
+        { error: 'Invalid request', message: 'quantity or variant_details required' },
+        { status: 400 }
+      )
+    }
+
+    // Update cart item (with ownership check)
+    const updateQuery = supabase
       .from('cart_items')
-      .update({ quantity, updated_at: new Date().toISOString() })
+      .update(updatePayload)
       .eq('id', item_id)
+
+    if (userId) {
+      updateQuery.eq('user_id', userId)
+    } else if (sessionId) {
+      updateQuery.eq('session_id', sessionId)
+    }
+
+    const { error } = await updateQuery
 
     if (error) {
       console.error('Cart item update error:', error)
       return NextResponse.json(
-        { error: 'Failed to update quantity', message: error.message },
+        { error: 'Failed to update cart item', message: error.message },
         { status: 500 }
       )
     }

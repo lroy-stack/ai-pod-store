@@ -9,11 +9,35 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 
-interface ContactFormProps {
-  locale: string
+interface ContactFormTranslations {
+  nameLabel: string
+  namePlaceholder: string
+  emailLabel: string
+  emailPlaceholder: string
+  subjectLabel: string
+  subjectGeneral: string
+  subjectTech: string
+  subjectOrder: string
+  subjectProduct: string
+  subjectPartnership: string
+  subjectFeedback: string
+  messageLabel: string
+  messagePlaceholder: string
+  sendButton: string
+  sending: string
+  successTitle: string
+  successDesc: string
+  errorTitle: string
+  errorDesc: string
+  errorFallback: string
 }
 
-export function ContactForm({ locale }: ContactFormProps) {
+interface ContactFormProps {
+  locale: string
+  translations: ContactFormTranslations
+}
+
+export function ContactForm({ locale, translations: t }: ContactFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
@@ -41,8 +65,8 @@ export function ContactForm({ locale }: ContactFormProps) {
       const data = await response.json()
 
       if (response.ok && data.success) {
-        toast.success('Message sent successfully!', {
-          description: 'We\'ll get back to you as soon as possible.',
+        toast.success(t.successTitle, {
+          description: t.successDesc,
         })
         // Reset form
         setFormData({
@@ -52,14 +76,14 @@ export function ContactForm({ locale }: ContactFormProps) {
           message: '',
         })
       } else {
-        toast.error('Failed to send message', {
-          description: data.error || 'Please try again later.',
+        toast.error(t.errorTitle, {
+          description: data.error || t.errorDesc,
         })
       }
     } catch (error) {
       console.error('Contact form error:', error)
-      toast.error('Failed to send message', {
-        description: 'Please try again later or contact us directly.',
+      toast.error(t.errorTitle, {
+        description: t.errorFallback,
       })
     } finally {
       setIsSubmitting(false)
@@ -70,11 +94,11 @@ export function ContactForm({ locale }: ContactFormProps) {
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid gap-6 md:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="name">Name *</Label>
+          <Label htmlFor="name">{t.nameLabel}</Label>
           <Input
             id="name"
             type="text"
-            placeholder="Your name"
+            placeholder={t.namePlaceholder}
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             required
@@ -83,11 +107,11 @@ export function ContactForm({ locale }: ContactFormProps) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="email">Email *</Label>
+          <Label htmlFor="email">{t.emailLabel}</Label>
           <Input
             id="email"
             type="email"
-            placeholder="your@email.com"
+            placeholder={t.emailPlaceholder}
             value={formData.email}
             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
             required
@@ -97,7 +121,7 @@ export function ContactForm({ locale }: ContactFormProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="subject">Subject *</Label>
+        <Label htmlFor="subject">{t.subjectLabel}</Label>
         <Select
           value={formData.subject}
           onValueChange={(value) => setFormData({ ...formData, subject: value })}
@@ -107,21 +131,21 @@ export function ContactForm({ locale }: ContactFormProps) {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="general">General Inquiry</SelectItem>
-            <SelectItem value="support">Technical Support</SelectItem>
-            <SelectItem value="order">Order Question</SelectItem>
-            <SelectItem value="product">Product Information</SelectItem>
-            <SelectItem value="partnership">Partnership Opportunity</SelectItem>
-            <SelectItem value="feedback">Feedback</SelectItem>
+            <SelectItem value="general">{t.subjectGeneral}</SelectItem>
+            <SelectItem value="support">{t.subjectTech}</SelectItem>
+            <SelectItem value="order">{t.subjectOrder}</SelectItem>
+            <SelectItem value="product">{t.subjectProduct}</SelectItem>
+            <SelectItem value="partnership">{t.subjectPartnership}</SelectItem>
+            <SelectItem value="feedback">{t.subjectFeedback}</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="message">Message *</Label>
+        <Label htmlFor="message">{t.messageLabel}</Label>
         <Textarea
           id="message"
-          placeholder="Tell us how we can help..."
+          placeholder={t.messagePlaceholder}
           rows={6}
           value={formData.message}
           onChange={(e) => setFormData({ ...formData, message: e.target.value })}
@@ -132,7 +156,7 @@ export function ContactForm({ locale }: ContactFormProps) {
 
       <Button type="submit" disabled={isSubmitting} className="w-full md:w-auto">
         {isSubmitting && <Loader2 className="mr-2 size-4 animate-spin" />}
-        {isSubmitting ? 'Sending...' : 'Send Message'}
+        {isSubmitting ? t.sending : t.sendButton}
       </Button>
     </form>
   )

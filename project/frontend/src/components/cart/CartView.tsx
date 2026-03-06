@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Loader2, Minus, Plus, Trash2, ChevronDown, ChevronUp, Paintbrush } from 'lucide-react'
+import { Loader2, Minus, Plus, Trash2, Pencil, Check } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { useCart } from '@/hooks/useCart'
 import { Button } from '@/components/ui/button'
@@ -11,22 +11,29 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
-import { useState } from 'react'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Progress } from '@/components/ui/progress'
+import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
 import { formatPrice } from '@/lib/currency'
 import { STORE_DEFAULTS, LOCALE_COUNTRY } from '@/lib/store-config'
+import { CartCrossSell } from '@/components/cart/CartCrossSell'
 
 const MAX_CART_QUANTITY = STORE_DEFAULTS.maxCartQuantity
 
 export default function CartView({ locale }: { locale: string }) {
   const t = useTranslations('Cart')
   const { authenticated, loading: authLoading, user } = useAuth()
-  const { items: cartItems, loading: cartLoading, refreshCart } = useCart()
+  const { items: cartItems, loading: cartLoading, refreshCart, updateVariant, availableVariants } = useCart()
 
   // Get user's preferred currency from cart items or locale default
   const userCurrency = user?.currency || (cartItems[0]?.product_currency) || STORE_DEFAULTS.currency
+  const [editingItemId, setEditingItemId] = useState<string | null>(null)
+  const [editSize, setEditSize] = useState<string>('')
+  const [editColor, setEditColor] = useState<string>('')
+  const [savingVariant, setSavingVariant] = useState(false)
   const [updatingItems, setUpdatingItems] = useState<Set<string>>(new Set())
-  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set())
+
   const [couponCode, setCouponCode] = useState('')
   const [appliedCoupon, setAppliedCoupon] = useState<{
     code: string
@@ -44,6 +51,18 @@ export default function CartView({ locale }: { locale: string }) {
   } | null>(null)
   const [calculatingShipping, setCalculatingShipping] = useState(false)
 
+  // Restore coupon from sessionStorage on mount
+  useEffect(() => {
+    try {
+      const saved = sessionStorage.getItem('pod_applied_coupon')
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        setAppliedCoupon(parsed)
+        setCouponCode(parsed.code)
+      }
+    } catch {}
+  }, [])
+
   const loading = authLoading || cartLoading
   const availableItems = cartItems.filter((item: any) => !item.unavailable)
   const cartTotal = availableItems.reduce((total, item) => total + (item.product_price * item.quantity), 0)
@@ -52,16 +71,32 @@ export default function CartView({ locale }: { locale: string }) {
   const shippingCost = shippingEstimate?.cost || 0
   const finalTotal = discountedTotal + shippingCost
 
-  const toggleExpanded = (itemId: string) => {
-    setExpandedItems((prev) => {
-      const next = new Set(prev)
-      if (next.has(itemId)) {
-        next.delete(itemId)
-      } else {
-        next.add(itemId)
-      }
-      return next
-    })
+  const startEditing = (item: any) => {
+    setEditingItemId(item.id)
+    setEditSize(item.variant_details?.size || '')
+    setEditColor(item.variant_details?.color || '')
+  }
+
+  const cancelEditing = () => {
+    setEditingItemId(null)
+    setEditSize('')
+    setEditColor('')
+  }
+
+  const saveVariant = async (itemId: string) => {
+    setSavingVariant(true)
+    try {
+      const variant: { size?: string; color?: string } = {}
+      if (editSize) variant.size = editSize
+      if (editColor) variant.color = editColor
+      await updateVariant(itemId, variant)
+      toast.success(t('variantUpdated'))
+      setEditingItemId(null)
+    } catch {
+      // error already toasted by updateVariant
+    } finally {
+      setSavingVariant(false)
+    }
   }
 
   const updateQuantity = async (itemId: string, newQuantity: number) => {
@@ -70,6 +105,9 @@ export default function CartView({ locale }: { locale: string }) {
       toast.error(t('maxQuantityExceeded', { max: MAX_CART_QUANTITY }))
       return
     }
+
+    // Save item data before removal for undo
+    const removedItem = newQuantity === 0 ? cartItems.find((i: any) => i.id === itemId) : null
 
     setUpdatingItems(prev => new Set(prev).add(itemId))
 
@@ -87,8 +125,26 @@ export default function CartView({ locale }: { locale: string }) {
 
       await refreshCart()
 
-      if (newQuantity === 0) {
-        toast.success(t('itemRemoved'))
+      if (newQuantity === 0 && removedItem) {
+        toast.success(t('itemRemoved'), {
+          action: {
+            label: t('undoRemove'),
+            onClick: async () => {
+              try {
+                await fetch('/api/cart', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    product_id: removedItem.product_id,
+                    quantity: removedItem.quantity,
+                    variant: removedItem.variant_details,
+                  }),
+                })
+                await refreshCart()
+              } catch {}
+            },
+          },
+        })
       } else {
         toast.success(t('quantityUpdated'))
       }
@@ -126,11 +182,16 @@ export default function CartView({ locale }: { locale: string }) {
         return
       }
 
-      setAppliedCoupon({
+      const couponData = {
         code: data.coupon.code,
         discount_amount: data.discount_amount,
         new_total: data.new_total,
-      })
+      }
+      setAppliedCoupon(couponData)
+      // Persist to sessionStorage for checkout
+      try {
+        sessionStorage.setItem('pod_applied_coupon', JSON.stringify(couponData))
+      } catch {}
       toast.success(t('couponApplied'))
     } catch (error) {
       console.error('Coupon application error:', error)
@@ -143,6 +204,7 @@ export default function CartView({ locale }: { locale: string }) {
   const removeCoupon = () => {
     setAppliedCoupon(null)
     setCouponCode('')
+    try { sessionStorage.removeItem('pod_applied_coupon') } catch {}
     toast.success(t('itemRemoved'))
   }
 
@@ -220,116 +282,115 @@ export default function CartView({ locale }: { locale: string }) {
                   <div key={item.id}>
                     <div className="flex gap-4">
                       {/* Product Image */}
-                      <div className="relative size-24 md:size-32 rounded-lg overflow-hidden bg-muted shrink-0">
-                        {item.product_image ? (
-                          <Image
-                            src={item.product_image}
-                            alt={item.product_title}
-                            fill
-                            className="object-cover"
-                          />
-                        ) : (
-                          <div className="flex h-full w-full items-center justify-center text-muted-foreground text-xs text-center p-2">
-                            {item.product_title}
-                          </div>
-                        )}
-                      </div>
+                      <Link href={`/${locale}/shop/${item.product_id}`} className="hover:opacity-80 transition-opacity">
+                        <div className="relative size-24 md:size-32 rounded-lg overflow-hidden bg-muted shrink-0">
+                          {item.product_image ? (
+                            <Image
+                              src={item.product_image}
+                              alt={item.product_title}
+                              fill
+                              className="object-cover"
+                            />
+                          ) : (
+                            <div className="flex h-full w-full items-center justify-center text-muted-foreground text-xs text-center p-2">
+                              {item.product_title}
+                            </div>
+                          )}
+                        </div>
+                      </Link>
 
                       {/* Product Details */}
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-medium text-foreground mb-1 truncate">
-                          {item.product_title}
-                        </h3>
+                        <Link href={`/${locale}/shop/${item.product_id}`} className="hover:opacity-80 transition-opacity">
+                          <h3 className="font-medium text-foreground mb-1 truncate">
+                            {item.product_title}
+                          </h3>
+                        </Link>
 
                         {/* Variant Details and Personalization Badge */}
-                        <div className="flex flex-wrap gap-2 mb-2">
-                          {item.variant_details?.size && (
-                            <Badge variant="secondary" className="text-xs">
-                              Size: {item.variant_details.size}
-                            </Badge>
-                          )}
-                          {item.variant_details?.color && (
-                            <Badge variant="secondary" className="text-xs">
-                              Color: {item.variant_details.color}
-                            </Badge>
-                          )}
-                          {item.unavailable && (
-                            <Badge variant="destructive" className="text-xs">
-                              Unavailable
-                            </Badge>
-                          )}
-                          {item.personalization && (
-                            <Badge variant="default" className="text-xs gap-1">
-                              <Paintbrush className="size-3" />
-                              Personalized
-                            </Badge>
-                          )}
-                        </div>
-
-                        {/* Personalization Details (expandable) */}
-                        {item.personalization && (
-                          <div className="mb-3">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-7 px-2 text-xs gap-1"
-                              onClick={() => toggleExpanded(item.id)}
-                            >
-                              {expandedItems.has(item.id) ? (
-                                <>
-                                  <ChevronUp className="size-3" />
-                                  Hide Details
-                                </>
-                              ) : (
-                                <>
-                                  <ChevronDown className="size-3" />
-                                  Show Details
-                                </>
+                        {editingItemId === item.id ? (
+                          <div className="flex flex-col gap-2 mb-2">
+                            <div className="flex flex-wrap gap-2">
+                              {availableVariants[item.product_id]?.sizes?.length > 0 && (
+                                <Select value={editSize} onValueChange={setEditSize}>
+                                  <SelectTrigger className="w-32 h-9">
+                                    <SelectValue placeholder={t('sizePlaceholder')} />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {availableVariants[item.product_id].sizes.map((s) => (
+                                      <SelectItem key={s} value={s}>{s}</SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
                               )}
-                            </Button>
-
-                            {expandedItems.has(item.id) && (
-                              <div className="mt-2 p-3 bg-muted/30 rounded-md border border-border space-y-1.5 text-xs">
-                                <div>
-                                  <span className="font-medium text-muted-foreground">Text:</span>{' '}
-                                  <span className="text-foreground">{item.personalization.text}</span>
-                                </div>
-                                <div>
-                                  <span className="font-medium text-muted-foreground">Font:</span>{' '}
-                                  <span className="text-foreground" style={{ fontFamily: item.personalization.font }}>
-                                    {item.personalization.font}
-                                  </span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <span className="font-medium text-muted-foreground">Color:</span>
-                                  <div
-                                    className="size-4 rounded border border-border"
-                                    style={{ backgroundColor: item.personalization.fontColor }}
-                                  />
-                                  <span className="text-foreground font-mono">{item.personalization.fontColor}</span>
-                                </div>
-                                <div>
-                                  <span className="font-medium text-muted-foreground">Size:</span>{' '}
-                                  <span className="text-foreground capitalize">{item.personalization.fontSize}</span>
-                                </div>
-                                <div>
-                                  <span className="font-medium text-muted-foreground">Position:</span>{' '}
-                                  <span className="text-foreground capitalize">{item.personalization.position}</span>
-                                </div>
-                                {item.personalization?.surcharge && item.personalization.surcharge > 0 && (
-                                  <div className="mt-2 pt-2 border-t border-border">
-                                    <span className="font-medium text-muted-foreground">Personalization fee:</span>{' '}
-                                    <span className="text-foreground">+€{item.personalization.surcharge.toFixed(2)}</span>
-                                  </div>
-                                )}
-                              </div>
+                              {availableVariants[item.product_id]?.colors?.length > 0 && (
+                                <Select value={editColor} onValueChange={setEditColor}>
+                                  <SelectTrigger className="w-32 h-9">
+                                    <SelectValue placeholder={t('colorPlaceholder')} />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {availableVariants[item.product_id].colors.map((c) => (
+                                      <SelectItem key={c} value={c}>{c}</SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              )}
+                            </div>
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                className="h-8"
+                                onClick={() => saveVariant(item.id)}
+                                disabled={savingVariant}
+                              >
+                                {savingVariant ? <Loader2 className="size-3 animate-spin mr-1" /> : null}
+                                {t('saveVariant')}
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8"
+                                onClick={cancelEditing}
+                                disabled={savingVariant}
+                              >
+                                {t('cancelEdit')}
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex flex-wrap items-center gap-2 mb-2">
+                            {item.variant_details?.size && (
+                              <Badge variant="secondary" className="text-xs">
+                                {t('variantSize')}: {item.variant_details.size}
+                              </Badge>
+                            )}
+                            {item.variant_details?.color && (
+                              <Badge variant="secondary" className="text-xs">
+                                {t('variantColor')}: {item.variant_details.color}
+                              </Badge>
+                            )}
+                            {(item.variant_details?.size || item.variant_details?.color) && availableVariants[item.product_id] && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="size-7"
+                                onClick={() => startEditing(item)}
+                                title={t('editVariant')}
+                              >
+                                <Pencil className="size-3.5" />
+                              </Button>
+                            )}
+                            {item.unavailable && (
+                              <Badge variant="destructive" className="text-xs">
+                                {t('unavailable')}
+                              </Badge>
                             )}
                           </div>
                         )}
 
                         {/* Price */}
                         <p className="text-sm font-medium text-foreground mb-3">
-                          {formatPrice(item.product_price, locale, userCurrency)} each
+                          {formatPrice(item.product_price, locale, userCurrency)} {t('priceEach')}
                         </p>
 
                         {/* Quantity Controls */}
@@ -372,7 +433,7 @@ export default function CartView({ locale }: { locale: string }) {
 
                         {/* Item Total */}
                         <p className="text-sm font-semibold text-foreground mt-2">
-                          Item total: {formatPrice(item.product_price * item.quantity, locale, userCurrency)}
+                          {t('itemTotal')}: {formatPrice(item.product_price * item.quantity, locale, userCurrency)}
                         </p>
                       </div>
                     </div>
@@ -381,6 +442,10 @@ export default function CartView({ locale }: { locale: string }) {
                 ))}
               </CardContent>
             </Card>
+
+            {cartItems.length > 0 && (
+              <CartCrossSell productId={cartItems[0].product_id} />
+            )}
           </div>
 
           <div className="lg:col-span-1">
@@ -487,6 +552,32 @@ export default function CartView({ locale }: { locale: string }) {
                     </div>
                   )}
                 </div>
+
+                {/* Free Shipping Progress */}
+                {(() => {
+                  const threshold = STORE_DEFAULTS.freeShippingThreshold
+                  const progress = Math.min((discountedTotal / threshold) * 100, 100)
+                  const remaining = threshold - discountedTotal
+                  if (discountedTotal >= threshold) {
+                    return (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-success text-sm">
+                          <Check className="size-4" />
+                          <span>{t('freeShippingUnlocked')}</span>
+                        </div>
+                        <Progress value={100} className="h-2" />
+                      </div>
+                    )
+                  }
+                  return (
+                    <div className="space-y-2">
+                      <p className="text-xs text-primary">
+                        {t('freeShippingThreshold', { amount: remaining.toFixed(2) })}
+                      </p>
+                      <Progress value={progress} className="h-2" />
+                    </div>
+                  )
+                })()}
 
                 <Separator />
                 <div className="space-y-2">

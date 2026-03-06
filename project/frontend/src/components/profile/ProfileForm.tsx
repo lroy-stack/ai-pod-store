@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
-import { User, Mail, Phone, Globe, DollarSign, Bell, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { User, Mail, Phone, Globe, DollarSign, Bell, Loader2, Pencil, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -103,6 +104,16 @@ export function ProfileForm({ locale }: ProfileFormProps) {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Email change state
+  const [emailEditing, setEmailEditing] = useState(false);
+  const [newEmail, setNewEmail] = useState('');
+  const [emailPassword, setEmailPassword] = useState('');
+  const [emailChanging, setEmailChanging] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
+
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -155,6 +166,82 @@ export function ProfileForm({ locale }: ProfileFormProps) {
 
     fetchProfile();
   }, [locale, router, t]);
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error(t('avatarInvalidType'));
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error(t('avatarTooLarge'));
+      return;
+    }
+
+    setAvatarUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append('avatar', file);
+
+      const response = await fetch('/api/profile/avatar', {
+        method: 'POST',
+        credentials: 'include',
+        body: fd,
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.error || 'Upload failed');
+      }
+
+      const data = await response.json();
+      setProfile((prev) => prev ? { ...prev, avatar_url: data.avatar_url } : prev);
+      toast.success(t('avatarUpdated'));
+    } catch (err) {
+      toast.error(t('avatarUploadError'));
+    } finally {
+      setAvatarUploading(false);
+      // Reset file input so same file can be re-selected
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleEmailChange = async () => {
+    if (!newEmail || !emailPassword) {
+      toast.error(t('emailPasswordRequired'));
+      return;
+    }
+
+    setEmailChanging(true);
+    try {
+      const response = await fetch('/api/profile/change-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ newEmail, password: emailPassword }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        if (data.error?.includes('incorrect') || data.error?.includes('Password')) {
+          toast.error(t('emailPasswordIncorrect'));
+        } else {
+          toast.error(data.error || t('emailChangeError'));
+        }
+        return;
+      }
+
+      setEmailSent(true);
+      setEmailPassword('');
+      toast.success(t('emailConfirmationSent'));
+    } catch (err) {
+      toast.error(t('emailChangeError'));
+    } finally {
+      setEmailChanging(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -222,9 +309,26 @@ export function ProfileForm({ locale }: ProfileFormProps) {
             {profile.name ? getInitials(profile.name) : <User className="size-8" />}
           </AvatarFallback>
         </Avatar>
-        <Button type="button" variant="outline" size="sm" disabled>
-          {t('uploadAvatar')}
-        </Button>
+        <div className="flex flex-col gap-1">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={avatarUploading}
+            onClick={() => fileInputRef.current?.click()}
+          >
+            {avatarUploading && <Loader2 className="size-4 animate-spin" />}
+            {t('uploadAvatar')}
+          </Button>
+          <p className="text-xs text-muted-foreground">{t('avatarRequirements')}</p>
+        </div>
+        <input
+          type="file"
+          ref={fileInputRef}
+          className="hidden"
+          accept="image/*"
+          onChange={handleAvatarChange}
+        />
       </div>
 
       <Separator />
@@ -259,21 +363,97 @@ export function ProfileForm({ locale }: ProfileFormProps) {
         </div>
       </div>
 
-      {/* Email — full width, read-only */}
+      {/* Email — read-only with change option */}
       <div className="space-y-2">
         <Label htmlFor="email" className="flex items-center gap-1.5">
           <Mail className="size-3.5" />
           {t('email')}
         </Label>
-        <Input
-          id="email"
-          type="email"
-          value={profile.email}
-          disabled
-          className="bg-muted"
-        />
-        {profile.email_verified && (
+        <div className="flex gap-2">
+          <Input
+            id="email"
+            type="email"
+            value={profile.email}
+            disabled
+            className="bg-muted flex-1"
+          />
+          {!emailEditing && (
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              onClick={() => {
+                setEmailEditing(true);
+                setEmailSent(false);
+                setNewEmail('');
+                setEmailPassword('');
+              }}
+            >
+              <Pencil className="size-4" />
+            </Button>
+          )}
+        </div>
+        {profile.email_verified && !emailEditing && (
           <p className="text-xs text-success">{t('emailVerified')}</p>
+        )}
+
+        {emailEditing && !emailSent && (
+          <div className="space-y-3 rounded-md border border-border p-3">
+            <Input
+              type="email"
+              value={newEmail}
+              onChange={(e) => setNewEmail(e.target.value)}
+              placeholder={t('newEmailPlaceholder')}
+            />
+            <Input
+              type="password"
+              value={emailPassword}
+              onChange={(e) => setEmailPassword(e.target.value)}
+              placeholder={t('currentPasswordPlaceholder')}
+            />
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                size="sm"
+                disabled={emailChanging || !newEmail || !emailPassword}
+                onClick={handleEmailChange}
+              >
+                {emailChanging && <Loader2 className="size-4 animate-spin" />}
+                {t('sendConfirmation')}
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setEmailEditing(false);
+                  setNewEmail('');
+                  setEmailPassword('');
+                }}
+              >
+                <X className="size-4" />
+                {t('cancel')}
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {emailSent && (
+          <div className="rounded-md bg-success/10 p-3 text-sm text-success">
+            {t('emailConfirmationSent')}
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="ml-2"
+              onClick={() => {
+                setEmailEditing(false);
+                setEmailSent(false);
+              }}
+            >
+              {t('dismiss')}
+            </Button>
+          </div>
         )}
       </div>
 

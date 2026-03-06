@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1650" height="600" viewBox="0 0 1650 600">
+
+  <!-- It Works — Otto Cap 104-1018 Dad Hat (Cat 396) EMBROIDERY -->
+  <!-- Canvas: 1650×600 @300dpi — Printful PF#75 front placement -->
+  <!-- 1 thread color: White #FFFFFF -->
+  <!-- FIXED v2: Reduced letter-spacing, positioned upper half away from seam -->
+
+  <!-- "IT WORKS." — White thread, Bebas Neue for bold weight, upper half -->
+  <text x="825" y="270"
+        font-family="'Bebas Neue', 'Impact', sans-serif"
+        font-size="130"
+        fill="#FFFFFF" text-anchor="middle"
+        letter-spacing="3">IT WORKS.</text>
+
+</svg>

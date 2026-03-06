@@ -16,7 +16,7 @@ export async function GET() {
     const supabase = supabaseAdmin;
 
     // Step 1: Create or get a test admin user
-    const testEmail = 'test-admin-telegram@podai.com';
+    const testEmail = 'test-admin-telegram@skapara.com';
     let { data: user } = await supabase
       .from('users')
       .select('id, role')

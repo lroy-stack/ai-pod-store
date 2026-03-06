@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="3402" height="4264" viewBox="0 0 3402 4264">
+
+  <!-- === ESTRELLAS GRANDES repartidas por todo el canvas === -->
+
+  <g transform="translate(280, 250)" opacity="0.75">
+    <polygon points="0,-90 23,-29 90,-29 36,10 56,75 0,38 -56,75 -36,10 -90,-29 -23,-29" fill="#FDE047"/>
+  </g>
+  <g transform="translate(3100, 200)" opacity="0.65">
+    <polygon points="0,-80 20,-26 80,-26 32,9 50,67 0,34 -50,67 -32,9 -80,-26 -20,-26" fill="#FDE047"/>
+  </g>
+  <g transform="translate(150, 1700)" opacity="0.55">
+    <polygon points="0,-75 19,-24 75,-24 30,8 47,62 0,32 -47,62 -30,8 -75,-24 -19,-24" fill="#FDE047"/>
+  </g>
+  <g transform="translate(3250, 1500)" opacity="0.6">
+    <polygon points="0,-70 18,-22 70,-22 28,8 44,58 0,30 -44,58 -28,8 -70,-22 -18,-22" fill="#FDE047"/>
+  </g>
+  <g transform="translate(500, 3000)" opacity="0.5">
+    <polygon points="0,-65 17,-21 65,-21 26,7 41,54 0,28 -41,54 -26,7 -65,-21 -17,-21" fill="#FDE047"/>
+  </g>
+  <g transform="translate(2900, 2900)" opacity="0.55">
+    <polygon points="0,-60 15,-19 60,-19 24,7 38,50 0,26 -38,50 -24,7 -60,-19 -15,-19" fill="#FDE047"/>
+  </g>
+  <g transform="translate(750, 600)" opacity="0.4">
+    <polygon points="0,-50 13,-16 50,-16 20,6 31,42 0,22 -31,42 -20,6 -50,-16 -13,-16" fill="#FDE047"/>
+  </g>
+  <g transform="translate(2650, 650)" opacity="0.45">
+    <polygon points="0,-45 12,-15 45,-15 18,5 28,38 0,20 -28,38 -18,5 -45,-15 -12,-15" fill="#FDE047"/>
+  </g>
+  <g transform="translate(350, 3700)" opacity="0.4">
+    <polygon points="0,-50 13,-16 50,-16 20,6 31,42 0,22 -31,42 -20,6 -50,-16 -13,-16" fill="#FDE047"/>
+  </g>
+  <g transform="translate(3050, 3650)" opacity="0.45">
+    <polygon points="0,-55 14,-18 55,-18 22,6 35,46 0,24 -35,46 -22,6 -55,-18 -14,-18" fill="#FDE047"/>
+  </g>
+
+  <!-- === ZZZ grandes flotando — VISIBLES === -->
+  <text x="2550" y="520" font-family="'Helvetica Neue', 'Arial', sans-serif" font-size="320" font-weight="900" fill="#A78BFA" opacity="0.5" transform="rotate(10,2550,520)">Z</text>
+  <text x="2800" y="300" font-family="'Helvetica Neue', 'Arial', sans-serif" font-size="250" font-weight="900" fill="#A78BFA" opacity="0.4" transform="rotate(15,2800,300)">Z</text>
+  <text x="3000" y="140" font-family="'Helvetica Neue', 'Arial', sans-serif" font-size="200" font-weight="900" fill="#A78BFA" opacity="0.35" transform="rotate(18,3000,140)">Z</text>
+
+  <text x="100" y="3550" font-family="'Helvetica Neue', 'Arial', sans-serif" font-size="280" font-weight="900" fill="#A78BFA" opacity="0.45" transform="rotate(-8,100,3550)">Z</text>
+  <text x="50" y="3300" font-family="'Helvetica Neue', 'Arial', sans-serif" font-size="220" font-weight="900" fill="#A78BFA" opacity="0.35" transform="rotate(-12,50,3300)">Z</text>
+
+  <!-- === LUNA KAWAII ENORME con gorro de dormir === -->
+  <g transform="translate(1700, 900)">
+    <!-- Luna grande -->
+    <circle cx="0" cy="0" r="450" fill="#FDE047"/>
+    <!-- Sombra creciente -->
+    <circle cx="160" cy="-110" r="340" fill="#A78BFA" opacity="0.12"/>
+
+    <!-- Gorro de dormir — grande y visible -->
+    <path d="M-180,-380 Q-80,-750 250,-520 Q120,-460 -60,-410 Z" fill="#A78BFA"/>
+    <!-- Rayas del gorro -->
+    <path d="M-130,-430 Q-30,-680 200,-540" fill="none" stroke="white" stroke-width="14" opacity="0.35"/>
+    <path d="M-90,-460 Q10,-700 230,-550" fill="none" stroke="white" stroke-width="14" opacity="0.3"/>
+    <!-- Pompón -->
+    <circle cx="250" cy="-520" r="60" fill="white" opacity="0.85"/>
+
+    <!-- Ojos cerrados dormidos — arcos grandes -->
+    <path d="M-180,-30 Q-120,-100 -60,-30" fill="none" stroke="#0F172A" stroke-width="22" stroke-linecap="round"/>
+    <path d="M60,-30 Q120,-100 180,-30" fill="none" stroke="#0F172A" stroke-width="22" stroke-linecap="round"/>
+    <!-- Pestañas -->
+    <line x1="-185" y1="-30" x2="-210" y2="-65" stroke="#0F172A" stroke-width="12" stroke-linecap="round"/>
+    <line x1="185" y1="-30" x2="210" y2="-65" stroke="#0F172A" stroke-width="12" stroke-linecap="round"/>
+
+    <!-- Sonrisa dormida -->
+    <path d="M-80,80 Q0,140 80,80" fill="none" stroke="#0F172A" stroke-width="16" stroke-linecap="round"/>
+
+    <!-- Mejillas -->
+    <circle cx="-240" cy="50" r="55" fill="#F472B6" opacity="0.3"/>
+    <circle cx="240" cy="50" r="55" fill="#F472B6" opacity="0.3"/>
+
+    <!-- X ROJA GRANDE — "not found" -->
+    <line x1="-300" y1="-280" x2="300" y2="280" stroke="#EF4444" stroke-width="42" stroke-linecap="round" opacity="0.75"/>
+    <line x1="300" y1="-280" x2="-300" y2="280" stroke="#EF4444" stroke-width="42" stroke-linecap="round" opacity="0.75"/>
+  </g>
+
+  <!-- === 404 ENORME — púrpura === -->
+  <text x="1700" y="1900" font-family="'Helvetica Neue', 'Arial', sans-serif" font-size="700" font-weight="900" fill="#A78BFA" text-anchor="middle" letter-spacing="-15">404</text>
+
+  <!-- === BEDTIME — blanco masivo (visible en prenda oscura) === -->
+  <text x="1700" y="2500" font-family="'Helvetica Neue', 'Arial', sans-serif" font-size="400" font-weight="900" fill="white" text-anchor="middle" letter-spacing="-8">BEDTIME</text>
+
+  <!-- === NOT FOUND — púrpura aún más grande === -->
+  <text x="1700" y="2950" font-family="'Helvetica Neue', 'Arial', sans-serif" font-size="420" font-weight="900" fill="#A78BFA" text-anchor="middle" letter-spacing="-8">NOT FOUND</text>
+
+  <!-- === moved to: NEVER === -->
+  <text x="1700" y="3250" font-family="'Courier New', monospace" font-size="180" fill="#FDE047" text-anchor="middle" opacity="0.7">moved to:</text>
+  <text x="1700" y="3530" font-family="'Helvetica Neue', 'Arial', sans-serif" font-size="350" font-weight="900" fill="#EF4444" text-anchor="middle">NEVER</text>
+
+  <!-- === sleep.exe — VISIBLE === -->
+  <text x="1700" y="3870" font-family="'Courier New', monospace" font-size="200" fill="#FDE047" text-anchor="middle" opacity="0.6">sleep.exe has stopped</text>
+
+</svg>

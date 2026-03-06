@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
 import { getTranslations } from 'next-intl/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
+import { BASE_URL } from '@/lib/store-config'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -73,8 +74,7 @@ export default async function ReferralsPage({
   }
 
   const stats = await getReferralData(user.id)
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
-  const referralLink = `${baseUrl}/${locale}?ref=${stats.referralCode}`
+  const referralLink = `${BASE_URL}/${locale}?ref=${stats.referralCode}`
 
   return (
     <div className="min-h-screen px-6 py-24 md:py-32">

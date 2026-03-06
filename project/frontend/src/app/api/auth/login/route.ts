@@ -90,18 +90,8 @@ export async function POST(request: NextRequest) {
 
     const userLocale = userData?.locale || 'en'
 
-    // Cancel account deletion if user logs in during grace period
-    if (userData?.deletion_requested_at) {
-      await supabase
-        .from('users')
-        .update({
-          deletion_requested_at: null,
-          updated_at: new Date().toISOString()
-        })
-        .eq('email', email)
-
-      console.log(`Account deletion cancelled for user ${email} via login`)
-    }
+    // Note: deletion is NOT auto-cancelled on login.
+    // The user must explicitly cancel via /api/profile/cancel-deletion.
 
     // Create response with session data
     const response = NextResponse.json(
@@ -112,6 +102,7 @@ export async function POST(request: NextRequest) {
           email: authData.user.email,
           name: authData.user.user_metadata?.name,
           locale: userLocale,
+          deletion_requested_at: userData?.deletion_requested_at || null,
         },
         session: {
           access_token: authData.session.access_token,

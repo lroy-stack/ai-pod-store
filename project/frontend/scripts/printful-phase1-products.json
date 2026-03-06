@@ -1,0 +1,3742 @@
+{
+  "168731f6-75db-4075-bb30-c1ec8fead998": {
+    "title": "Absolutely Right",
+    "tier": "signature",
+    "catalogId": 586,
+    "syncProductId": 422030294,
+    "status": "ok",
+    "variantsCreated": 35,
+    "variantsUnmatched": 0,
+    "syncVariants": [
+      {
+        "syncVariantId": 5218122455,
+        "variantId": 15114,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122456,
+        "variantId": 15115,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122457,
+        "variantId": 15116,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122458,
+        "variantId": 15117,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122459,
+        "variantId": 15118,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218122460,
+        "variantId": 16326,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218122461,
+        "variantId": 17500,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218122462,
+        "variantId": 17693,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122463,
+        "variantId": 17694,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122464,
+        "variantId": 17695,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122465,
+        "variantId": 17696,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122466,
+        "variantId": 17697,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218122467,
+        "variantId": 17698,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218122468,
+        "variantId": 17699,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218122469,
+        "variantId": 21264,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122470,
+        "variantId": 21265,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122471,
+        "variantId": 21266,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122472,
+        "variantId": 21267,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122473,
+        "variantId": 21268,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218122474,
+        "variantId": 21269,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218122475,
+        "variantId": 21270,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218122476,
+        "variantId": 16523,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122477,
+        "variantId": 16524,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122478,
+        "variantId": 16525,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122479,
+        "variantId": 16526,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122480,
+        "variantId": 16527,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218122481,
+        "variantId": 16528,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218122482,
+        "variantId": 17507,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218122483,
+        "variantId": 15181,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122484,
+        "variantId": 15182,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122485,
+        "variantId": 15183,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122486,
+        "variantId": 15184,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122487,
+        "variantId": 15185,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218122488,
+        "variantId": 16332,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218122489,
+        "variantId": 17499,
+        "retailPrice": "43.59"
+      }
+    ],
+    "createdAt": "2026-03-02T14:13:22.669Z"
+  },
+  "922c9543-91b7-4530-9393-bee5db079626": {
+    "title": "Caffeine Anxiety",
+    "tier": "premium",
+    "catalogId": 917,
+    "syncProductId": 422030458,
+    "status": "ok",
+    "variantsCreated": 35,
+    "variantsUnmatched": 0,
+    "syncVariants": [
+      {
+        "syncVariantId": 5218124464,
+        "variantId": 23577,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124465,
+        "variantId": 23578,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124466,
+        "variantId": 23579,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124467,
+        "variantId": 23580,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124468,
+        "variantId": 23581,
+        "retailPrice": "52.25"
+      },
+      {
+        "syncVariantId": 5218124469,
+        "variantId": 23582,
+        "retailPrice": "54.49"
+      },
+      {
+        "syncVariantId": 5218124470,
+        "variantId": 23583,
+        "retailPrice": "54.49"
+      },
+      {
+        "syncVariantId": 5218124471,
+        "variantId": 23584,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124472,
+        "variantId": 23585,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124473,
+        "variantId": 23586,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124474,
+        "variantId": 23587,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124475,
+        "variantId": 23588,
+        "retailPrice": "52.25"
+      },
+      {
+        "syncVariantId": 5218124476,
+        "variantId": 23589,
+        "retailPrice": "54.49"
+      },
+      {
+        "syncVariantId": 5218124477,
+        "variantId": 23590,
+        "retailPrice": "54.49"
+      },
+      {
+        "syncVariantId": 5218124478,
+        "variantId": 23591,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124479,
+        "variantId": 23592,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124484,
+        "variantId": 23593,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124489,
+        "variantId": 23594,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124496,
+        "variantId": 23595,
+        "retailPrice": "52.25"
+      },
+      {
+        "syncVariantId": 5218124498,
+        "variantId": 23596,
+        "retailPrice": "54.49"
+      },
+      {
+        "syncVariantId": 5218124499,
+        "variantId": 23597,
+        "retailPrice": "54.49"
+      },
+      {
+        "syncVariantId": 5218124500,
+        "variantId": 23598,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124501,
+        "variantId": 23599,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124502,
+        "variantId": 23600,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124503,
+        "variantId": 23601,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124504,
+        "variantId": 23602,
+        "retailPrice": "52.25"
+      },
+      {
+        "syncVariantId": 5218124505,
+        "variantId": 23603,
+        "retailPrice": "54.49"
+      },
+      {
+        "syncVariantId": 5218124506,
+        "variantId": 23604,
+        "retailPrice": "54.49"
+      },
+      {
+        "syncVariantId": 5218124507,
+        "variantId": 23605,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124508,
+        "variantId": 23606,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124509,
+        "variantId": 23607,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124510,
+        "variantId": 23608,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124511,
+        "variantId": 23609,
+        "retailPrice": "52.25"
+      },
+      {
+        "syncVariantId": 5218124512,
+        "variantId": 23610,
+        "retailPrice": "54.49"
+      },
+      {
+        "syncVariantId": 5218124513,
+        "variantId": 23611,
+        "retailPrice": "54.49"
+      }
+    ],
+    "createdAt": "2026-03-02T14:16:59.615Z"
+  },
+  "052903d6-8b14-4373-832a-4a04df2f495e": {
+    "title": "Dangerous Flag",
+    "tier": "signature",
+    "catalogId": 586,
+    "syncProductId": 422030313,
+    "status": "ok",
+    "variantsCreated": 35,
+    "variantsUnmatched": 0,
+    "syncVariants": [
+      {
+        "syncVariantId": 5218122539,
+        "variantId": 15114,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122540,
+        "variantId": 15115,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122541,
+        "variantId": 15116,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122542,
+        "variantId": 15117,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122543,
+        "variantId": 15118,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218122544,
+        "variantId": 16326,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218122545,
+        "variantId": 17500,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218122546,
+        "variantId": 17693,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122547,
+        "variantId": 17694,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122548,
+        "variantId": 17695,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122549,
+        "variantId": 17696,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122550,
+        "variantId": 17697,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218122551,
+        "variantId": 17698,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218122552,
+        "variantId": 17699,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218122553,
+        "variantId": 21264,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122554,
+        "variantId": 21265,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122555,
+        "variantId": 21266,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122556,
+        "variantId": 21267,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122557,
+        "variantId": 21268,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218122558,
+        "variantId": 21269,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218122559,
+        "variantId": 21270,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218122560,
+        "variantId": 16523,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122561,
+        "variantId": 16524,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122562,
+        "variantId": 16525,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122563,
+        "variantId": 16526,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122568,
+        "variantId": 16527,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218122569,
+        "variantId": 16528,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218122570,
+        "variantId": 17507,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218122571,
+        "variantId": 15181,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122572,
+        "variantId": 15182,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122573,
+        "variantId": 15183,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122574,
+        "variantId": 15184,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122576,
+        "variantId": 15185,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218122589,
+        "variantId": 16332,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218122592,
+        "variantId": 17499,
+        "retailPrice": "43.59"
+      }
+    ],
+    "createdAt": "2026-03-02T14:13:33.532Z"
+  },
+  "152676b0-4818-458b-8ffe-55e1b0a87877": {
+    "title": "Existential Dread",
+    "tier": "premium",
+    "catalogId": 917,
+    "syncProductId": 422030462,
+    "status": "ok",
+    "variantsCreated": 35,
+    "variantsUnmatched": 0,
+    "syncVariants": [
+      {
+        "syncVariantId": 5218124572,
+        "variantId": 23577,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124573,
+        "variantId": 23578,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124574,
+        "variantId": 23579,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124575,
+        "variantId": 23580,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124576,
+        "variantId": 23581,
+        "retailPrice": "52.25"
+      },
+      {
+        "syncVariantId": 5218124577,
+        "variantId": 23582,
+        "retailPrice": "54.49"
+      },
+      {
+        "syncVariantId": 5218124578,
+        "variantId": 23583,
+        "retailPrice": "54.49"
+      },
+      {
+        "syncVariantId": 5218124579,
+        "variantId": 23584,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124580,
+        "variantId": 23585,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124581,
+        "variantId": 23586,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124582,
+        "variantId": 23587,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124583,
+        "variantId": 23588,
+        "retailPrice": "52.25"
+      },
+      {
+        "syncVariantId": 5218124584,
+        "variantId": 23589,
+        "retailPrice": "54.49"
+      },
+      {
+        "syncVariantId": 5218124585,
+        "variantId": 23590,
+        "retailPrice": "54.49"
+      },
+      {
+        "syncVariantId": 5218124586,
+        "variantId": 23591,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124587,
+        "variantId": 23592,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124588,
+        "variantId": 23593,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124589,
+        "variantId": 23594,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124590,
+        "variantId": 23595,
+        "retailPrice": "52.25"
+      },
+      {
+        "syncVariantId": 5218124591,
+        "variantId": 23596,
+        "retailPrice": "54.49"
+      },
+      {
+        "syncVariantId": 5218124592,
+        "variantId": 23597,
+        "retailPrice": "54.49"
+      },
+      {
+        "syncVariantId": 5218124593,
+        "variantId": 23598,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124594,
+        "variantId": 23599,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124595,
+        "variantId": 23600,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124596,
+        "variantId": 23601,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124597,
+        "variantId": 23602,
+        "retailPrice": "52.25"
+      },
+      {
+        "syncVariantId": 5218124598,
+        "variantId": 23603,
+        "retailPrice": "54.49"
+      },
+      {
+        "syncVariantId": 5218124599,
+        "variantId": 23604,
+        "retailPrice": "54.49"
+      },
+      {
+        "syncVariantId": 5218124600,
+        "variantId": 23605,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124601,
+        "variantId": 23606,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124602,
+        "variantId": 23607,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124603,
+        "variantId": 23608,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124604,
+        "variantId": 23609,
+        "retailPrice": "52.25"
+      },
+      {
+        "syncVariantId": 5218124605,
+        "variantId": 23610,
+        "retailPrice": "54.49"
+      },
+      {
+        "syncVariantId": 5218124606,
+        "variantId": 23611,
+        "retailPrice": "54.49"
+      }
+    ],
+    "createdAt": "2026-03-02T14:17:06.709Z"
+  },
+  "28523f37-23ca-4087-a7e1-511ea8da54eb": {
+    "title": "Ghost Tee",
+    "tier": "signature",
+    "catalogId": 586,
+    "syncProductId": 422030327,
+    "status": "ok",
+    "variantsCreated": 35,
+    "variantsUnmatched": 0,
+    "syncVariants": [
+      {
+        "syncVariantId": 5218122624,
+        "variantId": 15114,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122625,
+        "variantId": 15115,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122626,
+        "variantId": 15116,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122627,
+        "variantId": 15117,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122628,
+        "variantId": 15118,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218122629,
+        "variantId": 16326,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218122630,
+        "variantId": 17500,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218122631,
+        "variantId": 17693,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122632,
+        "variantId": 17694,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122633,
+        "variantId": 17695,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122634,
+        "variantId": 17696,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122635,
+        "variantId": 17697,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218122636,
+        "variantId": 17698,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218122637,
+        "variantId": 17699,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218122638,
+        "variantId": 21264,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122639,
+        "variantId": 21265,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122640,
+        "variantId": 21266,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122641,
+        "variantId": 21267,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122642,
+        "variantId": 21268,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218122643,
+        "variantId": 21269,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218122644,
+        "variantId": 21270,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218122645,
+        "variantId": 16523,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122649,
+        "variantId": 16524,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122656,
+        "variantId": 16525,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122662,
+        "variantId": 16526,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122668,
+        "variantId": 16527,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218122676,
+        "variantId": 16528,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218122680,
+        "variantId": 17507,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218122683,
+        "variantId": 15181,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122686,
+        "variantId": 15182,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122689,
+        "variantId": 15183,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122690,
+        "variantId": 15184,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122691,
+        "variantId": 15185,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218122692,
+        "variantId": 16332,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218122693,
+        "variantId": 17499,
+        "retailPrice": "43.59"
+      }
+    ],
+    "createdAt": "2026-03-02T14:13:43.004Z"
+  },
+  "4fff5d51-0b07-4fed-98f6-455d5c4e3d28": {
+    "title": "Just For You",
+    "tier": "signature",
+    "catalogId": 586,
+    "syncProductId": 422030329,
+    "status": "ok",
+    "variantsCreated": 35,
+    "variantsUnmatched": 0,
+    "syncVariants": [
+      {
+        "syncVariantId": 5218122694,
+        "variantId": 15114,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122695,
+        "variantId": 15115,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122696,
+        "variantId": 15116,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122697,
+        "variantId": 15117,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122698,
+        "variantId": 15118,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218122699,
+        "variantId": 16326,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218122700,
+        "variantId": 17500,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218122701,
+        "variantId": 17693,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122702,
+        "variantId": 17694,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122703,
+        "variantId": 17695,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122704,
+        "variantId": 17696,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122705,
+        "variantId": 17697,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218122706,
+        "variantId": 17698,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218122707,
+        "variantId": 17699,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218122708,
+        "variantId": 21264,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122709,
+        "variantId": 21265,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122710,
+        "variantId": 21266,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122711,
+        "variantId": 21267,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122712,
+        "variantId": 21268,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218122713,
+        "variantId": 21269,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218122714,
+        "variantId": 21270,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218122715,
+        "variantId": 16523,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122716,
+        "variantId": 16524,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122717,
+        "variantId": 16525,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122718,
+        "variantId": 16526,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122719,
+        "variantId": 16527,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218122720,
+        "variantId": 16528,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218122721,
+        "variantId": 17507,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218122722,
+        "variantId": 15181,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122723,
+        "variantId": 15182,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122724,
+        "variantId": 15183,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122725,
+        "variantId": 15184,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122726,
+        "variantId": 15185,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218122727,
+        "variantId": 16332,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218122728,
+        "variantId": 17499,
+        "retailPrice": "43.59"
+      }
+    ],
+    "createdAt": "2026-03-02T14:13:48.838Z"
+  },
+  "a5867c4e-7f7d-48f0-82d4-052c0072ee6b": {
+    "title": "Next Line",
+    "tier": "signature",
+    "catalogId": 586,
+    "syncProductId": 422030332,
+    "status": "ok",
+    "variantsCreated": 35,
+    "variantsUnmatched": 0,
+    "syncVariants": [
+      {
+        "syncVariantId": 5218122737,
+        "variantId": 15114,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122738,
+        "variantId": 15115,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122739,
+        "variantId": 15116,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122740,
+        "variantId": 15117,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122741,
+        "variantId": 15118,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218122742,
+        "variantId": 16326,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218122743,
+        "variantId": 17500,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218122744,
+        "variantId": 17693,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122745,
+        "variantId": 17694,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122746,
+        "variantId": 17695,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122747,
+        "variantId": 17696,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122748,
+        "variantId": 17697,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218122749,
+        "variantId": 17698,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218122750,
+        "variantId": 17699,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218122751,
+        "variantId": 21264,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122752,
+        "variantId": 21265,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122753,
+        "variantId": 21266,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122754,
+        "variantId": 21267,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122755,
+        "variantId": 21268,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218122756,
+        "variantId": 21269,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218122757,
+        "variantId": 21270,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218122758,
+        "variantId": 16523,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122759,
+        "variantId": 16524,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122760,
+        "variantId": 16525,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122761,
+        "variantId": 16526,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122762,
+        "variantId": 16527,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218122763,
+        "variantId": 16528,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218122764,
+        "variantId": 17507,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218122765,
+        "variantId": 15181,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122766,
+        "variantId": 15182,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122767,
+        "variantId": 15183,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122768,
+        "variantId": 15184,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122769,
+        "variantId": 15185,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218122770,
+        "variantId": 16332,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218122771,
+        "variantId": 17499,
+        "retailPrice": "43.59"
+      }
+    ],
+    "createdAt": "2026-03-02T14:13:55.802Z"
+  },
+  "13bc1ffc-a703-4a9b-96fb-a460c429990c": {
+    "title": "Option Two",
+    "tier": "signature",
+    "catalogId": 586,
+    "syncProductId": 422030337,
+    "status": "ok",
+    "variantsCreated": 35,
+    "variantsUnmatched": 0,
+    "syncVariants": [
+      {
+        "syncVariantId": 5218122784,
+        "variantId": 15114,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122785,
+        "variantId": 15115,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122786,
+        "variantId": 15116,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122787,
+        "variantId": 15117,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122791,
+        "variantId": 15118,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218122794,
+        "variantId": 16326,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218122795,
+        "variantId": 17500,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218122796,
+        "variantId": 17693,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122797,
+        "variantId": 17694,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122798,
+        "variantId": 17695,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122799,
+        "variantId": 17696,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122800,
+        "variantId": 17697,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218122801,
+        "variantId": 17698,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218122802,
+        "variantId": 17699,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218122803,
+        "variantId": 21264,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122804,
+        "variantId": 21265,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122805,
+        "variantId": 21266,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122806,
+        "variantId": 21267,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122807,
+        "variantId": 21268,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218122808,
+        "variantId": 21269,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218122809,
+        "variantId": 21270,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218122810,
+        "variantId": 16523,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122811,
+        "variantId": 16524,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122812,
+        "variantId": 16525,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122813,
+        "variantId": 16526,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122814,
+        "variantId": 16527,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218122815,
+        "variantId": 16528,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218122816,
+        "variantId": 17507,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218122817,
+        "variantId": 15181,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122818,
+        "variantId": 15182,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122819,
+        "variantId": 15183,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122820,
+        "variantId": 15184,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122821,
+        "variantId": 15185,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218122822,
+        "variantId": 16332,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218122823,
+        "variantId": 17499,
+        "retailPrice": "43.59"
+      }
+    ],
+    "createdAt": "2026-03-02T14:14:01.841Z"
+  },
+  "a3b37e0f-636c-4a05-b680-b0f1151ff79b": {
+    "title": "Plans Cancelled",
+    "tier": "premium",
+    "catalogId": 917,
+    "syncProductId": 422030466,
+    "status": "ok",
+    "variantsCreated": 35,
+    "variantsUnmatched": 0,
+    "syncVariants": [
+      {
+        "syncVariantId": 5218124632,
+        "variantId": 23577,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124633,
+        "variantId": 23578,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124634,
+        "variantId": 23579,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124635,
+        "variantId": 23580,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124636,
+        "variantId": 23581,
+        "retailPrice": "52.25"
+      },
+      {
+        "syncVariantId": 5218124637,
+        "variantId": 23582,
+        "retailPrice": "54.49"
+      },
+      {
+        "syncVariantId": 5218124638,
+        "variantId": 23583,
+        "retailPrice": "54.49"
+      },
+      {
+        "syncVariantId": 5218124639,
+        "variantId": 23584,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124640,
+        "variantId": 23585,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124641,
+        "variantId": 23586,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124642,
+        "variantId": 23587,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124643,
+        "variantId": 23588,
+        "retailPrice": "52.25"
+      },
+      {
+        "syncVariantId": 5218124644,
+        "variantId": 23589,
+        "retailPrice": "54.49"
+      },
+      {
+        "syncVariantId": 5218124645,
+        "variantId": 23590,
+        "retailPrice": "54.49"
+      },
+      {
+        "syncVariantId": 5218124646,
+        "variantId": 23591,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124647,
+        "variantId": 23592,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124648,
+        "variantId": 23593,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124649,
+        "variantId": 23594,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124650,
+        "variantId": 23595,
+        "retailPrice": "52.25"
+      },
+      {
+        "syncVariantId": 5218124651,
+        "variantId": 23596,
+        "retailPrice": "54.49"
+      },
+      {
+        "syncVariantId": 5218124652,
+        "variantId": 23597,
+        "retailPrice": "54.49"
+      },
+      {
+        "syncVariantId": 5218124653,
+        "variantId": 23598,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124654,
+        "variantId": 23599,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124655,
+        "variantId": 23600,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124656,
+        "variantId": 23601,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124657,
+        "variantId": 23602,
+        "retailPrice": "52.25"
+      },
+      {
+        "syncVariantId": 5218124658,
+        "variantId": 23603,
+        "retailPrice": "54.49"
+      },
+      {
+        "syncVariantId": 5218124659,
+        "variantId": 23604,
+        "retailPrice": "54.49"
+      },
+      {
+        "syncVariantId": 5218124660,
+        "variantId": 23605,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124661,
+        "variantId": 23606,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124662,
+        "variantId": 23607,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124663,
+        "variantId": 23608,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124664,
+        "variantId": 23609,
+        "retailPrice": "52.25"
+      },
+      {
+        "syncVariantId": 5218124665,
+        "variantId": 23610,
+        "retailPrice": "54.49"
+      },
+      {
+        "syncVariantId": 5218124666,
+        "variantId": 23611,
+        "retailPrice": "54.49"
+      }
+    ],
+    "createdAt": "2026-03-02T14:17:12.621Z"
+  },
+  "7024ef34-abff-47b5-b6aa-23b4f3b588a0": {
+    "title": "Prism Tee",
+    "tier": "signature",
+    "catalogId": 586,
+    "syncProductId": 422030345,
+    "status": "ok",
+    "variantsCreated": 35,
+    "variantsUnmatched": 0,
+    "syncVariants": [
+      {
+        "syncVariantId": 5218122855,
+        "variantId": 15114,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122856,
+        "variantId": 15115,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122857,
+        "variantId": 15116,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122858,
+        "variantId": 15117,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122859,
+        "variantId": 15118,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218122860,
+        "variantId": 16326,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218122862,
+        "variantId": 17500,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218122863,
+        "variantId": 17693,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122864,
+        "variantId": 17694,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122865,
+        "variantId": 17695,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122867,
+        "variantId": 17696,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122868,
+        "variantId": 17697,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218122869,
+        "variantId": 17698,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218122870,
+        "variantId": 17699,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218122871,
+        "variantId": 21264,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122872,
+        "variantId": 21265,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122873,
+        "variantId": 21266,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122875,
+        "variantId": 21267,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122876,
+        "variantId": 21268,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218122877,
+        "variantId": 21269,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218122878,
+        "variantId": 21270,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218122880,
+        "variantId": 16523,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122881,
+        "variantId": 16524,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122882,
+        "variantId": 16525,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122883,
+        "variantId": 16526,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122884,
+        "variantId": 16527,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218122885,
+        "variantId": 16528,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218122886,
+        "variantId": 17507,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218122888,
+        "variantId": 15181,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122889,
+        "variantId": 15182,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122890,
+        "variantId": 15183,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122891,
+        "variantId": 15184,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218122892,
+        "variantId": 15185,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218122893,
+        "variantId": 16332,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218122894,
+        "variantId": 17499,
+        "retailPrice": "43.59"
+      }
+    ],
+    "createdAt": "2026-03-02T14:14:13.012Z"
+  },
+  "49d3093b-abf5-46a5-82cb-362ffe6c863c": {
+    "title": "Scope Creep",
+    "tier": "signature",
+    "catalogId": 586,
+    "syncProductId": 422030382,
+    "status": "ok",
+    "variantsCreated": 35,
+    "variantsUnmatched": 0,
+    "syncVariants": [
+      {
+        "syncVariantId": 5218123485,
+        "variantId": 15114,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123486,
+        "variantId": 15115,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123487,
+        "variantId": 15116,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123488,
+        "variantId": 15117,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123489,
+        "variantId": 15118,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218123490,
+        "variantId": 16326,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218123491,
+        "variantId": 17500,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218123492,
+        "variantId": 17693,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123493,
+        "variantId": 17694,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123494,
+        "variantId": 17695,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123495,
+        "variantId": 17696,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123496,
+        "variantId": 17697,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218123497,
+        "variantId": 17698,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218123498,
+        "variantId": 17699,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218123499,
+        "variantId": 21264,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123500,
+        "variantId": 21265,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123501,
+        "variantId": 21266,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123502,
+        "variantId": 21267,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123503,
+        "variantId": 21268,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218123504,
+        "variantId": 21269,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218123505,
+        "variantId": 21270,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218123506,
+        "variantId": 16523,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123507,
+        "variantId": 16524,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123508,
+        "variantId": 16525,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123509,
+        "variantId": 16526,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123510,
+        "variantId": 16527,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218123511,
+        "variantId": 16528,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218123512,
+        "variantId": 17507,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218123513,
+        "variantId": 15181,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123514,
+        "variantId": 15182,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123515,
+        "variantId": 15183,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123516,
+        "variantId": 15184,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123517,
+        "variantId": 15185,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218123518,
+        "variantId": 16332,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218123519,
+        "variantId": 17499,
+        "retailPrice": "43.59"
+      }
+    ],
+    "createdAt": "2026-03-02T14:15:12.500Z"
+  },
+  "465edf9a-3abb-48d4-a7dc-68e6698eee87": {
+    "title": "Self-Care Mode",
+    "tier": "premium",
+    "catalogId": 917,
+    "syncProductId": 422030469,
+    "status": "ok",
+    "variantsCreated": 35,
+    "variantsUnmatched": 0,
+    "syncVariants": [
+      {
+        "syncVariantId": 5218124669,
+        "variantId": 23577,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124670,
+        "variantId": 23578,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124671,
+        "variantId": 23579,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124672,
+        "variantId": 23580,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124673,
+        "variantId": 23581,
+        "retailPrice": "52.25"
+      },
+      {
+        "syncVariantId": 5218124674,
+        "variantId": 23582,
+        "retailPrice": "54.49"
+      },
+      {
+        "syncVariantId": 5218124675,
+        "variantId": 23583,
+        "retailPrice": "54.49"
+      },
+      {
+        "syncVariantId": 5218124676,
+        "variantId": 23584,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124677,
+        "variantId": 23585,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124678,
+        "variantId": 23586,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124679,
+        "variantId": 23587,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124680,
+        "variantId": 23588,
+        "retailPrice": "52.25"
+      },
+      {
+        "syncVariantId": 5218124681,
+        "variantId": 23589,
+        "retailPrice": "54.49"
+      },
+      {
+        "syncVariantId": 5218124682,
+        "variantId": 23590,
+        "retailPrice": "54.49"
+      },
+      {
+        "syncVariantId": 5218124683,
+        "variantId": 23591,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124684,
+        "variantId": 23592,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124685,
+        "variantId": 23593,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124686,
+        "variantId": 23594,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124687,
+        "variantId": 23595,
+        "retailPrice": "52.25"
+      },
+      {
+        "syncVariantId": 5218124688,
+        "variantId": 23596,
+        "retailPrice": "54.49"
+      },
+      {
+        "syncVariantId": 5218124689,
+        "variantId": 23597,
+        "retailPrice": "54.49"
+      },
+      {
+        "syncVariantId": 5218124690,
+        "variantId": 23598,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124691,
+        "variantId": 23599,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124692,
+        "variantId": 23600,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124693,
+        "variantId": 23601,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124694,
+        "variantId": 23602,
+        "retailPrice": "52.25"
+      },
+      {
+        "syncVariantId": 5218124695,
+        "variantId": 23603,
+        "retailPrice": "54.49"
+      },
+      {
+        "syncVariantId": 5218124696,
+        "variantId": 23604,
+        "retailPrice": "54.49"
+      },
+      {
+        "syncVariantId": 5218124697,
+        "variantId": 23605,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124698,
+        "variantId": 23606,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124699,
+        "variantId": 23607,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124700,
+        "variantId": 23608,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124701,
+        "variantId": 23609,
+        "retailPrice": "52.25"
+      },
+      {
+        "syncVariantId": 5218124703,
+        "variantId": 23610,
+        "retailPrice": "54.49"
+      },
+      {
+        "syncVariantId": 5218124704,
+        "variantId": 23611,
+        "retailPrice": "54.49"
+      }
+    ],
+    "createdAt": "2026-03-02T14:17:18.479Z"
+  },
+  "75c19f30-003b-4a95-812a-852ae5aa337d": {
+    "title": "Shadow Tee",
+    "tier": "signature",
+    "catalogId": 586,
+    "syncProductId": 422030396,
+    "status": "ok",
+    "variantsCreated": 35,
+    "variantsUnmatched": 0,
+    "syncVariants": [
+      {
+        "syncVariantId": 5218123557,
+        "variantId": 15114,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123558,
+        "variantId": 15115,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123559,
+        "variantId": 15116,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123561,
+        "variantId": 15117,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123562,
+        "variantId": 15118,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218123563,
+        "variantId": 16326,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218123564,
+        "variantId": 17500,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218123565,
+        "variantId": 17693,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123566,
+        "variantId": 17694,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123567,
+        "variantId": 17695,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123568,
+        "variantId": 17696,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123569,
+        "variantId": 17697,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218123570,
+        "variantId": 17698,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218123571,
+        "variantId": 17699,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218123572,
+        "variantId": 21264,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123573,
+        "variantId": 21265,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123574,
+        "variantId": 21266,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123575,
+        "variantId": 21267,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123576,
+        "variantId": 21268,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218123577,
+        "variantId": 21269,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218123578,
+        "variantId": 21270,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218123579,
+        "variantId": 16523,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123580,
+        "variantId": 16524,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123581,
+        "variantId": 16525,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123582,
+        "variantId": 16526,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123583,
+        "variantId": 16527,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218123584,
+        "variantId": 16528,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218123585,
+        "variantId": 17507,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218123586,
+        "variantId": 15181,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123587,
+        "variantId": 15182,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123588,
+        "variantId": 15183,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123589,
+        "variantId": 15184,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123590,
+        "variantId": 15185,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218123591,
+        "variantId": 16332,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218123592,
+        "variantId": 17499,
+        "retailPrice": "43.59"
+      }
+    ],
+    "createdAt": "2026-03-02T14:15:22.619Z"
+  },
+  "2326f734-8025-42f7-82bf-847d0a5fb22c": {
+    "title": "Social Battery",
+    "tier": "premium",
+    "catalogId": 917,
+    "syncProductId": 422030473,
+    "status": "ok",
+    "variantsCreated": 35,
+    "variantsUnmatched": 0,
+    "syncVariants": [
+      {
+        "syncVariantId": 5218124759,
+        "variantId": 23577,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124760,
+        "variantId": 23578,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124761,
+        "variantId": 23579,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124762,
+        "variantId": 23580,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124763,
+        "variantId": 23581,
+        "retailPrice": "52.25"
+      },
+      {
+        "syncVariantId": 5218124764,
+        "variantId": 23582,
+        "retailPrice": "54.49"
+      },
+      {
+        "syncVariantId": 5218124765,
+        "variantId": 23583,
+        "retailPrice": "54.49"
+      },
+      {
+        "syncVariantId": 5218124766,
+        "variantId": 23584,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124767,
+        "variantId": 23585,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124768,
+        "variantId": 23586,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124769,
+        "variantId": 23587,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124770,
+        "variantId": 23588,
+        "retailPrice": "52.25"
+      },
+      {
+        "syncVariantId": 5218124771,
+        "variantId": 23589,
+        "retailPrice": "54.49"
+      },
+      {
+        "syncVariantId": 5218124772,
+        "variantId": 23590,
+        "retailPrice": "54.49"
+      },
+      {
+        "syncVariantId": 5218124773,
+        "variantId": 23591,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124774,
+        "variantId": 23592,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124775,
+        "variantId": 23593,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124776,
+        "variantId": 23594,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124777,
+        "variantId": 23595,
+        "retailPrice": "52.25"
+      },
+      {
+        "syncVariantId": 5218124778,
+        "variantId": 23596,
+        "retailPrice": "54.49"
+      },
+      {
+        "syncVariantId": 5218124779,
+        "variantId": 23597,
+        "retailPrice": "54.49"
+      },
+      {
+        "syncVariantId": 5218124780,
+        "variantId": 23598,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124781,
+        "variantId": 23599,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124782,
+        "variantId": 23600,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124783,
+        "variantId": 23601,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124784,
+        "variantId": 23602,
+        "retailPrice": "52.25"
+      },
+      {
+        "syncVariantId": 5218124785,
+        "variantId": 23603,
+        "retailPrice": "54.49"
+      },
+      {
+        "syncVariantId": 5218124786,
+        "variantId": 23604,
+        "retailPrice": "54.49"
+      },
+      {
+        "syncVariantId": 5218124787,
+        "variantId": 23605,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124788,
+        "variantId": 23606,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124789,
+        "variantId": 23607,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124790,
+        "variantId": 23608,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124793,
+        "variantId": 23609,
+        "retailPrice": "52.25"
+      },
+      {
+        "syncVariantId": 5218124796,
+        "variantId": 23610,
+        "retailPrice": "54.49"
+      },
+      {
+        "syncVariantId": 5218124797,
+        "variantId": 23611,
+        "retailPrice": "54.49"
+      }
+    ],
+    "createdAt": "2026-03-02T14:17:24.294Z"
+  },
+  "7d6f605a-df7c-4d63-b9f6-5f530035d3f2": {
+    "title": "Soup Fork",
+    "tier": "premium",
+    "catalogId": 917,
+    "syncProductId": 422030479,
+    "status": "ok",
+    "variantsCreated": 35,
+    "variantsUnmatched": 0,
+    "syncVariants": [
+      {
+        "syncVariantId": 5218124892,
+        "variantId": 23577,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124893,
+        "variantId": 23578,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124894,
+        "variantId": 23579,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124895,
+        "variantId": 23580,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124896,
+        "variantId": 23581,
+        "retailPrice": "52.25"
+      },
+      {
+        "syncVariantId": 5218124897,
+        "variantId": 23582,
+        "retailPrice": "54.49"
+      },
+      {
+        "syncVariantId": 5218124898,
+        "variantId": 23583,
+        "retailPrice": "54.49"
+      },
+      {
+        "syncVariantId": 5218124899,
+        "variantId": 23584,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124900,
+        "variantId": 23585,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124901,
+        "variantId": 23586,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124902,
+        "variantId": 23587,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124903,
+        "variantId": 23588,
+        "retailPrice": "52.25"
+      },
+      {
+        "syncVariantId": 5218124904,
+        "variantId": 23589,
+        "retailPrice": "54.49"
+      },
+      {
+        "syncVariantId": 5218124905,
+        "variantId": 23590,
+        "retailPrice": "54.49"
+      },
+      {
+        "syncVariantId": 5218124906,
+        "variantId": 23591,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124907,
+        "variantId": 23592,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124908,
+        "variantId": 23593,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124909,
+        "variantId": 23594,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124910,
+        "variantId": 23595,
+        "retailPrice": "52.25"
+      },
+      {
+        "syncVariantId": 5218124911,
+        "variantId": 23596,
+        "retailPrice": "54.49"
+      },
+      {
+        "syncVariantId": 5218124912,
+        "variantId": 23597,
+        "retailPrice": "54.49"
+      },
+      {
+        "syncVariantId": 5218124913,
+        "variantId": 23598,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124914,
+        "variantId": 23599,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124915,
+        "variantId": 23600,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124916,
+        "variantId": 23601,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124917,
+        "variantId": 23602,
+        "retailPrice": "52.25"
+      },
+      {
+        "syncVariantId": 5218124918,
+        "variantId": 23603,
+        "retailPrice": "54.49"
+      },
+      {
+        "syncVariantId": 5218124920,
+        "variantId": 23604,
+        "retailPrice": "54.49"
+      },
+      {
+        "syncVariantId": 5218124921,
+        "variantId": 23605,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124922,
+        "variantId": 23606,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124923,
+        "variantId": 23607,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124925,
+        "variantId": 23608,
+        "retailPrice": "48.99"
+      },
+      {
+        "syncVariantId": 5218124926,
+        "variantId": 23609,
+        "retailPrice": "52.25"
+      },
+      {
+        "syncVariantId": 5218124927,
+        "variantId": 23610,
+        "retailPrice": "54.49"
+      },
+      {
+        "syncVariantId": 5218124929,
+        "variantId": 23611,
+        "retailPrice": "54.49"
+      }
+    ],
+    "createdAt": "2026-03-02T14:17:31.352Z"
+  },
+  "02ab1785-1c65-41a6-bf6a-bc40d4a31494": {
+    "title": "Strawberry Count",
+    "tier": "signature",
+    "catalogId": 586,
+    "syncProductId": 422030403,
+    "status": "ok",
+    "variantsCreated": 35,
+    "variantsUnmatched": 0,
+    "syncVariants": [
+      {
+        "syncVariantId": 5218123626,
+        "variantId": 15114,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123629,
+        "variantId": 15115,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123632,
+        "variantId": 15116,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123635,
+        "variantId": 15117,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123638,
+        "variantId": 15118,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218123641,
+        "variantId": 16326,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218123643,
+        "variantId": 17500,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218123646,
+        "variantId": 17693,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123649,
+        "variantId": 17694,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123652,
+        "variantId": 17695,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123654,
+        "variantId": 17696,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123657,
+        "variantId": 17697,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218123660,
+        "variantId": 17698,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218123663,
+        "variantId": 17699,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218123666,
+        "variantId": 21264,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123669,
+        "variantId": 21265,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123672,
+        "variantId": 21266,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123675,
+        "variantId": 21267,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123678,
+        "variantId": 21268,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218123681,
+        "variantId": 21269,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218123684,
+        "variantId": 21270,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218123686,
+        "variantId": 16523,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123689,
+        "variantId": 16524,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123693,
+        "variantId": 16525,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123695,
+        "variantId": 16526,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123698,
+        "variantId": 16527,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218123701,
+        "variantId": 16528,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218123704,
+        "variantId": 17507,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218123707,
+        "variantId": 15181,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123709,
+        "variantId": 15182,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123712,
+        "variantId": 15183,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123715,
+        "variantId": 15184,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123718,
+        "variantId": 15185,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218123720,
+        "variantId": 16332,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218123723,
+        "variantId": 17499,
+        "retailPrice": "43.59"
+      }
+    ],
+    "createdAt": "2026-03-02T14:15:35.441Z"
+  },
+  "0a0085ac-be8b-4e68-b194-c448d1af2b09": {
+    "title": "Three Models",
+    "tier": "signature",
+    "catalogId": 586,
+    "syncProductId": 422030406,
+    "status": "ok",
+    "variantsCreated": 35,
+    "variantsUnmatched": 0,
+    "syncVariants": [
+      {
+        "syncVariantId": 5218123756,
+        "variantId": 15114,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123759,
+        "variantId": 15115,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123762,
+        "variantId": 15116,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123765,
+        "variantId": 15117,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123768,
+        "variantId": 15118,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218123770,
+        "variantId": 16326,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218123773,
+        "variantId": 17500,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218123775,
+        "variantId": 17693,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123776,
+        "variantId": 17694,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123777,
+        "variantId": 17695,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123779,
+        "variantId": 17696,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123781,
+        "variantId": 17697,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218123783,
+        "variantId": 17698,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218123785,
+        "variantId": 17699,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218123786,
+        "variantId": 21264,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123787,
+        "variantId": 21265,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123788,
+        "variantId": 21266,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123789,
+        "variantId": 21267,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123790,
+        "variantId": 21268,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218123791,
+        "variantId": 21269,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218123792,
+        "variantId": 21270,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218123793,
+        "variantId": 16523,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123794,
+        "variantId": 16524,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123795,
+        "variantId": 16525,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123796,
+        "variantId": 16526,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123797,
+        "variantId": 16527,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218123798,
+        "variantId": 16528,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218123799,
+        "variantId": 17507,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218123800,
+        "variantId": 15181,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123801,
+        "variantId": 15182,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123802,
+        "variantId": 15183,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123803,
+        "variantId": 15184,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123804,
+        "variantId": 15185,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218123805,
+        "variantId": 16332,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218123806,
+        "variantId": 17499,
+        "retailPrice": "43.59"
+      }
+    ],
+    "createdAt": "2026-03-02T14:15:41.386Z"
+  },
+  "725e1aec-2b65-49da-ac56-2054740de2e0": {
+    "title": "Under Where",
+    "tier": "signature",
+    "catalogId": 586,
+    "syncProductId": 422030411,
+    "status": "ok",
+    "variantsCreated": 35,
+    "variantsUnmatched": 0,
+    "syncVariants": [
+      {
+        "syncVariantId": 5218123829,
+        "variantId": 15114,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123830,
+        "variantId": 15115,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123831,
+        "variantId": 15116,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123832,
+        "variantId": 15117,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123833,
+        "variantId": 15118,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218123834,
+        "variantId": 16326,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218123835,
+        "variantId": 17500,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218123836,
+        "variantId": 17693,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123837,
+        "variantId": 17694,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123838,
+        "variantId": 17695,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123839,
+        "variantId": 17696,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123840,
+        "variantId": 17697,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218123841,
+        "variantId": 17698,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218123842,
+        "variantId": 17699,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218123843,
+        "variantId": 21264,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123844,
+        "variantId": 21265,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123845,
+        "variantId": 21266,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123846,
+        "variantId": 21267,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123847,
+        "variantId": 21268,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218123848,
+        "variantId": 21269,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218123849,
+        "variantId": 21270,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218123850,
+        "variantId": 16523,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123851,
+        "variantId": 16524,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123852,
+        "variantId": 16525,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123853,
+        "variantId": 16526,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123854,
+        "variantId": 16527,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218123855,
+        "variantId": 16528,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218123856,
+        "variantId": 17507,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218123857,
+        "variantId": 15181,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123858,
+        "variantId": 15182,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123859,
+        "variantId": 15183,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123860,
+        "variantId": 15184,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123861,
+        "variantId": 15185,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218123862,
+        "variantId": 16332,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218123863,
+        "variantId": 17499,
+        "retailPrice": "43.59"
+      }
+    ],
+    "createdAt": "2026-03-02T14:15:47.421Z"
+  },
+  "60f6ceb4-46a7-4bd3-92c0-2e67c4cf0f66": {
+    "title": "Vibe Coder",
+    "tier": "signature",
+    "catalogId": 586,
+    "syncProductId": 422030415,
+    "status": "ok",
+    "variantsCreated": 35,
+    "variantsUnmatched": 0,
+    "syncVariants": [
+      {
+        "syncVariantId": 5218123943,
+        "variantId": 15114,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123944,
+        "variantId": 15115,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123945,
+        "variantId": 15116,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123946,
+        "variantId": 15117,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123947,
+        "variantId": 15118,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218123948,
+        "variantId": 16326,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218123949,
+        "variantId": 17500,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218123950,
+        "variantId": 17693,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123951,
+        "variantId": 17694,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123952,
+        "variantId": 17695,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123953,
+        "variantId": 17696,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123954,
+        "variantId": 17697,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218123956,
+        "variantId": 17698,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218123957,
+        "variantId": 17699,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218123958,
+        "variantId": 21264,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123959,
+        "variantId": 21265,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123960,
+        "variantId": 21266,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123961,
+        "variantId": 21267,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123962,
+        "variantId": 21268,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218123963,
+        "variantId": 21269,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218123964,
+        "variantId": 21270,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218123965,
+        "variantId": 16523,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123966,
+        "variantId": 16524,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123967,
+        "variantId": 16525,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123968,
+        "variantId": 16526,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123969,
+        "variantId": 16527,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218123970,
+        "variantId": 16528,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218123971,
+        "variantId": 17507,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218123972,
+        "variantId": 15181,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123974,
+        "variantId": 15182,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123975,
+        "variantId": 15183,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123976,
+        "variantId": 15184,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218123977,
+        "variantId": 15185,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218123978,
+        "variantId": 16332,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218123979,
+        "variantId": 17499,
+        "retailPrice": "43.59"
+      }
+    ],
+    "createdAt": "2026-03-02T14:15:53.151Z"
+  },
+  "e4867449-08b1-408a-b85b-b6ecd9b4274c": {
+    "title": "Zero Bugs",
+    "tier": "signature",
+    "catalogId": 586,
+    "syncProductId": 422030426,
+    "status": "ok",
+    "variantsCreated": 35,
+    "variantsUnmatched": 0,
+    "syncVariants": [
+      {
+        "syncVariantId": 5218124037,
+        "variantId": 15114,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218124038,
+        "variantId": 15115,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218124039,
+        "variantId": 15116,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218124040,
+        "variantId": 15117,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218124042,
+        "variantId": 15118,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218124044,
+        "variantId": 16326,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218124046,
+        "variantId": 17500,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218124049,
+        "variantId": 17693,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218124051,
+        "variantId": 17694,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218124054,
+        "variantId": 17695,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218124057,
+        "variantId": 17696,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218124059,
+        "variantId": 17697,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218124062,
+        "variantId": 17698,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218124064,
+        "variantId": 17699,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218124065,
+        "variantId": 21264,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218124066,
+        "variantId": 21265,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218124067,
+        "variantId": 21266,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218124068,
+        "variantId": 21267,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218124069,
+        "variantId": 21268,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218124070,
+        "variantId": 21269,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218124071,
+        "variantId": 21270,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218124072,
+        "variantId": 16523,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218124073,
+        "variantId": 16524,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218124074,
+        "variantId": 16525,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218124075,
+        "variantId": 16526,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218124076,
+        "variantId": 16527,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218124077,
+        "variantId": 16528,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218124078,
+        "variantId": 17507,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218124079,
+        "variantId": 15181,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218124080,
+        "variantId": 15182,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218124081,
+        "variantId": 15183,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218124082,
+        "variantId": 15184,
+        "retailPrice": "38.09"
+      },
+      {
+        "syncVariantId": 5218124083,
+        "variantId": 15185,
+        "retailPrice": "41.39"
+      },
+      {
+        "syncVariantId": 5218124084,
+        "variantId": 16332,
+        "retailPrice": "43.59"
+      },
+      {
+        "syncVariantId": 5218124085,
+        "variantId": 17499,
+        "retailPrice": "43.59"
+      }
+    ],
+    "createdAt": "2026-03-02T14:16:00.427Z"
+  }
+}

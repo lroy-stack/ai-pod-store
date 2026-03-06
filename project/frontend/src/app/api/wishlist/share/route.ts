@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth, authErrorResponse } from '@/lib/auth-guard';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { randomBytes } from 'crypto';
+import { BASE_URL } from '@/lib/store-config';
 
 // POST /api/wishlist/share - Generate share token for a wishlist
 export async function POST(request: NextRequest) {
@@ -35,7 +36,7 @@ export async function POST(request: NextRequest) {
 
     // If share_token already exists, return it
     if (wishlist.share_token) {
-      const shareUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/en/wishlist/shared/${wishlist.share_token}`;
+      const shareUrl = `${BASE_URL}/en/wishlist/shared/${wishlist.share_token}`;
       return NextResponse.json({
         success: true,
         share_token: wishlist.share_token,
@@ -63,7 +64,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const shareUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/en/wishlist/shared/${shareToken}`;
+    const shareUrl = `${BASE_URL}/en/wishlist/shared/${shareToken}`;
 
     return NextResponse.json({
       success: true,

@@ -23,10 +23,12 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
-import { Facebook, Twitter, Instagram, Linkedin, Sun, Moon } from 'lucide-react'
+import { Facebook, Twitter, Instagram, Sun, Moon } from 'lucide-react'
 import { useTheme } from 'next-themes'
-import { STORE_DEFAULTS } from '@/lib/store-config'
+import { STORE_DEFAULTS, SOCIAL_LINKS } from '@/lib/store-config'
+import { BrandMark } from '@/components/ui/brand-mark'
 import { clearConsent } from '@/lib/cookie-consent'
+import { NewsletterSignup } from '@/components/landing/NewsletterSignup'
 
 const LOCALES = [
   { code: 'en', name: 'English' },
@@ -55,36 +57,27 @@ export function Footer() {
         <div className="grid grid-cols-2 gap-6 lg:grid-cols-4 md:gap-8">
           {/* Brand & Description */}
           <div className="col-span-2 space-y-4 lg:col-span-1">
-            <h3 className="text-lg font-semibold text-foreground">
-              {STORE_DEFAULTS.platformName}
-            </h3>
+            <BrandMark showName nameClass="text-lg" />
             <p className="text-sm text-muted-foreground">
               {t('description')}
             </p>
-            {/* Social Links - Hidden until real brand URLs are configured */}
-            {/* TODO: Add real brand social media URLs to STORE_DEFAULTS in lib/store-config.ts */}
-            {/* <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2">
               <Button variant="ghost" size="icon" asChild>
-                <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
-                  <Facebook className="h-5 w-5" />
-                </a>
-              </Button>
-              <Button variant="ghost" size="icon" asChild>
-                <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" aria-label="Twitter">
-                  <Twitter className="h-5 w-5" />
-                </a>
-              </Button>
-              <Button variant="ghost" size="icon" asChild>
-                <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+                <a href={SOCIAL_LINKS.instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram">
                   <Instagram className="h-5 w-5" />
                 </a>
               </Button>
               <Button variant="ghost" size="icon" asChild>
-                <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
-                  <Linkedin className="h-5 w-5" />
+                <a href={SOCIAL_LINKS.twitter} target="_blank" rel="noopener noreferrer" aria-label="Twitter">
+                  <Twitter className="h-5 w-5" />
                 </a>
               </Button>
-            </div> */}
+              <Button variant="ghost" size="icon" asChild>
+                <a href={SOCIAL_LINKS.facebook} target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+                  <Facebook className="h-5 w-5" />
+                </a>
+              </Button>
+            </div>
           </div>
 
           {/* Shop Links */}
@@ -94,13 +87,13 @@ export function Footer() {
               <Link href={`/${locale}/shop`} className="text-muted-foreground hover:text-foreground transition-colors">
                 {t('allProducts')}
               </Link>
-              <Link href={`/${locale}/shop?category=apparel`} className="text-muted-foreground hover:text-foreground transition-colors">
+              <Link href={`/${locale}/shop/category/apparel`} className="text-muted-foreground hover:text-foreground transition-colors">
                 {t('apparel')}
               </Link>
-              <Link href={`/${locale}/shop?category=accessories`} className="text-muted-foreground hover:text-foreground transition-colors">
+              <Link href={`/${locale}/shop/category/accessories`} className="text-muted-foreground hover:text-foreground transition-colors">
                 {t('accessories')}
               </Link>
-              <Link href={`/${locale}/shop?category=home-decor`} className="text-muted-foreground hover:text-foreground transition-colors">
+              <Link href={`/${locale}/shop/category/home-decor`} className="text-muted-foreground hover:text-foreground transition-colors">
                 {t('home-decor')}
               </Link>
             </nav>
@@ -138,6 +131,9 @@ export function Footer() {
               <Link href={`/${locale}/shipping`} className="text-muted-foreground hover:text-foreground transition-colors">
                 {t('shipping')}
               </Link>
+              <Link href={`/${locale}/legal`} className="text-muted-foreground hover:text-foreground transition-colors">
+                {t('legalNotice')}
+              </Link>
               <button
                 onClick={() => {
                   clearConsent();
@@ -170,6 +166,11 @@ export function Footer() {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Newsletter Signup */}
+        <div className="mt-8 mb-2">
+          <NewsletterSignup locale={locale as 'en' | 'es' | 'de'} />
         </div>
 
         <Separator className="my-6" />

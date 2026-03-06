@@ -40,7 +40,7 @@ export interface TurnstileVerificationResult {
  * ```
  */
 export async function verifyTurnstileToken(
-  token: string,
+  token: string | undefined | null,
   remoteIp?: string
 ): Promise<boolean> {
   const secretKey = process.env.TURNSTILE_SECRET_KEY;
@@ -52,6 +52,12 @@ export async function verifyTurnstileToken(
       '[Turnstile] No secret key configured. Skipping verification. Set TURNSTILE_SECRET_KEY in production.'
     );
     return true; // Graceful degradation in dev
+  }
+
+  // In production: reject if no token was provided (widget failed or was bypassed)
+  if (!token) {
+    console.warn('[Turnstile] No token provided but secret key is configured.');
+    return false;
   }
 
   try {

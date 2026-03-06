@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
+import { changePasswordLimiter } from '@/lib/rate-limit'
 
 const supabaseUrl = process.env.SUPABASE_URL!
 const supabaseAnonKey = process.env.SUPABASE_ANON_KEY!
@@ -43,6 +44,12 @@ export async function POST(request: NextRequest) {
         { error: 'Invalid session. Please log in again.' },
         { status: 401 }
       )
+    }
+
+    // Rate limit check
+    const { success } = changePasswordLimiter.check(`password:${user.id}`)
+    if (!success) {
+      return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
     }
 
     // Parse request body

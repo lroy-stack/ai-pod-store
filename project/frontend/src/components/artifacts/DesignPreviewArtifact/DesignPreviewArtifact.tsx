@@ -176,7 +176,7 @@ export function DesignPreviewArtifact({
           <Button
             onClick={handleDownload}
             variant="outline"
-            className="w-full sm:flex-1"
+            className="w-full sm:flex-1 neu-btn-soft"
             disabled={!imageUrl}
           >
             <Download className="h-4 w-4 mr-2" />
@@ -185,7 +185,7 @@ export function DesignPreviewArtifact({
           <Button
             onClick={handleRemoveBg}
             variant="outline"
-            className="w-full sm:flex-1"
+            className="w-full sm:flex-1 neu-btn-soft"
             disabled={!imageUrl || removingBg || bgRemoved}
           >
             <Eraser className="h-4 w-4 mr-2" />
@@ -196,7 +196,7 @@ export function DesignPreviewArtifact({
           <Button
             onClick={handleViewMockup}
             variant="outline"
-            className="w-full sm:flex-1"
+            className="w-full sm:flex-1 neu-btn-soft"
             disabled={!imageUrl || !onViewMockup || generatingMockup}
           >
             <Shirt className="h-4 w-4 mr-2" />
@@ -204,7 +204,7 @@ export function DesignPreviewArtifact({
           </Button>
           <Button
             onClick={onAddToProduct}
-            className="w-full sm:flex-1 bg-primary hover:bg-primary/90"
+            className="w-full sm:flex-1 bg-primary hover:bg-primary/90 neu-btn-accent"
             disabled={!imageUrl || !onAddToProduct}
           >
             <ShoppingCart className="h-4 w-4 mr-2" />

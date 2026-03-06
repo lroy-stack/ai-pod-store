@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1770" height="600" viewBox="0 0 1770 600">
+
+  <!-- E03: "Understood the Assignment" — BP1744 Cap 1770×600 EMBROIDERY -->
+  <!-- 2 thread colors: teal #14B8A6 + white #FFFFFF -->
+  <!-- All content centered in canvas, 5% safe zone on edges -->
+
+  <!-- Checkmark — teal, centered -->
+  <path d="M750,100 L870,220 L1080,50"
+        fill="none" stroke="#14B8A6" stroke-width="35"
+        stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- "UNDERSTOOD" — centered at ~60% height -->
+  <text x="885" y="370"
+        font-family="'Roboto', sans-serif"
+        font-size="105" font-weight="700"
+        fill="#14B8A6" text-anchor="middle"
+        letter-spacing="6">UNDERSTOOD</text>
+
+  <!-- "the assignment" — centered at ~83% height -->
+  <text x="885" y="520"
+        font-family="'Pacifico', cursive"
+        font-size="85"
+        fill="#FFFFFF" text-anchor="middle">the assignment</text>
+
+</svg>

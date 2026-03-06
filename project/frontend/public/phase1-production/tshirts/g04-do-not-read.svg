@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="4606" height="5787" viewBox="0 0 4606 5787">
+
+  <!-- G04: "Do Not Read the Next Line" — BP6 T-Shirt 4606x5787 -->
+  <!-- Interactive humor with visual payoff -->
+  <!-- Palette: Purple (#A78BFA) + Turquoise (#40ACCC) -->
+  <!-- Fonts: Lato (instructions), Dancing Script (rebel), Pacifico (reward) -->
+  <!-- RULE: No text below 200px -->
+
+  <!-- ===== "DO NOT READ" — Lato bold, off-white ===== -->
+  <text x="2303" y="1300"
+        font-family="'Lato', sans-serif"
+        font-size="700" font-weight="700"
+        fill="#F0EDE8" text-anchor="middle">DO NOT READ</text>
+
+  <!-- ===== "THE NEXT LINE." — Lato bold, off-white ===== -->
+  <text x="2303" y="2000"
+        font-family="'Lato', sans-serif"
+        font-size="550" font-weight="700"
+        fill="#F0EDE8" text-anchor="middle">THE NEXT LINE.</text>
+
+  <!-- ===== Separator bar — off-white ===== -->
+  <rect x="800" y="2300" width="3000" height="30" fill="#F0EDE8"/>
+
+  <!-- ===== Arrows pointing down — purple, thick ===== -->
+  <!-- Left arrow -->
+  <line x1="900" y1="2500" x2="900" y2="3000" stroke="#A78BFA" stroke-width="25" stroke-linecap="round"/>
+  <line x1="900" y1="3000" x2="750" y2="2800" stroke="#A78BFA" stroke-width="25" stroke-linecap="round"/>
+  <line x1="900" y1="3000" x2="1050" y2="2800" stroke="#A78BFA" stroke-width="25" stroke-linecap="round"/>
+
+  <!-- Right arrow -->
+  <line x1="3700" y1="2500" x2="3700" y2="3000" stroke="#A78BFA" stroke-width="25" stroke-linecap="round"/>
+  <line x1="3700" y1="3000" x2="3550" y2="2800" stroke="#A78BFA" stroke-width="25" stroke-linecap="round"/>
+  <line x1="3700" y1="3000" x2="3850" y2="2800" stroke="#A78BFA" stroke-width="25" stroke-linecap="round"/>
+
+  <!-- ===== "you rebel." — Dancing Script, purple 3D ===== -->
+  <text x="2323" y="3620"
+        font-family="'Dancing Script', cursive"
+        font-size="600"
+        fill="#4C1D95" text-anchor="middle">you rebel.</text>
+  <text x="2313" y="3610"
+        font-family="'Dancing Script', cursive"
+        font-size="600"
+        fill="#6D28D9" text-anchor="middle">you rebel.</text>
+  <text x="2303" y="3600"
+        font-family="'Dancing Script', cursive"
+        font-size="600"
+        fill="#A78BFA" text-anchor="middle">you rebel.</text>
+
+  <!-- ===== "i like you." — Pacifico, turquoise 3D ===== -->
+  <text x="2323" y="4620"
+        font-family="'Pacifico', cursive"
+        font-size="550"
+        fill="#134E4A" text-anchor="middle">i like you.</text>
+  <text x="2313" y="4610"
+        font-family="'Pacifico', cursive"
+        font-size="550"
+        fill="#0D9488" text-anchor="middle">i like you.</text>
+  <text x="2303" y="4600"
+        font-family="'Pacifico', cursive"
+        font-size="550"
+        fill="#40ACCC" text-anchor="middle">i like you.</text>
+
+</svg>

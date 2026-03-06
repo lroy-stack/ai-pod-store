@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2953" height="3543" viewBox="0 0 2953 3543">
+
+  <!-- TB02: "Social Battery" Tote — BP731 2953×3543, DTG -->
+  <!-- Adapted from C01 (4606×5787) — scale ~0.64 -->
+  <!-- Accent: #EF4444 (red/low battery) -->
+
+  <!-- "social battery" -->
+  <text x="1477" y="880"
+        font-family="'Caveat', cursive"
+        font-size="320"
+        fill="#F0EDE8" text-anchor="middle">social battery</text>
+
+  <!-- Battery body outline -->
+  <rect x="515" y="1072" width="1922" height="512" rx="64"
+        fill="none" stroke="#F0EDE8" stroke-width="20"/>
+
+  <!-- Battery terminal nub -->
+  <rect x="2437" y="1233" width="64" height="192" rx="16"
+        fill="#F0EDE8"/>
+
+  <!-- Battery fill — 3%, red -->
+  <rect x="534" y="1091" width="56" height="474" rx="13"
+        fill="#EF4444"/>
+
+  <!-- "3%" shadow -->
+  <text x="1485" y="2287"
+        font-family="'Bebas Neue', sans-serif"
+        font-size="768"
+        fill="#7F1D1D" text-anchor="middle">3%</text>
+
+  <!-- "3%" main -->
+  <text x="1477" y="2280"
+        font-family="'Bebas Neue', sans-serif"
+        font-size="768"
+        fill="#EF4444" text-anchor="middle">3%</text>
+
+  <!-- Footer -->
+  <text x="1477" y="2730"
+        font-family="'Courier New', monospace"
+        font-size="115" font-weight="bold"
+        fill="#6B7280" text-anchor="middle">do not disturb</text>
+
+</svg>

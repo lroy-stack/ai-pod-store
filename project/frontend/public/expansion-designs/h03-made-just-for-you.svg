@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="4606" height="5787" viewBox="0 0 4606 5787">
+
+  <!-- H03: "This Shirt Was Made Just for You" — BP6 T-Shirt 4606x5787 -->
+  <!-- POD meta-commentary — personal touch -->
+  <!-- Palette: Amber (#F59E0B) -->
+  <!-- Fonts: Roboto (THIS SHIRT / WAS MADE), Great Vibes (just for), Bebas Neue (YOU) -->
+  <!-- RULE: No text below 200px -->
+
+  <!-- ===== "THIS SHIRT" — Roboto bold, off-white ===== -->
+  <text x="2303" y="1300"
+        font-family="'Roboto', sans-serif"
+        font-size="700" font-weight="700"
+        fill="#F0EDE8" text-anchor="middle"
+        letter-spacing="10">THIS SHIRT</text>
+
+  <!-- ===== "WAS MADE" — Roboto bold, off-white ===== -->
+  <text x="2303" y="2000"
+        font-family="'Roboto', sans-serif"
+        font-size="600" font-weight="700"
+        fill="#F0EDE8" text-anchor="middle">WAS MADE</text>
+
+  <!-- ===== "just for" — Great Vibes calligraphy, amber ===== -->
+  <text x="2303" y="2800"
+        font-family="'Great Vibes', cursive"
+        font-size="550"
+        fill="#F59E0B" text-anchor="middle">just for</text>
+
+  <!-- ===== "YOU" — Bebas Neue, amber 4-layer 3D, MASSIVE ===== -->
+  <text x="2327" y="4024"
+        font-family="'Bebas Neue', sans-serif"
+        font-size="1200"
+        fill="#78350F" text-anchor="middle">YOU</text>
+  <text x="2319" y="4016"
+        font-family="'Bebas Neue', sans-serif"
+        font-size="1200"
+        fill="#92400E" text-anchor="middle">YOU</text>
+  <text x="2311" y="4008"
+        font-family="'Bebas Neue', sans-serif"
+        font-size="1200"
+        fill="#D97706" text-anchor="middle">YOU</text>
+  <text x="2303" y="4000"
+        font-family="'Bebas Neue', sans-serif"
+        font-size="1200"
+        fill="#F59E0B" text-anchor="middle">YOU</text>
+
+  <!-- ===== Footer — parenthetical, Courier ===== -->
+  <text x="2303" y="4700"
+        font-family="'Courier New', monospace"
+        font-size="200" font-weight="bold"
+        fill="#F0EDE8" text-anchor="middle">didn't exist till you ordered it</text>
+
+</svg>

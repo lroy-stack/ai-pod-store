@@ -1,6 +1,7 @@
 import { Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
+import { BRAND } from '@/lib/store-config'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
@@ -27,9 +28,11 @@ export async function generateMetadata({
   const { locale } = await params
   const t = await getTranslations({ locale, namespace: 'blog' })
 
+  const brandName = BRAND.name
+
   return {
-    title: t('metaTitle'),
-    description: t('metaDescription'),
+    title: t('metaTitle', { brandName }),
+    description: t('metaDescription', { brandName }),
   }
 }
 
@@ -40,6 +43,7 @@ export default async function BlogListingPage({
 }) {
   const { locale } = await params
   const t = await getTranslations({ locale, namespace: 'blog' })
+  const brandName = BRAND.name
 
   // Fetch published blog posts
   const { data: posts, error } = await supabaseAdmin
@@ -71,7 +75,7 @@ export default async function BlogListingPage({
     <div className="min-h-screen px-6 py-24 md:py-32">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-4xl md:text-5xl font-bold mb-4">{t('title')}</h1>
-        <p className="text-lg text-muted-foreground mb-12">{t('subtitle')}</p>
+        <p className="text-lg text-muted-foreground mb-12">{t('subtitle', { brandName })}</p>
 
         {blogPosts.length === 0 ? (
           <Card>

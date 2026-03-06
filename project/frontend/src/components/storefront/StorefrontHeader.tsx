@@ -70,6 +70,7 @@ export function StorefrontHeader({ onToggleSidebar, isSidebarCollapsed, onToggle
       : '?'
 
   const [searchQuery, setSearchQuery] = useState('')
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
   useEffect(() => setMounted(true), [])
   const isShopPage = mounted && pathname.includes('/shop')
@@ -84,6 +85,7 @@ export function StorefrontHeader({ onToggleSidebar, isSidebarCollapsed, onToggle
   }
 
   return (
+    <>
     <header className="flex items-center justify-between gap-4 px-4 h-14 border-b border-border bg-card">
       {/* Left: Mobile toggle + Logo + Nav links */}
       <div className="flex items-center gap-4 flex-shrink-0">
@@ -157,6 +159,17 @@ export function StorefrontHeader({ onToggleSidebar, isSidebarCollapsed, onToggle
 
       {/* Right: Actions */}
       <div className="flex items-center gap-2 flex-shrink-0">
+        {/* Mobile Search Toggle */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="lg:hidden"
+          onClick={() => setMobileSearchOpen(true)}
+        >
+          <Search className="h-5 w-5" />
+          <span className="sr-only">{t('searchPlaceholder')}</span>
+        </Button>
+
         {/* Notifications */}
         <Button variant="ghost" size="icon" className="relative hidden sm:inline-flex">
           <Bell className="h-5 w-5" aria-hidden="true" />
@@ -260,5 +273,42 @@ export function StorefrontHeader({ onToggleSidebar, isSidebarCollapsed, onToggle
         )}
       </div>
     </header>
+
+    {/* Mobile Search Overlay */}
+    {mobileSearchOpen && (
+      <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm lg:hidden">
+        <div className="flex items-center gap-2 p-4 bg-card border-b border-border">
+          <form
+            onSubmit={(e) => {
+              handleSearch(e)
+              setMobileSearchOpen(false)
+            }}
+            className="flex-1"
+          >
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="search"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={t('searchPlaceholder')}
+                className="pl-9"
+                autoFocus
+              />
+            </div>
+          </form>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setMobileSearchOpen(false)}
+          >
+            {tNav('cancel')}
+          </Button>
+        </div>
+        {/* Tap backdrop to close */}
+        <div className="flex-1 h-full" onClick={() => setMobileSearchOpen(false)} />
+      </div>
+    )}
+    </>
   )
 }

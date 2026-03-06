@@ -59,7 +59,7 @@ export function CartSummaryArtifact({
           <p className="text-sm text-muted-foreground mb-4">
             {t('emptyCartDescription')}
           </p>
-          <Button onClick={() => router.push(`/${locale}/shop`)}>
+          <Button className="neu-btn-accent" onClick={() => router.push(`/${locale}/shop`)}>
             {t('browseProducts')}
           </Button>
         </CardContent>
@@ -112,13 +112,13 @@ export function CartSummaryArtifact({
         <div className="w-full flex flex-col sm:flex-row gap-2">
           <Button
             variant="outline"
-            className="flex-1"
+            className="flex-1 neu-btn-soft"
             onClick={() => router.push(`/${locale}/cart`)}
           >
             {t('viewFullCart')}
           </Button>
           <Button
-            className="flex-1"
+            className="flex-1 neu-btn-accent"
             onClick={() => router.push(`/${locale}/checkout`)}
           >
             {t('proceedToCheckout')}

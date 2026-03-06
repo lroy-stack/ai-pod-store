@@ -36,8 +36,9 @@ interface OrderDetail {
   tracking_number?: string;
   tracking_url?: string;
   carrier?: string;
-  printify_order_id?: string;
-  printify_status?: string;
+  external_order_id?: string;
+  provider_status?: string;
+  pod_provider?: string;
   stripe_payment_intent_id?: string;
   items?: OrderLineItem[];
   user?: {
@@ -83,13 +84,13 @@ const generateTimelineEvents = (order: OrderDetail) => {
     });
   }
 
-  // Submitted to Printify
-  if (order.printify_order_id) {
+  // Submitted to Provider
+  if (order.external_order_id) {
     events.push({
-      label: 'Submitted to Printify',
+      label: `Submitted to ${order.pod_provider || 'Provider'}`,
       timestamp: order.paid_at, // Typically happens right after payment
       icon: Send,
-      details: `Printify Order ID: ${order.printify_order_id}`,
+      details: `Provider Order ID: ${order.external_order_id}`,
     });
   }
 
@@ -99,7 +100,7 @@ const generateTimelineEvents = (order: OrderDetail) => {
       label: 'In Production',
       timestamp: null, // Would need separate tracking
       icon: Clock,
-      details: order.printify_status ? `Status: ${order.printify_status}` : undefined,
+      details: order.provider_status ? `Status: ${order.provider_status}` : undefined,
     });
   }
 
@@ -178,7 +179,7 @@ export default function OrderDetailPage() {
     });
   };
 
-  const handleRetryPrintify = async () => {
+  const handleRetryProvider = async () => {
     if (!order) return;
 
     setRetrying(true);
@@ -188,16 +189,16 @@ export default function OrderDetailPage() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to retry Printify submission');
+        throw new Error('Failed to retry provider submission');
       }
 
       const data = await response.json();
-      toast.success('Printify order resubmitted successfully');
+      toast.success('Order resubmitted successfully');
 
       // Refresh order details
       await fetchOrderDetail();
     } catch (err: any) {
-      toast.error(err.message || 'Failed to retry Printify submission');
+      toast.error(err.message || 'Failed to retry provider submission');
     } finally {
       setRetrying(false);
     }
@@ -434,9 +435,9 @@ export default function OrderDetailPage() {
         <div className="bg-card border rounded-lg p-6">
           <div className="flex items-start justify-between mb-4">
             <h2 className="text-xl font-semibold">Technical Details</h2>
-            {order.printify_status === 'failed' && (
+            {order.provider_status === 'failed' && (
               <Button
-                onClick={handleRetryPrintify}
+                onClick={handleRetryProvider}
                 disabled={retrying}
                 variant="outline"
                 size="sm"
@@ -449,7 +450,7 @@ export default function OrderDetailPage() {
                 ) : (
                   <>
                     <RefreshCw className="mr-2 h-4 w-4" />
-                    Retry Printify Submission
+                    Retry Provider Submission
                   </>
                 )}
               </Button>
@@ -462,18 +463,18 @@ export default function OrderDetailPage() {
                 <p className="font-mono">{order.stripe_payment_intent_id}</p>
               </div>
             )}
-            {order.printify_order_id && (
+            {order.external_order_id && (
               <div>
-                <p className="text-muted-foreground">Printify Order ID</p>
-                <p className="font-mono">{order.printify_order_id}</p>
+                <p className="text-muted-foreground">Provider Order ID</p>
+                <p className="font-mono">{order.external_order_id}</p>
               </div>
             )}
-            {order.printify_status && (
+            {order.provider_status && (
               <div>
-                <p className="text-muted-foreground">Printify Status</p>
+                <p className="text-muted-foreground">Provider Status</p>
                 <div className="flex items-center gap-2">
-                  <Badge variant={order.printify_status === 'failed' ? 'destructive' : 'default'}>
-                    {order.printify_status}
+                  <Badge variant={order.provider_status === 'failed' ? 'destructive' : 'default'}>
+                    {order.provider_status}
                   </Badge>
                 </div>
               </div>

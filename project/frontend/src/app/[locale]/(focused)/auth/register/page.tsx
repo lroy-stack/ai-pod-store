@@ -2,6 +2,8 @@ import { getTranslations } from 'next-intl/server'
 import Link from 'next/link'
 import RegisterForm from '@/components/auth/RegisterForm'
 import { Card, CardContent } from '@/components/ui/card'
+import { BrandMark } from '@/components/ui/brand-mark'
+import { BRAND } from '@/lib/store-config'
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
@@ -9,7 +11,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 
   return {
     title: t('registerTitle'),
-    description: t('registerDescription'),
+    description: t('registerDescription', { brandName: BRAND.name }),
   }
 }
 
@@ -19,9 +21,7 @@ export default async function RegisterPage({ params }: { params: Promise<{ local
   return (
     <div className="mx-auto max-w-md flex flex-col items-center">
       <Link href={`/${locale}/`} className="mb-6 group" aria-label="Home">
-        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center shadow-lg shadow-primary/20 landing-float">
-          <span className="text-primary-foreground font-bold text-lg">P</span>
-        </div>
+        <BrandMark size={48} />
       </Link>
       <Card className="w-full bg-card/80 backdrop-blur-xl border-border/60 shadow-xl">
         <CardContent className="px-4 pt-6 md:px-6">

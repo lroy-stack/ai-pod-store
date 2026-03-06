@@ -119,31 +119,9 @@ export default async function CookiesPolicyPage({ params }: { params: Promise<{ 
               <p className="text-muted-foreground mb-3">
                 {t('categories.analytics.description')}
               </p>
-              <div className="bg-muted/50 rounded-lg p-4 space-y-2 text-sm">
-                <div className="flex justify-between border-b border-border pb-2">
-                  <span className="font-medium">{t('table.name')}</span>
-                  <span className="font-medium">{t('table.purpose')}</span>
-                  <span className="font-medium">{t('table.duration')}</span>
-                </div>
-                <div className="flex justify-between py-2">
-                  <span className="font-mono text-xs md:text-sm">_ga</span>
-                  <span className="text-muted-foreground text-xs md:text-sm flex-1 px-2 md:px-4">
-                    {t('cookies._ga.purpose')}
-                  </span>
-                  <span className="text-muted-foreground text-xs md:text-sm">
-                    {t('cookies._ga.duration')}
-                  </span>
-                </div>
-                <div className="flex justify-between py-2">
-                  <span className="font-mono text-xs md:text-sm">_ga_*</span>
-                  <span className="text-muted-foreground text-xs md:text-sm flex-1 px-2 md:px-4">
-                    {t('cookies._ga_id.purpose')}
-                  </span>
-                  <span className="text-muted-foreground text-xs md:text-sm">
-                    {t('cookies._ga_id.duration')}
-                  </span>
-                </div>
-              </div>
+              <p className="text-sm text-muted-foreground italic">
+                {t('categories.analytics.noCookies')}
+              </p>
             </div>
 
             {/* Marketing Cookies */}
@@ -154,31 +132,9 @@ export default async function CookiesPolicyPage({ params }: { params: Promise<{ 
               <p className="text-muted-foreground mb-3">
                 {t('categories.marketing.description')}
               </p>
-              <div className="bg-muted/50 rounded-lg p-4 space-y-2 text-sm">
-                <div className="flex justify-between border-b border-border pb-2">
-                  <span className="font-medium">{t('table.name')}</span>
-                  <span className="font-medium">{t('table.purpose')}</span>
-                  <span className="font-medium">{t('table.duration')}</span>
-                </div>
-                <div className="flex justify-between py-2">
-                  <span className="font-mono text-xs md:text-sm">_fbp</span>
-                  <span className="text-muted-foreground text-xs md:text-sm flex-1 px-2 md:px-4">
-                    {t('cookies._fbp.purpose')}
-                  </span>
-                  <span className="text-muted-foreground text-xs md:text-sm">
-                    {t('cookies._fbp.duration')}
-                  </span>
-                </div>
-                <div className="flex justify-between py-2">
-                  <span className="font-mono text-xs md:text-sm">_gcl_au</span>
-                  <span className="text-muted-foreground text-xs md:text-sm flex-1 px-2 md:px-4">
-                    {t('cookies._gcl_au.purpose')}
-                  </span>
-                  <span className="text-muted-foreground text-xs md:text-sm">
-                    {t('cookies._gcl_au.duration')}
-                  </span>
-                </div>
-              </div>
+              <p className="text-sm text-muted-foreground italic">
+                {t('categories.marketing.noCookies')}
+              </p>
             </div>
           </CardContent>
         </Card>
@@ -193,9 +149,6 @@ export default async function CookiesPolicyPage({ params }: { params: Promise<{ 
               {t('thirdParty.description')}
             </p>
             <ul className="list-disc pl-6 space-y-2 text-foreground">
-              <li>
-                <strong>Google Analytics</strong> - {t('thirdParty.providers.googleAnalytics')}
-              </li>
               <li>
                 <strong>Stripe</strong> - {t('thirdParty.providers.stripe')}
               </li>

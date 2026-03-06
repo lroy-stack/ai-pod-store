@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 450 1800" width="450" height="1800">
+  <!-- Trendi Sleeve Right: Geometric pattern in Green #01784E + Yellow #FFCC00 + Black #000000 -->
+  <!-- Canvas: 450x1800 @150dpi, transparent background -->
+  <!-- Vertical pattern inspired by the constructivist aesthetic of the back design -->
+
+  <!-- WHITE BACKGROUND — fills entire canvas for DTG print as solid panel -->
+  <rect x="0" y="0" width="450" height="1800" fill="#FFFFFF"/>
+
+  <!-- Checkerboard section top -->
+  <rect x="0" y="300" width="56" height="56" fill="#FFCC00"/>
+  <rect x="112" y="300" width="56" height="56" fill="#FFCC00"/>
+  <rect x="224" y="300" width="56" height="56" fill="#FFCC00"/>
+  <rect x="336" y="300" width="56" height="56" fill="#FFCC00"/>
+  <rect x="56" y="300" width="56" height="56" fill="#000000"/>
+  <rect x="168" y="300" width="56" height="56" fill="#000000"/>
+  <rect x="280" y="300" width="56" height="56" fill="#000000"/>
+  <rect x="392" y="300" width="56" height="56" fill="#000000"/>
+  <rect x="56" y="356" width="56" height="56" fill="#FFCC00"/>
+  <rect x="168" y="356" width="56" height="56" fill="#FFCC00"/>
+  <rect x="280" y="356" width="56" height="56" fill="#FFCC00"/>
+  <rect x="392" y="356" width="56" height="56" fill="#FFCC00"/>
+  <rect x="0" y="356" width="56" height="56" fill="#000000"/>
+  <rect x="112" y="356" width="56" height="56" fill="#000000"/>
+  <rect x="224" y="356" width="56" height="56" fill="#000000"/>
+  <rect x="336" y="356" width="56" height="56" fill="#000000"/>
+
+  <!-- Green vertical bar -->
+  <rect x="50" y="460" width="12" height="200" fill="#01784E"/>
+  <rect x="388" y="460" width="12" height="200" fill="#01784E"/>
+
+  <!-- Diagonal stripes -->
+  <line x1="0" y1="700" x2="450" y2="800" stroke="#01784E" stroke-width="8"/>
+  <line x1="0" y1="720" x2="450" y2="820" stroke="#FFCC00" stroke-width="4"/>
+  <line x1="0" y1="750" x2="450" y2="850" stroke="#000000" stroke-width="6"/>
+
+  <!-- Warning triangle -->
+  <polygon points="225,880 280,970 170,970" fill="#FFCC00" stroke="#000000" stroke-width="4"/>
+  <rect x="220" y="910" width="10" height="30" fill="#000000"/>
+  <circle cx="225" cy="952" r="5" fill="#000000"/>
+
+  <!-- Horizontal accent bars -->
+  <rect x="60" y="1010" width="330" height="8" fill="#01784E"/>
+  <rect x="90" y="1030" width="270" height="4" fill="#FFCC00"/>
+  <rect x="60" y="1046" width="330" height="8" fill="#01784E"/>
+
+  <!-- Arrow pointing down -->
+  <polygon points="225,1100 260,1070 250,1070 250,1030 200,1030 200,1070 190,1070" fill="#FFCC00"/>
+
+  <!-- Vertical dashes -->
+  <rect x="120" y="1140" width="6" height="30" fill="#01784E"/>
+  <rect x="160" y="1140" width="6" height="30" fill="#000000"/>
+  <rect x="200" y="1140" width="6" height="30" fill="#FFCC00"/>
+  <rect x="240" y="1140" width="6" height="30" fill="#01784E"/>
+  <rect x="280" y="1140" width="6" height="30" fill="#000000"/>
+  <rect x="320" y="1140" width="6" height="30" fill="#FFCC00"/>
+
+  <!-- Green rectangle frame -->
+  <rect x="80" y="1210" width="290" height="140" fill="none" stroke="#01784E" stroke-width="6"/>
+  <rect x="95" y="1225" width="260" height="110" fill="none" stroke="#FFCC00" stroke-width="2"/>
+
+  <!-- Inner geometric: small squares grid -->
+  <rect x="130" y="1250" width="20" height="20" fill="#01784E"/>
+  <rect x="165" y="1250" width="20" height="20" fill="#FFCC00"/>
+  <rect x="200" y="1250" width="20" height="20" fill="#000000"/>
+  <rect x="235" y="1250" width="20" height="20" fill="#01784E"/>
+  <rect x="270" y="1250" width="20" height="20" fill="#FFCC00"/>
+  <rect x="130" y="1285" width="20" height="20" fill="#FFCC00"/>
+  <rect x="165" y="1285" width="20" height="20" fill="#000000"/>
+  <rect x="200" y="1285" width="20" height="20" fill="#01784E"/>
+  <rect x="235" y="1285" width="20" height="20" fill="#FFCC00"/>
+  <rect x="270" y="1285" width="20" height="20" fill="#000000"/>
+
+  <!-- Bottom diagonal stripes -->
+  <line x1="0" y1="1420" x2="450" y2="1380" stroke="#FFCC00" stroke-width="6"/>
+  <line x1="0" y1="1440" x2="450" y2="1400" stroke="#01784E" stroke-width="4"/>
+
+  <!-- Bottom checkerboard -->
+  <rect x="0" y="1480" width="56" height="56" fill="#000000"/>
+  <rect x="112" y="1480" width="56" height="56" fill="#000000"/>
+  <rect x="224" y="1480" width="56" height="56" fill="#000000"/>
+  <rect x="336" y="1480" width="56" height="56" fill="#000000"/>
+  <rect x="56" y="1480" width="56" height="56" fill="#FFCC00"/>
+  <rect x="168" y="1480" width="56" height="56" fill="#FFCC00"/>
+  <rect x="280" y="1480" width="56" height="56" fill="#FFCC00"/>
+  <rect x="392" y="1480" width="56" height="56" fill="#FFCC00"/>
+</svg>

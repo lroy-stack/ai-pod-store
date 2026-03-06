@@ -70,8 +70,10 @@ function buildProperties(variables: ThemeVariables): string {
  * that .dark {} (specificity 0,1,0) can NEVER override — breaking dark mode completely.
  */
 function injectThemeCSS(theme: Theme): void {
-  // Remove existing theme style tags (both server-rendered and dynamic)
-  document.getElementById('server-theme-style')?.remove();
+  // Remove existing dynamic theme style tag only.
+  // NEVER remove 'server-theme-style' — it's React-owned (rendered in layout.tsx).
+  // Removing it imperatively causes "removeChild" crash on locale navigation.
+  // The dynamic tag appended later overrides the server one via CSS cascade.
   document.getElementById('dynamic-theme-style')?.remove();
 
   // Also clear any stale inline styles from the previous setProperty approach

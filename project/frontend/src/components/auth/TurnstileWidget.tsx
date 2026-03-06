@@ -36,21 +36,21 @@ interface TurnstileWidgetProps {
   size?: 'normal' | 'compact';
 }
 
-// Global reference to Turnstile script load promise
-let turnstileScriptPromise: Promise<void> | null = null;
+// Global reference to Turnstile script load state
+let turnstileScriptPromise: Promise<boolean> | null = null;
 
 /**
- * Load Cloudflare Turnstile script once
+ * Load Cloudflare Turnstile script once.
+ * Resolves to `true` if loaded, `false` if the script failed (never rejects).
  */
-function loadTurnstileScript(): Promise<void> {
+function loadTurnstileScript(): Promise<boolean> {
   if (turnstileScriptPromise) {
     return turnstileScriptPromise;
   }
 
-  turnstileScriptPromise = new Promise((resolve, reject) => {
-    // Check if already loaded
+  turnstileScriptPromise = new Promise((resolve) => {
     if (typeof window !== 'undefined' && (window as any).turnstile) {
-      resolve();
+      resolve(true);
       return;
     }
 
@@ -58,8 +58,12 @@ function loadTurnstileScript(): Promise<void> {
     script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
     script.async = true;
     script.defer = true;
-    script.onload = () => resolve();
-    script.onerror = () => reject(new Error('Failed to load Turnstile script'));
+    script.onload = () => resolve(true);
+    script.onerror = () => {
+      console.warn('[Turnstile] Could not load script — CAPTCHA will be skipped.');
+      turnstileScriptPromise = null; // allow retry on next mount
+      resolve(false);
+    };
     document.head.appendChild(script);
   });
 
@@ -94,38 +98,28 @@ export function TurnstileWidget({
     let mounted = true;
 
     // Load Turnstile script and render widget
-    loadTurnstileScript()
-      .then(() => {
-        if (!mounted || !containerRef.current) return;
+    loadTurnstileScript().then((loaded) => {
+      if (!mounted || !containerRef.current || !loaded) return;
 
-        const turnstile = (window as any).turnstile;
-        if (!turnstile) {
-          throw new Error('Turnstile API not available');
-        }
+      const turnstile = (window as any).turnstile;
+      if (!turnstile) return;
 
-        // Render Turnstile widget
-        widgetIdRef.current = turnstile.render(containerRef.current, {
-          sitekey: finalSiteKey,
-          theme,
-          size,
-          callback: (token: string) => {
-            onVerify(token);
-          },
-          'expired-callback': () => {
-            onExpire?.();
-          },
-          'error-callback': (err: any) => {
-            const error = err instanceof Error ? err : new Error(String(err));
-            onError?.(error);
-          },
-        });
-      })
-      .catch((error) => {
-        if (mounted) {
-          console.error('[Turnstile] Failed to load:', error);
+      widgetIdRef.current = turnstile.render(containerRef.current, {
+        sitekey: finalSiteKey,
+        theme,
+        size,
+        callback: (token: string) => {
+          onVerify(token);
+        },
+        'expired-callback': () => {
+          onExpire?.();
+        },
+        'error-callback': (err: any) => {
+          const error = err instanceof Error ? err : new Error(String(err));
           onError?.(error);
-        }
+        },
       });
+    });
 
     // Cleanup on unmount
     return () => {

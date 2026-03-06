@@ -105,7 +105,7 @@ WHERE o.status = 'delivered'
         compliance: {
           can_spam: 'All emails include unsubscribe link and physical address',
           physical_address: 'Skapara Store, Friedrichstraße 123, 10117 Berlin, Germany',
-          sender: 'Skapara Store <noreply@podai.com>',
+          sender: 'SKAPARA <noreply@skapara.com>',
           respect_preferences: 'Honors users.notification_preferences.email setting',
           locale_aware: 'Sends in customer preferred language (en/es/de)',
         },

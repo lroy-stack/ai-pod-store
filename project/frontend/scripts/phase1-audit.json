@@ -1,0 +1,1404 @@
+{
+  "generatedAt": "2026-03-02T13:56:30.891Z",
+  "totalProducts": 20,
+  "premiumCount": 6,
+  "signatureCount": 14,
+  "needsVerification": 0,
+  "designsMapped": 20,
+  "products": [
+    {
+      "id": "168731f6-75db-4075-bb30-c1ec8fead998",
+      "title": "Absolutely Right",
+      "printify_id": "69a3036509542fc7920317d3",
+      "provider_product_id": "69a3036509542fc7920317d3",
+      "blueprint_id": 6,
+      "print_provider_id": 26,
+      "current_price_cents": 2499,
+      "current_cost_cents": 850,
+      "variant_count": 24,
+      "current_colors": [
+        "Charcoal",
+        "Dark Heather",
+        "Navy",
+        "Black"
+      ],
+      "current_sizes": [
+        "L",
+        "M",
+        "S",
+        "XL",
+        "2XL",
+        "3XL",
+        "4XL",
+        "5XL"
+      ],
+      "tier": "signature",
+      "printful_catalog_id": 586,
+      "new_colors": [
+        "Black",
+        "Pepper",
+        "Graphite",
+        "Ivory",
+        "True Navy"
+      ],
+      "new_price_eur_cents": {
+        "S": 3499,
+        "M": 3499,
+        "L": 3499,
+        "XL": 3499,
+        "2XL": 3799,
+        "3XL": 3999,
+        "4XL": 3999
+      },
+      "new_price_usd_cents": {
+        "S": 3809,
+        "M": 3809,
+        "L": 3809,
+        "XL": 3809,
+        "2XL": 4139,
+        "3XL": 4359,
+        "4XL": 4359
+      },
+      "design_file": "meme-designs/02-absolutely-right-tee.png",
+      "design_format": "png",
+      "design_exists": true,
+      "needs_verification": false,
+      "first_image_url": "https://images-api.printify.com/mockup/69a3036509542fc7920317d3/12124/92570/absolutely-right.jpg?camera_label=front",
+      "current_description_en": "You know you're right. The meme that became a movement — bold statement on premium cotton.",
+      "current_product_details": {
+        "brand": "Gildan",
+        "model": "5000",
+        "material": "100% heavy cotton, pre-shrunk",
+        "provider_name": "Textildruck Europa",
+        "print_technique": "DTG",
+        "safety_information": "<p><strong>EU representative:</strong> HONSON VENTURES LIMITED, gpsr@honsonventures.com, 3, Gnaftis House flat 102, Limassol, Mesa Geitonia, 4003, CY</p><p><strong>Product information:</strong> Gildan 5000, 2 year warranty in EU and Northern Ireland as per Directive 1999/44/EC</p><p><strong>Warnings, Hazard:</strong> For adults, Made in Nicaragua</p><p><strong>Care instructions:</strong> Machine wash: cold (max 30C or 90F), Non-chlorine: bleach as needed, Tumble dry: low heat, Do not iron, Do not dryclean</p>",
+        "manufacturing_country": "DE"
+      }
+    },
+    {
+      "id": "922c9543-91b7-4530-9393-bee5db079626",
+      "title": "Caffeine Anxiety",
+      "printify_id": "69a4418621b032c3770336a2",
+      "provider_product_id": "69a4418621b032c3770336a2",
+      "blueprint_id": 6,
+      "print_provider_id": 26,
+      "current_price_cents": 3799,
+      "current_cost_cents": 1853,
+      "variant_count": 45,
+      "current_colors": [
+        "Charcoal",
+        "Forest Green",
+        "Military Green",
+        "Black",
+        "Dark Chocolate",
+        "Dark Heather",
+        "Maroon",
+        "Navy"
+      ],
+      "current_sizes": [
+        "S",
+        "L",
+        "M",
+        "XL",
+        "2XL",
+        "3XL"
+      ],
+      "tier": "premium",
+      "printful_catalog_id": 917,
+      "new_colors": [
+        "Black",
+        "Navy Blazer",
+        "Vintage Black",
+        "Vintage White",
+        "White"
+      ],
+      "new_price_eur_cents": {
+        "S": 4499,
+        "M": 4499,
+        "L": 4499,
+        "XL": 4499,
+        "2XL": 4799,
+        "3XL": 4999,
+        "4XL": 4999
+      },
+      "new_price_usd_cents": {
+        "S": 4899,
+        "M": 4899,
+        "L": 4899,
+        "XL": 4899,
+        "2XL": 5225,
+        "3XL": 5449,
+        "4XL": 5449
+      },
+      "design_file": "expansion-designs/f02-caffeine-anxiety.svg",
+      "design_format": "svg",
+      "design_exists": true,
+      "needs_verification": false,
+      "first_image_url": "https://images-api.printify.com/mockup/69a4418621b032c3770336a2/12124/92570/caffeine-anxiety.jpg?camera_label=front",
+      "current_description_en": "The two fuels that keep modern life running. Warning: explosive combination.",
+      "current_product_details": {
+        "brand": "SKAPARA",
+        "model": "Gildan 5000",
+        "material": "100% Cotton (Gildan 5000)",
+        "print_technique": "DTG",
+        "care_instructions": "Machine wash cold inside out. Tumble dry low. Do not iron on print.",
+        "safety_information": "<p><strong>Manufacturer:</strong> Textildruck Europa GmbH, Germany</p>\n<p><strong>Material:</strong> 100% Cotton (Gildan 5000)</p>\n<p><strong>Print:</strong> DTG</p>\n<p><strong>Care:</strong> Machine wash cold inside out. Tumble dry low. Do not iron on print.</p>\n<p><strong>Compliance:</strong> REACH (EC) 1907/2006, OEKO-TEX Standard 100</p>\n<p><strong>EU Responsible:</strong> Textildruck Europa GmbH, Germany</p>",
+        "manufacturing_country": "Germany"
+      }
+    },
+    {
+      "id": "052903d6-8b14-4373-832a-4a04df2f495e",
+      "title": "Dangerous Flag",
+      "printify_id": "69a355feeb470f86b105c51d",
+      "provider_product_id": "69a355feeb470f86b105c51d",
+      "blueprint_id": 12,
+      "print_provider_id": 26,
+      "current_price_cents": 2799,
+      "current_cost_cents": 1256,
+      "variant_count": 32,
+      "current_colors": [
+        "Black",
+        "Dark Grey",
+        "Dark Grey Heather",
+        "Heather Navy",
+        "Heather Olive"
+      ],
+      "current_sizes": [
+        "S",
+        "4XL",
+        "XS",
+        "3XL",
+        "M",
+        "L",
+        "XL",
+        "2XL"
+      ],
+      "tier": "signature",
+      "printful_catalog_id": 586,
+      "new_colors": [
+        "Black",
+        "Pepper",
+        "Graphite",
+        "Ivory",
+        "True Navy"
+      ],
+      "new_price_eur_cents": {
+        "S": 3499,
+        "M": 3499,
+        "L": 3499,
+        "XL": 3499,
+        "2XL": 3799,
+        "3XL": 3999,
+        "4XL": 3999
+      },
+      "new_price_usd_cents": {
+        "S": 3809,
+        "M": 3809,
+        "L": 3809,
+        "XL": 3809,
+        "2XL": 4139,
+        "3XL": 4359,
+        "4XL": 4359
+      },
+      "design_file": "meme-previews/14-skip-permissions-tee.png",
+      "design_format": "png",
+      "design_exists": true,
+      "needs_verification": false,
+      "first_image_url": "https://images-api.printify.com/mockup/69a355feeb470f86b105c51d/18102/102044/dangerous-flag.jpg?camera_label=front-2",
+      "current_description_en": "You know the flag. You've typed the flag. No regrets. For the developer who lives on the edge of the command line.",
+      "current_product_details": {
+        "brand": "SKAPARA",
+        "material": "100% Airlume Combed and Ring-Spun Cotton",
+        "provider": "Textildruck Europa (P26)",
+        "print_technique": "DTG (Direct-to-Garment)",
+        "care_instructions": "Machine wash cold, inside out. Tumble dry low. Do not bleach.",
+        "safety_information": "<p><strong>Manufacturer:</strong> Textildruck Europa GmbH, Germany</p>\n<p><strong>Material:</strong> 100% Airlume Combed and Ring-Spun Cotton</p>\n<p><strong>Print technique:</strong> DTG (Direct-to-Garment) — water-based OEKO-TEX certified inks</p>\n<p><strong>Care:</strong> Machine wash cold, inside out. Tumble dry low. Do not bleach.</p>\n<p><strong>Compliance:</strong> REACH, OEKO-TEX Standard 100</p>",
+        "manufacturing_country": "Germany"
+      }
+    },
+    {
+      "id": "152676b0-4818-458b-8ffe-55e1b0a87877",
+      "title": "Existential Dread",
+      "printify_id": "69a4411a414758b6c6031723",
+      "provider_product_id": "69a4411a414758b6c6031723",
+      "blueprint_id": 6,
+      "print_provider_id": 26,
+      "current_price_cents": 3799,
+      "current_cost_cents": 1853,
+      "variant_count": 45,
+      "current_colors": [
+        "Navy",
+        "Dark Heather",
+        "Charcoal",
+        "Dark Chocolate",
+        "Maroon",
+        "Black",
+        "Forest Green",
+        "Military Green"
+      ],
+      "current_sizes": [
+        "L",
+        "S",
+        "XL",
+        "2XL",
+        "M",
+        "3XL"
+      ],
+      "tier": "premium",
+      "printful_catalog_id": 917,
+      "new_colors": [
+        "Black",
+        "Navy Blazer",
+        "Vintage Black",
+        "Vintage White",
+        "White"
+      ],
+      "new_price_eur_cents": {
+        "S": 4499,
+        "M": 4499,
+        "L": 4499,
+        "XL": 4499,
+        "2XL": 4799,
+        "3XL": 4999,
+        "4XL": 4999
+      },
+      "new_price_usd_cents": {
+        "S": 4899,
+        "M": 4899,
+        "L": 4899,
+        "XL": 4899,
+        "2XL": 5225,
+        "3XL": 5449,
+        "4XL": 5449
+      },
+      "design_file": "expansion-designs/a04-existential-dread.svg",
+      "design_format": "svg",
+      "design_exists": true,
+      "needs_verification": false,
+      "first_image_url": "https://images-api.printify.com/mockup/69a4411a414758b6c6031723/12124/92570/existential-dread.jpg?camera_label=front",
+      "current_description_en": "Can't even afford a proper crisis anymore. At least the shirt is worth it.",
+      "current_product_details": {
+        "brand": "SKAPARA",
+        "model": "Gildan 5000",
+        "material": "100% Cotton (Gildan 5000)",
+        "print_technique": "DTG",
+        "care_instructions": "Machine wash cold inside out. Tumble dry low. Do not iron on print.",
+        "safety_information": "<p><strong>Manufacturer:</strong> Textildruck Europa GmbH, Germany</p>\n<p><strong>Material:</strong> 100% Cotton (Gildan 5000)</p>\n<p><strong>Print:</strong> DTG</p>\n<p><strong>Care:</strong> Machine wash cold inside out. Tumble dry low. Do not iron on print.</p>\n<p><strong>Compliance:</strong> REACH (EC) 1907/2006, OEKO-TEX Standard 100</p>\n<p><strong>EU Responsible:</strong> Textildruck Europa GmbH, Germany</p>",
+        "manufacturing_country": "Germany"
+      }
+    },
+    {
+      "id": "28523f37-23ca-4087-a7e1-511ea8da54eb",
+      "title": "Ghost Tee",
+      "printify_id": "69a300327fc2996b8d0a7780",
+      "provider_product_id": "69a300327fc2996b8d0a7780",
+      "blueprint_id": 6,
+      "print_provider_id": 26,
+      "current_price_cents": 2499,
+      "current_cost_cents": 850,
+      "variant_count": 28,
+      "current_colors": [
+        "Ash",
+        "Sport Grey",
+        "White",
+        "Natural"
+      ],
+      "current_sizes": [
+        "L",
+        "M",
+        "S",
+        "XL",
+        "2XL",
+        "3XL",
+        "4XL",
+        "5XL"
+      ],
+      "tier": "signature",
+      "printful_catalog_id": 586,
+      "new_colors": [
+        "Black",
+        "Pepper",
+        "Graphite",
+        "Ivory",
+        "True Navy"
+      ],
+      "new_price_eur_cents": {
+        "S": 3499,
+        "M": 3499,
+        "L": 3499,
+        "XL": 3499,
+        "2XL": 3799,
+        "3XL": 3999,
+        "4XL": 3999
+      },
+      "new_price_usd_cents": {
+        "S": 3809,
+        "M": 3809,
+        "L": 3809,
+        "XL": 3809,
+        "2XL": 4139,
+        "3XL": 4359,
+        "4XL": 4359
+      },
+      "design_file": "printful-designs/source-ghost-tee.png",
+      "design_format": "png",
+      "design_exists": true,
+      "needs_verification": false,
+      "first_image_url": "https://images-api.printify.com/mockup/69a300327fc2996b8d0a7780/12100/92570/ghost-tee.jpg?camera_label=front",
+      "current_description_en": "Less is everything. Dark SKAPARA mark on light cotton — minimal presence, maximum impact. The quiet flex.",
+      "current_product_details": {
+        "brand": "Gildan",
+        "model": "5000",
+        "material": "100% heavy cotton, pre-shrunk",
+        "provider_name": "Textildruck Europa",
+        "print_technique": "DTG",
+        "safety_information": "<p><strong>EU representative:</strong> HONSON VENTURES LIMITED, gpsr@honsonventures.com, 3, Gnaftis House flat 102, Limassol, Mesa Geitonia, 4003, CY</p><p><strong>Product information:</strong> Gildan 5000, 2 year warranty in EU and Northern Ireland as per Directive 1999/44/EC</p><p><strong>Warnings, Hazard:</strong> For adults, Made in Nicaragua</p><p><strong>Care instructions:</strong> Machine wash: cold (max 30C or 90F), Non-chlorine: bleach as needed, Tumble dry: low heat, Do not iron, Do not dryclean</p>",
+        "manufacturing_country": "DE"
+      }
+    },
+    {
+      "id": "4fff5d51-0b07-4fed-98f6-455d5c4e3d28",
+      "title": "Just For You",
+      "printify_id": "69a441b91ec5ca402c037655",
+      "provider_product_id": "69a441b91ec5ca402c037655",
+      "blueprint_id": 6,
+      "print_provider_id": 26,
+      "current_price_cents": 3799,
+      "current_cost_cents": 1853,
+      "variant_count": 45,
+      "current_colors": [
+        "Navy",
+        "Charcoal",
+        "Dark Chocolate",
+        "Dark Heather",
+        "Maroon",
+        "Military Green",
+        "Black",
+        "Forest Green"
+      ],
+      "current_sizes": [
+        "XL",
+        "L",
+        "M",
+        "S",
+        "2XL",
+        "3XL"
+      ],
+      "tier": "signature",
+      "printful_catalog_id": 586,
+      "new_colors": [
+        "Black",
+        "Pepper",
+        "Graphite",
+        "Ivory",
+        "True Navy"
+      ],
+      "new_price_eur_cents": {
+        "S": 3499,
+        "M": 3499,
+        "L": 3499,
+        "XL": 3499,
+        "2XL": 3799,
+        "3XL": 3999,
+        "4XL": 3999
+      },
+      "new_price_usd_cents": {
+        "S": 3809,
+        "M": 3809,
+        "L": 3809,
+        "XL": 3809,
+        "2XL": 4139,
+        "3XL": 4359,
+        "4XL": 4359
+      },
+      "design_file": "expansion-designs/h03-made-just-for-you.svg",
+      "design_format": "svg",
+      "design_exists": true,
+      "needs_verification": false,
+      "first_image_url": "https://images-api.printify.com/mockup/69a441b91ec5ca402c037655/12124/92570/just-for-you.jpg?camera_label=front",
+      "current_description_en": "No warehouse. No overstock. Made when you wanted it, just for you.",
+      "current_product_details": {
+        "brand": "SKAPARA",
+        "model": "Gildan 5000",
+        "material": "100% Cotton (Gildan 5000)",
+        "print_technique": "DTG",
+        "care_instructions": "Machine wash cold inside out. Tumble dry low. Do not iron on print.",
+        "safety_information": "<p><strong>Manufacturer:</strong> Textildruck Europa GmbH, Germany</p>\n<p><strong>Material:</strong> 100% Cotton (Gildan 5000)</p>\n<p><strong>Print:</strong> DTG</p>\n<p><strong>Care:</strong> Machine wash cold inside out. Tumble dry low. Do not iron on print.</p>\n<p><strong>Compliance:</strong> REACH (EC) 1907/2006, OEKO-TEX Standard 100</p>\n<p><strong>EU Responsible:</strong> Textildruck Europa GmbH, Germany</p>",
+        "manufacturing_country": "Germany"
+      }
+    },
+    {
+      "id": "a5867c4e-7f7d-48f0-82d4-052c0072ee6b",
+      "title": "Next Line",
+      "printify_id": "69a4419feb470f86b105f44f",
+      "provider_product_id": "69a4419feb470f86b105f44f",
+      "blueprint_id": 6,
+      "print_provider_id": 26,
+      "current_price_cents": 3799,
+      "current_cost_cents": 1853,
+      "variant_count": 45,
+      "current_colors": [
+        "Military Green",
+        "Navy",
+        "Dark Heather",
+        "Charcoal",
+        "Dark Chocolate",
+        "Black",
+        "Forest Green",
+        "Maroon"
+      ],
+      "current_sizes": [
+        "XL",
+        "S",
+        "M",
+        "L",
+        "2XL",
+        "3XL"
+      ],
+      "tier": "signature",
+      "printful_catalog_id": 586,
+      "new_colors": [
+        "Black",
+        "Pepper",
+        "Graphite",
+        "Ivory",
+        "True Navy"
+      ],
+      "new_price_eur_cents": {
+        "S": 3499,
+        "M": 3499,
+        "L": 3499,
+        "XL": 3499,
+        "2XL": 3799,
+        "3XL": 3999,
+        "4XL": 3999
+      },
+      "new_price_usd_cents": {
+        "S": 3809,
+        "M": 3809,
+        "L": 3809,
+        "XL": 3809,
+        "2XL": 4139,
+        "3XL": 4359,
+        "4XL": 4359
+      },
+      "design_file": "printful-designs/source-next-line.png",
+      "design_format": "png",
+      "design_exists": true,
+      "needs_verification": false,
+      "first_image_url": "https://images-api.printify.com/mockup/69a4419feb470f86b105f44f/12124/92570/next-line.jpg?camera_label=front",
+      "current_description_en": "You read it anyway. We knew you would. Welcome to the club.",
+      "current_product_details": {
+        "brand": "SKAPARA",
+        "model": "Gildan 5000",
+        "material": "100% Cotton (Gildan 5000)",
+        "print_technique": "DTG",
+        "care_instructions": "Machine wash cold inside out. Tumble dry low. Do not iron on print.",
+        "safety_information": "<p><strong>Manufacturer:</strong> Textildruck Europa GmbH, Germany</p>\n<p><strong>Material:</strong> 100% Cotton (Gildan 5000)</p>\n<p><strong>Print:</strong> DTG</p>\n<p><strong>Care:</strong> Machine wash cold inside out. Tumble dry low. Do not iron on print.</p>\n<p><strong>Compliance:</strong> REACH (EC) 1907/2006, OEKO-TEX Standard 100</p>\n<p><strong>EU Responsible:</strong> Textildruck Europa GmbH, Germany</p>",
+        "manufacturing_country": "Germany"
+      }
+    },
+    {
+      "id": "13bc1ffc-a703-4a9b-96fb-a460c429990c",
+      "title": "Option Two",
+      "printify_id": "69a355e57fc2996b8d0a8a69",
+      "provider_product_id": "69a355e57fc2996b8d0a8a69",
+      "blueprint_id": 454,
+      "print_provider_id": 26,
+      "current_price_cents": 2699,
+      "current_cost_cents": 1258,
+      "variant_count": 32,
+      "current_colors": [
+        "Dark Grey",
+        "Navy",
+        "Bottle Green",
+        "Black"
+      ],
+      "current_sizes": [
+        "XL",
+        "3XL",
+        "S",
+        "2XL",
+        "XS",
+        "M",
+        "L",
+        "5XL",
+        "4XL"
+      ],
+      "tier": "signature",
+      "printful_catalog_id": 586,
+      "new_colors": [
+        "Black",
+        "Pepper",
+        "Graphite",
+        "Ivory",
+        "True Navy"
+      ],
+      "new_price_eur_cents": {
+        "S": 3499,
+        "M": 3499,
+        "L": 3499,
+        "XL": 3499,
+        "2XL": 3799,
+        "3XL": 3999,
+        "4XL": 3999
+      },
+      "new_price_usd_cents": {
+        "S": 3809,
+        "M": 3809,
+        "L": 3809,
+        "XL": 3809,
+        "2XL": 4139,
+        "3XL": 4359,
+        "4XL": 4359
+      },
+      "design_file": "printful-designs/source-option-two.png",
+      "design_format": "png",
+      "design_exists": true,
+      "needs_verification": false,
+      "first_image_url": "https://images-api.printify.com/mockup/69a355e57fc2996b8d0a8a69/63659/23477/option-two.jpg?camera_label=front",
+      "current_description_en": "Claude has a plan. Four options on screen. You already know which one you're picking. Always option two.",
+      "current_product_details": {
+        "brand": "SKAPARA",
+        "material": "100% Ring-Spun Cotton",
+        "provider": "Textildruck Europa (P26)",
+        "print_technique": "DTG (Direct-to-Garment)",
+        "care_instructions": "Machine wash cold, inside out. Tumble dry low. Do not bleach.",
+        "safety_information": "<p><strong>Manufacturer:</strong> Textildruck Europa GmbH, Germany</p>\n<p><strong>Material:</strong> 100% Ring-Spun Cotton</p>\n<p><strong>Print technique:</strong> DTG (Direct-to-Garment) — water-based OEKO-TEX certified inks</p>\n<p><strong>Care:</strong> Machine wash cold, inside out. Tumble dry low. Do not bleach.</p>\n<p><strong>Compliance:</strong> REACH, OEKO-TEX Standard 100</p>",
+        "manufacturing_country": "Germany"
+      }
+    },
+    {
+      "id": "a3b37e0f-636c-4a05-b680-b0f1151ff79b",
+      "title": "Plans Cancelled",
+      "printify_id": "69a4415046730b56700a63ce",
+      "provider_product_id": "69a4415046730b56700a63ce",
+      "blueprint_id": 6,
+      "print_provider_id": 26,
+      "current_price_cents": 3799,
+      "current_cost_cents": 1853,
+      "variant_count": 45,
+      "current_colors": [
+        "Black",
+        "Forest Green",
+        "Military Green",
+        "Charcoal",
+        "Navy",
+        "Dark Heather",
+        "Maroon",
+        "Dark Chocolate"
+      ],
+      "current_sizes": [
+        "S",
+        "XL",
+        "2XL",
+        "3XL",
+        "L",
+        "M"
+      ],
+      "tier": "premium",
+      "printful_catalog_id": 917,
+      "new_colors": [
+        "Black",
+        "Navy Blazer",
+        "Vintage Black",
+        "Vintage White",
+        "White"
+      ],
+      "new_price_eur_cents": {
+        "S": 4499,
+        "M": 4499,
+        "L": 4499,
+        "XL": 4499,
+        "2XL": 4799,
+        "3XL": 4999,
+        "4XL": 4999
+      },
+      "new_price_usd_cents": {
+        "S": 4899,
+        "M": 4899,
+        "L": 4899,
+        "XL": 4899,
+        "2XL": 5225,
+        "3XL": 5449,
+        "4XL": 5449
+      },
+      "design_file": "expansion-designs/c02-plans-cancelled.svg",
+      "design_format": "svg",
+      "design_exists": true,
+      "needs_verification": false,
+      "first_image_url": "https://images-api.printify.com/mockup/69a4415046730b56700a63ce/12124/92570/plans-cancelled.jpg?camera_label=front",
+      "current_description_en": "The notification you secretly hope for. Introvert approved.",
+      "current_product_details": {
+        "brand": "SKAPARA",
+        "model": "Gildan 5000",
+        "material": "100% Cotton (Gildan 5000)",
+        "print_technique": "DTG",
+        "care_instructions": "Machine wash cold inside out. Tumble dry low. Do not iron on print.",
+        "safety_information": "<p><strong>Manufacturer:</strong> Textildruck Europa GmbH, Germany</p>\n<p><strong>Material:</strong> 100% Cotton (Gildan 5000)</p>\n<p><strong>Print:</strong> DTG</p>\n<p><strong>Care:</strong> Machine wash cold inside out. Tumble dry low. Do not iron on print.</p>\n<p><strong>Compliance:</strong> REACH (EC) 1907/2006, OEKO-TEX Standard 100</p>\n<p><strong>EU Responsible:</strong> Textildruck Europa GmbH, Germany</p>",
+        "manufacturing_country": "Germany"
+      }
+    },
+    {
+      "id": "7024ef34-abff-47b5-b6aa-23b4f3b588a0",
+      "title": "Prism Tee",
+      "printify_id": "69a303589f7e893e8a0e0c2d",
+      "provider_product_id": "69a303589f7e893e8a0e0c2d",
+      "blueprint_id": 6,
+      "print_provider_id": 26,
+      "current_price_cents": 2699,
+      "current_cost_cents": 850,
+      "variant_count": 13,
+      "current_colors": [
+        "Dark Heather",
+        "Black"
+      ],
+      "current_sizes": [
+        "L",
+        "M",
+        "S",
+        "XL",
+        "2XL",
+        "3XL",
+        "4XL",
+        "5XL"
+      ],
+      "tier": "signature",
+      "printful_catalog_id": 586,
+      "new_colors": [
+        "Black",
+        "Pepper",
+        "Graphite",
+        "Ivory",
+        "True Navy"
+      ],
+      "new_price_eur_cents": {
+        "S": 3499,
+        "M": 3499,
+        "L": 3499,
+        "XL": 3499,
+        "2XL": 3799,
+        "3XL": 3999,
+        "4XL": 3999
+      },
+      "new_price_usd_cents": {
+        "S": 3809,
+        "M": 3809,
+        "L": 3809,
+        "XL": 3809,
+        "2XL": 4139,
+        "3XL": 4359,
+        "4XL": 4359
+      },
+      "design_file": "meme-previews/15-button-color-tee.png",
+      "design_format": "png",
+      "design_exists": true,
+      "needs_verification": false,
+      "first_image_url": "https://images-api.printify.com/mockup/69a303589f7e893e8a0e0c2d/12124/92570/prism-tee.jpg?camera_label=front",
+      "current_description_en": "Full spectrum energy. The SKAPARA gradient mark catches light like nothing else — art you wear, not just a logo.",
+      "current_product_details": {
+        "brand": "Gildan",
+        "model": "5000",
+        "material": "100% heavy cotton, pre-shrunk",
+        "provider_name": "Textildruck Europa",
+        "print_technique": "DTG",
+        "safety_information": "<p><strong>EU representative:</strong> HONSON VENTURES LIMITED, gpsr@honsonventures.com, 3, Gnaftis House flat 102, Limassol, Mesa Geitonia, 4003, CY</p><p><strong>Product information:</strong> Gildan 5000, 2 year warranty in EU and Northern Ireland as per Directive 1999/44/EC</p><p><strong>Warnings, Hazard:</strong> For adults, Made in Nicaragua</p><p><strong>Care instructions:</strong> Machine wash: cold (max 30C or 90F), Non-chlorine: bleach as needed, Tumble dry: low heat, Do not iron, Do not dryclean</p>",
+        "manufacturing_country": "DE"
+      }
+    },
+    {
+      "id": "49d3093b-abf5-46a5-82cb-362ffe6c863c",
+      "title": "Scope Creep",
+      "printify_id": "69a356193f2bfa5bde0865f6",
+      "provider_product_id": "69a356193f2bfa5bde0865f6",
+      "blueprint_id": 6,
+      "print_provider_id": 26,
+      "current_price_cents": 2499,
+      "current_cost_cents": 850,
+      "variant_count": 27,
+      "current_colors": [
+        "Charcoal",
+        "Maroon",
+        "Navy",
+        "Black"
+      ],
+      "current_sizes": [
+        "XL",
+        "2XL",
+        "L",
+        "M",
+        "S",
+        "4XL",
+        "5XL",
+        "3XL"
+      ],
+      "tier": "signature",
+      "printful_catalog_id": 586,
+      "new_colors": [
+        "Black",
+        "Pepper",
+        "Graphite",
+        "Ivory",
+        "True Navy"
+      ],
+      "new_price_eur_cents": {
+        "S": 3499,
+        "M": 3499,
+        "L": 3499,
+        "XL": 3499,
+        "2XL": 3799,
+        "3XL": 3999,
+        "4XL": 3999
+      },
+      "new_price_usd_cents": {
+        "S": 3809,
+        "M": 3809,
+        "L": 3809,
+        "XL": 3809,
+        "2XL": 4139,
+        "3XL": 4359,
+        "4XL": 4359
+      },
+      "design_file": "meme-previews/13-bypass-permissions-tee.png",
+      "design_format": "png",
+      "design_exists": true,
+      "needs_verification": false,
+      "first_image_url": "https://images-api.printify.com/mockup/69a356193f2bfa5bde0865f6/12124/92570/scope-creep.jpg?camera_label=front",
+      "current_description_en": "You asked to change a button color. Claude edited 47 files and added 9,847 lines. The AI pair programmer experience, summarized.",
+      "current_product_details": {
+        "brand": "SKAPARA",
+        "material": "100% Cotton",
+        "provider": "Textildruck Europa (P26)",
+        "print_technique": "DTG (Direct-to-Garment)",
+        "care_instructions": "Machine wash cold, inside out. Tumble dry low. Do not bleach.",
+        "safety_information": "<p><strong>Manufacturer:</strong> Textildruck Europa GmbH, Germany</p>\n<p><strong>Material:</strong> 100% Cotton</p>\n<p><strong>Print technique:</strong> DTG (Direct-to-Garment) — water-based OEKO-TEX certified inks</p>\n<p><strong>Care:</strong> Machine wash cold, inside out. Tumble dry low. Do not bleach.</p>\n<p><strong>Compliance:</strong> REACH, OEKO-TEX Standard 100</p>",
+        "manufacturing_country": "Germany"
+      }
+    },
+    {
+      "id": "465edf9a-3abb-48d4-a7dc-68e6698eee87",
+      "title": "Self-Care Mode",
+      "printify_id": "69a4416e414758b6c6031733",
+      "provider_product_id": "69a4416e414758b6c6031733",
+      "blueprint_id": 6,
+      "print_provider_id": 26,
+      "current_price_cents": 3799,
+      "current_cost_cents": 1853,
+      "variant_count": 45,
+      "current_colors": [
+        "Military Green",
+        "Dark Heather",
+        "Charcoal",
+        "Black",
+        "Navy",
+        "Dark Chocolate",
+        "Maroon",
+        "Forest Green"
+      ],
+      "current_sizes": [
+        "M",
+        "L",
+        "2XL",
+        "S",
+        "XL",
+        "3XL"
+      ],
+      "tier": "premium",
+      "printful_catalog_id": 917,
+      "new_colors": [
+        "Black",
+        "Navy Blazer",
+        "Vintage Black",
+        "Vintage White",
+        "White"
+      ],
+      "new_price_eur_cents": {
+        "S": 4499,
+        "M": 4499,
+        "L": 4499,
+        "XL": 4499,
+        "2XL": 4799,
+        "3XL": 4999,
+        "4XL": 4999
+      },
+      "new_price_usd_cents": {
+        "S": 4899,
+        "M": 4899,
+        "L": 4899,
+        "XL": 4899,
+        "2XL": 5225,
+        "3XL": 5449,
+        "4XL": 5449
+      },
+      "design_file": "expansion-designs/d03-self-care-aggressive.svg",
+      "design_format": "svg",
+      "design_exists": true,
+      "needs_verification": false,
+      "first_image_url": "https://images-api.printify.com/mockup/69a4416e414758b6c6031733/12124/92570/self-care-mode.jpg?camera_label=front",
+      "current_description_en": "Setting boundaries like a firewall. Self-care is not optional — it's mandatory.",
+      "current_product_details": {
+        "brand": "SKAPARA",
+        "model": "Gildan 5000",
+        "material": "100% Cotton (Gildan 5000)",
+        "print_technique": "DTG",
+        "care_instructions": "Machine wash cold inside out. Tumble dry low. Do not iron on print.",
+        "safety_information": "<p><strong>Manufacturer:</strong> Textildruck Europa GmbH, Germany</p>\n<p><strong>Material:</strong> 100% Cotton (Gildan 5000)</p>\n<p><strong>Print:</strong> DTG</p>\n<p><strong>Care:</strong> Machine wash cold inside out. Tumble dry low. Do not iron on print.</p>\n<p><strong>Compliance:</strong> REACH (EC) 1907/2006, OEKO-TEX Standard 100</p>\n<p><strong>EU Responsible:</strong> Textildruck Europa GmbH, Germany</p>",
+        "manufacturing_country": "Germany"
+      }
+    },
+    {
+      "id": "75c19f30-003b-4a95-812a-852ae5aa337d",
+      "title": "Shadow Tee",
+      "printify_id": "69a3034c46730b56700a23a5",
+      "provider_product_id": "69a3034c46730b56700a23a5",
+      "blueprint_id": 6,
+      "print_provider_id": 26,
+      "current_price_cents": 2499,
+      "current_cost_cents": 850,
+      "variant_count": 19,
+      "current_colors": [
+        "Dark Heather",
+        "Navy",
+        "Black"
+      ],
+      "current_sizes": [
+        "L",
+        "M",
+        "S",
+        "XL",
+        "2XL",
+        "3XL",
+        "4XL",
+        "5XL"
+      ],
+      "tier": "signature",
+      "printful_catalog_id": 586,
+      "new_colors": [
+        "Black",
+        "Pepper",
+        "Graphite",
+        "Ivory",
+        "True Navy"
+      ],
+      "new_price_eur_cents": {
+        "S": 3499,
+        "M": 3499,
+        "L": 3499,
+        "XL": 3499,
+        "2XL": 3799,
+        "3XL": 3999,
+        "4XL": 3999
+      },
+      "new_price_usd_cents": {
+        "S": 3809,
+        "M": 3809,
+        "L": 3809,
+        "XL": 3809,
+        "2XL": 4139,
+        "3XL": 4359,
+        "4XL": 4359
+      },
+      "design_file": "printful-designs/source-shadow-tee.png",
+      "design_format": "png",
+      "design_exists": true,
+      "needs_verification": false,
+      "first_image_url": "https://images-api.printify.com/mockup/69a3034c46730b56700a23a5/12124/92570/shadow-tee.jpg?camera_label=front",
+      "current_description_en": "The original SKAPARA statement. White mark on black — clean, bold, unmistakable. For those who let their style speak volumes.",
+      "current_product_details": {
+        "brand": "Gildan",
+        "model": "5000",
+        "material": "100% heavy cotton, pre-shrunk",
+        "provider_name": "Textildruck Europa",
+        "print_technique": "DTG",
+        "safety_information": "<p><strong>EU representative:</strong> HONSON VENTURES LIMITED, gpsr@honsonventures.com, 3, Gnaftis House flat 102, Limassol, Mesa Geitonia, 4003, CY</p><p><strong>Product information:</strong> Gildan 5000, 2 year warranty in EU and Northern Ireland as per Directive 1999/44/EC</p><p><strong>Warnings, Hazard:</strong> For adults, Made in Nicaragua</p><p><strong>Care instructions:</strong> Machine wash: cold (max 30C or 90F), Non-chlorine: bleach as needed, Tumble dry: low heat, Do not iron, Do not dryclean</p>",
+        "manufacturing_country": "DE"
+      }
+    },
+    {
+      "id": "2326f734-8025-42f7-82bf-847d0a5fb22c",
+      "title": "Social Battery",
+      "printify_id": "69a441377fc2996b8d0ab73b",
+      "provider_product_id": "69a441377fc2996b8d0ab73b",
+      "blueprint_id": 6,
+      "print_provider_id": 26,
+      "current_price_cents": 3799,
+      "current_cost_cents": 1853,
+      "variant_count": 45,
+      "current_colors": [
+        "Black",
+        "Charcoal",
+        "Dark Chocolate",
+        "Dark Heather",
+        "Maroon",
+        "Navy",
+        "Forest Green",
+        "Military Green"
+      ],
+      "current_sizes": [
+        "XL",
+        "2XL",
+        "3XL",
+        "L",
+        "S",
+        "M"
+      ],
+      "tier": "premium",
+      "printful_catalog_id": 917,
+      "new_colors": [
+        "Black",
+        "Navy Blazer",
+        "Vintage Black",
+        "Vintage White",
+        "White"
+      ],
+      "new_price_eur_cents": {
+        "S": 4499,
+        "M": 4499,
+        "L": 4499,
+        "XL": 4499,
+        "2XL": 4799,
+        "3XL": 4999,
+        "4XL": 4999
+      },
+      "new_price_usd_cents": {
+        "S": 4899,
+        "M": 4899,
+        "L": 4899,
+        "XL": 4899,
+        "2XL": 5225,
+        "3XL": 5449,
+        "4XL": 5449
+      },
+      "design_file": "expansion-designs/c01-social-battery.svg",
+      "design_format": "svg",
+      "design_exists": true,
+      "needs_verification": false,
+      "first_image_url": "https://images-api.printify.com/mockup/69a441377fc2996b8d0ab73b/12124/92570/social-battery.jpg?camera_label=front",
+      "current_description_en": "Low battery, high standards. Your official excuse to leave early.",
+      "current_product_details": {
+        "brand": "SKAPARA",
+        "model": "Gildan 5000",
+        "material": "100% Cotton (Gildan 5000)",
+        "print_technique": "DTG",
+        "care_instructions": "Machine wash cold inside out. Tumble dry low. Do not iron on print.",
+        "safety_information": "<p><strong>Manufacturer:</strong> Textildruck Europa GmbH, Germany</p>\n<p><strong>Material:</strong> 100% Cotton (Gildan 5000)</p>\n<p><strong>Print:</strong> DTG</p>\n<p><strong>Care:</strong> Machine wash cold inside out. Tumble dry low. Do not iron on print.</p>\n<p><strong>Compliance:</strong> REACH (EC) 1907/2006, OEKO-TEX Standard 100</p>\n<p><strong>EU Responsible:</strong> Textildruck Europa GmbH, Germany</p>",
+        "manufacturing_country": "Germany"
+      }
+    },
+    {
+      "id": "7d6f605a-df7c-4d63-b9f6-5f530035d3f2",
+      "title": "Soup Fork",
+      "printify_id": "69a441003b12a90c8e08b5a5",
+      "provider_product_id": "69a441003b12a90c8e08b5a5",
+      "blueprint_id": 6,
+      "print_provider_id": 26,
+      "current_price_cents": 3799,
+      "current_cost_cents": 1853,
+      "variant_count": 45,
+      "current_colors": [
+        "Charcoal",
+        "Dark Chocolate",
+        "Dark Heather",
+        "Military Green",
+        "Forest Green",
+        "Maroon",
+        "Navy",
+        "Black"
+      ],
+      "current_sizes": [
+        "XL",
+        "2XL",
+        "M",
+        "S",
+        "L",
+        "3XL"
+      ],
+      "tier": "premium",
+      "printful_catalog_id": 917,
+      "new_colors": [
+        "Black",
+        "Navy Blazer",
+        "Vintage Black",
+        "Vintage White",
+        "White"
+      ],
+      "new_price_eur_cents": {
+        "S": 4499,
+        "M": 4499,
+        "L": 4499,
+        "XL": 4499,
+        "2XL": 4799,
+        "3XL": 4999,
+        "4XL": 4999
+      },
+      "new_price_usd_cents": {
+        "S": 4899,
+        "M": 4899,
+        "L": 4899,
+        "XL": 4899,
+        "2XL": 5225,
+        "3XL": 5449,
+        "4XL": 5449
+      },
+      "design_file": "expansion-designs/a01-life-is-soup.svg",
+      "design_format": "svg",
+      "design_exists": true,
+      "needs_verification": false,
+      "first_image_url": "https://images-api.printify.com/mockup/69a441003b12a90c8e08b5a5/12124/92570/soup-fork.jpg?camera_label=front",
+      "current_description_en": "A philosophical crisis served in a bowl. For those who feel slightly out of place — everywhere.",
+      "current_product_details": {
+        "brand": "SKAPARA",
+        "model": "Gildan 5000",
+        "material": "100% Cotton (Gildan 5000)",
+        "print_technique": "DTG",
+        "care_instructions": "Machine wash cold inside out. Tumble dry low. Do not iron on print.",
+        "safety_information": "<p><strong>Manufacturer:</strong> Textildruck Europa GmbH, Germany</p>\n<p><strong>Material:</strong> 100% Cotton (Gildan 5000)</p>\n<p><strong>Print:</strong> DTG</p>\n<p><strong>Care:</strong> Machine wash cold inside out. Tumble dry low. Do not iron on print.</p>\n<p><strong>Compliance:</strong> REACH (EC) 1907/2006, OEKO-TEX Standard 100</p>\n<p><strong>EU Responsible:</strong> Textildruck Europa GmbH, Germany</p>",
+        "manufacturing_country": "Germany"
+      }
+    },
+    {
+      "id": "02ab1785-1c65-41a6-bf6a-bc40d4a31494",
+      "title": "Strawberry Count",
+      "printify_id": "69a355b3f4bd86b0d2086940",
+      "provider_product_id": "69a355b3f4bd86b0d2086940",
+      "blueprint_id": 6,
+      "print_provider_id": 26,
+      "current_price_cents": 2499,
+      "current_cost_cents": 850,
+      "variant_count": 26,
+      "current_colors": [
+        "Charcoal",
+        "Navy",
+        "Dark Heather",
+        "Black"
+      ],
+      "current_sizes": [
+        "2XL",
+        "L",
+        "XL",
+        "S",
+        "M",
+        "3XL",
+        "4XL",
+        "5XL"
+      ],
+      "tier": "signature",
+      "printful_catalog_id": 586,
+      "new_colors": [
+        "Black",
+        "Pepper",
+        "Graphite",
+        "Ivory",
+        "True Navy"
+      ],
+      "new_price_eur_cents": {
+        "S": 3499,
+        "M": 3499,
+        "L": 3499,
+        "XL": 3499,
+        "2XL": 3799,
+        "3XL": 3999,
+        "4XL": 3999
+      },
+      "new_price_usd_cents": {
+        "S": 3809,
+        "M": 3809,
+        "L": 3809,
+        "XL": 3809,
+        "2XL": 4139,
+        "3XL": 4359,
+        "4XL": 4359
+      },
+      "design_file": "meme-previews/11-strawberry-tee.png",
+      "design_format": "png",
+      "design_exists": true,
+      "needs_verification": false,
+      "first_image_url": "https://images-api.printify.com/mockup/69a355b3f4bd86b0d2086940/12124/92570/strawberry-count.jpg?camera_label=front",
+      "current_description_en": "ChatGPT 5 thought about it for 11 seconds. Still got it wrong. The AI era's most relatable moment, now on heavyweight cotton.",
+      "current_product_details": {
+        "brand": "SKAPARA",
+        "material": "100% Cotton",
+        "provider": "Textildruck Europa (P26)",
+        "print_technique": "DTG (Direct-to-Garment)",
+        "care_instructions": "Machine wash cold, inside out. Tumble dry low. Do not bleach.",
+        "safety_information": "<p><strong>Manufacturer:</strong> Textildruck Europa GmbH, Germany</p>\n<p><strong>Material:</strong> 100% Cotton</p>\n<p><strong>Print technique:</strong> DTG (Direct-to-Garment) — water-based OEKO-TEX certified inks</p>\n<p><strong>Care:</strong> Machine wash cold, inside out. Tumble dry low. Do not bleach.</p>\n<p><strong>Compliance:</strong> REACH, OEKO-TEX Standard 100</p>",
+        "manufacturing_country": "Germany"
+      }
+    },
+    {
+      "id": "0a0085ac-be8b-4e68-b194-c448d1af2b09",
+      "title": "Three Models",
+      "printify_id": "69a356321ec5ca402c034860",
+      "provider_product_id": "69a356321ec5ca402c034860",
+      "blueprint_id": 1462,
+      "print_provider_id": 26,
+      "current_price_cents": 2999,
+      "current_cost_cents": 1447,
+      "variant_count": 27,
+      "current_colors": [
+        "Black",
+        "French Navy",
+        "Dark Heather Grey"
+      ],
+      "current_sizes": [
+        "4XL",
+        "L",
+        "XS",
+        "S",
+        "XL",
+        "2XL",
+        "3XL",
+        "2XS",
+        "M",
+        "5XL"
+      ],
+      "tier": "signature",
+      "printful_catalog_id": 586,
+      "new_colors": [
+        "Black",
+        "Pepper",
+        "Graphite",
+        "Ivory",
+        "True Navy"
+      ],
+      "new_price_eur_cents": {
+        "S": 3499,
+        "M": 3499,
+        "L": 3499,
+        "XL": 3499,
+        "2XL": 3799,
+        "3XL": 3999,
+        "4XL": 3999
+      },
+      "new_price_usd_cents": {
+        "S": 3809,
+        "M": 3809,
+        "L": 3809,
+        "XL": 3809,
+        "2XL": 4139,
+        "3XL": 4359,
+        "4XL": 4359
+      },
+      "design_file": "meme-previews/16-haiku-sonnet-opus-tee.png",
+      "design_format": "png",
+      "design_exists": true,
+      "needs_verification": false,
+      "first_image_url": "https://images-api.printify.com/mockup/69a356321ec5ca402c034860/105894/102330/three-models.jpg?camera_label=front",
+      "current_description_en": "Same prompt, three personalities. Haiku just does it. Sonnet overthinks it. Opus questions your life choices. Pick your fighter.",
+      "current_product_details": {
+        "brand": "SKAPARA",
+        "material": "100% Organic Ring-Spun Cotton (GOTS certified)",
+        "provider": "Textildruck Europa (P26)",
+        "print_technique": "DTG (Direct-to-Garment)",
+        "care_instructions": "Machine wash cold, inside out. Tumble dry low. Do not bleach.",
+        "safety_information": "<p><strong>Manufacturer:</strong> Textildruck Europa GmbH, Germany</p>\n<p><strong>Material:</strong> 100% Organic Ring-Spun Cotton (GOTS certified)</p>\n<p><strong>Print technique:</strong> DTG (Direct-to-Garment) — water-based OEKO-TEX certified inks</p>\n<p><strong>Care:</strong> Machine wash cold, inside out. Tumble dry low. Do not bleach.</p>\n<p><strong>Compliance:</strong> REACH, OEKO-TEX Standard 100</p>",
+        "manufacturing_country": "Germany"
+      }
+    },
+    {
+      "id": "725e1aec-2b65-49da-ac56-2054740de2e0",
+      "title": "Under Where",
+      "printify_id": "69a355cc7fc2996b8d0a8a5f",
+      "provider_product_id": "69a355cc7fc2996b8d0a8a5f",
+      "blueprint_id": 145,
+      "print_provider_id": 26,
+      "current_price_cents": 2499,
+      "current_cost_cents": 836,
+      "variant_count": 24,
+      "current_colors": [
+        "Charcoal",
+        "Navy",
+        "Military Green",
+        "Dark Heather"
+      ],
+      "current_sizes": [
+        "S",
+        "L",
+        "XL",
+        "3XL",
+        "M",
+        "2XL"
+      ],
+      "tier": "signature",
+      "printful_catalog_id": 586,
+      "new_colors": [
+        "Black",
+        "Pepper",
+        "Graphite",
+        "Ivory",
+        "True Navy"
+      ],
+      "new_price_eur_cents": {
+        "S": 3499,
+        "M": 3499,
+        "L": 3499,
+        "XL": 3499,
+        "2XL": 3799,
+        "3XL": 3999,
+        "4XL": 3999
+      },
+      "new_price_usd_cents": {
+        "S": 3809,
+        "M": 3809,
+        "L": 3809,
+        "XL": 3809,
+        "2XL": 4139,
+        "3XL": 4359,
+        "4XL": 4359
+      },
+      "design_file": "meme-previews/12-underwear-tee.png",
+      "design_format": "png",
+      "design_exists": true,
+      "needs_verification": false,
+      "first_image_url": "https://images-api.printify.com/mockup/69a355cc7fc2996b8d0a8a5f/38194/97992/under-where.jpg?camera_label=front",
+      "current_description_en": "The oldest trick in the book. ChatGPT fell for it — then leaked your coordinates. Classic prompt injection, wearable edition.",
+      "current_product_details": {
+        "brand": "SKAPARA",
+        "material": "100% Ring-Spun Cotton",
+        "provider": "Textildruck Europa (P26)",
+        "print_technique": "DTG (Direct-to-Garment)",
+        "care_instructions": "Machine wash cold, inside out. Tumble dry low. Do not bleach.",
+        "safety_information": "<p><strong>Manufacturer:</strong> Textildruck Europa GmbH, Germany</p>\n<p><strong>Material:</strong> 100% Ring-Spun Cotton</p>\n<p><strong>Print technique:</strong> DTG (Direct-to-Garment) — water-based OEKO-TEX certified inks</p>\n<p><strong>Care:</strong> Machine wash cold, inside out. Tumble dry low. Do not bleach.</p>\n<p><strong>Compliance:</strong> REACH, OEKO-TEX Standard 100</p>",
+        "manufacturing_country": "Germany"
+      }
+    },
+    {
+      "id": "60f6ceb4-46a7-4bd3-92c0-2e67c4cf0f66",
+      "title": "Vibe Coder",
+      "printify_id": "69a303707ab6ca007408cd3b",
+      "provider_product_id": "69a303707ab6ca007408cd3b",
+      "blueprint_id": 6,
+      "print_provider_id": 26,
+      "current_price_cents": 2499,
+      "current_cost_cents": 850,
+      "variant_count": 24,
+      "current_colors": [
+        "Charcoal",
+        "Dark Heather",
+        "Navy",
+        "Black"
+      ],
+      "current_sizes": [
+        "L",
+        "M",
+        "S",
+        "XL",
+        "2XL",
+        "3XL",
+        "4XL",
+        "5XL"
+      ],
+      "tier": "signature",
+      "printful_catalog_id": 586,
+      "new_colors": [
+        "Black",
+        "Pepper",
+        "Graphite",
+        "Ivory",
+        "True Navy"
+      ],
+      "new_price_eur_cents": {
+        "S": 3499,
+        "M": 3499,
+        "L": 3499,
+        "XL": 3499,
+        "2XL": 3799,
+        "3XL": 3999,
+        "4XL": 3999
+      },
+      "new_price_usd_cents": {
+        "S": 3809,
+        "M": 3809,
+        "L": 3809,
+        "XL": 3809,
+        "2XL": 4139,
+        "3XL": 4359,
+        "4XL": 4359
+      },
+      "design_file": "meme-designs/03-vibe-coding-tee.png",
+      "design_format": "png",
+      "design_exists": true,
+      "needs_verification": false,
+      "first_image_url": "https://images-api.printify.com/mockup/69a303707ab6ca007408cd3b/12124/92570/vibe-coder.jpg?camera_label=front",
+      "current_description_en": "Code the vibe. For developers who ship vibes, not just features — the coder's lifestyle tee.",
+      "current_product_details": {
+        "brand": "Gildan",
+        "model": "5000",
+        "material": "100% heavy cotton, pre-shrunk",
+        "provider_name": "Textildruck Europa",
+        "print_technique": "DTG",
+        "safety_information": "<p><strong>EU representative:</strong> HONSON VENTURES LIMITED, gpsr@honsonventures.com, 3, Gnaftis House flat 102, Limassol, Mesa Geitonia, 4003, CY</p><p><strong>Product information:</strong> Gildan 5000, 2 year warranty in EU and Northern Ireland as per Directive 1999/44/EC</p><p><strong>Warnings, Hazard:</strong> For adults, Made in Nicaragua</p><p><strong>Care instructions:</strong> Machine wash: cold (max 30C or 90F), Non-chlorine: bleach as needed, Tumble dry: low heat, Do not iron, Do not dryclean</p>",
+        "manufacturing_country": "DE"
+      }
+    },
+    {
+      "id": "e4867449-08b1-408a-b85b-b6ecd9b4274c",
+      "title": "Zero Bugs",
+      "printify_id": "69a303797fc2996b8d0a785c",
+      "provider_product_id": "69a303797fc2996b8d0a785c",
+      "blueprint_id": 6,
+      "print_provider_id": 26,
+      "current_price_cents": 2499,
+      "current_cost_cents": 850,
+      "variant_count": 24,
+      "current_colors": [
+        "Black",
+        "Charcoal",
+        "Dark Heather",
+        "Navy"
+      ],
+      "current_sizes": [
+        "M",
+        "S",
+        "XL",
+        "2XL",
+        "3XL",
+        "4XL",
+        "5XL",
+        "L"
+      ],
+      "tier": "signature",
+      "printful_catalog_id": 586,
+      "new_colors": [
+        "Black",
+        "Pepper",
+        "Graphite",
+        "Ivory",
+        "True Navy"
+      ],
+      "new_price_eur_cents": {
+        "S": 3499,
+        "M": 3499,
+        "L": 3499,
+        "XL": 3499,
+        "2XL": 3799,
+        "3XL": 3999,
+        "4XL": 3999
+      },
+      "new_price_usd_cents": {
+        "S": 3809,
+        "M": 3809,
+        "L": 3809,
+        "XL": 3809,
+        "2XL": 4139,
+        "3XL": 4359,
+        "4XL": 4359
+      },
+      "design_file": "meme-designs/05-no-bugs-tee.png",
+      "design_format": "png",
+      "design_exists": true,
+      "needs_verification": false,
+      "first_image_url": "https://images-api.printify.com/mockup/69a303797fc2996b8d0a785c/12124/92570/zero-bugs.jpg?camera_label=front",
+      "current_description_en": "Zero bugs, infinite confidence. The developer's daily affirmation — worn with pride, shipped with tests.",
+      "current_product_details": {
+        "brand": "Gildan",
+        "model": "5000",
+        "material": "100% heavy cotton, pre-shrunk",
+        "provider_name": "Textildruck Europa",
+        "print_technique": "DTG",
+        "safety_information": "<p><strong>EU representative:</strong> HONSON VENTURES LIMITED, gpsr@honsonventures.com, 3, Gnaftis House flat 102, Limassol, Mesa Geitonia, 4003, CY</p><p><strong>Product information:</strong> Gildan 5000, 2 year warranty in EU and Northern Ireland as per Directive 1999/44/EC</p><p><strong>Warnings, Hazard:</strong> For adults, Made in Nicaragua</p><p><strong>Care instructions:</strong> Machine wash: cold (max 30C or 90F), Non-chlorine: bleach as needed, Tumble dry: low heat, Do not iron, Do not dryclean</p>",
+        "manufacturing_country": "DE"
+      }
+    }
+  ]
+}

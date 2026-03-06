@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="4500" height="5100" viewBox="0 0 4606 5787">
+
+  <!-- A07: "404: Purpose Not Found" — BP6 T-Shirt 4606x5787 -->
+  <!-- Terminal window simulation — solid dark fill provides its own background -->
+  <!-- Accents: #EF4444 (red/error) + #10B981 (green/terminal) -->
+  <!-- Fonts: Permanent Marker (404 hero), Bebas Neue (subtitle), Courier New (terminal) -->
+
+  <!-- Terminal window body -->
+  <rect x="500" y="800" width="3606" height="4200" rx="40" fill="#1E293B"/>
+
+  <!-- Title bar divider -->
+  <rect x="500" y="960" width="3606" height="4" fill="#374151"/>
+
+  <!-- Traffic lights -->
+  <circle cx="680" cy="880" r="25" fill="#EF4444"/>
+  <circle cx="760" cy="880" r="25" fill="#F59E0B"/>
+  <circle cx="840" cy="880" r="25" fill="#10B981"/>
+
+  <!-- URL in title bar -->
+  <text x="1000" y="895"
+        font-family="'Courier New', monospace"
+        font-size="45" font-weight="bold"
+        fill="#6B7280">life://meaning/purpose</text>
+
+  <!-- Command prompt line -->
+  <text x="700" y="1250"
+        font-family="'Courier New', monospace"
+        font-size="160" font-weight="bold"
+        fill="#10B981">$ find /purpose</text>
+
+  <!-- Error output -->
+  <text x="700" y="1500"
+        font-family="'Courier New', monospace"
+        font-size="130" font-weight="bold"
+        fill="#EF4444">Error: not found in $PATH</text>
+
+  <!-- Content separator -->
+  <rect x="700" y="1700" width="3200" height="4" fill="#374151"/>
+
+  <!-- "404" shadow (offset +12,+12) — dark red depth -->
+  <text x="2315" y="2712"
+        font-family="'Permanent Marker', cursive"
+        font-size="900"
+        fill="#7F1D1D" text-anchor="middle">404</text>
+
+  <!-- "404" — Permanent Marker, graffiti energy, red -->
+  <text x="2303" y="2700"
+        font-family="'Permanent Marker', cursive"
+        font-size="900"
+        fill="#EF4444" text-anchor="middle">404</text>
+
+  <!-- "PURPOSE NOT FOUND" — Bebas Neue condensed, off-white -->
+  <text x="2303" y="3250"
+        font-family="'Bebas Neue', sans-serif"
+        font-size="380"
+        fill="#F0EDE8" text-anchor="middle"
+        letter-spacing="15">PURPOSE NOT FOUND</text>
+
+  <!-- Description — monospace, muted gray (solid, no opacity) -->
+  <text x="2303" y="3650"
+        font-family="'Courier New', monospace"
+        font-size="130" font-weight="bold"
+        fill="#6B7280" text-anchor="middle">The meaning you were looking for</text>
+
+  <text x="2303" y="3850"
+        font-family="'Courier New', monospace"
+        font-size="130" font-weight="bold"
+        fill="#6B7280" text-anchor="middle">has been permanently deleted.</text>
+
+  <!-- Retry button -->
+  <rect x="1650" y="4100" width="1300" height="140" rx="70" fill="#374151"/>
+  <text x="2303" y="4195"
+        font-family="'Courier New', monospace"
+        font-size="100" font-weight="bold"
+        fill="#F0EDE8" text-anchor="middle">Try again tomorrow</text>
+
+  <!-- Blinking cursor at bottom -->
+  <text x="700" y="4700"
+        font-family="'Courier New', monospace"
+        font-size="200" font-weight="bold"
+        fill="#10B981">$ _</text>
+
+</svg>

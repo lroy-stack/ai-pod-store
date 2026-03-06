@@ -1,10 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useTranslations, useLocale } from 'next-intl'
-import { Star, Heart, Loader2, Minus, Plus, ShoppingCart, ImageOff } from 'lucide-react'
+import { Star, Heart, Loader2, ShoppingCart, ImageOff } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { formatPrice, getLocalizedPrice } from '@/lib/currency'
 import { useCart } from '@/hooks/useCart'
@@ -17,26 +17,12 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
-
-interface Product {
-  id: string
-  title: string
-  description: string
-  price: number
-  currency: string
-  image: string
-  rating?: number
-  reviewCount?: number
-  category?: string
-  variants?: {
-    sizes?: string[]
-    colors?: string[]
-  }
-  stock?: number
-}
+import { VariantSelector } from '@/components/products/VariantSelector'
+import { QuantitySelector } from '@/components/products/QuantitySelector'
+import type { ProductCard } from '@/types/product'
 
 interface QuickViewModalProps {
-  product: Product
+  product: ProductCard
   open: boolean
   onOpenChange: (open: boolean) => void
 }
@@ -44,9 +30,23 @@ interface QuickViewModalProps {
 export function QuickViewModal({ product, open, onOpenChange }: QuickViewModalProps) {
   const t = useTranslations('product')
   const locale = useLocale()
-  const [selectedSize, setSelectedSize] = useState<string>('')
-  const [selectedColor, setSelectedColor] = useState<string>('')
+  // Auto-select when only 1 option exists
+  const [selectedSize, setSelectedSize] = useState<string>(
+    product.variants?.sizes?.length === 1 ? product.variants.sizes[0] : ''
+  )
+  const [selectedColor, setSelectedColor] = useState<string>(
+    product.variants?.colors?.length === 1 ? product.variants.colors[0] : ''
+  )
   const [quantity, setQuantity] = useState(1)
+
+  // Reset selections when product changes
+  useEffect(() => {
+    setSelectedSize(product.variants?.sizes?.length === 1 ? product.variants.sizes[0] : '')
+    setSelectedColor(product.variants?.colors?.length === 1 ? product.variants.colors[0] : '')
+    setQuantity(1)
+    setImgError(false)
+  }, [product.id]) // eslint-disable-line react-hooks/exhaustive-deps
+
   const [imgError, setImgError] = useState(false)
   const [isAddingToCart, setIsAddingToCart] = useState(false)
   const { addToCart } = useCart()
@@ -55,6 +55,7 @@ export function QuickViewModal({ product, open, onOpenChange }: QuickViewModalPr
 
   const localizedPrice = getLocalizedPrice(product.price, product.currency, locale)
   const formattedPrice = formatPrice(localizedPrice, locale)
+  const showFromPrice = product.hasVariantPricing === true
 
   const hasSizes = (product.variants?.sizes?.length ?? 0) > 0
   const hasColors = (product.variants?.colors?.length ?? 0) > 0
@@ -146,7 +147,31 @@ export function QuickViewModal({ product, open, onOpenChange }: QuickViewModalPr
 
               {/* Price + Stock */}
               <div className="flex items-center gap-3">
-                <span className="text-2xl font-bold tracking-tight">{formattedPrice}</span>
+                {product.compareAtPrice ? (
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm line-through text-muted-foreground">
+                        {formatPrice(getLocalizedPrice(product.compareAtPrice, product.currency, locale), locale)}
+                      </span>
+                      {(() => {
+                        const pct = Math.round(((product.compareAtPrice - product.price) / product.compareAtPrice) * 100)
+                        return pct > 0 ? (
+                          <Badge variant="destructive" className="text-xs px-1.5 py-0.5">-{pct}%</Badge>
+                        ) : null
+                      })()}
+                    </div>
+                    <span className="text-2xl font-bold tracking-tight text-destructive">
+                      {formattedPrice}
+                    </span>
+                  </div>
+                ) : (
+                  <span className="text-2xl font-bold tracking-tight">
+                    {showFromPrice && (
+                      <span className="text-sm font-normal text-muted-foreground mr-1">{t('fromPrice')}</span>
+                    )}
+                    {formattedPrice}
+                  </span>
+                )}
                 {product.stock !== undefined && product.stock > 0 && (
                   <Badge variant="outline" className="bg-success/10 text-success border-success/20 text-xs">
                     {t('inStock')}
@@ -159,87 +184,30 @@ export function QuickViewModal({ product, open, onOpenChange }: QuickViewModalPr
                 {product.description}
               </p>
 
-              {/* Variant selectors — pill/chip style (matching DetailPanel) */}
+              {/* Variant Selectors */}
               {(hasSizes || hasColors) && (
                 <>
                   <div className="h-px bg-border/40" />
-                  <div className="space-y-3">
-                    {hasSizes && (
-                      <div>
-                        <label className="text-[13px] font-medium text-foreground/80 mb-2 block">
-                          {t('size')}
-                        </label>
-                        <div className="flex flex-wrap gap-1.5">
-                          {product.variants!.sizes!.map((size) => (
-                            <button
-                              key={size}
-                              onClick={() => setSelectedSize(selectedSize === size ? '' : size)}
-                              className={cn(
-                                'px-3 py-1.5 rounded-lg text-[13px] font-medium border transition-all duration-200',
-                                selectedSize === size
-                                  ? 'bg-foreground text-background border-foreground'
-                                  : 'bg-transparent text-foreground border-border/60 hover:border-border'
-                              )}
-                            >
-                              {size}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {hasColors && (
-                      <div>
-                        <label className="text-[13px] font-medium text-foreground/80 mb-2 block">
-                          {t('color')}
-                        </label>
-                        <div className="flex flex-wrap gap-1.5">
-                          {product.variants!.colors!.map((color) => (
-                            <button
-                              key={color}
-                              onClick={() => setSelectedColor(selectedColor === color ? '' : color)}
-                              className={cn(
-                                'px-3 py-1.5 rounded-lg text-[13px] font-medium border transition-all duration-200',
-                                selectedColor === color
-                                  ? 'bg-foreground text-background border-foreground'
-                                  : 'bg-transparent text-foreground border-border/60 hover:border-border'
-                              )}
-                            >
-                              {color}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                  <VariantSelector
+                    allSizes={product.variants?.sizes}
+                    allColors={product.variants?.colors}
+                    selectedSize={selectedSize}
+                    selectedColor={selectedColor}
+                    onSizeChange={(s) => setSelectedSize(s === selectedSize ? '' : s)}
+                    onColorChange={(c) => setSelectedColor(c === selectedColor ? '' : c)}
+                    sizeLabel={t('size')}
+                    colorLabel={t('color')}
+                  />
                 </>
               )}
 
-              {/* Quantity — +/- stepper (matching DetailPanel) */}
+              {/* Quantity */}
               <div className="h-px bg-border/40" />
-              <div className="flex items-center gap-3">
-                <label className="text-[13px] font-medium text-foreground/80">{t('quantity')}</label>
-                <div className="flex items-center border border-border/60 rounded-lg">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 rounded-l-lg rounded-r-none"
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    disabled={quantity <= 1}
-                  >
-                    <Minus className="h-3.5 w-3.5" />
-                  </Button>
-                  <span className="w-10 text-center text-sm font-medium tabular-nums">{quantity}</span>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 rounded-r-lg rounded-l-none"
-                    onClick={() => setQuantity(Math.min(99, quantity + 1))}
-                  >
-                    <Plus className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
-              </div>
+              <QuantitySelector
+                quantity={quantity}
+                onQuantityChange={setQuantity}
+                label={t('quantity')}
+              />
             </div>
 
             {/* Footer — sticky actions */}
@@ -290,4 +258,3 @@ export function QuickViewModal({ product, open, onOpenChange }: QuickViewModalPr
     </Dialog>
   )
 }
-
