@@ -361,7 +361,7 @@ export default function DesignDetailPage() {
                 <span>→</span>
                 <span>Product ({category})</span>
                 <span>→</span>
-                <span>Printify Template</span>
+                <span>Printful Template</span>
                 <span>→</span>
                 <span>Ready to Sell</span>
               </div>

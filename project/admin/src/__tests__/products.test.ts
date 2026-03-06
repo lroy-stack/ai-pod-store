@@ -242,10 +242,11 @@ describe('Products CRUD API', () => {
       expect(data.product.title).toBe('New Title');
       expect(logUpdate).toHaveBeenCalledWith(
         mockSession.userId,
-        'products',
+        'product',
         'product-id',
         beforeProduct,
-        updatedProduct
+        updatedProduct,
+        mockSession.email
       );
     });
   });

@@ -106,7 +106,7 @@ export const POST = withPermission('products', 'create', withValidation(productS
     }
 
     // Log audit event
-    await logCreate(session.userId, 'products', product.id, product);
+    await logCreate(session.userId, 'product', product.id, product, session.email);
 
     return NextResponse.json({ product }, { status: 201 });
   } catch (error) {

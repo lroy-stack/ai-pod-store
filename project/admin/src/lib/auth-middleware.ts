@@ -18,6 +18,7 @@ import { getIronSession } from 'iron-session'
 import { sessionOptions, SessionData } from '@/lib/session'
 import { cookies } from 'next/headers'
 import { supabaseAdmin } from '@/lib/supabase'
+import { checkApiRateLimit } from '@/lib/rate-limit'
 
 /**
  * Type for authenticated route handlers.
@@ -105,6 +106,15 @@ async function logAuditEntry(
 export function withAuth(handler: AuthenticatedHandler) {
   return async function authenticatedRoute(req: NextRequest, context?: any): Promise<NextResponse> {
     try {
+      // Check API rate limits before authentication
+      const rateLimitResult = checkApiRateLimit(req)
+      if (rateLimitResult) {
+        return NextResponse.json(
+          { error: 'Too Many Requests', message: 'Rate limit exceeded. Please slow down.' },
+          { status: 429, headers: rateLimitResult.headers }
+        )
+      }
+
       // Get iron-session from cookies
       const session = await getIronSession<SessionData>(await cookies(), sessionOptions)
 

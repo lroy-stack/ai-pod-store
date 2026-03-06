@@ -31,7 +31,7 @@ export const POST = withAuth(async (req, session) => {
 
       csvContent += 'COST BREAKDOWN\n';
       csvContent += 'Category,Amount\n';
-      csvContent += `Printify Costs,${report.profitAndLoss.breakdown.printifyCosts}\n`;
+      csvContent += `Printful Costs,${report.profitAndLoss.breakdown.printfulCosts}\n`;
       csvContent += `Stripe Fees,${report.profitAndLoss.breakdown.stripeFees}\n`;
       csvContent += `Operational Costs,${report.profitAndLoss.breakdown.operationalCosts}\n`;
       csvContent += '\n';

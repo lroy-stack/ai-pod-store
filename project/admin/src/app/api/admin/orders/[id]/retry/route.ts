@@ -52,7 +52,7 @@ async function handler(
     const cronSecret = process.env.CRON_SECRET || process.env.PODCLAW_BRIDGE_AUTH_TOKEN;
 
     const retryResponse = await fetch(
-      `${frontendUrl}/api/cron/retry-printify-orders`,
+      `${frontendUrl}/api/cron/retry-printful-orders`,
       {
         method: 'GET',
         headers: {

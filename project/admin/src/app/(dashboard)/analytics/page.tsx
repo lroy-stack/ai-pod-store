@@ -27,7 +27,7 @@ interface FinanceReport {
     grossProfit: number;
     grossMarginPercent: number;
     breakdown: {
-      printifyCosts: number;
+      printfulCosts: number;
       stripeFees: number;
       operationalCosts: number;
     };
@@ -579,9 +579,9 @@ export default function AnalyticsPage() {
 
               <div className="space-y-2 pl-4 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Printify Costs</span>
+                  <span className="text-muted-foreground">Printful Costs</span>
                   <span className="text-red-600">
-                    -{formatCurrency(report.profitAndLoss.breakdown.printifyCosts, currency)}
+                    -{formatCurrency(report.profitAndLoss.breakdown.printfulCosts, currency)}
                   </span>
                 </div>
                 <div className="flex justify-between">

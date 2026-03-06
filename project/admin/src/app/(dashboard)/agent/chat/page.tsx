@@ -248,7 +248,7 @@ export default function AgentChatPage() {
                   </h3>
                   <p className="text-sm text-muted-foreground max-w-md">
                     Ask about your store, products, orders, finances, or anything else.
-                    PodClaw has direct access to Supabase, Stripe, and Printify.
+                    PodClaw has direct access to Supabase, Stripe, and Printful.
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-2 max-w-lg justify-center">

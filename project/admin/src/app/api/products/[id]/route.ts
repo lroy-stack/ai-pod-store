@@ -100,7 +100,7 @@ export const PATCH = withPermission('products', 'update', withValidation(product
     }
 
     // Log audit event with before/after values
-    await logUpdate(session.userId, 'products', id, beforeProduct, product);
+    await logUpdate(session.userId, 'product', id, beforeProduct, product, session.email);
 
     return NextResponse.json({ product });
   } catch (error) {

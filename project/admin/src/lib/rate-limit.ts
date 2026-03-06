@@ -71,6 +71,12 @@ class RateLimiter {
 // 5 attempts per 15 minutes per IP address
 export const adminLoginLimiter = new RateLimiter(5, 15 * 60 * 1000)
 
+// API rate limiters per IP per minute
+// Read routes (GET): 60 requests/minute
+export const readApiLimiter = new RateLimiter(60, 60 * 1000)
+// Write routes (POST/PUT/PATCH/DELETE): 20 requests/minute
+export const writeApiLimiter = new RateLimiter(20, 60 * 1000)
+
 /**
  * Helper to get client IP from request headers.
  * Prioritizes Cloudflare's IP, then x-real-ip, then x-forwarded-for.
@@ -81,4 +87,31 @@ export function getClientIP(req: Request): string {
   const cfIp = req.headers.get('cf-connecting-ip')
 
   return cfIp || realIp || forwarded?.split(',')[0] || 'unknown'
+}
+
+/**
+ * Check rate limit for an API request. Returns 429 response if exceeded, null if ok.
+ */
+export function checkApiRateLimit(req: Request): { status: 429; headers: Record<string, string> } | null {
+  const ip = getClientIP(req)
+  const method = req.method?.toUpperCase() || 'GET'
+  const isWrite = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)
+  const limiter = isWrite ? writeApiLimiter : readApiLimiter
+
+  const result = limiter.check(ip)
+
+  if (!result.success) {
+    const retryAfter = Math.ceil((result.resetAt - Date.now()) / 1000)
+    return {
+      status: 429,
+      headers: {
+        'Retry-After': String(retryAfter),
+        'X-RateLimit-Limit': isWrite ? '20' : '60',
+        'X-RateLimit-Remaining': '0',
+        'X-RateLimit-Reset': String(Math.ceil(result.resetAt / 1000)),
+      },
+    }
+  }
+
+  return null
 }

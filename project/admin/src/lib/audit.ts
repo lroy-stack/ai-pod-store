@@ -86,7 +86,8 @@ export async function logCreate(
   actorId: string,
   resourceType: string,
   resourceId: string,
-  data: any
+  data: any,
+  adminEmail?: string
 ): Promise<void> {
   await logAudit({
     actor_type: 'admin',
@@ -97,6 +98,7 @@ export async function logCreate(
     changes: {
       after: data,
     },
+    metadata: adminEmail ? { admin_email: adminEmail } : undefined,
   });
 }
 
@@ -108,7 +110,8 @@ export async function logUpdate(
   resourceType: string,
   resourceId: string,
   before: any,
-  after: any
+  after: any,
+  adminEmail?: string
 ): Promise<void> {
   const changes = getChanges(before, after);
 
@@ -119,6 +122,7 @@ export async function logUpdate(
     resource_type: resourceType,
     resource_id: resourceId,
     changes,
+    metadata: adminEmail ? { admin_email: adminEmail } : undefined,
   });
 }
 
@@ -129,7 +133,8 @@ export async function logDelete(
   actorId: string,
   resourceType: string,
   resourceId: string,
-  data: any
+  data: any,
+  adminEmail?: string
 ): Promise<void> {
   await logAudit({
     actor_type: 'admin',
@@ -140,5 +145,6 @@ export async function logDelete(
     changes: {
       before: data,
     },
+    metadata: adminEmail ? { admin_email: adminEmail } : undefined,
   });
 }

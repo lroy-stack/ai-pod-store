@@ -74,7 +74,7 @@ export const GET = withAuth(async (req, session) => {
         revenue: data.revenue / 100, // Convert cents to decimal
         quantity: data.quantity,
         // Simplified margin calculation (would need COGS data for accurate margin)
-        // For POD, typical margin is ~30-40% after Printify costs
+        // For POD, typical margin is ~30-40% after Printful costs
         estimatedMargin: (data.revenue * 0.35) / 100,
         marginPercent: 35,
       }))
@@ -132,7 +132,7 @@ export const GET = withAuth(async (req, session) => {
       .sort((a, b) => b.revenue - a.revenue);
 
     // Calculate P&L statement
-    const totalCosts = totalRevenue * 0.65; // Simplified: assume 65% costs (Printify, Stripe, ops)
+    const totalCosts = totalRevenue * 0.65; // Simplified: assume 65% costs (Printful, Stripe, ops)
     const grossProfit = totalRevenue - totalCosts;
     const grossMargin = totalRevenue > 0 ? (grossProfit / totalRevenue) * 100 : 0;
 
@@ -150,7 +150,7 @@ export const GET = withAuth(async (req, session) => {
         grossMarginPercent: Math.round(grossMargin * 10) / 10,
         // Simplified breakdown
         breakdown: {
-          printifyCosts: (totalRevenue * 0.45) / 100,
+          printfulCosts: (totalRevenue * 0.45) / 100,
           stripeFees: (totalRevenue * 0.03) / 100,
           operationalCosts: (totalRevenue * 0.17) / 100,
         },

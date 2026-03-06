@@ -8,7 +8,7 @@ import type { ToolCall } from '@/hooks/usePodClawChat'
 const TOOL_COLORS: Record<string, string> = {
   supabase: 'bg-primary/10 text-primary border-primary/20',
   stripe: 'bg-success/10 text-success border-success/20',
-  printify: 'bg-warning/10 text-warning border-warning/20',
+  printful: 'bg-warning/10 text-warning border-warning/20',
   fal: 'bg-accent text-accent-foreground border-accent',
   gemini: 'bg-secondary text-secondary-foreground border-border',
   resend: 'bg-destructive/10 text-destructive border-destructive/20',

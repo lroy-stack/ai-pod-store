@@ -2,6 +2,7 @@ import { withAuth } from '@/lib/auth-middleware'
 import { withPermission } from '@/lib/rbac'
 import { withValidation } from '@/lib/validation'
 import { blogPostSchema } from '@/lib/schemas/extended'
+import { logCreate } from '@/lib/audit'
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
@@ -77,6 +78,9 @@ export const POST = withPermission('blog', 'create', withValidation(blogPostSche
       console.error('Failed to create blog post:', error);
       return NextResponse.json({ error: 'Failed to create blog post' }, { status: 500 });
     }
+
+    // Log audit event
+    await logCreate(session.userId, 'blog_post', post.id, post, session.email);
 
     return NextResponse.json({ post }, { status: 201 });
   } catch (error) {

@@ -34,7 +34,7 @@ interface FinanceReport {
     grossProfit: number;
     grossMarginPercent: number;
     breakdown: {
-      printifyCosts: number;
+      printfulCosts: number;
       stripeFees: number;
       operationalCosts: number;
     };
@@ -316,9 +316,9 @@ export default function FinancePage() {
 
               <div className="space-y-2 pl-4 text-sm border-l-2 border-muted ml-2">
                 <div className="flex justify-between py-1">
-                  <span className="text-muted-foreground">Printify Production Costs</span>
+                  <span className="text-muted-foreground">Printful Production Costs</span>
                   <span className="font-medium text-red-600">
-                    {formatCurrency(report.profitAndLoss.breakdown.printifyCosts, currency)}
+                    {formatCurrency(report.profitAndLoss.breakdown.printfulCosts, currency)}
                   </span>
                 </div>
                 <div className="flex justify-between py-1">

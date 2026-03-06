@@ -17,6 +17,8 @@ interface Product {
   currency: string;
   category: string;
   status: string;
+  pod_provider?: string | null;
+  provider_product_id?: string | null;
 }
 
 export default function EditProductPage() {
@@ -111,7 +113,19 @@ export default function EditProductPage() {
   return (
     <main className="min-h-screen p-8">
         <div className="max-w-2xl">
-          <h1 className="text-3xl font-bold mb-6">Edit Product</h1>
+          <div className="flex items-center justify-between mb-6">
+            <h1 className="text-3xl font-bold">Edit Product</h1>
+            {product.pod_provider === 'printful' && product.provider_product_id && (
+              <a
+                href={`https://www.printful.com/dashboard/product/${product.provider_product_id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 px-4 py-2 text-sm font-medium transition-colors"
+              >
+                View on Printful ↗
+              </a>
+            )}
+          </div>
 
           <Card>
             <CardHeader>

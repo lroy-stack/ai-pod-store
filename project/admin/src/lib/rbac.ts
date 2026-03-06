@@ -3,6 +3,7 @@ import { supabaseAdmin } from '@/lib/supabase';
 import { getIronSession } from 'iron-session';
 import { cookies } from 'next/headers';
 import { sessionOptions, SessionData } from './session';
+import { checkApiRateLimit } from '@/lib/rate-limit';
 
 /**
  * RBAC (Role-Based Access Control) Middleware
@@ -183,6 +184,15 @@ export function withPermission(
   handler: (req: NextRequest, session: AdminSession, context?: any) => Promise<NextResponse>
 ) {
   return async (req: NextRequest, context?: any): Promise<NextResponse> => {
+    // Check API rate limits first
+    const rateLimitResult = checkApiRateLimit(req)
+    if (rateLimitResult) {
+      return NextResponse.json(
+        { error: 'Too Many Requests', message: 'Rate limit exceeded. Please slow down.' },
+        { status: 429, headers: rateLimitResult.headers }
+      )
+    }
+
     // Step 1: Verify admin session
     const session = await getAdminSession(req);
 
