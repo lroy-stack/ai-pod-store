@@ -14,6 +14,14 @@ export interface Design {
   moderation_notes: string | null;
   created_at: string;
   user_id: string | null;
+  product_id: string | null;
+  source_type: string | null;
+  source_url: string | null;
+  bg_removed_url: string | null;
+  provider_upload_id: string | null;
+  quality_score: number | null;
+  used_in_count: number;
+  tags: string[];
 }
 
 interface DesignsResponse {

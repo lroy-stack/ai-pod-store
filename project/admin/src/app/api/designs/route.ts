@@ -58,11 +58,42 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    const designs = data || []
+
+    // Compute used_in_count: count products that reference each design's image_url
+    const usedInMap: Record<string, number> = {}
+    if (designs.length > 0) {
+      const imageUrls = designs
+        .map((d: { image_url: string | null }) => d.image_url)
+        .filter(Boolean) as string[]
+      if (imageUrls.length > 0) {
+        const { data: products } = await supabase
+          .from('products')
+          .select('images')
+          .not('images', 'is', null)
+        if (products) {
+          for (const product of products) {
+            const imgs: Array<{ src?: string }> = product.images || []
+            for (const img of imgs) {
+              if (img.src && imageUrls.includes(img.src)) {
+                usedInMap[img.src] = (usedInMap[img.src] || 0) + 1
+              }
+            }
+          }
+        }
+      }
+    }
+
+    const enrichedDesigns = designs.map((d: { image_url: string | null }) => ({
+      ...d,
+      used_in_count: d.image_url ? (usedInMap[d.image_url] || 0) : 0,
+    }))
+
     const total = count || 0
     const totalPages = Math.ceil(total / limit)
 
     return NextResponse.json({
-      designs: data || [],
+      designs: enrichedDesigns,
       total,
       page,
       limit,

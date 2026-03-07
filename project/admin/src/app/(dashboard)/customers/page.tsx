@@ -8,6 +8,7 @@ import { DataTable } from '@/components/ui/data-table';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { useCustomers, Customer } from '@/hooks/queries/useCustomers';
 import { useRouter } from 'next/navigation';
+import { exportToCSV } from '@/lib/export-utils';
 
 const RFM_SEGMENTS = [
   'VIP', 'Champion', 'Loyal', 'Regular', 'New', 'At Risk', 'Churned', 'No Orders',
@@ -41,6 +42,25 @@ export default function CustomersPage() {
   const router = useRouter();
   const { data, isLoading } = useCustomers({ page: 1, limit: 500 });
   const customers = data?.customers || [];
+
+  const handleExport = (rows: Customer[], _visibleColumnIds: string[]) => {
+    const headers = ['name', 'email', 'orders_count', 'total_spent', 'clv', 'segment', 'tags', 'joined_date'];
+    const csvRows = rows.map((c) => [
+      c.name || '',
+      c.email,
+      String(c.order_count),
+      formatCents(c.total_spent_cents, c.currency),
+      formatCents(c.clv_cents, c.currency),
+      c.rfm_segment,
+      (c.tags || []).join('; '),
+      formatDate(c.created_at),
+    ]);
+    exportToCSV(
+      headers.map((h) => h.replace(/_/g, ' ').toUpperCase()),
+      csvRows,
+      `customers-${new Date().toISOString().slice(0, 10)}.csv`
+    );
+  };
 
   const columns = useMemo<ColumnDef<Customer>[]>(
     () => [
@@ -219,6 +239,7 @@ export default function CustomersPage() {
               ],
             },
           ]}
+          onExport={handleExport}
           onRowClick={(row) => router.push(`/customers/${row.id}`)}
           renderMobileCard={renderMobileCard}
           emptyTitle="No customers found"

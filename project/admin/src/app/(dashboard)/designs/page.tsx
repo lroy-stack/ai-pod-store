@@ -1,281 +1,327 @@
 'use client'
 
-import { useState } from 'react'
-import { adminFetch } from '@/lib/admin-api'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Textarea } from '@/components/ui/textarea'
-import { CheckCircle, XCircle, Clock, Loader2, Eye } from 'lucide-react'
+import { useMemo } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
-import { toast } from 'sonner'
-import { useDesigns } from '@/hooks/queries/useDesigns'
+import { useRouter } from 'next/navigation'
+import { ColumnDef } from '@tanstack/react-table'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { DataTable } from '@/components/ui/data-table'
+import { DataTableColumnHeader } from '@/components/ui/data-table-column-header'
+import { useDesigns, Design } from '@/hooks/queries/useDesigns'
+import { Eye } from 'lucide-react'
+
+const STATUS_VARIANTS: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
+  approved: 'default',
+  pending: 'secondary',
+  rejected: 'destructive',
+}
+
+const SOURCE_TYPE_LABELS: Record<string, string> = {
+  fal: 'FAL',
+  gemini: 'Gemini',
+  sourced: 'Sourced',
+}
+
+function truncate(str: string | null, len: number) {
+  if (!str) return '—'
+  return str.length > len ? str.slice(0, len) + '…' : str
+}
+
+function formatDate(d: string) {
+  return new Date(d).toLocaleDateString('en-GB', { year: 'numeric', month: 'short', day: 'numeric' })
+}
 
 export default function DesignsPage() {
-  const [page, setPage] = useState(1)
-  const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all')
-  const [actionLoading, setActionLoading] = useState<string | null>(null)
-  const [rejectDialogOpen, setRejectDialogOpen] = useState(false)
-  const [rejectingDesignId, setRejectingDesignId] = useState<string | null>(null)
-  const [rejectionNotes, setRejectionNotes] = useState('')
-
-  // React Query hook for data fetching
-  const { data, isLoading, refetch } = useDesigns({
-    page,
-    limit: 20,
-    status: filter === 'all' ? undefined : filter,
-  })
-
+  const router = useRouter()
+  const { data, isLoading } = useDesigns({ page: 1, limit: 200 })
   const designs = data?.designs || []
-  const loading = isLoading
-  const total = data?.total || 0
-  const totalPages = data?.totalPages || 1
 
-  const handleApprove = async (designId: string) => {
-    try {
-      setActionLoading(designId)
-      const response = await adminFetch(`/api/designs/${designId}/moderate`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'approved' })
-      })
-      if (!response.ok) throw new Error('Failed to approve design')
+  // Extract unique models for the filter
+  const modelOptions = useMemo(() => {
+    const models = Array.from(new Set(designs.map((d) => d.model).filter(Boolean))) as string[]
+    return models.map((m) => ({ label: m, value: m }))
+  }, [designs])
 
-      // Refetch data
-      await refetch()
-      toast.success('Design approved successfully')
-    } catch (error) {
-      console.error('Error approving design:', error)
-      toast.error('Failed to approve design')
-    } finally {
-      setActionLoading(null)
-    }
-  }
+  const columns = useMemo<ColumnDef<Design>[]>(
+    () => [
+      // Thumbnail
+      {
+        id: 'thumbnail',
+        header: 'Thumb',
+        cell: ({ row }) => {
+          const d = row.original
+          const src = d.thumbnail_url || d.image_url
+          if (!src) {
+            return (
+              <div className="w-[50px] h-[50px] rounded bg-muted flex items-center justify-center text-xs text-muted-foreground flex-shrink-0">
+                —
+              </div>
+            )
+          }
+          return (
+            <div className="relative w-[50px] h-[50px] rounded overflow-hidden bg-muted flex-shrink-0">
+              <Image
+                src={src}
+                alt={truncate(d.prompt, 40)}
+                width={100}
+                height={100}
+                quality={60}
+                className="object-cover w-full h-full"
+                unoptimized={src.startsWith('http') && !src.includes('localhost')}
+              />
+            </div>
+          )
+        },
+        enableSorting: false,
+      },
+      // Prompt
+      {
+        accessorKey: 'prompt',
+        header: ({ column }) => <DataTableColumnHeader column={column} title="Prompt" />,
+        cell: ({ row }) => (
+          <span className="text-sm max-w-[260px] block truncate" title={row.original.prompt}>
+            {truncate(row.original.prompt, 60)}
+          </span>
+        ),
+      },
+      // Model
+      {
+        accessorKey: 'model',
+        header: ({ column }) => <DataTableColumnHeader column={column} title="Model" />,
+        cell: ({ row }) => {
+          const m = row.original.model
+          if (!m) return <span className="text-muted-foreground text-xs">—</span>
+          return <Badge variant="outline" className="text-xs whitespace-nowrap">{m}</Badge>
+        },
+        filterFn: (row, _, filterValue) => {
+          if (!filterValue) return true
+          return row.original.model === filterValue
+        },
+      },
+      // Source Type
+      {
+        accessorKey: 'source_type',
+        header: ({ column }) => <DataTableColumnHeader column={column} title="Source" />,
+        cell: ({ row }) => {
+          const s = row.original.source_type
+          if (!s) return <span className="text-muted-foreground text-xs">—</span>
+          return (
+            <Badge variant="outline" className="text-xs">
+              {SOURCE_TYPE_LABELS[s] || s}
+            </Badge>
+          )
+        },
+        filterFn: (row, _, filterValue) => {
+          if (!filterValue) return true
+          return row.original.source_type === filterValue
+        },
+      },
+      // Dimensions
+      {
+        id: 'dimensions',
+        header: 'Dimensions',
+        cell: ({ row }) => {
+          const { width, height } = row.original
+          if (!width || !height) return <span className="text-muted-foreground text-xs">—</span>
+          return <span className="text-xs tabular-nums text-muted-foreground whitespace-nowrap">{width}×{height}</span>
+        },
+        enableSorting: false,
+      },
+      // Status
+      {
+        accessorKey: 'moderation_status',
+        header: ({ column }) => <DataTableColumnHeader column={column} title="Status" />,
+        cell: ({ row }) => {
+          const s = row.original.moderation_status
+          return (
+            <Badge variant={STATUS_VARIANTS[s] || 'secondary'} className="text-xs capitalize">
+              {s}
+            </Badge>
+          )
+        },
+        filterFn: (row, _, filterValue) => {
+          if (!filterValue) return true
+          return row.original.moderation_status === filterValue
+        },
+      },
+      // Used In
+      {
+        accessorKey: 'used_in_count',
+        header: ({ column }) => <DataTableColumnHeader column={column} title="Used In" />,
+        cell: ({ row }) => {
+          const count = row.original.used_in_count ?? 0
+          if (count === 0) {
+            return <Badge variant="destructive" className="text-xs">Orphaned</Badge>
+          }
+          return (
+            <span className="text-sm font-medium tabular-nums">{count}</span>
+          )
+        },
+      },
+      // Created
+      {
+        accessorKey: 'created_at',
+        header: ({ column }) => <DataTableColumnHeader column={column} title="Created" />,
+        cell: ({ row }) => (
+          <span className="text-xs text-muted-foreground whitespace-nowrap">
+            {formatDate(row.original.created_at)}
+          </span>
+        ),
+      },
+      // Tags
+      {
+        accessorKey: 'tags',
+        header: 'Tags',
+        cell: ({ row }) => {
+          const tags: string[] = row.original.tags || []
+          if (!tags.length) return <span className="text-muted-foreground text-xs">—</span>
+          return (
+            <div className="flex flex-wrap gap-1 max-w-[160px]">
+              {tags.slice(0, 3).map((t) => (
+                <Badge key={t} variant="secondary" className="text-xs px-1.5 py-0">{t}</Badge>
+              ))}
+              {tags.length > 3 && (
+                <span className="text-xs text-muted-foreground">+{tags.length - 3}</span>
+              )}
+            </div>
+          )
+        },
+        filterFn: (row, _, filterValue) => {
+          if (!filterValue) return true
+          return (row.original.tags || []).includes(filterValue)
+        },
+        enableSorting: false,
+      },
+      // Actions
+      {
+        id: 'actions',
+        header: '',
+        cell: ({ row }) => (
+          <Button asChild variant="ghost" size="sm" className="h-8 w-8 p-0">
+            <Link href={`/designs/${row.original.id}`}>
+              <Eye className="h-4 w-4" />
+              <span className="sr-only">View design</span>
+            </Link>
+          </Button>
+        ),
+        enableSorting: false,
+      },
+    ],
+    []
+  )
 
-  const openRejectDialog = (designId: string) => {
-    setRejectingDesignId(designId)
-    setRejectionNotes('')
-    setRejectDialogOpen(true)
-  }
-
-  const handleReject = async () => {
-    if (!rejectingDesignId) return
-
-    try {
-      setActionLoading(rejectingDesignId)
-      const response = await adminFetch(`/api/designs/${rejectingDesignId}/moderate`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          status: 'rejected',
-          notes: rejectionNotes || undefined
-        })
-      })
-      if (!response.ok) throw new Error('Failed to reject design')
-
-      // Refetch data
-      await refetch()
-      toast.success('Design rejected')
-
-      setRejectDialogOpen(false)
-      setRejectingDesignId(null)
-      setRejectionNotes('')
-    } catch (error) {
-      console.error('Error rejecting design:', error)
-      toast.error('Failed to reject design')
-    } finally {
-      setActionLoading(null)
-    }
-  }
-
-  const handleFilterChange = (newFilter: 'all' | 'pending' | 'approved' | 'rejected') => {
-    setFilter(newFilter)
-    setPage(1) // Reset to first page on filter change
+  const renderMobileCard = (design: Design) => {
+    const src = design.thumbnail_url || design.image_url
+    const count = design.used_in_count ?? 0
+    return (
+      <div className="rounded-lg border border-border p-4 space-y-3">
+        <div className="flex items-start gap-3">
+          {src ? (
+            <div className="relative w-[50px] h-[50px] rounded overflow-hidden bg-muted flex-shrink-0">
+              <Image
+                src={src}
+                alt={truncate(design.prompt, 30)}
+                width={100}
+                height={100}
+                quality={60}
+                className="object-cover w-full h-full"
+                unoptimized
+              />
+            </div>
+          ) : (
+            <div className="w-[50px] h-[50px] rounded bg-muted flex-shrink-0" />
+          )}
+          <div className="min-w-0 flex-1">
+            <p className="text-sm truncate">{truncate(design.prompt, 60)}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">{formatDate(design.created_at)}</p>
+          </div>
+          <Badge
+            variant={STATUS_VARIANTS[design.moderation_status] || 'secondary'}
+            className="text-xs capitalize flex-shrink-0"
+          >
+            {design.moderation_status}
+          </Badge>
+        </div>
+        <div className="flex items-center justify-between text-xs">
+          <div className="flex gap-2">
+            {design.model && (
+              <Badge variant="outline" className="text-xs">{design.model}</Badge>
+            )}
+            {count === 0
+              ? <Badge variant="destructive" className="text-xs">Orphaned</Badge>
+              : <span className="text-muted-foreground">Used in {count} product{count !== 1 ? 's' : ''}</span>
+            }
+          </div>
+          <Button asChild variant="ghost" size="sm" className="h-7 px-2">
+            <Link href={`/designs/${design.id}`}>
+              <Eye className="h-3.5 w-3.5 mr-1" />
+              View
+            </Link>
+          </Button>
+        </div>
+      </div>
+    )
   }
 
   return (
-    <div className="p-6 space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">AI Designs Gallery</h1>
-        <p className="text-muted-foreground mt-1">
-          Moderate AI-generated designs from customers and the design agent
-        </p>
+    <main className="min-h-screen p-4 md:p-8">
+      <div className="max-w-7xl mx-auto">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold mb-2">Designs</h1>
+          <p className="text-muted-foreground">AI-generated designs and their product usage</p>
+        </div>
+
+        <DataTable
+          columns={columns}
+          data={designs}
+          isLoading={isLoading}
+          enableSorting
+          enablePagination
+          enableColumnVisibility
+          pageSize={25}
+          tableId="designs"
+          searchColumn="prompt"
+          searchPlaceholder="Search by prompt…"
+          filters={[
+            {
+              columnId: 'moderation_status',
+              label: 'Status',
+              options: [
+                { label: 'Approved', value: 'approved' },
+                { label: 'Pending', value: 'pending' },
+                { label: 'Rejected', value: 'rejected' },
+              ],
+            },
+            {
+              columnId: 'model',
+              label: 'Model',
+              options: modelOptions,
+            },
+            {
+              columnId: 'source_type',
+              label: 'Source',
+              options: [
+                { label: 'FAL', value: 'fal' },
+                { label: 'Gemini', value: 'gemini' },
+                { label: 'Sourced', value: 'sourced' },
+              ],
+            },
+            {
+              columnId: 'tags',
+              label: 'Tag',
+              options: ['animals', 'easter', 'feminist', 'groovy', 'meme', 'branded', 'minimalist', 'tech'].map(
+                (t) => ({ label: t, value: t })
+              ),
+            },
+          ]}
+          onRowClick={(row) => router.push(`/designs/${row.id}`)}
+          renderMobileCard={renderMobileCard}
+          emptyTitle="No designs found"
+          emptyDescription="Designs will appear here once generated."
+        />
       </div>
-
-      <Tabs value={filter} onValueChange={(v) => handleFilterChange(v as typeof filter)}>
-        <TabsList>
-          <TabsTrigger value="all">All</TabsTrigger>
-          <TabsTrigger value="pending">Pending</TabsTrigger>
-          <TabsTrigger value="approved">Approved</TabsTrigger>
-          <TabsTrigger value="rejected">Rejected</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value={filter} className="mt-6">
-          {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-            </div>
-          ) : designs.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
-              No designs found for this filter
-            </div>
-          ) : (
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {designs.map((design) => (
-                <Card key={design.id} className="overflow-hidden">
-                  <div className="relative aspect-square bg-muted">
-                    {design.image_url ? (
-                      <img
-                        src={design.thumbnail_url || design.image_url}
-                        alt={design.prompt}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                        No Image
-                      </div>
-                    )}
-                    <div className="absolute top-2 right-2">
-                      <Badge variant={
-                        design.moderation_status === 'approved' ? 'default' :
-                        design.moderation_status === 'rejected' ? 'destructive' :
-                        'secondary'
-                      }>
-                        {design.moderation_status === 'approved' && <CheckCircle className="h-3 w-3 mr-1" />}
-                        {design.moderation_status === 'rejected' && <XCircle className="h-3 w-3 mr-1" />}
-                        {design.moderation_status === 'pending' && <Clock className="h-3 w-3 mr-1" />}
-                        {design.moderation_status}
-                      </Badge>
-                    </div>
-                  </div>
-                  <CardContent className="p-4 space-y-3">
-                    <div>
-                      <p className="text-sm font-medium line-clamp-2">{design.prompt}</p>
-                      {design.style && (
-                        <p className="text-xs text-muted-foreground mt-1">Style: {design.style}</p>
-                      )}
-                      {design.moderation_notes && (
-                        <p className="text-xs text-destructive mt-1">Notes: {design.moderation_notes}</p>
-                      )}
-                    </div>
-
-                    {design.moderation_status === 'pending' && (
-                      <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          variant="default"
-                          className="flex-1"
-                          onClick={() => handleApprove(design.id)}
-                          disabled={actionLoading === design.id}
-                        >
-                          {actionLoading === design.id ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <>
-                              <CheckCircle className="h-4 w-4 mr-1" />
-                              Approve
-                            </>
-                          )}
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          className="flex-1"
-                          onClick={() => openRejectDialog(design.id)}
-                          disabled={actionLoading === design.id}
-                        >
-                          {actionLoading === design.id ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <>
-                              <XCircle className="h-4 w-4 mr-1" />
-                              Reject
-                            </>
-                          )}
-                        </Button>
-                      </div>
-                    )}
-
-                    <div className="flex items-center justify-between">
-                      <div className="text-xs text-muted-foreground">
-                        {new Date(design.created_at).toLocaleDateString()}
-                      </div>
-                      <Button asChild variant="ghost" size="sm">
-                        <Link href={`/designs/${design.id}`}>
-                          <Eye className="h-4 w-4 mr-1" />
-                          View
-                        </Link>
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-              </div>
-
-              {/* Pagination */}
-              {totalPages > 1 && (
-                <div className="mt-6 flex items-center justify-between">
-                  <p className="text-sm text-muted-foreground">
-                    Showing {designs.length} of {total} designs
-                  </p>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setPage(page - 1)}
-                      disabled={page === 1}
-                    >
-                      Previous
-                    </Button>
-                    <span className="px-4 py-2 text-sm">
-                      Page {page} of {totalPages}
-                    </span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setPage(page + 1)}
-                      disabled={page === totalPages}
-                    >
-                      Next
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </>
-          )}
-        </TabsContent>
-      </Tabs>
-
-      <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Reject Design</DialogTitle>
-            <DialogDescription>
-              Optionally provide a reason for rejecting this design.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <Textarea
-              value={rejectionNotes}
-              onChange={(e) => setRejectionNotes(e.target.value)}
-              placeholder="Rejection reason (optional)..."
-              rows={4}
-            />
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setRejectDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button variant="destructive" onClick={handleReject} disabled={!!actionLoading}>
-              {actionLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-              Reject Design
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
+    </main>
   )
 }

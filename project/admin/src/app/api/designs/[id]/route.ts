@@ -7,9 +7,10 @@ import { designUpdateSchema } from '@/lib/schemas/extended'
 
 export const GET = withAuth(async (
   request: NextRequest,
-  context: { params?: Promise<{ id: string }> }
+  _session: unknown,
+  context?: { params?: Promise<{ id: string }> }
 ) => {
-  const { id } = await context.params!
+  const id = context?.params ? (await context.params).id : new URL(request.url).pathname.split('/').at(-1)!
 
   const supabaseUrl = process.env.SUPABASE_URL
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY
@@ -38,7 +39,24 @@ export const GET = withAuth(async (
       )
     }
 
-    return NextResponse.json({ design: data })
+    // Find products that reference this design's image_url in their images JSONB
+    let linkedProducts: Array<{ id: string; title: string; slug: string }> = []
+    if (data?.image_url) {
+      const { data: products } = await supabase
+        .from('products')
+        .select('id, title, slug, images')
+        .not('images', 'is', null)
+      if (products) {
+        for (const p of products) {
+          const imgs: Array<{ src?: string }> = p.images || []
+          if (imgs.some((img) => img.src === data.image_url)) {
+            linkedProducts.push({ id: p.id, title: p.title, slug: p.slug })
+          }
+        }
+      }
+    }
+
+    return NextResponse.json({ design: { ...data, linked_products: linkedProducts } })
   } catch (error) {
     console.error('Error fetching design:', error)
     return NextResponse.json(
