@@ -34,7 +34,7 @@ interface WaterfallTimelineProps {
 const EVENT_COLORS: Record<string, string> = {
   session_start: 'bg-primary',
   session_end: 'bg-success',
-  tool_use: 'bg-purple-500',
+  tool_use: 'bg-primary',
   error: 'bg-destructive',
   rate_limit_exceeded: 'bg-warning',
   default: 'bg-muted',

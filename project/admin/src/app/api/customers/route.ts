@@ -56,12 +56,19 @@ export const GET = withAuth(async (req: NextRequest) => {
     const tag = searchParams.get('tag') || '';
     const offset = (page - 1) * limit;
 
-    // Fetch users (role=customer) with their data
-    const { data: users, error: usersErr } = await supabaseAdmin
+    // Fetch users (role=customer) with server-side search filtering
+    let usersQuery = supabaseAdmin
       .from('users')
-      .select('id, email, name, created_at, avatar_url, account_status, tags, role')
+      .select('id, email, name, created_at, avatar_url, account_status, tags, role', { count: 'exact' })
       .eq('role', 'customer')
       .order('created_at', { ascending: false });
+
+    // Push search filter to DB level
+    if (search) {
+      usersQuery = usersQuery.or(`email.ilike.%${search}%,name.ilike.%${search}%`);
+    }
+
+    const { data: users, error: usersErr, count: totalUsers } = await usersQuery;
 
     if (usersErr) {
       console.error('Users fetch error:', usersErr);
@@ -70,12 +77,14 @@ export const GET = withAuth(async (req: NextRequest) => {
 
     const userIds = (users || []).map((u) => u.id);
 
-    // Batch-fetch orders for all users
-    const { data: orders, error: ordersErr } = await supabaseAdmin
-      .from('orders')
-      .select('id, user_id, total_cents, currency, created_at, status')
-      .in('user_id', userIds)
-      .in('status', ['paid', 'processing', 'in_production', 'shipped', 'delivered']);
+    // Batch-fetch orders for matching users only
+    const { data: orders, error: ordersErr } = userIds.length > 0
+      ? await supabaseAdmin
+          .from('orders')
+          .select('id, user_id, total_cents, currency, created_at, status')
+          .in('user_id', userIds)
+          .in('status', ['paid', 'processing', 'in_production', 'shipped', 'delivered'])
+      : { data: [], error: null };
 
     if (ordersErr) {
       console.error('Orders fetch error:', ordersErr);
@@ -130,15 +139,7 @@ export const GET = withAuth(async (req: NextRequest) => {
       };
     });
 
-    // Apply filters
-    if (search) {
-      const q = search.toLowerCase();
-      customers = customers.filter(
-        (c) =>
-          c.email.toLowerCase().includes(q) ||
-          (c.name && c.name.toLowerCase().includes(q))
-      );
-    }
+    // Apply filters (search already applied at DB level)
     if (segment) {
       customers = customers.filter((c) => c.rfm_segment === segment);
     }

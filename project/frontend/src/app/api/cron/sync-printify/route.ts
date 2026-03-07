@@ -26,7 +26,7 @@ import { acquireLock, recordRun } from '@/lib/reliability/cron-lock'
 import { logSyncStart, logSyncReport, alertOnSyncError, logDivergenceReport } from '@/lib/pod/monitoring'
 import type { CanonicalProduct } from '@/lib/pod/models'
 
-const CRON_SECRET = process.env.CRON_SECRET || process.env.PODCLAW_BRIDGE_AUTH_TOKEN
+const CRON_SECRET = process.env.CRON_SECRET
 
 export async function GET(req: NextRequest) {
   const startTime = Date.now()

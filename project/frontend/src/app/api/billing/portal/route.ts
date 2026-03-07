@@ -43,10 +43,14 @@ export async function POST(req: NextRequest) {
       )
     }
 
+    // Extract locale from request body, default to 'en'
+    const body = await req.json().catch(() => ({}))
+    const locale = body.locale || 'en'
+
     // Create a Customer Portal session
     const session = await stripe.billingPortal.sessions.create({
       customer: profile.stripe_customer_id,
-      return_url: `${BASE_URL}/en/settings/billing`,
+      return_url: `${BASE_URL}/${locale}/settings/billing`,
     })
 
     return Response.json({ url: session.url })

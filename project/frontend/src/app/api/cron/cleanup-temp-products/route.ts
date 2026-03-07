@@ -15,7 +15,7 @@ import { getProvider, initializeProviders } from '@/lib/pod'
 import { verifyCronSecret } from '@/lib/rate-limit'
 import { acquireLock, recordRun } from '@/lib/reliability/cron-lock'
 
-const CRON_SECRET = process.env.CRON_SECRET || process.env.PODCLAW_BRIDGE_AUTH_TOKEN
+const CRON_SECRET = process.env.CRON_SECRET
 const CRON_NAME = 'cleanup-temp-products'
 
 export async function GET(req: NextRequest) {

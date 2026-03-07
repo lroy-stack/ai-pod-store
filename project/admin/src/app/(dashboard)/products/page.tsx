@@ -159,14 +159,14 @@ export default function ProductsPage() {
           }
           // No sync timestamp yet
           if (!product.last_synced_at) {
-            return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400 border-0">Pending Sync</Badge>;
+            return <Badge variant="secondary" className="bg-warning/10 text-warning dark:bg-warning/20 dark:text-warning border-0">Pending Sync</Badge>;
           }
           // Updated after last sync → pending
           if (product.updated_at && new Date(product.updated_at) > new Date(product.last_synced_at)) {
-            return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400 border-0">Pending Sync</Badge>;
+            return <Badge variant="secondary" className="bg-warning/10 text-warning dark:bg-warning/20 dark:text-warning border-0">Pending Sync</Badge>;
           }
           // All good
-          return <Badge className="bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400 border-0">Synced</Badge>;
+          return <Badge className="bg-success/10 text-success dark:bg-success/20 dark:text-success border-0">Synced</Badge>;
         },
         enableSorting: false,
       },

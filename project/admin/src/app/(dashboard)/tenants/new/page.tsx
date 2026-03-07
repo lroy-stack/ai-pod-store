@@ -221,7 +221,7 @@ export default function NewTenantPage() {
                 />
                 <div className="absolute right-3 top-1/2 -translate-y-1/2">
                   {slugStatus === 'checking' && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
-                  {slugStatus === 'available' && <CheckCircle2 className="h-4 w-4 text-green-500" />}
+                  {slugStatus === 'available' && <CheckCircle2 className="h-4 w-4 text-success" />}
                   {(slugStatus === 'taken' || slugStatus === 'invalid') && <AlertCircle className="h-4 w-4 text-destructive" />}
                 </div>
               </div>

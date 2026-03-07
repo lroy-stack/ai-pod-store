@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/auth-middleware'
-import { withPermission } from '@/lib/rbac'
+import { getAdminSession, isSuperAdmin } from '@/lib/rbac'
 import { supabaseAdmin } from '@/lib/supabase'
 
 // GET /api/admin/roles - Fetch all roles with permissions
@@ -24,8 +24,18 @@ export const GET = withAuth(async (req: NextRequest) => {
 
 // PUT /api/admin/roles/:id — Update permissions for a role
 // Only super_admin can modify roles
-export const PUT = withPermission('roles', 'update', async (req: NextRequest) => {
+export const PUT = async (req: NextRequest) => {
   try {
+    // Only super_admin can modify roles — no delegation via roles:update
+    const session = await getAdminSession(req)
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized - admin session required' }, { status: 401 })
+    }
+    const isSuper = await isSuperAdmin(session.userId)
+    if (!isSuper) {
+      return NextResponse.json({ error: 'Only super administrators can modify roles' }, { status: 403 })
+    }
+
     const body = await req.json()
     const { role_id, permissions } = body
 
@@ -58,4 +68,4 @@ export const PUT = withPermission('roles', 'update', async (req: NextRequest) =>
     console.error('Roles API error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
-})
+}

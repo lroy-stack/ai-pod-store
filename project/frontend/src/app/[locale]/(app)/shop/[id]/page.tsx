@@ -101,6 +101,10 @@ export default async function ProductDetailPage({
     description: product.description,
     image: product.images,
     sku: product.id,
+    brand: {
+      '@type': 'Brand',
+      name: 'SKAPARA',
+    },
     offers: product.hasVariantPricing && product.maxPrice ? {
       '@type': 'AggregateOffer',
       url: `${baseUrl}/${locale}/shop/${id}`,

@@ -48,8 +48,10 @@ const legalComponents: Components = {
   li: ({ ...props }) => (
     <li className="leading-relaxed text-foreground" {...props} />
   ),
-  a: ({ ...props }) => (
-    <a className="text-primary hover:underline font-medium" {...props} />
+  a: ({ href, children, ...props }) => (
+    <a href={href} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-medium" {...props}>
+      {children}
+    </a>
   ),
   strong: ({ ...props }) => (
     <strong className="font-semibold text-foreground" {...props} />

@@ -80,9 +80,9 @@ interface TrendData { date: string; count: number; }
 
 function StatusDot({ status }: { status: 'healthy' | 'degraded' | 'unhealthy' }) {
   const classes = {
-    healthy: 'bg-green-500',
-    degraded: 'bg-yellow-500',
-    unhealthy: 'bg-red-500',
+    healthy: 'bg-success',
+    degraded: 'bg-warning',
+    unhealthy: 'bg-destructive',
   };
   return (
     <span className={`inline-block w-3 h-3 rounded-full ${classes[status]} flex-shrink-0`} />
@@ -90,14 +90,14 @@ function StatusDot({ status }: { status: 'healthy' | 'degraded' | 'unhealthy' })
 }
 
 function StatusIcon({ status }: { status: 'healthy' | 'degraded' | 'unhealthy' }) {
-  if (status === 'healthy') return <CheckCircle2 className="h-5 w-5 text-green-500" />;
-  if (status === 'degraded') return <AlertCircle className="h-5 w-5 text-yellow-500" />;
-  return <XCircle className="h-5 w-5 text-red-500" />;
+  if (status === 'healthy') return <CheckCircle2 className="h-5 w-5 text-success" />;
+  if (status === 'degraded') return <AlertCircle className="h-5 w-5 text-warning" />;
+  return <XCircle className="h-5 w-5 text-destructive" />;
 }
 
 function SeverityBadge({ severity }: { severity: 'critical' | 'warning' | 'info' }) {
   if (severity === 'critical') return <Badge variant="destructive">Critical</Badge>;
-  if (severity === 'warning') return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400">Warning</Badge>;
+  if (severity === 'warning') return <Badge variant="secondary" className="bg-warning/10 text-warning dark:bg-warning/20 dark:text-warning">Warning</Badge>;
   return <Badge variant="outline">Info</Badge>;
 }
 
@@ -114,8 +114,8 @@ function formatTime(ts: string | null) {
 
 function CronStatusBadge({ status }: { status: string }) {
   switch (status) {
-    case 'completed': return <Badge className="bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400 border-0">Completed</Badge>;
-    case 'running': return <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400 border-0">Running</Badge>;
+    case 'completed': return <Badge className="bg-success/10 text-success dark:bg-success/20 dark:text-success border-0">Completed</Badge>;
+    case 'running': return <Badge className="bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary border-0">Running</Badge>;
     case 'failed': return <Badge variant="destructive">Failed</Badge>;
     case 'skipped': return <Badge variant="secondary">Skipped</Badge>;
     default: return <Badge variant="outline" className="text-muted-foreground">Never Run</Badge>;
@@ -178,7 +178,7 @@ function HealthTab() {
               <Card key={svc.name} className="relative overflow-hidden">
                 <div
                   className={`absolute top-0 left-0 right-0 h-1 ${
-                    svc.status === 'healthy' ? 'bg-green-500' : svc.status === 'degraded' ? 'bg-yellow-500' : 'bg-red-500'
+                    svc.status === 'healthy' ? 'bg-success' : svc.status === 'degraded' ? 'bg-warning' : 'bg-destructive'
                   }`}
                 />
                 <CardHeader className="pb-2">
@@ -477,11 +477,11 @@ function IntegrityTab() {
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       {check.count === 0 ? (
-                        <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
+                        <CheckCircle2 className="h-4 w-4 text-success flex-shrink-0" />
                       ) : check.severity === 'critical' ? (
-                        <XCircle className="h-4 w-4 text-red-500 flex-shrink-0" />
+                        <XCircle className="h-4 w-4 text-destructive flex-shrink-0" />
                       ) : (
-                        <AlertTriangle className="h-4 w-4 text-yellow-500 flex-shrink-0" />
+                        <AlertTriangle className="h-4 w-4 text-warning flex-shrink-0" />
                       )}
                       <span className="font-medium text-sm">{check.name}</span>
                     </div>

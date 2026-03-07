@@ -265,6 +265,7 @@ export default function AddressForm({ onSubmit, onCancel }: AddressFormProps) {
         <Label htmlFor="phone">{t('phone')}</Label>
         <Input
           id="phone"
+          type="tel"
           value={formData.phone}
           onChange={(e) => handleChange('phone', e.target.value)}
           placeholder={t('phonePlaceholder')}

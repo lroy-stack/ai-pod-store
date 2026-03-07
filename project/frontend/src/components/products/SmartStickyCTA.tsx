@@ -92,16 +92,20 @@ export function SmartStickyCTA({
               <button
                 key={color}
                 className={cn(
-                  'size-5 rounded-full border-2 transition-all',
-                  selectedColor === color
-                    ? 'border-primary scale-110'
-                    : 'border-border'
+                  'flex items-center justify-center min-w-[44px] min-h-[44px] p-1.5',
                 )}
                 onClick={() => onColorChange(color)}
                 aria-label={color}
                 title={color}
               >
-                <span className="sr-only">{color}</span>
+                <span
+                  className={cn(
+                    'size-6 rounded-full border-2 transition-all block',
+                    selectedColor === color
+                      ? 'border-primary scale-110'
+                      : 'border-border'
+                  )}
+                />
               </button>
             ))}
           </div>

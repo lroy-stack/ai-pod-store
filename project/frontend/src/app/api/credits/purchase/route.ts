@@ -38,7 +38,8 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json()
-    const { pack } = body as { pack: string }
+    const { pack, locale: reqLocale } = body as { pack: string; locale?: string }
+    const locale = reqLocale || 'en'
 
     if (!pack || !(pack in CREDIT_PACKS)) {
       return Response.json(
@@ -96,8 +97,8 @@ export async function POST(req: NextRequest) {
           quantity: 1,
         },
       ],
-      success_url: `${BASE_URL}/en/pricing?credits=success`,
-      cancel_url: `${BASE_URL}/en/pricing?credits=cancelled`,
+      success_url: `${BASE_URL}/${locale}/pricing?credits=success`,
+      cancel_url: `${BASE_URL}/${locale}/pricing?credits=cancelled`,
       metadata: {
         user_id: user.id,
         type: 'credit_pack',

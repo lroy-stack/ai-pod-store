@@ -20,7 +20,7 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_KEY!
 )
 
-const CRON_SECRET = process.env.CRON_SECRET || process.env.PODCLAW_BRIDGE_AUTH_TOKEN
+const CRON_SECRET = process.env.CRON_SECRET
 
 // Time windows
 const RETRY_WINDOW_MINUTES = 30

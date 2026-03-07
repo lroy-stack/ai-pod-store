@@ -52,6 +52,7 @@ export async function generateMetadata({ params }: LandingPageProps): Promise<Me
         'en': `${baseUrl}/en`,
         'es': `${baseUrl}/es`,
         'de': `${baseUrl}/de`,
+        'x-default': `${baseUrl}/en`,
       },
     },
   }

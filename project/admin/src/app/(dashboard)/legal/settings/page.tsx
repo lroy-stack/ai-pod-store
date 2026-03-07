@@ -198,17 +198,17 @@ export default function LegalSettingsPage() {
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="company_name">
-              Company Name <span className="text-red-500">*</span>
+              Company Name <span className="text-destructive">*</span>
             </Label>
             <Input
               id="company_name"
               value={settings.company_name}
               onChange={(e) => handleChange('company_name', e.target.value)}
               placeholder="e.g., PodClaw Store"
-              className={errors.company_name ? 'border-red-500' : ''}
+              className={errors.company_name ? 'border-destructive' : ''}
             />
             {errors.company_name && (
-              <p className="text-sm text-red-500">{errors.company_name}</p>
+              <p className="text-sm text-destructive">{errors.company_name}</p>
             )}
           </div>
 
@@ -225,7 +225,7 @@ export default function LegalSettingsPage() {
 
           <div className="space-y-2">
             <Label htmlFor="company_email">
-              Company Email <span className="text-red-500">*</span>
+              Company Email <span className="text-destructive">*</span>
             </Label>
             <Input
               id="company_email"
@@ -233,10 +233,10 @@ export default function LegalSettingsPage() {
               value={settings.company_email}
               onChange={(e) => handleChange('company_email', e.target.value)}
               placeholder="legal@company.com"
-              className={errors.company_email ? 'border-red-500' : ''}
+              className={errors.company_email ? 'border-destructive' : ''}
             />
             {errors.company_email && (
-              <p className="text-sm text-red-500">{errors.company_email}</p>
+              <p className="text-sm text-destructive">{errors.company_email}</p>
             )}
           </div>
         </CardContent>
@@ -312,10 +312,10 @@ export default function LegalSettingsPage() {
               value={settings.dpo_email}
               onChange={(e) => handleChange('dpo_email', e.target.value)}
               placeholder="dpo@company.com"
-              className={errors.dpo_email ? 'border-red-500' : ''}
+              className={errors.dpo_email ? 'border-destructive' : ''}
             />
             {errors.dpo_email && (
-              <p className="text-sm text-red-500">{errors.dpo_email}</p>
+              <p className="text-sm text-destructive">{errors.dpo_email}</p>
             )}
           </div>
         </CardContent>

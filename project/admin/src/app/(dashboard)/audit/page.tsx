@@ -35,7 +35,7 @@ const actorIcons = {
 
 const actorColors = {
   admin: 'bg-primary/10 text-primary',
-  ai_agent: 'bg-purple-500/10 text-purple-700 dark:text-purple-400',
+  ai_agent: 'bg-primary/10 text-primary dark:text-primary',
   system: 'bg-muted text-muted-foreground',
   webhook: 'bg-success/10 text-success',
 }

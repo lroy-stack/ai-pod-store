@@ -15,13 +15,13 @@ const RFM_SEGMENTS = [
 ];
 
 const RFM_VARIANTS: Record<string, string> = {
-  VIP: 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400',
-  Champion: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400',
-  Loyal: 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400',
-  Regular: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
-  New: 'bg-teal-100 text-teal-800 dark:bg-teal-900/20 dark:text-teal-400',
-  'At Risk': 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400',
-  Churned: 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400',
+  VIP: 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary',
+  Champion: 'bg-warning/10 text-warning dark:bg-warning/20 dark:text-warning',
+  Loyal: 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary',
+  Regular: 'bg-success/10 text-success dark:bg-success/20 dark:text-success',
+  New: 'bg-accent text-accent-foreground dark:bg-accent dark:text-accent-foreground',
+  'At Risk': 'bg-warning/10 text-warning dark:bg-warning/20 dark:text-warning',
+  Churned: 'bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive',
   'No Orders': '',
 };
 

@@ -14,6 +14,7 @@ import {
   Package,
   Star,
   ChevronDown,
+  Store,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -135,16 +136,29 @@ export function LandingPageClient({
               {t('heroSubtitle')}
             </p>
 
-            <Button
-              size="lg"
-              className="mt-10 rounded-full text-sm md:text-base px-8 md:px-10 py-3 md:py-3.5 h-auto shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/25 transition-all duration-300 hover:scale-[1.02]"
-              asChild
-            >
-              <Link href={`/${locale}/chat`}>
-                {t('heroCTA')}
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
+            <div className="mt-10 flex flex-col sm:flex-row items-center gap-3">
+              <Button
+                size="lg"
+                className="rounded-full text-sm md:text-base px-8 md:px-10 py-3 md:py-3.5 h-auto shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/25 transition-all duration-300 hover:scale-[1.02]"
+                asChild
+              >
+                <Link href={`/${locale}/chat`}>
+                  {t('heroCTA')}
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                className="rounded-full text-sm md:text-base px-8 md:px-10 py-3 md:py-3.5 h-auto transition-all duration-300 hover:scale-[1.02]"
+                asChild
+              >
+                <Link href={`/${locale}/shop`}>
+                  <Store className="mr-2 h-4 w-4" />
+                  {locale === 'es' ? 'Ver Productos' : locale === 'de' ? 'Produkte ansehen' : 'Browse Products'}
+                </Link>
+              </Button>
+            </div>
 
             <p className="mt-4 text-xs text-muted-foreground">{t('heroSubCTA')}</p>
           </div>
@@ -303,6 +317,7 @@ export function LandingPageClient({
         reviews={reviews}
         totalOrders={totalOrders}
         averageRating={averageRating}
+        locale={locale}
       />
 
       {/* ─── Newsletter Signup ─── */}
@@ -325,16 +340,29 @@ export function LandingPageClient({
           <p className="text-lg text-muted-foreground text-balance mb-10">
             {t('finalCTASubtitle')}
           </p>
-          <Button
-            size="lg"
-            className="rounded-full text-sm md:text-base px-8 md:px-10 py-3 md:py-3.5 h-auto shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/25 transition-all duration-300 hover:scale-[1.02]"
-            asChild
-          >
-            <Link href={`/${locale}/chat`}>
-              {t('finalCTA')}
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
-          </Button>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+            <Button
+              size="lg"
+              className="rounded-full text-sm md:text-base px-8 md:px-10 py-3 md:py-3.5 h-auto shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/25 transition-all duration-300 hover:scale-[1.02]"
+              asChild
+            >
+              <Link href={`/${locale}/chat`}>
+                {t('finalCTA')}
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              className="rounded-full text-sm md:text-base px-8 md:px-10 py-3 md:py-3.5 h-auto transition-all duration-300 hover:scale-[1.02]"
+              asChild
+            >
+              <Link href={`/${locale}/shop`}>
+                <Store className="mr-2 h-4 w-4" />
+                {locale === 'es' ? 'Ver Productos' : locale === 'de' ? 'Produkte ansehen' : 'Browse Products'}
+              </Link>
+            </Button>
+          </div>
         </div>
       </section>
     </>

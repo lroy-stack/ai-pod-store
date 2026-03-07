@@ -12,7 +12,7 @@ export const GET = withAuth(async (req: NextRequest, session: unknown) => {
     }
 
     const supabase = createClient();
-    const searchTerm = query.trim().toLowerCase().replace(/[.,()]/g, '');
+    const searchTerm = query.trim().toLowerCase().replace(/[.,()%_*\\,]/g, '');
 
     // Search products
     const { data: products } = await supabase

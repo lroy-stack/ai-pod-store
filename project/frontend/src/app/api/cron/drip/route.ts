@@ -20,10 +20,13 @@ const supabase = createClient(
   { auth: { autoRefreshToken: false, persistSession: false } }
 )
 
-const CRON_SECRET = process.env.CRON_SECRET || process.env.PODCLAW_BRIDGE_AUTH_TOKEN
+const CRON_SECRET = process.env.CRON_SECRET
+
+// TODO: Use subscriber's locale preference when available in newsletter_subscribers table
+const DEFAULT_LOCALE = 'en'
 
 // Simple email templates with unsubscribe links (RFC 8058 + CAN-SPAM compliant)
-const TEMPLATES: Record<string, (email: string, unsubscribeUrl: string) => { html: string }> = {
+const TEMPLATES: Record<string, (email: string, unsubscribeUrl: string, locale?: string) => { html: string }> = {
   welcome: (email, unsubscribeUrl) => ({
     html: `
       <h1>Welcome to Skapara!</h1>
@@ -59,12 +62,12 @@ const TEMPLATES: Record<string, (email: string, unsubscribeUrl: string) => { htm
       </p>
     `,
   }),
-  credit_offer: (email, unsubscribeUrl) => ({
+  credit_offer: (email, unsubscribeUrl, locale) => ({
     html: `
       <h1>Unlock More Designs with Premium</h1>
       <p>Want to create more? Upgrade to Premium for 50 designs/month, 100 mockups/month, and bonus credits.</p>
       <p>Premium subscribers also get overflow credits for extra designs when they need them.</p>
-      <p><a href="${BASE_URL}/en/pricing">See Premium Plans →</a></p>
+      <p><a href="${BASE_URL}/${locale || DEFAULT_LOCALE}/pricing">See Premium Plans →</a></p>
       <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
       <p style="font-size: 12px; color: #999; text-align: center;">
         You received this email because you signed up for Skapara Store.<br>

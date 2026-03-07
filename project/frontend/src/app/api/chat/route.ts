@@ -519,6 +519,12 @@ WHEN SEARCH RETURNS NO RESULTS (noExactMatch: true):
 - Suggest browsing by category or trying different search terms
 - Example: "I couldn't find T-shirts in our catalog, but we have great hoodies and bags! Here are some popular items you might like: [show suggestions]. Browse our categories: bags (10), mugs (12), hoodies (1)..."
 
+PREMIUM PLAN AWARENESS:
+When users ask about limits, features, or upgrading, naturally mention the Premium plan:
+- EUR 9.99/month: 100 chats/day, 50 designs/month, priority support
+- Never be pushy — only mention when contextually relevant (e.g., user hits a limit, asks about features)
+- If the user is already on Premium, acknowledge it and don't upsell
+
 Be friendly, helpful, and concise.`
 
     // Define tools
@@ -552,7 +558,7 @@ Be friendly, helpful, and concise.`
 
             if (error) {
               console.error('Product search error:', error)
-              return { success: false, error: error.message, products: [] }
+              return { success: false, error: 'Product search failed', products: [] }
             }
 
             const formattedProducts = (products || []).map(formatProduct)
@@ -582,7 +588,7 @@ Be friendly, helpful, and concise.`
             console.error('Product search execution error:', error)
             return {
               success: false,
-              error: error instanceof Error ? error.message : 'Unknown error',
+              error: 'An unexpected error occurred',
               products: [],
             }
           }
@@ -637,7 +643,7 @@ Be friendly, helpful, and concise.`
 
             if (error) {
               console.error('Browse catalog error:', error)
-              return { success: false, error: error.message, products: [] }
+              return { success: false, error: 'Failed to browse catalog', products: [] }
             }
 
             const formattedProducts = (products || []).map(formatProduct)
@@ -671,7 +677,7 @@ Be friendly, helpful, and concise.`
             console.error('Browse catalog execution error:', error)
             return {
               success: false,
-              error: error instanceof Error ? error.message : 'Unknown error',
+              error: 'An unexpected error occurred',
               products: [],
             }
           }
@@ -766,7 +772,7 @@ Be friendly, helpful, and concise.`
               .eq('status', 'active')
 
             if (error) {
-              return { success: false, error: error.message, products: [] }
+              return { success: false, error: 'Failed to compare products', products: [] }
             }
 
             return {
@@ -833,7 +839,7 @@ Be friendly, helpful, and concise.`
             const { data: products, error } = await dbQuery
 
             if (error) {
-              return { success: false, error: error.message, products: [] }
+              return { success: false, error: 'Product filtering failed', products: [] }
             }
 
             const formattedProducts = (products || []).map(formatProduct)
@@ -979,7 +985,7 @@ Be friendly, helpful, and concise.`
             console.error('check_availability error:', error)
             return {
               success: false,
-              error: error instanceof Error ? error.message : 'Failed to check availability'
+              error: 'Failed to check availability'
             }
           }
         },
@@ -1525,15 +1531,15 @@ Be friendly, helpful, and concise.`
 
             // If order ID is provided, fetch that specific order
             if (orderId) {
+              if (!chatUserId) {
+                return { success: false, error: 'Authentication required to track orders' }
+              }
+
               const orderQuery = supabase
                 .from('orders')
                 .select('*')
                 .eq('id', orderId)
-
-              // If user is authenticated, restrict to their own orders
-              if (chatUserId) {
-                orderQuery.eq('user_id', chatUserId)
-              }
+                .eq('user_id', chatUserId)
 
               const { data: order, error: orderError } = await orderQuery.single()
 
@@ -2230,6 +2236,25 @@ Be friendly, helpful, and concise.`
               return { success: false, error: `Content policy violation: ${safety.reason}` }
             }
 
+            // Usage check for AI design generation
+            const tier = chatUserTier
+            const designUsage = await checkAndIncrementUsage(
+              chatUserId || (fpId ? `fp:${fpId}` : `ip:${ip}`),
+              'design:ai-generate',
+              tier,
+              chatUserId || undefined
+            )
+            if (!designUsage.allowed) {
+              return {
+                success: false,
+                error: tier === 'anonymous'
+                  ? 'Please sign up to generate designs.'
+                  : 'Monthly design limit reached. Upgrade for more.',
+                requiresAuth: tier === 'anonymous',
+                requiresUpgrade: tier === 'free',
+              }
+            }
+
             const { orchestrateDesign } = await import('@/lib/ai-design-orchestrator')
 
             const orchestrated = orchestrateDesign(prompt, 'tshirt', stylePreset)
@@ -2240,6 +2265,11 @@ Be friendly, helpful, and concise.`
             })
 
             if (!result.success) {
+              // Rollback design usage on failure
+              await decrementUsage(
+                chatUserId || (fpId ? `fp:${fpId}` : `ip:${ip}`),
+                'design:ai-generate'
+              )
               return { success: false, error: result.error || 'Design generation failed' }
             }
 
@@ -2253,7 +2283,11 @@ Be friendly, helpful, and concise.`
             }
           } catch (error: any) {
             console.error('ai_design_generate error:', error)
-            return { success: false, error: error.message || 'Design generation failed' }
+            await decrementUsage(
+              chatUserId || (fpId ? `fp:${fpId}` : `ip:${ip}`),
+              'design:ai-generate'
+            )
+            return { success: false, error: 'Design generation failed' }
           }
         },
       }),
@@ -2331,7 +2365,7 @@ Be friendly, helpful, and concise.`
             }
           } catch (error: any) {
             console.error('apply_design_to_product error:', error)
-            return { success: false, error: error.message || 'Failed to apply design' }
+            return { success: false, error: 'Failed to apply design' }
           }
         },
       }),
@@ -2355,13 +2389,16 @@ Be friendly, helpful, and concise.`
         }
 
         if (userQuery && userQuery.trim().length > 0) {
-          // Call RAG search to get relevant documents
+          // Call RAG search to get relevant documents (forward auth cookies)
           const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
           const ragResponse = await fetch(
             `${baseUrl}/api/rag/search`,
             {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              headers: {
+                'Content-Type': 'application/json',
+                'Cookie': req.headers.get('cookie') || '',
+              },
               body: JSON.stringify({
                 query: userQuery,
                 locale: chatLocale,
@@ -2474,7 +2511,7 @@ Be friendly, helpful, and concise.`
     return Response.json(
       {
         error: 'Internal server error',
-        details: error instanceof Error ? error.message : String(error)
+        details: 'Internal server error'
       },
       { status: 500 }
     )

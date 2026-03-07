@@ -11,7 +11,7 @@ export const GET = withPermission('products', 'read', async (req: NextRequest) =
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '20');
     const rawSearch = searchParams.get('search') || '';
-    const search = rawSearch.replace(/[.,()]/g, '').trim();
+    const search = rawSearch.replace(/[.,()%_*\\,]/g, '').trim();
     const offset = (page - 1) * limit;
 
     // Build query

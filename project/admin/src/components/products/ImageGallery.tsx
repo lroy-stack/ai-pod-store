@@ -110,7 +110,7 @@ function ImageCard({
         className={[
           'absolute bottom-1 right-1 rounded-full p-1 transition-all',
           isPrimary
-            ? 'text-yellow-500 bg-black/40 opacity-100'
+            ? 'text-warning bg-black/40 opacity-100'
             : 'text-white/70 bg-black/40 opacity-0 group-hover:opacity-100',
         ].join(' ')}
         title={isPrimary ? 'Primary image' : 'Set as primary'}

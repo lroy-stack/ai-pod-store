@@ -2,6 +2,7 @@ import { Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 import { BRAND, BASE_URL } from '@/lib/store-config'
+import { sanitizeForLike } from '@/lib/query-sanitizer'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ShopPageClient } from '@/components/shop/ShopPageClient'
@@ -109,7 +110,12 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
   const categoryName = t.has(`category.${slug}`) ? t(`category.${slug}`) : slug
 
   const title = `${categoryName} - ${siteName}`
-  const description = `Browse our collection of ${categoryName.toLowerCase()} products. Custom print-on-demand designs delivered to your door.`
+  const descriptionTemplates: Record<string, (name: string) => string> = {
+    en: (name) => `Browse our collection of ${name.toLowerCase()} products. Custom print-on-demand designs delivered to your door.`,
+    es: (name) => `Explora nuestra colección de productos de ${name.toLowerCase()}. Diseños personalizados de impresión bajo demanda entregados a tu puerta.`,
+    de: (name) => `Entdecken Sie unsere Kollektion von ${name.toLowerCase()}-Produkten. Individuelle Print-on-Demand-Designs direkt zu Ihnen nach Hause geliefert.`,
+  }
+  const description = (descriptionTemplates[locale] || descriptionTemplates.en)(categoryName)
 
   return {
     title,
@@ -133,6 +139,7 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
         'en': `${baseUrl}/en/shop/category/${slug}`,
         'es': `${baseUrl}/es/shop/category/${slug}`,
         'de': `${baseUrl}/de/shop/category/${slug}`,
+        'x-default': `${baseUrl}/en/shop/category/${slug}`,
       },
     },
   }
@@ -235,10 +242,12 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
     .from('products')
     .select('id, title, description, base_price_cents, currency, avg_rating, review_count, category_id, categories(slug), status, created_at, images', { count: 'exact' })
     .eq('status', 'active')
+    .is('deleted_at', null)
     .in('category_id', categoryIds)
 
   if (query && query.trim()) {
-    productsQuery = productsQuery.or(`title.ilike.%${query}%,description.ilike.%${query}%`)
+    const safeQuery = sanitizeForLike(query, 'both')
+    productsQuery = productsQuery.or(`title.ilike.${safeQuery},description.ilike.${safeQuery}`)
   }
 
   // Apply sorting
@@ -305,7 +314,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
       position: index + 1,
       item: {
         '@type': 'Product',
-        '@id': `${baseUrl}/${locale}/products/${product.id}`,
+        '@id': `${baseUrl}/${locale}/shop/${product.id}`,
         name: product.title,
         description: product.description,
         image: product.image,
@@ -315,13 +324,13 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
           highPrice: product.maxPrice,
           priceCurrency: product.currency,
           availability: product.inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
-          url: `${baseUrl}/${locale}/products/${product.id}`,
+          url: `${baseUrl}/${locale}/shop/${product.id}`,
         } : {
           '@type': 'Offer',
           price: product.price,
           priceCurrency: product.currency,
           availability: product.inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
-          url: `${baseUrl}/${locale}/products/${product.id}`,
+          url: `${baseUrl}/${locale}/shop/${product.id}`,
         },
         aggregateRating: product.rating > 0 ? {
           '@type': 'AggregateRating',

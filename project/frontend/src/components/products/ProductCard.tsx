@@ -141,7 +141,8 @@ export function ProductCard({ product, priority }: ProductCardProps) {
               <button
                 key={color}
                 className={cn(
-                  'relative w-6 h-6 rounded-full overflow-hidden border-2 transition-all duration-200 flex-shrink-0 shadow-sm',
+                  'relative w-8 h-8 rounded-full overflow-hidden border-2 transition-all duration-200 flex-shrink-0 shadow-sm p-0',
+                  'min-w-[44px] min-h-[44px] flex items-center justify-center',
                   i === colorIdx
                     ? 'border-primary ring-1 ring-primary/30 scale-110'
                     : 'border-card/80 hover:border-card'
@@ -151,13 +152,15 @@ export function ProductCard({ product, priority }: ProductCardProps) {
                 aria-label={color}
                 title={color}
               >
-                <Image
-                  src={imgUrl}
-                  alt={color}
-                  fill
-                  className="object-cover"
-                  sizes="24px"
-                />
+                <span className="relative w-8 h-8 rounded-full overflow-hidden block">
+                  <Image
+                    src={imgUrl}
+                    alt={color}
+                    fill
+                    className="object-cover"
+                    sizes="32px"
+                  />
+                </span>
               </button>
             ))}
           </div>

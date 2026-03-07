@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 import { verifyCronSecret } from '@/lib/rate-limit'
 
-const CRON_SECRET = process.env.CRON_SECRET || process.env.PODCLAW_BRIDGE_AUTH_TOKEN
+const CRON_SECRET = process.env.CRON_SECRET
 
 /**
  * GET /api/cron/product-metrics

@@ -19,7 +19,7 @@ const supabase = createClient(
   { auth: { autoRefreshToken: false, persistSession: false } }
 )
 
-const CRON_SECRET = process.env.CRON_SECRET || process.env.PODCLAW_BRIDGE_AUTH_TOKEN
+const CRON_SECRET = process.env.CRON_SECRET
 
 export async function GET(req: NextRequest) {
   // Verify cron secret (timing-safe)

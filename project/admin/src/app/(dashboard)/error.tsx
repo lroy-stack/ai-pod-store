@@ -31,7 +31,7 @@ export default function Error({
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {error.message && (
+          {process.env.NODE_ENV === 'development' && error.message && (
             <div className="rounded-lg bg-muted p-3">
               <p className="text-sm text-muted-foreground font-mono break-all">
                 {error.message}

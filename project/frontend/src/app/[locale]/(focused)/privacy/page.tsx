@@ -3,6 +3,34 @@ import { resolvePlaceholders, fetchLegalSettings } from '@/lib/legal-utils'
 import { notFound } from 'next/navigation'
 import { SafeMarkdown } from '@/components/common/SafeMarkdown'
 import { createClient } from '@supabase/supabase-js'
+import type { Metadata } from 'next'
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://skapara.com'
+
+  const titles: Record<string, Record<string, string>> = {
+    en: { title: 'Privacy Policy', description: 'How SKAPARA collects, uses, and protects your personal data' },
+    es: { title: 'Política de Privacidad', description: 'Cómo SKAPARA recopila, usa y protege tus datos personales' },
+    de: { title: 'Datenschutzrichtlinie', description: 'Wie SKAPARA Ihre personenbezogenen Daten erhebt, nutzt und schützt' },
+  }
+
+  const t = titles[locale] || titles.en
+
+  return {
+    title: t.title,
+    description: t.description,
+    alternates: {
+      canonical: `${baseUrl}/${locale}/privacy`,
+      languages: {
+        en: `${baseUrl}/en/privacy`,
+        es: `${baseUrl}/es/privacy`,
+        de: `${baseUrl}/de/privacy`,
+        'x-default': `${baseUrl}/en/privacy`,
+      },
+    },
+  }
+}
 
 interface LegalPage {
   id: string

@@ -19,6 +19,8 @@ export async function GET() {
     const { data: products, error } = await supabase
       .from('products')
       .select('id, updated_at')
+      .eq('status', 'active')
+      .is('deleted_at', null)
       .order('created_at', { ascending: false })
 
     if (error) {

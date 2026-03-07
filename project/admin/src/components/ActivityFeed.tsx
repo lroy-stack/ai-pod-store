@@ -49,13 +49,13 @@ function getEventIcon(eventType: string) {
 // Get icon color for event type
 function getEventColor(eventType: string) {
   if (eventType.includes('created') || eventType.includes('completed') || eventType.includes('registered')) {
-    return 'text-green-600';
+    return 'text-success';
   }
   if (eventType.includes('failed') || eventType.includes('error')) {
-    return 'text-red-600';
+    return 'text-destructive';
   }
   if (eventType.includes('started') || eventType.includes('updated')) {
-    return 'text-blue-600';
+    return 'text-primary';
   }
   return 'text-muted-foreground';
 }

@@ -858,7 +858,7 @@ export function ChatArea() {
                 variant="ghost"
                 size="icon"
                 onClick={handleAttachClick}
-                className="flex-shrink-0 h-9 w-9 rounded-full text-muted-foreground hover:text-foreground"
+                className="flex-shrink-0 h-11 w-11 rounded-full text-muted-foreground hover:text-foreground"
               >
                 <Paperclip className="h-4 w-4" aria-hidden="true" />
                 <span className="sr-only">Attach image</span>
@@ -890,7 +890,7 @@ export function ChatArea() {
                       startRecording()
                     }
                   }}
-                  className={`flex-shrink-0 h-9 w-9 rounded-full ${
+                  className={`flex-shrink-0 h-11 w-11 rounded-full ${
                     isRecording
                       ? 'bg-destructive/10 text-destructive hover:bg-destructive/20 hover:text-destructive'
                       : 'text-muted-foreground hover:text-foreground'
@@ -906,7 +906,7 @@ export function ChatArea() {
               <Button
                 type="submit"
                 size="icon"
-                className="flex-shrink-0 h-9 w-9 rounded-full"
+                className="flex-shrink-0 h-11 w-11 rounded-full"
                 disabled={isLoading || isLimitReached || (!inputValue.trim() && !selectedImage)}
               >
                 <Send className="h-4 w-4" aria-hidden="true" />

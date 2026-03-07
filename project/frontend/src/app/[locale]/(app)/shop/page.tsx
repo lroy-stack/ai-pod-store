@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { ShopPageClient } from '@/components/shop/ShopPageClient'
 import { ShopCategoryLanding } from '@/components/shop/ShopCategoryLanding'
 import { getCachedCategoryCounts, setCachedCategoryCounts, getCachedCategoryTree, setCachedCategoryTree } from '@/lib/cached-queries'
+import { sanitizeForLike } from '@/lib/query-sanitizer'
 import {
   Breadcrumb,
   BreadcrumbList,
@@ -216,6 +217,7 @@ export async function generateMetadata({ params, searchParams }: ShopPageProps):
         'en': `${baseUrl}/en/shop`,
         'es': `${baseUrl}/es/shop`,
         'de': `${baseUrl}/de/shop`,
+        'x-default': `${baseUrl}/en/shop`,
       },
     },
   }
@@ -294,6 +296,7 @@ export default async function ShopPage({ params, searchParams }: ShopPageProps) 
     .from('products')
     .select('id, title, description, base_price_cents, currency, avg_rating, review_count, category_id, categories(slug), status, created_at, images', { count: 'exact' })
     .eq('status', 'active')
+    .is('deleted_at', null)
 
   if (category && category !== 'all') {
     // Resolve slug → category_id(s) for proper DB filtering
@@ -317,7 +320,8 @@ export default async function ShopPage({ params, searchParams }: ShopPageProps) 
     }
   }
 
-  productsQuery = productsQuery.or(`title.ilike.%${query}%,description.ilike.%${query}%`)
+  const safeQuery = sanitizeForLike(query, 'both')
+  productsQuery = productsQuery.or(`title.ilike.${safeQuery},description.ilike.${safeQuery}`)
 
   if (newArrivals) {
     const thirtyDaysAgo = new Date()
@@ -406,7 +410,7 @@ export default async function ShopPage({ params, searchParams }: ShopPageProps) 
       position: index + 1,
       item: {
         '@type': 'Product',
-        '@id': `${baseUrl}/${locale}/products/${product.id}`,
+        '@id': `${baseUrl}/${locale}/shop/${product.id}`,
         name: product.title,
         description: product.description,
         image: product.image,
@@ -416,13 +420,13 @@ export default async function ShopPage({ params, searchParams }: ShopPageProps) 
           highPrice: product.maxPrice,
           priceCurrency: product.currency,
           availability: product.inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
-          url: `${baseUrl}/${locale}/products/${product.id}`,
+          url: `${baseUrl}/${locale}/shop/${product.id}`,
         } : {
           '@type': 'Offer',
           price: product.price,
           priceCurrency: product.currency,
           availability: product.inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
-          url: `${baseUrl}/${locale}/products/${product.id}`,
+          url: `${baseUrl}/${locale}/shop/${product.id}`,
         },
         aggregateRating: product.rating > 0 ? {
           '@type': 'AggregateRating',

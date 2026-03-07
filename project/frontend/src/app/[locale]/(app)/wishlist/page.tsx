@@ -244,7 +244,8 @@ export default function WishlistPage() {
                   </Link>
                   <button
                     onClick={() => setBannerDismissed(true)}
-                    className="text-xs text-muted-foreground hover:text-foreground"
+                    className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-muted-foreground hover:text-foreground"
+                    aria-label="Dismiss"
                   >
                     <X className="h-3.5 w-3.5" />
                   </button>

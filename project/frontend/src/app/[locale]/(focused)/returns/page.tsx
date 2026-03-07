@@ -3,6 +3,34 @@ import { resolvePlaceholders, fetchLegalSettings } from '@/lib/legal-utils'
 import { notFound } from 'next/navigation'
 import { SafeMarkdown } from '@/components/common/SafeMarkdown'
 import { createClient } from '@supabase/supabase-js'
+import type { Metadata } from 'next'
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://skapara.com'
+
+  const titles: Record<string, Record<string, string>> = {
+    en: { title: 'Return Policy', description: 'Return and refund policy for SKAPARA orders' },
+    es: { title: 'Política de Devoluciones', description: 'Política de devoluciones y reembolsos de pedidos SKAPARA' },
+    de: { title: 'Rückgaberichtlinie', description: 'Rückgabe- und Erstattungsrichtlinie für SKAPARA-Bestellungen' },
+  }
+
+  const t = titles[locale] || titles.en
+
+  return {
+    title: t.title,
+    description: t.description,
+    alternates: {
+      canonical: `${baseUrl}/${locale}/returns`,
+      languages: {
+        en: `${baseUrl}/en/returns`,
+        es: `${baseUrl}/es/returns`,
+        de: `${baseUrl}/de/returns`,
+        'x-default': `${baseUrl}/en/returns`,
+      },
+    },
+  }
+}
 
 interface LegalPage {
   id: string

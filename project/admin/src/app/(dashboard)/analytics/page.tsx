@@ -572,7 +572,7 @@ export default function AnalyticsPage() {
             <div className="space-y-4">
               <div className="flex justify-between border-b pb-2">
                 <span className="font-medium">Revenue</span>
-                <span className="font-bold text-green-600">
+                <span className="font-bold text-success">
                   {formatCurrency(report.profitAndLoss.revenue, currency)}
                 </span>
               </div>
@@ -580,19 +580,19 @@ export default function AnalyticsPage() {
               <div className="space-y-2 pl-4 text-sm">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Printful Costs</span>
-                  <span className="text-red-600">
+                  <span className="text-destructive">
                     -{formatCurrency(report.profitAndLoss.breakdown.printfulCosts, currency)}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Stripe Fees (3%)</span>
-                  <span className="text-red-600">
+                  <span className="text-destructive">
                     -{formatCurrency(report.profitAndLoss.breakdown.stripeFees, currency)}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Operational Costs</span>
-                  <span className="text-red-600">
+                  <span className="text-destructive">
                     -{formatCurrency(report.profitAndLoss.breakdown.operationalCosts, currency)}
                   </span>
                 </div>
@@ -600,14 +600,14 @@ export default function AnalyticsPage() {
 
               <div className="flex justify-between border-t pt-2">
                 <span className="font-medium">Total Costs</span>
-                <span className="font-bold text-red-600">
+                <span className="font-bold text-destructive">
                   -{formatCurrency(report.profitAndLoss.costs, currency)}
                 </span>
               </div>
 
               <div className="flex justify-between border-t-2 pt-2">
                 <span className="font-bold">Gross Profit</span>
-                <span className="font-bold text-green-600 text-lg">
+                <span className="font-bold text-success text-lg">
                   {formatCurrency(report.profitAndLoss.grossProfit, currency)}
                 </span>
               </div>
@@ -644,7 +644,7 @@ export default function AnalyticsPage() {
                       </div>
                       <div>
                         <p className="text-xs text-muted-foreground">Est. Margin</p>
-                        <p className="font-medium text-green-600">
+                        <p className="font-medium text-success">
                           {formatCurrency(category.estimatedMargin, currency)}
                         </p>
                       </div>
@@ -726,7 +726,7 @@ export default function AnalyticsPage() {
                       <TableCell className="text-right font-medium">
                         {formatCurrency(product.revenue, currency)}
                       </TableCell>
-                      <TableCell className="text-right text-green-600">
+                      <TableCell className="text-right text-success">
                         {formatCurrency(product.estimatedMargin, currency)}
                       </TableCell>
                       <TableCell className="text-right">{product.marginPercent}%</TableCell>

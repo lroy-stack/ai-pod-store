@@ -31,6 +31,7 @@ import { OfflineBanner } from '@/components/OfflineBanner'
 import { SubscriptionStatusBanner } from '@/components/SubscriptionStatusBanner'
 import { InstallPrompt } from '@/components/engagement/InstallPrompt'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
+import { BottomNav } from './BottomNav'
 
 const WelcomePopup = dynamic(
   () => import('@/components/engagement/WelcomePopup').then((mod) => ({ default: mod.WelcomePopup })),
@@ -111,14 +112,14 @@ function StorefrontShell({ children }: { children: React.ReactNode }) {
         {/* ChatArea always mounted — collapse to h-0 when hidden to preserve SSE/state */}
         <div className={cn(
           "flex flex-col min-h-0",
-          isChatPage ? "flex-1" : "h-0 overflow-hidden pointer-events-none"
+          isChatPage ? "flex-1 pb-16 md:pb-0" : "h-0 overflow-hidden pointer-events-none"
         )}>
           <ErrorBoundary>
             <ChatArea />
           </ErrorBoundary>
         </div>
         {!isChatPage && (
-          <div className="flex flex-1 flex-col min-h-0 overflow-y-auto">
+          <div className="flex flex-1 flex-col min-h-0 overflow-y-auto pb-16 md:pb-0">
             {children}
             <Footer />
           </div>
@@ -138,6 +139,9 @@ function StorefrontShell({ children }: { children: React.ReactNode }) {
           <DetailPanel productId={selectedProduct || undefined} onClose={handleClosePanel} onAskAbout={handleAskAbout} />
         </div>
       )}
+
+      {/* Bottom Navigation - Mobile */}
+      <BottomNav />
 
       {/* PWA Install Prompt - appears after 3+ visits */}
       <InstallPrompt />

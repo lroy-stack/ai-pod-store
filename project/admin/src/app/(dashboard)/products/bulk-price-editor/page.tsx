@@ -61,7 +61,7 @@ function MarginBadge({ margin }: { margin: number | null }) {
       </Badge>
     );
   return (
-    <Badge variant="default" className="bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400 border-0 text-xs">
+    <Badge variant="default" className="bg-success/10 text-success dark:bg-success/20 dark:text-success border-0 text-xs">
       {margin}%
     </Badge>
   );

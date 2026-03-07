@@ -64,7 +64,7 @@ function TrendIndicator({ value }: { value: number }) {
 
   const isPositive = value > 0;
   const Icon = isPositive ? ArrowUp : ArrowDown;
-  const colorClass = isPositive ? 'text-green-600' : 'text-red-600';
+  const colorClass = isPositive ? 'text-success' : 'text-destructive';
 
   return (
     <span className={`flex items-center gap-1 text-xs font-medium ${colorClass}`}>

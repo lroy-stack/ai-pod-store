@@ -15,8 +15,18 @@ export async function generateMetadata({ params }: AboutPageProps): Promise<Meta
   const baseUrl = BASE_URL
   const siteName = BRAND.name
 
-  const title = `About Us - ${siteName}`
-  const description = 'Learn about SKAPARA - the AI-powered print-on-demand platform that makes custom product creation easy and accessible for everyone.'
+  const titles: Record<string, string> = {
+    en: `About Us - ${siteName}`,
+    es: `Sobre Nosotros - ${siteName}`,
+    de: `Über Uns - ${siteName}`,
+  }
+  const descriptions: Record<string, string> = {
+    en: 'Learn about SKAPARA - the AI-powered print-on-demand platform that makes custom product creation easy and accessible for everyone.',
+    es: 'Conoce SKAPARA - la plataforma de impresión bajo demanda impulsada por IA que hace la creación de productos personalizados fácil y accesible para todos.',
+    de: 'Erfahren Sie mehr über SKAPARA - die KI-gestützte Print-on-Demand-Plattform, die individuelle Produkterstellung einfach und für jeden zugänglich macht.',
+  }
+  const title = titles[locale] || titles.en
+  const description = descriptions[locale] || descriptions.en
 
   return {
     title,
@@ -40,6 +50,7 @@ export async function generateMetadata({ params }: AboutPageProps): Promise<Meta
         'en': `${baseUrl}/en/about`,
         'es': `${baseUrl}/es/about`,
         'de': `${baseUrl}/de/about`,
+        'x-default': `${baseUrl}/en/about`,
       },
     },
   }

@@ -20,6 +20,14 @@ const supabase = createClient(
 
 export async function POST(req: NextRequest) {
   try {
+    if (!process.env.STRIPE_PREMIUM_PRICE_ID) {
+      console.error('STRIPE_PREMIUM_PRICE_ID environment variable is not configured')
+      return Response.json(
+        { error: 'Subscription service is not configured' },
+        { status: 503 }
+      )
+    }
+
     const user = await requireAuth(req)
 
     // Per-user rate limit: 3 checkout sessions/hour to prevent Stripe session spam
@@ -61,18 +69,22 @@ export async function POST(req: NextRequest) {
         .eq('id', user.id)
     }
 
+    // Extract locale from request body, default to 'en'
+    const body = await req.json().catch(() => ({}))
+    const locale = body.locale || 'en'
+
     // Create checkout session for subscription
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
       customer: customerId,
       line_items: [
         {
-          price: process.env.STRIPE_PREMIUM_PRICE_ID!,
+          price: process.env.STRIPE_PREMIUM_PRICE_ID,
           quantity: 1,
         },
       ],
-      success_url: `${BASE_URL}/en/pricing?success=true`,
-      cancel_url: `${BASE_URL}/en/pricing?cancelled=true`,
+      success_url: `${BASE_URL}/${locale}/pricing?success=true`,
+      cancel_url: `${BASE_URL}/${locale}/pricing?cancelled=true`,
       metadata: {
         user_id: user.id,
         type: 'subscription',

@@ -21,28 +21,28 @@ export function QuickActions() {
       title: 'Create Product',
       description: 'Add a new product to the catalog',
       href: '/products/new',
-      iconColor: 'text-blue-600',
+      iconColor: 'text-primary',
     },
     {
       icon: <ShoppingCart className="h-6 w-6" />,
       title: 'Pending Orders',
       description: 'View orders awaiting fulfillment',
       href: '/orders?status=pending',
-      iconColor: 'text-orange-600',
+      iconColor: 'text-warning',
     },
     {
       icon: <Bot className="h-6 w-6" />,
       title: 'Run Agent',
       description: 'Start PodClaw autonomous agent',
       href: '/agent',
-      iconColor: 'text-purple-600',
+      iconColor: 'text-primary',
     },
     {
       icon: <BarChart3 className="h-6 w-6" />,
       title: 'View Reports',
       description: 'Analytics and business insights',
       href: '/analytics',
-      iconColor: 'text-green-600',
+      iconColor: 'text-success',
     },
   ];
 

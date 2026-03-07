@@ -442,10 +442,10 @@ export default function EditProductPage() {
                 {/* Preview */}
                 <div className="rounded-lg border border-border p-4 bg-muted/30">
                   <p className="text-xs text-muted-foreground mb-2 font-medium uppercase tracking-wide">Search Preview</p>
-                  <p className="text-base text-blue-600 dark:text-blue-400 font-medium truncate">
+                  <p className="text-base text-primary dark:text-primary font-medium truncate">
                     {product.meta_title || product.title}
                   </p>
-                  <p className="text-xs text-green-700 dark:text-green-400 truncate">
+                  <p className="text-xs text-success dark:text-success truncate">
                     skapara.com/en/shop/products/{product.slug || '[auto-generated]'}
                   </p>
                   <p className="text-sm text-muted-foreground mt-1 line-clamp-2">

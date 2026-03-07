@@ -235,7 +235,7 @@ export default function FinancePage() {
               {formatCurrency(report.summary.totalRevenue, currency)}
             </div>
             <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
-              <ArrowUpRight className="h-3 w-3 text-green-500" />
+              <ArrowUpRight className="h-3 w-3 text-success" />
               All-time revenue
             </p>
           </CardContent>
@@ -247,7 +247,7 @@ export default function FinancePage() {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">
+            <div className="text-2xl font-bold text-success">
               {formatCurrency(report.profitAndLoss.grossProfit, currency)}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
@@ -262,7 +262,7 @@ export default function FinancePage() {
             <ArrowDownRight className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">
+            <div className="text-2xl font-bold text-destructive">
               {formatCurrency(report.profitAndLoss.costs, currency)}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
@@ -299,7 +299,7 @@ export default function FinancePage() {
             <div className="space-y-2">
               <div className="flex justify-between items-center py-2">
                 <span className="text-lg font-semibold">Revenue</span>
-                <span className="text-lg font-bold text-green-600">
+                <span className="text-lg font-bold text-success">
                   {formatCurrency(report.profitAndLoss.revenue, currency)}
                 </span>
               </div>
@@ -311,7 +311,7 @@ export default function FinancePage() {
             <div className="space-y-2">
               <div className="flex justify-between items-center py-2">
                 <span className="text-lg font-semibold">Cost of Goods Sold</span>
-                <span className="text-lg font-bold text-red-600">
+                <span className="text-lg font-bold text-destructive">
                   {formatCurrency(report.profitAndLoss.costs, currency)}
                 </span>
               </div>
@@ -319,19 +319,19 @@ export default function FinancePage() {
               <div className="space-y-2 pl-4 text-sm border-l-2 border-muted ml-2">
                 <div className="flex justify-between py-1">
                   <span className="text-muted-foreground">Printful Production Costs</span>
-                  <span className="font-medium text-red-600">
+                  <span className="font-medium text-destructive">
                     {formatCurrency(report.profitAndLoss.breakdown.printfulCosts, currency)}
                   </span>
                 </div>
                 <div className="flex justify-between py-1">
                   <span className="text-muted-foreground">Payment Processing (Stripe 3%)</span>
-                  <span className="font-medium text-red-600">
+                  <span className="font-medium text-destructive">
                     {formatCurrency(report.profitAndLoss.breakdown.stripeFees, currency)}
                   </span>
                 </div>
                 <div className="flex justify-between py-1">
                   <span className="text-muted-foreground">Operational & Platform Costs</span>
-                  <span className="font-medium text-red-600">
+                  <span className="font-medium text-destructive">
                     {formatCurrency(report.profitAndLoss.breakdown.operationalCosts, currency)}
                   </span>
                 </div>
@@ -349,7 +349,7 @@ export default function FinancePage() {
                     After deducting all costs
                   </p>
                 </div>
-                <span className="text-2xl font-bold text-green-600">
+                <span className="text-2xl font-bold text-success">
                   {formatCurrency(report.profitAndLoss.grossProfit, currency)}
                 </span>
               </div>
@@ -375,7 +375,7 @@ export default function FinancePage() {
             <TableBody>
               <TableRow>
                 <TableCell className="font-medium">Operating Cash Flow</TableCell>
-                <TableCell className="text-right font-medium text-green-600">
+                <TableCell className="text-right font-medium text-success">
                   {formatCurrency(operatingCashFlow, currency)}
                 </TableCell>
               </TableRow>
@@ -393,7 +393,7 @@ export default function FinancePage() {
               </TableRow>
               <TableRow className="border-t-2">
                 <TableCell className="font-bold">Net Cash Flow</TableCell>
-                <TableCell className="text-right font-bold text-green-600">
+                <TableCell className="text-right font-bold text-success">
                   {formatCurrency(netCashFlow, currency)}
                 </TableCell>
               </TableRow>

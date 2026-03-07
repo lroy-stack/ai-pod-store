@@ -113,7 +113,7 @@ export default function ReviewModerationPage() {
           <Star
             key={star}
             className={`h-4 w-4 ${
-              star <= rating ? 'fill-yellow-400 text-yellow-400' : 'text-muted'
+              star <= rating ? 'fill-warning text-warning' : 'text-muted'
             }`}
           />
         ))}

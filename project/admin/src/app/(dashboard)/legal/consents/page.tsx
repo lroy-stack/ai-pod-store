@@ -337,13 +337,13 @@ export default function ConsentRecordsPage() {
                           <div className="flex items-center gap-2">
                             {record.granted ? (
                               <>
-                                <CheckCircle2 className="h-4 w-4 text-green-600" />
-                                <span className="text-green-600">Granted</span>
+                                <CheckCircle2 className="h-4 w-4 text-success" />
+                                <span className="text-success">Granted</span>
                               </>
                             ) : (
                               <>
-                                <XCircle className="h-4 w-4 text-red-600" />
-                                <span className="text-red-600">Withdrawn</span>
+                                <XCircle className="h-4 w-4 text-destructive" />
+                                <span className="text-destructive">Withdrawn</span>
                               </>
                             )}
                           </div>
@@ -381,9 +381,9 @@ export default function ConsentRecordsPage() {
                         <span className="text-muted-foreground">Status:</span>
                         <span>
                           {record.granted ? (
-                            <span className="text-green-600">Granted</span>
+                            <span className="text-success">Granted</span>
                           ) : (
-                            <span className="text-red-600">Withdrawn</span>
+                            <span className="text-destructive">Withdrawn</span>
                           )}
                         </span>
                       </div>

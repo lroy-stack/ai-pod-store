@@ -313,11 +313,11 @@ export default function RegisterForm({ locale }: { locale: string }) {
             />
             <span className="text-xs md:text-sm leading-relaxed text-muted-foreground">
               {t('agreeToTerms')}{' '}
-              <Link href={`/${locale}/legal/terms`} className="text-primary hover:text-primary/80">
+              <Link href={`/${locale}/terms`} className="text-primary hover:text-primary/80">
                 {t('termsLink')}
               </Link>{' '}
               {t('and')}{' '}
-              <Link href={`/${locale}/legal/privacy`} className="text-primary hover:text-primary/80">
+              <Link href={`/${locale}/privacy`} className="text-primary hover:text-primary/80">
                 {t('privacyLink')}
               </Link>
             </span>

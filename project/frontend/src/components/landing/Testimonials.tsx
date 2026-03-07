@@ -16,9 +16,17 @@ interface TestimonialsProps {
   reviews: Review[]
   totalOrders: number
   averageRating: number
+  locale?: string
 }
 
-export function Testimonials({ reviews, totalOrders, averageRating }: TestimonialsProps) {
+const i18n: Record<string, { outOf5: string; happyCustomers: string; verified: string }> = {
+  en: { outOf5: 'out of 5', happyCustomers: 'Happy Customers', verified: 'Verified' },
+  es: { outOf5: 'de 5', happyCustomers: 'Clientes Felices', verified: 'Verificado' },
+  de: { outOf5: 'von 5', happyCustomers: 'Zufriedene Kunden', verified: 'Verifiziert' },
+}
+
+export function Testimonials({ reviews, totalOrders, averageRating, locale = 'en' }: TestimonialsProps) {
+  const t = i18n[locale] ?? i18n.en
   if (reviews.length === 0) return null
 
   return (
@@ -42,7 +50,7 @@ export function Testimonials({ reviews, totalOrders, averageRating }: Testimonia
             </div>
             <div className="text-sm">
               <span className="font-semibold text-foreground">{averageRating.toFixed(1)}</span>
-              <span className="text-muted-foreground ml-1">out of 5</span>
+              <span className="text-muted-foreground ml-1">{t.outOf5}</span>
             </div>
           </div>
 
@@ -52,7 +60,7 @@ export function Testimonials({ reviews, totalOrders, averageRating }: Testimonia
             <div className="text-2xl font-bold text-foreground">
               {totalOrders.toLocaleString()}+
             </div>
-            <div className="text-sm text-muted-foreground">Happy Customers</div>
+            <div className="text-sm text-muted-foreground">{t.happyCustomers}</div>
           </div>
         </div>
 
@@ -82,7 +90,7 @@ export function Testimonials({ reviews, totalOrders, averageRating }: Testimonia
                   {review.is_verified_purchase && (
                     <div className="flex items-center gap-1 text-xs text-muted-foreground">
                       <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
-                      <span>Verified</span>
+                      <span>{t.verified}</span>
                     </div>
                   )}
                 </div>

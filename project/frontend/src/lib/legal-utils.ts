@@ -28,13 +28,13 @@ export interface LegalSettings {
  */
 const LEGAL_FALLBACKS: LegalSettings = {
   company_name: STORE_DEFAULTS.storeName,
-  company_address: '123 Main Street, City, Country',
-  company_email: 'legal@example.com',
-  tax_id: 'XX-XXXXXXX',
-  trade_register_court: 'District Court',
-  trade_register_number: 'HRB XXXXXX',
+  company_address: '',
+  company_email: 'hello@skapara.com',
+  tax_id: '',
+  trade_register_court: '',
+  trade_register_number: '',
   dpo_name: 'Data Protection Officer',
-  dpo_email: 'privacy@example.com',
+  dpo_email: 'privacy@skapara.com',
   cookie_policy_url: '/cookies',
   privacy_policy_url: '/privacy',
   terms_of_service_url: '/terms',
@@ -82,6 +82,9 @@ export function resolvePlaceholders(
   locale: string = 'en'
 ): string {
   // Use provided settings or fallback to defaults
+  if (!settings) {
+    console.warn('[legal-utils] Using fallback legal settings — configure real values in admin legal settings')
+  }
   const resolvedSettings = settings ?? LEGAL_FALLBACKS
 
   // Current date formatting based on locale

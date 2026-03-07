@@ -1,15 +1,22 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useRef, useCallback } from 'react'
 import { toast } from 'sonner'
 import { apiUrl } from '@/lib/admin-api'
 
+const RECONNECT_DELAYS = [5000, 10000, 30000, 60000] // 5s, 10s, 30s, 60s
+
 export function SSEProvider({ children }: { children: React.ReactNode }) {
-  useEffect(() => {
+  const reconnectAttemptRef = useRef(0)
+  const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const eventSourceRef = useRef<EventSource | null>(null)
+
+  const connect = useCallback(() => {
     // Only connect if admin session cookie exists
     if (!document.cookie.includes('admin-session')) return
 
     const eventSource = new EventSource(apiUrl('/api/events/stream'))
+    eventSourceRef.current = eventSource
 
     eventSource.addEventListener('connected', () => {
       console.log('[SSE] Connected to admin event stream')
@@ -141,16 +148,51 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
       }
     })
 
-    // Handle connection errors — silent close, no reload loop
-    eventSource.onerror = () => {
-      eventSource.close()
+    // Dispatch custom events so NotificationsContext can listen without duplicate SSE
+    const dispatchSSE = (type: string, data: any) => {
+      window.dispatchEvent(new CustomEvent('sse-event', { detail: { type, data } }))
     }
 
-    // Cleanup on unmount
-    return () => {
-      eventSource.close()
+    // Re-dispatch all known event types for NotificationsContext
+    for (const eventType of ['new_order', 'agent_cycle', 'error_alert', 'alert', 'sync_error', 'webhook_failed', 'margin_alert', 'integrity_issue', 'notification']) {
+      eventSource.addEventListener(eventType, (e: MessageEvent) => {
+        try {
+          dispatchSSE(eventType, JSON.parse(e.data))
+        } catch { /* already handled by specific listeners above */ }
+      })
     }
-  }, [])
+
+    // Reset reconnect counter on successful connection
+    eventSource.onopen = () => {
+      reconnectAttemptRef.current = 0
+    }
+
+    // Handle connection errors with exponential backoff reconnection
+    eventSource.onerror = () => {
+      eventSource.close()
+      eventSourceRef.current = null
+      const delay = RECONNECT_DELAYS[Math.min(reconnectAttemptRef.current, RECONNECT_DELAYS.length - 1)]
+      reconnectAttemptRef.current++
+      reconnectTimerRef.current = setTimeout(() => {
+        connect()
+      }, delay)
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    connect()
+
+    return () => {
+      if (reconnectTimerRef.current) {
+        clearTimeout(reconnectTimerRef.current)
+        reconnectTimerRef.current = null
+      }
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close()
+        eventSourceRef.current = null
+      }
+    }
+  }, [connect]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return <>{children}</>
 }

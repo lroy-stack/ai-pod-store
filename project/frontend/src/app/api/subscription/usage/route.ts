@@ -8,6 +8,7 @@
 import { NextRequest } from 'next/server'
 import { requireAuth, authErrorResponse } from '@/lib/auth-guard'
 import { createClient } from '@supabase/supabase-js'
+import { USAGE_TIERS, type UserTier } from '@/lib/usage-limiter'
 
 const supabase = createClient(
   process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -15,18 +16,14 @@ const supabase = createClient(
   { auth: { autoRefreshToken: false, persistSession: false } }
 )
 
-// Define tier limits (must match USAGE_TIERS in usage-limiter.ts)
-const TIER_LIMITS = {
-  free: {
-    chats_per_day: 30,
-    designs_per_month: 5,
-    mockups_per_month: 10,
-  },
-  premium: {
-    chats_per_day: 100,
-    designs_per_month: 50,
-    mockups_per_month: 100,
-  },
+// Derive tier limits from canonical USAGE_TIERS (usage-limiter.ts)
+function getTierLimits(tier: UserTier) {
+  const t = USAGE_TIERS[tier]
+  return {
+    chats_per_day: t.chat.limit,
+    designs_per_month: t['design:generate'].limit,
+    mockups_per_month: t['design:mockup'].limit,
+  }
 }
 
 export async function GET(req: NextRequest) {
@@ -47,18 +44,14 @@ export async function GET(req: NextRequest) {
       )
     }
 
-    const tier = profile.tier || 'free'
-    const limits = TIER_LIMITS[tier as keyof typeof TIER_LIMITS]
+    const tier = (profile.tier || 'free') as UserTier
+    const limits = getTierLimits(tier)
 
     return Response.json({
       tier,
       credit_balance: profile.credit_balance || 0,
       subscription_status: profile.subscription_status || 'none',
-      limits: {
-        chats_per_day: limits.chats_per_day,
-        designs_per_month: limits.designs_per_month,
-        mockups_per_month: limits.mockups_per_month,
-      },
+      limits,
     })
   } catch (error) {
     if (error instanceof Error && 'status' in error) {

@@ -49,7 +49,7 @@ export function MarginCalculator({
           title={`Base cost: ${fmt(avgBaseCostCents)}`}
         />
         <div
-          className="bg-yellow-500/70 h-full transition-all"
+          className="bg-warning/70 h-full transition-all"
           style={{ width: `${feePct}%` }}
           title={`Stripe fee: ${fmt(stripeFee)}`}
         />
@@ -69,7 +69,7 @@ export function MarginCalculator({
           </div>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="w-2.5 h-2.5 rounded-sm bg-yellow-500/70 flex-shrink-0" />
+          <span className="w-2.5 h-2.5 rounded-sm bg-warning/70 flex-shrink-0" />
           <div>
             <p className="text-muted-foreground">Stripe fee</p>
             <p className="font-medium">{fmt(stripeFee)}</p>

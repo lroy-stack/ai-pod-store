@@ -175,6 +175,16 @@ export function Footer() {
 
         <Separator className="my-6" />
 
+        {/* Payment Methods */}
+        <div className="flex items-center justify-center gap-2 mb-6 text-muted-foreground">
+          <span className="text-xs">{t('weAccept')}:</span>
+          <span className="text-xs font-medium px-2 py-0.5 border border-border rounded">Visa</span>
+          <span className="text-xs font-medium px-2 py-0.5 border border-border rounded">Mastercard</span>
+          <span className="text-xs font-medium px-2 py-0.5 border border-border rounded">PayPal</span>
+          <span className="text-xs font-medium px-2 py-0.5 border border-border rounded">Apple Pay</span>
+          <span className="text-xs font-medium px-2 py-0.5 border border-border rounded">Google Pay</span>
+        </div>
+
         {/* Copyright + Theme */}
         <div className="flex flex-col items-center gap-4 text-sm text-muted-foreground md:flex-row md:justify-between">
           <p suppressHydrationWarning>

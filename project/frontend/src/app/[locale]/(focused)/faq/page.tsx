@@ -15,8 +15,18 @@ export async function generateMetadata({ params }: FAQPageProps): Promise<Metada
   const baseUrl = BASE_URL
   const siteName = BRAND.name
 
-  const title = `Frequently Asked Questions - ${siteName}`
-  const description = 'Find answers to common questions about SKAPARA, our products, ordering, shipping, and more.'
+  const titles: Record<string, string> = {
+    en: `Frequently Asked Questions - ${siteName}`,
+    es: `Preguntas Frecuentes - ${siteName}`,
+    de: `Häufig gestellte Fragen - ${siteName}`,
+  }
+  const descriptions: Record<string, string> = {
+    en: 'Find answers to common questions about SKAPARA, our products, ordering, shipping, and more.',
+    es: 'Encuentra respuestas a preguntas comunes sobre SKAPARA, nuestros productos, pedidos, envíos y más.',
+    de: 'Finden Sie Antworten auf häufige Fragen zu SKAPARA, unseren Produkten, Bestellungen, Versand und mehr.',
+  }
+  const title = titles[locale] || titles.en
+  const description = descriptions[locale] || descriptions.en
 
   return {
     title,
@@ -40,6 +50,7 @@ export async function generateMetadata({ params }: FAQPageProps): Promise<Metada
         'en': `${baseUrl}/en/faq`,
         'es': `${baseUrl}/es/faq`,
         'de': `${baseUrl}/de/faq`,
+        'x-default': `${baseUrl}/en/faq`,
       },
     },
   }
@@ -95,7 +106,28 @@ export default async function FAQPage({ params }: FAQPageProps) {
     },
   ]
 
+  // Flatten all Q&A for FAQPage JSON-LD
+  const allQuestions = faqData.flatMap(cat => cat.questions)
+
   return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'FAQPage',
+            mainEntity: allQuestions.map(item => ({
+              '@type': 'Question',
+              name: item.question,
+              acceptedAnswer: {
+                '@type': 'Answer',
+                text: item.answer,
+              },
+            })),
+          }),
+        }}
+      />
     <div className="container mx-auto max-w-4xl px-4 py-12">
       <div className="mb-12 text-center">
         <h1 className="mb-4 text-4xl font-bold tracking-tight md:text-5xl">{t('title')}</h1>
@@ -130,5 +162,6 @@ export default async function FAQPage({ params }: FAQPageProps) {
         </a>
       </div>
     </div>
+    </>
   )
 }

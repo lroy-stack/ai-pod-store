@@ -4,8 +4,9 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { useTranslations, useLocale } from 'next-intl'
 import Link from 'next/link'
 import Image from 'next/image'
-import { useState, useEffect, useRef, useMemo } from 'react'
-import { Star, Heart, ShoppingCart, ChevronLeft, Shirt, Droplets, Globe, Printer, ShieldCheck, Paintbrush2, Share2 } from 'lucide-react'
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
+import useEmblaCarousel from 'embla-carousel-react'
+import { Star, Heart, ShoppingCart, ChevronLeft, Shirt, Droplets, Globe, Printer, ShieldCheck, Paintbrush2, Share2, Truck } from 'lucide-react'
 import { useCart } from '@/hooks/useCart'
 import { useWishlist } from '@/hooks/useWishlist'
 import { useRecentlyViewed } from '@/hooks/useRecentlyViewed'
@@ -14,6 +15,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
+import { Dialog, DialogContent, DialogTrigger, DialogTitle } from '@/components/ui/dialog'
 import { cn } from '@/lib/utils'
 import { formatPrice, getLocalizedPrice } from '@/lib/currency'
 import { SafeHTML } from '@/components/common/SafeHTML'
@@ -97,6 +99,25 @@ export function ProductDetailClient({ product, relatedProducts, reviews }: Produ
   const compositionIdParam = searchParams.get('compositionId')
 
   const [selectedImage, setSelectedImage] = useState(0)
+  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true })
+
+  // Sync embla carousel selection with selectedImage state
+  const onEmblaSelect = useCallback(() => {
+    if (!emblaApi) return
+    setSelectedImage(emblaApi.selectedScrollSnap())
+  }, [emblaApi])
+
+  useEffect(() => {
+    if (!emblaApi) return
+    emblaApi.on('select', onEmblaSelect)
+    return () => { emblaApi.off('select', onEmblaSelect) }
+  }, [emblaApi, onEmblaSelect])
+
+  // When selectedImage changes externally (thumbnail click, color change), scroll embla
+  useEffect(() => {
+    if (emblaApi) emblaApi.scrollTo(selectedImage, true)
+  }, [emblaApi, selectedImage])
+
   // Auto-select: single option always, first option when image mapping exists, or URL param
   const [selectedSize, setSelectedSize] = useState<string>(
     sizes?.length === 1
@@ -353,21 +374,42 @@ export function ProductDetailClient({ product, relatedProducts, reviews }: Produ
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
         {/* Image Gallery */}
         <div className="space-y-4">
-          <div className="relative aspect-square bg-muted rounded-lg overflow-hidden">
-            {visibleImages[selectedImage] ? (
-              <Image
-                src={visibleImages[selectedImage]}
-                alt={product.title}
-                fill
-                className="object-cover"
-                sizes="(max-width: 1024px) 100vw, 50vw"
-                priority
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                {product.title}
-              </div>
-            )}
+          {/* Swipeable Carousel */}
+          <div ref={emblaRef} className="overflow-hidden rounded-lg">
+            <div className="flex">
+              {visibleImages.length > 0 ? visibleImages.map((image: string, index: number) => (
+                <div key={`slide-${index}`} className="flex-[0_0_100%] min-w-0">
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <button className="relative aspect-square bg-muted w-full cursor-zoom-in focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
+                        <Image
+                          src={image}
+                          alt={`${product.title} ${index + 1}`}
+                          fill
+                          className="object-cover"
+                          sizes="(max-width: 1024px) 100vw, 50vw"
+                          priority={index === 0}
+                        />
+                      </button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-4xl p-0 bg-background border-none">
+                      <DialogTitle className="sr-only">{product.title}</DialogTitle>
+                      <img
+                        src={image}
+                        alt={product.title}
+                        className="w-full h-auto rounded-lg"
+                      />
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              )) : (
+                <div className="flex-[0_0_100%] min-w-0">
+                  <div className="relative aspect-square bg-muted rounded-lg flex items-center justify-center text-muted-foreground">
+                    {product.title}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Thumbnail Gallery */}
@@ -599,6 +641,14 @@ export function ProductDetailClient({ product, relatedProducts, reviews }: Produ
               </Badge>
             </div>
           )}
+
+          {/* Shipping Info */}
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Truck className="h-4 w-4 shrink-0" />
+            <span>
+              {locale === 'es' ? 'Envio gratuito en pedidos superiores a 50 €' : locale === 'de' ? 'Kostenloser Versand ab 50 €' : 'Free shipping on orders over €50'}
+            </span>
+          </div>
 
           {/* Action Buttons */}
           <div ref={mainCtaRef} className="flex gap-3">

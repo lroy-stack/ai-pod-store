@@ -528,10 +528,13 @@ export default function CheckoutView({ locale }: { locale: string }) {
               <Truck className="h-4 w-4" />
               <span>{t('trustShipping')}</span>
             </div>
-            <div className="flex items-center gap-2 text-sm">
+            <Link
+              href={`/${locale}/returns`}
+              className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
               <RotateCcw className="h-4 w-4" />
               <span>{t('trustReturns')}</span>
-            </div>
+            </Link>
             <div className="flex items-center gap-2 text-sm">
               <ShieldCheck className="h-4 w-4" />
               <span>{t('trustSecure')}</span>

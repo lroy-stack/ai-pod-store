@@ -376,7 +376,7 @@ export default function SettingsPage() {
                                   <Check
                                     className={`h-4 w-4 mx-auto ${
                                       role.name === 'super_admin'
-                                        ? 'text-green-600'
+                                        ? 'text-success'
                                         : 'text-primary'
                                     }`}
                                   />

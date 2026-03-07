@@ -41,6 +41,18 @@ interface ShopPageClientProps {
 
 const PRODUCTS_PER_PAGE = 20
 
+function getPageNumbers(current: number, total: number): (number | '...')[] {
+  if (total <= 5) return Array.from({ length: total }, (_, i) => i + 1)
+  const pages: (number | '...')[] = [1]
+  if (current > 3) pages.push('...')
+  for (let i = Math.max(2, current - 1); i <= Math.min(total - 1, current + 1); i++) {
+    pages.push(i)
+  }
+  if (current < total - 2) pages.push('...')
+  pages.push(total)
+  return pages
+}
+
 // Map frontend sort keys to API sort params
 const sortMap: Record<SortOption, string | undefined> = {
   featured: undefined,
@@ -348,20 +360,29 @@ export function ShopPageClient({
           </Button>
 
           <div className="flex gap-1">
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-              <Button
-                key={page}
-                variant={currentPage === page ? 'default' : 'outline'}
-                size="icon"
-                onClick={() => goToPage(page)}
-                className={cn(
-                  'size-10',
-                  currentPage === page && 'bg-primary text-primary-foreground'
-                )}
-              >
-                {page}
-              </Button>
-            ))}
+            {getPageNumbers(currentPage, totalPages).map((page, idx) =>
+              page === '...' ? (
+                <span
+                  key={`ellipsis-${idx}`}
+                  className="size-10 flex items-center justify-center text-muted-foreground"
+                >
+                  ...
+                </span>
+              ) : (
+                <Button
+                  key={page}
+                  variant={currentPage === page ? 'default' : 'outline'}
+                  size="icon"
+                  onClick={() => goToPage(page)}
+                  className={cn(
+                    'size-10',
+                    currentPage === page && 'bg-primary text-primary-foreground'
+                  )}
+                >
+                  {page}
+                </Button>
+              )
+            )}
           </div>
 
           <Button
