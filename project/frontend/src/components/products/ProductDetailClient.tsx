@@ -318,6 +318,38 @@ export function ProductDetailClient({ product, relatedProducts, reviews }: Produ
     }
   }
 
+  const handleBuyNow = async () => {
+    if (!product) return
+    if (sizes && sizes.length > 0 && !selectedSize) {
+      toast.error(t('selectSize'))
+      return
+    }
+    if (colors && colors.length > 0 && !selectedColor) {
+      toast.error(t('selectColor'))
+      return
+    }
+    setIsAddingToCart(true)
+    try {
+      await addToCart(
+        product.id,
+        quantity,
+        {
+          size: selectedSize || undefined,
+          color: selectedColor || undefined,
+        },
+        product.title,
+        currentVariantPrice,
+        undefined,
+        compositionIdParam || undefined
+      )
+      router.push(`/${locale}/checkout`)
+    } catch (error) {
+      console.error('Failed to buy now:', error)
+    } finally {
+      setIsAddingToCart(false)
+    }
+  }
+
   const handleShare = async () => {
     const url = window.location.href
     const title = product.title || 'Check out this product'
@@ -412,9 +444,51 @@ export function ProductDetailClient({ product, relatedProducts, reviews }: Produ
             </div>
           </div>
 
-          {/* Thumbnail Gallery */}
+          {/* Mobile: Dot indicators + Wishlist + Share (Amazon-style row) */}
+          <div className="flex items-center justify-between md:hidden">
+            <div className="flex items-center gap-1.5">
+              {visibleImages.length > 1 && visibleImages.map((_, index) => (
+                <button
+                  key={`dot-${index}`}
+                  className={cn(
+                    'w-2 h-2 rounded-full transition-colors',
+                    selectedImage === index ? 'bg-primary' : 'bg-muted-foreground/30'
+                  )}
+                  onClick={() => setSelectedImage(index)}
+                  aria-label={`Image ${index + 1}`}
+                />
+              ))}
+            </div>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-10 w-10"
+                onClick={(e) => { e.preventDefault(); toggleWishlist(product.id) }}
+                aria-label={wishlisted ? t('removeFromWishlist') : t('addToWishlist')}
+              >
+                <Heart
+                  className={cn(
+                    'size-5',
+                    wishlisted ? 'fill-destructive text-destructive' : 'text-muted-foreground'
+                  )}
+                />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-10 w-10"
+                onClick={handleShare}
+                aria-label={t('share')}
+              >
+                <Share2 className="size-5" />
+              </Button>
+            </div>
+          </div>
+
+          {/* Thumbnail Gallery (hidden on mobile, visible on md+) */}
           {visibleImages.length > 1 && (
-            <div className="grid grid-cols-4 gap-4">
+            <div className="hidden md:grid grid-cols-4 gap-4">
               {visibleImages.map((image: string, index: number) => (
                 <Button
                   key={`img-${index}`}
@@ -441,16 +515,126 @@ export function ProductDetailClient({ product, relatedProducts, reviews }: Produ
         </div>
 
         {/* Product Info */}
-        <div className="space-y-6">
-          {/* Title and Rating */}
+        <div className="space-y-5">
+          {/* 1. Title + Rating + Wishlist/Share (desktop only) */}
           <div>
-            <h1 className="text-3xl md:text-4xl font-bold mb-2">{product.title}</h1>
-            <div className="flex items-center gap-4 mb-4">
+            <div className="flex items-start justify-between gap-4">
+              <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold">{product.title}</h1>
+              {/* Desktop: Wishlist + Share beside title */}
+              <div className="hidden md:flex items-center gap-1 shrink-0">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-10 w-10"
+                  onClick={() => toggleWishlist(product.id)}
+                  aria-label={wishlisted ? t('removeFromWishlist') : t('addToWishlist')}
+                >
+                  <Heart className={cn('size-5', wishlisted ? 'fill-destructive text-destructive' : 'text-muted-foreground')} />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-10 w-10"
+                  onClick={handleShare}
+                  aria-label={t('share')}
+                >
+                  <Share2 className="size-5" />
+                </Button>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 flex-wrap mt-1.5">
               {renderStars(product.rating ?? 0)}
               <span className="text-sm text-muted-foreground">
                 {t('reviewsCount', { count: product.reviewCount ?? 0 })}
               </span>
             </div>
+            <SocialProofIndicator productId={product.id} />
+          </div>
+
+          <Separator />
+
+          {/* 2. Color selector */}
+          {allColors && allColors.length > 0 && (
+            <div>
+              <label className="text-sm font-medium mb-2 block">
+                {t('color')}{selectedColor && <span className="font-normal text-muted-foreground ml-1">— {selectedColor}</span>}
+              </label>
+              <div className="flex gap-2 overflow-x-auto scrollbar-hide p-1 -m-1">
+                {allColors.map((color: string) => {
+                  const isColorAvailable = availableColorsForSize.has(color)
+                  const colorImgIdx = colorImageIndices?.[color]?.[0]
+                  const colorImg = colorImgIdx != null && product.images[colorImgIdx] ? product.images[colorImgIdx] : null
+                  return (
+                    <button
+                      key={color}
+                      onClick={() => {
+                        if (!isColorAvailable) return
+                        setSelectedColor(color)
+                        setSelectedImage(0)
+                      }}
+                      disabled={!isColorAvailable}
+                      className={cn(
+                        'flex-shrink-0 rounded-lg border-2 p-1 transition-colors text-center',
+                        selectedColor === color
+                          ? 'border-primary ring-1 ring-primary/30'
+                          : 'border-border hover:border-primary/50',
+                        !isColorAvailable && 'opacity-40 cursor-not-allowed'
+                      )}
+                    >
+                      {colorImg ? (
+                        <Image src={colorImg} alt={color} width={56} height={56} className="rounded object-cover w-14 h-14 md:w-16 md:h-16" />
+                      ) : (
+                        <div className="w-14 h-14 md:w-16 md:h-16 rounded bg-muted flex items-center justify-center">
+                          <span className="text-xs text-muted-foreground">{color.slice(0, 3)}</span>
+                        </div>
+                      )}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* 3. Size selector */}
+          {allSizes && allSizes.length > 0 && (
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-sm font-medium">
+                  {t('size')}{selectedSize && <span className="font-normal text-muted-foreground ml-1">— {selectedSize}</span>}
+                </label>
+                {['t-shirts', 'pullover-hoodies', 'zip-hoodies', 'crewnecks', 'tanks'].some(c => product.category?.includes(c)) && <SizeGuide productType={product.category || ''} />}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {allSizes.map((size: string) => {
+                  const isSizeAvailable = availableSizesForColor.has(size)
+                  const isSelected = selectedSize === size
+                  return (
+                    <Button
+                      key={size}
+                      variant={isSelected ? 'default' : 'outline'}
+                      size="sm"
+                      disabled={!isSizeAvailable}
+                      onClick={() => {
+                        setSelectedSize(size)
+                        if (hasSizeMapping) setSelectedImage(0)
+                      }}
+                      className={cn(
+                        'min-w-[2.75rem] min-h-[2.75rem]',
+                        !isSizeAvailable && 'opacity-40 line-through'
+                      )}
+                    >
+                      {size}
+                    </Button>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
+          <Separator />
+
+          {/* 4. Price + Stock + Shipping */}
+          <div className="space-y-2">
             {product.compareAtPrice ? (
               <StrikethroughPrice
                 price={localizedPrice}
@@ -458,77 +642,73 @@ export function ProductDetailClient({ product, relatedProducts, reviews }: Produ
                 locale={locale}
               />
             ) : (
-              <p className="text-3xl font-bold">{formattedPrice}</p>
+              <p className="text-2xl md:text-3xl font-bold">{formattedPrice}</p>
             )}
-            <SocialProofIndicator productId={product.id} />
-          </div>
-
-          <Separator />
-
-          {/* Stock Status */}
-          <div>
-            {product.inStock ? (
-              <Badge variant="outline" className="bg-success/10 text-success border-success/20">
-                {t('inStock')}
-              </Badge>
-            ) : (
-              <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/20">
-                {t('outOfStock')}
-              </Badge>
-            )}
-          </div>
-
-          {/* Description */}
-          <div>
-            <h2 className="text-xl font-semibold mb-2">{t('description')}</h2>
-            <p className="text-muted-foreground leading-relaxed">{product.description}</p>
-          </div>
-
-          {/* Product Specifications */}
-          {(product.materials || product.careInstructions || product.printTechnique || product.manufacturingCountry) && (
-            <div className="space-y-3">
-              <h2 className="text-xl font-semibold">{t('specifications')}</h2>
-
-              {product.materials && (
-                <div className="flex items-start gap-3">
-                  <Shirt className="size-5 text-muted-foreground mt-0.5 shrink-0" />
-                  <div>
-                    <p className="text-sm font-medium">{t('materials')}</p>
-                    <p className="text-sm text-muted-foreground">{product.materials}</p>
-                  </div>
-                </div>
+            <div className="flex items-center gap-3 flex-wrap">
+              {product.inStock ? (
+                <Badge variant="outline" className="bg-success/10 text-success border-success/20 text-xs">
+                  {t('inStock')}
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/20 text-xs">
+                  {t('outOfStock')}
+                </Badge>
               )}
-
-              {product.careInstructions && (
-                <div className="flex items-start gap-3">
-                  <Droplets className="size-5 text-muted-foreground mt-0.5 shrink-0" />
-                  <div>
-                    <p className="text-sm font-medium">{t('careInstructions')}</p>
-                    <p className="text-sm text-muted-foreground">{product.careInstructions}</p>
-                  </div>
-                </div>
-              )}
-
-              {product.printTechnique && (
-                <div className="flex items-start gap-3">
-                  <Printer className="size-5 text-muted-foreground mt-0.5 shrink-0" />
-                  <div>
-                    <p className="text-sm font-medium">{t('printTechnique')}</p>
-                    <p className="text-sm text-muted-foreground">{product.printTechnique}</p>
-                  </div>
-                </div>
-              )}
-
-              {product.manufacturingCountry && (
-                <div className="flex items-start gap-3">
-                  <Globe className="size-5 text-muted-foreground mt-0.5 shrink-0" />
-                  <div>
-                    <p className="text-sm font-medium">{t('madeIn')}</p>
-                    <p className="text-sm text-muted-foreground">{product.manufacturingCountry}</p>
-                  </div>
-                </div>
-              )}
+              <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                <Truck className="h-4 w-4 shrink-0" />
+                <span>
+                  {locale === 'es' ? 'Envio gratuito +50 €' : locale === 'de' ? 'Gratis ab 50 €' : 'Free shipping over €50'}
+                </span>
+              </div>
             </div>
+          </div>
+
+          {/* 5. Specifications — collapsible */}
+          {(product.materials || product.careInstructions || product.printTechnique || product.manufacturingCountry) && (
+            <details className="group">
+              <summary className="flex items-center justify-between cursor-pointer list-none text-sm font-semibold hover:text-foreground transition-colors">
+                {t('specifications')}
+                <span className="text-xs group-open:rotate-180 transition-transform">▼</span>
+              </summary>
+              <div className="mt-3 space-y-3">
+                {product.materials && (
+                  <div className="flex items-start gap-3">
+                    <Shirt className="size-4 text-muted-foreground mt-0.5 shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium">{t('materials')}</p>
+                      <p className="text-sm text-muted-foreground">{product.materials}</p>
+                    </div>
+                  </div>
+                )}
+                {product.careInstructions && (
+                  <div className="flex items-start gap-3">
+                    <Droplets className="size-4 text-muted-foreground mt-0.5 shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium">{t('careInstructions')}</p>
+                      <p className="text-sm text-muted-foreground">{product.careInstructions}</p>
+                    </div>
+                  </div>
+                )}
+                {product.printTechnique && (
+                  <div className="flex items-start gap-3">
+                    <Printer className="size-4 text-muted-foreground mt-0.5 shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium">{t('printTechnique')}</p>
+                      <p className="text-sm text-muted-foreground">{product.printTechnique}</p>
+                    </div>
+                  </div>
+                )}
+                {product.manufacturingCountry && (
+                  <div className="flex items-start gap-3">
+                    <Globe className="size-4 text-muted-foreground mt-0.5 shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium">{t('madeIn')}</p>
+                      <p className="text-sm text-muted-foreground">{product.manufacturingCountry}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </details>
           )}
 
           {/* GPSR Safety Information (EU regulation) */}
@@ -548,70 +728,8 @@ export function ProductDetailClient({ product, relatedProducts, reviews }: Produ
 
           <Separator />
 
-          {/* Variants */}
-          <div className="space-y-4">
-            {allSizes && allSizes.length > 0 && (
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <label className="text-sm font-medium">{t('size')}</label>
-                  {['t-shirts', 'pullover-hoodies', 'zip-hoodies', 'crewnecks', 'tanks'].some(c => product.category?.includes(c)) && <SizeGuide productType={product.category || ''} />}
-                </div>
-                <Select value={selectedSize} onValueChange={(size) => {
-                  setSelectedSize(size)
-                  if (hasSizeMapping) setSelectedImage(0)
-                }}>
-                  <SelectTrigger>
-                    <SelectValue placeholder={t('selectVariant')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {allSizes.map((size: string) => {
-                      const isSizeAvailable = availableSizesForColor.has(size)
-                      return (
-                        <SelectItem
-                          key={size}
-                          value={size}
-                          disabled={!isSizeAvailable}
-                          className={cn(!isSizeAvailable && 'opacity-40 line-through')}
-                        >
-                          {size}{!isSizeAvailable ? ` — ${t('outOfStock')}` : ''}
-                        </SelectItem>
-                      )
-                    })}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-
-            {allColors && allColors.length > 0 && (
-              <div>
-                <label className="text-sm font-medium mb-2 block">{t('color')}</label>
-                <Select value={selectedColor} onValueChange={(color) => {
-                  setSelectedColor(color)
-                  // Reset to first image of the new color
-                  setSelectedImage(0)
-                }}>
-                  <SelectTrigger>
-                    <SelectValue placeholder={t('selectVariant')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {allColors.map((color: string) => {
-                      const isColorAvailable = availableColorsForSize.has(color)
-                      return (
-                        <SelectItem
-                          key={color}
-                          value={color}
-                          disabled={!isColorAvailable}
-                          className={cn(!isColorAvailable && 'opacity-40 line-through')}
-                        >
-                          {color}{!isColorAvailable ? ` — ${t('outOfStock')}` : ''}
-                        </SelectItem>
-                      )
-                    })}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-
+          {/* 6. Quantity */}
+          <div className="flex items-end gap-4">
             <div>
               <label className="text-sm font-medium mb-2 block">{t('quantity')}</label>
               <Select
@@ -630,30 +748,19 @@ export function ProductDetailClient({ product, relatedProducts, reviews }: Produ
                 </SelectContent>
               </Select>
             </div>
-          </div>
-
-          {/* Custom design composition badge */}
-          {compositionIdParam && (
-            <div className="flex items-center gap-2">
-              <Badge variant="secondary" className="gap-1.5">
+            {/* Custom design composition badge */}
+            {compositionIdParam && (
+              <Badge variant="secondary" className="gap-1.5 mb-1">
                 <Paintbrush2 className="size-3" />
                 Custom Design
               </Badge>
-            </div>
-          )}
-
-          {/* Shipping Info */}
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Truck className="h-4 w-4 shrink-0" />
-            <span>
-              {locale === 'es' ? 'Envio gratuito en pedidos superiores a 50 €' : locale === 'de' ? 'Kostenloser Versand ab 50 €' : 'Free shipping on orders over €50'}
-            </span>
+            )}
           </div>
 
-          {/* Action Buttons */}
-          <div ref={mainCtaRef} className="flex gap-3">
+          {/* 7. CTAs — stacked like Amazon (Add to Cart then Buy Now) */}
+          <div ref={mainCtaRef} className="space-y-2.5">
             <Button
-              className="flex-1"
+              className="w-full"
               size="lg"
               disabled={
                 !isCurrentCombinationAvailable ||
@@ -667,36 +774,42 @@ export function ProductDetailClient({ product, relatedProducts, reviews }: Produ
               {!isCurrentCombinationAvailable ? t('outOfStock') : isAddingToCart ? t('adding') || 'Adding...' : t('addToCart')}
             </Button>
             <Button
+              className="w-full"
               variant="outline"
               size="lg"
+              disabled={
+                !isCurrentCombinationAvailable ||
+                isAddingToCart ||
+                (sizes && sizes.length > 0 && !selectedSize) ||
+                (colors && colors.length > 0 && !selectedColor)
+              }
+              onClick={handleBuyNow}
+            >
+              {t('buyNow')}
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full"
               asChild
             >
               <Link href={`/${locale}/design/${product.id}`}>
-                <Paintbrush2 className="size-5" />
+                <Paintbrush2 className="size-4 mr-1.5" />
+                Design
               </Link>
             </Button>
-            <Button
-              variant="outline"
-              size="lg"
-              onClick={() => toggleWishlist(product.id)}
-              aria-label={wishlisted ? t('removeFromWishlist') : t('addToWishlist')}
-            >
-              <Heart
-                className={cn(
-                  'size-5',
-                  wishlisted ? 'fill-destructive text-destructive' : 'text-muted-foreground'
-                )}
-              />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={handleShare}
-              aria-label={t('share')}
-            >
-              <Share2 className="h-5 w-5" />
-            </Button>
           </div>
+
+          {/* Description — collapsible */}
+          {product.description && (
+            <details className="group" open>
+              <summary className="flex items-center justify-between cursor-pointer list-none text-sm font-semibold hover:text-foreground transition-colors">
+                {t('description')}
+                <span className="text-xs group-open:rotate-180 transition-transform">▼</span>
+              </summary>
+              <p className="mt-2 text-muted-foreground leading-relaxed text-sm">{product.description}</p>
+            </details>
+          )}
         </div>
       </div>
 
@@ -825,6 +938,7 @@ export function ProductDetailClient({ product, relatedProducts, reviews }: Produ
         targetRef={mainCtaRef}
         formattedPrice={formattedPrice}
         onAddToCart={handleAddToCart}
+        onBuyNow={handleBuyNow}
         disabled={!isCurrentCombinationAvailable}
         isAdding={isAddingToCart}
         compareAtPrice={product.compareAtPrice}

@@ -136,29 +136,29 @@ export function ProductCard({ product, priority }: ProductCardProps) {
 
         {/* Color variant swatches — overlay bottom-left of image */}
         {hasMultipleColors && (
-          <div className="absolute bottom-2 left-2 flex items-center gap-1 z-10">
+          <div className="absolute bottom-1 left-1 right-1 flex items-center gap-1 z-10 overflow-x-auto scrollbar-hide py-1 px-1">
             {colorEntries.map(([color, imgUrl], i) => (
               <button
                 key={color}
                 className={cn(
-                  'relative w-8 h-8 rounded-full overflow-hidden border-2 transition-all duration-200 flex-shrink-0 shadow-sm p-0',
-                  'min-w-[44px] min-h-[44px] flex items-center justify-center',
+                  'relative rounded-full overflow-hidden border-2 transition-all duration-200 flex-shrink-0 shadow-sm p-0',
+                  'w-[36px] h-[36px] min-w-[36px] min-h-[36px]',
                   i === colorIdx
-                    ? 'border-primary ring-1 ring-primary/30 scale-110'
-                    : 'border-card/80 hover:border-card'
+                    ? 'border-primary ring-2 ring-primary/40'
+                    : 'border-card/80 hover:border-primary/50'
                 )}
                 onClick={(e) => handleColorSwatch(e, i)}
                 onMouseEnter={() => handleColorSwatchHover(i)}
                 aria-label={color}
                 title={color}
               >
-                <span className="relative w-8 h-8 rounded-full overflow-hidden block">
+                <span className="relative w-full h-full rounded-full overflow-hidden block">
                   <Image
                     src={imgUrl}
                     alt={color}
                     fill
                     className="object-cover"
-                    sizes="32px"
+                    sizes="36px"
                   />
                 </span>
               </button>

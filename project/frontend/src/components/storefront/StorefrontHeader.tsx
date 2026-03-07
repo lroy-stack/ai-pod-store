@@ -170,21 +170,23 @@ export function StorefrontHeader({ onToggleSidebar, isSidebarCollapsed, onToggle
           <span className="sr-only">{t('searchPlaceholder')}</span>
         </Button>
 
-        {/* Notifications */}
-        <Button variant="ghost" size="icon" className="relative hidden sm:inline-flex">
-          <Bell className="h-5 w-5" aria-hidden="true" />
-          {unreadCount > 0 && (
-            <Badge
-              variant="destructive"
-              className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
-              aria-live="polite"
-              aria-atomic="true"
-            >
-              {unreadCount}
-            </Badge>
-          )}
-          <span className="sr-only">Notifications</span>
-        </Button>
+        {/* Notifications — only for authenticated users */}
+        {authenticated && (
+          <Button variant="ghost" size="icon" className="relative hidden sm:inline-flex">
+            <Bell className="h-5 w-5" aria-hidden="true" />
+            {unreadCount > 0 && (
+              <Badge
+                variant="destructive"
+                className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
+                aria-live="polite"
+                aria-atomic="true"
+              >
+                {unreadCount}
+              </Badge>
+            )}
+            <span className="sr-only">Notifications</span>
+          </Button>
+        )}
 
         {/* Cart */}
         <Button variant="ghost" size="icon" className="relative" asChild>

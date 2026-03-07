@@ -11,6 +11,7 @@ interface SmartStickyCTAProps {
   targetRef: RefObject<HTMLDivElement | null>
   formattedPrice: string
   onAddToCart: () => void
+  onBuyNow?: () => void
   disabled: boolean
   isAdding: boolean
   // Enhanced props (Feature 132)
@@ -29,6 +30,7 @@ export function SmartStickyCTA({
   targetRef,
   formattedPrice,
   onAddToCart,
+  onBuyNow,
   disabled,
   isAdding,
   compareAtPrice,
@@ -136,17 +138,32 @@ export function SmartStickyCTA({
           </div>
         )}
 
-        {/* Add to Cart button */}
+        {/* Buy Now + Add to Cart */}
+        {onBuyNow && (
+          <Button
+            className="flex-1 min-w-0"
+            size="default"
+            disabled={disabled || isAdding}
+            onClick={onBuyNow}
+          >
+            <span className="truncate">
+              {disabled ? t('outOfStock') : isAdding ? t('adding') : t('buyNow')}
+            </span>
+          </Button>
+        )}
         <Button
-          className="flex-1 min-w-0"
+          className={cn('min-w-0', onBuyNow ? 'shrink-0' : 'flex-1')}
+          variant={onBuyNow ? 'outline' : 'default'}
           size="default"
           disabled={disabled || isAdding}
           onClick={onAddToCart}
         >
           <ShoppingCart className="size-4 mr-1.5 shrink-0" />
-          <span className="truncate">
-            {disabled ? t('outOfStock') : isAdding ? t('adding') : t('addToCart')}
-          </span>
+          {!onBuyNow && (
+            <span className="truncate">
+              {disabled ? t('outOfStock') : isAdding ? t('adding') : t('addToCart')}
+            </span>
+          )}
         </Button>
       </div>
     </div>

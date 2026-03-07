@@ -294,6 +294,13 @@ p {
 .tab-scroll { scrollbar-width: none; -ms-overflow-style: none; }
 .tab-scroll::-webkit-scrollbar { display: none; }
 
+/* Generic scrollbar-hide utility */
+@utility scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+}
+
 /* ===== View Transitions (React 19) ===== */
 /* Disabled: the 300ms cross-fade caused visible ghosting of the previous
    page when navigating between routes (chat → shop, etc.).  Re-enable only
