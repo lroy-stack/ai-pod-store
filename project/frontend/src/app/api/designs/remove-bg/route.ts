@@ -1,14 +1,17 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { removeBackground } from '@/lib/providers/background-removal'
 import { createClient } from '@supabase/supabase-js'
+import { requireAuth, authErrorResponse } from '@/lib/auth-guard'
 
 const supabase = createClient(
   process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_KEY!
 )
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
+    await requireAuth(req)
+
     const { imageUrl, designId } = await req.json()
 
     if (!imageUrl || typeof imageUrl !== 'string') {
@@ -42,6 +45,8 @@ export async function POST(req: Request) {
       costUsd: result.costUsd,
     })
   } catch (error) {
+    const resp = authErrorResponse(error)
+    if (resp) return resp
     console.error('remove-bg error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }

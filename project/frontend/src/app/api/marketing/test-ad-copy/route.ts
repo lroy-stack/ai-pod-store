@@ -1,5 +1,6 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { requireAdmin, authErrorResponse } from '@/lib/auth-guard'
 
 
 const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -9,9 +10,15 @@ const supabaseKey = process.env.SUPABASE_SERVICE_KEY!
  * Test endpoint to create sample ad copy for verification
  * Simulates what the marketing agent should be creating
  */
-export async function POST() {
+export async function POST(request: NextRequest) {
   if (process.env.NODE_ENV === 'production') {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  }
+
+  try {
+    await requireAdmin(request)
+  } catch (err) {
+    return authErrorResponse(err)
   }
 
 
