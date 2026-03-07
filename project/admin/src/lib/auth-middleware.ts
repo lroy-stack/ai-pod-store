@@ -23,12 +23,13 @@ import { checkApiRateLimit } from '@/lib/rate-limit'
 /**
  * Type for authenticated route handlers.
  * Handlers receive the request, validated session data, and optional route context (params).
+ * Returns NextResponse for standard JSON responses, or Response for streaming/SSE endpoints.
  */
 type AuthenticatedHandler = (
   req: NextRequest,
   session: SessionData,
   context?: any
-) => Promise<NextResponse> | NextResponse
+) => Promise<NextResponse | Response> | NextResponse | Response
 
 /**
  * Extract HTTP method and pathname for audit logging.
@@ -104,7 +105,7 @@ async function logAuditEntry(
  * })
  */
 export function withAuth(handler: AuthenticatedHandler) {
-  return async function authenticatedRoute(req: NextRequest, context?: any): Promise<NextResponse> {
+  return async function authenticatedRoute(req: NextRequest, context?: any): Promise<NextResponse | Response> {
     try {
       // Check API rate limits before authentication
       const rateLimitResult = checkApiRateLimit(req)

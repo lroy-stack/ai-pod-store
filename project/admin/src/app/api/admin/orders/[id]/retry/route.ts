@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase-admin';
-import { withPermission } from '@/lib/rbac';
+import { withPermission, AdminSession } from '@/lib/rbac';
 
 async function handler(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  _session: AdminSession,
+  context?: { params?: Promise<{ id: string }> }
 ) {
   try {
-    const { id: orderId } = await params;
+    const { id: orderId } = await context!.params!;
 
     // Get Supabase admin client
     const supabase = createClient();

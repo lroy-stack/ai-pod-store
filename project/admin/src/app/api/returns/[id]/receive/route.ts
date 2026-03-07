@@ -121,7 +121,7 @@ export const POST = withPermission('orders', 'update', async (
     // Audit log
     await supabase.from('audit_log').insert({
       actor_type: 'admin',
-      actor_id: session?.id,
+      actor_id: session?.userId,
       action: 'return_item_received',
       resource_type: 'return_request',
       resource_id: id,

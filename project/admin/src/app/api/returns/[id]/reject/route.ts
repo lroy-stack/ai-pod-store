@@ -59,7 +59,7 @@ export const POST = withPermission('orders', 'update', async (
       .update({
         status: 'rejected',
         admin_notes,
-        approved_by: session?.id,
+        approved_by: session?.userId,
         approved_at: new Date().toISOString(),
       })
       .eq('id', id)
@@ -79,7 +79,7 @@ export const POST = withPermission('orders', 'update', async (
       .from('audit_log')
       .insert({
         actor_type: 'admin',
-        actor_id: session?.id,
+        actor_id: session?.userId,
         action: 'return_rejected',
         resource_type: 'return_request',
         resource_id: id,

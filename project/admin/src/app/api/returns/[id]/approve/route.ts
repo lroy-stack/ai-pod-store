@@ -106,7 +106,7 @@ export const POST = withPermission('orders', 'refund', async (
         refund_currency: order.currency,
         stripe_refund_id: stripeRefund.id,
         admin_notes: admin_notes || null,
-        approved_by: session?.id,
+        approved_by: session?.userId,
         approved_at: new Date().toISOString(),
       })
       .eq('id', id)
@@ -132,7 +132,7 @@ export const POST = withPermission('orders', 'refund', async (
       .from('audit_log')
       .insert({
         actor_type: 'admin',
-        actor_id: session?.id,
+        actor_id: session?.userId,
         action: 'return_approved',
         resource_type: 'return_request',
         resource_id: id,
