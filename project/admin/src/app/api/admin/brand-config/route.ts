@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { withValidation, brandConfigSchema } from '@/lib/validation';
 import { withPermission } from '@/lib/rbac';
+import { withAuth } from '@/lib/auth-middleware';
 
 const supabaseUrl = process.env.SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY!;
@@ -10,7 +11,7 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY!;
  * GET /api/admin/brand-config
  * Fetch the active brand configuration including personalization surcharge
  */
-export async function GET(request: NextRequest) {
+export const GET = withAuth(async (request: NextRequest) => {
   try {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
@@ -36,7 +37,7 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});
 
 /**
  * PUT /api/admin/brand-config

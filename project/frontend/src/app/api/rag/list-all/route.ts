@@ -1,5 +1,6 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
+import { requireAdmin, authErrorResponse } from '@/lib/auth-guard'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -8,8 +9,9 @@ export const dynamic = 'force-dynamic'
  * List all documents
  * GET /api/rag/list-all
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    try { await requireAdmin(request) } catch (e) { return authErrorResponse(e) }
     const { data, error, count } = await supabaseAdmin
       .from('documents')
       .select('id, content, source_type, locale, created_at', { count: 'exact' })
@@ -17,7 +19,7 @@ export async function GET() {
 
     if (error) {
       return NextResponse.json(
-        { error: 'Failed to fetch documents', details: error.message },
+        { error: 'Failed to fetch documents' },
         { status: 500 }
       )
     }
@@ -41,9 +43,10 @@ export async function GET() {
       withEmbeddings: withEmbeddings?.length || 0,
       documents: documentsWithEmbeddingStatus,
     })
-  } catch (error: any) {
+  } catch (error) {
+    console.error('RAG list-all error:', error)
     return NextResponse.json(
-      { error: 'Internal server error', details: error.message },
+      { error: 'Internal server error' },
       { status: 500 }
     )
   }

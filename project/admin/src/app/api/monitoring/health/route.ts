@@ -21,7 +21,7 @@ async function checkSupabase(): Promise<ServiceHealth> {
     const latencyMs = Date.now() - start;
     // PGRST116 = no rows found — that's ok, means DB is reachable
     if (error && error.code !== 'PGRST116') {
-      return { name: 'Supabase', status: 'degraded', latencyMs, lastChecked: new Date().toISOString(), detail: error.message };
+      return { name: 'Supabase', status: 'degraded', latencyMs, lastChecked: new Date().toISOString(), detail: 'Connection failed' };
     }
     return { name: 'Supabase', status: 'healthy', latencyMs, lastChecked: new Date().toISOString() };
   } catch (err) {

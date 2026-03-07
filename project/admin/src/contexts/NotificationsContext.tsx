@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { adminFetch, apiUrl } from '@/lib/admin-api';
+import { adminFetch } from '@/lib/admin-api';
 
 interface Notification {
   id: string;
@@ -74,134 +74,47 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
 
     fetchNotifications();
 
-    // Connect to SSE stream for real-time updates
-    const eventSource = new EventSource(apiUrl('/api/events/stream'));
+    // Listen to SSE events dispatched by SSEProvider (avoids duplicate EventSource)
+    const EVENT_TYPE_MAP: Record<string, { title: string; type: Notification['type'] }> = {
+      new_order: { title: 'New Order', type: 'order' },
+      notification: { title: 'Notification', type: 'info' },
+      agent_cycle: { title: 'Agent Update', type: 'agent' },
+      error_alert: { title: 'Error', type: 'alert' },
+      alert: { title: 'Alert', type: 'alert' },
+      sync_error: { title: 'Sync Error', type: 'sync_error' },
+      webhook_failed: { title: 'Webhook Failed', type: 'webhook_failed' },
+      margin_alert: { title: 'Margin Alert', type: 'margin_alert' },
+      integrity_issue: { title: 'Integrity Issue', type: 'integrity_issue' },
+    };
 
-    eventSource.addEventListener('connected', () => {
-      console.log('[SSE] Connected to notification stream');
-    });
+    const handleSSEEvent = (e: Event) => {
+      const { type, data } = (e as CustomEvent).detail;
+      const mapping = EVENT_TYPE_MAP[type];
+      if (!mapping) return;
 
-    eventSource.addEventListener('notification', (event) => {
-      try {
-        const notification = JSON.parse(event.data);
-        addNotification(notification);
-      } catch (error) {
-        console.error('[SSE] Failed to parse notification:', error);
+      // If it's a pre-formed notification, use it directly
+      if (type === 'notification' && data.id && data.title) {
+        addNotification(data as Notification);
+        return;
       }
-    });
 
-    eventSource.addEventListener('order', (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        const notification: Notification = {
-          id: `order-${data.id || Date.now()}`,
-          title: 'New Order',
-          message: data.message || `Order #${data.order_number || data.id} received`,
-          timestamp: data.timestamp || new Date().toISOString(),
-          read: false,
-          type: 'order',
-        };
-        addNotification(notification);
-      } catch (error) {
-        console.error('[SSE] Failed to parse order event:', error);
-      }
-    });
+      const notification: Notification = {
+        id: `${mapping.type}-${data.id || Date.now()}`,
+        title: mapping.title,
+        message: data.message || data.order_number
+          ? `Order #${data.order_number || data.id} received`
+          : `${mapping.title} event`,
+        timestamp: data.timestamp || new Date().toISOString(),
+        read: false,
+        type: mapping.type,
+      };
+      addNotification(notification);
+    };
 
-    eventSource.addEventListener('agent', (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        const notification: Notification = {
-          id: `agent-${data.id || Date.now()}`,
-          title: 'Agent Update',
-          message: data.message || 'Agent cycle completed',
-          timestamp: data.timestamp || new Date().toISOString(),
-          read: false,
-          type: 'agent',
-        };
-        addNotification(notification);
-      } catch (error) {
-        console.error('[SSE] Failed to parse agent event:', error);
-      }
-    });
-
-    // Handle sync error events
-    eventSource.addEventListener('sync_error', (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        const notification: Notification = {
-          id: `sync_error-${Date.now()}`,
-          title: 'Sync Error',
-          message: data.message || 'Sync operation failed',
-          timestamp: data.timestamp || new Date().toISOString(),
-          read: false,
-          type: 'sync_error',
-        };
-        addNotification(notification);
-      } catch (error) {
-        console.error('[SSE] Failed to parse sync_error event:', error);
-      }
-    });
-
-    // Handle webhook failure events
-    eventSource.addEventListener('webhook_failed', (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        const notification: Notification = {
-          id: `webhook_failed-${Date.now()}`,
-          title: 'Webhook Failed',
-          message: data.message || `Webhook delivery failed${data.event_type ? `: ${data.event_type}` : ''}`,
-          timestamp: data.timestamp || new Date().toISOString(),
-          read: false,
-          type: 'webhook_failed',
-        };
-        addNotification(notification);
-      } catch (error) {
-        console.error('[SSE] Failed to parse webhook_failed event:', error);
-      }
-    });
-
-    // Handle margin alert events
-    eventSource.addEventListener('margin_alert', (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        const notification: Notification = {
-          id: `margin_alert-${Date.now()}`,
-          title: 'Margin Alert',
-          message: data.message || `Product margin below threshold${data.product_name ? `: ${data.product_name}` : ''}`,
-          timestamp: data.timestamp || new Date().toISOString(),
-          read: false,
-          type: 'margin_alert',
-        };
-        addNotification(notification);
-      } catch (error) {
-        console.error('[SSE] Failed to parse margin_alert event:', error);
-      }
-    });
-
-    // Handle integrity issue events
-    eventSource.addEventListener('integrity_issue', (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        const notification: Notification = {
-          id: `integrity_issue-${Date.now()}`,
-          title: 'Integrity Issue',
-          message: data.message || 'Data integrity issue detected',
-          timestamp: data.timestamp || new Date().toISOString(),
-          read: false,
-          type: 'integrity_issue',
-        };
-        addNotification(notification);
-      } catch (error) {
-        console.error('[SSE] Failed to parse integrity_issue event:', error);
-      }
-    });
-
-    eventSource.addEventListener('error', () => {
-      console.error('[SSE] Connection error, will retry automatically');
-    });
+    window.addEventListener('sse-event', handleSSEEvent);
 
     return () => {
-      eventSource.close();
+      window.removeEventListener('sse-event', handleSSEEvent);
     };
   }, []);
 

@@ -88,7 +88,8 @@ export const PATCH = withPermission('products', 'update', async (req: NextReques
         .eq('id', update.id);
 
       if (error) {
-        results.push({ id: update.id, success: false, error: error.message });
+        console.error(`Bulk price update failed for ${update.id}:`, error);
+        results.push({ id: update.id, success: false, error: 'Update failed' });
       } else {
         await logUpdate(
           session?.email || 'unknown',

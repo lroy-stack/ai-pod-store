@@ -1,5 +1,6 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
+import { requireAdmin, authErrorResponse } from '@/lib/auth-guard'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -8,8 +9,9 @@ export const dynamic = 'force-dynamic'
  * Get statistics about documents in the RAG knowledge base
  * GET /api/rag/stats
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    try { await requireAdmin(request) } catch (e) { return authErrorResponse(e) }
     // Count total documents
     const { count: totalCount, error: totalError } = await supabaseAdmin
       .from('documents')
@@ -17,7 +19,7 @@ export async function GET() {
 
     if (totalError) {
       return NextResponse.json(
-        { error: 'Failed to count documents', details: totalError.message },
+        { error: 'Failed to count documents' },
         { status: 500 }
       )
     }
@@ -29,7 +31,7 @@ export async function GET() {
 
     if (typeError) {
       return NextResponse.json(
-        { error: 'Failed to fetch documents', details: typeError.message },
+        { error: 'Failed to fetch documents' },
         { status: 500 }
       )
     }
@@ -47,7 +49,7 @@ export async function GET() {
 
     if (localeError) {
       return NextResponse.json(
-        { error: 'Failed to fetch locales', details: localeError.message },
+        { error: 'Failed to fetch locales' },
         { status: 500 }
       )
     }
@@ -66,7 +68,7 @@ export async function GET() {
 
     if (samplesError) {
       return NextResponse.json(
-        { error: 'Failed to fetch samples', details: samplesError.message },
+        { error: 'Failed to fetch samples' },
         { status: 500 }
       )
     }
@@ -83,10 +85,10 @@ export async function GET() {
         content: doc.content?.substring(0, 60) + '...',
       })),
     })
-  } catch (error: any) {
+  } catch (error) {
     console.error('RAG stats error:', error)
     return NextResponse.json(
-      { error: 'Internal server error', details: error.message },
+      { error: 'Internal server error' },
       { status: 500 }
     )
   }

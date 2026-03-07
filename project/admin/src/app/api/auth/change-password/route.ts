@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs';
 import { getIronSession } from 'iron-session';
 import { sessionOptions, SessionData } from '@/lib/session';
 import { cookies } from 'next/headers';
+import { checkApiRateLimit } from '@/lib/rate-limit';
 
 /**
  * POST /api/auth/change-password
@@ -14,6 +15,15 @@ import { cookies } from 'next/headers';
  */
 export async function POST(req: NextRequest) {
   try {
+    // Rate limit password change attempts
+    const rateLimitResult = checkApiRateLimit(req)
+    if (rateLimitResult) {
+      return NextResponse.json(
+        { error: 'Too many attempts. Please try again later.' },
+        { status: 429 }
+      )
+    }
+
     const { user_id, current_password, new_password } = await req.json();
 
     if (!user_id || !current_password || !new_password) {

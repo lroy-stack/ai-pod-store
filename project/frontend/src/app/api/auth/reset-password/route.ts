@@ -1,18 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
-// Supabase client with service role key for admin operations
-const supabaseAdmin = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_KEY!,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-    },
-  }
-)
-
 export async function POST(request: NextRequest) {
   try {
     const { password, accessToken } = await request.json()
@@ -29,10 +17,30 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Password must be at least 8 characters' }, { status: 400 })
     }
 
-    // Update the user's password using the access token
-    const { data, error } = await supabaseAdmin.auth.updateUser({
-      password,
-    })
+    // Create a Supabase client authenticated with the user's access token
+    // This ensures only the token holder can reset their own password
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        auth: { persistSession: false },
+        global: {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        },
+      }
+    )
+
+    // Verify the token is valid by getting the user
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    if (userError || !user) {
+      return NextResponse.json(
+        { error: 'Invalid or expired reset token. Please request a new reset link.' },
+        { status: 401 }
+      )
+    }
+
+    // Update password using the authenticated session (respects Supabase Auth policies)
+    const { data, error } = await supabase.auth.updateUser({ password })
 
     if (error) {
       console.error('Password reset error:', error)
@@ -41,7 +49,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       message: 'Password reset successfully',
-      user: data.user,
     })
   } catch (error) {
     console.error('Reset password error:', error)

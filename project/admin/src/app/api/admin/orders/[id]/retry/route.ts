@@ -87,7 +87,7 @@ async function handler(
   } catch (error: any) {
     console.error('Provider retry error:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to retry provider submission' },
+      { error: 'Failed to retry provider submission' },
       { status: 500 }
     );
   }

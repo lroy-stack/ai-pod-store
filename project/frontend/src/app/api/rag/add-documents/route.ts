@@ -1,5 +1,6 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
+import { requireAdmin, authErrorResponse } from '@/lib/auth-guard'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -9,8 +10,10 @@ export const dynamic = 'force-dynamic'
  * POST /api/rag/add-documents
  * Body: { documents: Array<{ content, source_type, source_id, locale }> }
  */
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
+    try { await requireAdmin(request) } catch (e) { return authErrorResponse(e) }
+
     const { documents } = await request.json()
 
     if (!documents || !Array.isArray(documents) || documents.length === 0) {
@@ -66,7 +69,7 @@ export async function POST(request: Request) {
         .select()
 
       if (error) {
-        results.push({ content: docData.content, success: false, error: error.message })
+        results.push({ content: docData.content, success: false, error: 'Insert failed' })
       } else {
         results.push({ content: docData.content, success: true, id: data[0]?.id })
       }
@@ -79,10 +82,10 @@ export async function POST(request: Request) {
       message: `Added ${successCount}/${documents.length} documents with embeddings`,
       results,
     })
-  } catch (error: any) {
+  } catch (error) {
     console.error('Add documents error:', error)
     return NextResponse.json(
-      { error: 'Internal server error', details: error.message },
+      { error: 'Internal server error' },
       { status: 500 }
     )
   }

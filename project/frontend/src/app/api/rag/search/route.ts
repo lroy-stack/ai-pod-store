@@ -1,5 +1,6 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
+import { requireAuth, authErrorResponse } from '@/lib/auth-guard'
 import { getCached, setCached, isRedisAvailable } from '@/lib/redis'
 import crypto from 'crypto'
 
@@ -21,10 +22,12 @@ function createCacheKey(query: string, limit: number, locale?: string): string {
  * POST /api/rag/search
  * Body: { query: string, limit?: number, locale?: string }
  */
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   const startTime = Date.now()
 
   try {
+    try { await requireAuth(request) } catch (e) { return authErrorResponse(e) }
+
     const { query, limit = 10, locale } = await request.json()
 
     if (!query || typeof query !== 'string') {
@@ -80,10 +83,7 @@ export async function POST(request: Request) {
       const errorData = await embeddingResponse.text()
       console.error('Gemini embedding error:', errorData)
       return NextResponse.json(
-        {
-          error: 'Failed to generate query embedding',
-          details: errorData,
-        },
+        { error: 'Failed to generate query embedding' },
         { status: 500 }
       )
     }
@@ -133,12 +133,9 @@ export async function POST(request: Request) {
       const { data: fallbackResults, error: fallbackError } = await query
 
       if (fallbackError) {
+        console.error('RAG fallback error:', fallbackError)
         return NextResponse.json(
-          {
-            error: 'Vector search failed',
-            details: searchError.message,
-            fallbackError: fallbackError.message,
-          },
+          { error: 'Vector search failed' },
           { status: 500 }
         )
       }
@@ -198,13 +195,10 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json(response)
-  } catch (error: any) {
+  } catch (error) {
     console.error('RAG search error:', error)
     return NextResponse.json(
-      {
-        error: 'Internal server error',
-        details: error.message,
-      },
+      { error: 'Internal server error' },
       { status: 500 }
     )
   }

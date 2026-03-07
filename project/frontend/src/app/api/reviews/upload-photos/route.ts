@@ -7,13 +7,34 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
-const supabase = createClient(
+const supabaseAdmin = createClient(
   process.env.SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_KEY!
 )
 
 export async function POST(req: NextRequest) {
   try {
+    // Verify user is authenticated
+    const authHeader = req.headers.get('authorization')
+    const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null
+
+    if (!token) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+    }
+
+    const supabaseAuth = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        auth: { persistSession: false },
+        global: { headers: { Authorization: `Bearer ${token}` } },
+      }
+    )
+    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser()
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 })
+    }
+
     const formData = await req.formData()
     const photos = formData.getAll('photos') as File[]
 
@@ -46,7 +67,7 @@ export async function POST(req: NextRequest) {
       const arrayBuffer = await photo.arrayBuffer()
       const buffer = Buffer.from(arrayBuffer)
 
-      const { data, error } = await supabase.storage
+      const { data, error } = await supabaseAdmin.storage
         .from('review-photos')
         .upload(filename, buffer, {
           contentType: photo.type,
@@ -59,7 +80,7 @@ export async function POST(req: NextRequest) {
       }
 
       // Get public URL
-      const { data: { publicUrl } } = supabase.storage
+      const { data: { publicUrl } } = supabaseAdmin.storage
         .from('review-photos')
         .getPublicUrl(data.path)
 

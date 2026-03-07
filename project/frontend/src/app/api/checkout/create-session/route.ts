@@ -27,6 +27,14 @@ import { STORE_DEFAULTS, ALLOWED_SHIPPING_COUNTRIES, BASE_URL } from '@/lib/stor
  */
 export async function POST(req: NextRequest) {
   try {
+    // Rate limit checkout session creation (5 per minute per IP)
+    const { checkoutLimiter } = await import('@/lib/rate-limit')
+    const ip = req.headers.get('x-forwarded-for') || 'unknown'
+    const { success } = checkoutLimiter.check(ip)
+    if (!success) {
+      return NextResponse.json({ error: 'Too many requests. Please wait a moment.' }, { status: 429 })
+    }
+
     const body = await req.json();
     const { cartItems, shippingAddress, locale = 'en', currency = STORE_DEFAULTS.stripeCurrency, customerEmail, gift_message, couponCode } = body;
 

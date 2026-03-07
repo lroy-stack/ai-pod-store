@@ -7,7 +7,11 @@
 
 import crypto from 'crypto';
 
-const SECRET = process.env.UNSUBSCRIBE_SECRET || process.env.NEXTAUTH_SECRET || 'default-secret-change-me';
+const SECRET: string = (() => {
+  const s = process.env.UNSUBSCRIBE_SECRET || process.env.NEXTAUTH_SECRET;
+  if (!s) throw new Error('UNSUBSCRIBE_SECRET or NEXTAUTH_SECRET environment variable is required');
+  return s;
+})();
 
 /**
  * Generate an unsubscribe token for an email address

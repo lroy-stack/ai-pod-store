@@ -123,10 +123,10 @@ const nextConfig: NextConfig = {
       { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
       {
         key: 'Content-Security-Policy',
-        // Security: replaced 'unsafe-inline' with 'strict-dynamic' for script-src (Feature #36)
-        // 'strict-dynamic' allows scripts loaded by already-trusted scripts (Next.js App Router compatible)
-        // Note: 'unsafe-inline' is kept only as fallback for CSP Level 1 browsers (ignored when strict-dynamic is present)
-        value: "default-src 'self'; script-src 'self' 'strict-dynamic'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com; img-src 'self' data: blob: https://images.printify.com https://images-api.printify.com https://pfy-prod-image-storage.s3.us-east-2.amazonaws.com https://*.supabase.co https://via.placeholder.com https://placehold.co https://*.fal.ai https://fal.media https://images.unsplash.com https://files.cdn.printful.com; connect-src 'self' https://*.supabase.co https://generativelanguage.googleapis.com https://*.fal.ai https://images-api.printify.com https://api.printify.com; font-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com; frame-ancestors 'none'",
+        // Security: 'strict-dynamic' for production, 'unsafe-inline' for dev (Turbopack needs inline scripts)
+        value: process.env.NODE_ENV === 'production'
+          ? "default-src 'self'; script-src 'self' 'strict-dynamic'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com; img-src 'self' data: blob: https://images.printify.com https://images-api.printify.com https://pfy-prod-image-storage.s3.us-east-2.amazonaws.com https://*.supabase.co https://via.placeholder.com https://placehold.co https://*.fal.ai https://fal.media https://images.unsplash.com https://files.cdn.printful.com; connect-src 'self' https://*.supabase.co https://generativelanguage.googleapis.com https://*.fal.ai https://images-api.printify.com https://api.printify.com; font-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com; frame-ancestors 'none'"
+          : "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com; img-src 'self' data: blob: https://images.printify.com https://images-api.printify.com https://pfy-prod-image-storage.s3.us-east-2.amazonaws.com https://*.supabase.co https://via.placeholder.com https://placehold.co https://*.fal.ai https://fal.media https://images.unsplash.com https://files.cdn.printful.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://generativelanguage.googleapis.com https://*.fal.ai https://images-api.printify.com https://api.printify.com ws://localhost:*; font-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com; frame-ancestors 'none'",
       },
     ]
     return [

@@ -1,5 +1,6 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
+import { requireAdmin, authErrorResponse } from '@/lib/auth-guard'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -143,8 +144,10 @@ function chunkText(text: string, targetChunkSize = 1800, maxChunkSize = 2048): s
  *   locale?: string
  * }
  */
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
+    try { await requireAdmin(request) } catch (e) { return authErrorResponse(e) }
+
     const body = await request.json()
     const {
       content,
@@ -286,13 +289,10 @@ export async function POST(request: Request) {
       },
       { status: 201 }
     )
-  } catch (error: any) {
+  } catch (error) {
     console.error('RAG index error:', error)
     return NextResponse.json(
-      {
-        error: 'Internal server error',
-        details: error.message,
-      },
+      { error: 'Internal server error' },
       { status: 500 }
     )
   }

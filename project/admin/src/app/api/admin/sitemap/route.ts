@@ -20,7 +20,7 @@ export const POST = withAuth(async (req, session) => {
     return NextResponse.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to generate sitemap'
+        error: 'Failed to generate sitemap'
       },
       { status: 500 }
     )
@@ -41,7 +41,7 @@ export const GET = withAuth(async (req, session) => {
     return NextResponse.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to fetch sitemap info'
+        error: 'Failed to fetch sitemap info'
       },
       { status: 500 }
     )

@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       console.error('Error fetching shipping addresses:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ error: 'Failed to process shipping address' }, { status: 500 });
     }
 
     return NextResponse.json(addresses);
@@ -106,7 +106,7 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error('Error creating shipping address:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ error: 'Failed to process shipping address' }, { status: 500 });
     }
 
     return NextResponse.json(newAddress, { status: 201 });

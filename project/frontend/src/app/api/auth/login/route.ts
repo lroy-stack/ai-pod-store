@@ -93,7 +93,7 @@ export async function POST(request: NextRequest) {
     // Note: deletion is NOT auto-cancelled on login.
     // The user must explicitly cancel via /api/profile/cancel-deletion.
 
-    // Create response with session data
+    // Create response — tokens only in httpOnly cookies, NOT in body
     const response = NextResponse.json(
       {
         success: true,
@@ -104,11 +104,7 @@ export async function POST(request: NextRequest) {
           locale: userLocale,
           deletion_requested_at: userData?.deletion_requested_at || null,
         },
-        session: {
-          access_token: authData.session.access_token,
-          refresh_token: authData.session.refresh_token,
-          expires_at: authData.session.expires_at,
-        },
+        expires_at: authData.session.expires_at,
       },
       { status: 200 }
     )
