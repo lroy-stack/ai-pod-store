@@ -197,10 +197,18 @@ export async function POST(req: Request) {
       if (chatUserId) {
         const { data: profile } = await supabase
           .from('users')
-          .select('tier')
+          .select('tier, subscription_period_end, subscription_status')
           .eq('id', chatUserId)
           .single()
         chatUserTier = (profile?.tier as UserTier) || 'free'
+        // Treat expired premium subscriptions as free tier (#50)
+        if (
+          chatUserTier === 'premium' &&
+          (profile?.subscription_status !== 'active' ||
+            (profile?.subscription_period_end && new Date(profile.subscription_period_end) < new Date()))
+        ) {
+          chatUserTier = 'free'
+        }
       }
     }
 
