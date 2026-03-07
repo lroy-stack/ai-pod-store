@@ -68,7 +68,7 @@ export function SmartStickyCTA({
   const hasQuantity = quantity != null && onQuantityChange
 
   return (
-    <div className="fixed bottom-0 inset-x-0 z-40 md:hidden border-t border-border bg-card px-3 py-2.5 shadow-lg">
+    <div className="fixed bottom-[60px] inset-x-0 z-40 md:hidden border-t border-border bg-card px-3 py-2.5 shadow-lg">
       <div className="flex items-center gap-2 max-w-lg mx-auto">
         {/* Price */}
         <div className="shrink-0">
@@ -119,7 +119,7 @@ export function SmartStickyCTA({
             <Button
               variant="ghost"
               size="icon"
-              className="size-7"
+              className="size-11"
               onClick={() => onQuantityChange(Math.max(1, quantity - 1))}
               disabled={quantity <= 1}
             >
@@ -129,7 +129,7 @@ export function SmartStickyCTA({
             <Button
               variant="ghost"
               size="icon"
-              className="size-7"
+              className="size-11"
               onClick={() => onQuantityChange(quantity + 1)}
               disabled={quantity >= 10}
             >

@@ -13,8 +13,18 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_KEY!
 )
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    // Require internal auth (cron secret or admin token)
+    const authHeader = req.headers.get('authorization')
+    const cronSecret = process.env.CRON_SECRET
+    if (!cronSecret) {
+      return NextResponse.json({ error: 'CRON_SECRET not configured' }, { status: 503 })
+    }
+    if (!authHeader || authHeader !== `Bearer ${cronSecret}`) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     // Fetch post-purchase drip campaigns
     const { data: campaigns } = await supabase
       .from('newsletter_campaigns')

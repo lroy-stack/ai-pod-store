@@ -483,6 +483,7 @@ export default function CheckoutView({ locale }: { locale: string }) {
                     <Input
                       id="guest-email"
                       type="email"
+                      autoComplete="email"
                       placeholder="your@email.com"
                       value={guestEmail}
                       onChange={(e) => {

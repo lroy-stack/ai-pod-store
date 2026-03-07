@@ -86,7 +86,7 @@ export function StorefrontHeader({ onToggleSidebar, isSidebarCollapsed, onToggle
 
   return (
     <>
-    <header className="flex items-center justify-between gap-4 px-4 h-14 border-b border-border bg-card">
+    <header className="sticky top-0 z-30 flex items-center justify-between gap-4 px-4 h-14 border-b border-border bg-card">
       {/* Left: Mobile toggle + Logo + Nav links */}
       <div className="flex items-center gap-4 flex-shrink-0">
         {/* Mobile sidebar toggle */}
@@ -212,7 +212,7 @@ export function StorefrontHeader({ onToggleSidebar, isSidebarCollapsed, onToggle
         {/* Locale Switcher */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="hidden sm:inline-flex">
+            <Button variant="ghost" size="icon" className="inline-flex">
               <Globe className="h-5 w-5" aria-hidden="true" />
               <span className="sr-only">Change language</span>
             </Button>

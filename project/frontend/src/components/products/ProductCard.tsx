@@ -170,7 +170,7 @@ export function ProductCard({ product, priority }: ProductCardProps) {
         <Button
           variant="ghost"
           size="icon"
-          className="absolute top-2.5 right-2.5 h-8 w-8 rounded-full neu-fav"
+          className="absolute top-2.5 right-2.5 h-10 w-10 rounded-full neu-fav"
           onClick={handleToggleWishlist}
           aria-label={wishlisted ? t('removeFromWishlist') : t('addToWishlist')}
         >
@@ -247,7 +247,7 @@ export function ProductCard({ product, priority }: ProductCardProps) {
           <div className="flex gap-1.5 shrink-0">
             <Button
               size="icon"
-              className="h-8 w-8 neu-btn-accent"
+              className="h-10 w-10 neu-btn-accent"
               onClick={handleAddToCart}
               disabled={product.inStock === false}
               title={product.inStock === false ? t('outOfStock') : t('addToCart')}
@@ -257,7 +257,7 @@ export function ProductCard({ product, priority }: ProductCardProps) {
             <Button
               variant="outline"
               size="icon"
-              className="h-8 w-8 neu-btn-soft"
+              className="h-10 w-10 neu-btn-soft"
               onClick={handleQuickView}
               title={t('quickView')}
             >

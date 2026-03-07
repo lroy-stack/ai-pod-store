@@ -71,6 +71,7 @@
 		X-XSS-Protection "1; mode=block"
 		Referrer-Policy "strict-origin-when-cross-origin"
 		Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()"
+		Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.supabase.co https://*.stripe.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://generativelanguage.googleapis.com; font-src 'self'; frame-src https://js.stripe.com https://hooks.stripe.com; object-src 'none'; base-uri 'self'"
 		-Server
 	}
 
@@ -99,6 +100,7 @@
 		X-XSS-Protection "1; mode=block"
 		Referrer-Policy "strict-origin-when-cross-origin"
 		Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()"
+		Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.supabase.co https://*.stripe.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://generativelanguage.googleapis.com; font-src 'self'; frame-src https://js.stripe.com https://hooks.stripe.com; object-src 'none'; base-uri 'self'"
 		-Server
 	}
 

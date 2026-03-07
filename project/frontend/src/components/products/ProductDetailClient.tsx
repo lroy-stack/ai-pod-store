@@ -450,13 +450,15 @@ export function ProductDetailClient({ product, relatedProducts, reviews }: Produ
               {visibleImages.length > 1 && visibleImages.map((_, index) => (
                 <button
                   key={`dot-${index}`}
-                  className={cn(
-                    'w-2 h-2 rounded-full transition-colors',
-                    selectedImage === index ? 'bg-primary' : 'bg-muted-foreground/30'
-                  )}
+                  className="min-w-[44px] min-h-[44px] flex items-center justify-center"
                   onClick={() => setSelectedImage(index)}
                   aria-label={`Image ${index + 1}`}
-                />
+                >
+                  <span className={cn(
+                    'w-2.5 h-2.5 rounded-full transition-colors',
+                    selectedImage === index ? 'bg-primary' : 'bg-muted-foreground/30'
+                  )} />
+                </button>
               ))}
             </div>
             <div className="flex items-center gap-1">

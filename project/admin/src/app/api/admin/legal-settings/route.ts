@@ -10,13 +10,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getIronSession } from 'iron-session';
 import { sessionOptions, SessionData } from '@/lib/session';
 import { cookies } from 'next/headers';
+import { withAuth } from '@/lib/auth-middleware';
 
 /**
  * GET /api/admin/legal-settings
  * Returns the company legal settings from the database
- * Public read access (used by legal pages on frontend)
+ * Requires admin authentication
  */
-export async function GET() {
+export const GET = withAuth(async () => {
   try {
     const supabase = createClient();
 
@@ -64,7 +65,7 @@ export async function GET() {
       { status: 500 }
     );
   }
-}
+});
 
 /**
  * PUT /api/admin/legal-settings

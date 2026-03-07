@@ -8,8 +8,18 @@ import { NextResponse } from 'next/server'
 
 const startTime = Date.now()
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    // Require Bearer token for metrics endpoint
+    const authHeader = req.headers.get('authorization')
+    const expectedToken = process.env.METRICS_SECRET
+    if (!expectedToken) {
+      return new NextResponse('METRICS_SECRET not configured', { status: 403 })
+    }
+    if (!authHeader || authHeader !== `Bearer ${expectedToken}`) {
+      return new NextResponse('Unauthorized', { status: 401 })
+    }
+
     const uptime = (Date.now() - startTime) / 1000
     const memoryUsage = process.memoryUsage()
 

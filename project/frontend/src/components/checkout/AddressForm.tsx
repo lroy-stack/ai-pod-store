@@ -151,6 +151,7 @@ export default function AddressForm({ onSubmit, onCancel }: AddressFormProps) {
         </Label>
         <Input
           id="full_name"
+          autoComplete="name"
           value={formData.full_name}
           onChange={(e) => handleChange('full_name', e.target.value)}
           placeholder={t('fullNamePlaceholder')}
@@ -168,6 +169,7 @@ export default function AddressForm({ onSubmit, onCancel }: AddressFormProps) {
         </Label>
         <Input
           id="street_address"
+          autoComplete="street-address"
           value={formData.street_address}
           onChange={(e) => handleChange('street_address', e.target.value)}
           placeholder={t('streetAddressPlaceholder')}
@@ -183,6 +185,7 @@ export default function AddressForm({ onSubmit, onCancel }: AddressFormProps) {
         <Label htmlFor="street_address_2">{t('streetAddress2')}</Label>
         <Input
           id="street_address_2"
+          autoComplete="address-line2"
           value={formData.street_address_2}
           onChange={(e) => handleChange('street_address_2', e.target.value)}
           placeholder={t('streetAddress2Placeholder')}
@@ -197,6 +200,7 @@ export default function AddressForm({ onSubmit, onCancel }: AddressFormProps) {
           </Label>
           <Input
             id="city"
+            autoComplete="address-level2"
             value={formData.city}
             onChange={(e) => handleChange('city', e.target.value)}
             placeholder={t('cityPlaceholder')}
@@ -213,6 +217,7 @@ export default function AddressForm({ onSubmit, onCancel }: AddressFormProps) {
           </Label>
           <Input
             id="state"
+            autoComplete="address-level1"
             value={formData.state}
             onChange={(e) => handleChange('state', e.target.value)}
             placeholder={t('statePlaceholder')}
@@ -232,6 +237,8 @@ export default function AddressForm({ onSubmit, onCancel }: AddressFormProps) {
           </Label>
           <Input
             id="postal_code"
+            autoComplete="postal-code"
+            inputMode="numeric"
             value={formData.postal_code}
             onChange={(e) => handleChange('postal_code', e.target.value)}
             placeholder={t('postalCodePlaceholder')}
@@ -248,6 +255,7 @@ export default function AddressForm({ onSubmit, onCancel }: AddressFormProps) {
           </Label>
           <Input
             id="country_code"
+            autoComplete="country"
             value={formData.country_code}
             onChange={(e) => handleChange('country_code', e.target.value)}
             placeholder={t('countryPlaceholder')}
@@ -266,6 +274,8 @@ export default function AddressForm({ onSubmit, onCancel }: AddressFormProps) {
         <Input
           id="phone"
           type="tel"
+          autoComplete="tel"
+          inputMode="tel"
           value={formData.phone}
           onChange={(e) => handleChange('phone', e.target.value)}
           placeholder={t('phonePlaceholder')}
