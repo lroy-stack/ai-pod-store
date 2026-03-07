@@ -85,11 +85,12 @@ export async function DELETE(
       .delete()
       .eq('conversation_id', id)
 
-    // Delete conversation
+    // Delete conversation — include user_id to prevent IDOR in the delete query itself
     await supabaseAdmin
       .from('conversations')
       .delete()
       .eq('id', id)
+      .eq('user_id', user.id)
 
     return NextResponse.json({ success: true, deleted: id })
   } catch (error) {

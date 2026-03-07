@@ -17,6 +17,7 @@ import { PRIMARY_DOMAINS } from './lib/store-config'
 const protectedRoutes = [
   '/profile',
   '/orders',
+  '/wishlist',
 ]
 
 // Create the i18n middleware

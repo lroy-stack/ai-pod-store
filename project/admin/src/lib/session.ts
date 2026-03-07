@@ -48,7 +48,7 @@ export const sessionOptions: SessionOptions = {
     // In production (behind Caddy with HTTPS), this is true
     secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
-    sameSite: 'lax' as const,
+    sameSite: 'strict' as const,
     maxAge: 60 * 60 * 24 * 7, // 7 days
     path: '/',
   },

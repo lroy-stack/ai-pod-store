@@ -1,15 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
-import { withPermission } from '@/lib/rbac'
+import { withPermission, AdminSession } from '@/lib/rbac'
+import { logDelete } from '@/lib/audit'
+import { z } from 'zod'
 
-export const DELETE = withPermission('designs', 'delete', async (req: NextRequest, _session: unknown) => {
+const bulkDeleteSchema = z.object({
+  ids: z.array(z.string().uuid()).min(1).max(100),
+})
+
+export const DELETE = withPermission('designs', 'delete', async (req: NextRequest, session: AdminSession) => {
   try {
     const body = await req.json()
-    const { ids } = body as { ids: string[] }
 
-    if (!ids || !Array.isArray(ids) || ids.length === 0) {
-      return NextResponse.json({ error: 'No design IDs provided' }, { status: 400 })
+    const parsed = bulkDeleteSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Invalid request body', details: parsed.error.flatten() },
+        { status: 400 }
+      )
     }
+
+    const { ids } = parsed.data
 
     // Hard-delete designs from DB
     const { error } = await supabaseAdmin
@@ -21,6 +32,13 @@ export const DELETE = withPermission('designs', 'delete', async (req: NextReques
       console.error('Failed to delete designs:', error)
       return NextResponse.json({ error: 'Failed to delete designs' }, { status: 500 })
     }
+
+    // Audit log each deletion (Feature #43 + Feature #48)
+    await Promise.all(
+      ids.map((id) =>
+        logDelete(session.userId, 'design', id, { batch_size: ids.length }, session.email)
+      )
+    )
 
     return NextResponse.json({ deleted: ids.length, ids })
   } catch (err) {

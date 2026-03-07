@@ -1,0 +1,1 @@
+CREATE POLICY "users_read_own_credits" ON public.credit_transactions FOR SELECT TO authenticated USING (user_id = auth.uid());

@@ -29,22 +29,20 @@ export async function GET(
 
     const { id } = await params
 
-    // Fetch order with ownership check
-    const { data: order, error: orderError } = await supabase
+    // Build query with ownership check in DB (prevents IDOR by never loading unauthorized data)
+    // Admins (role='admin') can see all orders; regular users can only see their own
+    let query = supabase
       .from('orders')
       .select('*')
       .eq('id', id)
-      .single()
 
-    if (orderError || !order) {
-      return NextResponse.json(
-        { error: 'Order not found' },
-        { status: 404 }
-      )
+    if (user.role !== 'admin') {
+      query = query.eq('user_id', user.id)
     }
 
-    // Ownership check: user can only view their own invoices (admins see all)
-    if (order.user_id && order.user_id !== user.id && user.role !== 'admin') {
+    const { data: order, error: orderError } = await query.single()
+
+    if (orderError || !order) {
       return NextResponse.json(
         { error: 'Order not found' },
         { status: 404 }

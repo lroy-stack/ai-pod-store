@@ -1,0 +1,1 @@
+CREATE POLICY "service_role_full_access_credit_transactions" ON public.credit_transactions TO service_role USING (true) WITH CHECK (true);

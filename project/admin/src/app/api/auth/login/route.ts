@@ -37,10 +37,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Query user from database
+    // Query user from database (include must_change_password for security enforcement)
     const { data: user, error: userError } = await supabaseAdmin
       .from('users')
-      .select('id, email, password_hash, role, name')
+      .select('id, email, password_hash, role, name, must_change_password')
       .eq('email', email)
       .single();
 
@@ -70,6 +70,19 @@ export async function POST(req: NextRequest) {
 
     // Reset rate limit on successful login
     adminLoginLimiter.reset(clientIP);
+
+    // Check if password change is required before creating a session
+    if (user.must_change_password) {
+      return NextResponse.json(
+        {
+          must_change_password: true,
+          message: 'Password change required before login.',
+          user_id: user.id,
+          email: user.email,
+        },
+        { status: 200 }
+      );
+    }
 
     // Create encrypted session using iron-session
     const session = await getIronSession<SessionData>(await cookies(), sessionOptions);
