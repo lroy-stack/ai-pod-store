@@ -1,38 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { getIronSession } from 'iron-session'
-import { sessionOptions, SessionData } from '@/lib/session'
-import { cookies } from 'next/headers'
+import { withAuth } from '@/lib/auth-middleware'
+import type { SessionData } from '@/lib/session'
 
 const supabaseUrl = process.env.SUPABASE_URL!
 const supabaseKey = process.env.SUPABASE_SERVICE_KEY!
-
-async function checkAdminAuth(): Promise<NextResponse | null> {
-  try {
-    const session = await getIronSession<SessionData>(await cookies(), sessionOptions)
-
-    if (!session.isLoggedIn) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      )
-    }
-
-    if (session.role !== 'admin') {
-      return NextResponse.json(
-        { error: 'Admin access required' },
-        { status: 403 }
-      )
-    }
-
-    return null // Auth successful
-  } catch {
-    return NextResponse.json(
-      { error: 'Invalid session' },
-      { status: 401 }
-    )
-  }
-}
 
 interface AgentMetrics {
   agent_name: string
@@ -44,10 +16,7 @@ interface AgentMetrics {
   running: boolean
 }
 
-export async function GET(req: NextRequest) {
-  const authError = await checkAdminAuth()
-  if (authError) return authError
-
+export const GET = withAuth(async (req: NextRequest, session: SessionData) => {
   const supabase = createClient(supabaseUrl, supabaseKey)
 
   try {
@@ -154,4 +123,4 @@ export async function GET(req: NextRequest) {
       { status: 500 }
     )
   }
-}
+})

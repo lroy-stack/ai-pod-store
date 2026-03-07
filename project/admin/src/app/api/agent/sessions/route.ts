@@ -1,34 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { getAdminSession } from '@/lib/rbac'
+import { withAuth } from '@/lib/auth-middleware'
+import type { SessionData } from '@/lib/session'
 
 const supabaseUrl = process.env.SUPABASE_URL!
 const supabaseKey = process.env.SUPABASE_SERVICE_KEY!
 
-export async function GET(request: NextRequest) {
-  // Require authentication
-  const session = await getAdminSession();
-  if (!session) {
-    return NextResponse.json(
-      { error: 'Unauthorized - admin session required' },
-      { status: 401 }
-    );
-  }
-
+export const GET = withAuth(async (request: NextRequest, session: SessionData) => {
   try {
     const supabase = createClient(supabaseUrl, supabaseKey)
     const { searchParams } = new URL(request.url)
     const agent = searchParams.get('agent')
     const limit = parseInt(searchParams.get('limit') || '20')
 
-    // Build query conditionally based on agent parameter
     let query = supabase
       .from('agent_sessions')
       .select('*')
       .order('started_at', { ascending: false })
       .limit(limit)
 
-    // Only filter by agent if parameter is provided
     if (agent) {
       query = query.eq('session_type', agent)
     }
@@ -55,4 +45,4 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     )
   }
-}
+})

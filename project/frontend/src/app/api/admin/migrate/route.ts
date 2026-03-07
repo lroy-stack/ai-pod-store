@@ -11,13 +11,11 @@ export async function POST(request: NextRequest) {
       return authErrorResponse(error)
     }
 
-    // Block in production
-    if (process.env.NODE_ENV === 'production' && !process.env.ALLOW_ADMIN_MIGRATE) {
-      return NextResponse.json(
-        { error: 'Migrations are blocked in production' },
-        { status: 403 }
-      )
-    }
+    // Always block raw SQL execution via API — migrations must go through Supabase CLI
+    return NextResponse.json(
+      { error: 'Raw SQL execution via API is permanently disabled. Use Supabase CLI for migrations.' },
+      { status: 403 }
+    )
 
     const { sql } = await request.json()
 

@@ -1,37 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getIronSession } from 'iron-session'
-import { sessionOptions, SessionData } from '@/lib/session'
-import { cookies } from 'next/headers'
+import { withAuth } from '@/lib/auth-middleware'
+import type { SessionData } from '@/lib/session'
 
 const BRIDGE_URL = process.env.PODCLAW_BRIDGE_URL || 'http://localhost:8000'
 const BRIDGE_TOKEN = process.env.PODCLAW_BRIDGE_AUTH_TOKEN || ''
-
-async function checkAdminAuth(): Promise<NextResponse | null> {
-  try {
-    const session = await getIronSession<SessionData>(await cookies(), sessionOptions)
-
-    if (!session.isLoggedIn) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      )
-    }
-
-    if (session.role !== 'admin') {
-      return NextResponse.json(
-        { error: 'Admin access required' },
-        { status: 403 }
-      )
-    }
-
-    return null // Auth successful
-  } catch {
-    return NextResponse.json(
-      { error: 'Invalid session' },
-      { status: 401 }
-    )
-  }
-}
 
 async function proxyToBridge(req: NextRequest, path: string) {
   const url = `${BRIDGE_URL}/${path}${req.nextUrl.search}`
@@ -54,38 +26,29 @@ async function proxyToBridge(req: NextRequest, path: string) {
   }
 }
 
-export async function GET(
+export const GET = withAuth(async (
   req: NextRequest,
-  { params }: { params: Promise<{ path: string[] }> }
-) {
-  // Check admin authentication
-  const authError = await checkAdminAuth()
-  if (authError) return authError
-
-  const { path } = await params
+  session: SessionData,
+  context?: { params: Promise<{ path: string[] }> }
+) => {
+  const { path } = await context!.params
   return proxyToBridge(req, path.join('/'))
-}
+})
 
-export async function POST(
+export const POST = withAuth(async (
   req: NextRequest,
-  { params }: { params: Promise<{ path: string[] }> }
-) {
-  // Check admin authentication
-  const authError = await checkAdminAuth()
-  if (authError) return authError
-
-  const { path } = await params
+  session: SessionData,
+  context?: { params: Promise<{ path: string[] }> }
+) => {
+  const { path } = await context!.params
   return proxyToBridge(req, path.join('/'))
-}
+})
 
-export async function PUT(
+export const PUT = withAuth(async (
   req: NextRequest,
-  { params }: { params: Promise<{ path: string[] }> }
-) {
-  // Check admin authentication
-  const authError = await checkAdminAuth()
-  if (authError) return authError
-
-  const { path } = await params
+  session: SessionData,
+  context?: { params: Promise<{ path: string[] }> }
+) => {
+  const { path } = await context!.params
   return proxyToBridge(req, path.join('/'))
-}
+})

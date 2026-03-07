@@ -85,16 +85,40 @@ export const getActiveTheme = unstable_cache(
 );
 
 /**
+ * Validate a CSS variable value to prevent stored XSS via dangerouslySetInnerHTML.
+ * Allows safe CSS values: colors, numbers, units, HSL/RGB functions, var() references.
+ * Rejects values containing HTML/script injection patterns.
+ */
+function sanitizeCSSValue(value: string): string | null {
+  if (typeof value !== 'string') return null;
+  // Reject values containing dangerous characters or patterns
+  if (/[<>"';{}]/.test(value)) return null;
+  if (/\b(script|javascript|expression|url)\b/i.test(value)) return null;
+  // Allow: letters, digits, #, %, (, ), ., space, -, /, comma, degrees, hsl, rgb, var
+  if (!/^[a-zA-Z0-9#%(),.\s\-\/]+$/.test(value)) return null;
+  return value;
+}
+
+/**
  * Converts a theme to inline CSS string for SSR injection.
  * Outputs unprefixed variables that propagate through @theme inline in globals.css.
+ * CSS values are sanitized to prevent XSS via dangerouslySetInnerHTML.
  */
 export function themeToInlineCSS(theme: ThemeRow): string {
   const lightVars = Object.entries(theme.css_variables)
-    .map(([key, value]) => `  --${key.replace(/_/g, '-')}: ${value};`)
+    .map(([key, value]) => {
+      const safe = sanitizeCSSValue(String(value));
+      return safe ? `  --${key.replace(/_/g, '-')}: ${safe};` : null;
+    })
+    .filter(Boolean)
     .join('\n');
 
   const darkVars = Object.entries(theme.css_variables_dark)
-    .map(([key, value]) => `  --${key.replace(/_/g, '-')}: ${value};`)
+    .map(([key, value]) => {
+      const safe = sanitizeCSSValue(String(value));
+      return safe ? `  --${key.replace(/_/g, '-')}: ${safe};` : null;
+    })
+    .filter(Boolean)
     .join('\n');
 
   const shadowValue = SHADOW_PRESETS[theme.shadow_preset] || SHADOW_PRESETS.medium;

@@ -2,13 +2,16 @@
  * GET /panel/api/metrics
  * Prometheus-compatible metrics endpoint for admin service
  * Returns metrics in Prometheus text format
+ * Protected by withAuth — admin credentials required
  */
 
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
+import { withAuth } from '@/lib/auth-middleware'
+import type { SessionData } from '@/lib/session'
 
 const startTime = Date.now()
 
-export async function GET() {
+export const GET = withAuth(async (request: NextRequest, session: SessionData) => {
   try {
     const uptime = (Date.now() - startTime) / 1000
     const memoryUsage = process.memoryUsage()
@@ -48,4 +51,4 @@ admin_info{version="0.3.0",service="admin",environment="${process.env.NODE_ENV |
       { status: 500 }
     )
   }
-}
+})

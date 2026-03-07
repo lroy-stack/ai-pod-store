@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { withAuth } from '@/lib/auth-middleware';
+import type { SessionData } from '@/lib/session';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY!;
 
-export async function GET(request: NextRequest) {
+export const GET = withAuth(async (request: NextRequest, session: SessionData) => {
   try {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
@@ -56,4 +58,4 @@ export async function GET(request: NextRequest) {
     console.error('Top products error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
-}
+});
