@@ -1,428 +1,230 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { adminFetch } from '@/lib/admin-api';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Search } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useMemo } from 'react';
+import { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
-import { useCustomers } from '@/hooks/queries/useCustomers';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { DataTable } from '@/components/ui/data-table';
+import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
+import { useCustomers, Customer } from '@/hooks/queries/useCustomers';
+import { useRouter } from 'next/navigation';
 
-interface Customer {
-  email: string;
-  name: string;
-  orderCount: number;
-  totalSpent: number;
-  currency: string;
+const RFM_SEGMENTS = [
+  'VIP', 'Champion', 'Loyal', 'Regular', 'New', 'At Risk', 'Churned', 'No Orders',
+];
+
+const RFM_VARIANTS: Record<string, string> = {
+  VIP: 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400',
+  Champion: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400',
+  Loyal: 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400',
+  Regular: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
+  New: 'bg-teal-100 text-teal-800 dark:bg-teal-900/20 dark:text-teal-400',
+  'At Risk': 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400',
+  Churned: 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400',
+  'No Orders': '',
+};
+
+function formatCents(cents: number, currency = 'eur') {
+  return new Intl.NumberFormat('en-DE', {
+    style: 'currency',
+    currency: currency.toUpperCase(),
+    maximumFractionDigits: 0,
+  }).format(cents / 100);
 }
 
-interface Order {
-  id: string;
-  status: string;
-  total: number;
-  currency: string;
-  created_at: string;
-}
-
-interface CustomerProfile {
-  profile: {
-    id: string;
-    email: string;
-    name: string;
-    role: string;
-    avatar_url: string | null;
-    locale: string;
-    currency: string;
-    phone: string | null;
-    email_verified: boolean;
-    created_at: string;
-    last_login_at: string | null;
-  };
-  stats: {
-    orderCount: number;
-    totalSpent: number;
-    currency: string;
-    conversationCount: number;
-    wishlistCount: number;
-    reviewCount: number;
-  };
+function formatDate(d: string | null) {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('en-GB', { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
 export default function CustomersPage() {
-  const [page, setPage] = useState(1);
-  const [search, setSearch] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
-  const [customerProfile, setCustomerProfile] = useState<CustomerProfile | null>(null);
-  const [customerOrders, setCustomerOrders] = useState<Order[]>([]);
-  const [loadingDetails, setLoadingDetails] = useState(false);
-
-  // Debounce search input
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(search);
-      setPage(1); // Reset to first page on search
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, [search]);
-
-  // React Query hook for data fetching
-  const { data, isLoading } = useCustomers({
-    page,
-    limit: 20,
-    search: debouncedSearch || undefined,
-  });
-
+  const router = useRouter();
+  const { data, isLoading } = useCustomers({ page: 1, limit: 500 });
   const customers = data?.customers || [];
-  const loading = isLoading;
-  const total = data?.total || 0;
-  const totalPages = data?.totalPages || 1;
 
-  const handleCustomerClick = async (customer: Customer) => {
-    setSelectedCustomer(customer);
-    setLoadingDetails(true);
-    try {
-      // Fetch both profile and orders in parallel
-      const [profileResponse, ordersResponse] = await Promise.all([
-        adminFetch(`/api/customers/${encodeURIComponent(customer.email)}/profile`),
-        adminFetch(`/api/customers/${encodeURIComponent(customer.email)}/orders`),
-      ]);
+  const columns = useMemo<ColumnDef<Customer>[]>(
+    () => [
+      // Name + Avatar
+      {
+        accessorKey: 'name',
+        header: ({ column }) => <DataTableColumnHeader column={column} title="Name" />,
+        cell: ({ row }) => {
+          const c = row.original;
+          const initials = c.name
+            ? c.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)
+            : c.email[0].toUpperCase();
+          return (
+            <div className="flex items-center gap-2 min-w-[150px]">
+              <Avatar className="h-7 w-7 flex-shrink-0">
+                <AvatarImage src={c.avatar_url ?? undefined} />
+                <AvatarFallback className="text-xs">{initials}</AvatarFallback>
+              </Avatar>
+              <span className="font-medium text-sm truncate max-w-[160px]">{c.name}</span>
+            </div>
+          );
+        },
+      },
+      // Email
+      {
+        accessorKey: 'email',
+        header: ({ column }) => <DataTableColumnHeader column={column} title="Email" />,
+        cell: ({ row }) => (
+          <span className="text-sm text-muted-foreground truncate max-w-[200px] block">
+            {row.original.email}
+          </span>
+        ),
+      },
+      // Joined
+      {
+        accessorKey: 'created_at',
+        header: ({ column }) => <DataTableColumnHeader column={column} title="Joined" />,
+        cell: ({ row }) => (
+          <span className="text-sm text-muted-foreground whitespace-nowrap">
+            {formatDate(row.original.created_at)}
+          </span>
+        ),
+      },
+      // Orders
+      {
+        accessorKey: 'order_count',
+        header: ({ column }) => <DataTableColumnHeader column={column} title="Orders" />,
+        cell: ({ row }) => (
+          <span className="text-sm font-medium tabular-nums">{row.original.order_count}</span>
+        ),
+      },
+      // Total Spent
+      {
+        accessorKey: 'total_spent_cents',
+        header: ({ column }) => <DataTableColumnHeader column={column} title="Total Spent" />,
+        cell: ({ row }) => (
+          <span className="text-sm font-medium tabular-nums whitespace-nowrap">
+            {formatCents(row.original.total_spent_cents, row.original.currency)}
+          </span>
+        ),
+      },
+      // CLV
+      {
+        accessorKey: 'clv_cents',
+        header: ({ column }) => <DataTableColumnHeader column={column} title="CLV (3yr)" />,
+        cell: ({ row }) => (
+          <span className="text-sm tabular-nums whitespace-nowrap text-muted-foreground">
+            {formatCents(row.original.clv_cents, row.original.currency)}
+          </span>
+        ),
+      },
+      // RFM Segment
+      {
+        accessorKey: 'rfm_segment',
+        header: ({ column }) => <DataTableColumnHeader column={column} title="Segment" />,
+        cell: ({ row }) => {
+          const seg = row.original.rfm_segment;
+          const cls = RFM_VARIANTS[seg] || '';
+          return (
+            <Badge className={`border-0 text-xs whitespace-nowrap ${cls}`}>{seg}</Badge>
+          );
+        },
+        filterFn: (row, _, filterValue) => {
+          if (!filterValue) return true;
+          return row.original.rfm_segment === filterValue;
+        },
+      },
+      // Account status
+      {
+        accessorKey: 'account_status',
+        header: ({ column }) => <DataTableColumnHeader column={column} title="Status" />,
+        cell: ({ row }) => {
+          const s = row.original.account_status;
+          if (s === 'active') return <Badge variant="outline" className="text-xs">Active</Badge>;
+          return <Badge variant="destructive" className="text-xs">{s}</Badge>;
+        },
+        filterFn: (row, _, filterValue) => {
+          if (!filterValue) return true;
+          return row.original.account_status === filterValue;
+        },
+      },
+    ],
+    []
+  );
 
-      if (profileResponse.ok) {
-        const profileData = await profileResponse.json();
-        setCustomerProfile(profileData);
-      }
+  const renderMobileCard = (customer: Customer) => {
+    const seg = customer.rfm_segment;
+    const cls = RFM_VARIANTS[seg] || '';
+    const initials = customer.name
+      ? customer.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)
+      : customer.email[0].toUpperCase();
 
-      if (ordersResponse.ok) {
-        const ordersData = await ordersResponse.json();
-        setCustomerOrders(ordersData);
-      }
-    } catch (error) {
-      console.error('Error fetching customer details:', error);
-    } finally {
-      setLoadingDetails(false);
-    }
-  };
-
-  const formatCurrency = (amount: number, currency: string) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: currency.toUpperCase(),
-    }).format(amount);
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
-
-  const getStatusVariant = (status: string): 'default' | 'secondary' | 'destructive' | 'outline' => {
-    const variants: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
-      pending: 'secondary',
-      paid: 'default',
-      processing: 'default',
-      shipped: 'default',
-      delivered: 'default',
-      cancelled: 'destructive',
-      refunded: 'outline',
-    };
-    return variants[status] || 'secondary';
+    return (
+      <div className="rounded-lg border border-border p-4 space-y-3">
+        <div className="flex items-center gap-3">
+          <Avatar className="h-9 w-9 flex-shrink-0">
+            <AvatarImage src={customer.avatar_url ?? undefined} />
+            <AvatarFallback className="text-sm">{initials}</AvatarFallback>
+          </Avatar>
+          <div className="min-w-0">
+            <p className="font-medium text-sm truncate">{customer.name}</p>
+            <p className="text-xs text-muted-foreground truncate">{customer.email}</p>
+          </div>
+          <Badge className={`ml-auto flex-shrink-0 border-0 text-xs ${cls}`}>{seg}</Badge>
+        </div>
+        <div className="grid grid-cols-3 gap-2 text-center text-xs border-t pt-2">
+          <div>
+            <p className="text-muted-foreground">Orders</p>
+            <p className="font-medium">{customer.order_count}</p>
+          </div>
+          <div>
+            <p className="text-muted-foreground">Spent</p>
+            <p className="font-medium">{formatCents(customer.total_spent_cents, customer.currency)}</p>
+          </div>
+          <div>
+            <p className="text-muted-foreground">CLV</p>
+            <p className="font-medium">{formatCents(customer.clv_cents, customer.currency)}</p>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   return (
-    <>
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold">Customers</h1>
-          <p className="text-muted-foreground">View and manage customer information</p>
+    <main className="min-h-screen p-4 md:p-8">
+      <div className="max-w-7xl mx-auto">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold mb-2">Customers</h1>
+          <p className="text-muted-foreground">View and manage your customer base</p>
         </div>
 
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  placeholder="Search by name or email..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <div className="space-y-2">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <div key={i} className="h-12 bg-muted rounded animate-pulse" />
-                ))}
-              </div>
-            ) : customers.length === 0 ? (
-              <p className="text-center py-8 text-muted-foreground">No customers found</p>
-            ) : (
-              <>
-                {/* Desktop Table View */}
-                <div className="hidden md:block">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Orders</TableHead>
-                        <TableHead>Total Spent</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {customers.map((customer) => (
-                        <TableRow
-                          key={customer.email}
-                          onClick={() => handleCustomerClick(customer)}
-                          className="cursor-pointer hover:bg-muted/50"
-                        >
-                          <TableCell className="font-medium">{customer.name}</TableCell>
-                          <TableCell>{customer.email}</TableCell>
-                          <TableCell>{customer.orderCount}</TableCell>
-                          <TableCell>
-                            {formatCurrency(customer.totalSpent, customer.currency)}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-
-                {/* Mobile Card View */}
-                <div className="block md:hidden space-y-4">
-                  {customers.map((customer) => (
-                    <button
-                      key={customer.email}
-                      onClick={() => handleCustomerClick(customer)}
-                      className="w-full text-left border rounded-lg p-4 space-y-3 hover:bg-muted/50 transition-colors min-h-[88px]"
-                    >
-                      <div>
-                        <h3 className="font-medium text-base leading-tight mb-1">
-                          {customer.name}
-                        </h3>
-                        <p className="text-sm text-muted-foreground truncate">
-                          {customer.email}
-                        </p>
-                      </div>
-                      <div className="flex items-center justify-between text-sm pt-2 border-t">
-                        <span className="text-muted-foreground">
-                          {customer.orderCount} {customer.orderCount === 1 ? 'order' : 'orders'}
-                        </span>
-                        <span className="font-medium">
-                          {formatCurrency(customer.totalSpent, customer.currency)}
-                        </span>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-
-                {/* Pagination */}
-                {totalPages > 1 && (
-                  <div className="mt-6 flex items-center justify-between border-t pt-4">
-                    <p className="text-sm text-muted-foreground">
-                      Showing {customers.length} of {total} customers
-                    </p>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setPage(page - 1)}
-                        disabled={page === 1}
-                      >
-                        Previous
-                      </Button>
-                      <span className="px-4 py-2 text-sm">
-                        Page {page} of {totalPages}
-                      </span>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setPage(page + 1)}
-                        disabled={page === totalPages}
-                      >
-                        Next
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </>
-            )}
-          </CardContent>
-        </Card>
+        <DataTable
+          columns={columns}
+          data={customers}
+          isLoading={isLoading}
+          enableSorting
+          enablePagination
+          enableColumnVisibility
+          pageSize={25}
+          tableId="customers"
+          searchColumn="email"
+          searchPlaceholder="Search by name or email…"
+          filters={[
+            {
+              columnId: 'rfm_segment',
+              label: 'Segment',
+              options: RFM_SEGMENTS.map((s) => ({ label: s, value: s })),
+            },
+            {
+              columnId: 'account_status',
+              label: 'Status',
+              options: [
+                { label: 'Active', value: 'active' },
+                { label: 'Disabled', value: 'disabled' },
+                { label: 'Suspended', value: 'suspended' },
+              ],
+            },
+          ]}
+          onRowClick={(row) => router.push(`/customers/${row.id}`)}
+          renderMobileCard={renderMobileCard}
+          emptyTitle="No customers found"
+          emptyDescription="Customers will appear here once users register."
+        />
       </div>
-
-      <Dialog open={!!selectedCustomer} onOpenChange={() => setSelectedCustomer(null)}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>
-              {selectedCustomer?.name} - Customer Details
-            </DialogTitle>
-          </DialogHeader>
-          {loadingDetails ? (
-            <p className="text-center py-8 text-muted-foreground">Loading customer details...</p>
-          ) : customerProfile ? (
-            <div className="space-y-6">
-              {/* Profile Information */}
-              <div>
-                <h3 className="font-semibold mb-3 text-lg">Profile Information</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Name</p>
-                    <p className="font-medium">{customerProfile.profile.name}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Email</p>
-                    <p className="font-medium">{customerProfile.profile.email}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Phone</p>
-                    <p className="font-medium">{customerProfile.profile.phone || 'N/A'}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Role</p>
-                    <Badge variant="outline">{customerProfile.profile.role}</Badge>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Locale</p>
-                    <p className="font-medium">{customerProfile.profile.locale.toUpperCase()}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Email Verified</p>
-                    <Badge variant={customerProfile.profile.email_verified ? 'default' : 'secondary'}>
-                      {customerProfile.profile.email_verified ? 'Verified' : 'Not Verified'}
-                    </Badge>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Member Since</p>
-                    <p className="font-medium">{formatDate(customerProfile.profile.created_at)}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Last Login</p>
-                    <p className="font-medium">
-                      {customerProfile.profile.last_login_at
-                        ? formatDate(customerProfile.profile.last_login_at)
-                        : 'Never'}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Statistics */}
-              <div>
-                <h3 className="font-semibold mb-3 text-lg">Customer Statistics</h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                  <Card>
-                    <CardContent className="p-4">
-                      <p className="text-sm text-muted-foreground">Total Spent</p>
-                      <p className="text-2xl font-bold">
-                        {formatCurrency(customerProfile.stats.totalSpent, customerProfile.stats.currency)}
-                      </p>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="p-4">
-                      <p className="text-sm text-muted-foreground">Orders</p>
-                      <p className="text-2xl font-bold">{customerProfile.stats.orderCount}</p>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="p-4">
-                      <p className="text-sm text-muted-foreground">Conversations</p>
-                      <p className="text-2xl font-bold">{customerProfile.stats.conversationCount}</p>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="p-4">
-                      <p className="text-sm text-muted-foreground">Wishlists</p>
-                      <p className="text-2xl font-bold">{customerProfile.stats.wishlistCount}</p>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="p-4">
-                      <p className="text-sm text-muted-foreground">Reviews</p>
-                      <p className="text-2xl font-bold">{customerProfile.stats.reviewCount}</p>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="p-4">
-                      <p className="text-sm text-muted-foreground">Avg. Order</p>
-                      <p className="text-2xl font-bold">
-                        {customerProfile.stats.orderCount > 0
-                          ? formatCurrency(
-                              customerProfile.stats.totalSpent / customerProfile.stats.orderCount,
-                              customerProfile.stats.currency
-                            )
-                          : formatCurrency(0, customerProfile.stats.currency)}
-                      </p>
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
-
-              {/* Order History */}
-              <div>
-                <h3 className="font-semibold mb-3 text-lg">Order History</h3>
-                {customerOrders.length === 0 ? (
-                  <p className="text-muted-foreground py-4">No orders found</p>
-                ) : (
-                  <div className="border rounded-lg">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Order ID</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead>Total</TableHead>
-                          <TableHead>Date</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {customerOrders.map((order) => (
-                          <TableRow key={order.id}>
-                            <TableCell className="font-mono text-sm">
-                              {order.id.substring(0, 8)}...
-                            </TableCell>
-                            <TableCell>
-                              <Badge variant={getStatusVariant(order.status)}>
-                                {order.status}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>
-                              {formatCurrency(order.total, order.currency)}
-                            </TableCell>
-                            <TableCell>{formatDate(order.created_at)}</TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                )}
-              </div>
-            </div>
-          ) : (
-            <p className="text-center py-8 text-muted-foreground">No customer details available</p>
-          )}
-        </DialogContent>
-      </Dialog>
-    </>
+    </main>
   );
 }

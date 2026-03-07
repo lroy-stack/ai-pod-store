@@ -8,7 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { DataTable } from '@/components/ui/data-table';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { exportToCSV } from '@/lib/export-utils';
-import { Pencil, Archive, Plus } from 'lucide-react';
+import { Pencil, Archive, Plus, DollarSign } from 'lucide-react';
 import { useProducts, Product } from '@/hooks/queries/useProducts';
 import { useArchiveProduct, useBulkUpdateProducts } from '@/hooks/mutations/useProductMutations';
 import Image from 'next/image';
@@ -306,12 +306,20 @@ export default function ProductsPage() {
               Manage your product catalog
             </p>
           </div>
-          <Button asChild>
-            <a href="/products/new">
-              <Plus className="h-4 w-4 mr-2" />
-              Create Product
-            </a>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" asChild>
+              <a href="/products/bulk-price-editor">
+                <DollarSign className="h-4 w-4 mr-2" />
+                Bulk Edit Prices
+              </a>
+            </Button>
+            <Button asChild>
+              <a href="/products/new">
+                <Plus className="h-4 w-4 mr-2" />
+                Create Product
+              </a>
+            </Button>
+          </div>
         </div>
 
         {/* DataTable */}

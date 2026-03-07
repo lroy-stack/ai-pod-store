@@ -49,6 +49,7 @@ export interface DataTableProps<TData, TValue> {
   onEmptyCta?: () => void;
   onExport?: (data: TData[], visibleColumnIds: string[]) => void;
   onRowSelectionChange?: (selectedRows: TData[]) => void;
+  onRowClick?: (row: TData) => void;
   // Mobile card renderer
   renderMobileCard?: (row: TData) => React.ReactNode;
 }
@@ -72,6 +73,7 @@ export function DataTable<TData, TValue>({
   onEmptyCta,
   onExport,
   onRowSelectionChange,
+  onRowClick,
   renderMobileCard,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -204,7 +206,8 @@ export function DataTable<TData, TValue>({
                     <TableRow
                       key={row.id}
                       data-state={row.getIsSelected() ? 'selected' : undefined}
-                      className="hover:bg-muted/40 transition-colors"
+                      className={cn('hover:bg-muted/40 transition-colors', onRowClick && 'cursor-pointer')}
+                      onClick={onRowClick ? () => onRowClick(row.original) : undefined}
                     >
                       {row.getVisibleCells().map((cell) => (
                         <TableCell key={cell.id}>
@@ -244,7 +247,13 @@ export function DataTable<TData, TValue>({
             ))
           ) : hasData ? (
             table.getFilteredRowModel().rows.map((row) => (
-              <div key={row.id}>{renderMobileCard(row.original)}</div>
+              <div
+                key={row.id}
+                onClick={onRowClick ? () => onRowClick(row.original) : undefined}
+                className={cn(onRowClick && 'cursor-pointer')}
+              >
+                {renderMobileCard(row.original)}
+              </div>
             ))
           ) : (
             <DataTableEmpty
