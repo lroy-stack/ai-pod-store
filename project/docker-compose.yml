@@ -52,7 +52,8 @@ services:
         NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY}
         NEXT_PUBLIC_BASE_URL: ${NEXT_PUBLIC_BASE_URL:-http://localhost:3000}
         SUPABASE_URL: ${SUPABASE_URL}
-        SUPABASE_SERVICE_KEY: ${SUPABASE_SERVICE_KEY}
+      secrets:
+        - supabase_service_key
     expose:
       - "3000"
     environment:
@@ -103,7 +104,8 @@ services:
       args:
         ADMIN_BASE_PATH: "/panel"
         SUPABASE_URL: ${SUPABASE_URL}
-        SUPABASE_SERVICE_KEY: ${SUPABASE_SERVICE_KEY}
+      secrets:
+        - supabase_service_key
     expose:
       - "3001"
     environment:
@@ -488,3 +490,13 @@ networks:
     driver: bridge
   ai-services:
     driver: bridge
+
+# ---------------------------------------------------------------------------
+# Secrets — BuildKit secret mounts for sensitive build-time values
+# ---------------------------------------------------------------------------
+# SUPABASE_SERVICE_KEY is mounted at build time via --mount=type=secret.
+# This prevents the key from appearing in docker image layers/history.
+# The secret is sourced from the SUPABASE_SERVICE_KEY environment variable.
+secrets:
+  supabase_service_key:
+    environment: SUPABASE_SERVICE_KEY

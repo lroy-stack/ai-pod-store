@@ -159,7 +159,7 @@ BRIDGE_PORT = int(os.environ.get("PODCLAW_BRIDGE_PORT", "8000"))
 # If empty + enabled, bridge returns 503 on all authenticated endpoints.
 # ---------------------------------------------------------------------------
 BRIDGE_AUTH_TOKEN = os.environ.get("PODCLAW_BRIDGE_AUTH_TOKEN", "")
-BRIDGE_AUTH_ENABLED = os.environ.get("PODCLAW_BRIDGE_AUTH_ENABLED", "false").lower() == "true"
+BRIDGE_AUTH_ENABLED = os.environ.get("PODCLAW_BRIDGE_AUTH_ENABLED", "true").lower() != "false"
 if BRIDGE_AUTH_ENABLED and not BRIDGE_AUTH_TOKEN:
     import sys
     print(

@@ -4,6 +4,7 @@ import { ShippingAddressList } from '@/components/profile/ShippingAddressList';
 import { DeleteAccountSection } from '@/components/profile/DeleteAccountSection';
 import { ChangePasswordForm } from '@/components/profile/ChangePasswordForm';
 import { PaymentMethodsList } from '@/components/profile/PaymentMethodsList';
+import { PlanCard } from '@/components/profile/PlanCard';
 
 import {
   Card,
@@ -44,6 +45,8 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
             <ProfileForm locale={locale} />
           </CardContent>
         </Card>
+
+        <PlanCard />
 
         <Card>
           <CardContent className="pt-6">

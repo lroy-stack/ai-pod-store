@@ -52,6 +52,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import re
 import uuid
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Any
@@ -158,8 +159,8 @@ def create_app(
     app.add_middleware(
         CORSMiddleware,
         allow_origins=cors_origins,
-        allow_methods=["*"],
-        allow_headers=["*"],
+        allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        allow_headers=["Authorization", "Content-Type", "Accept"],
     )
 
     # ----- Task Store (persistent via SQLite) -----
@@ -694,6 +695,11 @@ def create_app(
 
     @app.get("/memory/context/{filename}", dependencies=[Depends(require_auth)])
     async def get_context_file(filename: str):
+        # Validate filename to prevent path traversal attacks.
+        # Only allow alphanumeric characters, dots, hyphens, and underscores.
+        # Rejects "..", "/", "\", null bytes, and other dangerous patterns.
+        if not re.match(r'^[a-zA-Z0-9._-]+$', filename):
+            raise HTTPException(400, "Invalid filename: only alphanumeric, dots, hyphens, and underscores are allowed")
         try:
             content = memory_manager.read_context(filename)
         except ValueError as e:

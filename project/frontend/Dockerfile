@@ -53,12 +53,11 @@ ENV NEXT_PUBLIC_BASE_URL=$NEXT_PUBLIC_BASE_URL
 # Server-side vars needed only at build time — some API routes create
 # Supabase clients at module scope (imported during `next build`).
 # These do NOT leak to the production image (runner stage is separate).
-# All other server clients (Stripe, Resend, Printify, Redis) use lazy
-# initialization and do NOT need build-time values.
+# SUPABASE_SERVICE_KEY is injected via BuildKit secret mount (never stored
+# in image layers or docker history). Fallback to placeholder for local builds.
+# SUPABASE_URL is not sensitive but kept as ARG for consistency.
 ARG SUPABASE_URL=https://placeholder.supabase.co
-ARG SUPABASE_SERVICE_KEY=placeholder
 ENV SUPABASE_URL=$SUPABASE_URL
-ENV SUPABASE_SERVICE_KEY=$SUPABASE_SERVICE_KEY
 
 # Copy node_modules from deps stage
 COPY --from=deps /app/node_modules ./node_modules
@@ -66,8 +65,11 @@ COPY --from=deps /app/node_modules ./node_modules
 # Copy the rest of the application source
 COPY . .
 
-# Build the Next.js application (uses next build --webpack via package.json)
-RUN npm run build
+# Build the Next.js application.
+# --mount=type=secret keeps SUPABASE_SERVICE_KEY out of image layers/history.
+RUN --mount=type=secret,id=supabase_service_key \
+    SUPABASE_SERVICE_KEY=$(cat /run/secrets/supabase_service_key 2>/dev/null || echo 'placeholder') \
+    npm run build
 
 # ---------------------------------------------------------------------------
 # Stage 3: Production runner

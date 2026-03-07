@@ -104,6 +104,13 @@ export default function LoginForm({ locale }: { locale: string }) {
         console.error('Failed to broadcast login event:', e)
       }
 
+      // Merge anonymous guest cart into user's cart
+      try {
+        await fetch('/api/cart/merge', { method: 'POST' })
+      } catch {
+        // Non-critical — ignore cart merge errors
+      }
+
       // Migrate anonymous session data to new user
       try {
         const fp = localStorage.getItem('pod-fp-id')

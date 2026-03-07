@@ -33,10 +33,10 @@ ENV ADMIN_BASE_PATH=$ADMIN_BASE_PATH
 
 # Server-side vars needed at build time — Supabase client may be
 # created at module scope during `next build`.
+# SUPABASE_SERVICE_KEY is injected via BuildKit secret mount (never stored
+# in image layers or docker history). Fallback to placeholder for local builds.
 ARG SUPABASE_URL=https://placeholder.supabase.co
-ARG SUPABASE_SERVICE_KEY=placeholder
 ENV SUPABASE_URL=$SUPABASE_URL
-ENV SUPABASE_SERVICE_KEY=$SUPABASE_SERVICE_KEY
 
 COPY --from=deps /app/node_modules ./node_modules
 
@@ -48,7 +48,11 @@ COPY --from=frontend-messages . ./frontend-messages/
 # Ensure public/ exists (admin has no static assets yet)
 RUN mkdir -p public
 
-RUN npm run build
+# Build the Next.js application.
+# --mount=type=secret keeps SUPABASE_SERVICE_KEY out of image layers/history.
+RUN --mount=type=secret,id=supabase_service_key \
+    SUPABASE_SERVICE_KEY=$(cat /run/secrets/supabase_service_key 2>/dev/null || echo 'placeholder') \
+    npm run build
 
 # ---------------------------------------------------------------------------
 # Stage 3: Production runner

@@ -182,6 +182,16 @@ validate_env() {
     fi
   fi
 
+  # Validate GRAFANA_ADMIN_PASSWORD is not default/placeholder when monitoring is enabled
+  local grafana_pw="${GRAFANA_ADMIN_PASSWORD:-}"
+  if [[ -n "$grafana_pw" ]]; then
+    if [[ "$grafana_pw" == "admin" || "$grafana_pw" == "change-me"* || "$grafana_pw" == *"grafana"* ]]; then
+      error "GRAFANA_ADMIN_PASSWORD must not use default/placeholder values."
+      error "Generate a strong password: openssl rand -hex 24"
+      exit 1
+    fi
+  fi
+
   ok "Environment validated"
 }
 
@@ -248,6 +258,14 @@ sys.exit(0 if healthy and len(infra) == 3 else 1)
 
   info "Phase 3/3: Starting reverse proxy (caddy)..."
   $COMPOSE_CMD up -d caddy
+
+  # Phase 4 (optional): Monitoring stack — gated by ENABLE_MONITORING=true
+  local enable_monitoring="${ENABLE_MONITORING:-false}"
+  if [[ "$enable_monitoring" == "true" ]]; then
+    info "Phase 4/4: Starting monitoring stack (prometheus, grafana, loki)..."
+    $COMPOSE_CMD up -d prometheus grafana loki 2>/dev/null || warn "Some monitoring services may not be configured in docker-compose.yml"
+    ok "Monitoring stack started"
+  fi
 
   # Wait a moment for health checks to settle
   sleep 3
