@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, use } from 'react';
+import Link from 'next/link';
 import { adminFetch } from '@/lib/admin-api';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -476,12 +477,12 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
                       {orders.slice(0, 10).map((order) => (
                         <TableRow key={order.id}>
                           <TableCell className="font-mono text-xs">
-                            <a
+                            <Link
                               href={`/orders/${order.id}`}
                               className="hover:underline text-primary"
                             >
                               {order.id.substring(0, 8)}…
-                            </a>
+                            </Link>
                           </TableCell>
                           <TableCell className="text-sm">{formatDate(order.created_at)}</TableCell>
                           <TableCell>

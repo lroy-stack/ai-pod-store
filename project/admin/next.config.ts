@@ -3,6 +3,11 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   // No i18n — admin panel is English-only
   output: "standalone",
+  // Disable Turbopack persistent cache to prevent zombie processes.
+  // The admin panel is small (34 pages) — in-memory cache is sufficient.
+  experimental: {
+    turbopackFileSystemCacheForDev: false,
+  },
   // basePath for Caddy reverse proxy routing (/panel → admin:3001)
   basePath: process.env.ADMIN_BASE_PATH || "",
   // Expose basePath to client bundles so fetch() and EventSource can prepend it.
@@ -41,7 +46,7 @@ const nextConfig: NextConfig = {
       { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
       {
         key: 'Content-Security-Policy',
-        value: "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://images.printify.com https://images-api.printify.com https://*.supabase.co; connect-src 'self' https://*.supabase.co https://api.printify.com; font-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com; frame-ancestors 'none'",
+        value: "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://files.cdn.printful.com https://*.supabase.co; connect-src 'self' https://*.supabase.co https://api.printful.com; font-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com; frame-ancestors 'none'",
       },
     ]
     return [

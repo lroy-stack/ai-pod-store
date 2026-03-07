@@ -13,6 +13,7 @@ export interface Product {
   pod_provider?: string | null;
   provider_product_id?: string | null;
   last_synced_at?: string | null;
+  images?: Array<{ src: string; alt?: string }> | null;
 }
 
 interface ProductsResponse {

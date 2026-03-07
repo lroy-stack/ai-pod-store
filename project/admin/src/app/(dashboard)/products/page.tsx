@@ -12,6 +12,7 @@ import { Pencil, Archive, Plus, DollarSign } from 'lucide-react';
 import { useProducts, Product } from '@/hooks/queries/useProducts';
 import { useArchiveProduct, useBulkUpdateProducts } from '@/hooks/mutations/useProductMutations';
 import Image from 'next/image';
+import Link from 'next/link';
 
 const formatPrice = (cents: number, currency: string) => {
   const symbol = currency.toLowerCase() === 'eur' ? '€' : '$';
@@ -56,12 +57,8 @@ export default function ProductsPage() {
         header: 'Image',
         cell: ({ row }) => {
           const product = row.original;
-          // Attempt to derive an image path
-          const slug = product.title
-            ?.toLowerCase()
-            .replace(/[^a-z0-9]+/g, '-')
-            .replace(/^-|-$/g, '');
-          const imgSrc = `/brand/logo-mark-dark.png`; // fallback
+          const firstImage = product.images?.[0];
+          const imgSrc = firstImage?.src || '/brand/logo-mark-dark.png';
           return (
             <div className="w-12 h-12 rounded overflow-hidden bg-muted flex-shrink-0">
               <Image
@@ -84,12 +81,12 @@ export default function ProductsPage() {
           <DataTableColumnHeader column={column} title="Name" />
         ),
         cell: ({ row }) => (
-          <a
+          <Link
             href={`/products/${row.original.id}`}
             className="font-medium hover:underline text-primary line-clamp-2 max-w-[200px]"
           >
             {row.original.title}
-          </a>
+          </Link>
         ),
       },
       // Price
@@ -182,9 +179,9 @@ export default function ProductsPage() {
           return (
             <div className="flex items-center gap-1">
               <Button variant="ghost" size="sm" asChild>
-                <a href={`/products/${product.id}`}>
+                <Link href={`/products/${product.id}`}>
                   <Pencil className="h-4 w-4" />
-                </a>
+                </Link>
               </Button>
               {product.status === 'active' && (
                 <Button
@@ -245,12 +242,12 @@ export default function ProductsPage() {
   const renderMobileCard = (product: Product) => (
     <div className="rounded-lg border border-border p-4 space-y-3">
       <div className="flex items-start justify-between gap-2">
-        <a
+        <Link
           href={`/products/${product.id}`}
           className="font-medium text-primary hover:underline line-clamp-2"
         >
           {product.title}
-        </a>
+        </Link>
         <Badge
           variant={product.status === 'active' ? 'default' : 'secondary'}
         >
@@ -274,10 +271,10 @@ export default function ProductsPage() {
         )}
         <div className="flex gap-2">
           <Button variant="outline" size="sm" asChild className="min-h-[44px]">
-            <a href={`/products/${product.id}`}>
+            <Link href={`/products/${product.id}`}>
               <Pencil className="h-4 w-4 mr-1" />
               Edit
-            </a>
+            </Link>
           </Button>
           {product.status === 'active' && (
             <Button
@@ -308,16 +305,16 @@ export default function ProductsPage() {
           </div>
           <div className="flex items-center gap-2">
             <Button variant="outline" asChild>
-              <a href="/products/bulk-price-editor">
+              <Link href="/products/bulk-price-editor">
                 <DollarSign className="h-4 w-4 mr-2" />
                 Bulk Edit Prices
-              </a>
+              </Link>
             </Button>
             <Button asChild>
-              <a href="/products/new">
+              <Link href="/products/new">
                 <Plus className="h-4 w-4 mr-2" />
                 Create Product
-              </a>
+              </Link>
             </Button>
           </div>
         </div>

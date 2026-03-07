@@ -198,6 +198,42 @@ The landing page is at `/` via `(landing)/page.tsx`. The chat is at `/chat` via 
 
 ---
 
+## Audit Skills — Auditoría Técnica y de Negocio
+
+13 skills de auditoría en `.claude/skills/` para evaluaciones sistemáticas del proyecto. Se activan automáticamente según contexto o se pueden invocar directamente.
+
+### Auditorías Técnicas (7 skills)
+
+| Skill | Cuándo usarlo |
+|---|---|
+| `audit-frontend` | Auditar storefront Next.js: auth, rutas, estado, componentes, rendimiento |
+| `audit-admin` | Auditar admin panel: auth, RBAC, datos, API, operaciones |
+| `audit-database` | Auditar Supabase/PostgreSQL: schema, RLS, multi-tenancy, migraciones, rendimiento |
+| `audit-api` | Auditar TODAS las API routes: inventario, validación, respuestas, rate limiting |
+| `audit-podclaw` | Auditar PodClaw: modelo de seguridad, config, bridge, tools, resiliencia |
+| `audit-infrastructure` | Auditar Docker Compose: contenedores, redes, secretos, proxy, deploy |
+| `audit-preproduction` | Auditoría consolidada pre-producción: OWASP Top 10, GDPR, GPSR, Go/No-Go |
+
+### Auditorías de Negocio E-commerce (6 skills)
+
+| Skill | Cuándo usarlo |
+|---|---|
+| `audit-conversion-funnel` | Auditar embudo: landing→producto→carrito→checkout→pago→post-compra |
+| `audit-product-experience` | Auditar presentación de producto: imágenes, descripciones, tallas, reviews, cross-sell |
+| `audit-trust-signals` | Auditar confianza: devoluciones, envío, seguridad, legal, prueba social |
+| `audit-seo-discoverability` | Auditar SEO: meta tags, structured data, sitemap, Core Web Vitals |
+| `audit-engagement-retention` | Auditar engagement: wishlist, email, notificaciones, lealtad, personalización |
+| `audit-mobile-ux` | Auditar UX móvil: touch targets, thumb zones, checkout móvil, scroll |
+
+### Cómo usar
+
+- Cada skill genera un reporte `.md` con scorecard, hallazgos críticos, quick wins y recomendaciones
+- Para auditoría completa: lanzar agentes especialistas en paralelo (técnicos + negocio)
+- Para auditoría focalizada: activar un skill específico según el área a evaluar
+- Output: `AUDIT_[AREA]_[FECHA].md` en la raíz del workspace
+
+---
+
 ## Docker — Self-Hosted Stack
 
 ### File Structure

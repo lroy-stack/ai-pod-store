@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import Link from 'next/link';
 import { adminFetch } from '@/lib/admin-api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -247,12 +248,12 @@ export default function BulkPriceEditorPage() {
                         return (
                           <TableRow key={product.id} className={edit?.dirty ? 'bg-muted/30' : ''}>
                             <TableCell className="font-medium">
-                              <a
+                              <Link
                                 href={`/products/${product.id}`}
                                 className="hover:underline text-primary"
                               >
                                 {product.title}
-                              </a>
+                              </Link>
                             </TableCell>
                             <TableCell className="font-mono">
                               €{(product.base_price_cents / 100).toFixed(2)}
