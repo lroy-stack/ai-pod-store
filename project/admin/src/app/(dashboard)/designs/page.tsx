@@ -1,16 +1,29 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState, useCallback } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { ColumnDef } from '@tanstack/react-table'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { DataTable } from '@/components/ui/data-table'
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header'
 import { useDesigns, Design } from '@/hooks/queries/useDesigns'
-import { Eye } from 'lucide-react'
+import { Eye, Trash2, Upload } from 'lucide-react'
+import { adminFetch } from '@/lib/admin-api'
+import { toast } from 'sonner'
+import { DesignUploadDialog } from '@/components/designs/DesignUploadDialog'
 
 const STATUS_VARIANTS: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
   approved: 'default',
@@ -35,14 +48,49 @@ function formatDate(d: string) {
 
 export default function DesignsPage() {
   const router = useRouter()
-  const { data, isLoading } = useDesigns({ page: 1, limit: 200 })
+  const { data, isLoading, refetch } = useDesigns({ page: 1, limit: 200 })
   const designs = data?.designs || []
+
+  const [selectedRows, setSelectedRows] = useState<Design[]>([])
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [showUploadDialog, setShowUploadDialog] = useState(false)
 
   // Extract unique models for the filter
   const modelOptions = useMemo(() => {
     const models = Array.from(new Set(designs.map((d) => d.model).filter(Boolean))) as string[]
     return models.map((m) => ({ label: m, value: m }))
   }, [designs])
+
+  const handleRowSelectionChange = useCallback((rows: Design[]) => {
+    setSelectedRows(rows)
+  }, [])
+
+  const handleDeleteSelected = async () => {
+    if (selectedRows.length === 0) return
+    setIsDeleting(true)
+    try {
+      const ids = selectedRows.map((d) => d.id)
+      const res = await adminFetch('/api/designs/bulk-delete', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids }),
+      })
+      if (res.ok) {
+        toast.success(`Deleted ${ids.length} design${ids.length !== 1 ? 's' : ''}`)
+        setSelectedRows([])
+        setShowDeleteDialog(false)
+        refetch()
+      } else {
+        const errData = await res.json()
+        toast.error(errData.error || 'Failed to delete designs')
+      }
+    } catch {
+      toast.error('Failed to delete designs')
+    } finally {
+      setIsDeleting(false)
+    }
+  }
 
   const columns = useMemo<ColumnDef<Design>[]>(
     () => [
@@ -268,10 +316,48 @@ export default function DesignsPage() {
   return (
     <main className="min-h-screen p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Designs</h1>
-          <p className="text-muted-foreground">AI-generated designs and their product usage</p>
+        <div className="mb-8 flex items-start justify-between flex-wrap gap-4">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">Designs</h1>
+            <p className="text-muted-foreground">AI-generated designs and their product usage</p>
+          </div>
+          <div className="flex items-center gap-2">
+            {selectedRows.length > 0 && (
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => setShowDeleteDialog(true)}
+                className="gap-2"
+              >
+                <Trash2 className="h-4 w-4" />
+                Delete {selectedRows.length} selected
+              </Button>
+            )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowUploadDialog(true)}
+              className="gap-2"
+            >
+              <Upload className="h-4 w-4" />
+              Upload Design
+            </Button>
+          </div>
         </div>
+
+        {selectedRows.length > 0 && (
+          <div className="mb-4 flex items-center gap-3 p-3 bg-muted rounded-lg text-sm">
+            <span className="font-medium">{selectedRows.length} design{selectedRows.length !== 1 ? 's' : ''} selected</span>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-auto py-1 px-2 text-xs"
+              onClick={() => setSelectedRows([])}
+            >
+              Clear selection
+            </Button>
+          </div>
+        )}
 
         <DataTable
           columns={columns}
@@ -280,6 +366,7 @@ export default function DesignsPage() {
           enableSorting
           enablePagination
           enableColumnVisibility
+          enableRowSelection
           pageSize={25}
           tableId="designs"
           searchColumn="prompt"
@@ -317,11 +404,44 @@ export default function DesignsPage() {
             },
           ]}
           onRowClick={(row) => router.push(`/designs/${row.id}`)}
+          onRowSelectionChange={handleRowSelectionChange}
           renderMobileCard={renderMobileCard}
           emptyTitle="No designs found"
           emptyDescription="Designs will appear here once generated."
         />
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete {selectedRows.length} design{selectedRows.length !== 1 ? 's' : ''}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. The selected design{selectedRows.length !== 1 ? 's' : ''} will be permanently deleted from the database.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteSelected}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? 'Deleting…' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Upload Dialog */}
+      <DesignUploadDialog
+        open={showUploadDialog}
+        onOpenChange={setShowUploadDialog}
+        onSuccess={() => {
+          refetch()
+          toast.success('Design uploaded successfully')
+        }}
+      />
     </main>
   )
 }

@@ -9,7 +9,7 @@ interface Notification {
   message: string;
   timestamp: string;
   read: boolean;
-  type: 'order' | 'agent' | 'alert' | 'info';
+  type: 'order' | 'agent' | 'alert' | 'info' | 'sync_error' | 'webhook_failed' | 'margin_alert' | 'integrity_issue';
 }
 
 interface NotificationsContextType {
@@ -121,6 +121,78 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
         addNotification(notification);
       } catch (error) {
         console.error('[SSE] Failed to parse agent event:', error);
+      }
+    });
+
+    // Handle sync error events
+    eventSource.addEventListener('sync_error', (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        const notification: Notification = {
+          id: `sync_error-${Date.now()}`,
+          title: 'Sync Error',
+          message: data.message || 'Sync operation failed',
+          timestamp: data.timestamp || new Date().toISOString(),
+          read: false,
+          type: 'sync_error',
+        };
+        addNotification(notification);
+      } catch (error) {
+        console.error('[SSE] Failed to parse sync_error event:', error);
+      }
+    });
+
+    // Handle webhook failure events
+    eventSource.addEventListener('webhook_failed', (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        const notification: Notification = {
+          id: `webhook_failed-${Date.now()}`,
+          title: 'Webhook Failed',
+          message: data.message || `Webhook delivery failed${data.event_type ? `: ${data.event_type}` : ''}`,
+          timestamp: data.timestamp || new Date().toISOString(),
+          read: false,
+          type: 'webhook_failed',
+        };
+        addNotification(notification);
+      } catch (error) {
+        console.error('[SSE] Failed to parse webhook_failed event:', error);
+      }
+    });
+
+    // Handle margin alert events
+    eventSource.addEventListener('margin_alert', (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        const notification: Notification = {
+          id: `margin_alert-${Date.now()}`,
+          title: 'Margin Alert',
+          message: data.message || `Product margin below threshold${data.product_name ? `: ${data.product_name}` : ''}`,
+          timestamp: data.timestamp || new Date().toISOString(),
+          read: false,
+          type: 'margin_alert',
+        };
+        addNotification(notification);
+      } catch (error) {
+        console.error('[SSE] Failed to parse margin_alert event:', error);
+      }
+    });
+
+    // Handle integrity issue events
+    eventSource.addEventListener('integrity_issue', (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        const notification: Notification = {
+          id: `integrity_issue-${Date.now()}`,
+          title: 'Integrity Issue',
+          message: data.message || 'Data integrity issue detected',
+          timestamp: data.timestamp || new Date().toISOString(),
+          read: false,
+          type: 'integrity_issue',
+        };
+        addNotification(notification);
+      } catch (error) {
+        console.error('[SSE] Failed to parse integrity_issue event:', error);
       }
     });
 

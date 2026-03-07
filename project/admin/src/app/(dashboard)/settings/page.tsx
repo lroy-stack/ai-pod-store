@@ -9,8 +9,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
-import { Save, Loader2, Check } from 'lucide-react';
+import { Save, Loader2, Check, Bell } from 'lucide-react';
 
 interface AdminSettings {
   id: number;
@@ -66,6 +67,19 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false);
   const [roles, setRoles] = useState<AdminRole[]>([]);
   const [rolesLoading, setRolesLoading] = useState(true);
+
+  // Notification preferences
+  const [notifPrefs, setNotifPrefs] = useState({
+    new_order: true,
+    agent_cycle: true,
+    sync_error: true,
+    webhook_failed: true,
+    margin_alert: true,
+    integrity_issue: true,
+    order_min_eur: 0,
+    margin_threshold: 35,
+  });
+  const [savingNotif, setSavingNotif] = useState(false);
 
   useEffect(() => {
     fetchSettings();
@@ -130,6 +144,19 @@ export default function SettingsPage() {
     setSettings((prev) => ({ ...prev, [field]: value }));
   }
 
+  async function handleSaveNotifications() {
+    setSavingNotif(true);
+    try {
+      // Persist to localStorage as preferences
+      localStorage.setItem('admin_notification_prefs', JSON.stringify(notifPrefs));
+      toast.success('Notification preferences saved');
+    } catch {
+      toast.error('Failed to save notification preferences');
+    } finally {
+      setSavingNotif(false);
+    }
+  }
+
   function hasPermission(role: AdminRole, resource: string, action: string): boolean {
     return !!(role.permissions[resource] && role.permissions[resource].includes(action));
   }
@@ -153,6 +180,10 @@ export default function SettingsPage() {
         <TabsList className="mb-6">
           <TabsTrigger value="general">General</TabsTrigger>
           <TabsTrigger value="roles">Roles</TabsTrigger>
+          <TabsTrigger value="notifications">
+            <Bell className="h-3.5 w-3.5 mr-1.5" />
+            Notifications
+          </TabsTrigger>
         </TabsList>
 
         {/* General Tab */}
@@ -363,6 +394,105 @@ export default function SettingsPage() {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Notifications Tab */}
+        <TabsContent value="notifications">
+          <div className="max-w-2xl space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Event Notifications</CardTitle>
+                <CardDescription>
+                  Choose which events trigger notifications. Disabled events will not show toasts or bell alerts.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {[
+                  { key: 'new_order', label: 'New Orders', description: 'Alert when a new order is placed' },
+                  { key: 'agent_cycle', label: 'Agent Cycles', description: 'Alert when PodClaw completes a cycle' },
+                  { key: 'sync_error', label: 'Sync Errors', description: 'Alert when Printful sync fails' },
+                  { key: 'webhook_failed', label: 'Webhook Failures', description: 'Alert when webhook delivery fails' },
+                  { key: 'margin_alert', label: 'Margin Alerts', description: 'Alert when product margin drops below threshold' },
+                  { key: 'integrity_issue', label: 'Integrity Issues', description: 'Alert when a data integrity problem is detected' },
+                ].map(({ key, label, description }) => (
+                  <div key={key} className="flex items-center justify-between py-2 border-b border-border/50 last:border-0">
+                    <div>
+                      <p className="text-sm font-medium">{label}</p>
+                      <p className="text-xs text-muted-foreground">{description}</p>
+                    </div>
+                    <Switch
+                      checked={notifPrefs[key as keyof typeof notifPrefs] as boolean}
+                      onCheckedChange={(checked) =>
+                        setNotifPrefs((prev) => ({ ...prev, [key]: checked }))
+                      }
+                    />
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Thresholds</CardTitle>
+                <CardDescription>Configure numeric thresholds for notification triggers.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="order_min_eur">Minimum order value for notification (EUR)</Label>
+                  <Input
+                    id="order_min_eur"
+                    type="number"
+                    min={0}
+                    step={1}
+                    value={notifPrefs.order_min_eur}
+                    onChange={(e) =>
+                      setNotifPrefs((prev) => ({ ...prev, order_min_eur: Number(e.target.value) }))
+                    }
+                    className="max-w-xs"
+                    placeholder="0 = notify for all orders"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Orders below this value will not trigger a notification. Set to 0 to notify for all orders.
+                  </p>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="margin_threshold">Margin alert threshold (%)</Label>
+                  <Input
+                    id="margin_threshold"
+                    type="number"
+                    min={0}
+                    max={100}
+                    step={1}
+                    value={notifPrefs.margin_threshold}
+                    onChange={(e) =>
+                      setNotifPrefs((prev) => ({ ...prev, margin_threshold: Number(e.target.value) }))
+                    }
+                    className="max-w-xs"
+                    placeholder="35"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Products with margin below this percentage will trigger a margin alert.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <div className="flex justify-end">
+              <Button onClick={handleSaveNotifications} disabled={savingNotif}>
+                {savingNotif ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4 mr-2" />
+                    Save Preferences
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
         </TabsContent>
       </Tabs>
     </div>

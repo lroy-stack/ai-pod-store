@@ -25,6 +25,7 @@ import { VariantMatrix } from '@/components/products/VariantMatrix';
 import { ImageGallery } from '@/components/products/ImageGallery';
 import { ProductHealthScorecard } from '@/components/products/ProductHealthScorecard';
 import { MarginCalculator } from '@/components/products/MarginCalculator';
+import { MockupBadge } from '@/components/products/MockupBadge';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -223,10 +224,11 @@ export default function EditProductPage() {
             <h1 className="text-2xl font-bold">Edit Product</h1>
             <p className="text-muted-foreground text-sm font-mono mt-0.5">{product.id}</p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <Badge variant={product.status === 'active' ? 'default' : 'secondary'} className="capitalize">
               {product.status}
             </Badge>
+            <MockupBadge productId={id} />
             {product.pod_provider === 'printful' && product.provider_product_id && (
               <a
                 href={`https://www.printful.com/dashboard/sync/products/${product.provider_product_id}`}
