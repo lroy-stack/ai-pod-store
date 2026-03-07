@@ -170,6 +170,9 @@ export function PaymentMethodsList() {
             <Button variant="outline" className="mt-4" disabled>
               {t('addPaymentMethod')}
             </Button>
+            <p className="text-xs text-muted-foreground mt-2">
+              {t('paymentMethodsManagedByStripe')}
+            </p>
           </div>
         ) : (
           <div className="space-y-3">

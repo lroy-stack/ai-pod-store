@@ -23,6 +23,12 @@ const EMAIL_COLORS = {
   warningBorder: '#f59e0b',
 } as const
 
+const COMPANY_INFO = {
+  name: 'SKAPARA',
+  address: 'c/o SKAPARA UG, Musterstraße 1, 10115 Berlin, Germany',
+  email: 'hello@skapara.com',
+} as const
+
 let _resend: Resend | undefined
 
 function initResend(): Resend {
@@ -155,6 +161,11 @@ export async function sendOrderConfirmationEmail(params: {
   <div style="text-align: center; margin-top: 20px; padding: 20px; font-size: 12px; color: ${EMAIL_COLORS.footerText};">
     <p>${brandName} — ${brandTagline}</p>
   </div>
+
+  <p style="color: ${EMAIL_COLORS.footerText}; font-size: 11px; text-align: center; margin-top: 24px; line-height: 1.5;">
+    ${COMPANY_INFO.name} | ${COMPANY_INFO.address}<br/>
+    <a href="${BASE_URL}/unsubscribe" style="color: ${EMAIL_COLORS.footerText};">Manage preferences</a>
+  </p>
 </body>
 </html>
       `,
@@ -275,9 +286,18 @@ export async function sendOrderShippedEmail(params: {
   <div style="text-align: center; margin-top: 20px; padding: 20px; font-size: 12px; color: ${EMAIL_COLORS.footerText};">
     <p>${brandName} — ${brandTagline}</p>
   </div>
+
+  <p style="color: ${EMAIL_COLORS.footerText}; font-size: 11px; text-align: center; margin-top: 24px; line-height: 1.5;">
+    ${COMPANY_INFO.name} | ${COMPANY_INFO.address}<br/>
+    <a href="${BASE_URL}/unsubscribe" style="color: ${EMAIL_COLORS.footerText};">Manage preferences</a>
+  </p>
 </body>
 </html>
       `,
+      headers: {
+        'List-Unsubscribe': `<${BASE_URL}/api/newsletter/unsubscribe?email=${encodeURIComponent(to)}>`,
+        'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+      },
     })
 
     if (error) {
@@ -410,6 +430,11 @@ export async function sendOrderCancelledEmail(params: {
   <div style="text-align: center; margin-top: 20px; padding: 20px; font-size: 12px; color: ${EMAIL_COLORS.footerText};">
     <p>${brandName} — ${brandTagline}</p>
   </div>
+
+  <p style="color: ${EMAIL_COLORS.footerText}; font-size: 11px; text-align: center; margin-top: 24px; line-height: 1.5;">
+    ${COMPANY_INFO.name} | ${COMPANY_INFO.address}<br/>
+    <a href="${BASE_URL}/unsubscribe" style="color: ${EMAIL_COLORS.footerText};">Manage preferences</a>
+  </p>
 </body>
 </html>
       `,
@@ -544,9 +569,18 @@ export async function sendOrderDeliveredEmail(params: {
   <div style="text-align: center; margin-top: 20px; padding: 20px; font-size: 12px; color: ${EMAIL_COLORS.footerText};">
     <p>${brandName} — ${brandTagline}</p>
   </div>
+
+  <p style="color: ${EMAIL_COLORS.footerText}; font-size: 11px; text-align: center; margin-top: 24px; line-height: 1.5;">
+    ${COMPANY_INFO.name} | ${COMPANY_INFO.address}<br/>
+    <a href="${BASE_URL}/unsubscribe" style="color: ${EMAIL_COLORS.footerText};">Manage preferences</a>
+  </p>
 </body>
 </html>
       `,
+      headers: {
+        'List-Unsubscribe': `<${BASE_URL}/api/newsletter/unsubscribe?email=${encodeURIComponent(to)}>`,
+        'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+      },
     })
 
     if (error) {
@@ -656,6 +690,11 @@ export async function sendOrderFailedEmail(params: {
   <div style="text-align: center; margin-top: 20px; padding: 20px; font-size: 12px; color: ${EMAIL_COLORS.footerText};">
     <p>${brandName} — ${brandTagline}</p>
   </div>
+
+  <p style="color: ${EMAIL_COLORS.footerText}; font-size: 11px; text-align: center; margin-top: 24px; line-height: 1.5;">
+    ${COMPANY_INFO.name} | ${COMPANY_INFO.address}<br/>
+    <a href="${BASE_URL}/unsubscribe" style="color: ${EMAIL_COLORS.footerText};">Manage preferences</a>
+  </p>
 </body>
 </html>
       `,
@@ -802,6 +841,11 @@ export async function sendCreditPurchaseEmail(params: {
   <div style="text-align: center; margin-top: 20px; padding: 20px; font-size: 12px; color: ${EMAIL_COLORS.footerText};">
     <p>${brandName} — ${brandTagline}</p>
   </div>
+
+  <p style="color: ${EMAIL_COLORS.footerText}; font-size: 11px; text-align: center; margin-top: 24px; line-height: 1.5;">
+    ${COMPANY_INFO.name} | ${COMPANY_INFO.address}<br/>
+    <a href="${BASE_URL}/unsubscribe" style="color: ${EMAIL_COLORS.footerText};">Manage preferences</a>
+  </p>
 </body>
 </html>
       `,

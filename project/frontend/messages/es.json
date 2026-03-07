@@ -425,6 +425,7 @@
     "paymentMethodsDescription": "Administra tus métodos de pago guardados",
     "noPaymentMethods": "Aún no hay métodos de pago guardados",
     "addPaymentMethod": "Agregar Método de Pago",
+    "paymentMethodsManagedByStripe": "Los métodos de pago se agregan automáticamente durante el checkout vía Stripe.",
     "cardEndingIn": "Tarjeta terminada en {last4}",
     "expiresOn": "Vence {month}/{year}",
     "removeCard": "Eliminar",

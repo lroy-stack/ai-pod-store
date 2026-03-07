@@ -6,7 +6,8 @@ import { useTranslations, useLocale } from 'next-intl'
 import { toast } from 'sonner'
 import { useDesignEditor } from '@/hooks/useDesignEditor'
 import { useCanvasHistory } from '@/hooks/useCanvasHistory'
-import { useDesignPersistence } from '@/hooks/useDesignPersistence'
+import { useCanvasObjectProperties } from '@/hooks/useCanvasObjectProperties'
+import { useDesignSave } from '@/hooks/useDesignSave'
 import { useAuth } from '@/hooks/useAuth'
 import { getAvailablePanels } from '@/lib/print-area-config'
 import { TEMPLATE_COLORS, getProductAspectRatio } from '@/lib/print-areas'
@@ -35,7 +36,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import type { FillMode } from './tools/GradientEditor'
 import type { VariantInfo, DesignTemplateData } from '@/app/[locale]/(editor)/design/[productId]/DesignEditorClient'
 
 interface DesignStudioPageProps {
@@ -104,28 +104,17 @@ export function DesignStudioPage({ product, variants, designTemplates, compositi
   const t = useTranslations('designEditor')
   const canvasRef = useRef<CanvasHandle>(null)
   const fabricCanvasRef = useRef<any>(null)
-  const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const lastSavedHashRef = useRef<string>('')
-  const isSavingRef = useRef(false)
-
-  // Auth state
-  const { user, authenticated } = useAuth()
-  const [showAuthWall, setShowAuthWall] = useState(false)
-  const [pendingAction, setPendingAction] = useState<'save' | 'cart' | null>(null)
-  const [showDraftRestore, setShowDraftRestore] = useState(false)
 
   const {
     initProduct,
     setHistoryState,
     setDirty,
-    setSaving,
-    setCompositionId,
     setAvailablePanels,
     setActivePanel,
     setPanelState,
     setLayers,
     setVariantColor,
-    setLastSavedAt,
+    setCompositionId,
     selectedObject,
     isDirty,
     compositionId,
@@ -137,12 +126,31 @@ export function DesignStudioPage({ product, variants, designTemplates, compositi
     lastSavedAt,
   } = useDesignEditor()
 
-  const { save, load, saveDraft, loadDraft, clearDraft } = useDesignPersistence()
-
   const { saveState, undo, redo, clear: clearHistory } = useCanvasHistory(
     fabricCanvasRef,
     (canUndo, canRedo) => setHistoryState(canUndo, canRedo)
   )
+
+  // Extracted hooks
+  const propertyHandlers = useCanvasObjectProperties(canvasRef, setDirty, saveState)
+
+  const {
+    handleSave,
+    handleSaveDraft,
+    getCompositionIdForCart,
+    handleRestoreDraft,
+    handleDiscardDraft,
+    showAuthWall,
+    setShowAuthWall,
+    showDraftRestore,
+    setShowDraftRestore,
+  } = useDesignSave({
+    canvasRef,
+    productId: product.id,
+    productType: product.productType,
+    initialCompositionId,
+    t,
+  })
 
   // Determine available colors: from real variants if available, else from templates
   const availableColors = (variants?.colors && variants.colors.length > 0)
@@ -150,7 +158,6 @@ export function DesignStudioPage({ product, variants, designTemplates, compositi
     : (TEMPLATE_COLORS[product.productType] || ['white'])
 
   // Memoize ghost template to prevent referential instability
-  // (resolveGhostTemplate returns a new object each call → would re-init canvas every render)
   const ghostTemplate = useMemo(
     () => resolveGhostTemplate(designTemplates, variantColor, activePanel) ?? undefined,
     [designTemplates, variantColor, activePanel]
@@ -162,7 +169,7 @@ export function DesignStudioPage({ product, variants, designTemplates, compositi
       id: product.id,
       title: product.title,
       category: product.category,
-      image: '', // No product image — using blank templates
+      image: '', // No product image -- using blank templates
       basePriceCents: product.base_price_cents,
       productType: product.productType,
     })
@@ -172,7 +179,7 @@ export function DesignStudioPage({ product, variants, designTemplates, compositi
     setAvailablePanels(panels)
     setActivePanel('front')
 
-    // Set default color — first available variant color
+    // Set default color -- first available variant color
     if (availableColors.length > 0) {
       setVariantColor(availableColors[0])
     }
@@ -190,38 +197,7 @@ export function DesignStudioPage({ product, variants, designTemplates, compositi
     }
   }, [])
 
-  // Load existing composition
-  useEffect(() => {
-    if (!initialCompositionId) return
-
-    async function loadComposition() {
-      const data = await load(initialCompositionId!)
-      if (!data) return
-
-      // Multi-panel (schema_version 3) or single (schema_version 2)
-      if (data.schema_version === 3 && data.layers && typeof data.layers === 'object' && 'panels' in (data.layers as Record<string, unknown>)) {
-        const panels = (data.layers as { panels: Record<string, { fabricJson: object }> }).panels
-        for (const [panel, state] of Object.entries(panels)) {
-          setPanelState(panel, { fabricJson: state.fabricJson, isDirty: false, compositionId: initialCompositionId })
-        }
-        // Load front panel
-        if (panels.front && canvasRef.current) {
-          await canvasRef.current.loadFromJSON(panels.front.fabricJson)
-        }
-      } else if (data.schema_version === 2 && data.layers) {
-        // Legacy single-panel
-        if (canvasRef.current) {
-          await canvasRef.current.loadFromJSON(data.layers)
-        }
-      }
-    }
-
-    // Delay to ensure canvas is initialized
-    const timer = setTimeout(loadComposition, 500)
-    return () => clearTimeout(timer)
-  }, [initialCompositionId, load, setPanelState])
-
-  // Panel switching logic — serialize current, switch panel (canvas re-inits via useEffect)
+  // Panel switching logic -- serialize current, switch panel (canvas re-inits via useEffect)
   const handlePanelChange = useCallback((newPanel: string) => {
     if (!canvasRef.current || newPanel === activePanel) return
 
@@ -232,17 +208,15 @@ export function DesignStudioPage({ product, variants, designTemplates, compositi
       isDirty: isDirty,
     })
 
-    // Clear undo/redo history — each panel has independent history
+    // Clear undo/redo history -- each panel has independent history
     clearHistory()
 
-    // Switch panel — CanvasWorkspace will re-init with new panelId
-    // and load saved state from Zustand during its init
+    // Switch panel -- CanvasWorkspace will re-init with new panelId
     setActivePanel(newPanel)
   }, [activePanel, isDirty, setActivePanel, setPanelState, clearHistory])
 
   // Copy current panel design to another panel
   const handleCopyPanel = useCallback((fromPanel: string, toPanel: string) => {
-    // Get the source panel JSON (either from canvas if active, or from store)
     let sourceJson: object | null = null
     if (fromPanel === activePanel && canvasRef.current) {
       sourceJson = canvasRef.current.exportJSON()
@@ -265,7 +239,6 @@ export function DesignStudioPage({ product, variants, designTemplates, compositi
 
   // Garment color change
   const handleColorChange = useCallback((color: string) => {
-    // Serialize current panel before color change (canvas will re-init)
     if (canvasRef.current) {
       const currentJson = canvasRef.current.exportJSON()
       setPanelState(activePanel, {
@@ -286,132 +259,15 @@ export function DesignStudioPage({ product, variants, designTemplates, compositi
     setLayers(layers)
   }, [setLayers])
 
-  // Build panels payload from current canvas state (reused by save and draft)
-  const serializePanels = useCallback(() => {
-    if (!canvasRef.current) return null
-    const currentJson = canvasRef.current.exportJSON()
-    const currentPanelStates = useDesignEditor.getState().panelStates
-    return {
-      ...Object.fromEntries(
-        Object.entries(currentPanelStates).map(([panel, state]) => [
-          panel,
-          { fabricJson: state.fabricJson || {} },
-        ])
-      ),
-      [activePanel]: { fabricJson: currentJson },
-    }
-  }, [activePanel])
-
-  // Save to localStorage draft (for guests or auto-save fallback)
-  const handleSaveDraft = useCallback(() => {
-    const panels = serializePanels()
-    if (!panels) return
-    saveDraft(product.id, panels)
-  }, [serializePanels, saveDraft, product.id])
-
-  // Save composition (multi-panel) with production export — returns success boolean
-  const handleSave = useCallback(async (): Promise<boolean> => {
-    if (!canvasRef.current) return false
-
-    // Auth gate: if not authenticated, save draft + show auth wall
-    if (!authenticated) {
-      handleSaveDraft()
-      setPendingAction('save')
-      setShowAuthWall(true)
-      return false
-    }
-
-    if (isSavingRef.current) return false
-    isSavingRef.current = true
-    setSaving(true)
-    try {
-      const currentJson = canvasRef.current.exportJSON()
-      const currentPanelStates = useDesignEditor.getState().panelStates
-
-      const panels: Record<string, { fabricJson: object; previewDataUrl?: string }> = {
-        ...Object.fromEntries(
-          Object.entries(currentPanelStates).map(([panel, state]) => [
-            panel,
-            { fabricJson: state.fabricJson || {} },
-          ])
-        ),
-        [activePanel]: {
-          fabricJson: currentJson,
-          previewDataUrl: canvasRef.current.exportPNG(1),
-        },
-      }
-
-      // Export production PNG for active panel
-      const productionPanels: Record<string, string> = {}
-      const activeProdPng = canvasRef.current.exportProductionPNG(product.productType)
-      if (activeProdPng) {
-        productionPanels[activePanel] = activeProdPng
-      }
-      for (const [panel, state] of Object.entries(currentPanelStates)) {
-        if (panel !== activePanel && state.productionDataUrl) {
-          productionPanels[panel] = state.productionDataUrl
-        }
-      }
-
-      const result = await save({
-        fabricJson: { panels, schema_version: 3 },
-        previewDataUrl: canvasRef.current.exportPNG(1),
-        productType: product.productType,
-        productId: product.id,
-        compositionId: compositionId || undefined,
-        productionPanels: Object.keys(productionPanels).length > 0 ? productionPanels : undefined,
-      })
-
-      if (result) {
-        setCompositionId(result.composition_id)
-        setDirty(false)
-        setLastSavedAt(Date.now())
-        setPanelState(activePanel, { productionDataUrl: activeProdPng || null })
-        // Clear localStorage draft on successful cloud save
-        clearDraft(product.id)
-        lastSavedHashRef.current = JSON.stringify(currentJson)
-        toast.success(t('saved'))
-        return true
-      } else {
-        toast.error(t('saveFailed'))
-        return false
-      }
-    } catch {
-      toast.error(t('saveFailed'))
-      return false
-    } finally {
-      isSavingRef.current = false
-      setSaving(false)
-    }
-  }, [product.id, product.productType, compositionId, activePanel, authenticated, setCompositionId, setDirty, setSaving, setLastSavedAt, setPanelState, save, clearDraft, handleSaveDraft, t])
-
   // Apply to cart
   const handleApplyToCart = useCallback(async () => {
-    if (!canvasRef.current) return
-
-    // Auth gate: must be authenticated for cart
-    if (!authenticated) {
-      handleSaveDraft()
-      setPendingAction('cart')
-      setShowAuthWall(true)
-      return
-    }
-
-    if (isDirty || !compositionId) {
-      const saved = await handleSave()
-      if (!saved) {
-        toast.error(t('applyToCartFailed'))
-        return
-      }
-    }
-
-    const cid = useDesignEditor.getState().compositionId
+    const cid = await getCompositionIdForCart()
     if (cid) {
       router.push(`/${locale}/shop/${product.id}?compositionId=${cid}`)
     } else {
       toast.error(t('applyToCartFailed'))
     }
-  }, [isDirty, compositionId, authenticated, handleSave, handleSaveDraft, router, locale, product.id, t])
+  }, [getCompositionIdForCart, router, locale, product.id, t])
 
   // Preview modal
   const [previewOpen, setPreviewOpen] = useState(false)
@@ -438,16 +294,16 @@ export function DesignStudioPage({ product, variants, designTemplates, compositi
 
       const mod = e.metaKey || e.ctrlKey
 
-      // Ctrl/Cmd+Z → Undo
+      // Ctrl/Cmd+Z -> Undo
       if (mod && !e.shiftKey && e.key === 'z') { e.preventDefault(); undo(); return }
-      // Ctrl/Cmd+Shift+Z or Ctrl/Cmd+Y → Redo
+      // Ctrl/Cmd+Shift+Z or Ctrl/Cmd+Y -> Redo
       if ((mod && e.shiftKey && e.key === 'z') || (mod && e.key === 'y')) { e.preventDefault(); redo(); return }
-      // Ctrl/Cmd+S → Save
+      // Ctrl/Cmd+S -> Save
       if (mod && e.key === 's') { e.preventDefault(); handleSave(); return }
-      // Ctrl/Cmd+D → Duplicate
+      // Ctrl/Cmd+D -> Duplicate
       if (mod && e.key === 'd') { e.preventDefault(); canvasRef.current?.duplicateSelected(); return }
 
-      // Delete/Backspace → Remove selected (unless editing text in canvas)
+      // Delete/Backspace -> Remove selected (unless editing text in canvas)
       if (e.key === 'Delete' || e.key === 'Backspace') {
         const canvas = canvasRef.current?.getCanvas()
         const active = canvas?.getActiveObject?.()
@@ -456,14 +312,14 @@ export function DesignStudioPage({ product, variants, designTemplates, compositi
         return
       }
 
-      // Escape → Deselect
+      // Escape -> Deselect
       if (e.key === 'Escape') {
         const canvas = canvasRef.current?.getCanvas()
         if (canvas) { canvas.discardActiveObject(); canvas.renderAll() }
         return
       }
 
-      // Arrow keys → Nudge (1px, 10px with Shift)
+      // Arrow keys -> Nudge (1px, 10px with Shift)
       if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
         const canvas = canvasRef.current?.getCanvas()
         const active = canvas?.getActiveObject?.()
@@ -488,374 +344,6 @@ export function DesignStudioPage({ product, variants, designTemplates, compositi
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [undo, redo, handleSave, setDirty, saveState])
 
-  // Auto-save: 2s debounce after dirty state changes
-  useEffect(() => {
-    if (!isDirty) return
-
-    // Clear previous timer
-    if (autoSaveTimerRef.current) {
-      clearTimeout(autoSaveTimerRef.current)
-    }
-
-    autoSaveTimerRef.current = setTimeout(() => {
-      if (!canvasRef.current) return
-
-      // Check if content actually changed (avoid redundant saves)
-      const currentJson = JSON.stringify(canvasRef.current.exportJSON())
-      if (currentJson === lastSavedHashRef.current) return
-
-      if (authenticated) {
-        // Cloud save for authenticated users
-        handleSave()
-      } else {
-        // localStorage draft for guests
-        handleSaveDraft()
-      }
-    }, 2000)
-
-    return () => {
-      if (autoSaveTimerRef.current) {
-        clearTimeout(autoSaveTimerRef.current)
-      }
-    }
-  }, [isDirty, authenticated, handleSave, handleSaveDraft])
-
-  // Save draft on tab close / visibility change (prevent work loss)
-  useEffect(() => {
-    const handleBeforeUnload = () => {
-      if (isDirty) handleSaveDraft()
-    }
-    const handleVisibilityChange = () => {
-      if (document.hidden && isDirty) handleSaveDraft()
-    }
-    window.addEventListener('beforeunload', handleBeforeUnload)
-    document.addEventListener('visibilitychange', handleVisibilityChange)
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload)
-      document.removeEventListener('visibilitychange', handleVisibilityChange)
-    }
-  }, [isDirty, handleSaveDraft])
-
-  // Draft restoration: check localStorage on mount
-  useEffect(() => {
-    // Only prompt if no existing composition loaded
-    if (initialCompositionId) return
-    const draft = loadDraft(product.id)
-    if (draft && draft.panels && Object.keys(draft.panels).length > 0) {
-      setShowDraftRestore(true)
-    }
-  }, [product.id, initialCompositionId, loadDraft])
-
-  const handleRestoreDraft = useCallback(async () => {
-    setShowDraftRestore(false)
-    const draft = loadDraft(product.id)
-    if (!draft?.panels) return
-
-    // Restore panels into Zustand
-    for (const [panel, state] of Object.entries(draft.panels)) {
-      setPanelState(panel, { fabricJson: state.fabricJson, isDirty: false })
-    }
-    // Load front panel into canvas
-    if (draft.panels.front?.fabricJson && canvasRef.current) {
-      await canvasRef.current.loadFromJSON(draft.panels.front.fabricJson)
-    }
-    clearDraft(product.id)
-    toast.success(t('draftRestored'))
-  }, [product.id, loadDraft, clearDraft, setPanelState, t])
-
-  const handleDiscardDraft = useCallback(() => {
-    setShowDraftRestore(false)
-    clearDraft(product.id)
-  }, [clearDraft, product.id])
-
-  // Handle pending action after auth modal closes (user may have logged in via another tab)
-  useEffect(() => {
-    if (authenticated && pendingAction) {
-      const action = pendingAction
-      setPendingAction(null)
-      if (action === 'save') {
-        handleSave()
-      } else if (action === 'cart') {
-        handleApplyToCart()
-      }
-    }
-  }, [authenticated, pendingAction, handleSave, handleApplyToCart])
-
-  // === Text property change handlers ===
-
-  const handleFontChange = useCallback((font: string) => {
-    const canvas = canvasRef.current?.getCanvas()
-    if (!canvas) return
-    const active = canvas.getActiveObject()
-    if (active && (active.type === 'i-text' || active.type === 'textbox')) {
-      active.set('fontFamily', font)
-      canvas.renderAll()
-      setDirty(true)
-      saveState()
-    }
-  }, [setDirty, saveState])
-
-  const handleFontSizeChange = useCallback((size: number) => {
-    const canvas = canvasRef.current?.getCanvas()
-    if (!canvas) return
-    const active = canvas.getActiveObject()
-    if (active && (active.type === 'i-text' || active.type === 'textbox')) {
-      active.set('fontSize', size)
-      canvas.renderAll()
-      setDirty(true)
-      saveState()
-    }
-  }, [setDirty, saveState])
-
-  const handleTextColorChange = useCallback((color: string) => {
-    const canvas = canvasRef.current?.getCanvas()
-    if (!canvas) return
-    const active = canvas.getActiveObject()
-    if (active) {
-      active.set('fill', color)
-      canvas.renderAll()
-      setDirty(true)
-      saveState()
-    }
-  }, [setDirty, saveState])
-
-  const handleAlignChange = useCallback((align: string) => {
-    const canvas = canvasRef.current?.getCanvas()
-    if (!canvas) return
-    const active = canvas.getActiveObject()
-    if (active && (active.type === 'i-text' || active.type === 'textbox')) {
-      active.set('textAlign', align)
-      canvas.renderAll()
-      setDirty(true)
-      saveState()
-    }
-  }, [setDirty, saveState])
-
-  const handleBoldToggle = useCallback(() => {
-    const canvas = canvasRef.current?.getCanvas()
-    if (!canvas) return
-    const active = canvas.getActiveObject()
-    if (active && (active.type === 'i-text' || active.type === 'textbox')) {
-      active.set('fontWeight', active.fontWeight === 'bold' ? 'normal' : 'bold')
-      canvas.renderAll()
-      setDirty(true)
-      saveState()
-    }
-  }, [setDirty, saveState])
-
-  const handleItalicToggle = useCallback(() => {
-    const canvas = canvasRef.current?.getCanvas()
-    if (!canvas) return
-    const active = canvas.getActiveObject()
-    if (active && (active.type === 'i-text' || active.type === 'textbox')) {
-      active.set('fontStyle', active.fontStyle === 'italic' ? 'normal' : 'italic')
-      canvas.renderAll()
-      setDirty(true)
-      saveState()
-    }
-  }, [setDirty, saveState])
-
-  // === Text effect handlers ===
-
-  const handleShadowToggle = useCallback(async (enabled: boolean) => {
-    const canvas = canvasRef.current?.getCanvas()
-    if (!canvas) return
-    const active = canvas.getActiveObject()
-    if (!active) return
-
-    if (enabled) {
-      const { Shadow } = await import('fabric')
-      active.set('shadow', new Shadow({
-        color: 'rgba(0,0,0,0.5)',
-        blur: 10,
-        offsetX: 5,
-        offsetY: 5,
-      }))
-    } else {
-      active.set('shadow', null)
-    }
-    canvas.renderAll()
-    setDirty(true)
-    saveState()
-  }, [setDirty, saveState])
-
-  const handleShadowColorChange = useCallback((color: string) => {
-    const canvas = canvasRef.current?.getCanvas()
-    if (!canvas) return
-    const active = canvas.getActiveObject()
-    if (active?.shadow) {
-      (active.shadow as any).color = color
-      canvas.renderAll()
-      setDirty(true)
-      saveState()
-    }
-  }, [setDirty, saveState])
-
-  const handleShadowBlurChange = useCallback((blur: number) => {
-    const canvas = canvasRef.current?.getCanvas()
-    if (!canvas) return
-    const active = canvas.getActiveObject()
-    if (active?.shadow) {
-      (active.shadow as any).blur = blur
-      canvas.renderAll()
-      setDirty(true)
-      saveState()
-    }
-  }, [setDirty, saveState])
-
-  const handleShadowOffsetXChange = useCallback((x: number) => {
-    const canvas = canvasRef.current?.getCanvas()
-    if (!canvas) return
-    const active = canvas.getActiveObject()
-    if (active?.shadow) {
-      (active.shadow as any).offsetX = x
-      canvas.renderAll()
-      setDirty(true)
-      saveState()
-    }
-  }, [setDirty, saveState])
-
-  const handleShadowOffsetYChange = useCallback((y: number) => {
-    const canvas = canvasRef.current?.getCanvas()
-    if (!canvas) return
-    const active = canvas.getActiveObject()
-    if (active?.shadow) {
-      (active.shadow as any).offsetY = y
-      canvas.renderAll()
-      setDirty(true)
-      saveState()
-    }
-  }, [setDirty, saveState])
-
-  const handleOutlineToggle = useCallback((enabled: boolean) => {
-    const canvas = canvasRef.current?.getCanvas()
-    if (!canvas) return
-    const active = canvas.getActiveObject()
-    if (!active) return
-
-    if (enabled) {
-      active.set({
-        stroke: '#000000',
-        strokeWidth: 2,
-        paintFirst: 'stroke',
-      })
-    } else {
-      active.set({
-        stroke: '',
-        strokeWidth: 0,
-      })
-    }
-    canvas.renderAll()
-    setDirty(true)
-    saveState()
-  }, [setDirty, saveState])
-
-  const handleOutlineColorChange = useCallback((color: string) => {
-    const canvas = canvasRef.current?.getCanvas()
-    if (!canvas) return
-    const active = canvas.getActiveObject()
-    if (active) {
-      active.set('stroke', color)
-      canvas.renderAll()
-      setDirty(true)
-      saveState()
-    }
-  }, [setDirty, saveState])
-
-  const handleOutlineWidthChange = useCallback((width: number) => {
-    const canvas = canvasRef.current?.getCanvas()
-    if (!canvas) return
-    const active = canvas.getActiveObject()
-    if (active) {
-      active.set('strokeWidth', width)
-      canvas.renderAll()
-      setDirty(true)
-      saveState()
-    }
-  }, [setDirty, saveState])
-
-  const handleFillModeChange = useCallback(async (mode: FillMode) => {
-    const canvas = canvasRef.current?.getCanvas()
-    if (!canvas) return
-    const active = canvas.getActiveObject()
-    if (!active) return
-
-    if (mode === 'solid') {
-      active.set('fill', '#000000')
-    } else {
-      const { Gradient } = await import('fabric')
-      const w = active.width || 100
-      const h = active.height || 100
-      active.set('fill', new Gradient({
-        type: mode,
-        coords: mode === 'linear'
-          ? { x1: 0, y1: 0, x2: w, y2: 0 }
-          : { x1: w / 2, y1: h / 2, x2: w / 2, y2: h / 2, r1: 0, r2: w / 2 },
-        colorStops: [
-          { offset: 0, color: '#ff0000' },
-          { offset: 1, color: '#0000ff' },
-        ],
-      }))
-    }
-    canvas.renderAll()
-    setDirty(true)
-    saveState()
-  }, [setDirty, saveState])
-
-  const handleGradientStartColorChange = useCallback((color: string) => {
-    const canvas = canvasRef.current?.getCanvas()
-    if (!canvas) return
-    const active = canvas.getActiveObject()
-    if (active?.fill && typeof active.fill === 'object' && 'colorStops' in active.fill) {
-      const gradient = active.fill as any
-      gradient.colorStops[0].color = color
-      active.set('fill', gradient)
-      canvas.renderAll()
-      setDirty(true)
-      saveState()
-    }
-  }, [setDirty, saveState])
-
-  const handleGradientEndColorChange = useCallback((color: string) => {
-    const canvas = canvasRef.current?.getCanvas()
-    if (!canvas) return
-    const active = canvas.getActiveObject()
-    if (active?.fill && typeof active.fill === 'object' && 'colorStops' in active.fill) {
-      const gradient = active.fill as any
-      gradient.colorStops[1].color = color
-      active.set('fill', gradient)
-      canvas.renderAll()
-      setDirty(true)
-      saveState()
-    }
-  }, [setDirty, saveState])
-
-  const handleGradientAngleChange = useCallback(async (angle: number) => {
-    const canvas = canvasRef.current?.getCanvas()
-    if (!canvas) return
-    const active = canvas.getActiveObject()
-    if (!active?.fill || typeof active.fill !== 'object' || !('colorStops' in active.fill)) return
-
-    const w = active.width || 100
-    const h = active.height || 100
-    const rad = (angle * Math.PI) / 180
-    const { Gradient } = await import('fabric')
-    const oldGradient = active.fill as any
-    active.set('fill', new Gradient({
-      type: 'linear',
-      coords: {
-        x1: w / 2 - (Math.cos(rad) * w) / 2,
-        y1: h / 2 - (Math.sin(rad) * h) / 2,
-        x2: w / 2 + (Math.cos(rad) * w) / 2,
-        y2: h / 2 + (Math.sin(rad) * h) / 2,
-      },
-      colorStops: oldGradient.colorStops,
-    }))
-    canvas.renderAll()
-    setDirty(true)
-    saveState()
-  }, [setDirty, saveState])
-
   // Zoom handlers
   const handleZoomIn = useCallback(() => {
     canvasRef.current?.zoomTo(zoomLevel * 1.25)
@@ -869,11 +357,6 @@ export function DesignStudioPage({ product, variants, designTemplates, compositi
     canvasRef.current?.resetZoom()
   }, [])
 
-  // Opacity handler
-  const handleOpacityChange = useCallback((opacity: number) => {
-    canvasRef.current?.setObjectOpacity(opacity)
-  }, [])
-
   // Build shared CanvasProperties props
   const propertiesProps = {
     onAddText: (text: string) => canvasRef.current?.addText(text),
@@ -881,25 +364,25 @@ export function DesignStudioPage({ product, variants, designTemplates, compositi
     onAddSVG: (svgText: string) => canvasRef.current?.addSVG(svgText) ?? Promise.resolve(),
     onRemoveSelected: () => canvasRef.current?.removeSelected(),
     onDuplicateSelected: () => canvasRef.current?.duplicateSelected(),
-    onFontChange: handleFontChange,
-    onFontSizeChange: handleFontSizeChange,
-    onColorChange: handleTextColorChange,
-    onAlignChange: handleAlignChange,
-    onBoldToggle: handleBoldToggle,
-    onItalicToggle: handleItalicToggle,
-    onShadowToggle: handleShadowToggle,
-    onShadowColorChange: handleShadowColorChange,
-    onShadowBlurChange: handleShadowBlurChange,
-    onShadowOffsetXChange: handleShadowOffsetXChange,
-    onShadowOffsetYChange: handleShadowOffsetYChange,
-    onOutlineToggle: handleOutlineToggle,
-    onOutlineColorChange: handleOutlineColorChange,
-    onOutlineWidthChange: handleOutlineWidthChange,
-    onFillModeChange: handleFillModeChange,
-    onGradientStartColorChange: handleGradientStartColorChange,
-    onGradientEndColorChange: handleGradientEndColorChange,
-    onGradientAngleChange: handleGradientAngleChange,
-    onOpacityChange: handleOpacityChange,
+    onFontChange: propertyHandlers.handleFontChange,
+    onFontSizeChange: propertyHandlers.handleFontSizeChange,
+    onColorChange: propertyHandlers.handleTextColorChange,
+    onAlignChange: propertyHandlers.handleAlignChange,
+    onBoldToggle: propertyHandlers.handleBoldToggle,
+    onItalicToggle: propertyHandlers.handleItalicToggle,
+    onShadowToggle: propertyHandlers.handleShadowToggle,
+    onShadowColorChange: propertyHandlers.handleShadowColorChange,
+    onShadowBlurChange: propertyHandlers.handleShadowBlurChange,
+    onShadowOffsetXChange: propertyHandlers.handleShadowOffsetXChange,
+    onShadowOffsetYChange: propertyHandlers.handleShadowOffsetYChange,
+    onOutlineToggle: propertyHandlers.handleOutlineToggle,
+    onOutlineColorChange: propertyHandlers.handleOutlineColorChange,
+    onOutlineWidthChange: propertyHandlers.handleOutlineWidthChange,
+    onFillModeChange: propertyHandlers.handleFillModeChange,
+    onGradientStartColorChange: propertyHandlers.handleGradientStartColorChange,
+    onGradientEndColorChange: propertyHandlers.handleGradientEndColorChange,
+    onGradientAngleChange: propertyHandlers.handleGradientAngleChange,
+    onOpacityChange: propertyHandlers.handleOpacityChange,
     onBringForward: () => canvasRef.current?.bringForward(),
     onSendBackward: () => canvasRef.current?.sendBackward(),
     onBringToFront: () => canvasRef.current?.bringToFront(),
@@ -1030,7 +513,7 @@ export function DesignStudioPage({ product, variants, designTemplates, compositi
         </DialogContent>
       </Dialog>
 
-      {/* Auth wall modal — shown when guest tries to save/cart */}
+      {/* Auth wall modal -- shown when guest tries to save/cart */}
       <AuthWallModal
         open={showAuthWall}
         onOpenChange={setShowAuthWall}

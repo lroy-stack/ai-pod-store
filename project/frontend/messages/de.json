@@ -425,6 +425,7 @@
     "paymentMethodsDescription": "Verwalten Sie Ihre gespeicherten Zahlungsmethoden",
     "noPaymentMethods": "Noch keine Zahlungsmethoden gespeichert",
     "addPaymentMethod": "Zahlungsmethode Hinzufügen",
+    "paymentMethodsManagedByStripe": "Zahlungsmethoden werden beim Checkout automatisch über Stripe hinzugefügt.",
     "cardEndingIn": "Karte endet auf {last4}",
     "expiresOn": "Läuft ab {month}/{year}",
     "removeCard": "Entfernen",

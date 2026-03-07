@@ -1,11 +1,28 @@
+import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 import { getProductTypeFromCategory } from '@/lib/print-area-config'
 import { DesignEditorClient } from './DesignEditorClient'
+import { BRAND, BASE_URL } from '@/lib/store-config'
 
 interface PageProps {
   params: Promise<{ locale: string; productId: string }>
   searchParams: Promise<{ compositionId?: string }>
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { locale, productId } = await params
+  const title = `Design Editor - ${BRAND.name}`
+  const description = 'Create and customize your product design with the SKAPARA design editor.'
+  return {
+    title,
+    description,
+    openGraph: { title, description, url: `${BASE_URL}/${locale}/design/${productId}`, siteName: BRAND.name, locale, type: 'website' },
+    alternates: {
+      canonical: `${BASE_URL}/${locale}/design/${productId}`,
+      languages: { en: `${BASE_URL}/en/design/${productId}`, es: `${BASE_URL}/es/design/${productId}`, de: `${BASE_URL}/de/design/${productId}` },
+    },
+  }
 }
 
 export default async function DesignEditorPage({ params, searchParams }: PageProps) {

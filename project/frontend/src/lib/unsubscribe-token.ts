@@ -7,11 +7,15 @@
 
 import crypto from 'crypto';
 
-const SECRET: string = (() => {
-  const s = process.env.UNSUBSCRIBE_SECRET || process.env.NEXTAUTH_SECRET;
-  if (!s) throw new Error('UNSUBSCRIBE_SECRET or NEXTAUTH_SECRET environment variable is required');
-  return s;
-})();
+let _secret: string | undefined;
+
+function getSecret(): string {
+  if (!_secret) {
+    _secret = process.env.UNSUBSCRIBE_SECRET || process.env.NEXTAUTH_SECRET;
+    if (!_secret) throw new Error('UNSUBSCRIBE_SECRET or NEXTAUTH_SECRET environment variable is required');
+  }
+  return _secret;
+}
 
 /**
  * Generate an unsubscribe token for an email address
@@ -19,7 +23,7 @@ const SECRET: string = (() => {
 export function generateUnsubscribeToken(email: string): string {
   const payload = JSON.stringify({ email, exp: Date.now() + 365 * 24 * 60 * 60 * 1000 }); // 1 year expiry
   const signature = crypto
-    .createHmac('sha256', SECRET)
+    .createHmac('sha256', getSecret())
     .update(payload)
     .digest('base64url');
 
@@ -38,7 +42,7 @@ export function verifyUnsubscribeToken(token: string): { email: string } | null 
 
     const payload = Buffer.from(payloadB64, 'base64url').toString('utf8');
     const expectedSignature = crypto
-      .createHmac('sha256', SECRET)
+      .createHmac('sha256', getSecret())
       .update(payload)
       .digest('base64url');
 
