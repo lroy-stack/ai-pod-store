@@ -29,7 +29,7 @@ export const GET = withAuth(async (req, session) => {
 
     if (error) {
       console.error('Audit log fetch error:', error)
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      return NextResponse.json({ error: 'Failed to fetch audit logs' }, { status: 500 })
     }
 
     return NextResponse.json({

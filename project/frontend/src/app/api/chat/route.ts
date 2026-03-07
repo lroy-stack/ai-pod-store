@@ -47,12 +47,25 @@ const google = createGoogleGenerativeAI({
   apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.GEMINI_API_KEY,
 })
 
-// Initialize Supabase client for database access
+// Initialize Supabase service-role client for admin reads (products, profiles, etc.)
 // Use SUPABASE_URL (not NEXT_PUBLIC_*) — NEXT_PUBLIC vars are inlined at build time
 const supabase = createClient(
   process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_KEY!
 )
+
+/**
+ * Create a user-scoped Supabase client authenticated with the user's JWT.
+ * Used for conversation/message writes so RLS enforces user isolation.
+ * Falls back to service key for anonymous sessions (no JWT).
+ */
+function createUserScopedClient(accessToken: string) {
+  return createClient(
+    process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    { global: { headers: { Authorization: `Bearer ${accessToken}` } } }
+  )
+}
 
 /** Fetch top-rated suggestions + available categories when a search returns 0 results */
 async function getSearchFallback() {
@@ -191,10 +204,15 @@ export async function POST(req: Request) {
     // Resolve user ID and tier from Supabase auth token (if logged in)
     let chatUserId: string | null = null
     let chatUserTier: UserTier = 'anonymous'
+    // User-scoped client for conversation/message writes (uses JWT → enforces RLS)
+    // Anonymous sessions fall back to service key (service_role policy allows writes)
+    let writeClient = supabase
     if (sbAccessToken) {
       const { data: { user } } = await supabase.auth.getUser(sbAccessToken)
       chatUserId = user?.id || null
       if (chatUserId) {
+        // Create user-scoped client for authenticated writes (#42)
+        writeClient = createUserScopedClient(sbAccessToken)
         const { data: profile } = await supabase
           .from('users')
           .select('tier, subscription_period_end, subscription_status')
@@ -327,9 +345,10 @@ export async function POST(req: Request) {
     const sessionId = req.headers.get('x-session-id') || cartSessionId || crypto.randomUUID()
 
     // Upsert conversation record (fire-and-forget, non-blocking)
+    // Uses writeClient: user-scoped JWT for authenticated users, service key for anonymous
     ;(async () => {
       try {
-        await supabase.from('conversations').upsert({
+        await writeClient.from('conversations').upsert({
           id: conversationId,
           user_id: chatUserId || null,
           session_id: sessionId,
@@ -353,7 +372,8 @@ export async function POST(req: Request) {
 
       ;(async () => {
         try {
-          await supabase.from('messages').insert({
+          // Use writeClient (user JWT for authenticated, service key for anonymous)
+          await writeClient.from('messages').insert({
             id: crypto.randomUUID(),
             conversation_id: conversationId,
             role: 'user',
@@ -2390,8 +2410,9 @@ Be friendly, helpful, and concise.`
       stopWhen: stepCountIs(chatUserTier === 'premium' ? 5 : 3),
       onFinish: async ({ text, toolCalls, toolResults, usage }) => {
         // Persist assistant response
+        // Use writeClient (user JWT for authenticated, service key for anonymous) (#42)
         try {
-          await supabase.from('messages').insert({
+          await writeClient.from('messages').insert({
             id: crypto.randomUUID(),
             conversation_id: conversationId,
             role: 'assistant',
@@ -2405,7 +2426,7 @@ Be friendly, helpful, and concise.`
           // Set conversation title from first assistant response
           if (messages.length <= 2 && text) {
             const title = text.substring(0, 100)
-            await supabase.from('conversations')
+            await writeClient.from('conversations')
               .update({ title, updated_at: new Date().toISOString() })
               .eq('id', conversationId)
           }

@@ -17,7 +17,8 @@ export const GET = withAuth(async (req: NextRequest, session: unknown) => {
       .order('created_at', { ascending: false })
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      console.error('[/api/tenants GET]', error)
+      return NextResponse.json({ error: 'Failed to fetch tenants' }, { status: 500 })
     }
 
     return NextResponse.json({ tenants: tenants ?? [] })

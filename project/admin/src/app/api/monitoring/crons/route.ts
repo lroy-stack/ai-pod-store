@@ -25,7 +25,8 @@ export const GET = withAuth(async () => {
       .limit(200);
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      console.error('[monitoring/crons]', error);
+      return NextResponse.json({ error: 'Failed to fetch cron runs' }, { status: 500 });
     }
 
     // Group runs by cron_name, take most recent

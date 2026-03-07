@@ -101,7 +101,7 @@ export const POST = withPermission('products', 'create', withValidation(productS
     if (error) {
       console.error('Product creation error:', error);
       return NextResponse.json(
-        { error: 'Failed to create product', details: error.message },
+        { error: 'Failed to create product' },
         { status: 500 }
       );
     }

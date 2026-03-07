@@ -28,7 +28,8 @@ export const GET = withAuth(async (req: NextRequest) => {
     const { data, error } = await query;
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      console.error('[monitoring/webhooks]', error);
+      return NextResponse.json({ error: 'Failed to fetch webhook events' }, { status: 500 });
     }
 
     const events = (data || []).map((event) => ({

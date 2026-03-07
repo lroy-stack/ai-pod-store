@@ -135,7 +135,8 @@ export const PATCH = withPermission('customers', 'update', async (req: NextReque
     .eq('id', id);
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error('[customers/[id] PATCH] update error:', error);
+    return NextResponse.json({ error: 'Failed to update customer' }, { status: 500 });
   }
 
   await logUpdate(session?.email || 'unknown', 'customers', id, old, updates);
@@ -171,7 +172,8 @@ export const POST = withPermission('customers', 'update', async (req: NextReques
     });
 
     if (error) {
-      return NextResponse.json({ error: `Failed to generate reset link: ${error.message}` }, { status: 500 });
+      console.error('[customers/[id] POST] reset link error:', error);
+      return NextResponse.json({ error: 'Failed to generate reset link' }, { status: 500 });
     }
 
     await logUpdate(session?.email || 'unknown', 'customers', id, {}, { action: 'password_reset_sent' });

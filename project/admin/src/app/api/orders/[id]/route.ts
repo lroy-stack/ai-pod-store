@@ -21,7 +21,7 @@ export const GET = withAuth(async (req, session, context) => {
     if (error) {
       console.error('Order fetch error:', error);
       return NextResponse.json(
-        { error: 'Failed to fetch order', details: error.message },
+        { error: 'Failed to fetch order' },
         { status: 404 }
       );
     }
@@ -63,7 +63,7 @@ export const GET = withAuth(async (req, session, context) => {
   } catch (error: any) {
     console.error('Order API error:', error);
     return NextResponse.json(
-      { error: 'Internal server error', details: error.message },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }

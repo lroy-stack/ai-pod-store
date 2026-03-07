@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
     if (error) {
       console.error('Supabase error:', error)
       return NextResponse.json(
-        { error: 'Failed to fetch designs', details: error.message },
+        { error: 'Failed to fetch designs' },
         { status: 500 }
       )
     }

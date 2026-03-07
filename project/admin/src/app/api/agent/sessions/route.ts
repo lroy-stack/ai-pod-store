@@ -28,7 +28,7 @@ export const GET = withAuth(async (request: NextRequest, session: SessionData) =
     if (error) {
       console.error('Supabase error fetching sessions:', error)
       return NextResponse.json(
-        { error: 'Failed to fetch sessions', details: error.message },
+        { error: 'Failed to fetch sessions' },
         { status: 500 }
       )
     }

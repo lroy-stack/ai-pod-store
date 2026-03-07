@@ -29,7 +29,8 @@ export const GET = withPermission('products', 'read', async (
     .order('size');
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error('[variants GET] fetch error:', error);
+    return NextResponse.json({ error: 'Failed to fetch variants' }, { status: 500 });
   }
 
   return NextResponse.json({ variants: variants ?? [] });
@@ -86,7 +87,8 @@ export const PATCH = withPermission('products', 'update', async (
     .single();
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error('[variants PATCH] update error:', error);
+    return NextResponse.json({ error: 'Failed to update variant' }, { status: 500 });
   }
 
   await logUpdate(

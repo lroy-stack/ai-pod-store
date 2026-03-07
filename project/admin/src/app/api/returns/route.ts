@@ -35,7 +35,7 @@ export const GET = withAuth(async (request: NextRequest) => {
     if (error) {
       console.error('Supabase error:', error)
       return NextResponse.json(
-        { error: 'Failed to fetch returns', details: error.message },
+        { error: 'Failed to fetch returns' },
         { status: 500 }
       )
     }

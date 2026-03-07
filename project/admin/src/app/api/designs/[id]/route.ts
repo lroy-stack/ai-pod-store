@@ -34,7 +34,7 @@ export const GET = withAuth(async (
     if (error) {
       console.error('Supabase error:', error)
       return NextResponse.json(
-        { error: 'Design not found', details: error.message },
+        { error: 'Design not found' },
         { status: 404 }
       )
     }
@@ -97,7 +97,7 @@ export const PATCH = withPermission('designs', 'update', withValidation(designUp
     if (error) {
       console.error('Supabase error:', error)
       return NextResponse.json(
-        { error: 'Failed to update design', details: error.message },
+        { error: 'Failed to update design' },
         { status: 500 }
       )
     }

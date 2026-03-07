@@ -37,7 +37,7 @@ export const PUT = withPermission('designs', 'moderate', withValidation(designMo
     if (error) {
       console.error('Supabase error:', error);
       return NextResponse.json(
-        { error: 'Failed to update design', details: error.message },
+        { error: 'Failed to update design' },
         { status: 500 }
       );
     }

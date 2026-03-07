@@ -37,7 +37,7 @@ export const GET = withAuth(async (request: NextRequest) => {
   } catch (error: any) {
     return NextResponse.json({
       success: false,
-      error: error.message
+      error: 'Failed to process request'
     }, { status: 500 })
   }
 })
@@ -133,7 +133,7 @@ export const POST = withAuth(async (request: NextRequest) => {
   } catch (error: any) {
     return NextResponse.json({
       success: false,
-      error: error.message
+      error: 'Failed to process request'
     }, { status: 500 })
   }
 })
