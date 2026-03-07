@@ -1,0 +1,1 @@
+ALTER TABLE public.tenant_configs ENABLE ROW LEVEL SECURITY;
