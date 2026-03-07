@@ -1,0 +1,1 @@
+ALTER TABLE public.agent_events_y2026m08 ENABLE ROW LEVEL SECURITY;
