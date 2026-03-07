@@ -21,7 +21,10 @@ import { toast } from 'sonner';
 import {
   Package, Grid3X3, ImageIcon, Search, ShieldCheck, ExternalLink,
 } from 'lucide-react';
-import Link from 'next/link';
+import { VariantMatrix } from '@/components/products/VariantMatrix';
+import { ImageGallery } from '@/components/products/ImageGallery';
+import { ProductHealthScorecard } from '@/components/products/ProductHealthScorecard';
+import { MarginCalculator } from '@/components/products/MarginCalculator';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -35,6 +38,7 @@ interface Product {
   status: string;
   pod_provider?: string | null;
   provider_product_id?: string | null;
+  avg_base_cost_cents?: number;
   images?: Array<{ src: string; position?: number; is_primary?: boolean }> | null;
   // SEO
   slug?: string | null;
@@ -238,6 +242,9 @@ export default function EditProductPage() {
           </div>
         </div>
 
+        {/* Health Scorecard */}
+        <ProductHealthScorecard productId={id} currency={product.currency?.toUpperCase() ?? 'EUR'} />
+
         {/* Tabs */}
         <Tabs defaultValue="general" className="space-y-4">
           <TabsList className="grid grid-cols-5 w-full">
@@ -340,6 +347,15 @@ export default function EditProductPage() {
                     </Select>
                   </div>
                 </div>
+
+                {/* Margin Calculator */}
+                {product.base_price_cents > 0 && (
+                  <MarginCalculator
+                    retailPriceCents={product.base_price_cents}
+                    avgBaseCostCents={product.avg_base_cost_cents ?? 0}
+                    currency={product.currency?.toUpperCase() ?? 'EUR'}
+                  />
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -348,24 +364,10 @@ export default function EditProductPage() {
           <TabsContent value="variants" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Variants</CardTitle>
+                <CardTitle>Variant Matrix</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  Variant matrix showing all size × color combinations. Each cell shows price and availability.
-                </p>
-                <div className="mt-4 rounded-lg border border-dashed border-border p-8 text-center">
-                  <Grid3X3 className="h-8 w-8 mx-auto mb-3 text-muted-foreground" />
-                  <p className="text-sm font-medium">Variant Matrix</p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Visual grid of sizes and colors coming in next update
-                  </p>
-                  <Link href={`/products/${id}/variants`}>
-                    <Button variant="outline" size="sm" className="mt-4">
-                      Manage Variants
-                    </Button>
-                  </Link>
-                </div>
+                <VariantMatrix productId={id} currency={product.currency?.toUpperCase() ?? 'EUR'} />
               </CardContent>
             </Card>
           </TabsContent>
@@ -377,34 +379,11 @@ export default function EditProductPage() {
                 <CardTitle>Product Images</CardTitle>
               </CardHeader>
               <CardContent>
-                {images.length === 0 ? (
-                  <div className="rounded-lg border border-dashed border-border p-8 text-center">
-                    <ImageIcon className="h-8 w-8 mx-auto mb-3 text-muted-foreground" />
-                    <p className="text-sm font-medium">No images</p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Upload product images from Printful or add custom images
-                    </p>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                    {images.slice(0, 12).map((img, idx) => (
-                      <div
-                        key={idx}
-                        className="relative aspect-square rounded-lg border border-border overflow-hidden bg-muted"
-                      >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={typeof img === 'string' ? img : img.src}
-                          alt={`Product image ${idx + 1}`}
-                          className="w-full h-full object-cover"
-                        />
-                        {(typeof img !== 'string' && img.is_primary) && (
-                          <Badge className="absolute top-1 left-1 text-xs py-0">Primary</Badge>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
+                <ImageGallery
+                  productId={id}
+                  images={images}
+                  onImagesChange={(updated) => updateField({ images: updated })}
+                />
               </CardContent>
             </Card>
           </TabsContent>
@@ -479,9 +458,37 @@ export default function EditProductPage() {
           <TabsContent value="gpsr" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>
-                  GPSR — General Product Safety Regulation
-                </CardTitle>
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <CardTitle>GPSR — General Product Safety Regulation</CardTitle>
+                  {(() => {
+                    const g = product.gpsr_info ?? {};
+                    const required = [
+                      { key: 'manufacturer_name', label: 'Manufacturer name' },
+                      { key: 'manufacturer_address', label: 'Manufacturer address' },
+                      { key: 'manufacturer_contact', label: 'Contact details' },
+                      { key: 'safety_warnings', label: 'Safety warnings' },
+                      { key: 'material_info', label: 'Material info' },
+                    ] as const;
+                    const missing = required.filter((f) => !g[f.key]?.trim());
+                    const complete = missing.length === 0;
+                    return (
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Badge variant={complete ? 'default' : 'destructive'} className="text-xs">
+                          {complete ? '✓ GPSR Complete' : `Incomplete (${missing.length} missing)`}
+                        </Badge>
+                        {!complete && (
+                          <div className="flex flex-wrap gap-1">
+                            {missing.map((f) => (
+                              <Badge key={f.key} variant="outline" className="text-xs py-0">
+                                {f.label}
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
+                </div>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 p-3 text-sm text-amber-800 dark:text-amber-200">

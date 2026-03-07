@@ -22,7 +22,13 @@ const productUpdateSchema = z.object({
   meta_title: z.string().max(200).optional().nullable(),
   meta_description: z.string().max(500).optional().nullable(),
   // GPSR fields
-  gpsr_info: z.record(z.unknown()).optional().nullable(),
+  gpsr_info: z.record(z.string(), z.unknown()).optional().nullable(),
+  // Images array
+  images: z.array(z.object({
+    src: z.string(),
+    position: z.number().optional(),
+    is_primary: z.boolean().optional(),
+  })).optional().nullable(),
 });
 
 // GET requires 'read' permission on 'products' resource
@@ -51,7 +57,20 @@ export const GET = withPermission('products', 'read', async (
       );
     }
 
-    return NextResponse.json({ product });
+    // Compute avg base cost from enabled variants
+    const { data: variants } = await supabaseAdmin
+      .from('product_variants')
+      .select('cost_cents')
+      .eq('product_id', id)
+      .eq('is_enabled', true);
+
+    const costsWithData = (variants ?? []).filter((v) => v.cost_cents !== null && v.cost_cents > 0);
+    const avgBaseCostCents =
+      costsWithData.length > 0
+        ? Math.round(costsWithData.reduce((s, v) => s + (v.cost_cents ?? 0), 0) / costsWithData.length)
+        : 0;
+
+    return NextResponse.json({ product: { ...product, avg_base_cost_cents: avgBaseCostCents } });
   } catch (error) {
     console.error('Product fetch error:', error);
     return NextResponse.json(
