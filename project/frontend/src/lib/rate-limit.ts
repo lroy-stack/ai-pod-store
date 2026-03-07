@@ -73,6 +73,7 @@ export const personalizeLimiter = new RateLimiter(20, 60 * 1000)         // 20 /
 export const reviewLimiter = new RateLimiter(5, 60 * 60 * 1000)          // 5 / hora
 export const avatarUploadLimiter = new RateLimiter(5, 15 * 60 * 1000)    // 5 / 15 min
 export const changeEmailLimiter = new RateLimiter(3, 60 * 60 * 1000)     // 3 / hora
+export const subscriptionCreateLimiter = new RateLimiter(3, 60 * 60 * 1000) // 3 / hour (Stripe Checkout spam prevention)
 
 /**
  * Timing-safe comparison for bearer tokens (prevents timing attacks).

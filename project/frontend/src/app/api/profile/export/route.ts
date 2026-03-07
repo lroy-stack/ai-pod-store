@@ -47,6 +47,7 @@ export async function GET(request: NextRequest) {
       personalizations,
       notifications,
       shippingAddresses,
+      creditTransactions,
     ] = await Promise.all([
       // Profile
       supabaseAdmin.from('users').select('*').eq('id', user.id).single(),
@@ -74,6 +75,9 @@ export async function GET(request: NextRequest) {
 
       // Shipping addresses
       supabaseAdmin.from('shipping_addresses').select('*').eq('user_id', user.id),
+
+      // Credit transactions
+      supabaseAdmin.from('credit_transactions').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
     ])
 
     // Fetch legal settings for dynamic company info
@@ -91,6 +95,7 @@ export async function GET(request: NextRequest) {
     zip.file('personalizations.json', JSON.stringify(personalizations.data || [], null, 2))
     zip.file('notifications.json', JSON.stringify(notifications.data || [], null, 2))
     zip.file('shipping_addresses.json', JSON.stringify(shippingAddresses.data || [], null, 2))
+    zip.file('credit_transactions.json', JSON.stringify(creditTransactions.data || [], null, 2))
 
     // Add README with dynamic company info
     const readmeTemplate = `# Your {{company_name}} Data Export

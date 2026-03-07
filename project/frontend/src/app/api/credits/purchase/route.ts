@@ -49,12 +49,20 @@ export async function POST(req: NextRequest) {
 
     const packInfo = CREDIT_PACKS[pack as PackSize]
 
-    // Get or create Stripe customer
+    // Get or create Stripe customer — also check subscription_status
     const { data: profile } = await supabase
       .from('users')
-      .select('stripe_customer_id')
+      .select('stripe_customer_id, subscription_status')
       .eq('id', user.id)
       .single()
+
+    // Security: tier=premium in JWT but subscription may have expired/cancelled
+    if (profile?.subscription_status !== 'active') {
+      return Response.json(
+        { error: 'Your subscription is not active. Credits require an active Premium subscription.' },
+        { status: 403 }
+      )
+    }
 
     let customerId = profile?.stripe_customer_id
 

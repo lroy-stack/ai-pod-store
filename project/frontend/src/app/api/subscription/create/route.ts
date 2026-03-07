@@ -10,6 +10,7 @@ import { requireAuth, authErrorResponse } from '@/lib/auth-guard'
 import { stripe } from '@/lib/stripe'
 import { createClient } from '@supabase/supabase-js'
 import { BASE_URL } from '@/lib/store-config'
+import { subscriptionCreateLimiter } from '@/lib/rate-limit'
 
 const supabase = createClient(
   process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -20,6 +21,15 @@ const supabase = createClient(
 export async function POST(req: NextRequest) {
   try {
     const user = await requireAuth(req)
+
+    // Per-user rate limit: 3 checkout sessions/hour to prevent Stripe session spam
+    const rateLimit = subscriptionCreateLimiter.check(`sub-create:${user.id}`)
+    if (!rateLimit.success) {
+      return Response.json(
+        { error: 'Too many subscription requests. Please wait before trying again.' },
+        { status: 429 }
+      )
+    }
 
     // Check if user already has an active subscription
     const { data: profile } = await supabase
