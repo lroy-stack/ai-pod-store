@@ -445,6 +445,69 @@ export const CanvasWorkspace = forwardRef<CanvasHandle, CanvasWorkspaceProps>(
           setZoomLevel(zoom)
         })
 
+        // --- Touch: pinch-to-zoom ---
+        let touchStartDistance = 0
+        let touchStartZoom = 1
+        let isTouchPinching = false
+
+        const getTouchDistance = (t1: Touch, t2: Touch) => {
+          const dx = t1.clientX - t2.clientX
+          const dy = t1.clientY - t2.clientY
+          return Math.sqrt(dx * dx + dy * dy)
+        }
+
+        const getTouchCenter = (t1: Touch, t2: Touch): { x: number; y: number } => {
+          const canvasEl = canvasElRef.current
+          if (!canvasEl) return { x: 0, y: 0 }
+          const rect = canvasEl.getBoundingClientRect()
+          return {
+            x: (t1.clientX + t2.clientX) / 2 - rect.left,
+            y: (t1.clientY + t2.clientY) / 2 - rect.top,
+          }
+        }
+
+        const handleTouchStart = (e: TouchEvent) => {
+          if (e.touches.length === 2) {
+            isTouchPinching = true
+            touchStartDistance = getTouchDistance(e.touches[0], e.touches[1])
+            touchStartZoom = canvas.getZoom()
+            e.preventDefault()
+          }
+        }
+
+        const handleTouchMove = (e: TouchEvent) => {
+          if (!isTouchPinching || e.touches.length !== 2) return
+          e.preventDefault()
+          const currentDistance = getTouchDistance(e.touches[0], e.touches[1])
+          const scale = currentDistance / touchStartDistance
+          let zoom = Math.max(0.25, Math.min(5, touchStartZoom * scale))
+          const center = getTouchCenter(e.touches[0], e.touches[1])
+          canvas.zoomToPoint(center, zoom)
+          setZoomLevel(zoom)
+        }
+
+        const handleTouchEnd = (e: TouchEvent) => {
+          if (e.touches.length < 2) {
+            isTouchPinching = false
+          }
+        }
+
+        const canvasEl = canvasElRef.current
+        if (canvasEl) {
+          canvasEl.addEventListener('touchstart', handleTouchStart, { passive: false })
+          canvasEl.addEventListener('touchmove', handleTouchMove, { passive: false })
+          canvasEl.addEventListener('touchend', handleTouchEnd)
+        }
+
+        // Store touch cleanup ref
+        ;(canvas as any).__touchCleanup = () => {
+          if (canvasEl) {
+            canvasEl.removeEventListener('touchstart', handleTouchStart)
+            canvasEl.removeEventListener('touchmove', handleTouchMove)
+            canvasEl.removeEventListener('touchend', handleTouchEnd)
+          }
+        }
+
         // --- Pan: space+drag ---
         let isPanning = false
         let panStart = { x: 0, y: 0 }
@@ -534,7 +597,8 @@ export const CanvasWorkspace = forwardRef<CanvasHandle, CanvasWorkspaceProps>(
           alignGuidelinesDispose.current = null
         }
         if (canvas) {
-          // Clean up pan keyboard listeners
+          // Clean up touch and pan keyboard listeners
+          ;(canvas as any).__touchCleanup?.()
           ;(canvas as any).__panCleanup?.()
           canvas.dispose()
           fabricCanvasRef.current = null

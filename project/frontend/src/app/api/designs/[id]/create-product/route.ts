@@ -263,8 +263,7 @@ export async function POST(
       provider_upload_id: providerUploadId,
     })
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error'
-    console.error('Design→Product pipeline error:', message)
-    return NextResponse.json({ error: message }, { status: 500 })
+    console.error('Design→Product pipeline error:', error instanceof Error ? error.message : error)
+    return NextResponse.json({ error: 'Product creation failed' }, { status: 500 })
   }
 }

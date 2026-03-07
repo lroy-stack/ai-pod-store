@@ -192,7 +192,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       {
         error: 'Internal server error',
-        details: error instanceof Error ? error.message : String(error),
+        details: 'AI generation failed',
       },
       { status: 500 }
     )

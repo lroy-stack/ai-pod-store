@@ -25,8 +25,8 @@ class RateLimiter {
   }
 
   check(key: string): { success: boolean; remaining: number } {
-    // Bypass rate limiting for E2E tests
-    if (process.env.PLAYWRIGHT_TEST_BASE_URL || process.env.CI) {
+    // Bypass rate limiting for E2E tests (only in test environment)
+    if (process.env.NODE_ENV === 'test' && (process.env.PLAYWRIGHT_TEST_BASE_URL || process.env.CI)) {
       return { success: true, remaining: this.limit }
     }
 
@@ -110,8 +110,8 @@ export function getClientIP(req: Request): string {
 const activeRequests = new Map<string, number>()
 
 export function acquireSlot(key: string, maxConcurrent: number = 2): boolean {
-  // Bypass for E2E tests
-  if (process.env.PLAYWRIGHT_TEST_BASE_URL || process.env.CI) {
+  // Bypass for E2E tests (only in test environment)
+  if (process.env.NODE_ENV === 'test' && (process.env.PLAYWRIGHT_TEST_BASE_URL || process.env.CI)) {
     return true
   }
 

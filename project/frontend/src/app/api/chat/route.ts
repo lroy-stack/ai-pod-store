@@ -386,6 +386,24 @@ export async function POST(req: Request) {
       })()
     }
 
+    // Prompt safety check on user message
+    const lastUserText = lastUserMessage?.role === 'user'
+      ? (typeof lastUserMessage.content === 'string'
+          ? lastUserMessage.content
+          : Array.isArray(lastUserMessage.parts)
+            ? lastUserMessage.parts.filter((p: any) => p.type === 'text').map((p: any) => p.text).join(' ')
+            : JSON.stringify(lastUserMessage.content))
+      : ''
+    if (lastUserText) {
+      const safetyCheck = checkPromptSafety(lastUserText)
+      if (!safetyCheck.safe) {
+        return new Response(JSON.stringify({
+          error: 'Message flagged by content filter',
+          reason: safetyCheck.reason
+        }), { status: 400, headers: { 'Content-Type': 'application/json' } })
+      }
+    }
+
     // Locale-aware greeting and language instruction
     const localeConfig: Record<string, { name: string; instruction: string }> = {
       en: { name: 'English', instruction: 'Respond in English.' },
@@ -2372,9 +2390,19 @@ Be friendly, helpful, and concise.`
     }
 
     // RAG Pipeline Integration
+    // Skip RAG for simple conversational messages
+    const SKIP_RAG_PATTERNS = [
+      /^(hola|hi|hey|hello|buenos?\s*d[ií]as|buenas)/i,
+      /^(gracias|thanks|thank you|ok|vale|entendido)/i,
+      /^(a[ñn]ad|add|remove|quitar|eliminar).*(cart|carrito|cesta)/i,
+      /^(s[ií]|no|claro|seguro|por supuesto)$/i,
+    ]
+    const skipRag = SKIP_RAG_PATTERNS.some(p => p.test(lastUserText.trim()))
+
     // Extract the latest user message for semantic search
     let ragContext = ''
     try {
+      if (!skipRag) {
       // Get the last user message
       const lastUserMessage = messages.filter((m: any) => m.role === 'user').pop()
 
@@ -2424,6 +2452,7 @@ Be friendly, helpful, and concise.`
           }
         }
       }
+      } // end if (!skipRag)
     } catch (ragError) {
       console.error('RAG retrieval error (non-critical):', ragError)
       // Continue without RAG context if it fails

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
-import { getAuthUser } from '@/lib/auth-guard'
+import { getAuthUser, requireAuth, authErrorResponse } from '@/lib/auth-guard'
 import { z } from 'zod'
 import { designSaveLimiter } from '@/lib/rate-limit'
 
@@ -58,7 +58,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(
       {
         error: 'Internal server error',
-        details: error instanceof Error ? error.message : String(error),
+        details: 'Failed to fetch designs',
       },
       { status: 500 }
     )
@@ -93,12 +93,17 @@ export async function POST(req: NextRequest) {
       productId,
     } = validation.data
 
-    // Get user from auth token (not from request body)
-    const user = await getAuthUser(req)
+    // Auth required for saving designs
+    let user
+    try {
+      user = await requireAuth(req)
+    } catch (error) {
+      return authErrorResponse(error)
+    }
 
     // Rate limit check
     const ip = req.headers.get('x-forwarded-for') || 'unknown'
-    const rateLimitKey = `design:save:${user?.id || ip}`
+    const rateLimitKey = `design:save:${user.id || ip}`
     const { success } = designSaveLimiter.check(rateLimitKey)
     if (!success) {
       return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
@@ -116,7 +121,7 @@ export async function POST(req: NextRequest) {
         width: width || null,
         height: height || null,
         product_id: productId || null,
-        user_id: user?.id || null,
+        user_id: user.id,
       })
       .select()
       .single()
@@ -124,7 +129,7 @@ export async function POST(req: NextRequest) {
     if (error) {
       console.error('Failed to save design:', error)
       return NextResponse.json(
-        { error: 'Failed to save design', details: error.message },
+        { error: 'Failed to save design', details: 'Failed to save design' },
         { status: 500 }
       )
     }
@@ -138,7 +143,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       {
         error: 'Internal server error',
-        details: error instanceof Error ? error.message : String(error),
+        details: 'Failed to save design',
       },
       { status: 500 }
     )
