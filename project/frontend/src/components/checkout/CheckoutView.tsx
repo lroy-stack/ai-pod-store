@@ -22,6 +22,7 @@ import AddressForm, { AddressFormData } from './AddressForm'
 import CheckoutBreadcrumb from './CheckoutBreadcrumb'
 import { useExitIntent } from '@/hooks/useExitIntent'
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction, AlertDialogCancel } from '@/components/ui/alert-dialog'
+import { apiFetch } from '@/lib/api-fetch'
 
 interface ShippingAddress {
   id: string
@@ -125,7 +126,7 @@ export default function CheckoutView({ locale }: { locale: string }) {
           quantity: item.quantity,
         }))
 
-        const response = await fetch('/api/checkout/calculate-tax', {
+        const response = await apiFetch('/api/checkout/calculate-tax', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -166,7 +167,7 @@ export default function CheckoutView({ locale }: { locale: string }) {
   // Handle address form submission
   const handleAddressSubmit = async (addressData: AddressFormData) => {
     try {
-      const response = await fetch('/api/shipping-addresses', {
+      const response = await apiFetch('/api/shipping-addresses', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -244,7 +245,7 @@ export default function CheckoutView({ locale }: { locale: string }) {
         body.couponCode = appliedCoupon.code
       }
 
-      const response = await fetch('/api/checkout/create-session', {
+      const response = await apiFetch('/api/checkout/create-session', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

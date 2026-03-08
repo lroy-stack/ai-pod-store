@@ -1,7 +1,7 @@
 import createMiddleware from 'next-intl/middleware'
 import { routing } from './i18n/routing'
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerClient } from '@supabase/ssr'
+import { createClient } from '@supabase/supabase-js'
 import {
   generateCSRFToken,
   validateCSRFToken,
@@ -198,48 +198,34 @@ export default async function middleware(request: NextRequest) {
 
   if (isProtectedRoute) {
     // SECURITY: Validate JWT token with Supabase (not just cookie presence)
-    // This prevents unauthorized access with expired/forged tokens
+    // Read custom auth cookies (set by /api/auth/login)
+    const accessToken = request.cookies.get('sb-access-token')?.value
 
-    // Create Supabase client for middleware (edge-compatible)
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll: () => {
-            return request.cookies.getAll()
-          },
-          setAll: (cookiesToSet) => {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              request.cookies.set(name, value)
-            )
-            cookiesToSet.forEach(({ name, value, options }) =>
-              response.cookies.set(name, value, options)
-            )
-          },
-        },
+    let authenticated = false
+    if (accessToken) {
+      try {
+        const supabase = createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+          { auth: { autoRefreshToken: false, persistSession: false } }
+        )
+        const { data: { user }, error } = await supabase.auth.getUser(accessToken)
+        if (user && !error) {
+          authenticated = true
+          response.headers.set('x-user-id', user.id)
+        }
+      } catch {
+        // Token verification failed
       }
-    )
-
-    // Validate JWT token by attempting to get user
-    const { data: { user }, error } = await supabase.auth.getUser()
-
-    if (!user || error) {
-      // Token is invalid, expired, or missing
-      // Extract locale from pathname (e.g., /en/profile -> en)
-      const localeMatch = pathname.match(/^\/([a-z]{2})/)
-      const locale = localeMatch ? localeMatch[1] : 'en'
-
-      // Redirect to login page with return URL
-      const loginUrl = new URL(`/${locale}/auth/login`, request.url)
-      loginUrl.searchParams.set('returnUrl', pathname)
-
-      return NextResponse.redirect(loginUrl)
     }
 
-    // Token is valid, user is authenticated
-    // Add user ID to headers for downstream API routes (optional optimization)
-    response.headers.set('x-user-id', user.id)
+    if (!authenticated) {
+      const localeMatch = pathname.match(/^\/([a-z]{2})/)
+      const locale = localeMatch ? localeMatch[1] : 'en'
+      const loginUrl = new URL(`/${locale}/auth/login`, request.url)
+      loginUrl.searchParams.set('returnUrl', pathname)
+      return NextResponse.redirect(loginUrl)
+    }
   }
 
   return response

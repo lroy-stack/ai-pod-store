@@ -8,6 +8,7 @@ import { Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { apiFetch } from '@/lib/api-fetch'
 
 export default function ResetPasswordForm({ locale }: { locale: string }) {
   const t = useTranslations('Auth')
@@ -58,7 +59,7 @@ export default function ResetPasswordForm({ locale }: { locale: string }) {
     setLoading(true)
 
     try {
-      const response = await fetch('/api/auth/reset-password', {
+      const response = await apiFetch('/api/auth/reset-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

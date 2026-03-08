@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Check, Sparkles } from 'lucide-react'
+import { apiFetch } from '@/lib/api-fetch'
 
 interface UpgradeModalProps {
   open: boolean
@@ -24,7 +25,7 @@ export function UpgradeModal({ open, onOpenChange, reason }: UpgradeModalProps) 
   async function handleUpgrade() {
     setLoading(true)
     try {
-      const res = await fetch('/api/subscription/create', { method: 'POST' })
+      const res = await apiFetch('/api/subscription/create', { method: 'POST' })
       const data = await res.json()
       if (data.url) {
         window.location.href = data.url

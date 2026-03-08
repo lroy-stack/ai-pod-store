@@ -5,8 +5,21 @@ import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { Loader2, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { AddressForm } from './AddressForm';
+import { apiFetch } from '@/lib/api-fetch';
 
 interface ShippingAddress {
   id: string;
@@ -28,6 +41,7 @@ export function ShippingAddressList() {
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingAddress, setEditingAddress] = useState<ShippingAddress | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchAddresses();
@@ -50,12 +64,9 @@ export function ShippingAddressList() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm(t('confirmDeleteAddress'))) {
-      return;
-    }
-
+    setDeletingId(id);
     try {
-      const response = await fetch(`/api/shipping-addresses/${id}`, {
+      const response = await apiFetch(`/api/shipping-addresses/${id}`, {
         method: 'DELETE',
       });
 
@@ -68,6 +79,8 @@ export function ShippingAddressList() {
     } catch (error) {
       console.error('Error deleting address:', error);
       toast.error(t('errorDeletingAddress'));
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -76,7 +89,7 @@ export function ShippingAddressList() {
     if (!address) return;
 
     try {
-      const response = await fetch(`/api/shipping-addresses/${id}`, {
+      const response = await apiFetch(`/api/shipping-addresses/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -192,13 +205,39 @@ export function ShippingAddressList() {
                         {t('setDefault')}
                       </Button>
                     )}
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => handleDelete(address.id)}
-                    >
-                      {t('delete')}
-                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          disabled={deletingId === address.id}
+                        >
+                          {deletingId === address.id ? (
+                            <Loader2 className="size-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="size-4" />
+                          )}
+                          {t('delete')}
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>{t('confirmDeleteAddressTitle')}</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            {t('confirmDeleteAddressDescription')}
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => handleDelete(address.id)}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          >
+                            {t('confirmDeleteAddressAction')}
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
                 </div>
               </CardHeader>

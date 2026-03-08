@@ -12,6 +12,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Separator } from '@/components/ui/separator'
 import { supabase } from '@/lib/supabase'
 import { TurnstileWidget } from '@/components/auth/TurnstileWidget'
+import { apiFetch } from '@/lib/api-fetch'
 
 export default function LoginForm({ locale }: { locale: string }) {
   const t = useTranslations('Auth')
@@ -64,7 +65,7 @@ export default function LoginForm({ locale }: { locale: string }) {
     setLoading(true)
 
     try {
-      const response = await fetch('/api/auth/login', {
+      const response = await apiFetch('/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -106,7 +107,7 @@ export default function LoginForm({ locale }: { locale: string }) {
 
       // Merge anonymous guest cart into user's cart
       try {
-        await fetch('/api/cart/merge', { method: 'POST' })
+        await apiFetch('/api/cart/merge', { method: 'POST' })
       } catch {
         // Non-critical — ignore cart merge errors
       }
@@ -116,7 +117,7 @@ export default function LoginForm({ locale }: { locale: string }) {
         const fp = localStorage.getItem('pod-fp-id')
         const convId = sessionStorage.getItem('pod-conversation-id')
         if (fp || convId) {
-          await fetch('/api/session/migrate', {
+          await apiFetch('/api/session/migrate', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -129,9 +130,10 @@ export default function LoginForm({ locale }: { locale: string }) {
         // Non-critical — ignore migration errors
       }
 
-      // Redirect to user's preferred locale if different from current
+      // Redirect to returnUrl if present, otherwise to chat
       const userLocale = data.user?.locale || locale
-      router.push(`/${userLocale}/`)
+      const returnUrl = searchParams.get('returnUrl')
+      router.push(returnUrl || `/${userLocale}/chat`)
     } catch (err) {
       // Translate error messages based on error content
       if (err instanceof Error && err.message.includes('Invalid email or password')) {

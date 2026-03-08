@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import Image from 'next/image'
 import { useState } from 'react'
+import { apiFetch } from '@/lib/api-fetch'
 
 export interface DesignPreviewArtifactProps {
   variant?: 'inline' | 'detail'
@@ -55,7 +56,7 @@ export function DesignPreviewArtifact({
 
     setRemovingBg(true)
     try {
-      const response = await fetch('/api/designs/remove-bg', {
+      const response = await apiFetch('/api/designs/remove-bg', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -83,7 +84,7 @@ export function DesignPreviewArtifact({
 
     setGeneratingMockup(true)
     try {
-      const response = await fetch('/api/designs/mockup', {
+      const response = await apiFetch('/api/designs/mockup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

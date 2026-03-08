@@ -14,7 +14,7 @@
  * - Touch-friendly: action buttons always visible
  */
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { Star, ShoppingCart, ImageOff, Heart, Eye } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -84,6 +84,20 @@ function ProductCard({
   const { isWishlisted, toggleWishlist } = useWishlist()
   const wishlisted = isWishlisted(product.id)
 
+  // Color variant selection
+  const colorImages = product.variants?.colorImages
+  const colorEntries = colorImages ? Object.entries(colorImages) : []
+  const hasMultipleColors = colorEntries.length > 1
+  const [colorIdx, setColorIdx] = useState(0)
+
+  const displayImage = hasMultipleColors ? colorEntries[colorIdx][1] : product.image
+
+  const handleColorSwatch = useCallback((e: React.MouseEvent, i: number) => {
+    e.stopPropagation()
+    setColorIdx(i)
+    setImgError(false)
+  }, [])
+
   return (
     <div
       className="group relative neu-card bg-card overflow-hidden cursor-pointer"
@@ -91,9 +105,9 @@ function ProductCard({
     >
       {/* Image — square */}
       <div className="aspect-square relative neu-image overflow-hidden">
-        {product.image && !imgError ? (
+        {displayImage && !imgError ? (
           <img
-            src={product.image}
+            src={displayImage}
             alt={product.title}
             className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500 ease-out"
             onError={() => setImgError(true)}
@@ -105,7 +119,37 @@ function ProductCard({
           </div>
         )}
 
-        {/* Wishlist heart — always visible */}
+        {/* Color variant swatches — overlay bottom of image */}
+        {hasMultipleColors && (
+          <div className="absolute bottom-1 left-1 right-1 flex items-center gap-1 z-10 overflow-x-auto scrollbar-hide py-1 px-1">
+            {colorEntries.map(([color, imgUrl], i) => (
+              <button
+                key={color}
+                className={cn(
+                  'relative rounded-full overflow-hidden border-2 transition-all duration-200 flex-shrink-0 shadow-sm p-0',
+                  'w-[32px] h-[32px] min-w-[32px] min-h-[32px]',
+                  i === colorIdx
+                    ? 'border-primary ring-2 ring-primary/40'
+                    : 'border-card/80 hover:border-primary/50'
+                )}
+                onClick={(e) => handleColorSwatch(e, i)}
+                onMouseEnter={() => { setColorIdx(i); setImgError(false) }}
+                aria-label={color}
+                title={color}
+              >
+                <span className="relative w-full h-full rounded-full overflow-hidden block">
+                  <img
+                    src={imgUrl}
+                    alt={color}
+                    className="w-full h-full object-cover"
+                  />
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Wishlist heart */}
         <Button
           variant="ghost"
           size="icon"
@@ -121,28 +165,39 @@ function ProductCard({
 
       {/* Info + Actions */}
       <div className="flex flex-col flex-1 px-3 pt-2.5 pb-2 space-y-1">
-        {(product.rating ?? 0) > 0 && (
-          <div className="flex items-center gap-1 text-[11px] text-muted-foreground ml-auto">
-            <Star className="h-3 w-3 fill-rating text-rating" />
-            <span>{(product.rating ?? 0).toFixed(1)}</span>
-          </div>
-        )}
+        {/* Category + Rating row */}
+        <div className="flex items-center justify-between">
+          {product.category && (
+            <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+              {product.category}
+            </span>
+          )}
+          {(product.rating ?? 0) > 0 && (
+            <div className="flex items-center gap-1 text-[11px] text-muted-foreground ml-auto">
+              <Star className="h-3 w-3 fill-rating text-rating" />
+              <span>{(product.rating ?? 0).toFixed(1)}</span>
+            </div>
+          )}
+        </div>
+
         <h3 className="font-medium text-sm leading-snug line-clamp-1 text-foreground">
           {product.title}
         </h3>
 
-        {/* Price left + icon CTAs right */}
-        <div className="flex items-center justify-between mt-auto">
+        {/* Price + Actions */}
+        <div className="flex items-end justify-between gap-2 mt-auto">
           {product.compareAtPrice ? (
             <div className="min-w-0">
-              <div className="flex items-center gap-1">
-                <span className="text-[11px] line-through text-muted-foreground">
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs line-through text-muted-foreground">
                   {formatPrice(product.compareAtPrice, locale, product.currency)}
                 </span>
                 {(() => {
                   const pct = Math.round(((product.compareAtPrice! - product.price) / product.compareAtPrice!) * 100)
                   return pct > 0 ? (
-                    <Badge variant="destructive" className="text-[10px] leading-none px-1 py-0.5">-{pct}%</Badge>
+                    <Badge variant="destructive" className="text-[10px] leading-none px-1.5 py-0.5">
+                      -{pct}%
+                    </Badge>
                   ) : null
                 })()}
               </div>
@@ -155,7 +210,7 @@ function ProductCard({
               {formatPrice(product.price, locale, product.currency)}
             </p>
           )}
-          <div className="flex gap-1.5">
+          <div className="flex gap-1.5 shrink-0">
             <Button
               size="icon"
               className="h-8 w-8 neu-btn-accent"

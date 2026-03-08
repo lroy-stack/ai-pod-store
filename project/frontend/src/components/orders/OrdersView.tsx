@@ -49,7 +49,7 @@ export default function OrdersView({ locale }: { locale: string }) {
       const response = await fetch('/api/orders')
       if (response.ok) {
         const data = await response.json()
-        setOrders(data)
+        setOrders(data.orders || [])
       } else if (response.status === 401) {
         setError('unauthorized')
       } else {

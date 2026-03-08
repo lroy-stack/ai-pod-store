@@ -7,6 +7,8 @@ import { Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { TurnstileWidget } from '@/components/auth/TurnstileWidget'
+import { apiFetch } from '@/lib/api-fetch'
 
 export default function ForgotPasswordForm({ locale }: { locale: string }) {
   const t = useTranslations('Auth')
@@ -14,6 +16,7 @@ export default function ForgotPasswordForm({ locale }: { locale: string }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -21,12 +24,12 @@ export default function ForgotPasswordForm({ locale }: { locale: string }) {
     setLoading(true)
 
     try {
-      const response = await fetch('/api/auth/forgot-password', {
+      const response = await apiFetch('/api/auth/forgot-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, turnstileToken: turnstileToken || undefined }),
       })
 
       const data = await response.json()
@@ -102,6 +105,13 @@ export default function ForgotPasswordForm({ locale }: { locale: string }) {
             placeholder={t('emailPlaceholder')}
           />
         </div>
+
+        {/* Cloudflare Turnstile CAPTCHA */}
+        <TurnstileWidget
+          onVerify={(token) => setTurnstileToken(token)}
+          onExpire={() => setTurnstileToken(null)}
+          onError={() => setTurnstileToken(null)}
+        />
 
         <Button type="submit" className="w-full" disabled={loading}>
           {loading ? (

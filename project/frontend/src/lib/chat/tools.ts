@@ -17,11 +17,54 @@ function formatProduct(p: any) {
     description: p.description?.substring(0, 150) + (p.description?.length > 150 ? '...' : ''),
     category: (p.categories as any)?.slug || 'other',
     price: p.base_price_cents / 100,
+    compareAtPrice: p.compare_at_price_cents ? p.compare_at_price_cents / 100 : undefined,
     currency: p.currency?.toUpperCase() || 'EUR',
     image: Array.isArray(p.images) && p.images.length > 0 ? (p.images[0].src || p.images[0].url) : null,
     rating: p.avg_rating || 0,
     reviewCount: p.review_count || 0,
   }
+}
+
+/** Batch-fetch product_variants and attach colorImages/sizes/colors to formatted products */
+async function enrichWithVariants(supabase: SupabaseClient, products: ReturnType<typeof formatProduct>[]) {
+  if (products.length === 0) return products
+  const ids = products.map((p) => p.id)
+  const { data: variants } = await supabase
+    .from('product_variants')
+    .select('product_id, size, color, image_url')
+    .in('product_id', ids)
+    .eq('is_enabled', true)
+    .eq('is_available', true)
+
+  if (!variants || variants.length === 0) return products
+
+  const grouped = new Map<string, { sizes: Set<string>; colors: Set<string>; colorImages: Map<string, string> }>()
+  for (const v of variants) {
+    if (!grouped.has(v.product_id)) {
+      grouped.set(v.product_id, { sizes: new Set(), colors: new Set(), colorImages: new Map() })
+    }
+    const entry = grouped.get(v.product_id)!
+    if (v.size) entry.sizes.add(v.size)
+    if (v.color) {
+      entry.colors.add(v.color)
+      if (v.image_url && !entry.colorImages.has(v.color)) {
+        entry.colorImages.set(v.color, v.image_url)
+      }
+    }
+  }
+
+  return products.map((p) => {
+    const g = grouped.get(p.id)
+    if (!g) return p
+    return {
+      ...p,
+      variants: {
+        sizes: [...g.sizes],
+        colors: [...g.colors],
+        colorImages: Object.fromEntries(g.colorImages),
+      },
+    }
+  })
 }
 
 /** Fetch top-rated suggestions + available categories when a search returns 0 results */
@@ -30,7 +73,7 @@ async function getSearchFallback(supabase: SupabaseClient) {
     supabase.from('products').select('category_id, categories(slug)').eq('status', 'active'),
     supabase
       .from('products')
-      .select('id, title, description, category_id, categories(slug), base_price_cents, currency, images, avg_rating, review_count')
+      .select('id, title, description, category_id, categories(slug), base_price_cents, compare_at_price_cents, currency, images, avg_rating, review_count')
       .eq('status', 'active')
       .order('avg_rating', { ascending: false })
       .limit(4),
@@ -80,7 +123,7 @@ export function getChatTools(ctx: ChatToolsContext) {
         try {
           let dbQuery = supabase
             .from('products')
-            .select('id, title, description, category_id, categories(slug), base_price_cents, currency, images, avg_rating, review_count')
+            .select('id, title, description, category_id, categories(slug), base_price_cents, compare_at_price_cents, currency, images, avg_rating, review_count')
             .eq('status', 'active')
             .limit(limit)
 
@@ -98,7 +141,7 @@ export function getChatTools(ctx: ChatToolsContext) {
             return { success: false, error: 'Product search failed', products: [] }
           }
 
-          const formattedProducts = (products || []).map(formatProduct)
+          const formattedProducts = await enrichWithVariants(supabase, (products || []).map(formatProduct))
 
           // Fallback: when no results match, suggest alternatives
           if (formattedProducts.length === 0 && query) {
@@ -147,7 +190,7 @@ export function getChatTools(ctx: ChatToolsContext) {
           const offset = (page - 1) * limit
           let dbQuery = supabase
             .from('products')
-            .select('id, title, description, category_id, categories(slug), base_price_cents, currency, images, avg_rating, review_count', { count: 'exact' })
+            .select('id, title, description, category_id, categories(slug), base_price_cents, compare_at_price_cents, currency, images, avg_rating, review_count', { count: 'exact' })
             .eq('status', 'active')
             .range(offset, offset + limit - 1)
 
@@ -183,7 +226,7 @@ export function getChatTools(ctx: ChatToolsContext) {
             return { success: false, error: 'Failed to browse catalog', products: [] }
           }
 
-          const formattedProducts = (products || []).map(formatProduct)
+          const formattedProducts = await enrichWithVariants(supabase, (products || []).map(formatProduct))
 
           // Fallback: when category filter returns 0 results, suggest alternatives
           if (formattedProducts.length === 0 && category) {
@@ -272,6 +315,7 @@ export function getChatTools(ctx: ChatToolsContext) {
               description: product.description || 'No description available',
               category: (product.categories as any)?.slug || 'other',
               price: product.base_price_cents / 100,
+              compareAtPrice: product.compare_at_price_cents ? product.compare_at_price_cents / 100 : undefined,
               currency: product.currency?.toUpperCase() || 'EUR',
               images: Array.isArray(product.images) ? product.images : [],
               rating: product.avg_rating || 0,
@@ -319,6 +363,7 @@ export function getChatTools(ctx: ChatToolsContext) {
               title: p.title,
               category: (p.categories as any)?.slug || 'other',
               price: p.base_price_cents / 100,
+              compareAtPrice: p.compare_at_price_cents ? p.compare_at_price_cents / 100 : undefined,
               currency: p.currency?.toUpperCase() || 'EUR',
               image: Array.isArray(p.images) && p.images.length > 0 ? (p.images[0].src || p.images[0].url) : null,
               rating: p.avg_rating || 0,
@@ -379,7 +424,7 @@ export function getChatTools(ctx: ChatToolsContext) {
             return { success: false, error: 'Product filtering failed', products: [] }
           }
 
-          const formattedProducts = (products || []).map(formatProduct)
+          const formattedProducts = await enrichWithVariants(supabase, (products || []).map(formatProduct))
 
           return {
             success: true,
@@ -1812,7 +1857,7 @@ export function getChatTools(ctx: ChatToolsContext) {
 
           return {
             success: true,
-            image_url: result.imageUrl,
+            imageUrl: result.imageUrl,
             provider: result.provider,
             inference_ms: result.timings?.inference || null,
             prompt: orchestrated.engineeredPrompt,

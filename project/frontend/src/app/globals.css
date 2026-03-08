@@ -117,9 +117,10 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 
-  /* Font mapping for Tailwind utilities (font-sans, font-mono) */
+  /* Font mapping for Tailwind utilities (font-sans, font-mono, font-display) */
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
+  --font-display: var(--font-display, var(--font-heading));
 }
 
 /* ===== Base resets ===== */
@@ -350,5 +351,26 @@ p {
   .landing-gradient-text {
     -webkit-text-fill-color: unset;
     background: none;
+  }
+}
+
+/* Steps connecting line */
+.steps-connector {
+  position: relative;
+}
+.steps-connector::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 5%;
+  right: 5%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-border), transparent);
+  pointer-events: none;
+  z-index: 0;
+}
+@media (max-width: 768px) {
+  .steps-connector::after {
+    display: none;
   }
 }

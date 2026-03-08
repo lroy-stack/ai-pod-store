@@ -4,6 +4,7 @@
  */
 
 import { useCallback, useState } from 'react'
+import { apiFetch } from '@/lib/api-fetch'
 
 interface SaveCompositionParams {
   fabricJson: object
@@ -46,7 +47,7 @@ export function useDesignPersistence() {
   const save = useCallback(async (params: SaveCompositionParams): Promise<SaveResult | null> => {
     setIsSaving(true)
     try {
-      const res = await fetch('/api/designs/compose-v2', {
+      const res = await apiFetch('/api/designs/compose-v2', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(params),

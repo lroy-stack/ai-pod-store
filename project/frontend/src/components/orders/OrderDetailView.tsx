@@ -12,8 +12,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { formatPrice } from '@/lib/currency';
 import { Package, AlertCircle, ArrowLeft, RotateCcw, CreditCard, Coins, Download } from 'lucide-react';
+import { OrderTimelineArtifact } from '@/components/artifacts/OrderTimelineArtifact/OrderTimelineArtifact';
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
+import { apiFetch } from '@/lib/api-fetch';
 
 interface OrderItem {
   id: string;
@@ -130,7 +132,7 @@ export default function OrderDetailView({
 
     setSubmittingReturn(true);
     try {
-      const response = await fetch(`/api/orders/${orderId}/returns`, {
+      const response = await apiFetch(`/api/orders/${orderId}/returns`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ reason: returnReason, user_id: user?.id }),
@@ -218,16 +220,26 @@ export default function OrderDetailView({
 </html>
         `;
 
-        // Create blob and download
-        const blob = new Blob([invoiceHTML], { type: 'text/html' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `invoice-${invoiceData.order_number}.html`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
+        // Generate PDF from HTML template using iframe to isolate from oklch theme styles
+        const html2pdf = (await import('html2pdf.js')).default;
+        const iframe = document.createElement('iframe');
+        iframe.style.cssText = 'position:fixed;left:-9999px;top:0;width:800px;height:1200px;border:none;';
+        document.body.appendChild(iframe);
+        const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+        if (!iframeDoc) throw new Error('Cannot create iframe for invoice');
+        iframeDoc.open();
+        iframeDoc.write(invoiceHTML);
+        iframeDoc.close();
+        await html2pdf()
+          .set({
+            margin: 10,
+            filename: `invoice-${invoiceData.order_number}.pdf`,
+            html2canvas: { scale: 2, useCORS: true },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+          })
+          .from(iframeDoc.body)
+          .save();
+        document.body.removeChild(iframe);
 
         toast.success(t('invoiceDownloaded'));
       } else {
@@ -651,6 +663,19 @@ export default function OrderDetailView({
               </CardContent>
             </Card>
           )}
+
+          {/* Order Timeline */}
+          <OrderTimelineArtifact
+            orderId={order.id}
+            status={order.status}
+            trackingNumber={order.tracking_number || undefined}
+            createdAt={order.created_at}
+            paidAt={order.paid_at || undefined}
+            shippedAt={order.shipped_at || undefined}
+            currency={order.currency}
+            total={order.total_cents}
+            showFooter={false}
+          />
 
           {/* Tracking Info */}
           {order.tracking_number && (

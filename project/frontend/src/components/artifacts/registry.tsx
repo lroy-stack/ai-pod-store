@@ -20,6 +20,7 @@ import { OrderTimelineArtifact, OrderTimelineSkeleton } from './OrderTimelineArt
 import { OrderListArtifact, OrderListSkeleton } from './OrderListArtifact'
 import { ReturnRequestArtifact, ReturnRequestSkeleton } from './ReturnRequestArtifact'
 import { DesignPreviewArtifact, DesignPreviewSkeleton } from './DesignPreviewArtifact'
+import { ProductMockupArtifact, ProductMockupSkeleton } from './ProductMockupArtifact'
 
 export interface ArtifactRegistryEntry {
   Component: React.ComponentType<any>
@@ -86,6 +87,14 @@ export const artifactRegistry: Record<string, ArtifactRegistryEntry> = {
   remove_background: {
     Component: DesignPreviewArtifact,
     Skeleton: DesignPreviewSkeleton,
+  },
+  ai_design_generate: {
+    Component: DesignPreviewArtifact,
+    Skeleton: DesignPreviewSkeleton,
+  },
+  apply_design_to_product: {
+    Component: ProductMockupArtifact,
+    Skeleton: ProductMockupSkeleton,
   },
 }
 

@@ -10,6 +10,7 @@ import { Separator } from '@/components/ui/separator'
 import { Check, Sparkles, Zap, CheckCircle2 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { cn } from '@/lib/utils'
+import { apiFetch } from '@/lib/api-fetch'
 
 const CREDIT_PACKS = [
   { id: 'small', credits: 15, price: '4.99', perCredit: '0.33' },
@@ -96,7 +97,7 @@ export default function PricingPage() {
     if (!user) return
     setLoading('subscription')
     try {
-      const res = await fetch('/api/subscription/create', { method: 'POST' })
+      const res = await apiFetch('/api/subscription/create', { method: 'POST' })
       const data = await res.json()
       if (data.url) window.location.href = data.url
     } finally {
@@ -108,7 +109,7 @@ export default function PricingPage() {
     if (!user) return
     setLoading(pack)
     try {
-      const res = await fetch('/api/credits/purchase', {
+      const res = await apiFetch('/api/credits/purchase', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ pack }),

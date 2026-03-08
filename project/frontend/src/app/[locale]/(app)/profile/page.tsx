@@ -1,19 +1,5 @@
 import { getTranslations } from 'next-intl/server';
-import { ProfileForm } from '@/components/profile/ProfileForm';
-import { ShippingAddressList } from '@/components/profile/ShippingAddressList';
-import { DeleteAccountSection } from '@/components/profile/DeleteAccountSection';
-import { ChangePasswordForm } from '@/components/profile/ChangePasswordForm';
-import { PaymentMethodsList } from '@/components/profile/PaymentMethodsList';
-import { PlanCard } from '@/components/profile/PlanCard';
-
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
+import { ProfilePageClient } from '@/components/profile/ProfilePageClient';
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
@@ -31,36 +17,6 @@ interface ProfilePageProps {
 
 export default async function ProfilePage({ params }: ProfilePageProps) {
   const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: 'Profile' });
 
-  return (
-    <div className="py-8 md:py-12">
-      <div className="container mx-auto px-4 md:px-0 max-w-2xl space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-2xl md:text-3xl">{t('title')}</CardTitle>
-            <CardDescription>{t('subtitle')}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ProfileForm locale={locale} />
-          </CardContent>
-        </Card>
-
-        <PlanCard />
-
-        <Card>
-          <CardContent className="pt-6">
-            <ShippingAddressList />
-          </CardContent>
-        </Card>
-
-        <PaymentMethodsList />
-
-        <ChangePasswordForm />
-
-        <DeleteAccountSection />
-      </div>
-
-    </div>
-  );
+  return <ProfilePageClient locale={locale} />;
 }

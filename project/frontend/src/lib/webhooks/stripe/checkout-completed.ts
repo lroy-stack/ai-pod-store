@@ -220,25 +220,25 @@ export async function handleCheckoutCompleted(session: Stripe.Checkout.Session) 
       console.log('Created audit log entry for order:', order.id)
     }
 
-    // Increment coupon usage counter if a coupon was applied
+    // Increment coupon usage counter if a coupon was applied (idempotent via RPC)
     const couponCode = session.metadata?.coupon_code
     if (couponCode) {
       const { data: coupon } = await supabase
         .from('coupons')
-        .select('id, times_used')
+        .select('id')
         .eq('code', couponCode)
         .single()
 
       if (coupon) {
-        const { error: couponError } = await supabase
-          .from('coupons')
-          .update({ times_used: (coupon.times_used || 0) + 1 })
-          .eq('id', coupon.id)
+        const { data: incremented } = await supabase.rpc('increment_coupon_usage', {
+          p_coupon_id: coupon.id,
+          p_order_id: order.id,
+        })
 
-        if (couponError) {
-          console.error('Failed to increment coupon usage:', couponError)
+        if (incremented === true) {
+          console.log(`Incremented coupon "${couponCode}" usage for order ${order.id}`)
         } else {
-          console.log(`Incremented coupon "${couponCode}" usage to ${(coupon.times_used || 0) + 1}`)
+          console.log(`Coupon "${couponCode}" already counted for order ${order.id} — skipped`)
         }
       }
     }

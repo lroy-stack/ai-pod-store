@@ -10,14 +10,29 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import Link from 'next/link';
-import { Heart, ShoppingCart, Share2, Copy, Check, X } from 'lucide-react';
+import { Heart, ShoppingCart, Share2, Copy, Check, X, Pencil, Trash2, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { useWishlist } from '@/hooks/useWishlist';
+import { apiFetch } from '@/lib/api-fetch';
 import { ProductGrid } from '@/components/products/ProductGrid';
 import { ProductCard } from '@/components/products/ProductCard';
 
@@ -67,6 +82,10 @@ export default function WishlistPage() {
   const [copied, setCopied] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [newWishlistName, setNewWishlistName] = useState('');
+  const [renameDialogOpen, setRenameDialogOpen] = useState(false);
+  const [renamingId, setRenamingId] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState('');
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   // Auth mode: fetch wishlists from server
   useEffect(() => {
@@ -125,7 +144,7 @@ export default function WishlistPage() {
     if (!newWishlistName.trim()) return;
 
     try {
-      const response = await fetch('/api/wishlist', {
+      const response = await apiFetch('/api/wishlist', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: newWishlistName.trim() }),
@@ -144,7 +163,7 @@ export default function WishlistPage() {
   const addAllToCart = async (items: WishlistItem[]) => {
     try {
       for (const item of items) {
-        await fetch('/api/cart', {
+        await apiFetch('/api/cart', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -161,7 +180,7 @@ export default function WishlistPage() {
 
   const shareWishlist = async (wishlistId: string) => {
     try {
-      const response = await fetch('/api/wishlist/share', {
+      const response = await apiFetch('/api/wishlist/share', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ wishlist_id: wishlistId }),
@@ -186,6 +205,39 @@ export default function WishlistPage() {
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
       console.error('Error copying to clipboard:', error);
+    }
+  };
+
+  const handleRenameWishlist = async () => {
+    if (!renamingId || !renameValue.trim()) return;
+    try {
+      const response = await apiFetch('/api/wishlist', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ wishlist_id: renamingId, name: renameValue.trim() }),
+      });
+      if (!response.ok) throw new Error('Failed to rename');
+      toast.success(t('wishlist.renamed'));
+      setRenameDialogOpen(false);
+      setRenamingId(null);
+      setRenameValue('');
+      fetchWishlists();
+    } catch {
+      toast.error(t('wishlist.renameError'));
+    }
+  };
+
+  const handleDeleteWishlist = async (id: string) => {
+    setDeletingId(id);
+    try {
+      const response = await apiFetch(`/api/wishlist?wishlist_id=${id}`, { method: 'DELETE' });
+      if (!response.ok) throw new Error('Failed to delete');
+      toast.success(t('wishlist.wishlistDeleted'));
+      fetchWishlists();
+    } catch {
+      toast.error(t('wishlist.deleteError'));
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -309,6 +361,43 @@ export default function WishlistPage() {
                     <Button
                       variant="outline"
                       size="sm"
+                      onClick={() => {
+                        setRenamingId(wishlist.id);
+                        setRenameValue(wishlist.name);
+                        setRenameDialogOpen(true);
+                      }}
+                    >
+                      <Pencil className="size-4" />
+                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="outline" size="sm" disabled={deletingId === wishlist.id}>
+                          {deletingId === wishlist.id ? (
+                            <Loader2 className="size-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="size-4" />
+                          )}
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>{t('wishlist.deleteWishlistTitle')}</AlertDialogTitle>
+                          <AlertDialogDescription>{t('wishlist.deleteWishlistDescription')}</AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>{t('wishlist.cancel')}</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => handleDeleteWishlist(wishlist.id)}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          >
+                            {t('wishlist.deleteWishlistConfirm')}
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                    <Button
+                      variant="outline"
+                      size="sm"
                       onClick={() => shareWishlist(wishlist.id)}
                     >
                       <Share2 className="h-4 w-4 mr-2" />
@@ -421,6 +510,38 @@ export default function WishlistPage() {
               )}
             </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={renameDialogOpen} onOpenChange={setRenameDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t('wishlist.renameTitle')}</DialogTitle>
+            <DialogDescription>{t('wishlist.renameDescription')}</DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Label htmlFor="wishlist-name">{t('wishlist.name')}</Label>
+            <Input
+              id="wishlist-name"
+              value={renameValue}
+              onChange={(e) => setRenameValue(e.target.value)}
+              placeholder={t('wishlist.renamePlaceholder')}
+              className="mt-2"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  handleRenameWishlist();
+                }
+              }}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRenameDialogOpen(false)}>
+              {t('wishlist.cancel')}
+            </Button>
+            <Button onClick={handleRenameWishlist} disabled={!renameValue.trim()}>
+              {t('wishlist.rename')}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

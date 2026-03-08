@@ -42,6 +42,7 @@ interface OrderTimelineArtifactProps {
   currency: string
   total: number
   variant?: 'inline' | 'full'
+  showFooter?: boolean
 }
 
 export function OrderTimelineArtifact({
@@ -56,6 +57,7 @@ export function OrderTimelineArtifact({
   currency,
   total,
   variant = 'inline',
+  showFooter = true,
 }: OrderTimelineArtifactProps) {
   const t = useTranslations('storefront')
   const locale = useLocale()
@@ -231,7 +233,7 @@ export function OrderTimelineArtifact({
         )}
       </CardContent>
 
-      <CardFooter className="flex flex-col sm:flex-row gap-2">
+      {showFooter && <CardFooter className="flex flex-col sm:flex-row gap-2">
         <Button
           variant="outline"
           className="w-full sm:w-auto neu-btn-soft"
@@ -251,7 +253,7 @@ export function OrderTimelineArtifact({
             {t('trackPackage')}
           </Button>
         )}
-      </CardFooter>
+      </CardFooter>}
     </Card>
   )
 }

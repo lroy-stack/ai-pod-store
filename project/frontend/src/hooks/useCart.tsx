@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react'
 import { toast } from 'sonner'
 import { useAuth } from './useAuth'
+import { apiFetch } from '@/lib/api-fetch'
 
 interface CartItem {
   id: string
@@ -86,7 +87,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     compositionId?: string
   ) => {
     try {
-      const response = await fetch('/api/cart', {
+      const response = await apiFetch('/api/cart', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -135,7 +136,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       setItems(prevItems => prevItems.filter(item => item.id !== itemId))
 
       // Make API call in background
-      const response = await fetch('/api/cart', {
+      const response = await apiFetch('/api/cart', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ item_id: itemId, quantity: 0 }),
@@ -173,7 +174,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       })
 
       // Make API call in background
-      const response = await fetch('/api/cart', {
+      const response = await apiFetch('/api/cart', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ item_id: itemId, quantity }),
@@ -195,7 +196,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const updateVariant = useCallback(async (itemId: string, variant: { size?: string; color?: string }) => {
     try {
-      const response = await fetch('/api/cart', {
+      const response = await apiFetch('/api/cart', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ item_id: itemId, variant_details: variant }),
@@ -216,7 +217,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const clearCart = useCallback(async () => {
     try {
-      const response = await fetch('/api/cart', {
+      const response = await apiFetch('/api/cart', {
         method: 'DELETE',
       })
 

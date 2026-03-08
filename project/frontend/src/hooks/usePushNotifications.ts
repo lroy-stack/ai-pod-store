@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from './useAuth'
+import { apiFetch } from '@/lib/api-fetch'
 
 export function usePushNotifications() {
   const { user } = useAuth()
@@ -39,7 +40,7 @@ export function usePushNotifications() {
 
       const subJson = subscription.toJSON()
 
-      const res = await fetch('/api/push/subscribe', {
+      const res = await apiFetch('/api/push/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

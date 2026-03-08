@@ -12,6 +12,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Separator } from '@/components/ui/separator'
 import { supabase } from '@/lib/supabase'
 import { TurnstileWidget } from '@/components/auth/TurnstileWidget'
+import { apiFetch } from '@/lib/api-fetch'
 
 function getPasswordStrength(password: string): 0 | 1 | 2 | 3 {
   if (!password) return 0
@@ -97,7 +98,7 @@ export default function RegisterForm({ locale }: { locale: string }) {
     setLoading(true)
 
     try {
-      const response = await fetch('/api/auth/register', {
+      const response = await apiFetch('/api/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

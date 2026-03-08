@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import Image from 'next/image';
+import { apiFetch } from '@/lib/api-fetch';
 import Link from 'next/link';
 import { Heart, ShoppingCart } from 'lucide-react';
 import { formatPrice } from '@/lib/currency';
@@ -83,7 +84,7 @@ export default function SharedWishlistPage() {
 
   const addToCart = async (productId: string, variantId: string | null) => {
     try {
-      const response = await fetch('/api/cart', {
+      const response = await apiFetch('/api/cart', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

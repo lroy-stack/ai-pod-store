@@ -23,6 +23,42 @@ export async function handleOrderCancelled(
     throw new Error('Order not found')
   }
 
+  // Package returned to sender = delivery failure, NOT merchant cancellation
+  // Don't auto-refund — set requires_review for human intervention
+  const rawType = (event as any)._raw?.type
+  if (rawType === 'package_returned') {
+    console.log(`[webhook:order.cancelled] Package returned for order ${order.id} — setting requires_review`)
+
+    await supabase.from('orders').update({
+      status: 'requires_review',
+      pod_error: 'Package returned to sender — delivery failure',
+      updated_at: new Date().toISOString(),
+    }).eq('id', order.id)
+
+    if (order.user_id) {
+      await supabase.from('notifications').insert({
+        user_id: order.user_id,
+        type: 'order_delivery_failed',
+        title: `Order #${order.id.slice(0, 8)} — Delivery Failed`,
+        body: 'Your package was returned to the sender. Our team will contact you about re-shipping.',
+        data: { order_id: order.id },
+        is_read: false,
+      })
+    }
+
+    await supabase.from('audit_log').insert({
+      actor_type: 'webhook',
+      actor_id: `${event.provider}_webhook`,
+      action: 'package_returned',
+      resource_type: 'order',
+      resource_id: order.id,
+      changes: { status: 'requires_review' },
+      metadata: { provider: event.provider, raw_type: 'package_returned' },
+    })
+
+    return
+  }
+
   const orderDisplayId = order.id.slice(0, 8)
   let finalStatus = 'cancelled'
   let refundIssued = false

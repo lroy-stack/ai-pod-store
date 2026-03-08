@@ -4,6 +4,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertTriangle } from 'lucide-react';
+import { apiFetch } from '@/lib/api-fetch';
 
 interface ErrorBoundaryProps {
   children: React.ReactNode;
@@ -52,7 +53,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
    */
   async reportError(error: Error, errorInfo: React.ErrorInfo) {
     try {
-      await fetch('/api/errors/report', {
+      await apiFetch('/api/errors/report', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

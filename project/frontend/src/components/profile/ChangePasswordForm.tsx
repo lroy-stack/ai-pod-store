@@ -13,6 +13,7 @@ import {
   CardDescription,
   CardContent,
 } from '@/components/ui/card';
+import { apiFetch } from '@/lib/api-fetch';
 
 export function ChangePasswordForm() {
   const t = useTranslations('Profile');
@@ -55,7 +56,7 @@ export function ChangePasswordForm() {
     setLoading(true);
 
     try {
-      const response = await fetch('/api/profile/change-password', {
+      const response = await apiFetch('/api/profile/change-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { formatDistanceToNow } from 'date-fns'
+import { apiFetch } from '@/lib/api-fetch'
 
 interface Notification {
   id: string
@@ -58,7 +59,7 @@ export default function NotificationsPage() {
 
   const markAsRead = async (notificationId: string) => {
     try {
-      const response = await fetch(`/api/notifications/${notificationId}/read`, {
+      const response = await apiFetch(`/api/notifications/${notificationId}/read`, {
         method: 'PATCH',
       })
 
@@ -77,7 +78,7 @@ export default function NotificationsPage() {
 
   const markAllAsRead = async () => {
     try {
-      const response = await fetch('/api/notifications/read-all', {
+      const response = await apiFetch('/api/notifications/read-all', {
         method: 'PATCH',
       })
 

@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/dialog'
 import { toast } from 'sonner'
 import { DeletionCountdownBanner } from './DeletionCountdownBanner'
+import { apiFetch } from '@/lib/api-fetch'
 
 export function DeleteAccountSection() {
   const t = useTranslations('Profile')
@@ -41,7 +42,7 @@ export function DeleteAccountSection() {
     setIsDeleting(true)
 
     try {
-      const response = await fetch('/api/profile/delete', {
+      const response = await apiFetch('/api/profile/delete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ confirm: true }),

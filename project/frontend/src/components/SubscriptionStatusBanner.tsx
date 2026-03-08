@@ -81,7 +81,7 @@ export function SubscriptionStatusBanner() {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <Link href={`/${locale}/settings/billing`}>
+            <Link href={`/${locale}/profile?tab=orders`}>
               <Button variant="outline" size="sm" className="whitespace-nowrap">
                 Update Payment
               </Button>

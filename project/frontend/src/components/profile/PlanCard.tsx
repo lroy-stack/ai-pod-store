@@ -9,6 +9,8 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
+import { apiFetch } from '@/lib/api-fetch'
+import { UsageMeter } from '@/components/engagement/UsageMeter'
 
 interface UsageData {
   tier: 'free' | 'premium'
@@ -49,7 +51,7 @@ export function PlanCard() {
   async function handleManageSubscription() {
     setPortalLoading(true)
     try {
-      const res = await fetch('/api/subscription/portal', {
+      const res = await apiFetch('/api/subscription/portal', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ returnUrl: window.location.href }),
@@ -119,6 +121,9 @@ export function PlanCard() {
             <div className="text-xs text-muted-foreground mt-1">{t('mockupsPerMonth')}</div>
           </div>
         </div>
+
+        {/* Current usage bars */}
+        <UsageMeter />
 
         {/* Credit balance (premium only) */}
         {isPremium && (

@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react'
 import { toast } from 'sonner'
 import { useAuth } from './useAuth'
+import { apiFetch } from '@/lib/api-fetch'
 
 const GUEST_WISHLIST_KEY = 'pod-guest-wishlist'
 const GUEST_MAX_ITEMS = 50
@@ -163,7 +164,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
         setServerItems((curr) => curr.filter((i) => i.product_id !== productId))
 
         try {
-          const response = await fetch(`/api/wishlist/items?item_id=${existing.id}`, {
+          const response = await apiFetch(`/api/wishlist/items?item_id=${existing.id}`, {
             method: 'DELETE',
           })
           if (!response.ok) throw new Error('Failed to remove from wishlist')
@@ -184,7 +185,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
           if (wishlistsData.wishlists && wishlistsData.wishlists.length > 0) {
             wishlistId = wishlistsData.wishlists[0].id
           } else {
-            const createRes = await fetch('/api/wishlist', {
+            const createRes = await apiFetch('/api/wishlist', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ name: 'My Wishlist' }),
@@ -201,7 +202,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
             }
           }
 
-          const response = await fetch('/api/wishlist/items', {
+          const response = await apiFetch('/api/wishlist/items', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -263,7 +264,7 @@ export function useWishlist() {
  */
 async function syncGuestWishlistToServer(items: GuestWishlistItem[]): Promise<boolean> {
   try {
-    const res = await fetch('/api/wishlist/sync', {
+    const res = await apiFetch('/api/wishlist/sync', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ items }),

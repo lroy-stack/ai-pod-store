@@ -1,4 +1,4 @@
-import { Inter } from 'next/font/google'
+import { Inter, Space_Grotesk } from 'next/font/google'
 import { Providers } from './providers'
 import { getActiveTheme, themeToInlineCSS, themeGoogleFontsURL } from '@/lib/theme-server'
 import { getBrandConfig } from '@/lib/brand-config-server'
@@ -6,8 +6,9 @@ import '../globals.css'
 import type { Metadata } from 'next'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
+const spaceGrotesk = Space_Grotesk({ subsets: ['latin'], variable: '--font-display', weight: ['400', '500', '600', '700'] })
 
-const DEFAULT_FONTS_URL = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap'
+const DEFAULT_FONTS_URL = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap'
 
 const locales = ['en', 'es', 'de'] as const
 
@@ -83,14 +84,14 @@ export default async function LocaleLayout({
             <link rel="stylesheet" href={fontsURL} />
           </>
         )}
-        <link rel="manifest" href="/manifest.json" />
+        <link rel="manifest" href="/manifest.webmanifest" />
         <meta name="theme-color" content="#fafafa" media="(prefers-color-scheme: light)" />
         <meta name="theme-color" content="#0a0a0b" media="(prefers-color-scheme: dark)" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <link rel="apple-touch-icon" href="/icon-192.png" />
       </head>
-      <body className={inter.variable}>
+      <body className={`${inter.variable} ${spaceGrotesk.variable}`}>
         <Providers params={params}>{children}</Providers>
       </body>
     </html>

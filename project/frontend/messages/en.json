@@ -470,7 +470,23 @@
     "subscriptionActive": "Active",
     "subscriptionInactive": "Inactive",
     "usageStats": "Monthly Usage",
-    "loadingPlan": "Loading plan..."
+    "loadingPlan": "Loading plan...",
+    "confirmDeleteAddressTitle": "Delete Address",
+    "confirmDeleteAddressDescription": "This address will be permanently removed. This action cannot be undone.",
+    "confirmDeleteAddressAction": "Delete Address",
+    "dataExport": "Export My Data",
+    "dataExportDescription": "Download a copy of all your personal data in compliance with GDPR Article 20. You can request one export every 24 hours.",
+    "dataExportButton": "Download My Data",
+    "dataExporting": "Preparing export...",
+    "dataExportSuccess": "Data export downloaded successfully",
+    "dataExportError": "Failed to export data. Please try again later.",
+    "tabAccount": "Account",
+    "tabOrders": "Orders & Billing",
+    "tabSettings": "Addresses & Data",
+    "recentOrders": "Recent Orders",
+    "viewAllOrders": "View all orders",
+    "noRecentOrders": "No orders yet",
+    "startShopping": "Start shopping"
   },
   "Cart": {
     "title": "Shopping Cart",
@@ -579,7 +595,20 @@
     "myWishlist": "My Wishlist",
     "signInHeadline": "Your favorites aren't saved yet",
     "signIn": "Sign In",
-    "createAccount": "Create Free Account"
+    "createAccount": "Create Free Account",
+    "name": "Name",
+    "rename": "Rename",
+    "renameTitle": "Rename Wishlist",
+    "renameDescription": "Enter a new name for your wishlist.",
+    "renamePlaceholder": "New wishlist name",
+    "renamed": "Wishlist renamed",
+    "deleteWishlist": "Delete Wishlist",
+    "deleteWishlistTitle": "Delete Wishlist",
+    "deleteWishlistDescription": "This will permanently delete this wishlist and remove all saved items. This action cannot be undone.",
+    "deleteWishlistConfirm": "Delete Wishlist",
+    "wishlistDeleted": "Wishlist deleted",
+    "renameError": "Failed to rename wishlist",
+    "deleteError": "Failed to delete wishlist"
   },
   "Checkout": {
     "title": "Checkout",
@@ -768,21 +797,21 @@
     "lastDesignGenerated": "Last design 2m ago",
     "searchPlaceholder": "Search products...",
     "welcomeTitle": "Welcome to {brandName}",
-    "welcomeSubtitle": "Your AI-powered print-on-demand store. Ask me anything!",
+    "welcomeSubtitle": "Hey! What are you looking for today?",
     "welcomeBackTitle": "Welcome back, {name}",
     "welcomeBackSubtitle": "Ready to find your next favorite design?",
     "activeOrders": "Active Orders",
     "recentFavorites": "Recent Favorites",
-    "promptDesign": "Design a custom t-shirt",
-    "promptDesignDesc": "AI-powered custom design creation",
+    "promptDesign": "Surprise me with something unique",
+    "promptDesignDesc": "Get a unique design idea",
     "promptTshirt": "Show me trending t-shirts",
     "promptTshirtDesc": "Browse our most popular styles",
     "promptTrending": "What's trending today?",
     "promptTrendingDesc": "See what other shoppers love",
     "promptGift": "Find a gift for my friend",
     "promptGiftDesc": "Get personalized gift suggestions",
-    "inputPlaceholder": "Ask me anything...",
-    "aiDisclaimer": "AI-powered responses may vary. Always verify product details.",
+    "inputPlaceholder": "What are you looking for?",
+    "aiDisclaimer": "Product details may vary slightly — always check before ordering.",
     "productDetails": "Product Details",
     "details": "Details",
     "reviews": "reviews",
@@ -881,9 +910,9 @@
     "itemsInCartCount": "{count} {count, plural, one {item} other {items}} in cart",
     "errorLoadingResults": "Error loading results",
     "collapseSidebar": "Collapse sidebar",
-    "podclawActive": "AI Store Manager Active",
+    "podclawActive": "Store Manager Active",
     "chatMetaTitle": "Chat — SKAPARA",
-    "chatMetaDescription": "Chat with our AI assistant to design custom print-on-demand products."
+    "chatMetaDescription": "Chat with SKAPARA to find unique products and create custom designs."
   },
   "commandPalette": {
     "searchPlaceholder": "Search for pages, products, or actions...",
@@ -912,7 +941,7 @@
     "browseProducts": "Browse Products"
   },
   "footer": {
-    "description": "AI-powered print-on-demand storefront. Design, customize, and order unique products.",
+    "description": "Unique fashion & accessories. Designed with you, made in Europe.",
     "shop": "Shop",
     "allProducts": "All Products",
     "apparel": "Apparel",
@@ -932,7 +961,7 @@
     "weAccept": "We accept",
     "language": "Language",
     "copyright": "© {year} {storeName}. All rights reserved.",
-    "powered": "Powered by AI • Designed with care"
+    "powered": "Made in Europe • Designed with care"
   },
   "theme": {
     "toggle": "Toggle theme",
@@ -965,33 +994,50 @@
     "banner": "You are offline. Some features may be unavailable."
   },
   "landing": {
-    "heroTitle": "Design anything. Print everything.",
-    "heroSubtitle": "AI-powered custom products — describe your vision, we bring it to life.",
-    "heroCTA": "Start creating",
-    "heroSubCTA": "Free to use — no account required",
+    "heroTitle": "Wear what you mean",
+    "heroSubtitle": "Unique pieces that tell your story. Designed with you, made for you.",
+    "heroCTA": "Explore the collection",
+    "heroSubCTA": "Free to explore — no account needed",
     "howItWorks": "How it works",
-    "howItWorksSubtitle": "From idea to doorstep in three simple steps",
-    "step1Title": "Describe",
-    "step1Desc": "Tell our AI exactly what you want — a minimalist logo, a bold graphic, an illustration. Anything goes.",
-    "step2Title": "Design",
-    "step2Desc": "AI generates your custom artwork in seconds. Refine it until it's perfect.",
-    "step3Title": "Deliver",
-    "step3Desc": "We print your design on premium products and ship directly to your door.",
+    "howItWorksSubtitle": "From your idea to your door",
+    "step1Title": "Tell us",
+    "step1Desc": "An idea, a meme, a gift? Start there.",
+    "step2Title": "Visualize",
+    "step2Desc": "See your design on real products instantly.",
+    "step3Title": "Receive",
+    "step3Desc": "Made in Europe. At your door in days.",
     "seasonalPicks": "Trending Now",
     "showcaseSubtitle": "Designs our community is loving right now",
     "todaysDesigns": "Fresh Today",
     "latestDesigns": "Latest Designs",
     "viewProduct": "View",
-    "finalCTATitle": "Ready to create something unique?",
-    "finalCTASubtitle": "Join thousands of creators designing custom products with AI.",
-    "finalCTA": "Get started — it's free"
+    "finalCTATitle": "Ready to find your next favorite piece?",
+    "finalCTASubtitle": "Join thousands who wear what they mean.",
+    "finalCTA": "Start exploring — it's free",
+    "browseProducts": "Browse Products",
+    "brandStatement": "Streetwear for builders, hackers and creators.",
+    "brandBody": "Born from code culture. Made in Europe. Every piece is a signal.",
+    "trustMadeInEU": "Made in Europe",
+    "trustReturns": "14-day returns",
+    "trustSecure": "Secure checkout",
+    "trustShipping": "Worldwide shipping",
+    "viewCollection": "VIEW COLLECTION",
+    "fallbackTitle": "Signal for Creators.",
+    "fallbackSubtitle": "Unique pieces born from code culture",
+    "fallbackCta": "EXPLORE COLLECTION",
+    "freeShippingBanner": "Free shipping on orders over €{threshold}",
+    "testimonials": {
+      "outOf5": "out of 5",
+      "happyCustomers": "Happy Customers",
+      "verified": "Verified"
+    }
   },
   "engagement": {
     "welcome": {
       "title": "Welcome to {brandName}",
-      "description": "Your AI-powered print-on-demand store. Describe what you want, and we'll design and print it for you.",
-      "benefit1": "Chat with AI to create custom designs",
-      "benefit2": "Browse unique print-on-demand products",
+      "description": "Discover unique pieces, create custom designs, and find exactly what speaks to you.",
+      "benefit1": "Create custom designs with a personal touch",
+      "benefit2": "Browse unique products made in Europe",
       "benefit3": "Save wishlists, track orders, earn rewards",
       "subscriptionTeaser": "Premium: €9.99/mo — 100 chats/day, 50 designs/month, priority support",
       "signUp": "Create Free Account",
@@ -1002,8 +1048,8 @@
       "title": "Create your free account",
       "wallTitle": "You've used all {count} free messages today",
       "wallSubtitle": "Create a free account to keep chatting",
-      "benefit1": "30 AI chats per day",
-      "benefit2": "5 AI designs per month",
+      "benefit1": "30 conversations per day",
+      "benefit2": "5 custom designs per month",
       "benefit3": "Save wishlists & track orders",
       "benefit4": "Product mockups on real items",
       "benefit5": "Voice input & image upload",
@@ -1040,6 +1086,22 @@
       "remaining": "{used}/{limit} free messages today",
       "exhausted": "No free messages left",
       "cta": "Sign up"
+    },
+    "notifications": {
+      "title": "Stay updated!",
+      "subtitle": "Get notified about:",
+      "type1": "Order status updates",
+      "type2": "Your designs are ready",
+      "type3": "Price drops on wishlist items",
+      "enable": "Enable Notifications",
+      "enabling": "Enabling...",
+      "notNow": "Not now"
+    },
+    "install": {
+      "title": "Install {brandName}",
+      "description": "Add to your home screen for a faster experience",
+      "install": "Install",
+      "notNow": "Not now"
     }
   },
   "cookieConsent": {
@@ -1073,7 +1135,7 @@
     "lastUpdated": "Last updated",
     "intro": {
       "title": "Introduction",
-      "content": "At {brandName}, we respect your privacy and are committed to protecting your personal data. This privacy policy explains how we collect, use, and safeguard your information when you use our AI-powered print-on-demand platform."
+      "content": "At {brandName}, we respect your privacy and are committed to protecting your personal data. This privacy policy explains how we collect, use, and safeguard your information when you use our creative fashion platform."
     },
     "dataCollected": {
       "title": "Data We Collect",
@@ -1147,7 +1209,7 @@
     "lastUpdated": "Last updated",
     "intro": {
       "title": "Introduction",
-      "content": "Welcome to {brandName}. By accessing or using our AI-powered print-on-demand platform, you agree to be bound by these Terms of Service. Please read them carefully before using our services."
+      "content": "Welcome to {brandName}. By accessing or using our creative fashion platform, you agree to be bound by these Terms of Service. Please read them carefully before using our services."
     },
     "acceptance": {
       "title": "Acceptance of Terms",
@@ -1161,9 +1223,9 @@
     },
     "services": {
       "title": "Our Services",
-      "content": "{brandName} provides an AI-powered platform for creating custom designs and ordering print-on-demand products. Our services include:",
+      "content": "{brandName} provides a creative platform for creating custom designs and ordering personalized products. Our services include:",
       "items": {
-        "0": "AI-powered design generation using advanced machine learning models",
+        "0": "Custom design creation using advanced creative tools",
         "1": "Custom product creation and personalization tools",
         "2": "Print-on-demand fulfillment through our partner network (Printify)",
         "3": "Secure payment processing via Stripe",
@@ -1463,7 +1525,7 @@
     "perMonth": "/mo",
     "tierFree": "Free",
     "tierFreeName": "Free",
-    "tierFreeDesc": "Get started with AI-powered shopping",
+    "tierFreeDesc": "Get started with personalized shopping",
     "tierPremium": "Premium",
     "tierPremiumName": "Premium",
     "tierPremiumDesc": "Unlimited creativity for power users",
@@ -1481,10 +1543,10 @@
   },
   "about": {
     "title": "About SKAPARA",
-    "subtitle": "Empowering creativity with AI-powered print-on-demand",
+    "subtitle": "Empowering self-expression through unique fashion",
     "missionTitle": "Our Mission",
-    "missionText": "We believe everyone deserves access to professional-quality custom products. Our AI-powered platform democratizes design, making it possible for anyone to create stunning, personalized merchandise without needing design skills or large budgets.",
-    "featureAiTitle": "AI-Powered Design",
+    "missionText": "We believe everyone deserves access to professional-quality custom products. Our platform democratizes design, making it possible for anyone to create stunning, personalized merchandise without needing design skills or large budgets.",
+    "featureAiTitle": "Smart Design Tools",
     "featureAiSubtitle": "Create stunning designs with our advanced AI design tools",
     "featureAiText": "Our cutting-edge AI understands your vision and transforms it into professional designs. From text descriptions to style references, our tools adapt to your creative process.",
     "featureProductsTitle": "Custom Products",
@@ -1497,11 +1559,11 @@
     "featureCommunitySubtitle": "Join thousands of creators and entrepreneurs",
     "featureCommunityText": "Be part of a growing community of creators, artists, and entrepreneurs who are building their brands with SKAPARA. Share designs, get inspired, and grow together.",
     "storyTitle": "Our Story",
-    "storyP1": "SKAPARA was born from a simple idea: what if anyone could create professional-quality custom products with the help of AI? Founded in 2024, we set out to build a platform that combines cutting-edge artificial intelligence with the best print-on-demand technology.",
+    "storyP1": "SKAPARA was born from a simple idea: what if anyone could create professional-quality custom products that truly express who they are? Founded in 2024, we set out to build a brand that combines cutting-edge creative tools with premium European manufacturing.",
     "storyP2": "Today, we serve thousands of customers worldwide, helping them bring their creative visions to life. From individual artists to growing businesses, our platform empowers everyone to create, customize, and sell unique products.",
     "whyTitle": "Why Choose SKAPARA?",
     "whyNoCost": "No inventory or upfront costs - products are made on-demand",
-    "whyAi": "AI-powered design tools that work with you, not against you",
+    "whyAi": "Design tools that work with you, not against you",
     "whySustainable": "Sustainable production that reduces waste and environmental impact",
     "whySecure": "Secure payments and reliable fulfillment through trusted partners",
     "whySupport": "24/7 support from our AI assistant and human team"
@@ -1518,7 +1580,7 @@
     "catPricing": "Pricing & Payments",
     "catReturns": "Returns & Refunds",
     "q1": "What is SKAPARA?",
-    "a1": "SKAPARA is an AI-powered print-on-demand platform that lets you create custom products using artificial intelligence. Simply describe your design idea, and our AI will generate professional-quality designs that can be printed on various products.",
+    "a1": "SKAPARA is a fashion brand where every piece has a story — yours. Describe your design idea, and we'll create professional-quality designs that can be printed on a wide range of products, all made in Europe.",
     "q2": "How does AI design generation work?",
     "a2": "Our AI understands natural language descriptions and visual references. Simply type what you want (e.g., 'a minimalist mountain landscape in blue tones') and the AI will generate multiple design options. You can then refine, customize, and apply them to products.",
     "q3": "Do I need design skills?",
@@ -1564,8 +1626,8 @@
     "support": "Support",
     "supportEmail": "support@podai.com",
     "liveChatTitle": "Live Chat",
-    "liveChatSubtitle": "Chat with our AI assistant",
-    "liveChatDesc": "Get instant answers to common questions or connect with our support team through our AI-powered chat.",
+    "liveChatSubtitle": "Chat with our support team",
+    "liveChatDesc": "Get instant answers to common questions or connect with our support team through our chat.",
     "startChat": "Start Chat",
     "responseTimeTitle": "Response Time",
     "responseTimeSubtitle": "We're quick to respond",

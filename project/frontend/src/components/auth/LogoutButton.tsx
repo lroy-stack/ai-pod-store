@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { Loader2, LogOut } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { apiFetch } from '@/lib/api-fetch'
 
 export default function LogoutButton({ locale }: { locale: string }) {
   const t = useTranslations('Auth')
@@ -15,7 +16,7 @@ export default function LogoutButton({ locale }: { locale: string }) {
     setLoading(true)
 
     try {
-      const response = await fetch('/api/auth/logout', {
+      const response = await apiFetch('/api/auth/logout', {
         method: 'POST',
       })
 

@@ -38,13 +38,11 @@ export async function handleChargeDisputeCreated(dispute: Stripe.Dispute) {
       return
     }
 
-    // Update order status to 'cancelled' to pause fulfillment
-    // TODO: Add 'disputed' status to orders table CHECK constraint and add columns:
-    // stripe_dispute_id, stripe_dispute_reason, stripe_dispute_amount
+    // Update order status to 'disputed' to pause fulfillment
     const { error: updateError } = await supabase
       .from('orders')
       .update({
-        status: 'cancelled', // Using existing status until migration adds 'disputed'
+        status: 'disputed',
         updated_at: new Date().toISOString(),
       })
       .eq('id', order.id)
@@ -54,7 +52,7 @@ export async function handleChargeDisputeCreated(dispute: Stripe.Dispute) {
       return
     }
 
-    console.log(`Order ${order.id} cancelled due to chargeback (dispute ${dispute.id}), fulfillment paused`)
+    console.log(`Order ${order.id} disputed due to chargeback (dispute ${dispute.id}), fulfillment paused`)
 
     // Create audit log entry
     await supabase

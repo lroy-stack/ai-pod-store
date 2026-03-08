@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { AlertTriangle, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { apiFetch } from '@/lib/api-fetch'
 
 interface DeletionCountdownBannerProps {
   deletionRequestedAt: string
@@ -29,7 +30,7 @@ export function DeletionCountdownBanner({
   const handleCancel = async () => {
     setCancelling(true)
     try {
-      const response = await fetch('/api/profile/cancel-deletion', {
+      const response = await apiFetch('/api/profile/cancel-deletion', {
         method: 'POST',
         credentials: 'include',
       })

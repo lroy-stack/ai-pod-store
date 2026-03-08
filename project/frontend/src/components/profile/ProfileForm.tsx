@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
+import { apiFetch } from '@/lib/api-fetch';
 
 interface ProfileFormProps {
   locale: string;
@@ -185,7 +186,7 @@ export function ProfileForm({ locale }: ProfileFormProps) {
       const fd = new FormData();
       fd.append('avatar', file);
 
-      const response = await fetch('/api/profile/avatar', {
+      const response = await apiFetch('/api/profile/avatar', {
         method: 'POST',
         credentials: 'include',
         body: fd,
@@ -216,7 +217,7 @@ export function ProfileForm({ locale }: ProfileFormProps) {
 
     setEmailChanging(true);
     try {
-      const response = await fetch('/api/profile/change-email', {
+      const response = await apiFetch('/api/profile/change-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -250,7 +251,7 @@ export function ProfileForm({ locale }: ProfileFormProps) {
     setSaving(true);
 
     try {
-      const response = await fetch('/api/user/profile', {
+      const response = await apiFetch('/api/user/profile', {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

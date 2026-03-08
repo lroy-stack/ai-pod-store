@@ -11,7 +11,7 @@ export const BRAND = {
 export const STORE_DEFAULTS = {
   platformName: _brandName,
   storeName: `${_brandName} Store`,
-  assistantName: `${_brandName} Assistant`,
+  assistantName: _brandName,
   currency: 'EUR',
   country: 'DE',
   measurementUnit: 'cm',

@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
+import { apiFetch } from '@/lib/api-fetch'
 
 interface ContactFormTranslations {
   nameLabel: string
@@ -51,7 +52,7 @@ export function ContactForm({ locale, translations: t }: ContactFormProps) {
     setIsSubmitting(true)
 
     try {
-      const response = await fetch('/api/contact', {
+      const response = await apiFetch('/api/contact', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

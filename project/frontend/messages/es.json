@@ -470,7 +470,23 @@
     "subscriptionActive": "Activo",
     "subscriptionInactive": "Inactivo",
     "usageStats": "Uso mensual",
-    "loadingPlan": "Cargando plan..."
+    "loadingPlan": "Cargando plan...",
+    "confirmDeleteAddressTitle": "Eliminar dirección",
+    "confirmDeleteAddressDescription": "Esta dirección se eliminará permanentemente. Esta acción no se puede deshacer.",
+    "confirmDeleteAddressAction": "Eliminar dirección",
+    "dataExport": "Exportar mis datos",
+    "dataExportDescription": "Descarga una copia de todos tus datos personales conforme al Artículo 20 del RGPD. Puedes solicitar una exportación cada 24 horas.",
+    "dataExportButton": "Descargar mis datos",
+    "dataExporting": "Preparando exportación...",
+    "dataExportSuccess": "Exportación de datos descargada correctamente",
+    "dataExportError": "Error al exportar datos. Inténtalo de nuevo más tarde.",
+    "tabAccount": "Cuenta",
+    "tabOrders": "Pedidos",
+    "tabSettings": "Direcciones y datos",
+    "recentOrders": "Pedidos recientes",
+    "viewAllOrders": "Ver todos los pedidos",
+    "noRecentOrders": "Sin pedidos aún",
+    "startShopping": "Empezar a comprar"
   },
   "Cart": {
     "title": "Carrito de Compras",
@@ -579,7 +595,20 @@
     "myWishlist": "Mi Lista de Deseos",
     "signInHeadline": "Tus favoritos aún no están guardados",
     "signIn": "Iniciar Sesión",
-    "createAccount": "Crear Cuenta Gratis"
+    "createAccount": "Crear Cuenta Gratis",
+    "name": "Nombre",
+    "rename": "Renombrar",
+    "renameTitle": "Renombrar lista de deseos",
+    "renameDescription": "Introduce un nuevo nombre para tu lista de deseos.",
+    "renamePlaceholder": "Nuevo nombre de la lista",
+    "renamed": "Lista de deseos renombrada",
+    "deleteWishlist": "Eliminar lista",
+    "deleteWishlistTitle": "Eliminar lista de deseos",
+    "deleteWishlistDescription": "Se eliminará permanentemente esta lista de deseos y todos los artículos guardados. Esta acción no se puede deshacer.",
+    "deleteWishlistConfirm": "Eliminar lista",
+    "wishlistDeleted": "Lista de deseos eliminada",
+    "renameError": "Error al renombrar la lista",
+    "deleteError": "Error al eliminar la lista"
   },
   "Checkout": {
     "title": "Finalizar Compra",
@@ -768,21 +797,21 @@
     "lastDesignGenerated": "Último diseño hace 2m",
     "searchPlaceholder": "Buscar productos...",
     "welcomeTitle": "Bienvenido a {brandName}",
-    "welcomeSubtitle": "Tu tienda print-on-demand con IA. ¡Pregúntame lo que quieras!",
+    "welcomeSubtitle": "¡Hey! ¿Qué estás buscando hoy?",
     "welcomeBackTitle": "Bienvenido de nuevo, {name}",
     "welcomeBackSubtitle": "¿Listo para encontrar tu próximo diseño favorito?",
     "activeOrders": "Pedidos Activos",
     "recentFavorites": "Favoritos Recientes",
-    "promptDesign": "Diseñar una camiseta personalizada",
-    "promptDesignDesc": "Creación de diseños personalizados con IA",
+    "promptDesign": "Sorpréndeme con algo único",
+    "promptDesignDesc": "Obtén una idea de diseño única",
     "promptTshirt": "Mostrar camisetas en tendencia",
     "promptTshirtDesc": "Explora nuestros estilos más populares",
     "promptTrending": "¿Qué está de moda hoy?",
     "promptTrendingDesc": "Mira lo que otros compradores aman",
     "promptGift": "Encontrar un regalo para mi amigo",
     "promptGiftDesc": "Obtén sugerencias de regalos personalizados",
-    "inputPlaceholder": "Pregúntame lo que quieras...",
-    "aiDisclaimer": "Las respuestas de IA pueden variar. Siempre verifica los detalles del producto.",
+    "inputPlaceholder": "¿Qué estás buscando?",
+    "aiDisclaimer": "Los detalles del producto pueden variar ligeramente — verifica siempre antes de pedir.",
     "productDetails": "Detalles del Producto",
     "details": "Detalles",
     "reviews": "reseñas",
@@ -881,9 +910,9 @@
     "itemsInCartCount": "{count} {count, plural, one {artículo} other {artículos}} en el carrito",
     "errorLoadingResults": "Error al cargar resultados",
     "collapseSidebar": "Contraer barra lateral",
-    "podclawActive": "Gestor de tienda IA activo",
+    "podclawActive": "Gestor de tienda activo",
     "chatMetaTitle": "Chat — SKAPARA",
-    "chatMetaDescription": "Chatea con nuestro asistente IA para diseñar productos personalizados bajo demanda."
+    "chatMetaDescription": "Chatea con SKAPARA para encontrar productos únicos y crear diseños personalizados."
   },
   "commandPalette": {
     "searchPlaceholder": "Buscar páginas, productos o acciones...",
@@ -912,7 +941,7 @@
     "browseProducts": "Ver Productos"
   },
   "footer": {
-    "description": "Tienda de impresión bajo demanda impulsada por IA. Diseña, personaliza y ordena productos únicos.",
+    "description": "Moda y accesorios únicos. Diseñados contigo, hechos en Europa.",
     "shop": "Tienda",
     "allProducts": "Todos los Productos",
     "apparel": "Ropa",
@@ -932,7 +961,7 @@
     "weAccept": "Aceptamos",
     "language": "Idioma",
     "copyright": "© {year} {storeName}. Todos los derechos reservados.",
-    "powered": "Impulsado por IA • Diseñado con cuidado"
+    "powered": "Hecho en Europa • Diseñado con cuidado"
   },
   "theme": {
     "toggle": "Cambiar tema",
@@ -965,33 +994,50 @@
     "banner": "Estás sin conexión. Algunas funciones pueden no estar disponibles."
   },
   "landing": {
-    "heroTitle": "Diseña lo que quieras. Imprime lo que imagines.",
-    "heroSubtitle": "Productos personalizados con IA — describe tu visión, nosotros la hacemos realidad.",
-    "heroCTA": "Empieza a crear",
-    "heroSubCTA": "Gratis — sin necesidad de cuenta",
+    "heroTitle": "Viste lo que sientes",
+    "heroSubtitle": "Piezas únicas que cuentan tu historia. Diseñadas contigo, hechas para ti.",
+    "heroCTA": "Explorar la colección",
+    "heroSubCTA": "Gratis para explorar — sin cuenta necesaria",
     "howItWorks": "Cómo funciona",
-    "howItWorksSubtitle": "De la idea a tu puerta en tres simples pasos",
-    "step1Title": "Describe",
-    "step1Desc": "Dile a nuestra IA lo que quieres — un logo minimalista, un gráfico llamativo, una ilustración. Todo vale.",
-    "step2Title": "Diseña",
-    "step2Desc": "La IA genera tu diseño personalizado en segundos. Refínalo hasta que sea perfecto.",
+    "howItWorksSubtitle": "De tu idea a tu puerta",
+    "step1Title": "Cuéntanos",
+    "step1Desc": "¿Una idea, un meme, un regalo? Empieza por ahí.",
+    "step2Title": "Visualiza",
+    "step2Desc": "Mira tu diseño en productos reales al instante.",
     "step3Title": "Recibe",
-    "step3Desc": "Imprimimos tu diseño en productos premium y lo enviamos directamente a tu puerta.",
+    "step3Desc": "Hecho en Europa. En tu puerta en días.",
     "seasonalPicks": "Tendencias",
     "showcaseSubtitle": "Diseños que nuestra comunidad está amando ahora mismo",
     "todaysDesigns": "Novedades de hoy",
     "latestDesigns": "Últimos diseños",
     "viewProduct": "Ver",
-    "finalCTATitle": "¿Listo para crear algo único?",
-    "finalCTASubtitle": "Únete a miles de creadores diseñando productos personalizados con IA.",
-    "finalCTA": "Empieza gratis"
+    "finalCTATitle": "¿Listo para encontrar tu próxima pieza favorita?",
+    "finalCTASubtitle": "Únete a miles que visten lo que sienten.",
+    "finalCTA": "Empieza a explorar — es gratis",
+    "browseProducts": "Ver Productos",
+    "brandStatement": "Streetwear para builders, hackers y creadores.",
+    "brandBody": "Nacido de la cultura del código. Hecho en Europa. Cada pieza es una señal.",
+    "trustMadeInEU": "Hecho en Europa",
+    "trustReturns": "Devoluciones en 14 días",
+    "trustSecure": "Pago seguro",
+    "trustShipping": "Envío mundial",
+    "viewCollection": "VER COLECCIÓN",
+    "fallbackTitle": "Señal para creadores.",
+    "fallbackSubtitle": "Piezas únicas nacidas de la cultura del código",
+    "fallbackCta": "EXPLORAR COLECCIÓN",
+    "freeShippingBanner": "Envío gratis en pedidos +{threshold}€",
+    "testimonials": {
+      "outOf5": "de 5",
+      "happyCustomers": "Clientes Felices",
+      "verified": "Verificado"
+    }
   },
   "engagement": {
     "welcome": {
       "title": "Bienvenido a {brandName}",
-      "description": "Tu tienda print-on-demand con IA. Describe lo que quieres y lo diseñamos e imprimimos para ti.",
-      "benefit1": "Chatea con IA para crear diseños personalizados",
-      "benefit2": "Explora productos únicos de print-on-demand",
+      "description": "Descubre piezas únicas, crea diseños personalizados y encuentra exactamente lo que te habla.",
+      "benefit1": "Crea diseños personalizados con un toque personal",
+      "benefit2": "Explora productos únicos hechos en Europa",
       "benefit3": "Guarda listas de deseos, sigue pedidos, gana recompensas",
       "subscriptionTeaser": "Premium: €9,99/mes — 100 chats/día, 50 diseños/mes, soporte prioritario",
       "signUp": "Crear cuenta gratis",
@@ -1002,8 +1048,8 @@
       "title": "Crea tu cuenta gratuita",
       "wallTitle": "Has usado tus {count} mensajes gratuitos de hoy",
       "wallSubtitle": "Crea una cuenta gratuita para seguir chateando",
-      "benefit1": "30 chats de IA al día",
-      "benefit2": "5 diseños con IA al mes",
+      "benefit1": "30 conversaciones al día",
+      "benefit2": "5 diseños personalizados al mes",
       "benefit3": "Guarda listas de deseos y sigue pedidos",
       "benefit4": "Mockups de productos en artículos reales",
       "benefit5": "Entrada por voz y subida de imágenes",
@@ -1040,6 +1086,22 @@
       "remaining": "{used}/{limit} mensajes gratis hoy",
       "exhausted": "Sin mensajes gratis",
       "cta": "Regístrate"
+    },
+    "notifications": {
+      "title": "¡Mantente al día!",
+      "subtitle": "Recibe notificaciones sobre:",
+      "type1": "Actualizaciones de estado de pedidos",
+      "type2": "Tus diseños están listos",
+      "type3": "Bajadas de precio en tu lista de deseos",
+      "enable": "Activar notificaciones",
+      "enabling": "Activando...",
+      "notNow": "Ahora no"
+    },
+    "install": {
+      "title": "Instalar {brandName}",
+      "description": "Añade a tu pantalla de inicio para una experiencia más rápida",
+      "install": "Instalar",
+      "notNow": "Ahora no"
     }
   },
   "cookieConsent": {
@@ -1073,7 +1135,7 @@
     "lastUpdated": "Última actualización",
     "intro": {
       "title": "Introducción",
-      "content": "En {brandName}, respetamos tu privacidad y nos comprometemos a proteger tus datos personales. Esta política de privacidad explica cómo recopilamos, usamos y protegemos tu información cuando utilizas nuestra plataforma de impresión bajo demanda con IA."
+      "content": "En {brandName}, respetamos tu privacidad y nos comprometemos a proteger tus datos personales. Esta política de privacidad explica cómo recopilamos, usamos y protegemos tu información cuando utilizas nuestra plataforma de moda creativa."
     },
     "dataCollected": {
       "title": "Datos que Recopilamos",
@@ -1147,7 +1209,7 @@
     "lastUpdated": "Última actualización",
     "intro": {
       "title": "Introducción",
-      "content": "Bienvenido a {brandName}. Al acceder o usar nuestra plataforma de impresión bajo demanda impulsada por IA, acepta estar sujeto a estos Términos de Servicio. Por favor, léalos cuidadosamente antes de usar nuestros servicios."
+      "content": "Bienvenido a {brandName}. Al acceder o usar nuestra plataforma de moda creativa, acepta estar sujeto a estos Términos de Servicio. Por favor, léalos cuidadosamente antes de usar nuestros servicios."
     },
     "acceptance": {
       "title": "Aceptación de los Términos",
@@ -1161,9 +1223,9 @@
     },
     "services": {
       "title": "Nuestros Servicios",
-      "content": "{brandName} proporciona una plataforma impulsada por IA para crear diseños personalizados y ordenar productos bajo demanda. Nuestros servicios incluyen:",
+      "content": "{brandName} proporciona una plataforma creativa para crear diseños personalizados y ordenar productos personalizados. Nuestros servicios incluyen:",
       "items": {
-        "0": "Generación de diseños impulsada por IA usando modelos de aprendizaje automático avanzados",
+        "0": "Creación de diseños personalizados usando herramientas creativas avanzadas",
         "1": "Herramientas de creación y personalización de productos personalizados",
         "2": "Cumplimiento de impresión bajo demanda a través de nuestra red de socios (Printify)",
         "3": "Procesamiento de pagos seguro a través de Stripe",
@@ -1463,7 +1525,7 @@
     "perMonth": "/mes",
     "tierFree": "Gratis",
     "tierFreeName": "Gratis",
-    "tierFreeDesc": "Empieza con compras potenciadas por IA",
+    "tierFreeDesc": "Empieza con compras personalizadas",
     "tierPremium": "Premium",
     "tierPremiumName": "Premium",
     "tierPremiumDesc": "Creatividad ilimitada para usuarios avanzados",
@@ -1481,10 +1543,10 @@
   },
   "about": {
     "title": "Acerca de SKAPARA",
-    "subtitle": "Impulsando la creatividad con impresión bajo demanda potenciada por IA",
+    "subtitle": "Potenciando la autoexpresión a través de moda única",
     "missionTitle": "Nuestra Misión",
-    "missionText": "Creemos que todos merecen acceso a productos personalizados de calidad profesional. Nuestra plataforma potenciada por IA democratiza el diseño, haciendo posible que cualquiera cree productos personalizados impresionantes sin necesidad de habilidades de diseño ni grandes presupuestos.",
-    "featureAiTitle": "Diseño con IA",
+    "missionText": "Creemos que todos merecen acceso a productos personalizados de calidad profesional. Nuestra plataforma democratiza el diseño, haciendo posible que cualquiera cree productos personalizados impresionantes sin necesidad de habilidades de diseño ni grandes presupuestos.",
+    "featureAiTitle": "Herramientas de Diseño Inteligentes",
     "featureAiSubtitle": "Crea diseños impresionantes con nuestras herramientas avanzadas de IA",
     "featureAiText": "Nuestra IA de vanguardia entiende tu visión y la transforma en diseños profesionales. Desde descripciones de texto hasta referencias de estilo, nuestras herramientas se adaptan a tu proceso creativo.",
     "featureProductsTitle": "Productos Personalizados",
@@ -1497,11 +1559,11 @@
     "featureCommunitySubtitle": "Únete a miles de creadores y emprendedores",
     "featureCommunityText": "Forma parte de una comunidad creciente de creadores, artistas y emprendedores que están construyendo sus marcas con SKAPARA. Comparte diseños, inspírate y crece junto a otros.",
     "storyTitle": "Nuestra Historia",
-    "storyP1": "SKAPARA nació de una idea simple: ¿y si cualquiera pudiera crear productos personalizados de calidad profesional con la ayuda de la IA? Fundada en 2024, nos propusimos construir una plataforma que combina inteligencia artificial de vanguardia con la mejor tecnología de impresión bajo demanda.",
+    "storyP1": "SKAPARA nació de una idea simple: ¿y si cualquiera pudiera crear productos personalizados de calidad profesional que realmente expresen quiénes son? Fundada en 2024, nos propusimos construir una marca que combina herramientas creativas de vanguardia con fabricación premium europea.",
     "storyP2": "Hoy, atendemos a miles de clientes en todo el mundo, ayudándoles a dar vida a sus visiones creativas. Desde artistas individuales hasta negocios en crecimiento, nuestra plataforma empodera a todos para crear, personalizar y vender productos únicos.",
     "whyTitle": "¿Por qué elegir SKAPARA?",
     "whyNoCost": "Sin inventario ni costes iniciales: los productos se fabrican bajo demanda",
-    "whyAi": "Herramientas de diseño con IA que trabajan contigo, no en tu contra",
+    "whyAi": "Herramientas de diseño que trabajan contigo, no contra ti",
     "whySustainable": "Producción sostenible que reduce el desperdicio y el impacto ambiental",
     "whySecure": "Pagos seguros y envíos fiables a través de socios de confianza",
     "whySupport": "Soporte 24/7 de nuestro asistente de IA y equipo humano"
@@ -1518,7 +1580,7 @@
     "catPricing": "Precios y Pagos",
     "catReturns": "Devoluciones y Reembolsos",
     "q1": "¿Qué es SKAPARA?",
-    "a1": "SKAPARA es una plataforma de impresión bajo demanda potenciada por IA que te permite crear productos personalizados usando inteligencia artificial. Simplemente describe tu idea de diseño y nuestra IA generará diseños de calidad profesional que pueden imprimirse en diversos productos.",
+    "a1": "SKAPARA es una marca de moda donde cada pieza tiene una historia — la tuya. Describe tu idea de diseño y crearemos diseños de calidad profesional que pueden imprimirse en una amplia gama de productos, todos hechos en Europa.",
     "q2": "¿Cómo funciona la generación de diseños con IA?",
     "a2": "Nuestra IA entiende descripciones en lenguaje natural y referencias visuales. Solo escribe lo que deseas (por ejemplo, 'un paisaje montañoso minimalista en tonos azules') y la IA generará varias opciones de diseño. Luego puedes refinar, personalizar y aplicarlos a productos.",
     "q3": "¿Necesito habilidades de diseño?",
@@ -1564,8 +1626,8 @@
     "support": "Soporte",
     "supportEmail": "support@podai.com",
     "liveChatTitle": "Chat en Vivo",
-    "liveChatSubtitle": "Chatea con nuestro asistente de IA",
-    "liveChatDesc": "Obtén respuestas instantáneas a preguntas frecuentes o conecta con nuestro equipo de soporte a través de nuestro chat potenciado por IA.",
+    "liveChatSubtitle": "Chatea con nuestro equipo de soporte",
+    "liveChatDesc": "Obtén respuestas instantáneas a preguntas frecuentes o conecta con nuestro equipo de soporte a través de nuestro chat.",
     "startChat": "Iniciar Chat",
     "responseTimeTitle": "Tiempo de Respuesta",
     "responseTimeSubtitle": "Respondemos rápidamente",

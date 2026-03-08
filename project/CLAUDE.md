@@ -1,5 +1,24 @@
 # POD AI Store — Component & Design Standards
 
+## Orchestration Protocol — MANDATORY
+
+Claude Code actúa como **orquestador**, NUNCA como ejecutor directo de investigación.
+
+### Reglas de investigación
+- **Agentes Sonnet para research** — usar `general-purpose` agents para investigar áreas del codebase
+- **Cada agente produce un .md** en un directorio asignado (ej: `docs/audit-auth-2026-03-08/`)
+- **Elegir el agente/skill CORRECTO** — pensar qué dominio aplica antes de lanzar
+- **NUNCA lanzar exploraciones a ciegas** — definir scope preciso para cada agente
+- **Documentación se revisa contra codebase** — cada hallazgo se verifica antes de actuar
+- **Flujo obligatorio**: Pensar → Asignar agentes especializados → Documentan → Revisar con juicio de águila → Plan → Implementar
+
+### Reglas de ejecución
+- **Ser PROACTIVO** — tomarse tiempo para pensar antes de actuar, no ser reactivo
+- **Task list siempre** — crear tareas al inicio de cada trabajo
+- **Agentes en background** — `run_in_background: true`, esperar notificación
+
+---
+
 ## PodClaw — Autonomous Agent
 
 - **Location**: `podclaw/` (Python, Claude Agent SDK)

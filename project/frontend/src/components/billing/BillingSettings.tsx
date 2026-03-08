@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { CreditCard, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { apiFetch } from '@/lib/api-fetch';
 
 interface UserProfile {
   tier: 'free' | 'premium';
@@ -51,7 +52,7 @@ export function BillingSettings({ locale }: BillingSettingsProps) {
   async function handleManageBilling() {
     setPortalLoading(true);
     try {
-      const res = await fetch('/api/billing/portal', {
+      const res = await apiFetch('/api/billing/portal', {
         method: 'POST',
       });
 

@@ -33,6 +33,8 @@ const TRANSITION_MATRICES: Record<string, Record<string, string[]>> = {
     delivered: ['refunded'], // Can only refund after delivery
     cancelled: [], // Terminal state
     refunded: [], // Terminal state
+    failed: [], // Terminal state — POD production failure
+    disputed: [], // Terminal state — Stripe chargebacks
   },
 
   // Products: draft → pending_review/publishing → active → archived → deleted

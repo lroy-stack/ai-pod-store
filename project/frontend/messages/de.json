@@ -470,7 +470,23 @@
     "subscriptionActive": "Aktiv",
     "subscriptionInactive": "Inaktiv",
     "usageStats": "Monatliche Nutzung",
-    "loadingPlan": "Plan wird geladen..."
+    "loadingPlan": "Plan wird geladen...",
+    "confirmDeleteAddressTitle": "Adresse löschen",
+    "confirmDeleteAddressDescription": "Diese Adresse wird dauerhaft entfernt. Diese Aktion kann nicht rückgängig gemacht werden.",
+    "confirmDeleteAddressAction": "Adresse löschen",
+    "dataExport": "Meine Daten exportieren",
+    "dataExportDescription": "Lade eine Kopie aller deiner persönlichen Daten gemäß DSGVO Artikel 20 herunter. Du kannst alle 24 Stunden einen Export anfordern.",
+    "dataExportButton": "Meine Daten herunterladen",
+    "dataExporting": "Export wird vorbereitet...",
+    "dataExportSuccess": "Datenexport erfolgreich heruntergeladen",
+    "dataExportError": "Fehler beim Exportieren der Daten. Bitte versuche es später erneut.",
+    "tabAccount": "Konto",
+    "tabOrders": "Bestellungen",
+    "tabSettings": "Adressen & Daten",
+    "recentOrders": "Letzte Bestellungen",
+    "viewAllOrders": "Alle Bestellungen",
+    "noRecentOrders": "Noch keine Bestellungen",
+    "startShopping": "Einkaufen"
   },
   "Cart": {
     "title": "Warenkorb",
@@ -579,7 +595,20 @@
     "myWishlist": "Meine Wunschliste",
     "signInHeadline": "Deine Favoriten sind noch nicht gesichert",
     "signIn": "Anmelden",
-    "createAccount": "Kostenlos registrieren"
+    "createAccount": "Kostenlos registrieren",
+    "name": "Name",
+    "rename": "Umbenennen",
+    "renameTitle": "Wunschliste umbenennen",
+    "renameDescription": "Gib einen neuen Namen für deine Wunschliste ein.",
+    "renamePlaceholder": "Neuer Name der Wunschliste",
+    "renamed": "Wunschliste umbenannt",
+    "deleteWishlist": "Wunschliste löschen",
+    "deleteWishlistTitle": "Wunschliste löschen",
+    "deleteWishlistDescription": "Diese Wunschliste und alle gespeicherten Artikel werden dauerhaft gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.",
+    "deleteWishlistConfirm": "Wunschliste löschen",
+    "wishlistDeleted": "Wunschliste gelöscht",
+    "renameError": "Fehler beim Umbenennen der Wunschliste",
+    "deleteError": "Fehler beim Löschen der Wunschliste"
   },
   "Checkout": {
     "title": "Zur Kasse",
@@ -768,21 +797,21 @@
     "lastDesignGenerated": "Letztes Design vor 2m",
     "searchPlaceholder": "Produkte suchen...",
     "welcomeTitle": "Willkommen bei {brandName}",
-    "welcomeSubtitle": "Ihr KI-gestützter Print-on-Demand-Shop. Fragen Sie mich etwas!",
+    "welcomeSubtitle": "Hey! Was suchst du heute?",
     "welcomeBackTitle": "Willkommen zurück, {name}",
     "welcomeBackSubtitle": "Bereit, Ihr nächstes Lieblingsdesign zu finden?",
     "activeOrders": "Aktive Bestellungen",
     "recentFavorites": "Letzte Favoriten",
-    "promptDesign": "Erstelle ein individuelles T-Shirt",
-    "promptDesignDesc": "KI-gestützte individuelle Designerstellung",
+    "promptDesign": "Überrasch mich mit etwas Einzigartigem",
+    "promptDesignDesc": "Hol dir eine einzigartige Design-Idee",
     "promptTshirt": "Zeige mir Trend-T-Shirts",
     "promptTshirtDesc": "Entdecke unsere beliebtesten Styles",
     "promptTrending": "Was ist heute im Trend?",
     "promptTrendingDesc": "Sieh was andere Kunden lieben",
     "promptGift": "Finde ein Geschenk für meinen Freund",
     "promptGiftDesc": "Erhalte personalisierte Geschenkideen",
-    "inputPlaceholder": "Fragen Sie mich etwas...",
-    "aiDisclaimer": "KI-gestützte Antworten können variieren. Überprüfen Sie immer die Produktdetails.",
+    "inputPlaceholder": "Was suchst du?",
+    "aiDisclaimer": "Produktdetails können leicht variieren — überprüfe immer vor der Bestellung.",
     "productDetails": "Produktdetails",
     "details": "Details",
     "reviews": "Bewertungen",
@@ -881,9 +910,9 @@
     "itemsInCartCount": "{count} {count, plural, one {Artikel} other {Artikel}} im Warenkorb",
     "errorLoadingResults": "Fehler beim Laden der Ergebnisse",
     "collapseSidebar": "Seitenleiste einklappen",
-    "podclawActive": "KI-Shop-Manager aktiv",
+    "podclawActive": "Shop-Manager aktiv",
     "chatMetaTitle": "Chat — SKAPARA",
-    "chatMetaDescription": "Chatten Sie mit unserem KI-Assistenten, um individuelle Print-on-Demand-Produkte zu gestalten."
+    "chatMetaDescription": "Chatte mit SKAPARA, um einzigartige Produkte zu finden und individuelle Designs zu erstellen."
   },
   "commandPalette": {
     "searchPlaceholder": "Seiten, Produkte oder Aktionen suchen...",
@@ -912,7 +941,7 @@
     "browseProducts": "Produkte durchsuchen"
   },
   "footer": {
-    "description": "KI-gestützte Print-on-Demand-Plattform. Entwerfen, anpassen und bestellen Sie einzigartige Produkte.",
+    "description": "Einzigartige Mode & Accessoires. Mit dir gestaltet, hergestellt in Europa.",
     "shop": "Shop",
     "allProducts": "Alle Produkte",
     "apparel": "Kleidung",
@@ -932,7 +961,7 @@
     "weAccept": "Wir akzeptieren",
     "language": "Sprache",
     "copyright": "© {year} {storeName}. Alle Rechte vorbehalten.",
-    "powered": "Powered by AI • Mit Sorgfalt gestaltet"
+    "powered": "Hergestellt in Europa • Mit Sorgfalt gestaltet"
   },
   "theme": {
     "toggle": "Design wechseln",
@@ -965,33 +994,50 @@
     "banner": "Sie sind offline. Einige Funktionen sind möglicherweise nicht verfügbar."
   },
   "landing": {
-    "heroTitle": "Entwirf alles. Drucke alles.",
-    "heroSubtitle": "KI-gestützte Produkte — beschreibe deine Vision, wir machen sie Wirklichkeit.",
-    "heroCTA": "Jetzt loslegen",
-    "heroSubCTA": "Kostenlos — kein Konto erforderlich",
+    "heroTitle": "Trag, was du meinst",
+    "heroSubtitle": "Einzigartige Stücke, die deine Geschichte erzählen. Mit dir gestaltet, für dich gemacht.",
+    "heroCTA": "Kollektion entdecken",
+    "heroSubCTA": "Kostenlos entdecken — kein Konto nötig",
     "howItWorks": "So funktioniert's",
-    "howItWorksSubtitle": "Von der Idee bis zur Haustür in drei einfachen Schritten",
-    "step1Title": "Beschreiben",
-    "step1Desc": "Sag unserer KI genau, was du willst — ein minimalistisches Logo, eine auffällige Grafik, eine Illustration.",
-    "step2Title": "Gestalten",
-    "step2Desc": "KI erstellt dein individuelles Design in Sekunden. Verfeinere es, bis es perfekt ist.",
-    "step3Title": "Erhalten",
-    "step3Desc": "Wir drucken dein Design auf Premium-Produkte und liefern direkt zu dir.",
+    "howItWorksSubtitle": "Von deiner Idee bis zu deiner Tür",
+    "step1Title": "Erzähl uns",
+    "step1Desc": "Eine Idee, ein Meme, ein Geschenk? Fang damit an.",
+    "step2Title": "Visualisiere",
+    "step2Desc": "Sieh dein Design sofort auf echten Produkten.",
+    "step3Title": "Erhalte",
+    "step3Desc": "Made in Europe. In wenigen Tagen bei dir.",
     "seasonalPicks": "Im Trend",
     "showcaseSubtitle": "Designs, die unsere Community gerade liebt",
     "todaysDesigns": "Heute neu",
     "latestDesigns": "Neueste Designs",
     "viewProduct": "Ansehen",
-    "finalCTATitle": "Bereit, etwas Einzigartiges zu schaffen?",
-    "finalCTASubtitle": "Schließe dich Tausenden von Kreativen an, die individuelle Produkte mit KI gestalten.",
-    "finalCTA": "Kostenlos starten"
+    "finalCTATitle": "Bereit, dein nächstes Lieblingsstück zu finden?",
+    "finalCTASubtitle": "Schließe dich Tausenden an, die tragen, was sie meinen.",
+    "finalCTA": "Jetzt entdecken — kostenlos",
+    "browseProducts": "Produkte ansehen",
+    "brandStatement": "Streetwear für Builders, Hacker und Kreative.",
+    "brandBody": "Aus der Code-Kultur geboren. Made in Europe. Jedes Stück ist ein Signal.",
+    "trustMadeInEU": "Made in Europe",
+    "trustReturns": "14 Tage Rückgabe",
+    "trustSecure": "Sicherer Checkout",
+    "trustShipping": "Weltweiter Versand",
+    "viewCollection": "KOLLEKTION ANSEHEN",
+    "fallbackTitle": "Signal für Kreative.",
+    "fallbackSubtitle": "Einzigartige Stücke aus der Code-Kultur",
+    "fallbackCta": "KOLLEKTION ENTDECKEN",
+    "freeShippingBanner": "Kostenloser Versand ab {threshold}€",
+    "testimonials": {
+      "outOf5": "von 5",
+      "happyCustomers": "Zufriedene Kunden",
+      "verified": "Verifiziert"
+    }
   },
   "engagement": {
     "welcome": {
       "title": "Willkommen bei {brandName}",
-      "description": "Dein KI-gestützter Print-on-Demand-Shop. Beschreibe, was du willst, und wir designen und drucken es für dich.",
-      "benefit1": "Chatte mit KI, um individuelle Designs zu erstellen",
-      "benefit2": "Entdecke einzigartige Print-on-Demand-Produkte",
+      "description": "Entdecke einzigartige Stücke, erstelle individuelle Designs und finde genau das, was zu dir spricht.",
+      "benefit1": "Erstelle individuelle Designs mit persönlicher Note",
+      "benefit2": "Entdecke einzigartige Produkte aus Europa",
       "benefit3": "Wunschlisten speichern, Bestellungen verfolgen, Belohnungen verdienen",
       "subscriptionTeaser": "Premium: €9,99/Monat — 100 Chats/Tag, 50 Designs/Monat, Prioritäts-Support",
       "signUp": "Kostenloses Konto erstellen",
@@ -1002,8 +1048,8 @@
       "title": "Erstelle dein kostenloses Konto",
       "wallTitle": "Du hast alle {count} kostenlosen Nachrichten heute verbraucht",
       "wallSubtitle": "Erstelle ein kostenloses Konto, um weiterzuchatten",
-      "benefit1": "30 KI-Chats pro Tag",
-      "benefit2": "5 KI-Designs pro Monat",
+      "benefit1": "30 Unterhaltungen pro Tag",
+      "benefit2": "5 individuelle Designs pro Monat",
       "benefit3": "Wunschlisten speichern & Bestellungen verfolgen",
       "benefit4": "Produkt-Mockups auf echten Artikeln",
       "benefit5": "Spracheingabe & Bild-Upload",
@@ -1040,6 +1086,22 @@
       "remaining": "{used}/{limit} Nachrichten heute",
       "exhausted": "Keine freien Nachrichten",
       "cta": "Registrieren"
+    },
+    "notifications": {
+      "title": "Bleib auf dem Laufenden!",
+      "subtitle": "Benachrichtigungen erhalten über:",
+      "type1": "Bestellstatus-Updates",
+      "type2": "Deine Designs sind fertig",
+      "type3": "Preissenkungen bei Wunschlisten-Artikeln",
+      "enable": "Benachrichtigungen aktivieren",
+      "enabling": "Wird aktiviert...",
+      "notNow": "Nicht jetzt"
+    },
+    "install": {
+      "title": "{brandName} installieren",
+      "description": "Zum Startbildschirm hinzufügen für ein schnelleres Erlebnis",
+      "install": "Installieren",
+      "notNow": "Nicht jetzt"
     }
   },
   "cookieConsent": {
@@ -1073,7 +1135,7 @@
     "lastUpdated": "Zuletzt aktualisiert",
     "intro": {
       "title": "Einführung",
-      "content": "Bei {brandName} respektieren wir Ihre Privatsphäre und verpflichten uns, Ihre personenbezogenen Daten zu schützen. Diese Datenschutzerklärung erklärt, wie wir Ihre Informationen sammeln, verwenden und schützen, wenn Sie unsere KI-gestützte Print-on-Demand-Plattform nutzen."
+      "content": "Bei {brandName} respektieren wir Ihre Privatsphäre und verpflichten uns, Ihre personenbezogenen Daten zu schützen. Diese Datenschutzerklärung erklärt, wie wir Ihre Informationen sammeln, verwenden und schützen, wenn Sie unsere kreative Modeplattform nutzen."
     },
     "dataCollected": {
       "title": "Gesammelte Daten",
@@ -1147,7 +1209,7 @@
     "lastUpdated": "Zuletzt aktualisiert",
     "intro": {
       "title": "Einführung",
-      "content": "Willkommen bei {brandName}. Durch den Zugriff auf oder die Nutzung unserer KI-gestützten Print-on-Demand-Plattform erklären Sie sich mit diesen Nutzungsbedingungen einverstanden. Bitte lesen Sie sie sorgfältig, bevor Sie unsere Dienste nutzen."
+      "content": "Willkommen bei {brandName}. Durch den Zugriff auf oder die Nutzung unserer kreativen Modeplattform erklären Sie sich mit diesen Nutzungsbedingungen einverstanden. Bitte lesen Sie sie sorgfältig, bevor Sie unsere Dienste nutzen."
     },
     "acceptance": {
       "title": "Annahme der Bedingungen",
@@ -1161,9 +1223,9 @@
     },
     "services": {
       "title": "Unsere Dienstleistungen",
-      "content": "{brandName} bietet eine KI-gestützte Plattform zum Erstellen individueller Designs und Bestellen von Print-on-Demand-Produkten. Unsere Dienstleistungen umfassen:",
+      "content": "{brandName} bietet eine kreative Plattform zum Erstellen individueller Designs und Bestellen personalisierter Produkte. Unsere Dienstleistungen umfassen:",
       "items": {
-        "0": "KI-gestützte Designgenerierung mit fortschrittlichen Machine-Learning-Modellen",
+        "0": "Individuelle Designerstellung mit fortschrittlichen kreativen Tools",
         "1": "Tools zur Erstellung und Personalisierung individueller Produkte",
         "2": "Print-on-Demand-Erfüllung über unser Partnernetzwerk (Printify)",
         "3": "Sichere Zahlungsabwicklung über Stripe",
@@ -1463,7 +1525,7 @@
     "perMonth": "/Monat",
     "tierFree": "Kostenlos",
     "tierFreeName": "Kostenlos",
-    "tierFreeDesc": "Starte mit KI-gestütztem Einkaufen",
+    "tierFreeDesc": "Starte mit personalisiertem Einkaufen",
     "tierPremium": "Premium",
     "tierPremiumName": "Premium",
     "tierPremiumDesc": "Unbegrenzte Kreativität für Power-User",
@@ -1481,10 +1543,10 @@
   },
   "about": {
     "title": "Über SKAPARA",
-    "subtitle": "Kreativität fördern mit KI-gestütztem Print-on-Demand",
+    "subtitle": "Selbstausdruck durch einzigartige Mode stärken",
     "missionTitle": "Unsere Mission",
-    "missionText": "Wir glauben, dass jeder Zugang zu individuellen Produkten in professioneller Qualität verdient. Unsere KI-gestützte Plattform demokratisiert Design und ermöglicht es jedem, beeindruckende, personalisierte Produkte zu erstellen – ohne Designkenntnisse oder große Budgets.",
-    "featureAiTitle": "KI-gestütztes Design",
+    "missionText": "Wir glauben, dass jeder Zugang zu individuellen Produkten in professioneller Qualität verdient. Unsere Plattform demokratisiert Design und ermöglicht es jedem, beeindruckende, personalisierte Produkte zu erstellen – ohne Designkenntnisse oder große Budgets.",
+    "featureAiTitle": "Intelligente Design-Tools",
     "featureAiSubtitle": "Erstelle beeindruckende Designs mit unseren fortschrittlichen KI-Tools",
     "featureAiText": "Unsere hochmoderne KI versteht deine Vision und verwandelt sie in professionelle Designs. Von Textbeschreibungen bis hin zu Stilreferenzen – unsere Tools passen sich deinem kreativen Prozess an.",
     "featureProductsTitle": "Individuelle Produkte",
@@ -1497,11 +1559,11 @@
     "featureCommunitySubtitle": "Schließe dich Tausenden von Kreativen und Unternehmern an",
     "featureCommunityText": "Werde Teil einer wachsenden Community aus Kreativen, Künstlern und Unternehmern, die ihre Marken mit SKAPARA aufbauen. Teile Designs, lass dich inspirieren und wachse gemeinsam.",
     "storyTitle": "Unsere Geschichte",
-    "storyP1": "SKAPARA entstand aus einer einfachen Idee: Was wäre, wenn jeder mit Hilfe von KI individuelle Produkte in professioneller Qualität erstellen könnte? 2024 gegründet, machten wir uns daran, eine Plattform zu bauen, die modernste künstliche Intelligenz mit der besten Print-on-Demand-Technologie vereint.",
+    "storyP1": "SKAPARA entstand aus einer einfachen Idee: Was wäre, wenn jeder individuelle Produkte in professioneller Qualität erstellen könnte, die wirklich ausdrücken, wer man ist? 2024 gegründet, machten wir uns daran, eine Marke zu bauen, die modernste kreative Tools mit premium europäischer Fertigung vereint.",
     "storyP2": "Heute bedienen wir Tausende von Kunden weltweit und helfen ihnen, ihre kreativen Visionen zum Leben zu erwecken. Von einzelnen Künstlern bis hin zu wachsenden Unternehmen – unsere Plattform befähigt jeden, einzigartige Produkte zu erstellen, zu personalisieren und zu verkaufen.",
     "whyTitle": "Warum SKAPARA wählen?",
     "whyNoCost": "Kein Lagerbestand oder Vorabkosten – Produkte werden auf Bestellung gefertigt",
-    "whyAi": "KI-gestützte Design-Tools, die mit dir arbeiten, nicht gegen dich",
+    "whyAi": "Design-Tools, die mit dir arbeiten, nicht gegen dich",
     "whySustainable": "Nachhaltige Produktion, die Abfall und Umweltbelastung reduziert",
     "whySecure": "Sichere Zahlungen und zuverlässige Abwicklung über vertrauenswürdige Partner",
     "whySupport": "24/7-Support von unserem KI-Assistenten und menschlichem Team"
@@ -1518,7 +1580,7 @@
     "catPricing": "Preise & Zahlungen",
     "catReturns": "Rückgaben & Erstattungen",
     "q1": "Was ist SKAPARA?",
-    "a1": "SKAPARA ist eine KI-gestützte Print-on-Demand-Plattform, mit der du individuelle Produkte mithilfe künstlicher Intelligenz erstellen kannst. Beschreibe einfach deine Designidee und unsere KI generiert professionelle Designs, die auf verschiedene Produkte gedruckt werden können.",
+    "a1": "SKAPARA ist eine Modemarke, bei der jedes Stück eine Geschichte hat — deine. Beschreibe deine Design-Idee und wir erstellen professionelle Designs, die auf eine Vielzahl von Produkten gedruckt werden können, alle hergestellt in Europa.",
     "q2": "Wie funktioniert die KI-Designgenerierung?",
     "a2": "Unsere KI versteht natürlichsprachliche Beschreibungen und visuelle Referenzen. Gib einfach ein, was du möchtest (z. B. 'eine minimalistische Berglandschaft in Blautönen') und die KI generiert mehrere Designoptionen. Anschließend kannst du sie verfeinern, anpassen und auf Produkte anwenden.",
     "q3": "Brauche ich Designkenntnisse?",
@@ -1564,8 +1626,8 @@
     "support": "Support",
     "supportEmail": "support@podai.com",
     "liveChatTitle": "Live-Chat",
-    "liveChatSubtitle": "Chatte mit unserem KI-Assistenten",
-    "liveChatDesc": "Erhalte sofortige Antworten auf häufige Fragen oder verbinde dich über unseren KI-gestützten Chat mit unserem Support-Team.",
+    "liveChatSubtitle": "Chatte mit unserem Support-Team",
+    "liveChatDesc": "Erhalte sofortige Antworten auf häufige Fragen oder verbinde dich über unseren Chat mit unserem Support-Team.",
     "startChat": "Chat starten",
     "responseTimeTitle": "Antwortzeit",
     "responseTimeSubtitle": "Wir antworten schnell",

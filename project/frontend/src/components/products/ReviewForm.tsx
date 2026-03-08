@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { toast } from 'sonner'
 import Image from 'next/image'
+import { apiFetch } from '@/lib/api-fetch'
 
 interface ReviewFormProps {
   productId: string
@@ -82,7 +83,7 @@ export function ReviewForm({ productId, onReviewSubmitted }: ReviewFormProps) {
           formData.append('photos', photo)
         })
 
-        const uploadResponse = await fetch('/api/reviews/upload-photos', {
+        const uploadResponse = await apiFetch('/api/reviews/upload-photos', {
           method: 'POST',
           body: formData,
         })
@@ -95,7 +96,7 @@ export function ReviewForm({ productId, onReviewSubmitted }: ReviewFormProps) {
         imageUrls = uploadData.urls
       }
 
-      const response = await fetch('/api/reviews', {
+      const response = await apiFetch('/api/reviews', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

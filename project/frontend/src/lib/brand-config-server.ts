@@ -27,18 +27,18 @@ export interface BrandConfig {
 
 const fallbackConfig: BrandConfig = {
   brandName: 'SKAPARA',
-  brandTagline: 'AI-Powered Print on Demand',
+  brandTagline: 'Wear what you mean',
   logoLightUrl: '/brand/skapara-mark-dark.svg',
   logoDarkUrl: '/brand/skapara-mark-white.svg',
   seoTitles: {
-    en: 'SKAPARA — AI-Powered Print on Demand Store',
-    es: 'SKAPARA — Tienda de Impresión bajo Demanda con IA',
-    de: 'SKAPARA — KI-gestützter Print-on-Demand-Shop',
+    en: 'SKAPARA — Wear what you mean',
+    es: 'SKAPARA — Viste lo que sientes',
+    de: 'SKAPARA — Trag, was du meinst',
   },
   seoDescriptions: {
-    en: 'Create custom designs with AI and get them printed on premium products. Your AI-powered print-on-demand marketplace.',
-    es: 'Crea diseños personalizados con IA e imprímelos en productos premium. Tu tienda de impresión bajo demanda impulsada por IA.',
-    de: 'Erstelle individuelle Designs mit KI und lass sie auf Premium-Produkte drucken. Dein KI-gesteuerter Print-on-Demand-Marktplatz.',
+    en: 'Unique fashion & accessories designed with you, made in Europe. Find your next favorite piece.',
+    es: 'Moda y accesorios únicos diseñados contigo, hechos en Europa. Encuentra tu próxima pieza favorita.',
+    de: 'Einzigartige Mode & Accessoires mit dir gestaltet, hergestellt in Europa. Finde dein nächstes Lieblingsstück.',
   },
 }
 

@@ -23,6 +23,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { apiFetch } from '@/lib/api-fetch';
 
 interface PaymentMethod {
   id: string;
@@ -111,7 +112,7 @@ export function PaymentMethodsList() {
   const handleRemove = async (pmId: string) => {
     setRemovingId(pmId);
     try {
-      const response = await fetch(`/api/profile/payment-methods/${pmId}`, {
+      const response = await apiFetch(`/api/profile/payment-methods/${pmId}`, {
         method: 'DELETE',
         credentials: 'include',
       });

@@ -18,6 +18,7 @@ import { toast } from 'sonner'
 import { formatPrice } from '@/lib/currency'
 import { STORE_DEFAULTS, LOCALE_COUNTRY } from '@/lib/store-config'
 import { CartCrossSell } from '@/components/cart/CartCrossSell'
+import { apiFetch } from '@/lib/api-fetch'
 
 const MAX_CART_QUANTITY = STORE_DEFAULTS.maxCartQuantity
 
@@ -112,7 +113,7 @@ export default function CartView({ locale }: { locale: string }) {
     setUpdatingItems(prev => new Set(prev).add(itemId))
 
     try {
-      const response = await fetch('/api/cart', {
+      const response = await apiFetch('/api/cart', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ item_id: itemId, quantity: newQuantity }),
@@ -131,7 +132,7 @@ export default function CartView({ locale }: { locale: string }) {
             label: t('undoRemove'),
             onClick: async () => {
               try {
-                await fetch('/api/cart', {
+                await apiFetch('/api/cart', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({
@@ -169,7 +170,7 @@ export default function CartView({ locale }: { locale: string }) {
     setApplyingCoupon(true)
 
     try {
-      const response = await fetch('/api/coupons/validate', {
+      const response = await apiFetch('/api/coupons/validate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code: couponCode.trim(), cartTotal }),
@@ -217,7 +218,7 @@ export default function CartView({ locale }: { locale: string }) {
     setCalculatingShipping(true)
 
     try {
-      const response = await fetch('/api/cart/shipping-estimate', {
+      const response = await apiFetch('/api/cart/shipping-estimate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

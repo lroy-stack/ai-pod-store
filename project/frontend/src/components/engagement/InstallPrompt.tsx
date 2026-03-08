@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
 import { X, Download } from 'lucide-react'
 import { BRAND } from '@/lib/store-config'
@@ -11,6 +12,7 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 export function InstallPrompt() {
+  const t = useTranslations('engagement.install')
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
   const [show, setShow] = useState(false)
 
@@ -60,16 +62,16 @@ export function InstallPrompt() {
     <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-80 z-50 bg-card border border-border rounded-lg shadow-lg p-4 flex items-start gap-3">
       <Download className="h-5 w-5 text-primary mt-0.5 shrink-0" />
       <div className="flex-1 min-w-0">
-        <p className="font-medium text-sm">Install {BRAND.name}</p>
+        <p className="font-medium text-sm">{t('title', { brandName: BRAND.name })}</p>
         <p className="text-xs text-muted-foreground mt-0.5">
-          Add to your home screen for a faster experience
+          {t('description')}
         </p>
         <div className="flex gap-2 mt-2">
           <Button size="sm" onClick={handleInstall} className="h-7 text-xs">
-            Install
+            {t('install')}
           </Button>
           <Button size="sm" variant="ghost" onClick={handleDismiss} className="h-7 text-xs">
-            Not now
+            {t('notNow')}
           </Button>
         </div>
       </div>

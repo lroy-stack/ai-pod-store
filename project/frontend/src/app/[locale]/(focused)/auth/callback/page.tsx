@@ -14,6 +14,7 @@ import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { Loader2 } from 'lucide-react'
+import { apiFetch } from '@/lib/api-fetch'
 
 export default function AuthCallbackPage() {
   const router = useRouter()
@@ -38,7 +39,7 @@ export default function AuthCallbackPage() {
             const fp = localStorage.getItem('pod-fp-id')
             const convId = sessionStorage.getItem('pod-conversation-id')
             if (fp || convId) {
-              await fetch('/api/session/migrate', {
+              await apiFetch('/api/session/migrate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

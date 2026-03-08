@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { apiFetch } from '@/lib/api-fetch'
 
 export default function EmailVerificationHandler({ locale }: { locale: string }) {
   const t = useTranslations('Auth')
@@ -33,7 +34,7 @@ export default function EmailVerificationHandler({ locale }: { locale: string })
       }
 
       try {
-        const response = await fetch('/api/auth/verify-email', {
+        const response = await apiFetch('/api/auth/verify-email', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

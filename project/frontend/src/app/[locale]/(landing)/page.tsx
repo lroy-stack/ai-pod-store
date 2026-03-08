@@ -5,46 +5,47 @@ import { BASE_URL } from '@/lib/store-config'
 import { LandingPageClient } from '@/components/landing/LandingPageClient'
 import { Footer } from '@/components/Footer'
 import { getBrandConfig } from '@/lib/brand-config-server'
-
-interface Product {
-  id: string
-  title: string
-  base_price_cents: number
-  currency: string
-  avg_rating: number
-  images: Array<{ src: string; alt: string }>
-}
+import { getActiveCampaign } from '@/lib/marketing-server'
 
 interface LandingPageProps {
   params: Promise<{ locale: string }>
 }
 
-// Server Component - generates metadata for SEO
 export async function generateMetadata({ params }: LandingPageProps): Promise<Metadata> {
   const { locale } = await params
-  const t = await getTranslations({ locale, namespace: 'landing' })
-
-  // Fetch brand config from database
+  const localeKey = locale as 'en' | 'es' | 'de'
   const brandConfig = await getBrandConfig()
   const siteName = brandConfig.brandName
-
   const baseUrl = BASE_URL
 
+  // Try to get campaign title for SEO
+  const campaign = await getActiveCampaign()
+  const campaignTitle = campaign?.title?.[localeKey] || campaign?.title?.en
+  const t = await getTranslations({ locale, namespace: 'landing' })
+
+  const title = campaignTitle
+    ? `${siteName} — ${campaignTitle}`
+    : `${siteName} - ${t('fallbackTitle')}`
+  const description = campaign?.sub_cta_text?.[localeKey] || t('fallbackSubtitle')
+  const ogImage = campaign?.og_image_url || '/brand/og-image.png'
+
   return {
-    title: `${siteName} - ${t('heroTitle')}`,
-    description: t('heroSubtitle'),
+    title,
+    description,
     openGraph: {
-      title: `${siteName} - ${t('heroTitle')}`,
-      description: t('heroSubtitle'),
+      title,
+      description,
       url: `${baseUrl}/${locale}`,
       siteName,
-      locale,
+      locale: locale === 'es' ? 'es_ES' : locale === 'de' ? 'de_DE' : 'en_US',
       type: 'website',
+      images: [{ url: ogImage, width: 1200, height: 630 }],
     },
     twitter: {
       card: 'summary_large_image',
-      title: `${siteName} - ${t('heroTitle')}`,
-      description: t('heroSubtitle'),
+      title,
+      description,
+      images: [ogImage],
     },
     alternates: {
       canonical: `${baseUrl}/${locale}`,
@@ -58,44 +59,13 @@ export async function generateMetadata({ params }: LandingPageProps): Promise<Me
   }
 }
 
-// Server Component - fetches data and renders
 export default async function LandingPage({ params }: LandingPageProps) {
   const { locale } = await params
+  const localeKey = locale as 'en' | 'es' | 'de'
 
-  // Fetch products on the server (service key bypasses RLS — safe in Server Components)
-
-  // Determine sort based on month (seasonal)
-  const month = new Date().getMonth()
-  let orderBy: 'avg_rating' | 'created_at' = 'created_at'
-  let ascending = false
-
-  if (month >= 11 || month <= 1) {
-    // Winter: top rated
-    orderBy = 'avg_rating'
-    ascending = false
-  } else if (month >= 2 && month <= 4) {
-    // Spring: newest
-    orderBy = 'created_at'
-    ascending = false
-  } else {
-    // Summer/Fall: featured (default to newest)
-    orderBy = 'created_at'
-    ascending = false
-  }
-
-  // Fetch all data in parallel (was sequential — 4x faster now)
-  const [
-    { data: productsData },
-    { data: reviewsData },
-    { count: totalOrders },
-    { data: avgData },
-  ] = await Promise.all([
-    supabaseAdmin
-      .from('products')
-      .select('id, title, base_price_cents, currency, avg_rating, images')
-      .eq('status', 'active')
-      .order(orderBy, { ascending })
-      .limit(12),
+  // Fetch campaign + reviews in parallel
+  const [campaign, { data: reviewsData }, { count: totalOrders }, { data: avgData }] = await Promise.all([
+    getActiveCampaign(),
     supabaseAdmin
       .from('product_reviews')
       .select(`
@@ -105,7 +75,7 @@ export default async function LandingPage({ params }: LandingPageProps) {
       .eq('moderation_status', 'approved')
       .eq('locale', locale)
       .order('created_at', { ascending: false })
-      .limit(6),
+      .limit(3),
     supabaseAdmin
       .from('orders')
       .select('*', { count: 'exact', head: true })
@@ -116,14 +86,24 @@ export default async function LandingPage({ params }: LandingPageProps) {
       .eq('moderation_status', 'approved'),
   ])
 
-  const products = (productsData || []).map((p: Product) => ({
-    id: p.id,
-    title: p.title,
-    price: p.base_price_cents,
-    currency: p.currency || 'EUR',
-    rating: p.avg_rating || 0,
-    image: p.images?.[0]?.src || null,
-  }))
+  // Extract collection products from campaign
+  const collectionProducts = campaign?.collection?.collection_products
+    ?.filter((cp) => cp.product?.status === 'active')
+    ?.map((cp) => ({
+      id: cp.product.id,
+      title: cp.product.title,
+      price: cp.product.base_price_cents / 100,
+      compare_at_price: cp.product.compare_at_price_cents ? cp.product.compare_at_price_cents / 100 : null,
+      currency: cp.product.currency || 'EUR',
+      image: cp.product.images?.[0]?.src || null,
+      rating: cp.product.avg_rating || 0,
+      is_featured: cp.is_featured,
+    })) ?? []
+
+  const collectionName = campaign?.collection?.name?.[localeKey]
+    || campaign?.collection?.name?.en
+    || ''
+  const collectionSlug = campaign?.collection?.slug || ''
 
   const reviews = (reviewsData || []).map((r: any) => ({
     id: r.id,
@@ -136,7 +116,7 @@ export default async function LandingPage({ params }: LandingPageProps) {
   }))
 
   const averageRating = avgData && avgData.length > 0
-    ? avgData.reduce((acc, r) => acc + r.rating, 0) / avgData.length
+    ? avgData.reduce((acc: number, r: any) => acc + r.rating, 0) / avgData.length
     : 4.8
 
   // Get translations for JSON-LD
@@ -145,17 +125,13 @@ export default async function LandingPage({ params }: LandingPageProps) {
   const brandConfig = await getBrandConfig()
   const siteName = brandConfig.brandName
 
-  // JSON-LD structured data for SEO
   const organizationSchema = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
     name: siteName,
     url: baseUrl,
     logo: `${baseUrl}/logo.png`,
-    description: t('heroSubtitle'),
-    sameAs: [
-      // Add social media URLs if available
-    ],
+    description: t('brandStatement'),
   }
 
   const websiteSchema = {
@@ -163,7 +139,7 @@ export default async function LandingPage({ params }: LandingPageProps) {
     '@type': 'WebSite',
     name: siteName,
     url: baseUrl,
-    description: t('heroSubtitle'),
+    description: t('brandBody'),
     potentialAction: {
       '@type': 'SearchAction',
       target: {
@@ -176,7 +152,6 @@ export default async function LandingPage({ params }: LandingPageProps) {
 
   return (
     <>
-      {/* JSON-LD structured data */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
@@ -189,7 +164,10 @@ export default async function LandingPage({ params }: LandingPageProps) {
       <div className="flex flex-col">
         <LandingPageClient
           locale={locale}
-          initialProducts={products}
+          campaign={campaign}
+          collectionProducts={collectionProducts}
+          collectionName={collectionName}
+          collectionSlug={collectionSlug}
           reviews={reviews}
           totalOrders={totalOrders || 0}
           averageRating={averageRating}

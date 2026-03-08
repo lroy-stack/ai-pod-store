@@ -55,25 +55,39 @@ export async function handleSubscriptionUpdate(subscription: Stripe.Subscription
       return
     }
 
-    // Add monthly bonus credits on new subscription activation (atomic)
+    // Add monthly bonus credits on new subscription activation (atomic + idempotent)
     if (isActive) {
       const bonusCredits = 10
 
-      const { data: bonusResult } = await supabase.rpc('add_credits', {
-        p_user_id: user.id,
-        p_amount: bonusCredits,
-      })
+      // Idempotency guard: check if bonus was already credited for this subscription
+      const { data: existingBonus } = await supabase
+        .from('credit_transactions')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('stripe_payment_id', subscription.id)
+        .eq('reason', 'subscription_bonus')
+        .maybeSingle()
 
-      const newBalance = bonusResult?.balance ?? 0
+      if (existingBonus) {
+        console.log(`Subscription bonus already credited for user ${user.id}, skipping (idempotent)`)
+      } else {
+        const { data: bonusResult } = await supabase.rpc('add_credits', {
+          p_user_id: user.id,
+          p_amount: bonusCredits,
+        })
 
-      await supabase.from('credit_transactions').insert({
-        user_id: user.id,
-        amount: bonusCredits,
-        reason: 'subscription_bonus',
-        balance_after: newBalance,
-      })
+        const newBalance = bonusResult?.balance ?? 0
 
-      console.log(`Added ${bonusCredits} bonus credits for user ${user.id}`)
+        await supabase.from('credit_transactions').insert({
+          user_id: user.id,
+          amount: bonusCredits,
+          reason: 'subscription_bonus',
+          balance_after: newBalance,
+          stripe_payment_id: subscription.id,
+        })
+
+        console.log(`Added ${bonusCredits} bonus credits for user ${user.id}`)
+      }
     }
 
     // Trigger welcome drip sequence for new subscribers

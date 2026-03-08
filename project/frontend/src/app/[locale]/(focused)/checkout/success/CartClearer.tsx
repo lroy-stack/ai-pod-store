@@ -2,6 +2,7 @@
 
 import { useCart } from '@/hooks/useCart'
 import { useEffect, useRef } from 'react'
+import { apiFetch } from '@/lib/api-fetch'
 
 /**
  * Client component that clears the cart after a successful payment.
@@ -16,7 +17,7 @@ export function CartClearer() {
     // Only clear if there are items and we haven't already cleared in this mount
     if (items.length > 0 && !hasClearedRef.current) {
       hasClearedRef.current = true
-      fetch('/api/cart', { method: 'DELETE' })
+      apiFetch('/api/cart', { method: 'DELETE' })
         .then((res) => {
           if (res.ok) {
             refreshCart()
