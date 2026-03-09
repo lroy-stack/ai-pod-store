@@ -454,6 +454,14 @@ export async function PATCH(request: NextRequest) {
       userId = user?.id || null
     }
 
+    // SECURITY: Require ownership context — prevent unscoped queries
+    if (!userId && !sessionId) {
+      return NextResponse.json(
+        { error: 'No cart found' },
+        { status: 404 }
+      )
+    }
+
     const body = await request.json()
     const { item_id, quantity, variant_details } = body
 

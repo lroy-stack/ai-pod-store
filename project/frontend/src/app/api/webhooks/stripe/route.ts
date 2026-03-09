@@ -17,6 +17,7 @@ import {
   handleSubscriptionDeleted,
   handleInvoicePaymentFailed,
   handleChargeDisputeCreated,
+  handleChargeRefunded,
 } from '@/lib/webhooks/stripe'
 
 export async function POST(req: NextRequest) {
@@ -77,6 +78,10 @@ export async function POST(req: NextRequest) {
 
     case 'charge.dispute.created':
       await handleChargeDisputeCreated(event.data.object as Stripe.Dispute)
+      break
+
+    case 'charge.refunded':
+      await handleChargeRefunded(event.data.object as Stripe.Charge)
       break
 
     default:

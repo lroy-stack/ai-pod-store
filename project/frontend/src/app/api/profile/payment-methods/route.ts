@@ -84,14 +84,12 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('[GET /api/profile/payment-methods] Unexpected error:', error);
 
-    // Handle Stripe-specific errors
+    // Handle Stripe-specific errors gracefully — invalid customer returns empty list
     if (error instanceof Error && 'type' in error) {
       const stripeError = error as any;
       if (stripeError.type === 'StripeInvalidRequestError') {
-        return NextResponse.json(
-          { error: 'Invalid Stripe customer ID' },
-          { status: 400 }
-        );
+        console.warn('[payment-methods] Invalid Stripe customer, returning empty:', stripeError.message);
+        return NextResponse.json({ paymentMethods: [] });
       }
     }
 

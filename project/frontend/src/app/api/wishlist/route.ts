@@ -121,3 +121,71 @@ export async function POST(request: NextRequest) {
     return authErrorResponse(error);
   }
 }
+
+// DELETE /api/wishlist - Delete a wishlist
+export async function DELETE(request: NextRequest) {
+  try {
+    const user = await requireAuth(request);
+    const { searchParams } = new URL(request.url);
+    const wishlist_id = searchParams.get('wishlist_id');
+
+    if (!wishlist_id) {
+      return NextResponse.json({ error: 'wishlist_id is required' }, { status: 400 });
+    }
+
+    // Verify ownership
+    const { data: wishlist } = await supabaseAdmin
+      .from('wishlists')
+      .select('id')
+      .eq('id', wishlist_id)
+      .eq('user_id', user.id)
+      .single();
+
+    if (!wishlist) {
+      return NextResponse.json({ error: 'Wishlist not found' }, { status: 404 });
+    }
+
+    // Delete items first, then wishlist
+    await supabaseAdmin.from('wishlist_items').delete().eq('wishlist_id', wishlist_id);
+    const { error } = await supabaseAdmin.from('wishlists').delete().eq('id', wishlist_id);
+
+    if (error) {
+      console.error('Error deleting wishlist:', error);
+      return NextResponse.json({ error: 'Failed to delete wishlist' }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    return authErrorResponse(error);
+  }
+}
+
+// PATCH /api/wishlist - Rename a wishlist
+export async function PATCH(request: NextRequest) {
+  try {
+    const user = await requireAuth(request);
+    const body = await request.json();
+    const { wishlist_id, name } = body;
+
+    if (!wishlist_id || !name?.trim()) {
+      return NextResponse.json({ error: 'wishlist_id and name are required' }, { status: 400 });
+    }
+
+    const { data: wishlist, error } = await supabaseAdmin
+      .from('wishlists')
+      .update({ name: name.trim() })
+      .eq('id', wishlist_id)
+      .eq('user_id', user.id)
+      .select()
+      .single();
+
+    if (error || !wishlist) {
+      console.error('Error renaming wishlist:', error);
+      return NextResponse.json({ error: 'Failed to rename wishlist' }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true, wishlist });
+  } catch (error) {
+    return authErrorResponse(error);
+  }
+}

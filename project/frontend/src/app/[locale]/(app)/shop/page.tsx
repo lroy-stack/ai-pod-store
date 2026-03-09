@@ -4,9 +4,9 @@ import { supabaseAdmin } from '@/lib/supabase-admin'
 import { BRAND, BASE_URL } from '@/lib/store-config'
 import Link from 'next/link'
 import { ShopPageClient } from '@/components/shop/ShopPageClient'
-import { ShopCategoryLanding } from '@/components/shop/ShopCategoryLanding'
-import { getCachedCategoryCounts, setCachedCategoryCounts, getCachedCategoryTree, setCachedCategoryTree } from '@/lib/cached-queries'
+import { ShopHeroBanner } from '@/components/shop/ShopHeroBanner'
 import { sanitizeForLike } from '@/lib/query-sanitizer'
+import { getActiveCampaign } from '@/lib/marketing-server'
 import {
   Breadcrumb,
   BreadcrumbList,
@@ -41,6 +41,7 @@ async function fetchVariantsByProductId(productIds: string[]) {
     .in('product_id', productIds)
     .eq('is_enabled', true)
     .eq('is_available', true)
+    .order('color', { ascending: false })
 
   const grouped = new Map<string, { sizes: Set<string>; colors: Set<string>; colorImages: Map<string, string>; prices: Set<number> }>()
   for (const v of allVariants || []) {
@@ -70,98 +71,6 @@ async function fetchVariantsByProductId(productIds: string[]) {
     })
   }
   return result
-}
-
-/** Fetch hierarchical category tree with preview images (cached) */
-async function getCategoryTree(locale: string) {
-  const validLocales = ['en', 'es', 'de']
-  const normalizedLocale = validLocales.includes(locale) ? locale : 'en'
-  const nameField = `name_${normalizedLocale}` as 'name_en' | 'name_es' | 'name_de'
-
-  // Check cache
-  const cached = await getCachedCategoryTree()
-  if (cached) {
-    return (cached as any[]).map((cat: any) => ({
-      ...cat,
-      name: cat[nameField] || cat.name_en,
-    }))
-  }
-
-  // Fetch all active categories
-  const { data: categories } = await supabaseAdmin
-    .from('categories')
-    .select('id, slug, parent_id, name_en, name_es, name_de, icon, image_url, sort_order')
-    .eq('is_active', true)
-    .order('sort_order')
-
-  if (!categories || categories.length === 0) return []
-
-  // Fetch product counts by category_id
-  const { data: productCounts } = await supabaseAdmin
-    .from('products')
-    .select('category_id')
-    .eq('status', 'active')
-    .not('category_id', 'is', null)
-
-  // Build count map
-  const countMap = new Map<string, number>()
-  for (const p of productCounts || []) {
-    if (p.category_id) {
-      countMap.set(p.category_id, (countMap.get(p.category_id) || 0) + 1)
-    }
-  }
-
-  // Build parent->children map
-  const parents = categories.filter(c => !c.parent_id)
-  const childrenByParent = new Map<string, typeof categories>()
-  for (const c of categories) {
-    if (c.parent_id) {
-      const list = childrenByParent.get(c.parent_id) || []
-      list.push(c)
-      childrenByParent.set(c.parent_id, list)
-    }
-  }
-
-  // For each parent, calculate total count and fetch 3 preview images
-  const tree = await Promise.all(parents.map(async (parent) => {
-    const children = childrenByParent.get(parent.id) || []
-    const allCategoryIds = [parent.id, ...children.map(c => c.id)]
-    const ownCount = countMap.get(parent.id) || 0
-    const childCount = children.reduce((s, c) => s + (countMap.get(c.id) || 0), 0)
-    const totalCount = ownCount + childCount
-
-    // Fetch 3 preview product images
-    const { data: previewProducts } = await supabaseAdmin
-      .from('products')
-      .select('images')
-      .in('category_id', allCategoryIds)
-      .eq('status', 'active')
-      .order('avg_rating', { ascending: false })
-      .limit(3)
-
-    const previewImages = (previewProducts || [])
-      .map((p: any) => p.images?.[0]?.src)
-      .filter(Boolean) as string[]
-
-    return {
-      slug: parent.slug,
-      name_en: parent.name_en,
-      name_es: parent.name_es,
-      name_de: parent.name_de,
-      imageUrl: parent.image_url,
-      totalProductCount: totalCount,
-      previewImages,
-    }
-  }))
-
-  // Cache the raw tree (locale-independent)
-  await setCachedCategoryTree(tree)
-
-  // Return localized
-  return tree.map(cat => ({
-    ...cat,
-    name: cat[nameField] || cat.name_en,
-  }))
 }
 
 interface ShopPageProps {
@@ -234,99 +143,19 @@ export default async function ShopPage({ params, searchParams }: ShopPageProps) 
   const baseUrl = BASE_URL
   const siteName = BRAND.name
 
-  // ── Category Landing Mode (no search query) ──
-  if (!isSearchMode) {
-    const categoryTree = await getCategoryTree(locale)
-    const visibleCategories = categoryTree.filter(c => c.totalProductCount > 0)
-
-    // Count total products across all categories
-    const totalProducts = visibleCategories.reduce((sum, c) => sum + c.totalProductCount, 0)
-
-    // JSON-LD for category landing
-    const categoryListSchema = {
-      '@context': 'https://schema.org',
-      '@type': 'CollectionPage',
-      name: t('title'),
-      description: t('subtitle'),
-      url: `${baseUrl}/${locale}/shop`,
-    }
-
-    return (
-      <>
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(categoryListSchema) }}
-        />
-        <div className="container mx-auto max-w-7xl px-4 py-4">
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem>
-                <BreadcrumbLink asChild>
-                  <Link href={`/${locale}`}>Home</Link>
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbPage>{t('title')}</BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-        </div>
-        <ShopCategoryLanding
-          locale={locale}
-          categories={visibleCategories.map(c => ({
-            slug: c.slug,
-            name: c.name,
-            imageUrl: c.imageUrl,
-            productCount: c.totalProductCount,
-            previewImages: c.previewImages,
-          }))}
-          totalProducts={totalProducts}
-        />
-      </>
-    )
-  }
-
-  // ── Search Results Mode ──
-  const category = (search.category as string) || 'all'
   const sort = (search.sort as SortOption) || 'featured'
-  const newArrivals = search.newArrivals === 'true'
 
+  // ── Build product query ──
   let productsQuery = supabaseAdmin
     .from('products')
-    .select('id, title, description, base_price_cents, currency, avg_rating, review_count, category_id, categories(slug), status, created_at, images', { count: 'exact' })
+    .select('id, title, description, base_price_cents, currency, avg_rating, review_count, category_id, categories(slug), status, created_at, images, translations', { count: 'exact' })
     .eq('status', 'active')
     .is('deleted_at', null)
 
-  if (category && category !== 'all') {
-    // Resolve slug → category_id(s) for proper DB filtering
-    const { data: catRow } = await supabaseAdmin
-      .from('categories')
-      .select('id, parent_id')
-      .eq('slug', category)
-      .eq('is_active', true)
-      .single()
-    if (catRow) {
-      let catIds = [catRow.id]
-      if (!catRow.parent_id) {
-        const { data: children } = await supabaseAdmin
-          .from('categories')
-          .select('id')
-          .eq('parent_id', catRow.id)
-          .eq('is_active', true)
-        catIds = [catRow.id, ...(children || []).map((c: any) => c.id)]
-      }
-      productsQuery = productsQuery.in('category_id', catIds)
-    }
-  }
-
-  const safeQuery = sanitizeForLike(query, 'both')
-  productsQuery = productsQuery.or(`title.ilike.${safeQuery},description.ilike.${safeQuery}`)
-
-  if (newArrivals) {
-    const thirtyDaysAgo = new Date()
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
-    productsQuery = productsQuery.gte('created_at', thirtyDaysAgo.toISOString())
+  // Search mode: filter by query text
+  if (isSearchMode) {
+    const safeQuery = sanitizeForLike(query, 'both')
+    productsQuery = productsQuery.or(`title.ilike.${safeQuery},description.ilike.${safeQuery}`)
   }
 
   switch (sort) {
@@ -350,42 +179,23 @@ export default async function ShopPage({ params, searchParams }: ShopPageProps) 
 
   productsQuery = productsQuery.range(0, PRODUCTS_PER_PAGE - 1)
 
-  const cachedCounts = await getCachedCategoryCounts()
-
-  const [productsResult, categoriesResult] = await Promise.all([
+  // Fetch products + campaign in parallel
+  const [productsResult, campaign] = await Promise.all([
     productsQuery,
-    cachedCounts
-      ? Promise.resolve({ data: null })
-      : supabaseAdmin.from('products').select('category_id, categories(slug)').eq('status', 'active'),
+    getActiveCampaign(),
   ])
 
   const { data: productsData, count: totalCount } = productsResult
 
-  let categoryCounts: Record<string, number>
-  if (cachedCounts) {
-    categoryCounts = { ...cachedCounts, all: totalCount || 0 }
-  } else {
-    const { data: allProductsData } = categoriesResult
-    categoryCounts = { all: totalCount || 0 }
-    if (allProductsData) {
-      for (const p of allProductsData) {
-        const cat = (p.categories as any)?.slug || 'other'
-        categoryCounts[cat] = (categoryCounts[cat] || 0) + 1
-      }
-    }
-    setCachedCategoryCounts(categoryCounts)
-  }
-
-  const categories = ['all', ...Object.keys(categoryCounts).filter(c => c !== 'all')]
-
   const variantsMap = await fetchVariantsByProductId((productsData || []).map((p: any) => p.id))
 
-  const products = (productsData || []).map((p: Product) => {
+  const products = (productsData || []).map((p: any) => {
     const vm = variantsMap.get(p.id)
+    const t10n = p.translations?.[locale]
     return {
       id: p.id,
-      title: p.title,
-      description: p.description,
+      title: t10n?.title || p.title,
+      description: t10n?.description || p.description,
       price: p.base_price_cents / 100,
       currency: p.currency || 'EUR',
       rating: p.avg_rating || 0,
@@ -458,15 +268,20 @@ export default async function ShopPage({ params, searchParams }: ShopPageProps) 
           </BreadcrumbList>
         </Breadcrumb>
       </div>
+      <ShopHeroBanner
+        title={campaign?.title?.[locale] || campaign?.title?.en || t('heroFallbackTitle')}
+        subtitle={campaign?.subtitle?.[locale] || campaign?.subtitle?.en || t('heroFallbackSubtitle')}
+        productsLabel={t('productsAvailable', { count: totalCount || 0 })}
+        heroImage={campaign?.shop_hero_image_url || campaign?.image_url || null}
+        ctaText={campaign?.cta_text?.[locale] || campaign?.cta_text?.en || null}
+        ctaUrl={campaign?.cta_url || null}
+      />
       <ShopPageClient
-        key={`shop-${category}-${sort}`}
+        key={`shop-${sort}`}
         locale={locale}
         initialProducts={products}
         initialTotal={totalCount || 0}
-        initialCategories={categories}
-        initialCategoryCounts={categoryCounts}
         searchQuery={query}
-        category={category}
         sort={sort}
       />
     </>

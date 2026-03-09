@@ -106,7 +106,10 @@
       "shoes": "Shoes",
       "sneakers": "Sneakers"
     },
-    "recentlyViewed": "Recently viewed"
+    "recentlyViewed": "Recently viewed",
+    "heroFallbackTitle": "The Collection",
+    "heroFallbackSubtitle": "Built for creators",
+    "productsAvailable": "{count} products"
   },
   "product": {
     "addToWishlist": "Add to wishlist",

@@ -106,7 +106,10 @@
       "shoes": "Schuhe",
       "sneakers": "Sneakers"
     },
-    "recentlyViewed": "Kürzlich angesehen"
+    "recentlyViewed": "Kürzlich angesehen",
+    "heroFallbackTitle": "Die Kollektion",
+    "heroFallbackSubtitle": "Für Kreative gemacht",
+    "productsAvailable": "{count} Produkte"
   },
   "product": {
     "addToWishlist": "Zur Wunschliste hinzufügen",

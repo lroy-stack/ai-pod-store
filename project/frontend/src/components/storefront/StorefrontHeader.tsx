@@ -86,7 +86,7 @@ export function StorefrontHeader({ onToggleSidebar, isSidebarCollapsed, onToggle
 
   return (
     <>
-    <header className="sticky top-0 z-30 flex items-center justify-between gap-4 px-4 h-14 border-b border-border bg-card">
+    <header className="sticky top-0 z-30 flex items-center justify-between gap-4 px-4 h-14 border-b border-border/50 bg-card/80 backdrop-blur-lg">
       {/* Left: Mobile toggle + Logo + Nav links */}
       <div className="flex items-center gap-4 flex-shrink-0">
         {/* Mobile sidebar toggle */}

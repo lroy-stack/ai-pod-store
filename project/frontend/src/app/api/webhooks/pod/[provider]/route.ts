@@ -137,7 +137,20 @@ export async function POST(
     await webhookRouter.route(event, supabaseAdmin)
   } catch (error) {
     console.error(`[webhook:${providerId}] Error handling event ${event.type}:`, error)
-    // Return 200 to prevent provider from retrying — error is logged
+
+    // Persist to dead letter queue for later retry/investigation
+    await supabaseAdmin.from('webhook_dead_letters').insert({
+      provider: providerId,
+      event_type: event.type,
+      event_id: event.eventId,
+      resource_id: event.resourceId,
+      payload: rawEvent as any,
+      error: error instanceof Error ? error.message : String(error),
+    }).then(null, (dlqError: unknown) => {
+      console.error(`[webhook:${providerId}] Failed to write DLQ:`, dlqError)
+    })
+
+    // Return 200 to prevent provider from retrying — error persisted in DLQ
     return NextResponse.json({ received: true, error: 'Processing error' })
   }
 

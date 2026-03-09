@@ -388,15 +388,9 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
         locale={locale}
         initialProducts={products}
         initialTotal={totalCount || 0}
-        initialCategories={[]}
-        initialCategoryCounts={{}}
         searchQuery={query}
-        category={selectedSub || slug}
         sort={sort}
-        subcategories={subcategories.length > 0 ? subcategories : undefined}
-        selectedSubcategory={selectedSub}
-        parentCategorySlug={isParent ? slug : parentInfo?.slug}
-        categoryTitle={categoryName}
+        categorySlug={selectedSub || slug}
       />
     </>
   )

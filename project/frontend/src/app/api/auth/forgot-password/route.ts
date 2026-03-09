@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { forgotPasswordLimiter } from '@/lib/rate-limit'
+import { verifyTurnstileToken } from '@/lib/turnstile'
 import { BASE_URL } from '@/lib/store-config'
 
 // Supabase client with service role key for admin operations
@@ -23,7 +24,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
     }
 
-    const { email } = await request.json()
+    const { email, turnstileToken } = await request.json()
+
+    // Verify Turnstile token (gracefully skips if TURNSTILE_SECRET_KEY not configured)
+    const turnstileValid = await verifyTurnstileToken(turnstileToken, ip)
+    if (!turnstileValid) {
+      return NextResponse.json(
+        { error: 'CAPTCHA verification failed. Please try again.' },
+        { status: 400 }
+      )
+    }
 
     if (!email) {
       return NextResponse.json({ error: 'Email is required' }, { status: 400 })

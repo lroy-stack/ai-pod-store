@@ -106,7 +106,10 @@
       "shoes": "Zapatillas",
       "sneakers": "Sneakers"
     },
-    "recentlyViewed": "Vistos recientemente"
+    "recentlyViewed": "Vistos recientemente",
+    "heroFallbackTitle": "La Colección",
+    "heroFallbackSubtitle": "Creada para creadores",
+    "productsAvailable": "{count} productos"
   },
   "product": {
     "addToWishlist": "Agregar a favoritos",

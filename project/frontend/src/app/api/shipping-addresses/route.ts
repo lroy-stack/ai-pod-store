@@ -19,12 +19,19 @@ export async function GET(request: NextRequest) {
     }
 
     // Fetch all shipping addresses for this user
-    const { data: addresses, error } = await supabaseAdmin
+    const tenantId = request.headers.get('x-tenant-id');
+    let query = supabaseAdmin
       .from('shipping_addresses')
       .select('*')
       .eq('user_id', user.id)
       .order('is_default', { ascending: false })
       .order('created_at', { ascending: false });
+
+    if (tenantId) {
+      query = query.eq('tenant_id', tenantId);
+    }
+
+    const { data: addresses, error } = await query;
 
     if (error) {
       console.error('Error fetching shipping addresses:', error);

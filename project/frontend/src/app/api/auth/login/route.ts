@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
     const { data: userData } = await supabase
       .from('users')
       .select('locale, deletion_requested_at')
-      .eq('email', email)
+      .eq('id', authData.user.id)
       .single()
 
     const userLocale = userData?.locale || 'en'

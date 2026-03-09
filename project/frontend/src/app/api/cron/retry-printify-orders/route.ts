@@ -14,6 +14,7 @@ import { createClient } from '@supabase/supabase-js'
 import { verifyCronSecret } from '@/lib/rate-limit'
 import { issueRefund } from '@/lib/reliability/refund-guard'
 import { transition } from '@/lib/reliability/state-transition'
+import { submitOrderToPOD } from '@/lib/pod/submit-order-to-pod'
 
 const supabase = createClient(
   process.env.SUPABASE_URL!,
@@ -107,25 +108,54 @@ export async function GET(req: NextRequest) {
           console.error(`[Retry Cron] Refund failed for order ${order.id}:`, refundResult.error)
         }
       } else if (isWithinRetryWindow) {
-        // Still within retry window — increment retry count and transition to requires_review
-        console.log(`[Retry Cron] Marking order ${order.id} as requires_review (retry ${retryCount + 1}/${MAX_RETRY_ATTEMPTS})`)
+        // Still within retry window — try to re-submit to POD provider
+        console.log(`[Retry Cron] Re-submitting order ${order.id} to POD (retry ${retryCount + 1}/${MAX_RETRY_ATTEMPTS})`)
 
-        // Increment retry count
-        await supabase
-          .from('orders')
-          .update({
-            retry_count: retryCount + 1,
+        try {
+          const submitResult = await submitOrderToPOD(order.id)
+
+          if (submitResult.success) {
+            console.log(`[Retry Cron] Successfully re-submitted order ${order.id}: ${submitResult.externalOrderId}`)
+            results.push({ orderId: order.id, action: 'resubmitted', success: true })
+          } else {
+            console.error(`[Retry Cron] Re-submission failed for order ${order.id}: ${submitResult.error}`)
+
+            await supabase
+              .from('orders')
+              .update({
+                retry_count: retryCount + 1,
+                pod_error: submitResult.error,
+              })
+              .eq('id', order.id)
+
+            if (retryCount + 1 >= MAX_RETRY_ATTEMPTS) {
+              await transition('orders', order.id, 'paid', 'requires_review')
+            }
+
+            results.push({ orderId: order.id, action: 'retry_failed', success: false, error: submitResult.error })
+          }
+        } catch (submitError) {
+          console.error(`[Retry Cron] Unexpected error re-submitting order ${order.id}:`, submitError)
+
+          await supabase
+            .from('orders')
+            .update({
+              retry_count: retryCount + 1,
+              pod_error: submitError instanceof Error ? submitError.message : 'Unknown error',
+            })
+            .eq('id', order.id)
+
+          if (retryCount + 1 >= MAX_RETRY_ATTEMPTS) {
+            await transition('orders', order.id, 'paid', 'requires_review')
+          }
+
+          results.push({
+            orderId: order.id,
+            action: 'retry_failed',
+            success: false,
+            error: submitError instanceof Error ? submitError.message : 'Unknown error',
           })
-          .eq('id', order.id)
-
-        // Transition to requires_review for manual intervention
-        await transition('orders', order.id, 'paid', 'requires_review')
-
-        results.push({
-          orderId: order.id,
-          action: 'mark_requires_review',
-          success: true,
-        })
+        }
       } else {
         // Outside retry window (older than 30min) but not yet at hard timeout
         // Leave as-is for next cron run

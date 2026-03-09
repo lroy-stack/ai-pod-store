@@ -23,12 +23,18 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get user profile from users table
-    let { data: profile, error: profileError } = await supabaseAdmin
+    // Get user profile from users table (with optional tenant isolation)
+    const tenantId = request.headers.get('x-tenant-id');
+    let profileQuery = supabaseAdmin
       .from('users')
       .select('id, email, name, avatar_url, locale, currency, phone, email_verified, notification_preferences, deletion_requested_at')
-      .eq('email', user.email)
-      .single();
+      .eq('id', user.id);
+
+    if (tenantId) {
+      profileQuery = profileQuery.eq('tenant_id', tenantId);
+    }
+
+    let { data: profile, error: profileError } = await profileQuery.single();
 
     // If no profile row exists, create one automatically from auth user data
     if (profileError && profileError.code === 'PGRST116') {
@@ -101,7 +107,7 @@ export async function PATCH(request: NextRequest) {
     const { data: profile, error: updateError } = await supabaseAdmin
       .from('users')
       .update(updates)
-      .eq('email', user.email)
+      .eq('id', user.id)
       .select('id, email, name, avatar_url, locale, currency, phone, email_verified, notification_preferences, deletion_requested_at')
       .single();
 

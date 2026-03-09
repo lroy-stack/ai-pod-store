@@ -72,7 +72,7 @@ export async function GET(req: NextRequest) {
     // Order: paid > 2h (retry_count >= 3) - exhausted retries
     const { data: exhaustedOrders } = await supabaseAdmin
       .from('orders')
-      .select('id, status, updated_at, retry_count, total_price_cents')
+      .select('id, status, updated_at, retry_count, total_cents')
       .eq('status', 'paid')
       .gte('retry_count', 3)
       .lt('updated_at', new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString())
@@ -86,7 +86,7 @@ export async function GET(req: NextRequest) {
         const { data: refundResult } = await supabaseAdmin
           .rpc('issue_refund_atomic', {
             p_order_id: order.id,
-            p_refund_amount_cents: order.total_price_cents,
+            p_refund_amount_cents: order.total_cents,
             p_refund_reason: 'Auto-refund: Printify submission failed after 3 retries',
           })
 
@@ -132,7 +132,7 @@ export async function GET(req: NextRequest) {
     // Order: requires_review > 24h
     const { data: reviewOrders } = await supabaseAdmin
       .from('orders')
-      .select('id, status, updated_at, total_price_cents')
+      .select('id, status, updated_at, total_cents')
       .eq('status', 'requires_review')
       .lt('updated_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
       .limit(50)
@@ -144,7 +144,7 @@ export async function GET(req: NextRequest) {
         const { data: refundResult } = await supabaseAdmin
           .rpc('issue_refund_atomic', {
             p_order_id: order.id,
-            p_refund_amount_cents: order.total_price_cents,
+            p_refund_amount_cents: order.total_cents,
             p_refund_reason: 'Auto-refund: Order requires review for > 24h',
           })
 
@@ -268,7 +268,7 @@ export async function GET(req: NextRequest) {
 
     // Return: pending > 7d
     const { data: pendingReturns } = await supabaseAdmin
-      .from('returns')
+      .from('return_requests')
       .select('id, status, created_at')
       .eq('status', 'pending')
       .lt('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
@@ -282,7 +282,7 @@ export async function GET(req: NextRequest) {
 
     // Return: approved > 14d
     const { data: approvedReturns } = await supabaseAdmin
-      .from('returns')
+      .from('return_requests')
       .select('id, status, updated_at')
       .eq('status', 'approved')
       .lt('updated_at', new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString())

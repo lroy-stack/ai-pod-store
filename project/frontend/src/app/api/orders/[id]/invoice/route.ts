@@ -33,7 +33,7 @@ export async function GET(
     // Admins (role='admin') can see all orders; regular users can only see their own
     let query = supabase
       .from('orders')
-      .select('*')
+      .select('id, status, total_cents, currency, created_at, customer_email, stripe_payment_intent_id, shipping_address')
       .eq('id', id)
 
     if (user.role !== 'admin') {

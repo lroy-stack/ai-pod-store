@@ -13,6 +13,7 @@ export interface HeroCampaign {
   sub_cta_text: Record<string, string>
   image_url: string | null
   image_alt: Record<string, string>
+  shop_hero_image_url: string | null
   og_image_url: string | null
   collection_id: string | null
   collection: Collection | null

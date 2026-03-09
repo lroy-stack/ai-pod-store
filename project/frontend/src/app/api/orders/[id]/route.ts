@@ -32,7 +32,7 @@ export async function GET(
     // Admins (role='admin') can see all orders; regular users can only see their own
     let query = supabase
       .from('orders')
-      .select('*')
+      .select('id, status, total_cents, currency, created_at, paid_at, shipped_at, delivered_at, tracking_number, tracking_url, carrier, customer_email, shipping_address, locale, gift_message, payment_method, refunded_at, refund_amount_cents, refund_reason, admin_notes')
       .eq('id', id)
 
     if (user.role !== 'admin') {
@@ -73,8 +73,14 @@ export async function GET(
       console.error('Error fetching order items:', itemsError)
     }
 
+    // Strip admin-only fields for non-admin users
+    const safeOrder = user.role === 'admin' ? order : (() => {
+      const { admin_notes, ...rest } = order
+      return rest
+    })()
+
     return NextResponse.json({
-      order,
+      order: safeOrder,
       items: items || [],
     })
   } catch (error) {
