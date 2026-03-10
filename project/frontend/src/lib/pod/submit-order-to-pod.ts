@@ -10,6 +10,7 @@
  */
 
 import { initializeProviders, getProvider } from '@/lib/pod'
+import { canonicalAddressFromStripe } from '@/lib/pod/printify/mapper'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 
 export interface SubmitOrderResult {
@@ -22,7 +23,7 @@ export async function submitOrderToPOD(orderId: string): Promise<SubmitOrderResu
   // 1. Fetch order with items and shipping address
   const { data: order, error: orderError } = await supabaseAdmin
     .from('orders')
-    .select('id, customer_email, shipping_address_id, currency, locale')
+    .select('id, customer_email, shipping_address, currency, locale')
     .eq('id', orderId)
     .single()
 
@@ -40,15 +41,10 @@ export async function submitOrderToPOD(orderId: string): Promise<SubmitOrderResu
     return { success: false, error: 'No order items found' }
   }
 
-  // 3. Fetch shipping address
-  const { data: shippingAddress, error: addrError } = await supabaseAdmin
-    .from('shipping_addresses')
-    .select('name, line1, line2, city, state, postal_code, country')
-    .eq('id', order.shipping_address_id)
-    .single()
-
-  if (addrError || !shippingAddress) {
-    return { success: false, error: 'Shipping address not found' }
+  // 3. Parse shipping address from order JSONB
+  const shippingAddress = order.shipping_address as Record<string, string> | null
+  if (!shippingAddress) {
+    return { success: false, error: 'Shipping address not found in order' }
   }
 
   // 4. Fetch product provider IDs
@@ -99,17 +95,7 @@ export async function submitOrderToPOD(orderId: string): Promise<SubmitOrderResu
   initializeProviders()
   const provider = getProvider()
 
-  const canonicalAddress = {
-    firstName: (shippingAddress.name || 'Customer').split(' ')[0] || 'Customer',
-    lastName: (shippingAddress.name || '').split(' ').slice(1).join(' ') || '',
-    email: order.customer_email || '',
-    address1: shippingAddress.line1 || '',
-    address2: shippingAddress.line2 || undefined,
-    city: shippingAddress.city || '',
-    state: shippingAddress.state || '',
-    postalCode: shippingAddress.postal_code || '',
-    country: shippingAddress.country || 'DE',
-  }
+  const canonicalAddress = canonicalAddressFromStripe(shippingAddress, order.customer_email || '')
 
   const podOrder = await provider.createOrder({
     internalOrderId: order.id,

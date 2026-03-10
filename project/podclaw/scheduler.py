@@ -56,16 +56,18 @@ CYCLE_TASKS: dict[str, dict[int, str]] = {
 
 # Default schedule configuration
 DEFAULT_SCHEDULE = {
-    "researcher": {"schedule": "0 6 * * *", "description": "Daily trend research", "model": "haiku", "enabled": True},
-    "designer": {"schedule": "0 7 * * *", "description": "Generate designs based on trends", "model": "sonnet", "enabled": True},
-    "cataloger": {"schedule": "0 8,14,18 * * *", "description": "Create and update products (3x daily)", "model": "sonnet", "enabled": True},
-    "marketing": {"schedule": "0 7,15 * * *", "description": "Social media campaigns (2x daily)", "model": "sonnet", "enabled": True},
-    "newsletter": {"schedule": "0 9,17 * * *", "description": "Email campaigns (2x daily)", "model": "sonnet", "enabled": True},
-    "customer_manager": {"schedule": "0 12,22 * * *", "description": "Customer support (2x daily)", "model": "sonnet", "enabled": True},
-    "seo_manager": {"schedule": "0 16 * * 0", "description": "SEO optimization (weekly, Sunday)", "model": "haiku", "enabled": True},
-    "finance": {"schedule": "0 23 * * *", "description": "Daily financial reconciliation", "model": "sonnet", "enabled": True},
-    "qa_inspector": {"schedule": "0 10 * * *", "description": "Verify designs and products quality", "model": "haiku", "enabled": True},
-    "brand_manager": {"schedule": "0 8 * * 1", "description": "Weekly brand audit and label management", "model": "sonnet", "enabled": True},
+    # Sprint 2: Agent crons disabled — now event-driven via CEO messages.
+    # Set enabled: True to re-activate if needed (fallback).
+    "researcher": {"schedule": "0 6 * * *", "description": "Daily trend research", "model": "haiku", "enabled": False},
+    "designer": {"schedule": "0 7 * * *", "description": "Generate designs based on trends", "model": "sonnet", "enabled": False},
+    "cataloger": {"schedule": "0 8,14,18 * * *", "description": "Create and update products (3x daily)", "model": "sonnet", "enabled": False},
+    "marketing": {"schedule": "0 7,15 * * *", "description": "Social media campaigns (2x daily)", "model": "sonnet", "enabled": False},
+    "newsletter": {"schedule": "0 9,17 * * *", "description": "Email campaigns (2x daily)", "model": "sonnet", "enabled": False},
+    "customer_manager": {"schedule": "0 12,22 * * *", "description": "Customer support (2x daily)", "model": "sonnet", "enabled": False},
+    "seo_manager": {"schedule": "0 16 * * 0", "description": "SEO optimization (weekly, Sunday)", "model": "haiku", "enabled": False},
+    "finance": {"schedule": "0 23 * * *", "description": "Daily financial reconciliation", "model": "sonnet", "enabled": False},
+    "qa_inspector": {"schedule": "0 10 * * *", "description": "Verify designs and products quality", "model": "haiku", "enabled": False},
+    "brand_manager": {"schedule": "0 8 * * 1", "description": "Weekly brand audit and label management", "model": "sonnet", "enabled": False},
 }
 
 
@@ -286,6 +288,14 @@ class PodClawScheduler:
             name="Memory Telemetry Snapshot",
         )
 
+        # CEO inactivity fallback: every 12h — run fallback agents if CEO inactive > 48h
+        self.scheduler.add_job(
+            self._run_ceo_inactivity_check,
+            IntervalTrigger(hours=12),
+            id="ceo_inactivity_check",
+            name="CEO Inactivity Check",
+        )
+
         logger.info("scheduler_configured", job_count=len(self.scheduler.get_jobs()))
 
     async def _run_event_cleanup(self) -> None:
@@ -385,6 +395,15 @@ class PodClawScheduler:
             )
         except Exception as e:
             logger.error("memory_snapshot_failed", error=str(e))
+
+    async def _run_ceo_inactivity_check(self) -> None:
+        """Check if CEO has been inactive > 48h and run fallback agents."""
+        try:
+            from podclaw.router.fallback import CEOInactivityMonitor
+            monitor = CEOInactivityMonitor(self.orchestrator)
+            await monitor.check_and_fallback()
+        except Exception as e:
+            logger.error("ceo_inactivity_check_failed", error=str(e))
 
     async def _reap_stale_sessions(self) -> None:
         """Mark sessions stuck in 'running' > 24h as 'error'."""
@@ -540,7 +559,7 @@ class PodClawScheduler:
 
         # Remove all existing agent jobs (keep memory consolidation and session_reaper)
         for job in list(self.scheduler.get_jobs()):
-            if job.id not in ("memory_consolidation", "session_reaper", "production_governor", "memory_decay", "memory_health_check", "memory_snapshot"):
+            if job.id not in ("memory_consolidation", "session_reaper", "production_governor", "memory_decay", "memory_health_check", "memory_snapshot", "ceo_inactivity_check", "approval_timeout_check"):
                 job.remove()
 
         # Update current schedule and re-add jobs
@@ -596,7 +615,7 @@ class PodClawScheduler:
 
         # Remove all existing agent jobs (keep system jobs)
         for job in list(self.scheduler.get_jobs()):
-            if job.id not in ("memory_consolidation", "session_reaper", "production_governor", "memory_decay", "memory_health_check", "memory_snapshot"):
+            if job.id not in ("memory_consolidation", "session_reaper", "production_governor", "memory_decay", "memory_health_check", "memory_snapshot", "ceo_inactivity_check", "approval_timeout_check"):
                 job.remove()
 
         # Re-add jobs with default schedules (same CYCLE_TASKS split logic as _setup_jobs)

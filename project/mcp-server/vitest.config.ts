@@ -4,6 +4,9 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
+    env: {
+      MCP_JWT_SECRET: 'test-secret-for-vitest-minimum-32-chars',
+    },
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
@@ -31,10 +34,10 @@ export default defineConfig({
         'src/resources/**',
       ],
       thresholds: {
-        lines: 30,
-        functions: 40,
-        branches: 25,
-        statements: 30,
+        lines: 60,
+        functions: 60,
+        branches: 50,
+        statements: 60,
       },
     },
     testTimeout: 10000,

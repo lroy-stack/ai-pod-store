@@ -39,6 +39,23 @@ const authorizationCodes = new Map<
 // Exported for use in session.ts validation
 export const revokedTokens = new Map<string, { revoked_at: number; expires_at: number }>();
 
+// In-memory fallback for refresh tokens (if Redis unavailable)
+const refreshTokenStore = new Map<
+  string,
+  {
+    user_id: string;
+    email: string;
+    family_id: string;
+    created_at: number;
+  }
+>();
+
+// Track used refresh tokens for replay detection
+const usedRefreshTokens = new Map<string, { family_id: string; used_at: number }>();
+
+const REFRESH_TOKEN_TTL = 7 * 24 * 60 * 60; // 7 days in seconds
+const ACCESS_TOKEN_TTL = 900; // 15 minutes in seconds
+
 // Clean up old auth requests and codes every 5 minutes (older than 10 minutes)
 setInterval(() => {
   const now = Date.now();
@@ -58,6 +75,18 @@ setInterval(() => {
       revokedTokens.delete(token);
     }
   }
+  // Clean up expired refresh tokens
+  for (const [token, data] of refreshTokenStore.entries()) {
+    if (now - data.created_at > REFRESH_TOKEN_TTL * 1000) {
+      refreshTokenStore.delete(token);
+    }
+  }
+  // Clean up old used refresh token markers (keep for 1 hour)
+  for (const [token, data] of usedRefreshTokens.entries()) {
+    if (now - data.used_at > 60 * 60 * 1000) {
+      usedRefreshTokens.delete(token);
+    }
+  }
 }, 5 * 60 * 1000);
 
 /**
@@ -74,7 +103,7 @@ export function handleAuthorizationServerMetadata(
     token_endpoint: `${MCP_BASE_URL}/oauth/token`,
     revocation_endpoint: `${MCP_BASE_URL}/oauth/revoke`,
     response_types_supported: ['code'],
-    grant_types_supported: ['authorization_code'],
+    grant_types_supported: ['authorization_code', 'refresh_token'],
     code_challenge_methods_supported: ['S256'],
     token_endpoint_auth_methods_supported: ['none'],
   };
@@ -95,6 +124,7 @@ export function handleProtectedResourceMetadata(
     resource: MCP_BASE_URL,
     authorization_servers: [MCP_BASE_URL],
     scopes_supported: ['read', 'write'],
+    bearer_methods_supported: ['header'],
   };
 
   res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -201,7 +231,7 @@ export function handleAuthorize(
   // Test mode: auto-approve for E2E tests
   // In production, this would always show the login form
   const autoApprove = params.get('auto_approve') === 'true';
-  if (autoApprove && process.env.NODE_ENV !== 'production') {
+  if (autoApprove && process.env.MCP_ENABLE_TEST_AUTH === 'true') {
     // Generate authorization code for test user
     const code = randomBytes(32).toString('hex');
     // Use the existing test user ID from the database
@@ -246,7 +276,7 @@ export function handleAuthorize(
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Authorize POD AI Store</title>
+  <title>Authorize ${process.env.STORE_NAME || 'SKAPARA'}</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f5; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
@@ -266,7 +296,7 @@ export function handleAuthorize(
 <body>
   <div class="container">
     <h1>Sign in to continue</h1>
-    <p><span class="app-name">${escapeHtml(client_id)}</span> wants to access your POD AI Store account</p>
+    <p><span class="app-name">${escapeHtml(client_id)}</span> wants to access your ${process.env.STORE_NAME || 'SKAPARA'} account</p>
     <form action="${FRONTEND_URL}/en/auth/oauth-callback" method="POST">
       <input type="hidden" name="request_id" value="${escapeHtml(requestId)}">
       <input type="hidden" name="mcp_base" value="${escapeHtml(MCP_BASE_URL)}">
@@ -320,12 +350,17 @@ export async function handleToken(
     // Validate required parameters
     const { grant_type, code, code_verifier, redirect_uri } = body;
 
+    if (grant_type === 'refresh_token') {
+      await handleRefreshTokenGrant(req, res, body);
+      return;
+    }
+
     if (grant_type !== 'authorization_code') {
       res.writeHead(400, { 'Content-Type': 'application/json' });
       res.end(
         JSON.stringify({
           error: 'unsupported_grant_type',
-          error_description: 'Only grant_type=authorization_code is supported',
+          error_description: 'Only grant_type=authorization_code and refresh_token are supported',
         })
       );
       return;
@@ -441,27 +476,13 @@ export async function handleToken(
       return;
     }
 
-    // Generate JWT access token
-    const accessToken = await new SignJWT({
-      sub: codeData.user_id,
-      email: codeData.email,
-    })
-      .setProtectedHeader({ alg: 'HS256' })
-      .setIssuer(MCP_BASE_URL)
-      .setAudience('mcp-client')
-      .setExpirationTime('24h')
-      .setIssuedAt()
-      .sign(MCP_JWT_SECRET);
+    // Generate token pair (access + refresh)
+    const familyId = randomBytes(16).toString('hex');
+    const tokenPair = await generateTokenPair(codeData.user_id, codeData.email, familyId);
 
     // Return token response
     res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(
-      JSON.stringify({
-        access_token: accessToken,
-        token_type: 'bearer',
-        expires_in: 86400, // 24 hours
-      })
-    );
+    res.end(JSON.stringify(tokenPair));
   } catch (error) {
     console.error('[OAuth] Token endpoint error:', error);
     res.writeHead(500, { 'Content-Type': 'application/json' });
@@ -472,6 +493,181 @@ export async function handleToken(
       })
     );
   }
+}
+
+/**
+ * Generate access + refresh token pair
+ */
+async function generateTokenPair(
+  userId: string,
+  email: string,
+  familyId: string
+): Promise<{
+  access_token: string;
+  token_type: string;
+  expires_in: number;
+  refresh_token: string;
+}> {
+  // Generate JWT access token (15 min)
+  const accessToken = await new SignJWT({
+    sub: userId,
+    email,
+  })
+    .setProtectedHeader({ alg: 'HS256' })
+    .setIssuer(MCP_BASE_URL)
+    .setAudience(MCP_BASE_URL)
+    .setExpirationTime('15m')
+    .setIssuedAt()
+    .sign(MCP_JWT_SECRET);
+
+  // Generate opaque refresh token (7 days, one-time-use)
+  const refreshToken = randomBytes(64).toString('hex');
+  const refreshData = {
+    user_id: userId,
+    email,
+    family_id: familyId,
+    created_at: Date.now(),
+  };
+
+  // Store refresh token in Redis + in-memory
+  const redis = getRedisClient();
+  if (redis?.status === 'ready') {
+    try {
+      await redis.setex(`oauth:refresh:${refreshToken}`, REFRESH_TOKEN_TTL, JSON.stringify(refreshData));
+    } catch (err) {
+      console.error('[OAuth] Failed to store refresh token in Redis:', err);
+    }
+  }
+  refreshTokenStore.set(refreshToken, refreshData);
+
+  return {
+    access_token: accessToken,
+    token_type: 'bearer',
+    expires_in: ACCESS_TOKEN_TTL,
+    refresh_token: refreshToken,
+  };
+}
+
+/**
+ * Revoke all tokens in a family (replay detection)
+ */
+async function revokeFamilyTokens(familyId: string): Promise<void> {
+  // Revoke all refresh tokens in this family
+  for (const [token, data] of refreshTokenStore.entries()) {
+    if (data.family_id === familyId) {
+      refreshTokenStore.delete(token);
+    }
+  }
+
+  const redis = getRedisClient();
+  if (redis?.status === 'ready') {
+    try {
+      // Scan for family tokens in Redis (best effort)
+      const familyKey = `oauth:family_revoked:${familyId}`;
+      await redis.setex(familyKey, REFRESH_TOKEN_TTL, '1');
+    } catch (err) {
+      console.error('[OAuth] Failed to revoke family tokens in Redis:', err);
+    }
+  }
+
+  console.warn(`[OAuth] Revoked all tokens in family ${familyId} (replay detection)`);
+}
+
+/**
+ * Handle refresh token grant
+ */
+async function handleRefreshTokenGrant(
+  _req: IncomingMessage,
+  res: ServerResponse,
+  body: any
+): Promise<void> {
+  const { refresh_token } = body;
+
+  if (!refresh_token) {
+    res.writeHead(400, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({
+      error: 'invalid_request',
+      error_description: 'Missing required parameter: refresh_token',
+    }));
+    return;
+  }
+
+  // Check if this refresh token was already used (replay attack)
+  const usedData = usedRefreshTokens.get(refresh_token);
+  if (usedData) {
+    // REPLAY DETECTED — revoke entire token family
+    await revokeFamilyTokens(usedData.family_id);
+    res.writeHead(400, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({
+      error: 'invalid_grant',
+      error_description: 'Refresh token has already been used (possible replay attack)',
+    }));
+    return;
+  }
+
+  // Retrieve refresh token data
+  let tokenData: { user_id: string; email: string; family_id: string; created_at: number } | null = null;
+
+  // Check in-memory first
+  if (refreshTokenStore.has(refresh_token)) {
+    tokenData = refreshTokenStore.get(refresh_token)!;
+    refreshTokenStore.delete(refresh_token); // One-time use
+  }
+
+  // Check Redis if not in memory
+  if (!tokenData) {
+    const redis = getRedisClient();
+    if (redis?.status === 'ready') {
+      try {
+        const raw = await redis.get(`oauth:refresh:${refresh_token}`);
+        if (raw) {
+          tokenData = JSON.parse(raw);
+          await redis.del(`oauth:refresh:${refresh_token}`); // One-time use
+        }
+      } catch (err) {
+        console.error('[OAuth] Failed to retrieve refresh token from Redis:', err);
+      }
+    }
+  }
+
+  if (!tokenData) {
+    res.writeHead(400, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({
+      error: 'invalid_grant',
+      error_description: 'Invalid or expired refresh token',
+    }));
+    return;
+  }
+
+  // Check if family has been revoked
+  const redis = getRedisClient();
+  if (redis?.status === 'ready') {
+    try {
+      const familyRevoked = await redis.get(`oauth:family_revoked:${tokenData.family_id}`);
+      if (familyRevoked) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+          error: 'invalid_grant',
+          error_description: 'Token family has been revoked',
+        }));
+        return;
+      }
+    } catch {
+      // Best effort check
+    }
+  }
+
+  // Mark old refresh token as used (for replay detection)
+  usedRefreshTokens.set(refresh_token, {
+    family_id: tokenData.family_id,
+    used_at: Date.now(),
+  });
+
+  // Generate new token pair with same family
+  const tokenPair = await generateTokenPair(tokenData.user_id, tokenData.email, tokenData.family_id);
+
+  res.writeHead(200, { 'Content-Type': 'application/json' });
+  res.end(JSON.stringify(tokenPair));
 }
 
 /**
@@ -588,24 +784,20 @@ export async function handleRevoke(
       }
     }
 
-    // Blacklist token in Redis (or in-memory fallback)
+    // Blacklist token in BOTH Redis AND in-memory (prevents race conditions)
+    const expiresAt = exp || Math.floor(Date.now() / 1000) + ttl;
+    revokedTokens.set(token, { revoked_at: Math.floor(Date.now() / 1000), expires_at: expiresAt });
+
     const redis = getRedisClient();
     if (redis?.status === 'ready') {
       try {
         await redis.setex(`oauth:revoked:${token}`, ttl, '1');
-        console.info(`[OAuth] Token revoked in Redis (TTL: ${ttl}s)`);
+        console.info(`[OAuth] Token revoked in Redis + memory (TTL: ${ttl}s)`);
       } catch (err) {
-        console.error('[OAuth] Failed to blacklist token in Redis:', err);
-        // Fallback to in-memory
-        const expiresAt = exp || Math.floor(Date.now() / 1000) + ttl;
-        revokedTokens.set(token, { revoked_at: Math.floor(Date.now() / 1000), expires_at: expiresAt });
-        console.warn(`[OAuth] Token revoked in memory (fallback)`);
+        console.error('[OAuth] Failed to blacklist token in Redis (memory-only):', err);
       }
     } else {
-      // Store in-memory when Redis unavailable
-      const expiresAt = exp || Math.floor(Date.now() / 1000) + ttl;
-      revokedTokens.set(token, { revoked_at: Math.floor(Date.now() / 1000), expires_at: expiresAt });
-      console.info(`[OAuth] Token revoked in memory (TTL: ${ttl}s)`);
+      console.info(`[OAuth] Token revoked in memory only (TTL: ${ttl}s)`);
     }
 
     // RFC 7009: The revocation endpoint responds with HTTP 200 for both successful

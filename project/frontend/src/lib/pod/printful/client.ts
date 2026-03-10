@@ -63,7 +63,7 @@ export class PrintfulClient {
     this.headers = {
       Authorization: `Bearer ${config.apiToken}`,
       'Content-Type': 'application/json',
-      'User-Agent': 'SKAPARA-POD/1.0',
+      'User-Agent': process.env.STORE_USER_AGENT || 'SKAPARA-POD/1.0',
       ...(config.storeId ? { 'X-PF-Store-Id': config.storeId } : {}),
     }
 

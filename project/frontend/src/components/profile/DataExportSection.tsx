@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
 import { Download, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
+import { BRAND } from '@/lib/store-config'
 
 export function DataExportSection() {
   const t = useTranslations('Profile')
@@ -31,7 +32,7 @@ export function DataExportSection() {
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = 'skapara-data-export.zip'
+      a.download = `${BRAND.name.toLowerCase()}-data-export.zip`
       document.body.appendChild(a)
       a.click()
       document.body.removeChild(a)

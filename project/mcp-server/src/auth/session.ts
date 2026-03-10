@@ -27,30 +27,29 @@ export async function validateJwt(req: IncomingMessage): Promise<AuthInfo | null
   try {
     const { payload } = await jwtVerify(token, MCP_JWT_SECRET, {
       issuer: MCP_BASE_URL,
+      audience: MCP_BASE_URL,
     });
 
-    // Check if token is revoked (Redis first, then in-memory fallback)
+    // Check if token is revoked (in-memory FIRST for speed, then Redis for cross-instance)
+    if (revokedTokens.has(token)) {
+      console.info('[Auth] Rejected revoked token (from memory)');
+      return null;
+    }
+
     const redis = getRedisClient();
     if (redis?.status === 'ready') {
       try {
         const revoked = await redis.get(`oauth:revoked:${token}`);
         if (revoked) {
-          console.info('[Auth] Rejected revoked token (from Redis)');
-          return null; // Token is blacklisted
+          // Sync to in-memory for faster future checks
+          const exp = payload.exp || Math.floor(Date.now() / 1000) + 900;
+          revokedTokens.set(token, { revoked_at: Math.floor(Date.now() / 1000), expires_at: exp });
+          console.info('[Auth] Rejected revoked token (from Redis, synced to memory)');
+          return null;
         }
       } catch (err) {
         console.error('[Auth] Failed to check revocation in Redis:', err);
-        // Check in-memory fallback
-        if (revokedTokens.has(token)) {
-          console.info('[Auth] Rejected revoked token (from memory fallback)');
-          return null;
-        }
-      }
-    } else {
-      // No Redis - check in-memory
-      if (revokedTokens.has(token)) {
-        console.info('[Auth] Rejected revoked token (from memory)');
-        return null;
+        // In-memory already checked above — continue
       }
     }
 

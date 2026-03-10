@@ -6,10 +6,11 @@ import { QueryProvider } from "@/components/providers/QueryProvider";
 import { GlobalSearch } from "@/components/GlobalSearch";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { NotificationsProvider } from "@/contexts/NotificationsContext";
+import { STORE_NAME } from "@/lib/store-defaults";
 
 export const metadata: Metadata = {
-  title: "Skapara Admin",
-  description: "Admin panel for Skapara store management",
+  title: `${STORE_NAME} Admin`,
+  description: `Admin panel for ${STORE_NAME} store management`,
 };
 
 export default function RootLayout({

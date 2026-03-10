@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import { NextRequest, NextResponse } from 'next/server';
+import { BRAND } from '@/lib/store-config';
 
 export async function GET(
   request: NextRequest,
@@ -23,13 +24,13 @@ export async function GET(
       console.error('Error fetching SEO meta tags:', error);
       // Return defaults if not found
       return NextResponse.json({
-        title: 'SKAPARA',
+        title: BRAND.name,
         description: '',
         keywords: '',
       });
     }
 
-    return NextResponse.json(data || { title: 'SKAPARA', description: '', keywords: '' });
+    return NextResponse.json(data || { title: BRAND.name, description: '', keywords: '' });
   } catch (error) {
     console.error('Error in SEO API:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

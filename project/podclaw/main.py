@@ -74,6 +74,8 @@ def _build_connectors(memory_store=None, state_store=None) -> dict:
     from podclaw.connectors.supabase_connector import SupabaseMCPConnector
     from podclaw.connectors.stripe_connector import StripeMCPConnector
     from podclaw.connectors.printify_connector import PrintifyMCPConnector
+    from podclaw.connectors.printful_connector import PrintfulMCPConnector
+    from podclaw.connectors.svg_renderer_connector import SVGRendererConnector
     from podclaw.connectors.fal_connector import FalMCPConnector
     from podclaw.connectors.gemini_connector import GeminiMCPConnector
     from podclaw.connectors.resend_connector import ResendMCPConnector
@@ -91,6 +93,8 @@ def _build_connectors(memory_store=None, state_store=None) -> dict:
             supabase_url=config.SUPABASE_URL,
             supabase_key=config.SUPABASE_SERVICE_KEY,
         ),
+        "printful": PrintfulMCPConnector(config.PRINTFUL_API_TOKEN, config.PRINTFUL_STORE_ID),
+        "svg_renderer": SVGRendererConnector(config.SVG_RENDERER_URL),
         "fal": FalMCPConnector(config.FAL_KEY),
         "gemini": GeminiMCPConnector(config.GEMINI_API_KEY),
         "resend": ResendMCPConnector(config.RESEND_API_KEY, config.RESEND_FROM_EMAIL),
@@ -333,6 +337,42 @@ async def _run(args: argparse.Namespace) -> None:
         import uvicorn
         from podclaw.config import BRIDGE_HOST, BRIDGE_PORT
 
+        # Initialize event-driven gateway (CEO → classify → dispatch → respond)
+        _event_dispatcher = None
+        try:
+            from podclaw.router.classifier import EventClassifier
+            from podclaw.router.dispatcher import EventDispatcher
+            from podclaw.router.responder import Responder
+
+            _classifier = EventClassifier()
+            _responder = Responder(connectors.get("whatsapp"), connectors.get("telegram"))
+
+            # Approval manager (Sprint 2)
+            _approval_manager = None
+            if supabase_client:
+                from podclaw.approval.manager import ApprovalManager
+                _approval_manager = ApprovalManager(supabase_client, _responder, orchestrator)
+                logger.info("approval_manager_initialized")
+
+                # Register approval timeout cron (every 4h)
+                from podclaw.approval.timeout import ApprovalTimeoutChecker
+                from apscheduler.triggers.interval import IntervalTrigger as _IT
+                _timeout_checker = ApprovalTimeoutChecker(supabase_client, _responder)
+                scheduler.scheduler.add_job(
+                    _timeout_checker.check,
+                    _IT(hours=4),
+                    id="approval_timeout_check",
+                    name="Approval Timeout Check",
+                )
+
+            _event_dispatcher = EventDispatcher(
+                orchestrator, _classifier, _responder,
+                approval_manager=_approval_manager,
+            )
+            logger.info("event_dispatcher_initialized")
+        except Exception as e:
+            logger.warning("event_dispatcher_init_failed", error=str(e))
+
         app = create_app(
             orchestrator, scheduler, event_store, memory_manager,
             heartbeat=heartbeat_runner,
@@ -341,6 +381,7 @@ async def _run(args: argparse.Namespace) -> None:
             state_store=state_store,
             connectors=connectors,
             delegation_registry=delegation_registry,
+            event_dispatcher=_event_dispatcher,
         )
 
         config = uvicorn.Config(

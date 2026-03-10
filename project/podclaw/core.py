@@ -17,7 +17,7 @@ import structlog
 
 from claude_agent_sdk import ResultMessage
 
-from podclaw.config import AGENT_MODELS, AGENT_TOOLS, MAX_ACTIONS_PER_CYCLE, MAX_SESSION_DURATION_SECONDS
+from podclaw.config import AGENT_MODELS, AGENT_TOOLS, MAX_ACTIONS_PER_CYCLE, MAX_SESSION_DURATION_SECONDS, STORE_PHYSICAL_ADDRESS
 from podclaw.client_factory import ClientFactory
 from podclaw.event_store import EventStore
 from podclaw.memory_manager import MemoryManager
@@ -581,7 +581,7 @@ class Orchestrator:
                 "You MUST call tools — do NOT answer from memory.\n\n"
                 "Query customer segments, create personalized content for Champions and Loyal segments,\n"
                 "set up A/B tests, and send via Resend. Include CAN-SPAM footer with unsubscribe link\n"
-                "and POD AI Store, Friedrichstraße 123, 10117 Berlin, Germany.\n\n"
+                f"and {STORE_PHYSICAL_ADDRESS}.\n\n"
                 "Before finishing, verify:\n"
                 "- All emails include CAN-SPAM footer\n"
                 "- Campaign logged in agent_events\n"

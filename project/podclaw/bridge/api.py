@@ -145,6 +145,7 @@ def create_app(
     state_store: "StateStore | None" = None,
     connectors: dict[str, Any] | None = None,
     delegation_registry: Any | None = None,
+    event_dispatcher: Any | None = None,
 ) -> FastAPI:
     """Create the FastAPI application with all routes."""
 
@@ -1172,5 +1173,41 @@ def create_app(
 
         overall = all(v.get("ok") for v in checks.values())
         return {"status": "ok" if overall else "degraded", "checks": checks}
+
+    # -------------------------------------------------------------------
+    # CEO Message Webhooks (NO require_auth — authenticated via HMAC/secret)
+    # -------------------------------------------------------------------
+
+    async def _dispatch_message(normalized_message) -> None:
+        """Background task: route normalized CEO message to event dispatcher."""
+        if event_dispatcher is None:
+            logger.warning("webhook_no_dispatcher", msg_id=normalized_message.id)
+            return
+        try:
+            await event_dispatcher.dispatch(normalized_message)
+        except Exception as e:
+            logger.error(
+                "webhook_dispatch_failed",
+                msg_id=normalized_message.id,
+                error=str(e),
+            )
+
+    @app.get("/webhooks/whatsapp")
+    async def whatsapp_webhook_verify(request: Request):
+        """Meta WhatsApp webhook verification (hub.challenge)."""
+        from podclaw.gateway.whatsapp_inbound import handle_whatsapp_verify
+        return await handle_whatsapp_verify(request)
+
+    @app.post("/webhooks/whatsapp")
+    async def whatsapp_webhook_inbound(request: Request, background_tasks: BackgroundTasks):
+        """Inbound WhatsApp messages from CEO."""
+        from podclaw.gateway.whatsapp_inbound import handle_whatsapp_inbound
+        return await handle_whatsapp_inbound(request, on_message=lambda msg: background_tasks.add_task(_dispatch_message, msg))
+
+    @app.post("/webhooks/telegram")
+    async def telegram_webhook_inbound(request: Request, background_tasks: BackgroundTasks):
+        """Inbound Telegram updates from CEO."""
+        from podclaw.gateway.telegram_inbound import handle_telegram_inbound
+        return await handle_telegram_inbound(request, on_message=lambda msg: background_tasks.add_task(_dispatch_message, msg))
 
     return app

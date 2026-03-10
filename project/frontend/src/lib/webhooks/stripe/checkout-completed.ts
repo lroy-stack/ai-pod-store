@@ -29,7 +29,13 @@ export async function handleCheckoutCompleted(session: Stripe.Checkout.Session) 
     // Extract metadata
     const locale = session.metadata?.locale || 'en'
     const cartItemsStr = session.metadata?.cart_items || '[]'
-    const cartItems = JSON.parse(cartItemsStr)
+    const cartItems = JSON.parse(cartItemsStr).map((ci: any) => ({
+      product_id: ci.pid || ci.product_id,
+      variant_id: ci.vid || ci.variant_id,
+      quantity: ci.qty || ci.quantity,
+      personalization_id: ci.per || ci.personalization_id || null,
+      composition_id: ci.comp || ci.composition_id || null,
+    }))
     const giftMessage = session.metadata?.gift_message || null
 
     // Get session details with line items and payment method
@@ -95,7 +101,9 @@ export async function handleCheckoutCompleted(session: Stripe.Checkout.Session) 
       userId = userByEmail?.id || null
     }
 
-    // Create order record
+    // Create order record (includes coupon tracking if applied)
+    const couponCode = session.metadata?.coupon_code || null
+    const discountCents = session.total_details?.amount_discount || 0
     const { data: order, error: orderError } = await supabase
       .from('orders')
       .insert({
@@ -111,6 +119,7 @@ export async function handleCheckoutCompleted(session: Stripe.Checkout.Session) 
         gift_message: giftMessage,
         payment_method: paymentMethodType,
         paid_at: new Date().toISOString(),
+        ...(couponCode && { coupon_code: couponCode, discount_cents: discountCents }),
       })
       .select()
       .single()
@@ -221,7 +230,6 @@ export async function handleCheckoutCompleted(session: Stripe.Checkout.Session) 
     }
 
     // Increment coupon usage counter if a coupon was applied (idempotent via RPC)
-    const couponCode = session.metadata?.coupon_code
     if (couponCode) {
       const { data: coupon } = await supabase
         .from('coupons')
@@ -233,6 +241,8 @@ export async function handleCheckoutCompleted(session: Stripe.Checkout.Session) 
         const { data: incremented } = await supabase.rpc('increment_coupon_usage', {
           p_coupon_id: coupon.id,
           p_order_id: order.id,
+          p_user_id: userId || null,
+          p_discount_cents: discountCents,
         })
 
         if (incremented === true) {
@@ -288,11 +298,25 @@ export async function handleCheckoutCompleted(session: Stripe.Checkout.Session) 
           return
         }
 
-        // Build production URLs map from cart metadata (keyed by composition_id)
+        // Resolve production URLs from design_compositions (no longer in metadata)
         const productionUrlsMap = new Map<string, Record<string, string>>()
-        for (const ci of cartItems) {
-          if (ci.composition_id && ci.production_urls) {
-            productionUrlsMap.set(ci.composition_id, ci.production_urls)
+        const compositionIds = cartItems
+          .map((ci: any) => ci.composition_id)
+          .filter(Boolean)
+
+        if (compositionIds.length > 0) {
+          const { data: compositions } = await supabase
+            .from('design_compositions')
+            .select('id, production_url')
+            .in('id', compositionIds)
+
+          for (const comp of compositions || []) {
+            if (comp.production_url) {
+              const urls = comp.production_url.startsWith('{')
+                ? JSON.parse(comp.production_url)
+                : { default: comp.production_url }
+              productionUrlsMap.set(comp.id, urls)
+            }
           }
         }
 

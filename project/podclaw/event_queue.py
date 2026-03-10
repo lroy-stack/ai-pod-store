@@ -32,6 +32,14 @@ import structlog
 
 logger = structlog.get_logger(__name__)
 
+_SUPABASE_TIMEOUT = 30.0  # seconds — prevent thread pool hangs
+
+
+async def _supabase_call(fn, timeout: float = _SUPABASE_TIMEOUT):
+    """Run a sync Supabase call in a thread pool with timeout."""
+    return await asyncio.wait_for(asyncio.to_thread(fn), timeout=timeout)
+
+
 # Redis key constants
 REDIS_QUEUE_KEY = "podclaw:events:queue"
 REDIS_DLQ_KEY = "podclaw:events:dlq"
@@ -157,7 +165,7 @@ class SystemEventQueue:
             return
         try:
             now = datetime.now(timezone.utc).isoformat()
-            await asyncio.to_thread(
+            await _supabase_call(
                 lambda: self._supabase.from_("system_events")
                 .update({"status": status, "completed_at": now, "handled_by": handled_by})
                 .eq("id", event.db_id)
@@ -338,7 +346,7 @@ class SystemEventQueue:
                 "target_agent": event.target_agent,
                 "status": "pending",
             }
-            result = await asyncio.to_thread(
+            result = await _supabase_call(
                 lambda: self._supabase.from_("system_events")
                 .insert(row)
                 .execute()
@@ -360,7 +368,7 @@ class SystemEventQueue:
             now = datetime.now(timezone.utc).isoformat()
 
             # Fetch pending events
-            result = await asyncio.to_thread(
+            result = await _supabase_call(
                 lambda: self._supabase.from_("system_events")
                 .select("*")
                 .eq("status", "pending")
@@ -390,7 +398,7 @@ class SystemEventQueue:
 
             # Mark as dispatched
             if ids:
-                await asyncio.to_thread(
+                await _supabase_call(
                     lambda: self._supabase.from_("system_events")
                     .update({"status": "dispatched", "dispatched_at": now})
                     .in_("id", ids)
@@ -408,7 +416,7 @@ class SystemEventQueue:
     async def _peek_db(self) -> list[SystemEvent]:
         """Peek at pending events from DB without marking them."""
         try:
-            result = await asyncio.to_thread(
+            result = await _supabase_call(
                 lambda: self._supabase.from_("system_events")
                 .select("*")
                 .eq("status", "pending")

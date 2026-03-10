@@ -12,7 +12,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { generateUnsubscribeToken } from '@/lib/unsubscribe-token'
 import { verifyCronSecret } from '@/lib/rate-limit'
-import { BASE_URL } from '@/lib/store-config'
+import { BASE_URL, BRAND, EMAIL_FROM } from '@/lib/store-config'
 
 const supabase = createClient(
   process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -29,8 +29,8 @@ const DEFAULT_LOCALE = 'en'
 const TEMPLATES: Record<string, (email: string, unsubscribeUrl: string, locale?: string) => { html: string }> = {
   welcome: (email, unsubscribeUrl) => ({
     html: `
-      <h1>Welcome to Skapara!</h1>
-      <p>Hey there! Thanks for joining Skapara, your AI-powered design studio.</p>
+      <h1>Welcome to ${BRAND.name}!</h1>
+      <p>Hey there! Thanks for joining ${BRAND.name}, your AI-powered design studio.</p>
       <p>You can now:</p>
       <ul>
         <li>Chat with our AI assistant to find the perfect product</li>
@@ -150,7 +150,7 @@ export async function GET(req: NextRequest) {
               'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
             },
             body: JSON.stringify({
-              from: process.env.RESEND_FROM_EMAIL || 'SKAPARA <noreply@skapara.com>',
+              from: EMAIL_FROM,
               to: item.email,
               subject: item.subject,
               html,

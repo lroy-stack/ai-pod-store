@@ -51,6 +51,11 @@ services:
         NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
         NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY}
         NEXT_PUBLIC_BASE_URL: ${NEXT_PUBLIC_BASE_URL:-http://localhost:3000}
+        NEXT_PUBLIC_SITE_NAME: ${NEXT_PUBLIC_SITE_NAME:-SKAPARA}
+        NEXT_PUBLIC_SITE_TAGLINE: ${NEXT_PUBLIC_SITE_TAGLINE:-Wear what you mean}
+        NEXT_PUBLIC_SOCIAL_INSTAGRAM: ${NEXT_PUBLIC_SOCIAL_INSTAGRAM:-https://instagram.com/skapara}
+        NEXT_PUBLIC_SOCIAL_TWITTER: ${NEXT_PUBLIC_SOCIAL_TWITTER:-https://twitter.com/skapara}
+        NEXT_PUBLIC_SOCIAL_FACEBOOK: ${NEXT_PUBLIC_SOCIAL_FACEBOOK:-https://facebook.com/skapara}
         SUPABASE_URL: ${SUPABASE_URL}
       secrets:
         - supabase_service_key
@@ -65,7 +70,7 @@ services:
       STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
       RESEND_API_KEY: ${RESEND_API_KEY}
-      RESEND_FROM_EMAIL: ${RESEND_FROM_EMAIL:-noreply@podai.com}
+      RESEND_FROM_EMAIL: ${RESEND_FROM_EMAIL:-noreply@skapara.com}
       TURNSTILE_SECRET_KEY: ${TURNSTILE_SECRET_KEY:-}
       CRON_SECRET: ${CRON_SECRET:-}
       REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
@@ -74,6 +79,15 @@ services:
       PRINTIFY_WEBHOOK_SECRET: ${PRINTIFY_WEBHOOK_SECRET:-}
       DEFAULT_LOCALE: ${DEFAULT_LOCALE:-en}
       SUPPORTED_LOCALES: ${SUPPORTED_LOCALES:-en,es,de}
+      STORE_CONTACT_EMAIL: ${STORE_CONTACT_EMAIL:-hello@skapara.com}
+      STORE_SUPPORT_EMAIL: ${STORE_SUPPORT_EMAIL:-support@skapara.com}
+      STORE_LEGAL_EMAIL: ${STORE_LEGAL_EMAIL:-legal@skapara.com}
+      STORE_PRIVACY_EMAIL: ${STORE_PRIVACY_EMAIL:-privacy@skapara.com}
+      STORE_NOREPLY_EMAIL: ${STORE_NOREPLY_EMAIL:-noreply@skapara.com}
+      STORE_COMPANY_NAME: ${STORE_COMPANY_NAME:-SKAPARA UG (haftungsbeschraenkt)}
+      STORE_COMPANY_ADDRESS: ${STORE_COMPANY_ADDRESS:-c/o SKAPARA UG, Musterstrasse 1, 10115 Berlin, Germany}
+      STORE_DOMAIN: ${STORE_DOMAIN:-skapara.com}
+      STORE_USER_AGENT: ${STORE_USER_AGENT:-SKAPARA-POD/1.0}
     depends_on:
       redis: { condition: service_healthy }
       podclaw: { condition: service_healthy }
@@ -116,6 +130,15 @@ services:
       SUPABASE_SERVICE_KEY: ${SUPABASE_SERVICE_KEY}
       PODCLAW_BRIDGE_URL: http://podclaw:8000
       PODCLAW_BRIDGE_AUTH_TOKEN: ${PODCLAW_BRIDGE_AUTH_TOKEN}
+      STORE_NAME: ${NEXT_PUBLIC_SITE_NAME:-SKAPARA}
+      STORE_CONTACT_EMAIL: ${STORE_CONTACT_EMAIL:-hello@skapara.com}
+      STORE_SUPPORT_EMAIL: ${STORE_SUPPORT_EMAIL:-support@skapara.com}
+      STORE_COMPANY_NAME: ${STORE_COMPANY_NAME:-SKAPARA UG (haftungsbeschraenkt)}
+      STORE_COMPANY_ADDRESS: ${STORE_COMPANY_ADDRESS:-c/o SKAPARA UG, Musterstrasse 1, 10115 Berlin, Germany}
+      STORE_LEGAL_EMAIL: ${STORE_LEGAL_EMAIL:-legal@skapara.com}
+      STORE_PRIVACY_EMAIL: ${STORE_PRIVACY_EMAIL:-privacy@skapara.com}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@skapara.com}
+      STORE_DOMAIN: ${STORE_DOMAIN:-skapara.com}
     depends_on:
       podclaw: { condition: service_healthy }
     restart: unless-stopped
@@ -149,16 +172,22 @@ services:
       PRINTIFY_API_TOKEN: ${PRINTIFY_API_TOKEN}
       PRINTIFY_SHOP_ID: ${PRINTIFY_SHOP_ID}
       PRINTIFY_WEBHOOK_SECRET: ${PRINTIFY_WEBHOOK_SECRET:-}
+      PRINTFUL_API_TOKEN: ${PRINTFUL_API_TOKEN}
+      PRINTFUL_STORE_ID: ${PRINTFUL_STORE_ID}
+      PRINTFUL_WEBHOOK_SECRET: ${PRINTFUL_WEBHOOK_SECRET:-}
       FAL_KEY: ${FAL_KEY}
       GEMINI_API_KEY: ${GEMINI_API_KEY}
       RESEND_API_KEY: ${RESEND_API_KEY}
-      RESEND_FROM_EMAIL: ${RESEND_FROM_EMAIL:-noreply@podai.com}
+      RESEND_FROM_EMAIL: ${RESEND_FROM_EMAIL:-noreply@skapara.com}
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
       PODCLAW_ADMIN_TELEGRAM_CHAT_ID: ${PODCLAW_ADMIN_TELEGRAM_CHAT_ID:-}
       WHATSAPP_ACCESS_TOKEN: ${WHATSAPP_ACCESS_TOKEN:-}
       WHATSAPP_PHONE_NUMBER_ID: ${WHATSAPP_PHONE_NUMBER_ID:-}
       PODCLAW_BRIDGE_AUTH_TOKEN: ${PODCLAW_BRIDGE_AUTH_TOKEN}
+      STORE_NAME: ${NEXT_PUBLIC_SITE_NAME:-SKAPARA}
+      STORE_DOMAIN: ${STORE_DOMAIN:-skapara.com}
       REMBG_URL: http://rembg:8080
+      SVG_RENDERER_URL: http://svg-renderer:3002
       REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
       CRAWL4AI_URL: http://crawl4ai:11235
     volumes:
@@ -168,6 +197,7 @@ services:
       redis: { condition: service_healthy }
       rembg: { condition: service_healthy }
       crawl4ai: { condition: service_healthy }
+      svg-renderer: { condition: service_healthy }
     restart: unless-stopped
     deploy:
       resources:
@@ -179,6 +209,29 @@ services:
       interval: 30s
       timeout: 10s
       start_period: 15s
+      retries: 3
+    logging: *default-logging
+
+  # ---------------------------------------------------------------------------
+  # SVG Renderer — SVG to print-ready PNG (resvg + sharp)
+  # ---------------------------------------------------------------------------
+  svg-renderer:
+    <<: *default-security
+    build:
+      context: deploy/svg-renderer
+    expose:
+      - "3002"
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits: { cpus: '1.0', memory: 512M }
+        reservations: { memory: 256M }
+    networks: [ai-services]
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3002/health"]
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
       retries: 3
     logging: *default-logging
 
@@ -299,6 +352,9 @@ services:
       MCP_CORS_ORIGINS: "https://claude.ai,https://chatgpt.com"
       FRONTEND_URL: ${NEXT_PUBLIC_BASE_URL:-http://localhost:3000}
       REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      STORE_NAME: ${NEXT_PUBLIC_SITE_NAME:-SKAPARA}
+      STORE_TAGLINE: ${NEXT_PUBLIC_SITE_TAGLINE:-Wear what you mean}
+      STORE_PRIVACY_EMAIL: ${STORE_PRIVACY_EMAIL:-privacy@skapara.com}
     depends_on:
       redis: { condition: service_healthy }
     restart: unless-stopped

@@ -1,9 +1,14 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-let supabaseClient: SupabaseClient | null = null;
+let adminClient: SupabaseClient | null = null;
+let anonClient: SupabaseClient | null = null;
 
+/**
+ * Admin client (service key) — bypasses RLS.
+ * Use ONLY for authenticated tools that need cross-user queries or writes.
+ */
 export function getSupabaseClient(): SupabaseClient {
-  if (supabaseClient) return supabaseClient;
+  if (adminClient) return adminClient;
 
   const supabaseUrl = process.env.SUPABASE_URL;
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
@@ -14,7 +19,7 @@ export function getSupabaseClient(): SupabaseClient {
     );
   }
 
-  supabaseClient = createClient(supabaseUrl, supabaseServiceKey, {
+  adminClient = createClient(supabaseUrl, supabaseServiceKey, {
     auth: {
       autoRefreshToken: false,
       persistSession: false,
@@ -22,5 +27,32 @@ export function getSupabaseClient(): SupabaseClient {
   });
 
   console.info('[Supabase] Admin client initialized');
-  return supabaseClient;
+  return adminClient;
+}
+
+/**
+ * Anon client — respects RLS policies.
+ * Use for public tools (search, categories, store info, reviews).
+ */
+export function getAnonClient(): SupabaseClient {
+  if (anonClient) return anonClient;
+
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    // Fallback to admin client if anon key not configured
+    console.warn('[Supabase] SUPABASE_ANON_KEY not set, falling back to admin client for public queries');
+    return getSupabaseClient();
+  }
+
+  anonClient = createClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  });
+
+  console.info('[Supabase] Anon client initialized');
+  return anonClient;
 }

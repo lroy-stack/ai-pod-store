@@ -177,7 +177,7 @@ export async function createCheckout(
     console.error('[create_checkout] Unexpected error:', err);
     return {
       success: false,
-      error: err.message || 'An unexpected error occurred',
+      error: 'An unexpected error occurred while creating checkout',
     };
   }
 }

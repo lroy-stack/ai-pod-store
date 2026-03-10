@@ -5,7 +5,7 @@
  */
 
 import Stripe from 'stripe'
-import { BASE_URL } from '@/lib/store-config'
+import { BASE_URL, EMAIL_FROM } from '@/lib/store-config'
 import { supabase } from './shared'
 
 /**
@@ -48,7 +48,7 @@ export async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          from: process.env.RESEND_FROM_EMAIL || 'SKAPARA <noreply@skapara.com>',
+          from: EMAIL_FROM,
           to: user.email,
           subject: 'Payment Failed — Please Update Your Payment Method',
           html: `

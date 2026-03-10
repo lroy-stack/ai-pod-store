@@ -69,7 +69,7 @@ function clearChatSession() {
 
 function isChatExpired(): boolean {
   const ts = sessionStorage.getItem('pod-chat-ts')
-  if (!ts) return true
+  if (!ts) return false // No timestamp = no prior session, not expired
   const epoch = Number(ts) || new Date(ts).getTime()
   if (isNaN(epoch)) return true
   return Date.now() - epoch > CHAT_TTL_MS

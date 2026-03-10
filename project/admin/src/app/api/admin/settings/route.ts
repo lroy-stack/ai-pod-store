@@ -10,6 +10,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getIronSession } from 'iron-session';
 import { sessionOptions, SessionData } from '@/lib/session';
 import { cookies } from 'next/headers';
+import { STORE_NAME, STORE_CONTACT_EMAIL, STORE_SUPPORT_EMAIL } from '@/lib/store-defaults';
 
 /**
  * GET /api/admin/settings
@@ -44,11 +45,11 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({
           id: 1,
           settings: {
-            store_name: 'SKAPARA',
-            store_description: 'AI-powered Print-on-Demand store',
-            contact_email: 'contact@skapara.com',
-            support_email: 'support@skapara.com',
-            currency: 'USD',
+            store_name: STORE_NAME,
+            store_description: 'AI-powered fashion & accessories, designed with you, made in Europe',
+            contact_email: STORE_CONTACT_EMAIL,
+            support_email: STORE_SUPPORT_EMAIL,
+            currency: 'EUR',
             timezone: 'UTC',
           },
           updated_at: new Date().toISOString(),

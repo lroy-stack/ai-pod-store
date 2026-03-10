@@ -64,6 +64,7 @@ RATE_LIMITS: dict[str, dict[str, int]] = {
     },
     "newsletter": {"resend_send": 500},
     "cataloger": {
+        # Printify (legacy, kept during transition)
         "printify_create": 50, "printify_publish": 50, "printify_upload_image": 50,
         "printify_delete_product": 10, "printify_update": 50, "printify_get_blueprint_detail": 50,
         "printify_get_gpsr": 50,
@@ -71,6 +72,15 @@ RATE_LIMITS: dict[str, dict[str, int]] = {
         "printify_create_order": 5, "printify_send_to_production": 10, "printify_cancel_order": 5,
         "printify_list_uploads": 5, "printify_unpublish": 10,
         "printify_create_webhook": 3, "printify_delete_webhook": 3, "printify_list_webhooks": 3,
+        # Printful (primary)
+        "printful_create_product": 50, "printful_update_product": 50, "printful_delete_product": 10,
+        "printful_list_products": 10, "printful_get_product": 50,
+        "printful_upload_file": 50, "printful_get_file": 50,
+        "printful_create_mockup": 30, "printful_get_mockup_result": 50,
+        "printful_create_order": 5, "printful_cancel_order": 5, "printful_get_order": 10,
+        "printful_calculate_shipping": 10,
+        "printful_get_catalog": 5, "printful_get_catalog_product": 50, "printful_get_printfiles": 50,
+        "printful_list_webhooks": 3, "printful_setup_webhook": 3,
     },
     "customer_manager": {
         "resend_send": 100, "stripe_create_refund": 10,
@@ -212,32 +222,51 @@ SUPABASE_SERVICE_KEY = os.environ.get("SUPABASE_SERVICE_KEY", "")
 STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY", "")
 PRINTIFY_API_TOKEN = os.environ.get("PRINTIFY_API_TOKEN", "")
 PRINTIFY_SHOP_ID = os.environ.get("PRINTIFY_SHOP_ID", "")
+PRINTFUL_API_TOKEN = os.environ.get("PRINTFUL_API_TOKEN", "")
+PRINTFUL_STORE_ID = os.environ.get("PRINTFUL_STORE_ID", "")
+PRINTFUL_WEBHOOK_SECRET = os.environ.get("PRINTFUL_WEBHOOK_SECRET", "")
+_store_domain = os.environ.get("STORE_DOMAIN", "skapara.com")
 PRINTIFY_WEBHOOK_ALLOWED_HOSTS: list[str] = [
     h.strip()
     for h in os.environ.get(
         "PODCLAW_WEBHOOK_ALLOWED_HOSTS",
-        "localhost,podai.com,www.podai.com,api.podai.com",
+        f"localhost,{_store_domain},www.{_store_domain},api.{_store_domain}",
     ).split(",")
     if h.strip()
 ]
 FAL_KEY = os.environ.get("FAL_KEY", "")
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "")
-RESEND_FROM_EMAIL = os.environ.get("RESEND_FROM_EMAIL", "noreply@podai.com")
+RESEND_FROM_EMAIL = os.environ.get("RESEND_FROM_EMAIL", f"noreply@{_store_domain}")
 
 # ---------------------------------------------------------------------------
 # Telegram & WhatsApp
 # ---------------------------------------------------------------------------
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
+TELEGRAM_WEBHOOK_SECRET = os.environ.get("TELEGRAM_WEBHOOK_SECRET", "")
 WHATSAPP_ACCESS_TOKEN = os.environ.get("WHATSAPP_ACCESS_TOKEN", "")
 WHATSAPP_PHONE_NUMBER_ID = os.environ.get("WHATSAPP_PHONE_NUMBER_ID", "")
+WHATSAPP_APP_SECRET = os.environ.get("WHATSAPP_APP_SECRET", "")  # HMAC verification
+WHATSAPP_WEBHOOK_VERIFY_TOKEN = os.environ.get("WHATSAPP_WEBHOOK_VERIFY_TOKEN", "")
+
+# ---------------------------------------------------------------------------
+# CEO Identity (event-driven gateway)
+# At least one of WA/TG must be configured for PodClaw to accept CEO messages
+# ---------------------------------------------------------------------------
+CEO_WHATSAPP_NUMBER = os.environ.get("CEO_WHATSAPP_NUMBER", "")
+CEO_TELEGRAM_CHAT_ID = os.environ.get("CEO_TELEGRAM_CHAT_ID", "")
+
+# ---------------------------------------------------------------------------
+# SVG Rendering Sidecar
+# ---------------------------------------------------------------------------
+SVG_RENDERER_URL = os.environ.get("SVG_RENDERER_URL", "http://svg-renderer:3002")
 
 # ---------------------------------------------------------------------------
 # Drip Sequences (Feature 377, 386)
 # ---------------------------------------------------------------------------
 DRIP_SEQUENCES: dict[str, list[dict]] = {
     "welcome": [
-        {"step": 1, "delay_days": 1, "subject": "Welcome to POD AI!"},
+        {"step": 1, "delay_days": 1, "subject": f"Welcome to {os.environ.get('STORE_SENDER_NAME', 'SKAPARA')}!"},
         {"step": 2, "delay_days": 3, "subject": "Our best sellers just for you"},
         {"step": 3, "delay_days": 7, "subject": "Your first purchase awaits"},
     ],
@@ -257,9 +286,9 @@ DRIP_SEQUENCES: dict[str, list[dict]] = {
 # ---------------------------------------------------------------------------
 STORE_PHYSICAL_ADDRESS = os.environ.get(
     "STORE_PHYSICAL_ADDRESS",
-    "POD AI Store, Friedrichstraße 123, 10117 Berlin, Germany"
+    "c/o SKAPARA UG, Musterstraße 1, 10115 Berlin, Germany"
 )
-STORE_SENDER_NAME = os.environ.get("STORE_SENDER_NAME", "POD AI Store")
+STORE_SENDER_NAME = os.environ.get("STORE_SENDER_NAME", "SKAPARA")
 
 # ---------------------------------------------------------------------------
 # Gemini Embeddings (Feature 384)

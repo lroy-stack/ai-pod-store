@@ -8,6 +8,7 @@ import sharp from 'sharp'
 import path from 'path'
 import { supabaseAdmin } from './supabase-admin'
 import { PRINT_AREAS, TEMPLATE_COLORS } from './print-areas'
+import { BRAND } from './store-config'
 
 export interface MockupOptions {
   designUrl: string
@@ -100,7 +101,7 @@ export async function generateMockup(options: MockupOptions): Promise<MockupResu
         <text x="512" y="512" font-size="80" font-family="Arial, sans-serif"
               fill="rgba(255,255,255,0.35)" text-anchor="middle"
               dominant-baseline="middle"
-              transform="rotate(-30 512 512)">SKAPARA</text>
+              transform="rotate(-30 512 512)">${BRAND.name}</text>
         <text x="512" y="620" font-size="40" font-family="Arial, sans-serif"
               fill="rgba(255,255,255,0.25)" text-anchor="middle"
               dominant-baseline="middle"

@@ -7,6 +7,7 @@ COPY src/ ./src/
 RUN npx tsc
 
 FROM node:22-alpine
+ENV NODE_ENV=production
 WORKDIR /app
 RUN apk add --no-cache curl
 COPY --from=builder /app/node_modules ./node_modules

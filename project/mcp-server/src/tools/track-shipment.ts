@@ -59,13 +59,14 @@ export async function trackShipment(
   try {
     const supabase = getSupabaseClient();
 
-    // Fetch the order with tracking info
+    // Fetch the order with tracking info (ownership enforced in query)
     const { data: orderData, error: orderError } = await supabase
       .from('orders')
       .select(
-        'id, user_id, status, tracking_number, tracking_url, carrier, shipped_at, shipping_address'
+        'id, status, tracking_number, tracking_url, carrier, shipped_at, shipping_address'
       )
       .eq('id', order_id)
+      .eq('user_id', userId)
       .single();
 
     if (orderError) {
@@ -86,14 +87,6 @@ export async function trackShipment(
       return {
         success: false,
         error: 'Order not found',
-      };
-    }
-
-    // Verify ownership
-    if (orderData.user_id !== userId) {
-      return {
-        success: false,
-        error: 'You do not have permission to track this order',
       };
     }
 

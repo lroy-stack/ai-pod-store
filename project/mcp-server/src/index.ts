@@ -4,7 +4,9 @@ import http from 'node:http';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
+import type { EventStore } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
+import type { JSONRPCMessage } from '@modelcontextprotocol/sdk/types.js';
 import type { AuthInfo } from '@modelcontextprotocol/sdk/server/auth/types.js';
 import { getRedisClient, closeRedis } from './lib/redis.js';
 import { getSupabaseClient } from './lib/supabase.js';
@@ -16,7 +18,6 @@ import {
   updateSessionActivity,
   deleteSession,
 } from './session.js';
-import { withAuditLog } from './lib/audit-log.js';
 import { logger } from './lib/logger.js';
 import { getCompletions, type CompletionRequest } from './lib/completions.js';
 import {
@@ -26,91 +27,7 @@ import {
   handleToken,
   handleRevoke,
 } from './auth/oauth-provider.js';
-import {
-  searchProductsSchema,
-  searchProducts,
-  type SearchProductsInput,
-} from './tools/search-products.js';
-import {
-  getProductDetailsSchema,
-  getProductDetails,
-  type GetProductDetailsInput,
-} from './tools/get-product-details.js';
-import {
-  getStoreInfoSchema,
-  getStoreInfo,
-  type GetStoreInfoInput,
-} from './tools/get-store-info.js';
-import {
-  getStorePoliciesSchema,
-  getStorePolicies,
-  type GetStorePoliciesInput,
-} from './tools/get-store-policies.js';
-import {
-  getMyProfileSchema,
-  getMyProfile,
-  type GetMyProfileInput,
-} from './tools/get-my-profile.js';
-import {
-  updateMyProfileSchema,
-  updateMyProfile,
-  type UpdateMyProfileInput,
-} from './tools/update-my-profile.js';
-import {
-  listMyOrdersSchema,
-  listMyOrders,
-  type ListMyOrdersInput,
-} from './tools/list-my-orders.js';
-import {
-  getOrderStatusSchema,
-  getOrderStatus,
-  type GetOrderStatusInput,
-} from './tools/get-order-status.js';
-import {
-  trackShipmentSchema,
-  trackShipment,
-  type TrackShipmentInput,
-} from './tools/track-shipment.js';
-import {
-  getCartSchema,
-  getCart,
-  type GetCartInput,
-} from './tools/get-cart.js';
-import {
-  updateCartSchema,
-  updateCart,
-  type UpdateCartInput,
-} from './tools/update-cart.js';
-import {
-  createCheckoutSchema,
-  createCheckout,
-  type CreateCheckoutInput,
-} from './tools/create-checkout.js';
-import {
-  listWishlistSchema,
-  listWishlist,
-  type ListWishlistInput,
-} from './tools/list-wishlist.js';
-import {
-  addToWishlistSchema,
-  addToWishlist,
-  type AddToWishlistInput,
-} from './tools/add-to-wishlist.js';
-import {
-  removeFromWishlistSchema,
-  removeFromWishlist,
-  type RemoveFromWishlistInput,
-} from './tools/remove-from-wishlist.js';
-import {
-  listCategoriesSchema,
-  listCategories,
-  type ListCategoriesInput,
-} from './tools/list-categories.js';
-import {
-  getProductReviewsSchema,
-  getProductReviews,
-  type GetProductReviewsInput,
-} from './tools/get-product-reviews.js';
+import { registerAllTools } from './tools/registry.js';
 import { readProductsCatalog } from './resources/catalog.js';
 import { readStorePolicies } from './resources/policies.js';
 import {
@@ -131,8 +48,36 @@ const MCP_CORS_ORIGINS = (process.env.MCP_CORS_ORIGINS || 'https://claude.ai,htt
 
 const transports = new Map<string, StreamableHTTPServerTransport>();
 
-// Track tool count for health check
-const TOOL_COUNT = 17; // Increment as tools are added
+/**
+ * In-memory event store for SSE resumability (Last-Event-ID support)
+ */
+class InMemoryEventStore implements EventStore {
+  private events = new Map<string, { streamId: string; message: JSONRPCMessage }>();
+
+  async storeEvent(streamId: string, message: JSONRPCMessage): Promise<string> {
+    const eventId = `${streamId}_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
+    this.events.set(eventId, { streamId, message });
+    return eventId;
+  }
+
+  async replayEventsAfter(
+    lastEventId: string,
+    { send }: { send: (eventId: string, message: JSONRPCMessage) => Promise<void> }
+  ): Promise<string> {
+    if (!lastEventId || !this.events.has(lastEventId)) return '';
+    const streamId = lastEventId.split('_')[0] || '';
+    if (!streamId) return '';
+
+    let foundLast = false;
+    const sorted = [...this.events.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+    for (const [eventId, { streamId: evtStream, message }] of sorted) {
+      if (evtStream !== streamId) continue;
+      if (eventId === lastEventId) { foundLast = true; continue; }
+      if (foundLast) await send(eventId, message);
+    }
+    return streamId;
+  }
+}
 
 // ===================================
 // MCP SERVER FACTORY
@@ -144,414 +89,8 @@ function createMcpServer(): McpServer {
     { capabilities: { tools: {}, resources: {}, prompts: {}, logging: {}, completions: {} } }
   );
 
-  // Tool: search_products (PUBLIC — no auth required)
-  server.registerTool(
-    'search_products',
-    {
-      description: 'Search for products in the store catalog by title, description, or category',
-      inputSchema: searchProductsSchema,
-      title: 'Search Products',
-      annotations: {
-        readOnlyHint: true,
-        idempotentHint: true,
-        destructiveHint: false,
-        openWorldHint: true,
-      },
-    },
-    withAuditLog('search_products', async (input: SearchProductsInput) => {
-      const result = await searchProducts(input);
-      return {
-        content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }],
-        structuredContent: result,
-        isError: !result.success,
-      };
-    })
-  );
-
-  // Tool: get_product_details (PUBLIC — no auth required)
-  server.registerTool(
-    'get_product_details',
-    {
-      description: 'Get detailed information about a specific product, including variants, images, and pricing',
-      inputSchema: getProductDetailsSchema,
-      title: 'Get Product Details',
-      annotations: {
-        readOnlyHint: true,
-        idempotentHint: true,
-        destructiveHint: false,
-        openWorldHint: true,
-      },
-    },
-    withAuditLog('get_product_details', async (input: GetProductDetailsInput) => {
-      const result = await getProductDetails(input);
-      return {
-        content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }],
-        structuredContent: result,
-        isError: !result.success,
-      };
-    })
-  );
-
-  // Tool: get_store_info (PUBLIC — no auth required)
-  server.registerTool(
-    'get_store_info',
-    {
-      description: 'Get general information about the store, including name, description, supported currencies, and features',
-      inputSchema: getStoreInfoSchema,
-      title: 'Get Store Info',
-      annotations: {
-        readOnlyHint: true,
-        idempotentHint: true,
-        destructiveHint: false,
-        openWorldHint: true,
-      },
-    },
-    withAuditLog('get_store_info', async (input: GetStoreInfoInput) => {
-      const result = await getStoreInfo(input);
-      return {
-        content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }],
-        structuredContent: result,
-        isError: !result.success,
-      };
-    })
-  );
-
-  // Tool: get_store_policies (PUBLIC — no auth required)
-  server.registerTool(
-    'get_store_policies',
-    {
-      description: 'Get store policies including shipping, returns/refunds, and privacy information',
-      inputSchema: getStorePoliciesSchema,
-      title: 'Get Store Policies',
-      annotations: {
-        readOnlyHint: true,
-        idempotentHint: true,
-        destructiveHint: false,
-        openWorldHint: true,
-      },
-    },
-    withAuditLog('get_store_policies', async (input: GetStorePoliciesInput) => {
-      const result = await getStorePolicies(input);
-      return {
-        content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }],
-        structuredContent: result,
-        isError: !result.success,
-      };
-    })
-  );
-
-  // Tool: get_my_profile (PROTECTED — authentication required)
-  server.registerTool(
-    'get_my_profile',
-    {
-      description: 'Get the authenticated user\'s profile information including name, email, locale, and currency preferences',
-      inputSchema: getMyProfileSchema,
-      title: 'Get My Profile',
-      annotations: {
-        readOnlyHint: true,
-        idempotentHint: true,
-        destructiveHint: false,
-        openWorldHint: true,
-      },
-    },
-    withAuditLog('get_my_profile', async (input: GetMyProfileInput, extra?: { authInfo?: AuthInfo }) => {
-      const result = await getMyProfile(input, extra?.authInfo);
-      return {
-        content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }],
-        structuredContent: result,
-        isError: !result.success,
-      };
-    })
-  );
-
-  // Tool: update_my_profile (PROTECTED + DESTRUCTIVE — authentication required)
-  server.registerTool(
-    'update_my_profile',
-    {
-      description: 'Update the authenticated user\'s profile information (name, locale). Uses context injection - userId comes from auth token.',
-      inputSchema: updateMyProfileSchema,
-      title: 'Update My Profile',
-      annotations: {
-        readOnlyHint: false,
-        idempotentHint: false,
-        destructiveHint: true,
-        openWorldHint: true,
-      },
-    },
-    withAuditLog('update_my_profile', async (input: UpdateMyProfileInput, extra?: { authInfo?: AuthInfo }) => {
-      const result = await updateMyProfile(input, extra?.authInfo);
-      return {
-        content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }],
-        structuredContent: result,
-        isError: !result.success,
-      };
-    })
-  );
-
-  // Tool: list_my_orders (PROTECTED — authentication required)
-  server.registerTool(
-    'list_my_orders',
-    {
-      description: 'Get the authenticated user\'s order history with optional filters for status and limit',
-      inputSchema: listMyOrdersSchema,
-      title: 'List My Orders',
-      annotations: {
-        readOnlyHint: true,
-        idempotentHint: true,
-        destructiveHint: false,
-        openWorldHint: true,
-      },
-    },
-    withAuditLog('list_my_orders', async (input: ListMyOrdersInput, extra?: { authInfo?: AuthInfo }) => {
-      const result = await listMyOrders(input, extra?.authInfo);
-      return {
-        content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }],
-        structuredContent: result,
-        isError: !result.success,
-      };
-    })
-  );
-
-  // Tool: get_order_status (PROTECTED — authentication required)
-  server.registerTool(
-    'get_order_status',
-    {
-      description: 'Get detailed information about a specific order by ID, including status and line items. Returns error if the order belongs to another user.',
-      inputSchema: getOrderStatusSchema,
-      title: 'Get Order Status',
-      annotations: {
-        readOnlyHint: true,
-        idempotentHint: true,
-        destructiveHint: false,
-        openWorldHint: true,
-      },
-    },
-    withAuditLog('get_order_status', async (input: GetOrderStatusInput, extra?: { authInfo?: AuthInfo }) => {
-      const result = await getOrderStatus(input, extra?.authInfo);
-      return {
-        content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }],
-        structuredContent: result,
-        isError: !result.success,
-      };
-    })
-  );
-
-  // Tool: track_shipment (PROTECTED — authentication required)
-  server.registerTool(
-    'track_shipment',
-    {
-      description: 'Get shipment tracking information for a specific order by ID. Returns tracking number, carrier, estimated delivery, and shipping address. Returns error if the order belongs to another user.',
-      inputSchema: trackShipmentSchema,
-      title: 'Track Shipment',
-      annotations: {
-        readOnlyHint: true,
-        idempotentHint: true,
-        destructiveHint: false,
-        openWorldHint: true,
-      },
-    },
-    withAuditLog('track_shipment', async (input: TrackShipmentInput, extra?: { authInfo?: AuthInfo }) => {
-      const result = await trackShipment(input, extra?.authInfo);
-      return {
-        content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }],
-        structuredContent: result,
-        isError: !result.success,
-      };
-    })
-  );
-
-  // Tool: get_cart (PROTECTED — authentication required)
-  server.registerTool(
-    'get_cart',
-    {
-      description: 'Get the authenticated user\'s current shopping cart contents, including product details, quantities, and prices',
-      inputSchema: getCartSchema,
-      title: 'Get Cart',
-      annotations: {
-        readOnlyHint: true,
-        idempotentHint: true,
-        destructiveHint: false,
-        openWorldHint: true,
-      },
-    },
-    withAuditLog('get_cart', async (input: GetCartInput, extra?: { authInfo?: AuthInfo }) => {
-      const result = await getCart(input, extra?.authInfo);
-      return {
-        content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }],
-        structuredContent: result,
-        isError: !result.success,
-      };
-    })
-  );
-
-  // Tool: update_cart (PROTECTED — authentication required)
-  server.registerTool(
-    'update_cart',
-    {
-      description: 'Add, update, or remove items from the shopping cart. Set quantity > 0 to add/update, or quantity = 0 to remove.',
-      inputSchema: updateCartSchema,
-      title: 'Update Cart',
-      annotations: {
-        readOnlyHint: false,
-        idempotentHint: false,
-        destructiveHint: false, // Cart operations can be undone - not permanently destructive
-        openWorldHint: true,
-      },
-    },
-    withAuditLog('update_cart', async (input: UpdateCartInput, extra?: { authInfo?: AuthInfo }) => {
-      const result = await updateCart(input, extra?.authInfo);
-      return {
-        content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }],
-        structuredContent: result,
-        isError: !result.success,
-      };
-    })
-  );
-
-  // Tool: create_checkout (PROTECTED — authentication required)
-  // CRITICAL: This tool NEVER processes payments - only returns Stripe Checkout URLs
-  server.registerTool(
-    'create_checkout',
-    {
-      description: 'Create a Stripe Checkout Session for cart items and return the checkout URL. NEVER processes payment directly - user completes payment on Stripe\'s hosted page.',
-      inputSchema: createCheckoutSchema,
-      title: 'Create Checkout',
-      annotations: {
-        readOnlyHint: true, // Read-only from MCP perspective (Stripe processes payment externally)
-        idempotentHint: false, // Creates a new session each time
-        destructiveHint: false, // Does not modify data in our system
-        openWorldHint: true, // Interacts with Stripe API
-      },
-    },
-    withAuditLog('create_checkout', async (input: CreateCheckoutInput, extra?: { authInfo?: AuthInfo }) => {
-      const result = await createCheckout(input, extra?.authInfo);
-      return {
-        content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }],
-        structuredContent: result,
-        isError: !result.success,
-      };
-    })
-  );
-
-  // Tool: list_wishlist (PROTECTED — authentication required)
-  server.registerTool(
-    'list_wishlist',
-    {
-      description: 'List all items in the authenticated user\'s default wishlist with product details',
-      inputSchema: listWishlistSchema,
-      title: 'List Wishlist',
-      annotations: {
-        readOnlyHint: true,
-        idempotentHint: true,
-        destructiveHint: false,
-        openWorldHint: true,
-      },
-    },
-    withAuditLog('list_wishlist', async (input: ListWishlistInput, extra?: { authInfo?: AuthInfo }) => {
-      const result = await listWishlist(input, extra?.authInfo);
-      return {
-        content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }],
-        structuredContent: result,
-        isError: !result.success,
-      };
-    })
-  );
-
-  // Tool: add_to_wishlist (PROTECTED + DESTRUCTIVE — authentication required)
-  server.registerTool(
-    'add_to_wishlist',
-    {
-      description: 'Add a product (and optionally a variant) to the authenticated user\'s default wishlist',
-      inputSchema: addToWishlistSchema,
-      title: 'Add to Wishlist',
-      annotations: {
-        readOnlyHint: false,
-        idempotentHint: false, // Adding the same product twice may fail due to UNIQUE constraint
-        destructiveHint: true,
-        openWorldHint: true,
-      },
-    },
-    withAuditLog('add_to_wishlist', async (input: AddToWishlistInput, extra?: { authInfo?: AuthInfo }) => {
-      const result = await addToWishlist(input, extra?.authInfo);
-      return {
-        content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }],
-        structuredContent: result,
-        isError: !result.success,
-      };
-    })
-  );
-
-  // Tool: remove_from_wishlist (PROTECTED + DESTRUCTIVE — authentication required)
-  server.registerTool(
-    'remove_from_wishlist',
-    {
-      description: 'Remove a product (and optionally a variant) from the authenticated user\'s default wishlist',
-      inputSchema: removeFromWishlistSchema,
-      title: 'Remove from Wishlist',
-      annotations: {
-        readOnlyHint: false,
-        idempotentHint: true, // Removing the same product twice is safe
-        destructiveHint: true,
-        openWorldHint: true,
-      },
-    },
-    withAuditLog('remove_from_wishlist', async (input: RemoveFromWishlistInput, extra?: { authInfo?: AuthInfo }) => {
-      const result = await removeFromWishlist(input, extra?.authInfo);
-      return {
-        content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }],
-        structuredContent: result,
-        isError: !result.success,
-      };
-    })
-  );
-
-  // Tool: list_categories (PUBLIC — no auth required)
-  server.registerTool(
-    'list_categories',
-    {
-      description: 'List all product categories with product counts. Useful for browsing the store without a search query.',
-      inputSchema: listCategoriesSchema,
-      title: 'List Categories',
-      annotations: {
-        readOnlyHint: true,
-        idempotentHint: true,
-        destructiveHint: false,
-        openWorldHint: true,
-      },
-    },
-    withAuditLog('list_categories', async (input: ListCategoriesInput) => {
-      const result = await listCategories(input);
-      return {
-        content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }],
-        structuredContent: result,
-        isError: !result.success,
-      };
-    })
-  );
-
-  // Tool: get_product_reviews (PUBLIC — no auth required)
-  server.registerTool(
-    'get_product_reviews',
-    {
-      description: 'Get reviews for a product. Returns paginated list of reviews with rating, text, and author name.',
-      inputSchema: getProductReviewsSchema,
-      title: 'Get Product Reviews',
-      annotations: {
-        readOnlyHint: true,
-        idempotentHint: true,
-        destructiveHint: false,
-        openWorldHint: true,
-      },
-    },
-    withAuditLog('get_product_reviews', async (input: GetProductReviewsInput) => {
-      const result = await getProductReviews(input);
-      return {
-        content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }],
-        structuredContent: result,
-        isError: !result.success,
-      };
-    })
-  );
+  // Register all 17 tools via registry pattern
+  registerAllTools(server);
 
   // ===================================
   // RESOURCES
@@ -746,6 +285,7 @@ async function handleMcpPost(
     // New session — create transport + server
     const transport = new StreamableHTTPServerTransport({
       sessionIdGenerator: () => randomUUID(),
+      eventStore: new InMemoryEventStore(),
       onsessioninitialized: async (sid) => {
         transports.set(sid, transport);
         console.info(`[MCP] Session initialized: ${sid}`);
@@ -810,13 +350,20 @@ async function handleMcpDelete(req: IncomingMessage, res: ServerResponse): Promi
 const server = http.createServer(async (req, res) => {
   const origin = req.headers.origin;
 
+  // Security headers (all responses)
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('Cache-Control', 'no-store');
+
   // CORS headers
   if (origin && MCP_CORS_ORIGINS.includes(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Mcp-Session-Id');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Mcp-Session-Id, MCP-Protocol-Version');
     res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Expose-Headers', 'Mcp-Session-Id, WWW-Authenticate');
     res.setHeader('Access-Control-Max-Age', '86400');
+    res.setHeader('Vary', 'Origin');
   }
 
   // Handle OPTIONS preflight
@@ -833,7 +380,7 @@ const server = http.createServer(async (req, res) => {
       JSON.stringify({
         status: 'ok',
         version: '1.0.0',
-        tools_count: TOOL_COUNT,
+        tools_count: 17,
         active_sessions: transports.size,
         timestamp: new Date().toISOString(),
       })
@@ -922,13 +469,17 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  // OAuth 2.1 endpoints
+  // OAuth 2.1 endpoints (with rate limiting)
   if (req.url?.startsWith('/oauth/authorize')) {
+    const allowed = await rateLimitMiddleware(req, res, '__oauth_authorize');
+    if (!allowed) return;
     handleAuthorize(req, res);
     return;
   }
 
   if (req.method === 'POST' && req.url === '/oauth/token') {
+    const allowed = await rateLimitMiddleware(req, res, '__oauth_token');
+    if (!allowed) return;
     await handleToken(req, res);
     return;
   }
@@ -1003,7 +554,7 @@ server.listen(PORT, () => {
   console.info(`[MCP Server] Base URL: ${MCP_BASE_URL}`);
   console.info(`[MCP Server] CORS origins:`, MCP_CORS_ORIGINS);
   console.info(`[MCP Server] Health check: http://localhost:${PORT}/health`);
-  console.info(`[MCP Server] Tools: ${TOOL_COUNT}`);
+  console.info(`[MCP Server] Tools: ${17}`);
 
   // Initialize dependencies (lazy)
   try {

@@ -38,7 +38,7 @@ Full data available via Read tool. Summaries in your prompt.
 ## Key Constraints
 - Max 500 emails per cycle
 - Every email MUST include CAN-SPAM footer:
-  `<a href="{{unsubscribe_url}}">Unsubscribe</a> | POD AI Store, Friedrichstraße 123, 10117 Berlin, Germany`
+  `<a href="{{unsubscribe_url}}">Unsubscribe</a> | c/o SKAPARA UG, Musterstraße 1, 10115 Berlin, Germany`
 - Locale-aware content (en/es/de)
 - All prices and discounts in EUR
 - A/B test: minimum 2 variants, auto-select winner after 4 hours

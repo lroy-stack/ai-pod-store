@@ -68,13 +68,14 @@ export async function getOrderStatus(
   try {
     const supabase = getSupabaseClient();
 
-    // Fetch the order
+    // Fetch the order (ownership enforced in query via user_id filter)
     const { data: orderData, error: orderError } = await supabase
       .from('orders')
       .select(
-        'id, user_id, status, total_cents, currency, created_at, paid_at, shipped_at, tracking_number, tracking_url, carrier, shipping_address, customer_email'
+        'id, status, total_cents, currency, created_at, paid_at, shipped_at, tracking_number, tracking_url, carrier, shipping_address, customer_email'
       )
       .eq('id', order_id)
+      .eq('user_id', userId)
       .single();
 
     if (orderError) {
@@ -95,14 +96,6 @@ export async function getOrderStatus(
       return {
         success: false,
         error: 'Order not found',
-      };
-    }
-
-    // Verify ownership
-    if (orderData.user_id !== userId) {
-      return {
-        success: false,
-        error: 'You do not have permission to view this order',
       };
     }
 

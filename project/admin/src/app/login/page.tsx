@@ -6,6 +6,7 @@ import { adminFetch } from '@/lib/admin-api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { STORE_NAME } from '@/lib/store-defaults';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -45,7 +46,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-background">
       <div className="w-full max-w-md p-8 space-y-6 bg-card rounded-lg border border-border shadow-lg">
         <div className="space-y-2 text-center">
-          <h1 className="text-3xl font-bold">Skapara Admin</h1>
+          <h1 className="text-3xl font-bold">{STORE_NAME} Admin</h1>
           <p className="text-muted-foreground">Sign in to access the admin panel</p>
         </div>
 

@@ -47,7 +47,7 @@ export async function GET(req: NextRequest) {
   // Find orders in 'paid' status without external_order_id (stuck after payment)
   const { data: stuckPaidOrders, error: paidFetchError } = await supabase
     .from('orders')
-    .select('id, status, stripe_payment_intent_id, total_cents, paid_at, retry_count, currency, external_order_id')
+    .select('id, status, stripe_payment_intent_id, total_cents, paid_at, pod_retry_count, currency, external_order_id')
     .eq('status', 'paid')
     .is('external_order_id', null)
     .not('stripe_payment_intent_id', 'is', null)
@@ -67,7 +67,7 @@ export async function GET(req: NextRequest) {
         continue
       }
 
-      const retryCount = order.retry_count || 0
+      const retryCount = order.pod_retry_count || 0
       const isExpired = paidAt < hardTimeoutCutoff
       const isWithinRetryWindow = paidAt > retryWindowCutoff
 
@@ -123,7 +123,7 @@ export async function GET(req: NextRequest) {
             await supabase
               .from('orders')
               .update({
-                retry_count: retryCount + 1,
+                pod_retry_count: retryCount + 1,
                 pod_error: submitResult.error,
               })
               .eq('id', order.id)

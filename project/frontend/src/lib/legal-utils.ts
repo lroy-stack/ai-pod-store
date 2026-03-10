@@ -3,7 +3,7 @@
  * Replaces {{placeholder}} patterns with actual values from legal_settings
  */
 
-import { STORE_DEFAULTS } from './store-config'
+import { COMPANY, CONTACT } from './store-config'
 
 /**
  * Legal settings structure from database
@@ -24,17 +24,17 @@ export interface LegalSettings {
 
 /**
  * Fallback default values when DB is unavailable
- * Uses store-config.ts defaults + sensible legal defaults
+ * Uses store-config.ts as single source of truth
  */
 const LEGAL_FALLBACKS: LegalSettings = {
-  company_name: STORE_DEFAULTS.storeName,
-  company_address: '',
-  company_email: 'hello@skapara.com',
-  tax_id: '',
+  company_name: COMPANY.legalName,
+  company_address: COMPANY.address,
+  company_email: CONTACT.general,
+  tax_id: COMPANY.taxId,
   trade_register_court: '',
   trade_register_number: '',
   dpo_name: 'Data Protection Officer',
-  dpo_email: 'privacy@skapara.com',
+  dpo_email: CONTACT.privacy,
   cookie_policy_url: '/cookies',
   privacy_policy_url: '/privacy',
   terms_of_service_url: '/terms',

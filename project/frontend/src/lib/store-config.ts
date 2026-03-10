@@ -3,8 +3,26 @@ const _brandName = process.env.NEXT_PUBLIC_SITE_NAME || 'SKAPARA'
 
 export const BRAND = {
   name: _brandName,
+  tagline: process.env.NEXT_PUBLIC_SITE_TAGLINE || 'Wear what you mean',
+  description: {
+    en: 'Unique fashion & accessories designed with you, made in Europe. Find your next favorite piece.',
+    es: 'Moda y accesorios únicos diseñados contigo, hechos en Europa. Encuentra tu próxima pieza favorita.',
+    de: 'Einzigartige Mode & Accessoires mit dir gestaltet, hergestellt in Europa. Finde dein nächstes Lieblingsstück.',
+  },
   logoLight: '/brand/skapara-mark-dark.svg',
   logoDark: '/brand/skapara-mark-white.svg',
+  logoFull: '/brand/skapara-wordmark-dark.svg',
+  logoFullLight: '/brand/skapara-wordmark-dark.svg',
+} as const
+
+/** Company legal entity — single source of truth */
+const _companyName = process.env.STORE_COMPANY_NAME || 'SKAPARA UG (haftungsbeschränkt)'
+export const COMPANY = {
+  legalName: _companyName,
+  shortName: _companyName.split(' (')[0],
+  address: process.env.STORE_COMPANY_ADDRESS || 'c/o SKAPARA UG, Musterstraße 1, 10115 Berlin, Germany',
+  country: 'DE',
+  taxId: '',
 } as const
 
 /** Store-wide defaults — single source of truth */
@@ -94,18 +112,49 @@ export const SHIPPING_RATES: Record<string, Array<{ method: string; price: numbe
 /** Canonical base URL — single source of truth */
 export const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://skapara.com'
 
-/** Contact emails */
+/**
+ * Contact emails — single source of truth for ALL email addresses.
+ * SERVER-ONLY: These use runtime env vars (no NEXT_PUBLIC_ prefix).
+ * Do NOT import CONTACT in client components ('use client').
+ */
+const _noreply = process.env.STORE_NOREPLY_EMAIL || process.env.RESEND_FROM_EMAIL || 'noreply@skapara.com'
 export const CONTACT = {
-  general: 'hello@skapara.com',
-  support: 'support@skapara.com',
+  general: process.env.STORE_CONTACT_EMAIL || 'hello@skapara.com',
+  support: process.env.STORE_SUPPORT_EMAIL || 'support@skapara.com',
+  legal: process.env.STORE_LEGAL_EMAIL || 'legal@skapara.com',
+  privacy: process.env.STORE_PRIVACY_EMAIL || 'privacy@skapara.com',
+  noreply: _noreply,
+  push: `mailto:${_noreply}`,
 } as const
+
+/** Email template color palette — used by resend.ts and all transactional emails */
+export const EMAIL_PALETTE = {
+  gradientStart: '#667eea',
+  gradientEnd: '#764ba2',
+  heading: '#667eea',
+  ctaButton: '#667eea',
+  bodyText: '#333',
+  mutedText: '#6b7280',
+  footerText: '#9ca3af',
+  panelBg: '#f9fafb',
+  cardBorder: '#e5e7eb',
+  warningBg: '#fef3c7',
+  warningBorder: '#f59e0b',
+} as const
+
+/** Formatted email sender — use for Resend 'from' field */
+export const EMAIL_FROM = `${_brandName} <${process.env.RESEND_FROM_EMAIL || CONTACT.noreply}>`
 
 /** Social media links */
 export const SOCIAL_LINKS = {
-  instagram: 'https://instagram.com/skapara',
-  twitter: 'https://twitter.com/skapara',
-  facebook: 'https://facebook.com/skapara',
+  instagram: process.env.NEXT_PUBLIC_SOCIAL_INSTAGRAM || 'https://instagram.com/skapara',
+  twitter: process.env.NEXT_PUBLIC_SOCIAL_TWITTER || 'https://twitter.com/skapara',
+  facebook: process.env.NEXT_PUBLIC_SOCIAL_FACEBOOK || 'https://facebook.com/skapara',
 } as const
 
+/** Store domain — derived from BASE_URL or explicit env var */
+const _storeDomain = process.env.STORE_DOMAIN
+  || (() => { try { return new URL(BASE_URL).hostname } catch { return 'skapara.com' } })()
+
 /** Primary domains — used by middleware and tenant resolution */
-export const PRIMARY_DOMAINS = ['localhost', '127.0.0.1', '0.0.0.0', 'skapara.com'] as const
+export const PRIMARY_DOMAINS = ['localhost', '127.0.0.1', '0.0.0.0', _storeDomain] as const

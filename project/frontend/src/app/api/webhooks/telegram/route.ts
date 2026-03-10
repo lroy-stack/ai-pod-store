@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
+import { BRAND, BASE_URL } from '@/lib/store-config';
 
 // Telegram webhook handler
 // Receives updates from Telegram Bot API
@@ -172,10 +173,10 @@ export async function POST(request: NextRequest) {
             await sendTelegramMessage(
               chatId,
               '🔗 Account Linking\n\n' +
-              'To link your Skapara account:\n' +
-              '1. Visit https://skapara.com/account/linking\n' +
+              `To link your ${BRAND.name} account:\n` +
+              `1. Visit ${BASE_URL}/account/linking\n` +
               '2. Enter this code: ' + userId.toString().slice(-6) + '\n\n' +
-              'This will connect your Telegram to your Skapara account.'
+              `This will connect your Telegram to your ${BRAND.name} account.`
             );
             break;
 

@@ -169,15 +169,21 @@ class PodClawAgent:
             "cron:cataloger:pricing"     → ("cataloger", "cataloger_pricing")
             "cron:cataloger:peakprep"    → ("cataloger", "cataloger_peakprep")
             "heartbeat:researcher"       → ("researcher", "researcher")
+            "ceo:whatsapp:designer"      → ("designer", "designer")
+            "ceo:telegram:finance"       → ("finance", "finance")
         """
         parts = source.split(":")
         if len(parts) < 2:
             return None, None
 
-        prefix = parts[0]  # "cron" or "heartbeat"
+        prefix = parts[0]  # "cron", "heartbeat", or "ceo"
         agent_name = parts[1]
 
-        if len(parts) >= 3:
+        # CEO messages: "ceo:platform:agent" or "ceo:agent"
+        if prefix == "ceo" and len(parts) >= 3:
+            agent_name = parts[2]
+            task_key = agent_name
+        elif len(parts) >= 3:
             # "cron:cataloger:pricing" → task_key = "cataloger_pricing"
             suffix = parts[2]
             task_key = f"{agent_name}_{suffix}"
@@ -211,6 +217,14 @@ class PodClawAgent:
         if source.startswith("heartbeat:"):
             return (
                 f"[HEARTBEAT DISPATCH]\n"
+                f"{message}\n\n"
+                f"[CONTEXT]\n"
+                f"{context}"
+            )
+
+        if source.startswith("ceo:"):
+            return (
+                f"[CEO DIRECT REQUEST]\n"
                 f"{message}\n\n"
                 f"[CONTEXT]\n"
                 f"{context}"

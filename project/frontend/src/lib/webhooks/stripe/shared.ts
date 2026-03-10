@@ -3,7 +3,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js'
-import { BASE_URL } from '@/lib/store-config'
+import { BASE_URL, EMAIL_FROM } from '@/lib/store-config'
 
 // Initialize Supabase client with service role key for webhook
 export const supabase = createClient(
@@ -29,7 +29,7 @@ export async function sendOrderIssueEmail(email: string, orderId: string, locale
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: process.env.RESEND_FROM_EMAIL || 'SKAPARA <noreply@skapara.com>',
+        from: EMAIL_FROM,
         to: email,
         subject: locale === 'es'
           ? `Pedido #${orderNumber} — Revisión necesaria`

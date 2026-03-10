@@ -57,6 +57,31 @@ class TelegramMCPConnector:
                 },
                 "handler": self._send_photo,
             },
+            "telegram_send_inline_keyboard": {
+                "description": "Send a message with inline keyboard buttons to a Telegram chat",
+                "input_schema": {
+                    "type": "object",
+                    "properties": {
+                        "chat_id": {"type": ["string", "integer"], "description": "Telegram chat ID"},
+                        "text": {"type": "string", "description": "Message text"},
+                        "buttons": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "text": {"type": "string", "description": "Button label"},
+                                    "callback_data": {"type": "string", "description": "Callback data (e.g. approve_123)"},
+                                },
+                                "required": ["text", "callback_data"],
+                            },
+                            "description": "List of inline keyboard buttons",
+                        },
+                        "parse_mode": {"type": "string", "enum": ["Markdown", "MarkdownV2", "HTML"]},
+                    },
+                    "required": ["chat_id", "text", "buttons"],
+                },
+                "handler": self._send_inline_keyboard,
+            },
             "telegram_broadcast": {
                 "description": "Send a message to multiple Telegram chats",
                 "input_schema": {
@@ -98,6 +123,24 @@ class TelegramMCPConnector:
 
         async with httpx.AsyncClient() as client:
             resp = await client.post(f"{self._base}/sendPhoto", json=payload, timeout=15)
+            resp.raise_for_status()
+            data = resp.json()
+            return {"ok": data.get("ok", False), "message_id": data.get("result", {}).get("message_id")}
+
+    async def _send_inline_keyboard(self, params: dict[str, Any]) -> dict[str, Any]:
+        import json
+        inline_buttons = [
+            [{"text": btn["text"], "callback_data": btn["callback_data"]}]
+            for btn in params["buttons"]
+        ]
+        payload = {
+            "chat_id": params["chat_id"],
+            "text": params["text"],
+            "parse_mode": params.get("parse_mode", "Markdown"),
+            "reply_markup": json.dumps({"inline_keyboard": inline_buttons}),
+        }
+        async with httpx.AsyncClient() as client:
+            resp = await client.post(f"{self._base}/sendMessage", json=payload, timeout=15)
             resp.raise_for_status()
             data = resp.json()
             return {"ok": data.get("ok", False), "message_id": data.get("result", {}).get("message_id")}

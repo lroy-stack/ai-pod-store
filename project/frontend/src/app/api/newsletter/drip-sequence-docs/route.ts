@@ -7,6 +7,7 @@
 
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { BRAND, COMPANY, CONTACT } from '@/lib/store-config'
 
 const supabase = createClient(
   process.env.SUPABASE_URL!,
@@ -114,8 +115,8 @@ WHERE o.status = 'delivered'
         },
         compliance: {
           can_spam: 'All emails include unsubscribe link and physical address',
-          physical_address: 'Skapara Store, Friedrichstraße 123, 10117 Berlin, Germany',
-          sender: 'SKAPARA <noreply@skapara.com>',
+          physical_address: COMPANY.address,
+          sender: `${BRAND.name} <${CONTACT.noreply}>`,
           respect_preferences: 'Honors users.notification_preferences.email setting',
           locale_aware: 'Sends in customer preferred language (en/es/de)',
         },

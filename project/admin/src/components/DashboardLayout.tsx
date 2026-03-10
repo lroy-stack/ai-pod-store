@@ -9,6 +9,7 @@ import { Menu } from 'lucide-react';
 import { Button } from './ui/button';
 import { useSidebarCollapsed } from '@/hooks/useSidebarCollapsed';
 import { cn } from '@/lib/utils';
+import { STORE_NAME } from '@/lib/store-defaults';
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -44,7 +45,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                 <Menu className="h-5 w-5" />
                 <span className="sr-only">Open menu</span>
               </Button>
-              <h1 className="text-lg font-bold">Skapara Admin</h1>
+              <h1 className="text-lg font-bold">{STORE_NAME} Admin</h1>
             </div>
             {/* Mobile TopBar (notification bell only) */}
             <TopBar />

@@ -206,7 +206,16 @@
     "boughtThisWeek": "{count, plural, one {1 Person hat diese Woche gekauft} other {{count} Personen haben diese Woche gekauft}}",
     "viewedToday": "{count, plural, one {1 Ansicht heute} other {{count} Ansichten heute}}",
     "share": "Teilen",
-    "linkCopied": "Link in die Zwischenablage kopiert"
+    "linkCopied": "Link in die Zwischenablage kopiert",
+    "freeShippingOver": "Kostenloser Versand ab {amount}",
+    "shippingInfo": "Versandinformationen",
+    "deliveryEstimate": "Voraussichtliche Lieferung: 5–7 Werktage",
+    "deliveryDetails": "Bestellungen werden on-demand in Europa gedruckt und weltweit versendet. Die Lieferzeiten variieren je nach Zielort.",
+    "freeShippingTitle": "Kostenloser Versand",
+    "freeShippingDetails": "Bestellungen über 50€ qualifizieren sich für kostenlosen Standardversand innerhalb Europas.",
+    "returnPolicy": "Rückgabe & Umtausch",
+    "returnTitle": "30-Tage-Rückgaberecht",
+    "returnDetails": "Nicht zufrieden? Senden Sie ungetragene Artikel innerhalb von 30 Tagen für eine vollständige Rückerstattung zurück. Personalisierte Artikel sind vom Umtausch ausgeschlossen."
   },
   "designStudio": {
     "title": "Design-Studio",
@@ -540,7 +549,7 @@
     "shippingTo": "Versand nach",
     "noShippingOptions": "Keine Versandoptionen verfügbar",
     "recommended": "Empfohlen",
-    "freeShippingOver": "Kostenloser Versand bei Bestellungen über",
+    "freeShippingOver": "Kostenloser Versand ab {amount}",
     "acceptsCrypto": "Akzeptiert Kryptowährung",
     "editVariant": "Bearbeiten",
     "saveVariant": "Speichern",
@@ -864,6 +873,15 @@
     "printTechnique": "Drucktechnik",
     "madeIn": "Hergestellt in",
     "safetyInformation": "Produktsicherheitsinformationen (GPSR)",
+    "freeShippingOver": "Kostenloser Versand ab {amount}",
+    "shippingInfo": "Versandinformationen",
+    "deliveryEstimate": "Voraussichtliche Lieferung: 5-7 Werktage",
+    "deliveryDetails": "Bestellungen werden on-demand in Europa gedruckt und weltweit versendet. Lieferzeiten variieren je nach Zielort.",
+    "freeShippingTitle": "Kostenloser Versand",
+    "freeShippingDetails": "Bestellungen über 50 € qualifizieren sich für kostenlosen Standardversand innerhalb Europas.",
+    "returnPolicy": "Rückgabe & Umtausch",
+    "returnTitle": "30-Tage-Rückgaberecht",
+    "returnDetails": "Nicht zufrieden? Ungetragene Artikel können innerhalb von 30 Tagen für eine vollständige Rückerstattung zurückgegeben werden. Personalisierte Artikel sind vom Umtausch ausgeschlossen.",
     "shipping": "Versand",
     "shoppingCart": "Warenkorb",
     "item": "Artikel",
@@ -1021,7 +1039,7 @@
     "brandStatement": "Streetwear für Builders, Hacker und Kreative.",
     "brandBody": "Aus der Code-Kultur geboren. Made in Europe. Jedes Stück ist ein Signal.",
     "trustMadeInEU": "Made in Europe",
-    "trustReturns": "14 Tage Rückgabe",
+    "trustReturns": "30 Tage Rückgabe",
     "trustSecure": "Sicherer Checkout",
     "trustShipping": "Weltweiter Versand",
     "viewCollection": "KOLLEKTION ANSEHEN",
@@ -1203,7 +1221,7 @@
     },
     "contact": {
       "title": "Kontakt",
-      "content": "Für datenschutzbezogene Fragen, Auskunftsersuchen oder zur Ausübung Ihrer Rechte kontaktieren Sie uns bitte unter: privacy@podai.com. Wir werden innerhalb von 30 Tagen antworten."
+      "content": "Für datenschutzbezogene Fragen, Auskunftsersuchen oder zur Ausübung Ihrer Rechte kontaktieren Sie uns bitte unter: privacy@skapara.com. Wir werden innerhalb von 30 Tagen antworten."
     },
     "footer": "Diese Datenschutzerklärung kann regelmäßig aktualisiert werden. Die fortgesetzte Nutzung unserer Plattform stellt die Akzeptanz von Änderungen dar."
   },
@@ -1319,7 +1337,7 @@
     },
     "contact": {
       "title": "Kontakt",
-      "content": "Bei Fragen zu diesen Nutzungsbedingungen kontaktieren Sie uns bitte unter: legal@podai.com. Wir werden alle Anfragen innerhalb von 5 Werktagen beantworten."
+      "content": "Bei Fragen zu diesen Nutzungsbedingungen kontaktieren Sie uns bitte unter: legal@skapara.com. Wir werden alle Anfragen innerhalb von 5 Werktagen beantworten."
     },
     "footer": "Wir behalten uns das Recht vor, diese Nutzungsbedingungen jederzeit zu ändern. Die fortgesetzte Nutzung unserer Plattform stellt die Annahme von Änderungen dar."
   },
@@ -1625,9 +1643,9 @@
     "emailTitle": "E-Mail",
     "emailSubtitle": "Unser Team ist für dich da",
     "generalInquiries": "Allgemeine Anfragen",
-    "generalEmail": "hello@podai.com",
+    "generalEmail": "hello@skapara.com",
     "support": "Support",
-    "supportEmail": "support@podai.com",
+    "supportEmail": "support@skapara.com",
     "liveChatTitle": "Live-Chat",
     "liveChatSubtitle": "Chatte mit unserem Support-Team",
     "liveChatDesc": "Erhalte sofortige Antworten auf häufige Fragen oder verbinde dich über unseren Chat mit unserem Support-Team.",

@@ -49,14 +49,21 @@ export function ChatArea() {
   useEffect(() => {
     async function fetchUserData() {
       try {
-        const [sessionRes, ordersRes, favoritesRes] = await Promise.all([
-          fetch('/api/auth/session'),
-          fetch('/api/orders?limit=3&status=processing,pending'),
-          fetch('/api/wishlist'),
-        ])
+        // Check session first, then only fetch orders/wishlist if authenticated
+        const sessionRes = await fetch('/api/auth/session')
         const session = await sessionRes.json()
-        const orders = ordersRes.ok ? await ordersRes.json() : null
-        const favorites = favoritesRes.ok ? await favoritesRes.json() : null
+
+        let orders = null
+        let favorites = null
+
+        if (session.user) {
+          const [ordersRes, favoritesRes] = await Promise.all([
+            fetch('/api/orders?limit=3&status=processing,pending'),
+            fetch('/api/wishlist'),
+          ])
+          orders = ordersRes.ok ? await ordersRes.json() : null
+          favorites = favoritesRes.ok ? await favoritesRes.json() : null
+        }
         // Extract recent favorite items from wishlists response
         const recentItems = favorites?.wishlists
           ?.flatMap((w: any) => w.wishlist_items || [])

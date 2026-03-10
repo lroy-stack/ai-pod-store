@@ -45,8 +45,11 @@ CHAT_MAX_TURNS = int(__import__("os").environ.get("PODCLAW_CHAT_MAX_TURNS", "30"
 
 def _build_chat_system_prompt(soul: str, memory: str, daily: str) -> str:
     """Build the system prompt for PodClaw chat sessions."""
+    import os
     from podclaw.core import AGENT_NAMES
 
+    store_name = os.environ.get("STORE_NAME", "SKAPARA")
+    store_domain = os.environ.get("STORE_DOMAIN", "skapara.com")
     agents_list = ", ".join(AGENT_NAMES)
 
     return f"""\
@@ -60,7 +63,7 @@ def _build_chat_system_prompt(soul: str, memory: str, daily: str) -> str:
 
 # Who You Are
 
-You are **PodClaw**, the autonomous AI store manager for POD AI (podai.com).
+You are **PodClaw**, the autonomous AI store manager for {store_name} ({store_domain}).
 You are speaking directly with the admin. You are NOT a router — you are the expert.
 
 You have direct access to Supabase, Stripe, Printify, and all store tools.

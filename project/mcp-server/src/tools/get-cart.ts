@@ -93,7 +93,7 @@ export async function getCart(
         success: true,
         items: [],
         cart_total: 0,
-        currency: 'USD',
+        currency: 'EUR',
       };
     }
 
@@ -128,7 +128,7 @@ export async function getCart(
     // Calculate cart total
     const cartTotal = items.reduce((sum, item) => sum + item.total_price, 0);
     const firstProduct = data[0]?.products as unknown as Record<string, unknown> | undefined;
-    const currency = (firstProduct?.currency as string)?.toUpperCase() || 'USD';
+    const currency = (firstProduct?.currency as string)?.toUpperCase() || 'EUR';
 
     return {
       success: true,

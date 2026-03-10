@@ -50,8 +50,11 @@ class TestSchedulerInit:
 
     def test_jobs_registered(self, scheduler):
         jobs = scheduler.scheduler.get_jobs()
-        # Should have agent jobs + system jobs (memory_consolidation, session_reaper, production_governor)
-        assert len(jobs) >= 10
+        # Sprint 2: Agent crons disabled — only system jobs remain (8 total):
+        # production_governor, memory_consolidation, session_reaper,
+        # event_cleanup, memory_decay, memory_health_check, memory_snapshot,
+        # ceo_inactivity_check
+        assert len(jobs) >= 8
 
     def test_system_jobs_present(self, scheduler):
         job_ids = {j.id for j in scheduler.scheduler.get_jobs()}
@@ -59,12 +62,12 @@ class TestSchedulerInit:
         assert "session_reaper" in job_ids
         assert "production_governor" in job_ids
 
-    def test_cataloger_has_split_jobs(self, scheduler):
-        """Cataloger has 3 hours (8,14,18) so should have 3 separate jobs."""
+    def test_cataloger_disabled_no_split_jobs(self, scheduler):
+        """Sprint 2: Cataloger cron disabled — no split jobs created."""
         job_ids = {j.id for j in scheduler.scheduler.get_jobs()}
-        assert "cataloger_h8_scheduled" in job_ids
-        assert "cataloger_h14_scheduled" in job_ids
-        assert "cataloger_h18_scheduled" in job_ids
+        assert "cataloger_h8_scheduled" not in job_ids
+        assert "cataloger_h14_scheduled" not in job_ids
+        assert "cataloger_h18_scheduled" not in job_ids
 
 
 # ---------------------------------------------------------------------------
@@ -95,7 +98,8 @@ class TestGetJobs:
     def test_get_jobs_returns_list(self, scheduler):
         jobs = scheduler.get_jobs()
         assert isinstance(jobs, list)
-        assert len(jobs) >= 10
+        # Sprint 2: Only 8 system jobs (agent crons disabled)
+        assert len(jobs) >= 8
 
     def test_job_has_required_fields(self, scheduler):
         jobs = scheduler.get_jobs()
@@ -132,19 +136,31 @@ class TestStartStop:
 
 class TestPauseResume:
 
-    async def test_pause_agent_pauses_jobs(self, scheduler):
-        scheduler.start()
-        scheduler.pause_agent("researcher")
-        # After pause, the job should exist (we just paused it)
-        job = scheduler.scheduler.get_job("researcher_scheduled")
+    async def test_pause_agent_pauses_jobs(self, mock_orchestrator, tmp_path):
+        """Test pause with a temporarily enabled agent (researcher disabled in Sprint 2)."""
+        # Create scheduler with researcher enabled for this test
+        import json
+        schedule_file = tmp_path / "podclaw_schedule.json"
+        custom = {"researcher": {"schedule": "0 6 * * *", "enabled": True}}
+        schedule_file.write_text(json.dumps(custom))
+        sched = PodClawScheduler(orchestrator=mock_orchestrator, workspace_root=tmp_path)
+        sched.start()
+        sched.pause_agent("researcher")
+        job = sched.scheduler.get_job("researcher_scheduled")
         assert job is not None
-        scheduler.stop()
+        sched.stop()
 
-    async def test_resume_agent(self, scheduler):
-        scheduler.start()
-        scheduler.pause_agent("researcher")
-        scheduler.resume_agent("researcher")
-        scheduler.stop()
+    async def test_resume_agent(self, mock_orchestrator, tmp_path):
+        """Test resume with a temporarily enabled agent."""
+        import json
+        schedule_file = tmp_path / "podclaw_schedule.json"
+        custom = {"researcher": {"schedule": "0 6 * * *", "enabled": True}}
+        schedule_file.write_text(json.dumps(custom))
+        sched = PodClawScheduler(orchestrator=mock_orchestrator, workspace_root=tmp_path)
+        sched.start()
+        sched.pause_agent("researcher")
+        sched.resume_agent("researcher")
+        sched.stop()
 
 
 # ---------------------------------------------------------------------------

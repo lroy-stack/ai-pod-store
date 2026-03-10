@@ -393,7 +393,7 @@ export function getChatTools(ctx: ChatToolsContext) {
         try {
           let dbQuery = supabase
             .from('products')
-            .select('id, title, description, category_id, categories(slug), base_price_cents, currency, images, avg_rating, review_count, created_at')
+            .select('id, title, description, category_id, categories(slug), base_price_cents, compare_at_price_cents, currency, images, avg_rating, review_count, created_at')
             .eq('status', 'active')
             .limit(limit)
 

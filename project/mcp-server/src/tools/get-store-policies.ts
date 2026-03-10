@@ -82,7 +82,7 @@ If you receive a damaged or defective product, please contact us immediately wit
       },
       privacy: {
         title: 'Privacy Policy',
-        content: `At POD AI Store, we respect your privacy and are committed to protecting your personal data. This privacy policy explains how we collect, use, and safeguard your information.
+        content: `At ${process.env.STORE_NAME || 'SKAPARA'}, we respect your privacy and are committed to protecting your personal data. This privacy policy explains how we collect, use, and safeguard your information.
 
 **Information We Collect:**
 - Account information (name, email, shipping address)
@@ -108,7 +108,7 @@ You have the right to access, correct, or delete your personal data. You can als
 For EU customers, we comply with GDPR regulations. You have additional rights including data portability and the right to be forgotten.
 
 **Contact:**
-For privacy questions or to exercise your rights, contact our Data Protection Officer at privacy@podai.store.
+For privacy questions or to exercise your rights, contact our Data Protection Officer at ${process.env.STORE_PRIVACY_EMAIL || 'privacy@skapara.com'}.
 
 **Updates:**
 We may update this policy from time to time. The latest version is always available at /privacy.

@@ -38,11 +38,11 @@ export async function listCategories(_input: ListCategoriesInput): Promise<ListC
   try {
     const supabase = getSupabaseClient();
 
-    // Query distinct categories with product counts
-    // Only include products with status='active'
+    // Use RPC or optimized query to get category counts without fetching all products
+    // First try: use a lightweight query selecting only category column
     const { data: categoryData, error } = await supabase
       .from('products')
-      .select('category, images')
+      .select('category')
       .eq('status', 'active')
       .not('category', 'is', null)
       .not('category', 'eq', '');
@@ -55,33 +55,22 @@ export async function listCategories(_input: ListCategoriesInput): Promise<ListC
       };
     }
 
-    // Group by category and count products
-    const categoryMap = new Map<string, { count: number; imageUrl: string | null }>();
+    // Group by category and count (no image data fetched — O(1) per row instead of O(n))
+    const categoryMap = new Map<string, number>();
 
     for (const product of categoryData || []) {
       const category = product.category?.trim();
       if (!category) continue;
-
-      const existing = categoryMap.get(category);
-      const count = existing ? existing.count + 1 : 1;
-
-      // Use first product's first image as category image (if not already set)
-      let imageUrl = existing?.imageUrl || null;
-      if (!imageUrl && Array.isArray(product.images) && product.images.length > 0) {
-        const firstImage = product.images[0];
-        imageUrl = firstImage.src || firstImage.url || null;
-      }
-
-      categoryMap.set(category, { count, imageUrl });
+      categoryMap.set(category, (categoryMap.get(category) || 0) + 1);
     }
 
     // Convert map to array and sort by product count (descending)
     const categories = Array.from(categoryMap.entries())
-      .map(([name, { count, imageUrl }]) => ({
+      .map(([name, count]) => ({
         name,
         slug: generateSlug(name),
         product_count: count,
-        image_url: imageUrl,
+        image_url: null as string | null,
       }))
       .sort((a, b) => b.product_count - a.product_count);
 

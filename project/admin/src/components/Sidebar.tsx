@@ -19,8 +19,10 @@ import {
   Settings,
   Palette,
   Sparkles,
+  Megaphone,
   ChevronLeft,
   ChevronRight,
+  Ticket,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Separator } from './ui/separator';
@@ -61,6 +63,7 @@ const navigationSections: NavSection[] = [
   {
     label: 'Content',
     items: [
+      { name: 'Pages & Heroes', href: '/content', icon: Megaphone },
       { name: 'Branding', href: '/branding', icon: Palette },
       { name: 'Translations', href: '/translations', icon: Languages },
       { name: 'SEO', href: '/seo', icon: Search },
@@ -78,6 +81,7 @@ const navigationSections: NavSection[] = [
   {
     label: 'Marketing',
     items: [
+      { name: 'Coupons', href: '/coupons', icon: Ticket },
       { name: 'Analytics', href: '/analytics', icon: TrendingUp },
       { name: 'Finance', href: '/finance', icon: DollarSign },
     ],

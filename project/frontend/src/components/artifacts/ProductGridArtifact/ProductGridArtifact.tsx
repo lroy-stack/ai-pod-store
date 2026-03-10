@@ -84,9 +84,15 @@ function ProductCard({
   const { isWishlisted, toggleWishlist } = useWishlist()
   const wishlisted = isWishlisted(product.id)
 
-  // Color variant selection
+  // Color variant selection — light colors first (White, etc.)
   const colorImages = product.variants?.colorImages
-  const colorEntries = colorImages ? Object.entries(colorImages) : []
+  const colorEntries = colorImages
+    ? Object.entries(colorImages).sort(([a], [b]) => {
+        const aLight = /^white/i.test(a) ? 0 : 1
+        const bLight = /^white/i.test(b) ? 0 : 1
+        return aLight - bLight
+      })
+    : []
   const hasMultipleColors = colorEntries.length > 1
   const [colorIdx, setColorIdx] = useState(0)
 

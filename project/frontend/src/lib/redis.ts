@@ -9,6 +9,7 @@ import Redis from 'ioredis'
 
 let redisClient: Redis | null = null
 let redisAvailable = false
+let redisErrorLogged = false
 
 /**
  * Initialize Redis client with graceful error handling
@@ -33,18 +34,25 @@ function initRedis(): Redis | null {
     })
 
     client.on('error', (err) => {
-      console.warn('[Redis] Connection error (caching disabled):', err.message)
+      if (!redisErrorLogged) {
+        console.warn('[Redis] Connection error (caching disabled):', err.message)
+        redisErrorLogged = true
+      }
       redisAvailable = false
     })
 
     client.on('connect', () => {
       console.log('[Redis] Connected successfully')
       redisAvailable = true
+      redisErrorLogged = false
     })
 
     // Try to connect
     client.connect().catch((err) => {
-      console.warn('[Redis] Failed to connect (caching disabled):', err.message)
+      if (!redisErrorLogged) {
+        console.warn('[Redis] Failed to connect (caching disabled):', err.message)
+        redisErrorLogged = true
+      }
       redisAvailable = false
     })
 

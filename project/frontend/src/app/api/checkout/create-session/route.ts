@@ -9,6 +9,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { STORE_DEFAULTS, ALLOWED_SHIPPING_COUNTRIES, BASE_URL } from '@/lib/store-config';
+import { validateCoupon } from '@/lib/coupon-validation';
 
 /**
  * POST /api/checkout/create-session
@@ -132,30 +133,24 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // --- Coupon validation ---
+    // --- Coupon validation (shared logic with /api/coupons/validate) ---
     let validatedCoupon: { code: string; discount_type: string; discount_value: number } | null = null;
     if (couponCode && typeof couponCode === 'string') {
-      const { data: coupon } = await supabaseAdmin
-        .from('coupons')
-        .select('code, discount_type, discount_value, active, min_purchase_amount, usage_limit, times_used')
-        .eq('code', couponCode.trim().toUpperCase())
-        .eq('active', true)
-        .single();
-
-      if (coupon) {
-        const cartTotalForValidation = cartItems.reduce(
-          (sum: number, item: any) => sum + ((item.product_price || 0) * (item.quantity || 1)),
-          0
-        );
-        const meetsMinimum = !coupon.min_purchase_amount || cartTotalForValidation >= coupon.min_purchase_amount;
-        const hasUsesLeft = !coupon.usage_limit || (coupon.times_used || 0) < coupon.usage_limit;
-        if (meetsMinimum && hasUsesLeft) {
-          validatedCoupon = {
-            code: coupon.code,
-            discount_type: coupon.discount_type,
-            discount_value: coupon.discount_value,
-          };
-        }
+      const cartTotalForValidation = cartItems.reduce(
+        (sum: number, item: any) => sum + ((item.product_price || 0) * (item.quantity || 1)),
+        0
+      );
+      const couponResult = await validateCoupon({
+        code: couponCode,
+        cartTotal: cartTotalForValidation,
+        userId: body.userId || null,
+      });
+      if (couponResult.valid) {
+        validatedCoupon = {
+          code: couponResult.coupon.code,
+          discount_type: couponResult.coupon.discount_type,
+          discount_value: Number(couponResult.coupon.discount_value),
+        };
       }
     }
 
@@ -391,12 +386,11 @@ export async function POST(req: NextRequest) {
       metadata: {
         locale,
         cart_items: JSON.stringify(cartItems.map((item: any) => ({
-          product_id: item.product_id,
-          variant_id: item.variant_id,
-          quantity: item.quantity,
-          personalization_id: item.personalization_id || null,
-          composition_id: item.composition_id || null,
-          production_urls: item._production_urls || null,
+          pid: item.product_id,
+          vid: item.variant_id,
+          qty: item.quantity,
+          ...(item.personalization_id ? { per: item.personalization_id } : {}),
+          ...(item.composition_id ? { comp: item.composition_id } : {}),
         }))),
         ...(gift_message && typeof gift_message === 'string' && { gift_message: gift_message.slice(0, 200) }),
       },

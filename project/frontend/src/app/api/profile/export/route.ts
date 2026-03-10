@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 import { fetchLegalSettings, resolvePlaceholders } from '@/lib/legal-utils'
+import { BRAND } from '@/lib/store-config'
 import JSZip from 'jszip'
 
 export async function GET(request: NextRequest) {
@@ -145,7 +146,7 @@ If you have questions about your data, please contact: {{company_email}}
       status: 200,
       headers: {
         'Content-Type': 'application/zip',
-        'Content-Disposition': `attachment; filename="podai-data-export-${user.id.slice(0, 8)}-${Date.now()}.zip"`,
+        'Content-Disposition': `attachment; filename="${BRAND.name.toLowerCase()}-data-export-${user.id.slice(0, 8)}-${Date.now()}.zip"`,
         'Content-Length': zipBuffer.length.toString(),
       },
     })

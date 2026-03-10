@@ -7,6 +7,7 @@
 import { cache } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { getCachedBrandConfig, setCachedBrandConfig } from '@/lib/cached-queries'
+import { BRAND } from '@/lib/store-config'
 
 export interface BrandConfig {
   brandName: string
@@ -26,20 +27,16 @@ export interface BrandConfig {
 }
 
 const fallbackConfig: BrandConfig = {
-  brandName: 'SKAPARA',
-  brandTagline: 'Wear what you mean',
-  logoLightUrl: '/brand/skapara-mark-dark.svg',
-  logoDarkUrl: '/brand/skapara-mark-white.svg',
+  brandName: BRAND.name,
+  brandTagline: BRAND.tagline,
+  logoLightUrl: BRAND.logoLight,
+  logoDarkUrl: BRAND.logoDark,
   seoTitles: {
-    en: 'SKAPARA — Wear what you mean',
-    es: 'SKAPARA — Viste lo que sientes',
-    de: 'SKAPARA — Trag, was du meinst',
+    en: `${BRAND.name} — ${BRAND.tagline}`,
+    es: `${BRAND.name} — Viste lo que sientes`,
+    de: `${BRAND.name} — Trag, was du meinst`,
   },
-  seoDescriptions: {
-    en: 'Unique fashion & accessories designed with you, made in Europe. Find your next favorite piece.',
-    es: 'Moda y accesorios únicos diseñados contigo, hechos en Europa. Encuentra tu próxima pieza favorita.',
-    de: 'Einzigartige Mode & Accessoires mit dir gestaltet, hergestellt in Europa. Finde dein nächstes Lieblingsstück.',
-  },
+  seoDescriptions: BRAND.description,
 }
 
 /**

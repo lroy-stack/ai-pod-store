@@ -2,7 +2,7 @@
 
 /**
  * POD AI Setup Wizard
- * Zero-dependency Node.js setup tool for the POD AI Store platform
+ * Zero-dependency Node.js setup tool for the SKAPARA platform
  * Uses only Node.js built-in modules - no external dependencies required
  */
 
@@ -910,7 +910,7 @@ function getHTMLTemplate() {
       <!-- Step 6: Deploy -->
       <div x-show="currentStep === 5" x-cloak>
         <h2 class="text-2xl font-bold mb-4">Deploy</h2>
-        <p class="text-gray-600 mb-6">Start your POD AI Store with Docker Compose</p>
+        <p class="text-gray-600 mb-6">Start your SKAPARA with Docker Compose</p>
 
         <div class="space-y-4">
           <button
@@ -967,7 +967,7 @@ function getHTMLTemplate() {
 
           <div x-show="deployComplete" class="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
             <h3 class="font-semibold text-green-800 mb-2">✓ Deployment Complete!</h3>
-            <p class="text-green-700 mb-4">Your POD AI Store is now running.</p>
+            <p class="text-green-700 mb-4">Your SKAPARA is now running.</p>
             <a
               href="http://localhost:3000"
               target="_blank"

@@ -173,7 +173,7 @@ export default function CartView({ locale }: { locale: string }) {
       const response = await apiFetch('/api/coupons/validate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: couponCode.trim(), cartTotal }),
+        body: JSON.stringify({ code: couponCode.trim(), cartTotal, userId: user?.id || null }),
       })
 
       const data = await response.json()

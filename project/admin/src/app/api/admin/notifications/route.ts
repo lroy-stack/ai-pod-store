@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { withAuth } from '@/lib/auth-middleware';
+import { ADMIN_EMAIL } from '@/lib/store-defaults';
 
 async function handler(req: NextRequest) {
   try {
@@ -8,7 +9,7 @@ async function handler(req: NextRequest) {
     const { data: adminUser } = await supabaseAdmin
       .from('users')
       .select('id')
-      .eq('email', 'admin@skapara.com')
+      .eq('email', ADMIN_EMAIL)
       .single();
 
     if (!adminUser) {

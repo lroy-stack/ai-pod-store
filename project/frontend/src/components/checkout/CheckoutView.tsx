@@ -240,9 +240,12 @@ export default function CheckoutView({ locale }: { locale: string }) {
         body.gift_message = giftMessageText.trim()
       }
 
-      // Add coupon code if applied
+      // Add coupon code and userId if applied
       if (appliedCoupon) {
         body.couponCode = appliedCoupon.code
+      }
+      if (user?.id) {
+        body.userId = user.id
       }
 
       const response = await apiFetch('/api/checkout/create-session', {

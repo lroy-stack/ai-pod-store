@@ -6,27 +6,15 @@
 
 import { Resend } from 'resend'
 import { getBrandConfig } from '@/lib/brand-config-server'
-import { BASE_URL } from '@/lib/store-config'
+import { BASE_URL, BRAND, COMPANY, CONTACT, EMAIL_PALETTE, EMAIL_FROM } from '@/lib/store-config'
 
-/** Centralized email color palette — update here to match brand theme */
-const EMAIL_COLORS = {
-  gradientStart: '#667eea',
-  gradientEnd: '#764ba2',
-  heading: '#667eea',
-  ctaButton: '#667eea',
-  bodyText: '#333',
-  mutedText: '#6b7280',
-  footerText: '#9ca3af',
-  panelBg: '#f9fafb',
-  cardBorder: '#e5e7eb',
-  warningBg: '#fef3c7',
-  warningBorder: '#f59e0b',
-} as const
+/** Email colors — re-exported from store-config for template use */
+const EMAIL_COLORS = EMAIL_PALETTE
 
 const COMPANY_INFO = {
-  name: 'SKAPARA',
-  address: 'c/o SKAPARA UG, Musterstraße 1, 10115 Berlin, Germany',
-  email: 'hello@skapara.com',
+  name: BRAND.name,
+  address: COMPANY.address,
+  email: CONTACT.general,
 } as const
 
 let _resend: Resend | undefined
@@ -121,7 +109,7 @@ export async function sendOrderConfirmationEmail(params: {
 
   try {
     const { data, error } = await resend.emails.send({
-      from: `${brandName} <${process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev'}>`,
+      from: EMAIL_FROM,
       to,
       subject,
       html: `
@@ -237,7 +225,7 @@ export async function sendOrderShippedEmail(params: {
 
   try {
     const { data, error } = await resend.emails.send({
-      from: `${brandName} <${process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev'}>`,
+      from: EMAIL_FROM,
       to,
       subject,
       html: `
@@ -390,7 +378,7 @@ export async function sendOrderCancelledEmail(params: {
 
   try {
     const { data, error } = await resend.emails.send({
-      from: `${brandName} <${process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev'}>`,
+      from: EMAIL_FROM,
       to,
       subject,
       html: `
@@ -520,7 +508,7 @@ export async function sendOrderDeliveredEmail(params: {
 
   try {
     const { data, error } = await resend.emails.send({
-      from: `${brandName} <${process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev'}>`,
+      from: EMAIL_FROM,
       to,
       subject,
       html: `
@@ -649,7 +637,7 @@ export async function sendOrderFailedEmail(params: {
 
   try {
     const { data, error } = await resend.emails.send({
-      from: `${brandName} <${process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev'}>`,
+      from: EMAIL_FROM,
       to,
       subject,
       html: `
@@ -797,7 +785,7 @@ export async function sendCreditPurchaseEmail(params: {
 
   try {
     const { data, error } = await resend.emails.send({
-      from: `${brandName} <${process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev'}>`,
+      from: EMAIL_FROM,
       to,
       subject,
       html: `

@@ -5,6 +5,8 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import { isConsentGranted } from '@/lib/cookie-consent';
+import { getCsrfToken } from '@/lib/api-fetch';
+import { CSRF_HEADER_NAME } from '@/lib/csrf';
 
 // Session ID persists for the browser session
 let sessionId: string = '';
@@ -49,9 +51,15 @@ export async function trackEvent({ eventName, properties = {} }: TrackEventParam
     };
 
     // Fire-and-forget - don't block UI
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    const csrfToken = getCsrfToken();
+    if (csrfToken) {
+      headers[CSRF_HEADER_NAME] = csrfToken;
+    }
+
     fetch('/api/analytics/track', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify(payload),
       keepalive: true, // Ensure event is sent even if page unloads
     }).catch((err) => {

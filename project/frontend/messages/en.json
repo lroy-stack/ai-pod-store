@@ -206,7 +206,16 @@
     "boughtThisWeek": "{count, plural, one {1 person bought this week} other {{count} people bought this week}}",
     "viewedToday": "{count, plural, one {1 view today} other {{count} views today}}",
     "share": "Share",
-    "linkCopied": "Link copied to clipboard"
+    "linkCopied": "Link copied to clipboard",
+    "freeShippingOver": "Free shipping over {amount}",
+    "shippingInfo": "Shipping Information",
+    "deliveryEstimate": "Estimated Delivery: 5–7 business days",
+    "deliveryDetails": "Orders are printed on-demand in Europe and shipped worldwide. Delivery times vary by destination.",
+    "freeShippingTitle": "Free Shipping",
+    "freeShippingDetails": "Orders over €50 qualify for free standard shipping within Europe.",
+    "returnPolicy": "Returns & Exchanges",
+    "returnTitle": "30-Day Return Policy",
+    "returnDetails": "Not satisfied? Return unworn items within 30 days for a full refund. Custom/personalized items are final sale."
   },
   "designStudio": {
     "title": "Design Studio",
@@ -540,7 +549,7 @@
     "shippingTo": "Shipping to",
     "noShippingOptions": "No shipping options available",
     "recommended": "Recommended",
-    "freeShippingOver": "Free shipping on orders over",
+    "freeShippingOver": "Free shipping over {amount}",
     "acceptsCrypto": "Accepts cryptocurrency",
     "editVariant": "Edit",
     "saveVariant": "Save",
@@ -864,6 +873,15 @@
     "printTechnique": "Print Technique",
     "madeIn": "Made in",
     "safetyInformation": "Product Safety Information (GPSR)",
+    "freeShippingOver": "Free shipping over {amount}",
+    "shippingInfo": "Shipping Information",
+    "deliveryEstimate": "Estimated Delivery: 5–7 business days",
+    "deliveryDetails": "Orders are printed on-demand in Europe and shipped worldwide. Delivery times vary by destination.",
+    "freeShippingTitle": "Free Shipping",
+    "freeShippingDetails": "Orders over €50 qualify for free standard shipping within Europe.",
+    "returnPolicy": "Returns & Exchanges",
+    "returnTitle": "30-Day Return Policy",
+    "returnDetails": "Not satisfied? Return unworn items within 30 days for a full refund. Custom/personalized items are final sale.",
     "shipping": "Shipping",
     "shoppingCart": "Shopping Cart",
     "item": "item",
@@ -1021,7 +1039,7 @@
     "brandStatement": "Streetwear for builders, hackers and creators.",
     "brandBody": "Born from code culture. Made in Europe. Every piece is a signal.",
     "trustMadeInEU": "Made in Europe",
-    "trustReturns": "14-day returns",
+    "trustReturns": "30-day returns",
     "trustSecure": "Secure checkout",
     "trustShipping": "Worldwide shipping",
     "viewCollection": "VIEW COLLECTION",
@@ -1203,7 +1221,7 @@
     },
     "contact": {
       "title": "Contact Us",
-      "content": "For privacy-related questions, data subject access requests, or to exercise your rights, please contact us at: privacy@podai.com. We will respond within 30 days."
+      "content": "For privacy-related questions, data subject access requests, or to exercise your rights, please contact us at: privacy@skapara.com. We will respond within 30 days."
     },
     "footer": "This privacy policy may be updated periodically. Continued use of our platform constitutes acceptance of any changes."
   },
@@ -1319,7 +1337,7 @@
     },
     "contact": {
       "title": "Contact Us",
-      "content": "For questions about these Terms of Service, please contact us at: legal@podai.com. We will respond to all inquiries within 5 business days."
+      "content": "For questions about these Terms of Service, please contact us at: legal@skapara.com. We will respond to all inquiries within 5 business days."
     },
     "footer": "We reserve the right to modify these Terms of Service at any time. Continued use of our platform constitutes acceptance of any changes."
   },
@@ -1625,9 +1643,9 @@
     "emailTitle": "Email",
     "emailSubtitle": "Our team is here to help",
     "generalInquiries": "General Inquiries",
-    "generalEmail": "hello@podai.com",
+    "generalEmail": "hello@skapara.com",
     "support": "Support",
-    "supportEmail": "support@podai.com",
+    "supportEmail": "support@skapara.com",
     "liveChatTitle": "Live Chat",
     "liveChatSubtitle": "Chat with our support team",
     "liveChatDesc": "Get instant answers to common questions or connect with our support team through our chat.",

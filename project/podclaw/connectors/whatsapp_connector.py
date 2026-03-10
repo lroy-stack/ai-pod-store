@@ -62,6 +62,44 @@ class WhatsAppMCPConnector:
                 },
                 "handler": self._send_template,
             },
+            "whatsapp_send_image": {
+                "description": "Send an image with optional caption via WhatsApp",
+                "input_schema": {
+                    "type": "object",
+                    "properties": {
+                        "to": {"type": "string", "description": "Recipient phone number"},
+                        "image_url": {"type": "string", "description": "Public URL of the image"},
+                        "caption": {"type": "string", "description": "Image caption text"},
+                    },
+                    "required": ["to", "image_url"],
+                },
+                "handler": self._send_image,
+            },
+            "whatsapp_send_buttons": {
+                "description": "Send an interactive message with up to 3 buttons via WhatsApp",
+                "input_schema": {
+                    "type": "object",
+                    "properties": {
+                        "to": {"type": "string", "description": "Recipient phone number"},
+                        "body_text": {"type": "string", "description": "Message body text"},
+                        "buttons": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "id": {"type": "string", "description": "Button callback ID (e.g. approve_123)"},
+                                    "title": {"type": "string", "description": "Button label (max 20 chars)"},
+                                },
+                                "required": ["id", "title"],
+                            },
+                            "description": "List of buttons (max 3)",
+                            "maxItems": 3,
+                        },
+                    },
+                    "required": ["to", "body_text", "buttons"],
+                },
+                "handler": self._send_buttons,
+            },
         }
 
     async def _send_text(self, params: dict[str, Any]) -> dict[str, Any]:
@@ -71,6 +109,53 @@ class WhatsAppMCPConnector:
             "to": params["to"],
             "type": "text",
             "text": {"body": params["text"]},
+        }
+        async with httpx.AsyncClient() as client:
+            resp = await client.post(self._base, headers=self._headers, json=payload, timeout=15)
+            resp.raise_for_status()
+            data = resp.json()
+            msg_id = None
+            if data.get("messages"):
+                msg_id = data["messages"][0].get("id")
+            return {"ok": True, "message_id": msg_id}
+
+    async def _send_image(self, params: dict[str, Any]) -> dict[str, Any]:
+        payload = {
+            "messaging_product": "whatsapp",
+            "recipient_type": "individual",
+            "to": params["to"],
+            "type": "image",
+            "image": {"link": params["image_url"]},
+        }
+        if params.get("caption"):
+            payload["image"]["caption"] = params["caption"]
+        async with httpx.AsyncClient() as client:
+            resp = await client.post(self._base, headers=self._headers, json=payload, timeout=15)
+            resp.raise_for_status()
+            data = resp.json()
+            msg_id = None
+            if data.get("messages"):
+                msg_id = data["messages"][0].get("id")
+            return {"ok": True, "message_id": msg_id}
+
+    async def _send_buttons(self, params: dict[str, Any]) -> dict[str, Any]:
+        buttons_payload = [
+            {
+                "type": "reply",
+                "reply": {"id": btn["id"], "title": btn["title"][:20]},
+            }
+            for btn in params["buttons"][:3]
+        ]
+        payload = {
+            "messaging_product": "whatsapp",
+            "recipient_type": "individual",
+            "to": params["to"],
+            "type": "interactive",
+            "interactive": {
+                "type": "button",
+                "body": {"text": params["body_text"]},
+                "action": {"buttons": buttons_payload},
+            },
         }
         async with httpx.AsyncClient() as client:
             resp = await client.post(self._base, headers=self._headers, json=payload, timeout=15)

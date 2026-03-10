@@ -6,7 +6,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import useEmblaCarousel from 'embla-carousel-react'
-import { Star, Heart, ShoppingCart, ChevronLeft, Shirt, Droplets, Globe, Printer, ShieldCheck, Paintbrush2, Share2, Truck } from 'lucide-react'
+import { Star, Heart, ShoppingCart, ChevronLeft, Shirt, Droplets, Globe, Printer, ShieldCheck, Paintbrush2, Share2, Truck, Package, RotateCcw } from 'lucide-react'
 import { useCart } from '@/hooks/useCart'
 import { useWishlist } from '@/hooks/useWishlist'
 import { useRecentlyViewed } from '@/hooks/useRecentlyViewed'
@@ -658,9 +658,7 @@ export function ProductDetailClient({ product, relatedProducts, reviews }: Produ
               )}
               <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                 <Truck className="h-4 w-4 shrink-0" />
-                <span>
-                  {locale === 'es' ? 'Envio gratuito +50 €' : locale === 'de' ? 'Gratis ab 50 €' : 'Free shipping over €50'}
-                </span>
+                <span>{t('freeShippingOver', { amount: '€50' })}</span>
               </div>
             </div>
           </div>
@@ -727,6 +725,47 @@ export function ProductDetailClient({ product, relatedProducts, reviews }: Produ
               />
             </details>
           )}
+
+          {/* Shipping Information */}
+          <details className="group">
+            <summary className="flex items-center justify-between cursor-pointer list-none text-sm font-semibold hover:text-foreground transition-colors">
+              {t('shippingInfo')}
+              <span className="text-xs group-open:rotate-180 transition-transform">▼</span>
+            </summary>
+            <div className="mt-3 space-y-2 text-sm text-muted-foreground">
+              <div className="flex items-start gap-3">
+                <Truck className="size-4 mt-0.5 shrink-0" />
+                <div>
+                  <p className="font-medium text-foreground">{t('deliveryEstimate')}</p>
+                  <p>{t('deliveryDetails')}</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <Package className="size-4 mt-0.5 shrink-0" />
+                <div>
+                  <p className="font-medium text-foreground">{t('freeShippingTitle')}</p>
+                  <p>{t('freeShippingDetails')}</p>
+                </div>
+              </div>
+            </div>
+          </details>
+
+          {/* Return Policy */}
+          <details className="group">
+            <summary className="flex items-center justify-between cursor-pointer list-none text-sm font-semibold hover:text-foreground transition-colors">
+              {t('returnPolicy')}
+              <span className="text-xs group-open:rotate-180 transition-transform">▼</span>
+            </summary>
+            <div className="mt-3 space-y-2 text-sm text-muted-foreground">
+              <div className="flex items-start gap-3">
+                <RotateCcw className="size-4 mt-0.5 shrink-0" />
+                <div>
+                  <p className="font-medium text-foreground">{t('returnTitle')}</p>
+                  <p>{t('returnDetails')}</p>
+                </div>
+              </div>
+            </div>
+          </details>
 
           <Separator />
 

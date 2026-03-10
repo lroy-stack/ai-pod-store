@@ -234,7 +234,7 @@ async def get_all_daily_costs() -> dict[str, float]:
 # Agent Singleton Lock Operations (SET NX)
 # ---------------------------------------------------------------------------
 
-AGENT_LOCK_TTL = 1200  # 20 minutes — matches max agent session duration
+AGENT_LOCK_TTL = 1500  # 25 minutes — session 900s + 600s buffer for extended runs
 
 
 def _agent_lock_key(agent_name: str) -> str:

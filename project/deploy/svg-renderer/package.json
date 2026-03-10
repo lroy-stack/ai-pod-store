@@ -1,0 +1,14 @@
+{
+  "name": "podclaw-svg-renderer",
+  "version": "1.0.0",
+  "description": "SVG to print-ready PNG renderer for PodClaw design pipeline",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@resvg/resvg-js": "^2.6.2",
+    "sharp": "^0.33.5",
+    "fastify": "^5.2.1"
+  }
+}

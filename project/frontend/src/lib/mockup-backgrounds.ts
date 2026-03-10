@@ -38,9 +38,10 @@ const MARBLE_DARK = '#3A3A3A'
 const PASTEL_PINK = '#FCE4EC'
 const PASTEL_BLUE = '#E3F2FD'
 
-// ── SKAPARA brand mark (simplified S at low opacity) ────────────────────────
+// ── Brand mark (name at low opacity) ────────────────────────
+const brandMarkName = process.env.NEXT_PUBLIC_SITE_NAME || 'SKAPARA'
 function brandMark(color: string = WARM_WHITE, opacity: number = 0.12): string {
-  return `<text x="1140" y="1160" font-family="'Courier New', monospace" font-size="28" font-weight="bold" fill="${color}" opacity="${opacity}" text-anchor="end">SKAPARA</text>`
+  return `<text x="1140" y="1160" font-family="'Courier New', monospace" font-size="28" font-weight="bold" fill="${color}" opacity="${opacity}" text-anchor="end">${brandMarkName}</text>`
 }
 
 // ── Subtle drop shadow for product (placed UNDER product zone) ──────────────

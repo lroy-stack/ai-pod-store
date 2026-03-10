@@ -17,6 +17,7 @@ import type {
 } from '../models'
 import type { CreateProductInput, CreateOrderInput } from '../types'
 import { PRINTFUL_ORDER_STATUS_MAP, PRINTFUL_EVENT_MAP, POSITION_MAP } from './constants'
+import { BRAND } from '@/lib/store-config'
 
 // ─── Variant Name Parsing ────────────────────────────────────
 
@@ -57,7 +58,7 @@ export function toCanonicalProduct(raw: Record<string, unknown>): CanonicalProdu
       priceCents: Math.round(parseFloat(String(v.retail_price || '0')) * 100),
       costCents: null, // Cost requires separate catalog lookup
       isEnabled: (v as Record<string, unknown>).is_enabled !== false,
-      isAvailable: (v as Record<string, unknown>).synced === true,
+      isAvailable: (v as Record<string, unknown>).availability_status === 'active',
       imageUrl: product.image ? String(product.image) : null,
     }
   })
@@ -172,7 +173,7 @@ export function fromCreateOrderInput(input: CreateOrderInput): Record<string, un
   const addr = input.shippingAddress
   return {
     external_id: input.internalOrderId,
-    label: input.label || `SKAPARA ${input.internalOrderId.slice(0, 8).toUpperCase()}`,
+    label: input.label || `${BRAND.name} ${input.internalOrderId.slice(0, 8).toUpperCase()}`,
     shipping: 'STANDARD',
     recipient: {
       name: `${addr.firstName} ${addr.lastName}`.trim(),
@@ -194,7 +195,7 @@ export function fromCreateOrderInput(input: CreateOrderInput): Record<string, un
     })),
     ...(input.giftMessage
       ? {
-          gift: { subject: 'A gift for you from SKAPARA', message: input.giftMessage },
+          gift: { subject: `A gift for you from ${BRAND.name}`, message: input.giftMessage },
         }
       : {}),
   }

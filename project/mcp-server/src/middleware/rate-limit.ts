@@ -22,6 +22,8 @@ const PER_TOOL_RATE_LIMITS: Record<string, number> = {
   update_cart: 30, // Cart updates limited to 30/min
   add_to_wishlist: 30, // Wishlist operations limited to 30/min
   remove_from_wishlist: 30,
+  __oauth_token: 10, // OAuth token endpoint: 10/min/IP (brute force prevention)
+  __oauth_authorize: 20, // OAuth authorize endpoint: 20/min/IP
 };
 
 /**
@@ -48,21 +50,49 @@ setInterval(() => {
 }, 5 * 60 * 1000);
 
 /**
+ * Trusted proxy IPs (comma-separated env var)
+ * Only trust X-Forwarded-For if request comes from a known proxy
+ */
+const TRUSTED_PROXY_IPS = new Set(
+  (process.env.TRUSTED_PROXY_IPS || '127.0.0.1,::1')
+    .split(',')
+    .map(ip => ip.trim())
+    .filter(Boolean)
+);
+
+/**
  * Extract client IP address from request headers
- * Handles X-Forwarded-For (Cloudflare/nginx) and X-Real-IP
+ * Only trusts X-Forwarded-For from known proxies.
+ * Takes the LAST non-trusted IP from the chain (rightmost-first),
+ * which is the IP appended by our trusted proxy.
  */
 function getClientIp(req: IncomingMessage): string {
+  const directIp = req.socket.remoteAddress || 'unknown';
+
+  // Only trust forwarded headers if request comes from a known proxy
+  if (!TRUSTED_PROXY_IPS.has(directIp)) {
+    return directIp;
+  }
+
   const forwarded = req.headers['x-forwarded-for'];
   if (forwarded) {
-    // X-Forwarded-For can be comma-separated list
-    const ips = typeof forwarded === 'string' ? forwarded.split(',') : forwarded;
-    return ips[0].trim();
+    const ips = (typeof forwarded === 'string' ? forwarded.split(',') : forwarded)
+      .map(ip => ip.trim())
+      .filter(Boolean);
+    // Walk from right to left, find first IP that is NOT a trusted proxy
+    for (let i = ips.length - 1; i >= 0; i--) {
+      if (!TRUSTED_PROXY_IPS.has(ips[i])) {
+        return ips[i];
+      }
+    }
   }
+
   const realIp = req.headers['x-real-ip'];
   if (realIp && typeof realIp === 'string') {
     return realIp.trim();
   }
-  return req.socket.remoteAddress || 'unknown';
+
+  return directIp;
 }
 
 /**
@@ -241,8 +271,8 @@ export async function rateLimitMiddleware(
 
     return true;
   } catch (error) {
-    console.error('[RateLimit] Error checking rate limit:', error);
-    // On error, allow request (fail open)
-    return true;
+    console.error('[RateLimit] Redis error, falling back to in-memory rate limiting:', error);
+    // Fail to in-memory (NOT fail-open)
+    return rateLimitInMemory(req, res, toolName);
   }
 }

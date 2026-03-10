@@ -17,6 +17,13 @@ import structlog
 
 logger = structlog.get_logger(__name__)
 
+_SUPABASE_TIMEOUT = 30.0  # seconds — prevent thread pool hangs
+
+
+async def _supabase_call(fn, timeout: float = _SUPABASE_TIMEOUT):
+    """Run a sync Supabase call in a thread pool with timeout."""
+    return await asyncio.wait_for(asyncio.to_thread(fn), timeout=timeout)
+
 
 class EventStore:
     """Append-only event store backed by Supabase agent_events table."""
@@ -76,7 +83,7 @@ class EventStore:
 
     async def _write_to_supabase(self, event: dict[str, Any]) -> None:
         """Write event to agent_events table (runs sync SDK in thread pool)."""
-        await asyncio.to_thread(
+        await _supabase_call(
             lambda: self._client.table("agent_events").insert(event).execute()
         )
 
@@ -102,7 +109,7 @@ class EventStore:
             q = q.order("created_at", desc=True).limit(limit)
             return q.execute()
 
-        result = await asyncio.to_thread(_run_query)
+        result = await _supabase_call(_run_query)
         return result.data if result.data else []
 
     async def query_sessions(
@@ -121,7 +128,7 @@ class EventStore:
             q = q.order("started_at", desc=True).limit(limit)
             return q.execute()
 
-        result = await asyncio.to_thread(_run_query)
+        result = await _supabase_call(_run_query)
         return result.data if result.data else []
 
     async def record_session(
@@ -141,9 +148,11 @@ class EventStore:
         }
 
         try:
-            await asyncio.to_thread(
+            await _supabase_call(
                 lambda: self._client.table("agent_sessions").insert(row).execute()
             )
+        except asyncio.TimeoutError:
+            logger.error("session_insert_timeout", session_id=session_id)
         except Exception as e:
             logger.error("session_insert_failed", error=str(e), session_id=session_id)
 
@@ -170,7 +179,7 @@ class EventStore:
             updates["error_log"] = error_log
 
         try:
-            await asyncio.to_thread(
+            await _supabase_call(
                 lambda: (
                     self._client.table("agent_sessions")
                     .update(updates)
@@ -178,6 +187,8 @@ class EventStore:
                     .execute()
                 )
             )
+        except asyncio.TimeoutError:
+            logger.error("session_update_timeout", session_id=session_id)
         except Exception as e:
             logger.error("session_update_failed", error=str(e), session_id=session_id)
 
@@ -206,9 +217,11 @@ class EventStore:
             row["resource_id"] = resource_id
 
         try:
-            await asyncio.to_thread(
+            await _supabase_call(
                 lambda: self._client.table("audit_log").insert(row).execute()
             )
+        except asyncio.TimeoutError:
+            logger.error("audit_log_timeout", action=action)
         except Exception as e:
             logger.error("audit_log_failed", error=str(e), action=action)
 
@@ -216,7 +229,7 @@ class EventStore:
         """Get all events for a specific session."""
         if not self._client:
             return []
-        result = await asyncio.to_thread(
+        result = await _supabase_call(
             lambda: (
                 self._client.table("agent_events")
                 .select("*")

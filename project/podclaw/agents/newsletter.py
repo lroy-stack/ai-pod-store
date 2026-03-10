@@ -9,6 +9,7 @@ Guardrails: Max 500 emails/cycle, CAN-SPAM compliance
 """
 
 from podclaw.agents.base import BaseAgent
+from podclaw.config import STORE_PHYSICAL_ADDRESS, STORE_SENDER_NAME, RESEND_FROM_EMAIL
 
 
 class NewsletterAgent(BaseAgent):
@@ -51,7 +52,7 @@ class NewsletterAgent(BaseAgent):
             "  'campaign_name': 'Welcome Series - Day 1',\n"
             "  'segment': 'new_customers',\n"
             "  'locale': 'en',\n"
-            "  'subject_a': 'Welcome to POD AI! 🎨',\n"
+            f"  'subject_a': 'Welcome to {STORE_SENDER_NAME}! 🎨',\n"
             "  'subject_b': 'Your journey to unique style starts here',\n"
             "  'preview_text': 'Discover custom designs that express your personality',\n"
             "  'body_html': '<html>...</html>',\n"
@@ -89,8 +90,8 @@ class NewsletterAgent(BaseAgent):
             "- Post-purchase series: Day 7 after delivery (satisfaction survey), Day 14 (review request + recommendations)\n"
             "- Win-back series: Week 1 (we miss you), Week 3 (exclusive offer), Week 6 (final re-engagement)\n\n"
             "CAN-SPAM FOOTER (include in EVERY email):\n"
-            "- Physical address: POD AI Store, Friedrichstraße 123, 10117 Berlin, Germany\n"
-            "- Sender: POD AI Store <noreply@podai.com>\n"
+            f"- Physical address: {STORE_PHYSICAL_ADDRESS}\n"
+            f"- Sender: {STORE_SENDER_NAME} <{RESEND_FROM_EMAIL}>\n"
             "- Every email MUST include unsubscribe link\n\n"
             "GEMINI EMBEDDINGS:\n"
             "- Use gemini_embed_text for content matching and personalization\n"

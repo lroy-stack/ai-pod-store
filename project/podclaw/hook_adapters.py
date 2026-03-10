@@ -16,6 +16,7 @@ Fail-closed for security_hook (index 0), fail-open for cost/rate hooks.
 
 from __future__ import annotations
 
+import asyncio
 from pathlib import Path
 from typing import Any
 
@@ -87,7 +88,10 @@ def make_can_use_tool(
 
         for i, hook in enumerate(pre_hooks):
             try:
-                result = await hook(input_data, tool_use_id=None, context=None)
+                result = await asyncio.wait_for(
+                    hook(input_data, tool_use_id=None, context=None),
+                    timeout=10.0,
+                )
                 if not result:
                     continue
                 hook_output = result.get("hookSpecificOutput", {})
@@ -103,6 +107,24 @@ def make_can_use_tool(
                         reason=reason,
                     )
                     return PermissionResultDeny(message=reason)
+            except asyncio.TimeoutError:
+                if i == 0:
+                    # security_hook: FAIL-CLOSED — deny on timeout
+                    logger.error(
+                        "security_hook_timeout_denying",
+                        tool=tool_name,
+                        agent=agent_name,
+                    )
+                    return PermissionResultDeny(
+                        message="Security hook timed out"
+                    )
+                else:
+                    # cost_guard / rate_limit: FAIL-OPEN — allow on timeout
+                    logger.warning(
+                        "deny_hook_timeout",
+                        hook=getattr(hook, "__name__", str(hook)),
+                        tool=tool_name,
+                    )
             except Exception as e:
                 if i == 0:
                     # security_hook: FAIL-CLOSED — deny on error
@@ -306,7 +328,16 @@ def make_sdk_hooks(
         }
         for hook in post_hooks:
             try:
-                await hook(input_data, tool_use_id=tool_use_id, context=None)
+                await asyncio.wait_for(
+                    hook(input_data, tool_use_id=tool_use_id, context=None),
+                    timeout=10.0,
+                )
+            except asyncio.TimeoutError:
+                logger.warning(
+                    "post_hook_timeout",
+                    hook=getattr(hook, "__name__", str(hook)),
+                    tool=short,
+                )
             except Exception as e:
                 logger.warning(
                     "post_hook_error",
@@ -329,7 +360,15 @@ def make_sdk_hooks(
             }
             for hook in pre_observe_hooks:
                 try:
-                    await hook(input_data, tool_use_id=tool_use_id, context=None)
+                    await asyncio.wait_for(
+                        hook(input_data, tool_use_id=tool_use_id, context=None),
+                        timeout=10.0,
+                    )
+                except asyncio.TimeoutError:
+                    logger.warning(
+                        "pre_observe_hook_timeout",
+                        hook=getattr(hook, "__name__", str(hook)),
+                    )
                 except Exception as e:
                     logger.warning(
                         "pre_observe_hook_error",

@@ -11,6 +11,7 @@ import { getIronSession } from 'iron-session';
 import { sessionOptions, SessionData } from '@/lib/session';
 import { cookies } from 'next/headers';
 import { withAuth } from '@/lib/auth-middleware';
+import { STORE_COMPANY_NAME, STORE_COMPANY_ADDRESS, STORE_LEGAL_EMAIL, STORE_PRIVACY_EMAIL } from '@/lib/store-defaults';
 
 /**
  * GET /api/admin/legal-settings
@@ -33,12 +34,12 @@ export const GET = withAuth(async () => {
       if (error.code === 'PGRST116') {
         return NextResponse.json({
           settings: {
-            company_name: 'SKAPARA',
-            company_address: '123 Commerce Street, San Francisco, CA 94105, USA',
-            tax_id: 'XX-XXXXXXX',
-            company_email: 'legal@skapara.com',
+            company_name: STORE_COMPANY_NAME,
+            company_address: STORE_COMPANY_ADDRESS,
+            tax_id: '',
+            company_email: STORE_LEGAL_EMAIL,
             dpo_name: 'Data Protection Officer',
-            dpo_email: 'dpo@skapara.com',
+            dpo_email: STORE_PRIVACY_EMAIL,
             privacy_policy_url: '/privacy',
             terms_of_service_url: '/terms',
             cookie_policy_url: '/privacy#cookies',

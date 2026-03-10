@@ -9,7 +9,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { z } from 'zod'
 import crypto from 'crypto'
-import { BASE_URL } from '@/lib/store-config'
+import { BASE_URL, EMAIL_FROM } from '@/lib/store-config'
 
 const supabase = createClient(
   process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -150,7 +150,7 @@ export async function POST(req: NextRequest) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: process.env.RESEND_FROM_EMAIL || 'SKAPARA <noreply@skapara.com>',
+        from: EMAIL_FROM,
         to: email,
         subject: content.subject,
         html: content.body,
