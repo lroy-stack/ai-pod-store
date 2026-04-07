@@ -95,12 +95,13 @@ You need accounts with these services to run the platform:
 | **Resend** | Transactional + marketing email | [resend.com](https://resend.com) → free tier available |
 | **Google Gemini** | AI embeddings for product search | [aistudio.google.com](https://aistudio.google.com) → free tier available |
 | **fal.ai** | AI image generation (FLUX.1) | [fal.ai](https://fal.ai) → pay-per-use |
-| **Claude Max Plan** | Autonomous agent system | [claude.ai](https://claude.ai) → Max subscription required |
+| **Anthropic** | Autonomous agent system | [claude.ai/max](https://claude.ai) → Max plan **or** [console.anthropic.com](https://console.anthropic.com) → API key |
 
 > **Dual fulfillment:** The storefront and admin use **Printify** for catalog sync and webhook handling. The PodClaw autonomous agents use **Printful** for product management operations. Both API tokens are required for the full stack.
 
-> **Note:** `ANTHROPIC_API_KEY` is **not** required. PodClaw authenticates via the Claude Agent SDK
-> using your Claude Max subscription. Run `claude auth login` once to configure.
+> **Note:** PodClaw supports two authentication modes:
+> - **Claude Max plan** (recommended for personal use): run `claude auth login` once — no API key needed.
+> - **Anthropic API key** (recommended for VPS/server deploys): set `ANTHROPIC_API_KEY` in `.env`. The Agent SDK picks it up automatically.
 
 ---
 
@@ -295,7 +296,8 @@ kill -9 <PID>
 ```bash
 curl http://localhost:8100/health    # local dev port (8100, not 8000)
 docker compose logs podclaw
-# Ensure Claude auth is configured: claude auth login
+# Option A — Claude Max plan: claude auth login
+# Option B — API key: ensure ANTHROPIC_API_KEY is set in .env
 ```
 
 **Environment variables not loaded:**
