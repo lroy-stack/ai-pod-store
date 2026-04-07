@@ -41,10 +41,11 @@ import {
   getShoppingAssistantPrompt,
   type ShoppingAssistantInput,
 } from './prompts/shopping-assistant.js';
+import { requiredEnv, optionalEnv } from './lib/env.js';
 
 const PORT = parseInt(process.env.PORT || '8002', 10);
-const MCP_BASE_URL = process.env.MCP_BASE_URL || `http://localhost:${PORT}`;
-const MCP_CORS_ORIGINS = (process.env.MCP_CORS_ORIGINS || 'https://claude.ai,https://chatgpt.com,http://localhost:3000')
+const MCP_BASE_URL = requiredEnv('MCP_BASE_URL');
+const MCP_CORS_ORIGINS = optionalEnv('MCP_CORS_ORIGINS', 'https://claude.ai,https://chatgpt.com,http://localhost:3000')
   .split(',')
   .map((s) => s.trim());
 

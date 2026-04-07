@@ -6,11 +6,13 @@ import { SignJWT } from 'jose';
 import { getClientAsync, validateRedirectUri, registerDynamicClient } from './clients.js';
 import { clientIdAlreadyApproved, generateApprovalCookieHeader } from './cookie-approval.js';
 
-const NODE_ENV = process.env.NODE_ENV || 'development';
-const MCP_BASE_URL = process.env.MCP_BASE_URL || 'http://localhost:8002';
-const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
-const SUPABASE_AUTH_URL = process.env.API_EXTERNAL_URL || process.env.SUPABASE_URL || 'http://localhost:8000';
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || '';
+import { requiredEnv, optionalEnv } from '../lib/env.js';
+
+const NODE_ENV = optionalEnv('NODE_ENV', 'development');
+const MCP_BASE_URL = requiredEnv('MCP_BASE_URL');
+const FRONTEND_URL = requiredEnv('FRONTEND_URL');
+const SUPABASE_AUTH_URL = requiredEnv('SUPABASE_URL');
+const SUPABASE_ANON_KEY = requiredEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY');
 
 // Fail-fast in production if critical URLs are localhost
 if (NODE_ENV === 'production') {
@@ -20,10 +22,7 @@ if (NODE_ENV === 'production') {
     }
   }
 }
-if (!process.env.MCP_JWT_SECRET) {
-  throw new Error('MCP_JWT_SECRET environment variable is required');
-}
-const MCP_JWT_SECRET = new TextEncoder().encode(process.env.MCP_JWT_SECRET);
+const MCP_JWT_SECRET = new TextEncoder().encode(requiredEnv('MCP_JWT_SECRET'));
 
 // In-memory fallback for auth requests (if Redis unavailable)
 const authRequests = new Map<
@@ -299,7 +298,7 @@ export async function handleAuthorize(
   }
 
   // Check cookie: if client already approved, skip consent → redirect to Supabase Auth
-  const approveSecret = process.env.MCP_APPROVE_SECRET || '';
+  const approveSecret = requiredEnv('MCP_APPROVE_SECRET');
   if (clientIdAlreadyApproved(req, client_id!, approveSecret)) {
     const supabaseUrl = await buildSupabaseAuthUrl(requestId);
     const requestIdCookie = `mcp_request_id=${encodeURIComponent(requestId)}; HttpOnly; Secure; SameSite=Lax; Max-Age=600; Path=/`;
@@ -343,9 +342,9 @@ export async function handleApprove(
     const { request_id, user_id, email, secret } = body;
 
     // Validate shared secret
-    const approveSecret = process.env.MCP_APPROVE_SECRET;
-    if (!approveSecret || approveSecret.length < 32) {
-      console.error('[OAuth] MCP_APPROVE_SECRET not configured or too short');
+    const approveSecret = requiredEnv('MCP_APPROVE_SECRET');
+    if (approveSecret.length < 32) {
+      console.error('[OAuth] MCP_APPROVE_SECRET is too short (minimum 32 characters)');
       res.writeHead(500, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ error: 'server_error', error_description: 'Server not configured for approval' }));
       return;
@@ -1062,7 +1061,7 @@ export async function handleAuthorizeApproved(
   }
 
   // Set approval cookie + mcp_request_id cookie (for callback to recover the auth request)
-  const approveSecret = process.env.MCP_APPROVE_SECRET || '';
+  const approveSecret = requiredEnv('MCP_APPROVE_SECRET');
   const approvalCookie = generateApprovalCookieHeader(req, authRequest.client_id, approveSecret);
   const requestIdCookie = `mcp_request_id=${encodeURIComponent(requestId)}; HttpOnly; Secure; SameSite=Lax; Max-Age=600; Path=/`;
 
@@ -1154,8 +1153,7 @@ export async function handleOAuthCallback(
 
     // 2. Exchange Supabase code for user session using PKCE
     // GoTrue endpoint: POST /auth/v1/token?grant_type=pkce
-    const supabaseInternalUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://kong:8000';
-    const tokenResponse = await fetch(`${supabaseInternalUrl}/auth/v1/token?grant_type=pkce`, {
+    const tokenResponse = await fetch(`${SUPABASE_AUTH_URL}/auth/v1/token?grant_type=pkce`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

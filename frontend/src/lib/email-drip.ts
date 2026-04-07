@@ -22,7 +22,7 @@ export interface DripStep {
 
 export const DRIP_SEQUENCES: Record<string, DripStep[]> = {
   welcome: [
-    { delay_hours: 1, template: 'welcome', subject: `Welcome to ${process.env.NEXT_PUBLIC_SITE_NAME || 'My POD Store'} — Your AI Design Studio` },
+    { delay_hours: 1, template: 'welcome', subject: `Welcome to ${process.env.NEXT_PUBLIC_SITE_NAME!} — Your AI Design Studio` },
     { delay_hours: 72, template: 'tips', subject: '3 Ways to Create Amazing Designs with AI' },
     { delay_hours: 168, template: 'credit_offer', subject: 'Unlock More Designs — Upgrade to Premium' },
   ],

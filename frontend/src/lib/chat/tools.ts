@@ -1098,7 +1098,7 @@ export function getChatTools(ctx: ChatToolsContext) {
           })
 
           // Call the checkout API to create a Stripe session
-          const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+          const baseUrl = process.env.NEXT_PUBLIC_BASE_URL!
           const response = await fetch(`${baseUrl}/api/checkout/create-session`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -1751,7 +1751,7 @@ export function getChatTools(ctx: ChatToolsContext) {
       // @ts-expect-error AI SDK 6.0.86 type mismatch — execute works at runtime
       execute: async () => {
         try {
-          const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+          const baseUrl = process.env.NEXT_PUBLIC_BASE_URL!
           const response = await fetch(`${baseUrl}/api/policies?locale=${chatLocale}`)
 
           if (!response.ok) {

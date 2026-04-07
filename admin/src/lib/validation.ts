@@ -38,8 +38,8 @@ export function withValidation<T>(
  */
 /** GPSR compliance schema — EU Regulation 2023/988 */
 export const gpsrSchema = z.object({
-  brand: z.string().min(1).default(process.env.NEXT_PUBLIC_SITE_NAME || 'My Store'),
-  manufacturer: z.string().min(1).default(process.env.STORE_COMPANY_NAME || 'Your Company Name'),
+  brand: z.string().min(1).default(process.env.NEXT_PUBLIC_SITE_NAME!),
+  manufacturer: z.string().min(1).default(process.env.STORE_COMPANY_NAME!),
   manufacturer_address: z.string().optional(),
   manufacturing_country: z.string().length(2, 'Must be 2-letter country code').default('LV'),
   safety_information: z.string().default('Conforms to EU Regulation 2023/988 (GPSR)'),

@@ -140,7 +140,7 @@ export default function BlogPage() {
                         {post.status === 'published' && (
                           <Button size="sm" variant="ghost" asChild>
                             <a
-                              href={`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/en/blog/${post.slug}`}
+                              href={`${process.env.NEXT_PUBLIC_BASE_URL!}/en/blog/${post.slug}`}
                               target="_blank"
                               rel="noopener noreferrer"
                             >

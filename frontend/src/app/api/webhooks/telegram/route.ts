@@ -202,7 +202,7 @@ export async function POST(request: NextRequest) {
 // Admin command handlers
 async function handleStatusCommand(chatId: number) {
   try {
-    const bridgeUrl = process.env.PODCLAW_BRIDGE_URL || 'http://localhost:8000';
+    const bridgeUrl = process.env.PODCLAW_BRIDGE_URL!;
     const response = await fetch(`${bridgeUrl}/status`);
 
     if (!response.ok) {
@@ -227,7 +227,7 @@ async function handleStatusCommand(chatId: number) {
 
 async function handleAgentsCommand(chatId: number) {
   try {
-    const bridgeUrl = process.env.PODCLAW_BRIDGE_URL || 'http://localhost:8000';
+    const bridgeUrl = process.env.PODCLAW_BRIDGE_URL!;
     const response = await fetch(`${bridgeUrl}/agents`);
 
     if (!response.ok) {
@@ -260,7 +260,7 @@ async function handleRunCommand(chatId: number, args: string[]) {
   }
 
   try {
-    const bridgeUrl = process.env.PODCLAW_BRIDGE_URL || 'http://localhost:8000';
+    const bridgeUrl = process.env.PODCLAW_BRIDGE_URL!;
     const response = await fetch(`${bridgeUrl}/agents/${agentName}/run`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -286,7 +286,7 @@ async function handlePauseCommand(chatId: number, args: string[]) {
   }
 
   try {
-    const bridgeUrl = process.env.PODCLAW_BRIDGE_URL || 'http://localhost:8000';
+    const bridgeUrl = process.env.PODCLAW_BRIDGE_URL!;
     const response = await fetch(`${bridgeUrl}/agents/${agentName}/pause`, {
       method: 'POST'
     });

@@ -122,7 +122,7 @@ export async function searchProductContext(params: RagSearchParams): Promise<str
     const normalizedQuery = normalizeQuery(userQuery)
 
     // Call RAG search to get relevant documents (forward auth cookies)
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL!
     const ragResponse = await fetch(
       `${baseUrl}/api/rag/search`,
       {

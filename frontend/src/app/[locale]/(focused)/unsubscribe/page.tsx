@@ -70,13 +70,13 @@ export default function UnsubscribePage() {
           <CardContent className="text-center space-y-4">
             <p className="text-muted-foreground">
               {email && <><strong>{email}</strong> has been </>}
-              removed from our mailing list. You will no longer receive marketing emails from {process.env.NEXT_PUBLIC_SITE_NAME || 'My POD Store'}.
+              removed from our mailing list. You will no longer receive marketing emails from {process.env.NEXT_PUBLIC_SITE_NAME!}.
             </p>
             <p className="text-sm text-muted-foreground">
               Order confirmations and shipping updates are not affected.
             </p>
             <Button variant="outline" asChild>
-              <a href="/">Back to {process.env.NEXT_PUBLIC_SITE_NAME || 'My POD Store'}</a>
+              <a href="/">Back to {process.env.NEXT_PUBLIC_SITE_NAME!}</a>
             </Button>
           </CardContent>
         </Card>
@@ -120,7 +120,7 @@ export default function UnsubscribePage() {
       <Card>
         <CardHeader className="text-center">
           <MailX className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-          <CardTitle>Unsubscribe from {process.env.NEXT_PUBLIC_SITE_NAME || 'My POD Store'}</CardTitle>
+          <CardTitle>Unsubscribe from {process.env.NEXT_PUBLIC_SITE_NAME!}</CardTitle>
         </CardHeader>
         <CardContent className="text-center space-y-6">
           <p className="text-muted-foreground">

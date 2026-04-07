@@ -45,7 +45,7 @@ export async function POST(request: Request) {
     let botResponse: string;
 
     if (command === '/start') {
-      botResponse = '👋 Welcome to ' + (process.env.NEXT_PUBLIC_SITE_NAME || 'My POD Store') + '! I can help you browse products, track orders, and more. Type /help to see available commands.';
+      botResponse = '👋 Welcome to ' + process.env.NEXT_PUBLIC_SITE_NAME! + '! I can help you browse products, track orders, and more. Type /help to see available commands.';
     } else if (command === '/help') {
       botResponse = '🤖 ' + (process.env.NEXT_PUBLIC_SITE_NAME || 'Store') + ' Commands:\n\n' +
         '🛍️ Shopping:\n' +

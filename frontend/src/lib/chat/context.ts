@@ -17,7 +17,7 @@ export async function loadFAQContext(locale: string): Promise<string | null> {
 
   try {
     // Fetch store policies (hardcoded FAQ-like content)
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL!
     const policiesResponse = await fetch(`${baseUrl}/api/policies?locale=${locale}`, {
       headers: { 'Content-Type': 'application/json' },
     })

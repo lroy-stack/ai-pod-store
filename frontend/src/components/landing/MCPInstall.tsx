@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils'
 import Image from 'next/image'
 
 // Configure NEXT_PUBLIC_MCP_BASE_URL in .env to set your MCP server URL
-const MCP_URL = (process.env.NEXT_PUBLIC_MCP_BASE_URL || 'http://localhost:8002') + '/mcp'
+const MCP_URL = process.env.NEXT_PUBLIC_MCP_BASE_URL! + '/mcp'
 
 function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false)

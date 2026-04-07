@@ -68,7 +68,7 @@ export async function GET() {
 
     // Step 3: Test the /status command logic
     // Check if PodClaw bridge is available
-    const bridgeUrl = process.env.PODCLAW_BRIDGE_URL || 'http://localhost:8000';
+    const bridgeUrl = process.env.PODCLAW_BRIDGE_URL!;
     let podclawStatus = null;
     let bridgeOnline = false;
 

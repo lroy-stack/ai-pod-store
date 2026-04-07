@@ -3,12 +3,10 @@ import type { AuthInfo } from '@modelcontextprotocol/sdk/server/auth/types.js';
 import type { IncomingMessage } from 'node:http';
 import { getRedisClient } from '../lib/redis.js';
 import { revokedTokens } from './oauth-provider.js';
+import { requiredEnv } from '../lib/env.js';
 
-if (!process.env.MCP_JWT_SECRET) {
-  throw new Error('MCP_JWT_SECRET environment variable is required');
-}
-const MCP_JWT_SECRET = new TextEncoder().encode(process.env.MCP_JWT_SECRET);
-const MCP_BASE_URL = process.env.MCP_BASE_URL || 'http://localhost:8002';
+const MCP_JWT_SECRET = new TextEncoder().encode(requiredEnv('MCP_JWT_SECRET'));
+const MCP_BASE_URL = requiredEnv('MCP_BASE_URL');
 
 /**
  * Extract and validate JWT from Authorization header.

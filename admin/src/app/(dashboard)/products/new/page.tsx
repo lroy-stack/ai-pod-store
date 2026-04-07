@@ -84,7 +84,7 @@ export default function NewProductPage() {
 
       if (productType === 'physical') {
         body.product_details = {
-          brand: process.env.NEXT_PUBLIC_STORE_NAME || (process.env.NEXT_PUBLIC_SITE_NAME || 'My Store'),
+          brand: process.env.NEXT_PUBLIC_SITE_NAME!,
           manufacturer: process.env.NEXT_PUBLIC_STORE_MANUFACTURER || process.env.STORE_COMPANY_NAME || 'Your Company Name',
           manufacturing_country: fields.manufacturing_country,
           safety_information: 'Conforms to EU Regulation 2023/988 (GPSR)',

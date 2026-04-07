@@ -58,7 +58,7 @@ export const POST = withPermission('themes', 'update', async (req, session, cont
 
     // Invalidate SSR theme cache on the frontend
     // Use REVALIDATION_SECRET (falls back to CRON_SECRET) — NOT the Supabase service key
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000'
+    const frontendUrl = process.env.FRONTEND_URL!
     const revalidationSecret = process.env.REVALIDATION_SECRET || process.env.CRON_SECRET
     fetch(`${frontendUrl}/api/revalidate/theme`, {
       method: 'POST',

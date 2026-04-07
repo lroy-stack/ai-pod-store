@@ -151,7 +151,7 @@ self.addEventListener('push', (event: any) => {
     vibrate: [100, 50, 100],
   }
   event.waitUntil(
-    self.registration.showNotification(data.title || (process.env.NEXT_PUBLIC_SITE_NAME || 'My POD Store'), options)
+    self.registration.showNotification(data.title || process.env.NEXT_PUBLIC_SITE_NAME!, options)
   )
 })
 

@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/auth-middleware'
 
-const FRONTEND_URL = process.env.NEXT_PUBLIC_FRONTEND_URL || 'http://localhost:3000'
+import { requiredEnv } from '@/lib/env'
+
+const FRONTEND_URL = requiredEnv('NEXT_PUBLIC_FRONTEND_URL')
 
 export const POST = withAuth(async (req, session) => {
   try {

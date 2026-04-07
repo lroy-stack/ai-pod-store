@@ -1,8 +1,8 @@
 import type { ReadResourceResult } from '@modelcontextprotocol/sdk/types.js';
+import { requiredEnv } from '../lib/env.js';
 
-// Dynamic store config from environment — set STORE_* vars in .env
-const SUPPORT_EMAIL = process.env.STORE_SUPPORT_EMAIL || process.env.STORE_EMAIL || 'support@yourdomain.com';
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || process.env.FRONTEND_URL || 'https://yourdomain.com';
+const SUPPORT_EMAIL = requiredEnv('STORE_SUPPORT_EMAIL');
+const BASE_URL = requiredEnv('NEXT_PUBLIC_BASE_URL');
 
 /**
  * MCP Resource: store://policies
@@ -23,7 +23,7 @@ export async function readStorePolicies(
 
 ## Shipping Policy
 
-We partner with Printify for print-on-demand fulfillment. Orders are processed and shipped within 2-7 business days.
+We partner with Printful for print-on-demand fulfillment. Orders are processed and shipped within 2-7 business days.
 
 **Shipping Times:**
 - US: 3-5 business days

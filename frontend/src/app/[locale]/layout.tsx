@@ -32,7 +32,7 @@ export async function generateMetadata({
   const title = brandConfig.seoTitles[localeKey] || brandConfig.seoTitles.en
   const description = brandConfig.seoDescriptions[localeKey] || brandConfig.seoDescriptions.en
 
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL!
 
   return {
     title,

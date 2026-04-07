@@ -49,7 +49,7 @@ async function handler(
     }
 
     // Use the frontend API to resubmit the order via the provider abstraction layer
-    const frontendUrl = process.env.NEXT_PUBLIC_FRONTEND_URL || 'http://localhost:3000';
+    const frontendUrl = process.env.NEXT_PUBLIC_FRONTEND_URL!;
     const cronSecret = process.env.CRON_SECRET || process.env.PODCLAW_BRIDGE_AUTH_TOKEN;
 
     const retryResponse = await fetch(

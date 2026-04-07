@@ -2,6 +2,7 @@ import { z } from 'zod';
 import type { AuthInfo } from '@modelcontextprotocol/sdk/server/auth/types.js';
 import { getSupabaseClient } from '../lib/supabase.js';
 import Stripe from 'stripe';
+import { requiredEnv } from '../lib/env.js';
 
 /**
  * MCP Tool: create_checkout
@@ -31,8 +32,8 @@ export interface CreateCheckoutResult {
   expires_at?: string;
 }
 
-const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || '';
-const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
+const STRIPE_SECRET_KEY = requiredEnv('STRIPE_SECRET_KEY');
+const FRONTEND_URL = requiredEnv('FRONTEND_URL');
 
 type AllowedCountry = Stripe.Checkout.SessionCreateParams.ShippingAddressCollection.AllowedCountry;
 

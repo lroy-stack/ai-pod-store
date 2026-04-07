@@ -21,9 +21,9 @@ export async function generateMetadata({ params }: FAQPageProps): Promise<Metada
     de: `Häufig gestellte Fragen - ${siteName}`,
   }
   const descriptions: Record<string, string> = {
-    en: 'Find answers to common questions about ' + (process.env.NEXT_PUBLIC_SITE_NAME || 'My POD Store') + ', our products, ordering, shipping, and more.',
-    es: 'Encuentra respuestas a preguntas comunes sobre ' + (process.env.NEXT_PUBLIC_SITE_NAME || 'My POD Store') + ', nuestros productos, pedidos, envíos y más.',
-    de: 'Finden Sie Antworten auf häufige Fragen zu ' + (process.env.NEXT_PUBLIC_SITE_NAME || 'My POD Store') + ', unseren Produkten, Bestellungen, Versand und mehr.',
+    en: 'Find answers to common questions about ' + process.env.NEXT_PUBLIC_SITE_NAME! + ', our products, ordering, shipping, and more.',
+    es: 'Encuentra respuestas a preguntas comunes sobre ' + process.env.NEXT_PUBLIC_SITE_NAME! + ', nuestros productos, pedidos, envíos y más.',
+    de: 'Finden Sie Antworten auf häufige Fragen zu ' + process.env.NEXT_PUBLIC_SITE_NAME! + ', unseren Produkten, Bestellungen, Versand und mehr.',
   }
   const title = titles[locale] || titles.en
   const description = descriptions[locale] || descriptions.en
