@@ -1,0 +1,43 @@
+# PodClaw — Python Dependencies
+# Pinned to known-good versions for reproducible builds.
+
+# Anthropic Agent SDK (Claude agent framework)
+claude-agent-sdk>=0.1.0
+
+# Web framework (FastAPI bridge on port 8000)
+fastapi>=0.115.0
+uvicorn[standard]>=0.34.0
+
+# Data validation
+pydantic>=2.0.0
+
+# Structured logging
+structlog>=24.0.0
+
+# Environment variable management
+python-dotenv>=1.0.0
+
+# Task scheduling (daily agent cycles)
+apscheduler>=3.10.0
+
+# HTTP client (connector calls, webhooks)
+httpx>=0.27.0
+
+# Webhook signature verification (Resend uses Svix)
+svix>=1.0.0
+
+# Async file operations
+aiofiles>=24.0.0
+
+# Supabase client (event store, state)
+supabase>=2.0.0
+
+# Redis client (persistent rate limits and cost tracking)
+redis[hiredis]>=5.0.0
+
+# Prometheus metrics (observability and monitoring)
+prometheus-client>=0.20.0
+prometheus-fastapi-instrumentator>=7.0.0
+
+# Text similarity (product deduplication)
+rapidfuzz>=3.0.0

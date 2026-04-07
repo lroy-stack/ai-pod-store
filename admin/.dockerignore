@@ -1,0 +1,37 @@
+# Dependencies (installed fresh in Docker build)
+node_modules
+
+# Build output (rebuilt in Docker build)
+.next
+
+# Version control
+.git
+.gitignore
+
+# Editor / IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# Environment files (pass via docker env / env_file)
+.env
+.env.*
+.env.local
+.env.development
+.env.production
+
+# Documentation
+*.md
+
+# Test artifacts
+coverage
+test-results
+.nyc_output
+playwright-report
+
+# Miscellaneous
+.DS_Store
+Thumbs.db
+*.log
+npm-debug.log*

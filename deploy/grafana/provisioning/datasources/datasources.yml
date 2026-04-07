@@ -1,0 +1,26 @@
+# Grafana Datasource Provisioning
+# Auto-configures Prometheus and Loki datasources
+
+apiVersion: 1
+
+datasources:
+  # Prometheus — Metrics
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: false
+    jsonData:
+      timeInterval: 15s
+      httpMethod: POST
+
+  # Loki — Logs
+  - name: Loki
+    type: loki
+    access: proxy
+    url: http://loki:3100
+    editable: false
+    jsonData:
+      maxLines: 1000
+      timeout: 60

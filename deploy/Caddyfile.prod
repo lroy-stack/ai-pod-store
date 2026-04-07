@@ -1,0 +1,139 @@
+# POD Platform — Caddy Production TLS Override
+# Loaded via: -v ./deploy/Caddyfile.prod:/etc/caddy/Caddyfile:ro
+#
+# This file is identical to Caddyfile but adds Cloudflare Origin Certificate
+# TLS configuration to each site block.
+
+# Global options
+{
+	on_demand_tls {
+		ask http://frontend:3000/api/verify-domain
+	}
+}
+
+# Shared security headers snippet
+(security_headers) {
+	@https protocol https
+	header @https Strict-Transport-Security "max-age=31536000; includeSubDomains"
+
+	header {
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		X-XSS-Protection "1; mode=block"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(self), geolocation=(), payment=()"
+		-Server
+	}
+
+	encode zstd gzip
+}
+
+# ─── Frontend (primary domain) ────────────────────────────────────────
+{$CADDY_SITE_ADDRESS} {
+	tls /etc/caddy/certs/origin.pem /etc/caddy/certs/origin-key.pem
+
+	handle /api/bridge/* {
+		uri strip_prefix /api/bridge
+		reverse_proxy podclaw:8000
+	}
+
+	@supabase path /auth/* /rest/* /storage/* /realtime/*
+	handle @supabase {
+		reverse_proxy kong:8000
+	}
+
+	reverse_proxy frontend:3000
+
+	import security_headers
+
+	# CSP managed by Next.js (frontend/next.config.ts) — single source of truth
+	# Per W3C CSP Level 3: multiple CSP headers = intersection (most restrictive wins)
+	# Ref: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy
+}
+
+# ─── Admin Panel (subdomain) ──────────────────────────────────────────
+admin.{$CADDY_SITE_ADDRESS} {
+	tls /etc/caddy/certs/origin.pem /etc/caddy/certs/origin-key.pem
+	reverse_proxy admin:3001
+
+	import security_headers
+
+	# CSP managed by Next.js (admin/next.config.ts) — single source of truth
+}
+
+# ─── Supabase API (subdomain) ─────────────────────────────────────────
+api.{$CADDY_SITE_ADDRESS} {
+	tls /etc/caddy/certs/origin.pem /etc/caddy/certs/origin-key.pem
+
+	reverse_proxy kong:8000 {
+		# Strip Kong's CORS headers from upstream response
+		# Docs: https://caddyserver.com/docs/caddyfile/directives/reverse_proxy
+		# header_down operates on upstream response only, not Caddy's own headers
+		header_down -Access-Control-Allow-Origin
+		header_down -Access-Control-Allow-Credentials
+		header_down -Access-Control-Allow-Methods
+		header_down -Access-Control-Allow-Headers
+	}
+
+	import security_headers
+
+	@cors_preflight method OPTIONS
+	handle @cors_preflight {
+		header Access-Control-Allow-Origin "https://{$CADDY_SITE_ADDRESS}"
+		header Access-Control-Allow-Methods "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+		header Access-Control-Allow-Headers "apikey, authorization, content-type, x-client-info, x-supabase-api-version"
+		header Access-Control-Max-Age "3600"
+		respond 204
+	}
+
+	header Access-Control-Allow-Origin "https://{$CADDY_SITE_ADDRESS}"
+	header Access-Control-Allow-Credentials "true"
+}
+
+# ─── MCP Server (subdomain) ───────────────────────────────────────────
+mcp.{$CADDY_SITE_ADDRESS} {
+	tls /etc/caddy/certs/origin.pem /etc/caddy/certs/origin-key.pem
+	reverse_proxy mcp-server:8002
+
+	import security_headers
+
+	handle /.well-known/oauth-authorization-server {
+		reverse_proxy mcp-server:8002
+	}
+	handle /.well-known/oauth-protected-resource {
+		reverse_proxy mcp-server:8002
+	}
+	handle /oauth/* {
+		reverse_proxy mcp-server:8002
+	}
+}
+
+# ─── Grafana (subdomain) — basic auth required ───────────────────────
+grafana.{$CADDY_SITE_ADDRESS} {
+	tls /etc/caddy/certs/origin.pem /etc/caddy/certs/origin-key.pem
+
+	basic_auth / {
+		admin $2a$14$7OkwtL9UbxRK7j8hf7317uCMVshL/zgkeISvB9cwtjAKZGfSanwSC
+	}
+
+	reverse_proxy grafana:3000
+
+	import security_headers
+}
+
+# ─── Custom tenant domains (on-demand TLS via Let's Encrypt) ──────────
+:443 {
+	tls {
+		on_demand
+	}
+
+	reverse_proxy frontend:3000 {
+		header_up Host {host}
+	}
+
+	import security_headers
+
+	# CSP managed by Next.js (frontend/next.config.ts) — single source of truth
+}
+
+import /etc/caddy/addons/*.conf

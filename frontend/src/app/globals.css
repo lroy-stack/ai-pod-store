@@ -1,0 +1,390 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+/* Class-based dark mode for next-themes */
+@custom-variant dark (&:is(.dark *));
+
+/* ===== Layer 1: Real values (overridden at runtime by theme-loader) ===== */
+/* Default: Warm Slate theme — burnt orange accent, cool gray-blue surfaces */
+:root {
+  --background: oklch(0.93 0.008 260);
+  --foreground: oklch(0.30 0.025 255);
+  --card: oklch(0.95 0.009 260);
+  --card-foreground: oklch(0.30 0.025 255);
+  --popover: oklch(0.95 0.009 260);
+  --popover-foreground: oklch(0.30 0.025 255);
+  --primary: oklch(0.55 0.14 55);
+  --primary-foreground: oklch(1.0 0 0);
+  --secondary: oklch(0.91 0.006 260);
+  --secondary-foreground: oklch(0.30 0.025 255);
+  --muted: oklch(0.90 0.008 260);
+  --muted-foreground: oklch(0.53 0.015 260);
+  --accent: oklch(0.92 0.006 260);
+  --accent-foreground: oklch(0.30 0.025 255);
+  --destructive: oklch(0.55 0.22 25);
+  --destructive-foreground: oklch(1.0 0 0);
+  --success: oklch(0.65 0.19 155);
+  --success-foreground: oklch(1.0 0 0);
+  --warning: oklch(0.75 0.16 70);
+  --warning-foreground: oklch(0.25 0.05 70);
+  --border: oklch(0.87 0.008 260);
+  --input: oklch(0.93 0.006 260);
+  --ring: oklch(0.55 0.17 75);
+  --rating: oklch(0.80 0.16 85);
+  --rating-foreground: oklch(0.40 0.08 85);
+  --chart-1: oklch(0.55 0.17 75);
+  --chart-2: oklch(0.55 0.18 280);
+  --chart-3: oklch(0.65 0.15 200);
+  --chart-4: oklch(0.65 0.19 155);
+  --chart-5: oklch(0.75 0.16 70);
+  --radius: 1rem;
+  --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-heading: "Inter", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+}
+
+.dark {
+  --background: oklch(0.13 0.008 260);
+  --foreground: oklch(0.92 0.005 260);
+  --card: oklch(0.18 0.010 260);
+  --card-foreground: oklch(0.92 0.005 260);
+  --popover: oklch(0.18 0.010 260);
+  --popover-foreground: oklch(0.92 0.005 260);
+  --primary: oklch(0.72 0.17 75);
+  --primary-foreground: oklch(0.13 0.02 75);
+  --secondary: oklch(0.20 0.008 260);
+  --secondary-foreground: oklch(0.92 0.005 260);
+  --muted: oklch(0.22 0.008 260);
+  --muted-foreground: oklch(0.60 0.010 260);
+  --accent: oklch(0.20 0.008 260);
+  --accent-foreground: oklch(0.92 0.005 260);
+  --destructive: oklch(0.60 0.22 25);
+  --destructive-foreground: oklch(1.0 0 0);
+  --success: oklch(0.65 0.19 155);
+  --success-foreground: oklch(1.0 0 0);
+  --warning: oklch(0.78 0.16 70);
+  --warning-foreground: oklch(0.20 0.05 70);
+  --border: oklch(0.24 0.008 260);
+  --input: oklch(0.16 0.008 260);
+  --ring: oklch(0.72 0.17 75);
+  --rating: oklch(0.80 0.16 85);
+  --rating-foreground: oklch(0.40 0.08 85);
+  --chart-1: oklch(0.72 0.17 75);
+  --chart-2: oklch(0.60 0.18 280);
+  --chart-3: oklch(0.70 0.15 200);
+  --chart-4: oklch(0.65 0.19 155);
+  --chart-5: oklch(0.78 0.16 70);
+  --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.5), 0 2px 4px -2px rgb(0 0 0 / 0.5);
+}
+
+/* ===== Layer 2: Reactive bridge to Tailwind utilities ===== */
+@theme inline {
+  --color-black: #000000;
+  --color-white: #ffffff;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-rating: var(--rating);
+  --color-rating-foreground: var(--rating-foreground);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  /* Radius derivations from single --radius token */
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  /* Font mapping for Tailwind utilities (font-sans, font-mono, font-display) */
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+  --font-display: var(--font-display, var(--font-heading));
+}
+
+/* ===== Base resets ===== */
+* {
+  @apply border-border;
+}
+
+body {
+  @apply bg-background text-foreground leading-relaxed;
+  font-family: var(--font-sans);
+  font-feature-settings: "rlig" 1, "calt" 1;
+}
+
+/* Typography scale */
+h1, h2, h3, h4, h5, h6 {
+  @apply font-bold tracking-tight;
+  font-family: var(--font-heading);
+}
+
+code, pre, kbd, samp {
+  font-family: var(--font-mono);
+}
+
+p {
+  @apply font-normal leading-relaxed;
+}
+
+/* ===== Utility classes ===== */
+.glass-panel {
+  @apply bg-card/80 backdrop-blur-xl border border-border rounded-2xl shadow-sm;
+}
+
+/* ===== Neumorphic theme classes ===== */
+/* These use var() fallbacks so they degrade gracefully when the active
+   theme does NOT provide --neu-* variables (i.e., every theme except Warm Slate). */
+
+.neu-card {
+  padding: var(--neu-card-pad, 0px);
+  border-width: var(--neu-border-w, 1px);
+  border-style: solid;
+  border-color: var(--border);
+  border-radius: var(--neu-card-radius, var(--radius));
+  box-shadow: var(--neu-out, 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1));
+}
+
+.neu-image {
+  position: relative;
+  background: var(--neu-image-bg, var(--muted));
+  border-radius: var(--neu-image-radius, 0px);
+}
+.neu-image::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: var(--neu-in, none);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.neu-btn-accent {
+  box-shadow: var(--neu-accent-glow, none);
+  border-radius: var(--neu-image-radius, 0.5rem);
+  border-width: var(--neu-border-w, 1px);
+  transition: all 0.2s ease;
+}
+.neu-btn-accent:hover {
+  box-shadow: var(--neu-accent-glow-hover, none);
+  transform: var(--neu-hover-lift, none);
+}
+.neu-btn-accent:active {
+  box-shadow: var(--neu-in, none);
+  transform: translateY(0);
+}
+
+.neu-btn-soft {
+  box-shadow: var(--neu-btn, none);
+  border-radius: var(--neu-image-radius, 0.5rem);
+  border-width: var(--neu-border-w, 1px);
+  transition: all 0.2s ease;
+}
+.neu-btn-soft:hover {
+  box-shadow: var(--neu-in, none);
+  transform: var(--neu-hover-lift, none);
+}
+.neu-btn-soft:active {
+  box-shadow: var(--neu-in, none);
+  transform: translateY(1px);
+}
+
+.neu-fav {
+  background: var(--neu-fav-bg, transparent);
+  box-shadow: var(--neu-btn, none);
+  border: none;
+}
+.neu-fav:hover {
+  box-shadow: var(--neu-in, none);
+}
+
+.neu-input {
+  box-shadow: var(--neu-in, none);
+  border-width: var(--neu-border-w, 1px);
+  border-radius: var(--neu-input-radius, var(--radius));
+}
+
+.neu-chip {
+  box-shadow: var(--neu-btn, none);
+  border-width: var(--neu-border-w, 1px);
+}
+.neu-chip:hover {
+  box-shadow: var(--neu-in, none);
+}
+.neu-chip-active {
+  box-shadow: var(--neu-accent-glow, none);
+}
+
+.neu-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--grid-gap, 0.75rem);
+}
+@media (min-width: 768px) {
+  .neu-grid {
+    grid-template-columns: repeat(auto-fill, minmax(var(--grid-card-min, 220px), 1fr));
+    gap: var(--grid-gap, 1rem);
+  }
+}
+/* Chat product cards: 1 column on small screens for readability */
+@media (max-width: 639px) {
+  .neu-grid-chat {
+    grid-template-columns: 1fr;
+  }
+}
+
+.gen-gradient {
+  background: linear-gradient(135deg, var(--color-chart-1) 0%, var(--color-chart-2) 100%);
+}
+
+.gen-gradient-text {
+  background: linear-gradient(135deg, var(--color-chart-1) 0%, var(--color-chart-2) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Sparkle text animation for welcome greeting */
+.sparkle-text {
+  display: inline-block;
+  background: linear-gradient(
+    90deg,
+    var(--color-foreground) 0%,
+    var(--color-primary) 25%,
+    var(--color-foreground) 50%,
+    var(--color-primary) 75%,
+    var(--color-foreground) 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: sparkle 3s linear infinite;
+}
+
+@keyframes sparkle {
+  0% {
+    background-position: 0% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+/* DetailPanel thin scrollbar */
+.detail-scroll::-webkit-scrollbar { width: 5px; }
+.detail-scroll::-webkit-scrollbar-track { background: transparent; }
+.detail-scroll::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--color-foreground) 8%, transparent);
+  border-radius: 3px;
+}
+.detail-scroll::-webkit-scrollbar-thumb:hover { background: color-mix(in srgb, var(--color-foreground) 15%, transparent); }
+.detail-scroll { scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--color-foreground) 8%, transparent) transparent; }
+
+/* Tab horizontal scroll — hidden scrollbar */
+.tab-scroll { scrollbar-width: none; -ms-overflow-style: none; }
+.tab-scroll::-webkit-scrollbar { display: none; }
+
+/* Generic scrollbar-hide utility */
+@utility scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+}
+
+/* ===== View Transitions (React 19) ===== */
+/* Disabled: the 300ms cross-fade caused visible ghosting of the previous
+   page when navigating between routes (chat → shop, etc.).  Re-enable only
+   with per-element transitions, NOT a full-root fade. */
+
+/* ===== Landing page ===== */
+.shader-fade-bottom {
+  background: linear-gradient(to bottom, transparent 0%, var(--color-background) 100%);
+}
+
+.landing-gradient-text {
+  color: var(--color-foreground);
+  background: linear-gradient(
+    135deg,
+    var(--color-foreground) 0%,
+    var(--color-primary) 30%,
+    var(--color-chart-3) 50%,
+    var(--color-primary) 70%,
+    var(--color-foreground) 100%
+  );
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: landing-gradient 8s ease infinite;
+}
+
+@keyframes landing-gradient {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes landing-float-kf {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+.landing-float {
+  animation: landing-float-kf 4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-gradient-text,
+  .landing-float {
+    animation: none;
+  }
+  .landing-gradient-text {
+    -webkit-text-fill-color: unset;
+    background: none;
+  }
+}
+
+/* Steps connecting line */
+.steps-connector {
+  position: relative;
+}
+.steps-connector::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 5%;
+  right: 5%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-border), transparent);
+  pointer-events: none;
+  z-index: 0;
+}
+@media (max-width: 768px) {
+  .steps-connector::after {
+    display: none;
+  }
+}

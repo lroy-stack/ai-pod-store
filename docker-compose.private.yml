@@ -1,0 +1,56 @@
+# POD Platform — Private Mode (Docker Desktop / Local Development)
+# ===========================================================
+#
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.private.yml up -d
+#   ./start.sh --private
+#
+# This override:
+#   - All debug ports bound to 127.0.0.1 (not exposed to network)
+#   - Caddy serves on localhost only (HTTP, no HTTPS)
+#   - PodClaw bridge auth disabled for easier local testing
+#   - PodClaw on host port 8100 (8000 reserved for Supabase Kong)
+
+services:
+  caddy:
+    environment:
+      CADDY_SITE_ADDRESS: "http://localhost"
+    ports:
+      - "127.0.0.1:8080:80"
+
+  frontend:
+    ports:
+      - "127.0.0.1:3000:3000"
+    environment:
+      NEXT_TELEMETRY_DISABLED: "1"
+      NEXT_PUBLIC_BASE_URL: http://localhost:3000
+
+  admin:
+    ports:
+      - "127.0.0.1:3001:3001"
+
+  rembg:
+    ports:
+      - "127.0.0.1:8090:8080"
+
+  podclaw:
+    ports:
+      - "127.0.0.1:8100:8000"
+    environment:
+      PODCLAW_JSON_LOGS: "true"
+      PODCLAW_CORS_ORIGINS: "http://localhost,http://localhost:3000,http://localhost:8080"
+      PODCLAW_BRIDGE_AUTH_ENABLED: "false"
+
+  mcp-server:
+    ports:
+      - "127.0.0.1:8002:8002"
+    environment:
+      MCP_BASE_URL: "http://localhost:8002"
+
+  crawl4ai:
+    ports:
+      - "127.0.0.1:11235:11235"
+
+  redis:
+    ports:
+      - "127.0.0.1:6380:6379"

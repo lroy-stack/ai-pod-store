@@ -1,0 +1,641 @@
+# POD Platform — Docker Compose (Self-Hosted Stack)
+# =============================================
+#
+# Services (base):
+#   frontend   — Next.js 16 storefront (port 3000)
+#   admin      — Next.js 16 admin panel (port 3001)
+#   podclaw    — Python agent system with FastAPI bridge (port 8000)
+#   mcp-server — MCP server for AI assistant tools (port 8002)
+#   svg-renderer — SVG to print-ready PNG (port 3002)
+#   rembg      — Background removal sidecar with u2net (port 8080)
+#   redis      — Session cache, rate limiting, queues (port 6379)
+#   crawl4ai   — Web crawler with JS rendering (port 11235)
+#   caddy      — Reverse proxy with automatic HTTPS (ports 80, 443)
+#
+# Services (monitoring profile):
+#   prometheus — Metrics collection (port 9090)
+#   grafana    — Visualization dashboards (port 3100)
+#   loki       — Log aggregation (port 3100)
+#   promtail   — Log shipper for Loki
+#
+# Quick start:
+#   ./start.sh --private
+#
+# Manual:
+#   docker compose -f docker-compose.yml -f docker-compose.private.yml up -d   # local dev
+#   docker compose -f docker-compose.yml -f docker-compose.public.yml up -d    # production
+
+# ---------------------------------------------------------------------------
+# Reusable fragments (YAML anchors)
+# ---------------------------------------------------------------------------
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+x-security: &default-security
+  cap_drop:
+    - ALL
+
+services:
+  # ---------------------------------------------------------------------------
+  # Frontend — Next.js 16
+  # ---------------------------------------------------------------------------
+  frontend:
+    <<: *default-security
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+        NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY}
+        NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${NEXT_PUBLIC_TURNSTILE_SITE_KEY:-}
+        NEXT_PUBLIC_BASE_URL: ${NEXT_PUBLIC_BASE_URL:-http://localhost:3000}
+        NEXT_PUBLIC_SITE_NAME: ${NEXT_PUBLIC_SITE_NAME:-My POD Store}
+        NEXT_PUBLIC_SITE_TAGLINE: ${NEXT_PUBLIC_SITE_TAGLINE:-Wear what you mean}
+        NEXT_PUBLIC_SOCIAL_INSTAGRAM: ${NEXT_PUBLIC_SOCIAL_INSTAGRAM:-}
+        NEXT_PUBLIC_SOCIAL_TWITTER: ${NEXT_PUBLIC_SOCIAL_TWITTER:-}
+        NEXT_PUBLIC_SOCIAL_FACEBOOK: ${NEXT_PUBLIC_SOCIAL_FACEBOOK:-}
+      secrets:
+        - supabase_service_key
+    expose:
+      - "3000"
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      SUPABASE_URL: ${SUPABASE_URL}
+      SUPABASE_SERVICE_KEY: ${SUPABASE_SERVICE_KEY}
+      SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      RESEND_API_KEY: ${RESEND_API_KEY}
+      RESEND_FROM_EMAIL: ${RESEND_FROM_EMAIL:-noreply@example.com}
+      TURNSTILE_SECRET_KEY: ${TURNSTILE_SECRET_KEY:-}
+      CRON_SECRET: ${CRON_SECRET:-}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      PODCLAW_BRIDGE_URL: http://podclaw:8000
+      GOOGLE_GENERATIVE_AI_API_KEY: ${GOOGLE_GENERATIVE_AI_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      PRINTIFY_WEBHOOK_SECRET: ${PRINTIFY_WEBHOOK_SECRET:-}
+      DEFAULT_LOCALE: ${DEFAULT_LOCALE:-en}
+      SUPPORTED_LOCALES: ${SUPPORTED_LOCALES:-en,es,de}
+      STORE_CONTACT_EMAIL: ${STORE_CONTACT_EMAIL:-hello@example.com}
+      STORE_SUPPORT_EMAIL: ${STORE_SUPPORT_EMAIL:-support@example.com}
+      STORE_LEGAL_EMAIL: ${STORE_LEGAL_EMAIL:-legal@example.com}
+      STORE_PRIVACY_EMAIL: ${STORE_PRIVACY_EMAIL:-privacy@example.com}
+      STORE_NOREPLY_EMAIL: ${STORE_NOREPLY_EMAIL:-noreply@example.com}
+      STORE_COMPANY_NAME: ${STORE_COMPANY_NAME:-Your Company Name}
+      STORE_COMPANY_ADDRESS: ${STORE_COMPANY_ADDRESS:-Your Company Address}
+      STORE_DOMAIN: ${STORE_DOMAIN:-yourdomain.com}
+      STORE_USER_AGENT: ${STORE_USER_AGENT:-POD-Platform/1.0}
+      REVALIDATION_SECRET: ${REVALIDATION_SECRET:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      FAL_KEY: ${FAL_KEY:-}
+      PRINTFUL_API_TOKEN: ${PRINTFUL_API_TOKEN:-}
+      PRINTFUL_STORE_ID: ${PRINTFUL_STORE_ID:-}
+      PRINTFUL_WEBHOOK_SECRET: ${PRINTFUL_WEBHOOK_SECRET:-}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_WEBHOOK_SECRET: ${TELEGRAM_WEBHOOK_SECRET:-}
+      WHATSAPP_ACCESS_TOKEN: ${WHATSAPP_ACCESS_TOKEN:-}
+      WHATSAPP_APP_SECRET: ${WHATSAPP_APP_SECRET:-}
+      WHATSAPP_WEBHOOK_VERIFY_TOKEN: ${WHATSAPP_WEBHOOK_VERIFY_TOKEN:-}
+      PODCLAW_BRIDGE_AUTH_TOKEN: ${PODCLAW_BRIDGE_AUTH_TOKEN:-}
+      STRIPE_PREMIUM_PRICE_ID: ${STRIPE_PREMIUM_PRICE_ID:-}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+      MCP_BASE_URL: "https://${DOMAIN:-localhost}/mcp"
+      MCP_APPROVE_SECRET: ${MCP_APPROVE_SECRET:-}
+      NODE_EXTRA_CA_CERTS: /etc/ssl/certs/cloudflare-origin-ca.pem
+    volumes:
+      - ./deploy/certs/cloudflare-origin-ca.pem:/etc/ssl/certs/cloudflare-origin-ca.pem:ro
+    depends_on:
+      redis: { condition: service_healthy }
+      podclaw: { condition: service_healthy }
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits: { cpus: '1.0', memory: 512M }
+        reservations: { memory: 256M }
+    networks: [proxy, data]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 3
+    logging: *default-logging
+
+  # ---------------------------------------------------------------------------
+  # Admin — Next.js 16 Admin Panel (Store + PodClaw Management)
+  # ---------------------------------------------------------------------------
+  admin:
+    <<: *default-security
+    build:
+      context: ./admin
+      dockerfile: Dockerfile
+      additional_contexts:
+        frontend-messages: ./frontend/messages
+      args:
+        ADMIN_BASE_PATH: "/panel"
+      secrets:
+        - supabase_service_key
+    expose:
+      - "3001"
+    environment:
+      NODE_ENV: production
+      PORT: "3001"
+      ADMIN_BASE_PATH: "/panel"
+      SUPABASE_URL: ${SUPABASE_URL}
+      SUPABASE_SERVICE_KEY: ${SUPABASE_SERVICE_KEY}
+      SESSION_SECRET: ${SESSION_SECRET}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+      SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY:-${NEXT_PUBLIC_SUPABASE_ANON_KEY}}
+      NEXT_PUBLIC_FRONTEND_URL: ${NEXT_PUBLIC_BASE_URL:-http://localhost:3000}
+      FRONTEND_URL: ${NEXT_PUBLIC_BASE_URL:-http://localhost:3000}
+      PODCLAW_BRIDGE_URL: http://podclaw:8000
+      PODCLAW_BRIDGE_AUTH_TOKEN: ${PODCLAW_BRIDGE_AUTH_TOKEN}
+      PODCLAW_API_KEY: ${PODCLAW_API_KEY:-${PODCLAW_BRIDGE_AUTH_TOKEN}}
+      PRINTFUL_API_TOKEN: ${PRINTFUL_API_TOKEN}
+      PRINTFUL_STORE_ID: ${PRINTFUL_STORE_ID}
+      CRON_SECRET: ${CRON_SECRET:-}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      REVALIDATION_SECRET: ${REVALIDATION_SECRET:-}
+      STORE_NAME: ${NEXT_PUBLIC_SITE_NAME:-My POD Store}
+      STORE_CONTACT_EMAIL: ${STORE_CONTACT_EMAIL:-hello@example.com}
+      STORE_SUPPORT_EMAIL: ${STORE_SUPPORT_EMAIL:-support@example.com}
+      STORE_COMPANY_NAME: ${STORE_COMPANY_NAME:-Your Company Name}
+      STORE_COMPANY_ADDRESS: ${STORE_COMPANY_ADDRESS:-Your Company Address}
+      STORE_LEGAL_EMAIL: ${STORE_LEGAL_EMAIL:-legal@example.com}
+      STORE_PRIVACY_EMAIL: ${STORE_PRIVACY_EMAIL:-privacy@example.com}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@example.com}
+      STORE_DOMAIN: ${STORE_DOMAIN:-yourdomain.com}
+    depends_on:
+      podclaw: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits: { cpus: '0.5', memory: 256M }
+        reservations: { memory: 128M }
+    networks: [proxy, data]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/panel/api/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 3
+    logging: *default-logging
+
+  # ---------------------------------------------------------------------------
+  # PodClaw — Autonomous Agent System + FastAPI Bridge
+  # ---------------------------------------------------------------------------
+  podclaw:
+    <<: *default-security
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile
+    expose:
+      - "8000"
+    environment:
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      SUPABASE_URL: ${SUPABASE_URL}
+      SUPABASE_SERVICE_KEY: ${SUPABASE_SERVICE_KEY}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      PRINTFUL_API_TOKEN: ${PRINTFUL_API_TOKEN}
+      PRINTFUL_STORE_ID: ${PRINTFUL_STORE_ID}
+      PRINTFUL_WEBHOOK_SECRET: ${PRINTFUL_WEBHOOK_SECRET:-}
+      FAL_KEY: ${FAL_KEY}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      RESEND_API_KEY: ${RESEND_API_KEY}
+      RESEND_FROM_EMAIL: ${RESEND_FROM_EMAIL:-noreply@example.com}
+      RESEND_WEBHOOK_SECRET: ${RESEND_WEBHOOK_SECRET:-}
+      EMAIL_WORKER_SECRET: ${EMAIL_WORKER_SECRET:-}
+      CLAUDE_CODE_STREAM_CLOSE_TIMEOUT: "300000"
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_WEBHOOK_SECRET: ${TELEGRAM_WEBHOOK_SECRET:-}
+      PODCLAW_ADMIN_TELEGRAM_CHAT_ID: ${PODCLAW_ADMIN_TELEGRAM_CHAT_ID:-}
+      CEO_TELEGRAM_CHAT_ID: ${CEO_TELEGRAM_CHAT_ID:-${PODCLAW_ADMIN_TELEGRAM_CHAT_ID}}
+      WHATSAPP_ACCESS_TOKEN: ${WHATSAPP_ACCESS_TOKEN:-}
+      WHATSAPP_PHONE_NUMBER_ID: ${WHATSAPP_PHONE_NUMBER_ID:-}
+      WHATSAPP_APP_SECRET: ${WHATSAPP_APP_SECRET:-}
+      WHATSAPP_WEBHOOK_VERIFY_TOKEN: ${WHATSAPP_WEBHOOK_VERIFY_TOKEN:-}
+      CEO_WHATSAPP_NUMBER: ${CEO_WHATSAPP_NUMBER:-}
+      PODCLAW_BRIDGE_AUTH_TOKEN: ${PODCLAW_BRIDGE_AUTH_TOKEN}
+      STORE_NAME: ${NEXT_PUBLIC_SITE_NAME:-My POD Store}
+      STORE_DOMAIN: ${STORE_DOMAIN:-yourdomain.com}
+      REMBG_URL: http://rembg:8080
+      SVG_RENDERER_URL: http://svg-renderer:3002
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      CRAWL4AI_URL: http://crawl4ai:11235
+    volumes:
+      - podclaw-data:/app/podclaw/data
+      - podclaw-memory:/app/podclaw/memory
+      - podclaw-sessions:/home/podclaw/.claude
+    depends_on:
+      redis: { condition: service_healthy }
+      rembg: { condition: service_healthy }
+      crawl4ai: { condition: service_healthy }
+      svg-renderer: { condition: service_healthy }
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits: { cpus: '1.0', memory: 768M }
+        reservations: { memory: 384M }
+    networks: [proxy, data, ai-services]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 15s
+      retries: 3
+    logging: *default-logging
+
+  # ---------------------------------------------------------------------------
+  # SVG Renderer — SVG to print-ready PNG (resvg + sharp)
+  # ---------------------------------------------------------------------------
+  svg-renderer:
+    <<: *default-security
+    build:
+      context: deploy/svg-renderer
+    expose:
+      - "3002"
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits: { cpus: '1.0', memory: 512M }
+        reservations: { memory: 256M }
+    networks: [ai-services]
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3002/health', r => process.exit(r.statusCode === 200 ? 0 : 1))"]
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+    logging: *default-logging
+
+  # ---------------------------------------------------------------------------
+  # rembg — Local Background Removal (u2net, zero cloud cost)
+  # ---------------------------------------------------------------------------
+  rembg:
+    <<: *default-security
+    build:
+      context: deploy/rembg
+    expose:
+      - "8080"
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits: { cpus: '2.0', memory: 1536M }
+        reservations: { memory: 768M }
+    networks: [ai-services]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 3
+    logging: *default-logging
+
+  # ---------------------------------------------------------------------------
+  # Redis — Session cache, rate limiting, queues
+  # ---------------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    expose:
+      - "6379"
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    volumes:
+      - redis-data:/data
+    command: >
+      redis-server
+      --requirepass ${REDIS_PASSWORD}
+      --appendonly yes
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+      --rename-command FLUSHALL ""
+      --rename-command FLUSHDB ""
+      --rename-command DEBUG ""
+      --rename-command CONFIG ""
+    restart: unless-stopped
+    cap_drop:
+      - ALL
+    cap_add:
+      - SETGID
+      - SETUID
+      - DAC_OVERRIDE
+    deploy:
+      resources:
+        limits: { cpus: '0.5', memory: 256M }
+        reservations: { memory: 128M }
+    networks: [data]
+    healthcheck:
+      test: ["CMD", "sh", "-c", "redis-cli -a $$REDIS_PASSWORD ping 2>/dev/null"]
+      interval: 10s
+      timeout: 5s
+      start_period: 5s
+      retries: 3
+    logging: *default-logging
+
+  # ---------------------------------------------------------------------------
+  # Crawl4AI — Web crawler with JavaScript rendering (port 11235)
+  # ---------------------------------------------------------------------------
+  crawl4ai:
+    image: unclecode/crawl4ai:0.8.0
+    expose:
+      - "11235"
+    environment:
+      MAX_CONCURRENT_TASKS: "1"
+      CRAWL4AI_API_TOKEN: ""
+    volumes:
+      - crawl4ai-output:/app/output
+    restart: unless-stopped
+    cap_drop:
+      - ALL
+    cap_add:
+      - SYS_ADMIN
+    deploy:
+      resources:
+        limits: { cpus: '1.0', memory: 768M }
+        reservations: { memory: 384M }
+    shm_size: 512m
+    networks: [ai-services]
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:11235/monitor/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
+    logging: *default-logging
+
+  # ---------------------------------------------------------------------------
+  # MCP Server — Model Context Protocol (AI assistant tools, port 8002)
+  # ---------------------------------------------------------------------------
+  mcp-server:
+    <<: *default-security
+    build:
+      context: ./mcp-server
+      dockerfile: Dockerfile
+    expose:
+      - "8002"
+    environment:
+      NODE_ENV: production
+      PORT: "8002"
+      SUPABASE_URL: ${SUPABASE_URL}
+      SUPABASE_SERVICE_KEY: ${SUPABASE_SERVICE_KEY}
+      SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY:-}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      MCP_JWT_SECRET: ${MCP_JWT_SECRET}
+      MCP_APPROVE_SECRET: ${MCP_APPROVE_SECRET}
+      MCP_REGISTERED_CLIENTS: ${MCP_REGISTERED_CLIENTS:-}
+      MCP_BASE_URL: "https://mcp.${DOMAIN:-localhost}"
+      MCP_CORS_ORIGINS: ${MCP_CORS_ORIGINS:-https://claude.ai,https://chatgpt.com}
+      FRONTEND_URL: ${NEXT_PUBLIC_BASE_URL:-http://localhost:3000}
+      API_EXTERNAL_URL: ${API_EXTERNAL_URL:-https://api.yourdomain.com}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      STORE_NAME: ${NEXT_PUBLIC_SITE_NAME:-My POD Store}
+      STORE_TAGLINE: ${NEXT_PUBLIC_SITE_TAGLINE:-Wear what you mean}
+      STORE_PRIVACY_EMAIL: ${STORE_PRIVACY_EMAIL:-privacy@example.com}
+    depends_on:
+      redis: { condition: service_healthy }
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits: { cpus: '0.5', memory: 256M }
+        reservations: { memory: 128M }
+    networks: [proxy, data]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 15s
+      retries: 3
+    logging: *default-logging
+
+  # ---------------------------------------------------------------------------
+  # Prometheus — Metrics Collection and Monitoring
+  # ---------------------------------------------------------------------------
+  prometheus:
+    profiles: ["monitoring"]
+    image: prom/prometheus:v3.0.0
+    expose:
+      - "9090"
+    volumes:
+      - ./deploy/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=15d'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    restart: unless-stopped
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - SETGID
+      - SETUID
+    deploy:
+      resources:
+        limits: { cpus: '0.5', memory: 512M }
+        reservations: { memory: 256M }
+    networks: [data, monitoring]
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      start_period: 15s
+      retries: 3
+    logging: *default-logging
+
+  # ---------------------------------------------------------------------------
+  # Grafana — Visualization and Dashboards
+  # ---------------------------------------------------------------------------
+  grafana:
+    profiles: ["monitoring"]
+    image: grafana/grafana:11.4.0
+    expose:
+      - "3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-changeme}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      GF_INSTALL_PLUGINS: ""
+      GF_UNIFIED_ALERTING_ENABLED: "true"
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      PODCLAW_ADMIN_TELEGRAM_CHAT_ID: ${PODCLAW_ADMIN_TELEGRAM_CHAT_ID:-}
+    volumes:
+      - ./deploy/grafana/provisioning:/etc/grafana/provisioning:ro
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      prometheus: { condition: service_healthy }
+      loki: { condition: service_healthy }
+    restart: unless-stopped
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - SETGID
+      - SETUID
+    deploy:
+      resources:
+        limits: { cpus: '0.5', memory: 256M }
+        reservations: { memory: 128M }
+    networks: [monitoring, proxy]
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 3
+    logging: *default-logging
+
+  # ---------------------------------------------------------------------------
+  # Loki — Log Aggregation
+  # ---------------------------------------------------------------------------
+  loki:
+    profiles: ["monitoring"]
+    image: grafana/loki:3.3.1
+    expose:
+      - "3100"
+    volumes:
+      - loki-data:/loki
+    command: -config.file=/etc/loki/local-config.yaml
+    restart: unless-stopped
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - SETGID
+      - SETUID
+    deploy:
+      resources:
+        limits: { cpus: '0.5', memory: 512M }
+        reservations: { memory: 256M }
+    networks: [data, monitoring]
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3100/ready"]
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 3
+    logging: *default-logging
+
+  # ---------------------------------------------------------------------------
+  # Promtail — Log Shipper for Loki
+  # ---------------------------------------------------------------------------
+  promtail:
+    image: grafana/promtail:3.3.1
+    profiles: ["monitoring"]
+    <<: *default-security
+    cap_add:
+      - DAC_READ_SEARCH
+    volumes:
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - ./deploy/promtail/config.yml:/etc/promtail/config.yml:ro
+    networks: [monitoring]
+    depends_on:
+      loki:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: "0.25"
+        reservations:
+          memory: 64M
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9080/ready"]
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+    logging: *default-logging
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # Caddy — Reverse Proxy with Automatic HTTPS
+  # ---------------------------------------------------------------------------
+  caddy:
+    image: caddy:2.9-alpine
+    expose:
+      - "80"
+      - "443"
+    environment:
+      CADDY_SITE_ADDRESS: ${DOMAIN:-http://localhost}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./deploy/certs:/etc/caddy/certs:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      frontend: { condition: service_healthy }
+      admin: { condition: service_healthy }
+      podclaw: { condition: service_healthy }
+      mcp-server: { condition: service_healthy }
+    restart: unless-stopped
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    deploy:
+      resources:
+        limits: { cpus: '0.5', memory: 128M }
+        reservations: { memory: 64M }
+    networks: [proxy]
+    healthcheck:
+      test: ["CMD", "caddy", "version"]
+      interval: 30s
+      timeout: 10s
+      start_period: 15s
+      retries: 3
+    logging: *default-logging
+
+# ---------------------------------------------------------------------------
+# Named Volumes
+# ---------------------------------------------------------------------------
+volumes:
+  podclaw-data:      # PodClaw brain state (SQLite DB)
+  podclaw-memory:    # PodClaw memory logs and context files
+  podclaw-sessions:  # Claude SDK session files (conversation continuity)
+  redis-data:        # Redis AOF persistence
+  crawl4ai-output:   # Crawl4AI scraped data and cache
+  prometheus-data:   # Prometheus TSDB (15 days retention)
+  grafana-data:      # Grafana dashboards and settings
+  loki-data:         # Loki logs storage
+  caddy-data:        # TLS certificates
+  caddy-config:      # Caddy runtime config
+
+# ---------------------------------------------------------------------------
+# Networks — Segmented for isolation
+# ---------------------------------------------------------------------------
+#   proxy:       Caddy <-> frontend, admin, podclaw, mcp-server
+#   data:        frontend, podclaw, mcp-server <-> Redis
+#   ai-services: podclaw <-> rembg, crawl4ai (untrusted workloads isolated)
+networks:
+  proxy:
+    driver: bridge
+  data:
+    driver: bridge
+  ai-services:
+    driver: bridge
+  monitoring:
+    driver: bridge
+
+# ---------------------------------------------------------------------------
+# Secrets — BuildKit secret mounts for sensitive build-time values
+# ---------------------------------------------------------------------------
+# SUPABASE_SERVICE_KEY is mounted at build time via --mount=type=secret.
+# This prevents the key from appearing in docker image layers/history.
+# The secret is sourced from the SUPABASE_SERVICE_KEY environment variable.
+secrets:
+  supabase_service_key:
+    environment: SUPABASE_SERVICE_KEY

@@ -1,0 +1,48 @@
+{
+  "name": "@pod-platform/mcp-server",
+  "version": "1.0.0",
+  "author": "POD AI Team",
+  "license": "MIT",
+  "description": "MCP (Model Context Protocol) server for AI-native POD e-commerce platform",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "npm run build:uis && tsc",
+    "build:uis": "WIDGET=product-grid vite build && WIDGET=product-detail vite build && WIDGET=cart-view vite build",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "ecommerce",
+    "ai-assistant"
+  ],
+  "dependencies": {
+    "@modelcontextprotocol/ext-apps": "^1.2.2",
+    "@modelcontextprotocol/sdk": "^1.27.1",
+    "@supabase/supabase-js": "^2.47.10",
+    "ioredis": "^5.4.2",
+    "jose": "^5.9.6",
+    "stripe": "^17.5.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "@types/supertest": "^6.0.3",
+    "@vitest/coverage-v8": "^4.0.18",
+    "supertest": "^7.2.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3",
+    "vite": "^6.4.1",
+    "vite-plugin-singlefile": "^2.3.2",
+    "vitest": "^4.0.18"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}

@@ -1,0 +1,162 @@
+# POD Platform — Caddy Reverse Proxy Configuration
+# =================================================
+#
+# Subdomain-based routing (production, set DOMAIN in .env):
+#   yourdomain.com           → frontend:3000
+#   admin.yourdomain.com     → admin:3001
+#   api.yourdomain.com       → kong:8000 (Supabase self-hosted, optional)
+#   mcp.yourdomain.com       → mcp-server:8002
+#   grafana.yourdomain.com   → grafana:3100
+#
+# Local dev (CADDY_SITE_ADDRESS=http://localhost):
+#   Falls back to path-based routing on single domain.
+#
+# On-demand TLS for custom tenant domains:
+#   Caddy requests a certificate for each new custom domain on-demand.
+
+# Global options
+{
+	on_demand_tls {
+		ask http://frontend:3000/api/verify-domain
+		interval 2m
+		burst 5
+	}
+
+	# Cloudflare Origin Certificate (loaded if present)
+	# In production: deploy/certs/origin.pem + origin-key.pem are mounted
+	# In local dev: no certs exist, Caddy uses auto-HTTPS or plain HTTP
+}
+
+# Shared security headers snippet
+(security_headers) {
+	@https protocol https
+	header @https Strict-Transport-Security "max-age=31536000; includeSubDomains"
+
+	header {
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		X-XSS-Protection "1; mode=block"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(self), geolocation=(), payment=()"
+		-Server
+	}
+
+	encode zstd gzip
+}
+
+# ─── Frontend (primary domain) ────────────────────────────────────────
+{$CADDY_SITE_ADDRESS:http://localhost} {
+	# PodClaw Bridge API (internal, auth-protected)
+	handle /api/bridge/* {
+		uri strip_prefix /api/bridge
+		reverse_proxy podclaw:8000
+	}
+
+	# Local dev fallback: path-based routing when subdomains aren't available
+	# These are only hit in local dev (http://localhost); in production,
+	# subdomains handle these services directly.
+	handle /panel* {
+		reverse_proxy admin:3001
+	}
+
+	handle /mcp* {
+		reverse_proxy mcp-server:8002
+	}
+
+	handle /.well-known/oauth-authorization-server {
+		reverse_proxy mcp-server:8002
+	}
+	handle /.well-known/oauth-protected-resource {
+		reverse_proxy mcp-server:8002
+	}
+	handle /oauth/* {
+		reverse_proxy mcp-server:8002
+	}
+
+	# Supabase API routes (local dev fallback)
+	@supabase path /auth/* /rest/* /storage/* /realtime/*
+	handle @supabase {
+		reverse_proxy kong:8000
+	}
+
+	# Everything else → frontend
+	reverse_proxy frontend:3000
+
+	import security_headers
+
+	# CSP managed by Next.js (frontend/next.config.ts) — single source of truth
+}
+
+# ─── Admin Panel (subdomain) ──────────────────────────────────────────
+admin.{$CADDY_SITE_ADDRESS:localhost} {
+	reverse_proxy admin:3001
+
+	import security_headers
+
+	# CSP managed by Next.js (admin/next.config.ts) — single source of truth
+}
+
+# ─── Supabase API (subdomain) ─────────────────────────────────────────
+api.{$CADDY_SITE_ADDRESS:localhost} {
+	reverse_proxy kong:8000
+
+	import security_headers
+
+	# CORS for Supabase API (frontend + admin need access)
+	@cors_preflight method OPTIONS
+	handle @cors_preflight {
+		header Access-Control-Allow-Origin "https://{$CADDY_SITE_ADDRESS:localhost}"
+		header Access-Control-Allow-Methods "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+		header Access-Control-Allow-Headers "apikey, authorization, content-type, x-client-info, x-supabase-api-version"
+		header Access-Control-Max-Age "3600"
+		respond 204
+	}
+
+	header Access-Control-Allow-Origin "https://{$CADDY_SITE_ADDRESS:localhost}"
+	header Access-Control-Allow-Credentials "true"
+}
+
+# ─── MCP Server (subdomain) ───────────────────────────────────────────
+mcp.{$CADDY_SITE_ADDRESS:localhost} {
+	reverse_proxy mcp-server:8002 {
+		flush_interval -1
+	}
+
+	import security_headers
+
+	# MCP OAuth 2.1 discovery endpoints
+	handle /.well-known/oauth-authorization-server {
+		reverse_proxy mcp-server:8002
+	}
+	handle /.well-known/oauth-protected-resource {
+		reverse_proxy mcp-server:8002
+	}
+	handle /oauth/* {
+		reverse_proxy mcp-server:8002
+	}
+}
+
+# ─── Grafana (subdomain, restricted) ──────────────────────────────────
+grafana.{$CADDY_SITE_ADDRESS:localhost} {
+	reverse_proxy grafana:3100
+
+	import security_headers
+}
+
+# ─── Custom tenant domains (on-demand TLS) ────────────────────────────
+:443 {
+	tls {
+		on_demand
+	}
+
+	reverse_proxy frontend:3000 {
+		header_up Host {host}
+	}
+
+	import security_headers
+
+	# CSP managed by Next.js (frontend/next.config.ts) — single source of truth
+}
+
+# Extensibility
+import /etc/caddy/addons/*.conf

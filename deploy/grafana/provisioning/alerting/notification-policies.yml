@@ -1,0 +1,21 @@
+# Grafana Notification Policies
+# Routes alerts to appropriate contact points
+
+apiVersion: 1
+
+policies:
+  - orgId: 1
+    receiver: telegram-alerts
+    group_by: ['alertname', 'service']
+    group_wait: 10s
+    group_interval: 5m
+    repeat_interval: 4h
+    routes:
+      - receiver: default-email
+        matchers:
+          - severity = info
+        continue: false
+      - receiver: telegram-alerts
+        matchers:
+          - severity =~ warning|critical
+        continue: true

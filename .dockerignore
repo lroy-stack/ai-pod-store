@@ -1,0 +1,47 @@
+# .dockerignore for PodClaw build (context: project/)
+# ====================================================
+# The PodClaw Dockerfile uses "context: .." which is the project/ directory.
+# This file excludes everything not needed for the PodClaw Docker image.
+
+# Python cache
+**/__pycache__
+**/*.pyc
+**/*.pyo
+**/.pytest_cache
+
+# Frontend (not needed for PodClaw image)
+frontend/node_modules
+frontend/.next
+frontend/.dockerignore
+frontend/Dockerfile
+
+# Environment files (injected at runtime via docker-compose env_file)
+**/.env
+**/.env.local
+**/.env.*.local
+**/.env.docker
+
+# Git & IDE
+.git
+.gitignore
+.vscode
+.idea
+**/*.swp
+**/*.swo
+
+# Deploy artifacts (avoid copying compose/caddy/rembg into podclaw image)
+deploy/rembg
+deploy/docker-compose*.yml
+deploy/Caddyfile
+deploy/.env*
+
+# Tests & docs not needed in production image
+**/test-results
+**/coverage
+**/playwright-report
+admin/
+supabase/
+
+# OS files
+**/.DS_Store
+**/Thumbs.db

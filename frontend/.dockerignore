@@ -1,0 +1,64 @@
+# Dependencies (installed fresh in Docker build)
+node_modules
+
+# Build output (rebuilt in Docker build)
+.next
+
+# Version control
+.git
+.gitignore
+
+# Editor / IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# Environment files (pass via docker env / env_file)
+.env
+.env.*
+.env.local
+.env.development
+.env.production
+
+# Documentation
+*.md
+
+# Test artifacts
+coverage
+test-results
+.nyc_output
+playwright-report
+
+# Miscellaneous
+.DS_Store
+Thumbs.db
+*.log
+npm-debug.log*
+
+# Design assets (400MB+ — served from Supabase Storage, not static files)
+public/brand-designs
+public/branded-previews
+public/hat-designs
+public/meme-designs
+public/meme-previews
+public/meme-redesigns
+public/expansion-designs
+public/fleece-designs
+public/kids-designs
+public/mockup-preview
+public/mockup-templates
+public/printful-designs
+public/zip-hoodie-designs
+public/phase1-production
+public/phase2-production
+public/logs
+
+# Build/analysis scripts not needed in image
+lighthouse-*.js
+lighthouse-*.mjs
+screenshot.mjs
+contrast-test.cjs
+verify-*.mjs
+insert_pending_design.js
+scripts

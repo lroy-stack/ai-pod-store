@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="../shared.css">
+  <style>
+    body { padding: 4px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+    .card { cursor: pointer; border-radius: 10px; overflow: hidden; border: 1px solid light-dark(rgba(0,0,0,.08), rgba(255,255,255,.08)); transition: transform .15s, box-shadow .15s; }
+    .card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px light-dark(rgba(0,0,0,.08), rgba(0,0,0,.3)); }
+    .card:active { transform: scale(.98); }
+    .card img { width: 100%; aspect-ratio: 1; object-fit: cover; }
+    .info { padding: 8px 10px 10px; }
+    .title { font-weight: 600; font-size: 13px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .price { font-weight: 700; font-size: 15px; margin-top: 3px; }
+    .meta { display: flex; align-items: center; gap: 6px; margin-top: 4px; font-size: 10px; }
+  </style>
+</head>
+<body>
+  <div class="grid" id="grid"></div>
+  <div class="empty" id="empty" style="display:none">No products found</div>
+  <script type="module" src="./app.ts"></script>
+</body>
+</html>

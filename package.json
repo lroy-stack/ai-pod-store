@@ -1,0 +1,39 @@
+{
+  "name": "pod-platform",
+  "version": "1.0.0",
+  "private": true,
+  "author": "L.LÖWE <maintainer@example.com>",
+  "license": "MIT",
+  "workspaces": [
+    "frontend",
+    "admin",
+    "mcp-server"
+  ],
+  "scripts": {
+    "postinstall": "node scripts/fix-turbopack-deps.cjs",
+    "dev": "npm run dev --workspaces --if-present",
+    "build": "npm run build --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "type-check": "npm run type-check --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "prepare": "husky"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "overrides": {
+    "postcss": "^8.5.6"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/ext-apps": "^1.2.2",
+    "postcss": "^8.5.6"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^20.4.3",
+    "@commitlint/config-conventional": "^20.4.3",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.3.3",
+    "vite": "^6.4.1",
+    "vite-plugin-singlefile": "^2.3.2"
+  }
+}

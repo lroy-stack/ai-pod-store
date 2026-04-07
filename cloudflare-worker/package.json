@@ -1,0 +1,25 @@
+{
+  "name": "pod-ai-mcp-proxy",
+  "version": "1.0.0",
+  "description": "Cloudflare Worker proxy for POD AI MCP server",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "deploy:prod": "wrangler deploy --env production",
+    "tail": "wrangler tail",
+    "tail:prod": "wrangler tail --env production"
+  },
+  "keywords": [
+    "cloudflare",
+    "worker",
+    "mcp",
+    "proxy"
+  ],
+  "author": "POD AI",
+  "license": "MIT",
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20241127.0",
+    "wrangler": "^3.102.0"
+  }
+}

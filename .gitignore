@@ -1,0 +1,269 @@
+# Dependencies
+node_modules/
+
+# TLS certificates (Cloudflare Origin)
+deploy/certs/
+
+# Python
+**/__pycache__/
+*.pyc
+podclaw/.venv/
+
+# Logs and debug
+logs/
+*.log
+.playwright-mcp/
+
+# Legacy backups
+frontend/scripts/phase1-backups/
+.pnp
+.pnp.js
+
+# Testing
+coverage/
+.nyc_output
+
+# Next.js
+.next/
+out/
+build/
+dist/
+
+# Serwist service worker (generated during build from src/app/sw.ts)
+# Keep a minimal placeholder in git — Serwist overwrites during next build
+# The placeholder ensures the file exists for the Dockerfile COPY stage
+
+# Production
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Environment variables — NEVER commit real values
+.env
+.env.*
+!.env.example
+!.env.*.example
+.env.local
+.env.test
+.env.docker
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Test credentials (never commit — must be env vars only)
+**/.env.test
+**/playwright.config.local.ts
+
+# Vercel
+.vercel
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# OS files
+.DS_Store
+Thumbs.db
+*.DS_Store
+
+# Root-level screenshots/images (keep frontend/public/**)
+/*.png
+/*.jpg
+/*.jpeg
+
+# Playwright MCP
+.playwright-mcp/
+
+# Claude Code sessions
+.claude/data/
+**/.claude/data/
+
+# Migration backups
+.migration-backups/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Cache
+.cache/
+.parcel-cache/
+.turbo/
+
+# Logs
+logs/
+*.log
+backend.log
+frontend.log
+
+# Temporary files
+tmp/
+temp/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+.venv
+.pytest_cache/
+
+# Redis
+dump.rdb
+
+# Supabase
+.supabase/
+.migration-backups/
+
+# Supabase self-hosted (cloned via sparse checkout)
+supabase/
+
+# PodClaw local state (SQLite brain)
+podclaw/data/
+
+# PodClaw memory (event logs, sensitive context)
+podclaw/memory/
+
+# PodClaw runtime context (operational data, store-specific intelligence)
+podclaw/context/
+
+# Agent test artifacts
+test-*.mjs
+test-*.js
+!jest.config.js
+!next.config.js
+FEATURE_*.md
+test-results/
+screenshots/
+*.png
+!frontend/public/**/*.png
+!admin/public/**/*.png
+
+# Root-level audits (legacy duplicate of docs/audits/)
+/audits/
+
+# Config dir (contains env refs)
+/config/
+
+# Claude Code (entire directory — private config, hooks, skills, agents)
+.claude/
+**/.claude/
+
+# Audits, security reports, and sensitive documentation (NEVER commit)
+AUDIT_*.md
+**/AUDIT_*.md
+**/*AUDIT_*.md
+**/AUDIT*.md
+MASTER_REMEDIATION_*.md
+docs/audit-*/
+docs/audit/
+docs/archive/production-audit/
+docs/archive/audit-history/
+docs/archive/admin-audit-*
+docs/audits/
+docs/research/*-audit-*/
+docs/archive/audit-360/
+frontend/audit-ecommerce-*/
+frontend/public/brand/*AUDIT*.md
+
+# Backups and data dumps (NEVER commit)
+frontend/scripts/phase1-backups/
+frontend/scripts/phase1-backup.json
+supabase/migrations_backup/
+
+# Internal frontend docs (audits, research, proposals)
+frontend/docs/
+
+# Frontend internal files (catalogs, test reports, demos, debug scripts)
+frontend/CATALOGO_*.md
+frontend/EXPANSION_*.md
+frontend/FASE1_*.md
+frontend/PRODUCT_CATALOG.md
+frontend/printify_catalog.md
+frontend/TEST_REPORT_*.md
+frontend/shop-redesign-demo.html
+frontend/contrast-test.cjs
+frontend/insert_pending_design.js
+frontend/screenshot.mjs
+frontend/lighthouse-audit.js
+frontend/lighthouse-audit.mjs
+frontend/lighthouse-playwright.mjs
+frontend/create-test-notifications.mjs
+frontend/update-order-payment-method.mjs
+frontend/update-test-order.mjs
+frontend/verify-*.mjs
+frontend/playwright-report/
+frontend/.mcp.json
+
+# Session logs, status snapshots, internal plans
+SESSION_*.md
+**/SESSION_*.md
+ISSUES_*.md
+**/ISSUES_*.md
+REFACTOR_*.md
+**/REFACTOR_*.md
+docs/PLAN_*.md
+docs/AUDIT_*.md
+docs/ISSUES_*.md
+docs/REFACTOR_*.md
+docs/SESSION_*.md
+
+# Internal docs (plans, research, runbooks, checklists, vision, architecture)
+docs/
+
+# Internal scripts (admin, analytics, backups, operations)
+scripts/
+!scripts/fix-turbopack-deps.cjs
+frontend/scripts/
+
+# Supabase migrations and seed data
+supabase/migrations/
+supabase/seed.sql
+
+# PodClaw internal skills/tasks (contain provider-specific data)
+podclaw/skills/cataloger/tasks/
+podclaw/scripts/
+
+# PodClaw internal (reports, test scripts, logs)
+podclaw/reports/
+podclaw/test_*.py
+podclaw/test_*.log
+podclaw/logs/
+
+# MCP server debug/test scripts
+mcp-server/check-*.ts
+mcp-server/test-*.ts
+mcp-server/create-*.mjs
+mcp-server/start-dev.sh
+
+# Admin deprecated scripts (hardcoded credentials)
+admin/create-admin.mjs
+
+# Setup instructions (internal)
+SETUP.md
+
+# E2E test with hardcoded local paths
+frontend/tests/e2e/shop/personalizer-mockup-fix.spec.ts
+
+# Cloudflare worker dev vars
+cloudflare-worker/.dev.vars
+
+# Local design/asset work (large binary files, not part of source)
+design-candidates/
+frontend/printful-ready/
+
+# Claude Code dev instructions (internal tooling — not useful for external contributors)
+CLAUDE.md
+**/CLAUDE.md
+
+# Brand-specific assets (replace with your own brand files)
+frontend/public/brand/skapara-*
+frontend/public/skapara-*
