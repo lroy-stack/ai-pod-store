@@ -12,7 +12,7 @@
 If you discover a security vulnerability, please report it responsibly:
 
 1. **Do NOT open a public issue.**
-2. Email **security@example.com** with:
+2. LinkedIn **https://www.linkedin.com/in/leroy-lwe/** with:
    - Description of the vulnerability
    - Steps to reproduce
    - Potential impact
