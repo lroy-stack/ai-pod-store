@@ -40,5 +40,5 @@ We follow coordinated disclosure. Please allow up to 90 days before public discl
 
 ## Contact
 
-- Email: security@example.com
+- Email: l.roy.lwe@gmail.com
 - PGP: Available upon request
