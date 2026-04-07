@@ -39,7 +39,7 @@ const PASTEL_PINK = '#FCE4EC'
 const PASTEL_BLUE = '#E3F2FD'
 
 // ── Brand mark (name at low opacity) ────────────────────────
-const brandMarkName = process.env.NEXT_PUBLIC_SITE_NAME || 'My Store'
+const brandMarkName = process.env.NEXT_PUBLIC_SITE_NAME!
 function brandMark(color: string = WARM_WHITE, opacity: number = 0.12): string {
   return `<text x="1140" y="1160" font-family="'Courier New', monospace" font-size="28" font-weight="bold" fill="${color}" opacity="${opacity}" text-anchor="end">${brandMarkName}</text>`
 }

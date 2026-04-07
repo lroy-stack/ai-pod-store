@@ -19,7 +19,7 @@ import { Shield, Eye, ShoppingCart, X } from 'lucide-react'
  * Identity is established at Google/Email login, NOT at this consent step.
  */
 
-const MCP_BASE_URL = process.env.NEXT_PUBLIC_MCP_BASE_URL || process.env.MCP_BASE_URL || 'http://localhost:8002'
+const MCP_BASE_URL = (process.env.NEXT_PUBLIC_MCP_BASE_URL ?? process.env.MCP_BASE_URL)!
 
 const SCOPE_LABELS: Record<string, { label: string; description: string; icon: typeof Eye }> = {
   read: {

@@ -3,6 +3,7 @@ import type { AuthInfo } from '@modelcontextprotocol/sdk/server/auth/types.js';
 import type { ZodObject } from 'zod';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { requiredEnv } from '../lib/env.js';
 import { withAuditLog } from '../lib/audit-log.js';
 import { createToolResponse } from '../lib/response.js';
 import { withAuth, type AuthLevel } from '../middleware/auth.js';
@@ -464,7 +465,7 @@ export function registerAllTools(server: McpServer): number {
     );
 
     if (uiWidget) {
-      const resourceUri = `ui://${process.env.STORE_DOMAIN || 'localhost'}/${uiWidget}.html`;
+      const resourceUri = `ui://${requiredEnv('STORE_DOMAIN')}/${uiWidget}.html`;
 
       registerAppTool(server, tool.name, {
         title: tool.title,

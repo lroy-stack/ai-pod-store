@@ -21,17 +21,17 @@ interface MetaTags {
 
 const defaultMetaTags: MetaTags = {
   en: {
-    title: (process.env.NEXT_PUBLIC_SITE_NAME || 'My Store') + ' - Custom Print on Demand',
+    title: process.env.NEXT_PUBLIC_SITE_NAME! + ' - Custom Print on Demand',
     description: 'Create custom designs and order high-quality print-on-demand products.',
     keywords: 'print on demand, custom designs, t-shirts, AI designs',
   },
   es: {
-    title: (process.env.NEXT_PUBLIC_SITE_NAME || 'My Store') + ' - Impresión bajo demanda personalizada',
+    title: process.env.NEXT_PUBLIC_SITE_NAME! + ' - Impresión bajo demanda personalizada',
     description: 'Crea diseños personalizados y ordena productos de impresión bajo demanda de alta calidad.',
     keywords: 'impresión bajo demanda, diseños personalizados, camisetas, diseños AI',
   },
   de: {
-    title: (process.env.NEXT_PUBLIC_SITE_NAME || 'My Store') + ' - Benutzerdefinierter Print-on-Demand',
+    title: process.env.NEXT_PUBLIC_SITE_NAME! + ' - Benutzerdefinierter Print-on-Demand',
     description: 'Erstellen Sie individuelle Designs und bestellen Sie hochwertige Print-on-Demand-Produkte.',
     keywords: 'Print-on-Demand, individuelle Designs, T-Shirts, KI-Designs',
   },

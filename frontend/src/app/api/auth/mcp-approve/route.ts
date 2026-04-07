@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY!
-const MCP_BASE_URL = process.env.MCP_BASE_URL || 'http://localhost:8002'
-const MCP_APPROVE_SECRET = process.env.MCP_APPROVE_SECRET
+import { requiredEnv } from '@/lib/env'
+
+const supabaseUrl = requiredEnv('SUPABASE_URL')
+const supabaseServiceKey = requiredEnv('SUPABASE_SERVICE_KEY')
+const MCP_BASE_URL = requiredEnv('MCP_BASE_URL')
+const MCP_APPROVE_SECRET = requiredEnv('MCP_APPROVE_SECRET')
 
 /**
  * POST /api/auth/mcp-approve

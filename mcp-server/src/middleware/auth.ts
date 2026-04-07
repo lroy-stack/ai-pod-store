@@ -1,7 +1,8 @@
 import type { AuthInfo } from '@modelcontextprotocol/sdk/server/auth/types.js';
+import { requiredEnv } from '../lib/env.js';
 
-const MCP_BASE_URL = process.env.MCP_BASE_URL || 'http://localhost:8002';
-const FRONTEND_URL = process.env.FRONTEND_URL || process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+const MCP_BASE_URL = requiredEnv('MCP_BASE_URL');
+const FRONTEND_URL = requiredEnv('FRONTEND_URL');
 
 /**
  * Auth level for tool registration.

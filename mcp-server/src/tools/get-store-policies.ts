@@ -1,4 +1,8 @@
 import { z } from 'zod';
+import { requiredEnv } from '../lib/env.js';
+
+const STORE_NAME = requiredEnv('NEXT_PUBLIC_SITE_NAME');
+const STORE_PRIVACY_EMAIL = requiredEnv('STORE_PRIVACY_EMAIL');
 
 /**
  * MCP Tool: get_store_policies
@@ -82,7 +86,7 @@ If you receive a damaged or defective product, please contact us immediately wit
       },
       privacy: {
         title: 'Privacy Policy',
-        content: `At ${process.env.STORE_NAME || process.env.NEXT_PUBLIC_SITE_NAME || 'My Store'}, we respect your privacy and are committed to protecting your personal data. This privacy policy explains how we collect, use, and safeguard your information.
+        content: `At ${STORE_NAME}, we respect your privacy and are committed to protecting your personal data. This privacy policy explains how we collect, use, and safeguard your information.
 
 **Information We Collect:**
 - Account information (name, email, shipping address)
@@ -108,7 +112,7 @@ You have the right to access, correct, or delete your personal data. You can als
 For EU customers, we comply with GDPR regulations. You have additional rights including data portability and the right to be forgotten.
 
 **Contact:**
-For privacy questions or to exercise your rights, contact our Data Protection Officer at ${process.env.STORE_PRIVACY_EMAIL || 'privacy@example.com'}.
+For privacy questions or to exercise your rights, contact our Data Protection Officer at ${STORE_PRIVACY_EMAIL}.
 
 **Updates:**
 We may update this policy from time to time. The latest version is always available at /privacy.

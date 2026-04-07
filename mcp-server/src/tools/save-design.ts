@@ -3,6 +3,9 @@ import { getSupabaseClient } from '../lib/supabase.js';
 import type { AuthInfo } from '@modelcontextprotocol/sdk/server/auth/types.js';
 import { randomUUID } from 'node:crypto';
 import dns from 'node:dns/promises';
+import { requiredEnv } from '../lib/env.js';
+
+const STORE_BASE_URL = requiredEnv('NEXT_PUBLIC_BASE_URL');
 
 export const saveDesignSchema = z.object({
   imageUrl: z.string().url().describe('URL of the image to save as a design (can be ephemeral — will be persisted to storage)'),
@@ -115,7 +118,7 @@ export async function saveDesign(input: SaveDesignInput, authInfo?: AuthInfo): P
       return { success: false, error: 'Failed to save design record' };
     }
 
-    const storeUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.SITE_URL || 'http://localhost:3000';
+    const storeUrl = STORE_BASE_URL;
 
     return {
       success: true,

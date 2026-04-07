@@ -32,20 +32,19 @@ export interface GetStoreInfoResult {
 export async function getStoreInfo(
   _input: GetStoreInfoInput
 ): Promise<GetStoreInfoResult> {
-  // Store information from environment or hardcoded defaults
-  const storeName = process.env.STORE_NAME || process.env.NEXT_PUBLIC_SITE_NAME || 'My Store';
-  const storeDescription =
-    process.env.STORE_DESCRIPTION ||
-    'Unique fashion & accessories designed with you, made in Europe. AI-powered print-on-demand with conversational commerce.';
+  // Store information from environment — all required except description and currency
+  const { requiredEnv, optionalEnv } = await import('../lib/env.js');
+  const storeName = requiredEnv('NEXT_PUBLIC_SITE_NAME');
+  const storeDescription = optionalEnv('STORE_DESCRIPTION');
 
   return {
     success: true,
     store: {
       name: storeName,
       description: storeDescription,
-      tagline: process.env.STORE_TAGLINE || 'Wear what you mean',
+      tagline: requiredEnv('NEXT_PUBLIC_SITE_TAGLINE'),
       supported_currencies: ['EUR', 'USD', 'GBP'],
-      default_currency: process.env.DEFAULT_CURRENCY || 'EUR',
+      default_currency: optionalEnv('DEFAULT_CURRENCY', 'EUR'),
       supported_locales: ['en', 'es', 'de'],
       default_locale: 'en',
       features: [

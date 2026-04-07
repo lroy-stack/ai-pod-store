@@ -67,7 +67,7 @@ export const POST = withPermission('products', 'create', async (req: NextRequest
     // GPSR compliance
     if (gpsr) {
       productData.product_details = {
-        brand: process.env.STORE_NAME || (process.env.NEXT_PUBLIC_SITE_NAME || 'My Store'),
+        brand: process.env.STORE_NAME || process.env.NEXT_PUBLIC_SITE_NAME!,
         manufacturer: process.env.STORE_COMPANY_NAME || process.env.STORE_COMPANY_NAME || 'Your Company Name',
         safety_information: 'Conforms to EU Regulation 2023/988 (GPSR)',
         ...gpsr,

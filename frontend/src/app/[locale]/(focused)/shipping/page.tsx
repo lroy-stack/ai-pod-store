@@ -7,12 +7,12 @@ import type { Metadata } from 'next'
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL!
 
   const titles: Record<string, Record<string, string>> = {
-    en: { title: 'Shipping Policy', description: 'Shipping information, delivery times, and costs for ' + (process.env.NEXT_PUBLIC_SITE_NAME || 'My POD Store') + ' orders' },
-    es: { title: 'Política de Envío', description: 'Información de envío, tiempos de entrega y costes de pedidos de ' + (process.env.NEXT_PUBLIC_SITE_NAME || 'My POD Store') },
-    de: { title: 'Versandrichtlinie', description: 'Versandinformationen, Lieferzeiten und Kosten für ' + (process.env.NEXT_PUBLIC_SITE_NAME || 'My POD Store') + '-Bestellungen' },
+    en: { title: 'Shipping Policy', description: 'Shipping information, delivery times, and costs for ' + process.env.NEXT_PUBLIC_SITE_NAME! + ' orders' },
+    es: { title: 'Política de Envío', description: 'Información de envío, tiempos de entrega y costes de pedidos de ' + process.env.NEXT_PUBLIC_SITE_NAME! },
+    de: { title: 'Versandrichtlinie', description: 'Versandinformationen, Lieferzeiten und Kosten für ' + process.env.NEXT_PUBLIC_SITE_NAME! + '-Bestellungen' },
   }
 
   const t = titles[locale] || titles.en

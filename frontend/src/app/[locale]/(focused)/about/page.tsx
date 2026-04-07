@@ -21,9 +21,9 @@ export async function generateMetadata({ params }: AboutPageProps): Promise<Meta
     de: `Über Uns - ${siteName}`,
   }
   const descriptions: Record<string, string> = {
-    en: 'Learn about ' + (process.env.NEXT_PUBLIC_SITE_NAME || 'My POD Store') + ' - the AI-powered print-on-demand platform that makes custom product creation easy and accessible for everyone.',
-    es: 'Conoce ' + (process.env.NEXT_PUBLIC_SITE_NAME || 'My POD Store') + ' - la plataforma de impresión bajo demanda impulsada por IA que hace la creación de productos personalizados fácil y accesible para todos.',
-    de: 'Erfahren Sie mehr über ' + (process.env.NEXT_PUBLIC_SITE_NAME || 'My POD Store') + ' - die KI-gestützte Print-on-Demand-Plattform, die individuelle Produkterstellung einfach und für jeden zugänglich macht.',
+    en: 'Learn about ' + process.env.NEXT_PUBLIC_SITE_NAME! + ' - the AI-powered print-on-demand platform that makes custom product creation easy and accessible for everyone.',
+    es: 'Conoce ' + process.env.NEXT_PUBLIC_SITE_NAME! + ' - la plataforma de impresión bajo demanda impulsada por IA que hace la creación de productos personalizados fácil y accesible para todos.',
+    de: 'Erfahren Sie mehr über ' + process.env.NEXT_PUBLIC_SITE_NAME! + ' - die KI-gestützte Print-on-Demand-Plattform, die individuelle Produkterstellung einfach und für jeden zugänglich macht.',
   }
   const title = titles[locale] || titles.en
   const description = descriptions[locale] || descriptions.en

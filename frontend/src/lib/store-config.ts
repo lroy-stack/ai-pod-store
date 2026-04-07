@@ -1,16 +1,18 @@
 // Copyright (c) 2026 L.LÖWE <maintainer@example.com>
 // SPDX-License-Identifier: MIT
 
+import { requiredEnv, optionalEnv } from './env'
+
 /** Brand identity — single source of truth for name + logos */
-const _brandName = process.env.NEXT_PUBLIC_SITE_NAME || 'My POD Store'
+const _brandName = requiredEnv('NEXT_PUBLIC_SITE_NAME')
 
 export const BRAND = {
   name: _brandName,
-  tagline: process.env.NEXT_PUBLIC_SITE_TAGLINE || 'Custom products, made for you',
+  tagline: requiredEnv('NEXT_PUBLIC_SITE_TAGLINE'),
   description: {
-    en: process.env.NEXT_PUBLIC_SITE_DESCRIPTION_EN || 'Unique fashion & accessories, made on demand. Find your next favorite piece.',
-    es: process.env.NEXT_PUBLIC_SITE_DESCRIPTION_ES || 'Moda y accesorios únicos, hechos bajo pedido. Encuentra tu próxima pieza favorita.',
-    de: process.env.NEXT_PUBLIC_SITE_DESCRIPTION_DE || 'Einzigartige Mode & Accessoires auf Bestellung. Finde dein nächstes Lieblingsstück.',
+    en: optionalEnv('NEXT_PUBLIC_SITE_DESCRIPTION_EN'),
+    es: optionalEnv('NEXT_PUBLIC_SITE_DESCRIPTION_ES'),
+    de: optionalEnv('NEXT_PUBLIC_SITE_DESCRIPTION_DE'),
   },
   logoLight: '/brand/brand-mark-dark.svg',
   logoDark: '/brand/brand-mark-white.svg',
@@ -19,13 +21,13 @@ export const BRAND = {
 } as const
 
 /** Company legal entity — single source of truth */
-const _companyName = process.env.STORE_COMPANY_NAME || 'Your Company Name'
+const _companyName = requiredEnv('STORE_COMPANY_NAME')
 export const COMPANY = {
   legalName: _companyName,
   shortName: _companyName.split(' (')[0],
-  address: process.env.STORE_COMPANY_ADDRESS || 'Your Company Address',
-  country: process.env.STORE_COMPANY_COUNTRY || 'DE',
-  taxId: process.env.STORE_TAX_ID || '',
+  address: requiredEnv('STORE_COMPANY_ADDRESS'),
+  country: optionalEnv('STORE_COMPANY_COUNTRY', 'DE'),
+  taxId: optionalEnv('STORE_TAX_ID'),
 } as const
 
 /** Store-wide defaults — single source of truth */
@@ -127,19 +129,19 @@ export const SHIPPING_RATES: Record<string, Array<{ method: string; price: numbe
 }
 
 /** Canonical base URL — single source of truth */
-export const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+export const BASE_URL = requiredEnv('NEXT_PUBLIC_BASE_URL')
 
 /**
  * Contact emails — single source of truth for ALL email addresses.
  * SERVER-ONLY: These use runtime env vars (no NEXT_PUBLIC_ prefix).
  * Do NOT import CONTACT in client components ('use client').
  */
-const _noreply = process.env.STORE_NOREPLY_EMAIL || process.env.RESEND_FROM_EMAIL || 'noreply@example.com'
+const _noreply = requiredEnv('RESEND_FROM_EMAIL')
 export const CONTACT = {
-  general: process.env.STORE_CONTACT_EMAIL || 'hello@example.com',
-  support: process.env.STORE_SUPPORT_EMAIL || 'support@example.com',
-  legal: process.env.STORE_LEGAL_EMAIL || 'legal@example.com',
-  privacy: process.env.STORE_PRIVACY_EMAIL || 'privacy@example.com',
+  general: requiredEnv('STORE_CONTACT_EMAIL'),
+  support: requiredEnv('STORE_SUPPORT_EMAIL'),
+  legal: requiredEnv('STORE_LEGAL_EMAIL'),
+  privacy: requiredEnv('STORE_PRIVACY_EMAIL'),
   noreply: _noreply,
   push: `mailto:${_noreply}`,
 } as const
@@ -160,17 +162,16 @@ export const EMAIL_PALETTE = {
 } as const
 
 /** Formatted email sender — use for Resend 'from' field */
-export const EMAIL_FROM = `${_brandName} <${process.env.RESEND_FROM_EMAIL || CONTACT.noreply}>`
+export const EMAIL_FROM = `${_brandName} <${_noreply}>`
 
 /** Social media links */
 export const SOCIAL_LINKS = {
-  instagram: process.env.NEXT_PUBLIC_SOCIAL_INSTAGRAM || '',
-  facebook: process.env.NEXT_PUBLIC_SOCIAL_FACEBOOK || '',
+  instagram: optionalEnv('NEXT_PUBLIC_SOCIAL_INSTAGRAM'),
+  facebook: optionalEnv('NEXT_PUBLIC_SOCIAL_FACEBOOK'),
 } as const
 
-/** Store domain — derived from BASE_URL or explicit env var */
-const _storeDomain = process.env.STORE_DOMAIN
-  || (() => { try { return new URL(BASE_URL).hostname } catch { return 'localhost' } })()
+/** Store domain — explicit env var required; BASE_URL hostname is the fallback only in non-production */
+const _storeDomain = requiredEnv('STORE_DOMAIN')
 
 /** Primary domains — used by middleware and tenant resolution */
 export const PRIMARY_DOMAINS = ['localhost', '127.0.0.1', '0.0.0.0', _storeDomain] as const

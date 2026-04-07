@@ -1,11 +1,13 @@
-/** Store defaults — reads from env vars. Set all values in .env before deploying.
- *  STORE_NAME checks NEXT_PUBLIC_ prefix first for client component compatibility. */
-export const STORE_NAME = process.env.STORE_NAME || process.env.NEXT_PUBLIC_SITE_NAME || 'My POD Store'
-export const STORE_CONTACT_EMAIL = process.env.STORE_CONTACT_EMAIL || 'hello@example.com'
-export const STORE_SUPPORT_EMAIL = process.env.STORE_SUPPORT_EMAIL || 'support@example.com'
-export const STORE_COMPANY_NAME = process.env.STORE_COMPANY_NAME || 'Your Company Name'
-export const STORE_COMPANY_ADDRESS = process.env.STORE_COMPANY_ADDRESS || 'Your Company Address'
-export const STORE_LEGAL_EMAIL = process.env.STORE_LEGAL_EMAIL || 'legal@example.com'
-export const STORE_PRIVACY_EMAIL = process.env.STORE_PRIVACY_EMAIL || 'privacy@example.com'
-export const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@example.com'
-export const STORE_DOMAIN = process.env.STORE_DOMAIN || 'localhost'
+/** Store defaults — reads from env vars. All values are required in production.
+ *  Use start.sh or docker-compose to validate before startup. */
+import { requiredEnv, optionalEnv } from './env'
+
+export const STORE_NAME = requiredEnv('NEXT_PUBLIC_SITE_NAME')
+export const STORE_CONTACT_EMAIL = requiredEnv('STORE_CONTACT_EMAIL')
+export const STORE_SUPPORT_EMAIL = requiredEnv('STORE_SUPPORT_EMAIL')
+export const STORE_COMPANY_NAME = requiredEnv('STORE_COMPANY_NAME')
+export const STORE_COMPANY_ADDRESS = requiredEnv('STORE_COMPANY_ADDRESS')
+export const STORE_LEGAL_EMAIL = requiredEnv('STORE_LEGAL_EMAIL')
+export const STORE_PRIVACY_EMAIL = requiredEnv('STORE_PRIVACY_EMAIL')
+export const ADMIN_EMAIL = requiredEnv('ADMIN_EMAIL')
+export const STORE_DOMAIN = requiredEnv('STORE_DOMAIN')
