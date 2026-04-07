@@ -1,0 +1,40 @@
+# POD AI MCP Proxy — Cloudflare Worker Configuration
+# =====================================================
+#
+# This worker acts as a secure proxy for the MCP server,
+# providing rate limiting, caching, and DDoS protection.
+
+name = "pod-ai-mcp-proxy"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+
+# Routes - uncomment and customize for your domain
+# routes = [
+#   { pattern = "yourdomain.com/mcp/*", zone_name = "yourdomain.com" }
+# ]
+
+# KV namespace for rate limiting and session storage
+# [[kv_namespaces]]
+# binding = "MCP_CACHE"
+# id = "your-kv-namespace-id"
+
+# Environment variables
+[vars]
+# MCP_ORIGIN = "https://yourdomain.com/mcp"
+# RATE_LIMIT_RPM = "60"  # Rate limit: requests per minute (default: 60)
+# ALLOWED_ORIGINS = "https://claude.ai,https://chatgpt.com"  # Comma-separated CORS origins (default: all)
+
+# Secrets (set with `wrangler secret put <name>`)
+# - MCP_API_KEY: Optional API key for origin server authentication
+# - TURNSTILE_SECRET_KEY: For additional bot protection (optional)
+
+# Development
+[env.dev]
+name = "pod-ai-mcp-proxy-dev"
+
+# Production
+[env.production]
+name = "pod-ai-mcp-proxy"
+# routes = [
+#   { pattern = "yourdomain.com/mcp/*", zone_name = "yourdomain.com" }
+# ]

@@ -1,0 +1,62 @@
+{
+  "dashboard": {
+    "title": "PodClaw Agent Metrics",
+    "tags": ["podclaw", "agents", "ai"],
+    "timezone": "browser",
+    "schemaVersion": 16,
+    "version": 1,
+    "refresh": "1m",
+    "panels": [
+      {
+        "id": 1,
+        "title": "PodClaw Service Status",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "up{job=\"podclaw\"}",
+            "legendFormat": "PodClaw Health",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"h": 6, "w": 8, "x": 0, "y": 0},
+        "options": {
+          "colorMode": "background",
+          "graphMode": "none"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": 0, "color": "red"},
+                {"value": 1, "color": "green"}
+              ]
+            },
+            "mappings": [
+              {"type": "value", "value": "0", "text": "DOWN"},
+              {"type": "value", "value": "1", "text": "UP"}
+            ]
+          }
+        }
+      },
+      {
+        "id": 2,
+        "title": "Agent Activity Log",
+        "type": "logs",
+        "targets": [
+          {
+            "expr": "{job=\"podclaw\"}",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"h": 12, "w": 16, "x": 8, "y": 0},
+        "options": {
+          "showTime": true,
+          "showLabels": false,
+          "wrapLogMessage": true
+        }
+      }
+    ]
+  },
+  "overwrite": true
+}

@@ -1,0 +1,4 @@
+{
+  "frontend/src/**/*.{ts,tsx}": "bash -c 'cd frontend && node_modules/.bin/eslint --fix --max-warnings=999 \"$@\"' --",
+  "admin/src/**/*.{ts,tsx}": "bash -c 'cd admin && node_modules/.bin/eslint --fix --max-warnings=999 \"$@\"' --"
+}

@@ -1,0 +1,71 @@
+# POD Platform — Public Mode (Production VPS)
+# =======================================
+#
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.public.yml up -d
+#   ./start.sh --public
+#
+# This override:
+#   - Caddy binds to 80 and 443 for automatic HTTPS via Let's Encrypt
+#   - DOMAIN env var is REQUIRED (fails fast if not set)
+#   - Subdomain-based routing (admin.DOMAIN, api.DOMAIN, mcp.DOMAIN, grafana.DOMAIN)
+#   - Bridge auth enabled (requires PODCLAW_BRIDGE_AUTH_TOKEN in .env)
+#   - CORS restricted to production domain + subdomains
+#   - Zero debug ports exposed
+
+services:
+  caddy:
+    environment:
+      CADDY_SITE_ADDRESS: "${DOMAIN:?DOMAIN env var is required}"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/Caddyfile.prod:/etc/caddy/Caddyfile:ro
+      - ./deploy/certs:/etc/caddy/certs:ro
+
+  frontend:
+    environment:
+      NEXT_PUBLIC_BASE_URL: "https://${DOMAIN:?}"
+
+  admin:
+    build:
+      args:
+        ADMIN_BASE_PATH: ""
+    environment:
+      ADMIN_BASE_PATH: ""
+      NEXT_PUBLIC_FRONTEND_URL: "https://${DOMAIN:?}"
+      FRONTEND_URL: "https://${DOMAIN:?}"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/api/health"]
+
+  mcp-server:
+    environment:
+      MCP_BASE_URL: "https://mcp.${DOMAIN:?}"
+      MCP_CORS_ORIGINS: "https://claude.ai,https://chatgpt.com,https://${DOMAIN:?}"
+
+  podclaw:
+    environment:
+      PODCLAW_BRIDGE_AUTH_ENABLED: "true"
+      PODCLAW_CORS_ORIGINS: "https://${DOMAIN:?},https://admin.${DOMAIN:?}"
+
+  # Supabase: remove all host port bindings in production
+  # Caddy routes to these services via Docker internal network
+  # Pattern from local-ai-packaged-main reference project
+  kong:
+    ports: !reset null
+
+  supavisor:
+    ports: !reset null
+
+  db:
+    ports: !reset null
+
+  analytics:
+    ports: !reset null
+
+  # Grafana needs proxy network for Caddy subdomain routing
+  grafana:
+    networks:
+      monitoring: {}
+      proxy: {}

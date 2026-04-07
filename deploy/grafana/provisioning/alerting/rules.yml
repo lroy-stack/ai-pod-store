@@ -1,0 +1,230 @@
+# Grafana Alert Rules
+# Critical monitoring conditions for POD AI platform
+
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: infrastructure-alerts
+    folder: Alerts
+    interval: 1m
+    rules:
+      # Alert: Service Down
+      - uid: service-down-alert
+        title: Service Down > 5 Minutes
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: up == 0
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+              refId: B
+          - refId: C
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    params: [1]
+                    type: lt
+                  operator:
+                    type: and
+                  query:
+                    params: [C]
+                  type: query
+              refId: C
+        noDataState: NoData
+        execErrState: Alerting
+        for: 5m
+        annotations:
+          summary: "Service {{ $labels.job }} is down"
+          description: "{{ $labels.job }} has been down for more than 5 minutes"
+        labels:
+          severity: critical
+          service: "{{ $labels.job }}"
+
+      # Alert: High Memory Usage
+      - uid: high-memory-alert
+        title: High Memory Usage > 90%
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: (frontend_heap_usage_ratio > 0.9) or (admin_heap_usage_ratio > 0.9)
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+              refId: B
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    params: [0.9]
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params: [C]
+                  type: query
+              refId: C
+        noDataState: NoData
+        execErrState: OK
+        for: 3m
+        annotations:
+          summary: "High memory usage detected"
+          description: "Heap usage is above 90% for {{ $labels.service }}"
+        labels:
+          severity: warning
+          category: performance
+
+  - orgId: 1
+    name: podclaw-alerts
+    folder: Alerts
+    interval: 5m
+    rules:
+      # Alert: PodClaw Budget > 90%
+      # Note: This requires PodClaw to expose budget metrics via /metrics
+      # Placeholder for when podclaw metrics are implemented
+      - uid: podclaw-budget-alert
+        title: PodClaw Agent Budget > 90%
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 3600
+              to: 0
+            datasourceUid: prometheus
+            model:
+              # Placeholder query - will work when podclaw exposes budget_usage_ratio metric
+              expr: podclaw_budget_usage_ratio > 0.9
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 3600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+              refId: B
+          - refId: C
+            relativeTimeRange:
+              from: 3600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    params: [0.9]
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params: [C]
+                  type: query
+              refId: C
+        noDataState: NoData
+        execErrState: OK
+        for: 10m
+        annotations:
+          summary: "PodClaw budget nearly exhausted"
+          description: "Agent budget usage is above 90% ({{ $value }}%)"
+        labels:
+          severity: critical
+          category: cost
+
+  - orgId: 1
+    name: application-alerts
+    folder: Alerts
+    interval: 2m
+    rules:
+      # Alert: Error Rate > 5%
+      # Note: This requires error_rate metric to be exposed
+      # Placeholder for when error tracking is implemented
+      - uid: high-error-rate-alert
+        title: Error Rate > 5%
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: prometheus
+            model:
+              # Placeholder query - will work when error_rate metric is exposed
+              expr: (rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m])) > 0.05
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+              refId: B
+          - refId: C
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    params: [0.05]
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params: [C]
+                  type: query
+              refId: C
+        noDataState: NoData
+        execErrState: OK
+        for: 5m
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is {{ $value | humanizePercentage }} in {{ $labels.service }}"
+        labels:
+          severity: warning
+          category: reliability

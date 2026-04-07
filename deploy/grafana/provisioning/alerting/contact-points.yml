@@ -1,0 +1,24 @@
+# Grafana Alert Contact Points
+# Configures Telegram notification channel
+
+apiVersion: 1
+
+contactPoints:
+  - orgId: 1
+    name: telegram-alerts
+    receivers:
+      - uid: telegram-alerts-uid
+        type: telegram
+        settings:
+          bottoken: ${TELEGRAM_BOT_TOKEN}
+          chatid: ${PODCLAW_ADMIN_TELEGRAM_CHAT_ID}
+        disableResolveMessage: false
+
+  - orgId: 1
+    name: default-email
+    receivers:
+      - uid: default-email-uid
+        type: email
+        settings:
+          # Configure in .env: ADMIN_EMAIL
+          addresses: admin@yourdomain.com

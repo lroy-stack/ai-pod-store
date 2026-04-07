@@ -1,0 +1,160 @@
+# POD Platform — Supabase Self-Hosted Overlay
+# ============================================
+#
+# Includes the official Supabase Docker Compose and integrates it with
+# the app stack. Connects Kong to the proxy network (Caddy) and
+# Supavisor to the data network (app services).
+#
+# Usage (manual):
+#   docker compose -f docker-compose.yml \
+#     -f docker-compose.supabase.yml \
+#     -f docker-compose.private.yml up -d
+#
+# Usage (start.sh, automatic):
+#   ./start.sh --private              # With Supabase self-hosted (default)
+#   ./start.sh --private --no-supabase  # Skip Supabase (use Cloud)
+
+include:
+  - path: ./supabase/docker/docker-compose.yml
+
+services:
+  # ─── DISABLE optional services via profiles ──────────────────────
+  studio:
+    profiles: ["studio"]
+    ports:
+      - "127.0.0.1:3100:3000"
+
+  meta:
+    profiles: ["studio"]
+
+  functions:
+    profiles: ["supabase-functions"]
+
+  # ─── CONNECT Supabase services to app networks ──────────────
+  # Debug ports: bound to 127.0.0.1 for local dev access.
+  # In production, Caddy routes all traffic — these ports are not
+  # reachable from outside since Caddy is the only service on 80/443.
+  kong:
+    # Port mapping in docker-compose.private.yml only (127.0.0.1:8000)
+    # In production, Caddy routes api.yourdomain.com → kong:8000 internally
+    networks:
+      default: {}
+      proxy: {}
+    deploy:
+      resources:
+        limits: { cpus: '1.0', memory: 2048M }
+        reservations: { memory: 1024M }
+
+  auth:
+    environment:
+      GOTRUE_EXTERNAL_GOOGLE_ENABLED: ${GOTRUE_EXTERNAL_GOOGLE_ENABLED:-false}
+      GOTRUE_EXTERNAL_GOOGLE_CLIENT_ID: ${GOTRUE_EXTERNAL_GOOGLE_CLIENT_ID:-}
+      GOTRUE_EXTERNAL_GOOGLE_SECRET: ${GOTRUE_EXTERNAL_GOOGLE_SECRET:-}
+      GOTRUE_EXTERNAL_GOOGLE_REDIRECT_URI: ${GOTRUE_EXTERNAL_GOOGLE_REDIRECT_URI:-}
+      GOTRUE_EXTERNAL_APPLE_ENABLED: ${GOTRUE_EXTERNAL_APPLE_ENABLED:-false}
+      GOTRUE_EXTERNAL_APPLE_CLIENT_ID: ${GOTRUE_EXTERNAL_APPLE_CLIENT_ID:-}
+      GOTRUE_EXTERNAL_APPLE_SECRET: ${GOTRUE_EXTERNAL_APPLE_SECRET:-}
+      GOTRUE_EXTERNAL_APPLE_REDIRECT_URI: ${GOTRUE_EXTERNAL_APPLE_REDIRECT_URI:-}
+    deploy:
+      resources:
+        limits: { cpus: '0.25', memory: 128M }
+        reservations: { memory: 64M }
+
+  rest:
+    deploy:
+      resources:
+        limits: { cpus: '0.5', memory: 256M }
+        reservations: { memory: 128M }
+
+  realtime:
+    deploy:
+      resources:
+        limits: { cpus: '0.5', memory: 512M }
+        reservations: { memory: 256M }
+
+  storage:
+    deploy:
+      resources:
+        limits: { cpus: '0.5', memory: 512M }
+        reservations: { memory: 256M }
+
+  imgproxy:
+    deploy:
+      resources:
+        limits: { cpus: '0.5', memory: 256M }
+        reservations: { memory: 128M }
+
+  supavisor:
+    ports:
+      - "127.0.0.1:54329:6543"
+    networks:
+      default: {}
+      data: {}
+    deploy:
+      resources:
+        limits: { cpus: '0.5', memory: 512M }
+        reservations: { memory: 256M }
+
+  db:
+    ports:
+      - "127.0.0.1:54322:5432"
+    # Schema + seed run AFTER Supabase own init (prefix 99- ensures ordering).
+    # Only executed on a fresh/empty database (Docker init script behavior).
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/99-pod-schema.sql:ro
+      - ./database/seed.sql:/docker-entrypoint-initdb.d/99-pod-seed.sql:ro
+    deploy:
+      resources:
+        limits: { cpus: '2.0', memory: 2048M }
+        reservations: { memory: 1024M }
+
+  analytics:
+    deploy:
+      resources:
+        limits: { cpus: '0.5', memory: 1024M }
+        reservations: { memory: 512M }
+
+  vector:
+    deploy:
+      resources:
+        limits: { cpus: '0.25', memory: 128M }
+        reservations: { memory: 64M }
+
+  # ─── MAP env vars: Supabase standard → app services ─────
+  # These overrides redirect app services to use the local
+  # Kong gateway instead of Supabase Cloud.
+  frontend:
+    build:
+      args:
+        NEXT_PUBLIC_SUPABASE_URL: ${SUPABASE_PUBLIC_URL:-http://localhost:8000}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${ANON_KEY}
+    environment:
+      SUPABASE_URL: http://kong:8000
+      SUPABASE_SERVICE_KEY: ${SERVICE_ROLE_KEY}
+      SUPABASE_ANON_KEY: ${ANON_KEY}
+
+  admin:
+    environment:
+      SUPABASE_URL: http://kong:8000
+      SUPABASE_SERVICE_KEY: ${SERVICE_ROLE_KEY}
+      SUPABASE_ANON_KEY: ${ANON_KEY}
+      NEXT_PUBLIC_SUPABASE_URL: ${SUPABASE_PUBLIC_URL:-http://localhost:8000}
+
+  podclaw:
+    environment:
+      SUPABASE_URL: http://kong:8000
+      SUPABASE_SERVICE_KEY: ${SERVICE_ROLE_KEY}
+      SUPABASE_PUBLIC_URL: ${SUPABASE_PUBLIC_URL:-http://localhost:8000}
+
+  mcp-server:
+    environment:
+      SUPABASE_URL: http://kong:8000
+      SUPABASE_SERVICE_KEY: ${SERVICE_ROLE_KEY}
+      SUPABASE_ANON_KEY: ${ANON_KEY}
+
+# Networks defined in docker-compose.yml — referenced here without external
+# Docker Compose merges network definitions across all -f files
+networks:
+  proxy:
+  data:
