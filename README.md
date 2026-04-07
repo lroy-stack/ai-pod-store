@@ -90,14 +90,11 @@ You need accounts with these services to run the platform:
 |---------|---------|-------------|
 | **Supabase** | Database, auth, storage | [supabase.com](https://supabase.com) → free tier available |
 | **Stripe** | Payments + webhooks | [stripe.com](https://stripe.com) → test mode available |
-| **Printify** | Product catalog, storefront sync | [printify.com](https://printify.com) → required for frontend |
-| **Printful** | PodClaw agent fulfillment ops | [printful.com/api](https://www.printful.com/api) → required for agents |
+| **Printful** | Product fulfillment (storefront + agents) | [printful.com/api](https://www.printful.com/api) → required |
 | **Resend** | Transactional + marketing email | [resend.com](https://resend.com) → free tier available |
 | **Google Gemini** | AI embeddings for product search | [aistudio.google.com](https://aistudio.google.com) → free tier available |
 | **fal.ai** | AI image generation (FLUX.1) | [fal.ai](https://fal.ai) → pay-per-use |
 | **Anthropic** | Autonomous agent system | [claude.ai/max](https://claude.ai) → Max plan **or** [console.anthropic.com](https://console.anthropic.com) → API key |
-
-> **Dual fulfillment:** The storefront and admin use **Printify** for catalog sync and webhook handling. The PodClaw autonomous agents use **Printful** for product management operations. Both API tokens are required for the full stack.
 
 > **Note:** PodClaw supports two authentication modes:
 > - **Claude Max plan** (recommended for personal use): run `claude auth login` once — no API key needed.
@@ -168,7 +165,6 @@ pod-platform/
 | Database | Supabase (PostgreSQL 16 + pgvector + Auth + RLS) |
 | Cache | Redis 7 |
 | Payments | Stripe (Checkout + Webhooks + Tax) |
-| Fulfillment (storefront) | Printify API |
 | Fulfillment (agents) | Printful API |
 | AI: Images | fal.ai (FLUX.1 Schnell) |
 | AI: Search | Google Gemini embeddings + pgvector |
