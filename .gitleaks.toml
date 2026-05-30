@@ -1,0 +1,62 @@
+# gitleaks config — skapara / ai-pod-store
+# Detección de secretos antes de commit y en CI
+
+title = "skapara gitleaks config"
+
+[extend]
+# Usar reglas por defecto de gitleaks + añadir reglas custom
+useDefault = true
+
+[[rules]]
+id = "supabase-service-role-key"
+description = "Supabase service_role JWT"
+regex = '''eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9\.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6[a-zA-Z0-9_-]{20,}'''
+tags = ["supabase", "jwt"]
+
+[[rules]]
+id = "printify-jwt"
+description = "Printify API JWT token"
+regex = '''eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9\.[a-zA-Z0-9_-]{100,}'''
+tags = ["printify", "jwt"]
+
+[[rules]]
+id = "fal-api-key"
+description = "fal.ai API key"
+regex = '''[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}:[0-9a-f]{32}'''
+tags = ["fal", "api-key"]
+
+[[rules]]
+id = "resend-api-key"
+description = "Resend API key"
+regex = '''re_[a-zA-Z0-9_]{20,}'''
+tags = ["resend", "api-key"]
+
+[[rules]]
+id = "hex-secret-64"
+description = "64-char hex secret (Redis password, JWT secrets, webhook secrets)"
+regex = '''[0-9a-f]{64}'''
+tags = ["hex-secret"]
+[rules.allowlist]
+# Permitir hashes SHA-256 en comentarios de documentación
+regexes = ['''#.*[0-9a-f]{64}''']
+
+[allowlist]
+# Ignorar archivos de ejemplo y tests
+paths = [
+  '''.env.example''',
+  '''.env.*.example''',
+  '''\.env\.test''',
+  '''test.*''',
+  '''spec.*''',
+  '''__tests__''',
+  '''\.md$''',
+]
+# Ignorar placeholders genéricos
+regexes = [
+  '''your-[a-z-]+''',
+  '''placeholder''',
+  '''your_token''',
+  '''test-.*-secret''',
+  '''test_webhook_secret''',
+  '''mock_token''',
+]
