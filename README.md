@@ -29,8 +29,8 @@ Everything is configurable from a single `.env` file. No code changes required t
 
 ```bash
 # 1. Clone
-git clone https://github.com/lroy-stack/podai-store.git
-cd podai-store
+git clone https://github.com/lroy-stack/ai-pod-store.git
+cd ai-pod-store
 
 # 2. Create your config (auto-created on first run)
 ./start.sh --private
